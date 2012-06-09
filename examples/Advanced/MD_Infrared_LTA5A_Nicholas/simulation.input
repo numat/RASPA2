@@ -1,0 +1,21 @@
+SimulationType               MolecularDynamics
+NumberOfCycles               250000
+NumberOfEquilibrationCycles  10000
+PrintEvery                   100
+RestartFile                  no
+
+Ensemble                     NVT
+
+Forcefield                   Nicholas
+TimeStep                     0.0005
+
+Framework 0
+FrameworkName LTA_SI
+RemoveAtomNumberCodeFromLabel yes
+UnitCells 1 1 1
+ExternalTemperature 600.0
+ComputeInfraRedSpectra yes
+WriteInfraRedSpectraEvery 5000
+
+FlexibleFramework yes
+FrameworkDefinitions NicholasModified

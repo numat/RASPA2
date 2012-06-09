@@ -1,0 +1,26 @@
+SimulationType                MonteCarlo
+NumberOfCycles                250000
+NumberOfInitializationCycles  25000
+PrintEvery                    10000
+RestartFile                   no
+
+ChargeMethod                  Ewald
+CutOff                        12.0
+Forcefield                    Dubbeldam2007FlexibleIRMOF-1
+EwaldPrecision                1e-6
+
+Framework 0
+FrameworkName IRMOF-1-Ar
+UnitCells 1 1 1
+CutOffIons 1.0
+IonsName IRMOF-1-Ar
+ComputeCationAndAdsorptionSites yes
+ExternalTemperature 30.0
+ExternalPressure 0
+
+Component 0 MoleculeName             argon
+            MoleculeDefinition       TraPPE
+            TranslationProbability   1.0
+            ReinsertionProbability   1.0
+            ExtraFrameworkMolecule   yes
+            CreateNumberOfMolecules  32

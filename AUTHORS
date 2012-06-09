@@ -1,0 +1,7 @@
+David Dubbeldam  <Dubbeldam@uva.nl>
+
+specific parts:
+1) inverse space groups: Juan Manuel Castillo Sanchez <jmcassan@upo.es>
+2) pore-size distribution code: Tina Düren <tina.duren@ed.ac.uk>, Lev Sarkisov <Lev.Sarkisov@ed.ac.uk>
+3) surface area code: Tina Düren <tina.duren@ed.ac.uk>, Lev Sarkisov <Lev.Sarkisov@ed.ac.uk>
+4) random number generator: Takuji Nishimura and Makoto Matsumoto.

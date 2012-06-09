@@ -1,0 +1,38 @@
+SimulationType                MonteCarlo
+NumberOfCycles                10000
+NumberOfInitializationCycles  1000
+PrintEvery                    100
+PrintPropertiesEvery          100
+
+Forcefield                    GarciaPerez2006
+
+Framework 0
+FrameworkName LTA5A
+RemoveAtomNumberCodeFromLabel yes
+ModifyFrameworkAtomConnectedTo O Oa Al
+UnitCells 1 1 1
+ExternalTemperature 298.0
+
+Component 0 MoleculeName             sodium
+            MoleculeDefinition       TraPPE
+            TranslationProbability   1.0
+            ReinsertionProbability   1.0
+            ExtraFrameworkMolecule   yes
+            CreateNumberOfMolecules  32
+
+Component 1 MoleculeName             calcium
+            MoleculeDefinition       TraPPE
+            TranslationProbability   1.0
+            ReinsertionProbability   1.0
+            ExtraFrameworkMolecule   yes
+            CreateNumberOfMolecules  32
+
+Component 2 MoleculeName             methane
+            StartingBead             0
+            BlockPockets             yes
+            BlockPocketsFileName     LTA5A
+            MoleculeDefinition       TraPPE
+            SurfaceAreaProbability   1.0
+            CreateNumberOfMolecules  0
+
+

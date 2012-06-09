@@ -1,0 +1,69 @@
+URGENT
+======
+
+1) Movies in Snyman (DONE)
+2) Projection of gradient and fixed atoms in Snyman (DONE)
+3) CIF-reader: check if pseudo_atom already exists (DONE)
+4) CIF-reader: obtain mass of the pseudo_atom using a table (DONE)
+5) CIF-reader: handle occupancy<1
+6) different names for movies using pressure in extension (Ben S.) (DONE)
+7) reduced units (DONE)
+8) pressure/stress in SHAKE
+9) Automatic chiral move based on space group (DONE)
+10) bond-information in CIF-file 
+11) _data in CIF-file (e.g. several section of _atom_site)
+12) GULP output-writer (DONE)
+13) check RDF at very low density (DONE)
+14) BornTerm (correction for rigid units)
+15) second-derivative for bend-rigid and torsion-rigid flexible-rigid transitions
+
+
+1) modify Buckingham, to avoid overlap
+2) document potentials
+3) check dielectric constant
+4) check growing without bending/torsion
+
+
+1) strain-derivative anisotropic model
+
+
+SPECIFIC
+========
+1) ring topologies using CBMC
+2) analytical expression for Born-terms
+3) correct 3D density-plots for framework drift
+4) remove kinetic energy from core-shell pair (see Rattle)
+5) finish direct Coulomb, shifted Coulomb, Wolf-method, molecular cutoff
+6) analytical expressions for cross-terms (bond/bend, bond/torsion, bend/bend, bend/torsion, etc)
+   Hessian, Born term, and cross terms for all potentials
+
+GENERAL
+=======
+speed optimization
+smoothing for direct bonddipole-bondipole (DONE)
+Monte-Carlo routines for bond-dipoles
+Minimization using constraints
+cyclic flexible molecules
+rigid/quaternion minimization (DONE)
+symplectic NosePointCare integrators for NVT, NPT, and NPT-PR
+Documentation
+Verify code with test-cases
+Make Examples
+Ewald dipoles (DONE)
+Polarization (DONE)
+Reptation move
+Verlet lists/ cell lists
+pressure in MC (DONE)
+core-shell model (DONE)
+symmetry/spacegroup for force/hessian
+all inverse space groups
+find space group(s)
+saddle point search
+VDW using Ewald
+Histogram-reweighting (run-time)
+Ewald 2D
+Add clays, carbon-nanotubes, and metal-oxides structures
+Lattice Boltzmann
+Lattice gases
+Kinetic Monte Carlo
+Graphical User Interface (QT, Cocoa)

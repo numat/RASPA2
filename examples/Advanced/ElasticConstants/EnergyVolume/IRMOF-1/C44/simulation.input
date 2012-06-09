@@ -1,0 +1,36 @@
+SimulationType                   Minimization
+MinimizationMethod               Baker
+MinimizationMethod               Snyman
+NumberOfCycles                   1
+NumberOfInitializationCycles     0
+NumberOfEquilibrationCycles      0
+PrintEvery                       100
+RestartFile                      yes
+
+RMSGradientTolerance 1e-6
+MaxGradientTolerance 1e-6
+MaximumStepLength 0.3
+
+Ensemble        NVT
+
+TransformUnitCell yes
+UnitCellDeformation 0.005
+ElasticConstantEnergyVolume CUBIC_C44
+
+ComputeElasticConstants yes
+
+CutOff                           12.0
+ChargeMethod                     Ewald
+Forcefield                       Dubbeldam2007FlexibleIRMOF-1
+EwaldPrecision                   1e-8
+TimeStep                         0.00005
+
+Framework 0
+Frameworkname IRMOF-1
+UnitCells 1 1 1
+ExternalPressure 0.0e9
+Movies yes
+WriteMoviesEvery 100
+
+FlexibleFramework yes
+FrameworkDefinitions Dubbeldam2007FlexibleIRMOF-1

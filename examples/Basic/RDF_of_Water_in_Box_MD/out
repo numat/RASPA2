@@ -1,0 +1,6 @@
+Shift all potentials
+'force_field.def' file not found and therefore not used
+BOX: 24.83 24.83 24.83
+Realloc MaxNumberOfCoulombicSites: 1546
+Realloc MaxNumberOfCoulombicSites: 2058
+Done reading 'simulation.input'

@@ -1,0 +1,20 @@
+_cell_length_a: 25.832000
+_cell_length_b: 25.832000
+_cell_length_c: 25.832000
+_cell_length_alpha: 90.000000
+_cell_length_beta: 90.000000
+_cell_length_gamma: 90.000000
+_symmetry_space_group_name_Hall: -F 4 2 3 found space group: 523
+_symmetry_space_group_name_H-M: F m -3 m found space group: 523
+_symmetry_Int_Tables_number: 523
+space group found from symmetry elements: 523 (nr elements: 192)
+End reading cif-file
+Shift all potentials
+Done reading 'simulation.input'
+ShiftGrid: 0 0 0
+SizeGrid: 25.832 25.832 25.832
+Number of grid points: 258 258 258
+NumberOfGrids: 2
+Writing Grid
+Writing Grid
+Writing Grid

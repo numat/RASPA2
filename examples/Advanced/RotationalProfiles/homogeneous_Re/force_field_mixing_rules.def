@@ -1,0 +1,71 @@
+# general rule for shifted vs truncated
+shifted
+# general rule tailcorrections
+no
+# number of defined interactions
+62
+# type interaction
+He             lennard-jones    10.9      2.64
+CH4_sp3        lennard-jones    158.5     3.72
+CH3_sp3        lennard-jones    108.0     3.76
+CH2_sp3        lennard-jones    56.0      3.96
+CH_sp3         lennard-jones    17.0      4.67
+C_sp3          lennard-jones     0.8      6.38
+H_com          lennard-jones    36.7      2.958
+O_co2          lennard-jones    79.0      3.05
+C_co2          lennard-jones    27.0      2.80
+C_benz         lennard-jones    30.70     3.60
+H_benz         lennard-jones    25.45     2.36
+N_n2           lennard-jones    36.0      3.31
+Ow             lennard-jones    89.633    3.097
+Osa            lennard-jones    48.19     3.03   
+Osb            lennard-jones    48.19     3.03   
+Mn             lennard-jones     6.55     2.64
+Cl             lennard-jones   142.6      3.52
+Nsa            lennard-jones    38.977    3.263  
+Nsb            lennard-jones    38.977    3.263  
+Nsc            lennard-jones    38.977    3.263  
+Csa            lennard-jones    47.86     3.47
+Csb            lennard-jones    47.86     3.47 
+Csc            lennard-jones    47.86     3.47
+Csd            lennard-jones    47.86     3.47
+Cse            lennard-jones    47.86     3.47
+Csf            lennard-jones    47.86     3.47
+Csg            lennard-jones    47.86     3.47
+Csh            lennard-jones    47.86     3.47
+Csi            lennard-jones    47.86     3.47
+Csj            lennard-jones    47.86     3.47
+Csk            lennard-jones    47.86     3.47
+Csl            lennard-jones    47.86     3.47
+Csm            lennard-jones    47.86     3.47
+Csn            lennard-jones    47.86     3.47
+Cso            lennard-jones    47.86     3.47
+Hsa            lennard-jones     7.65     2.85
+Hsb            lennard-jones     7.65     2.85
+Hsc            lennard-jones     7.65     2.85
+Hsd            lennard-jones     7.65     2.85
+Hse            lennard-jones     7.65     2.85
+Hsf            lennard-jones     7.65     2.85
+Hsg            lennard-jones     7.65     2.85
+Hsh            lennard-jones     7.65     2.85
+Hsi            lennard-jones     7.65     2.85
+Oxo            lennard-jones    48.19     3.03
+C1_R           lennard-jones    47.86     3.47
+C2_R           lennard-jones    47.86     3.47
+C3_R           lennard-jones    47.86     3.47
+C4_R           lennard-jones    47.86     3.47
+C5_R           lennard-jones    47.86     3.47
+C6_R           lennard-jones    47.86     3.47
+C2_2           lennard-jones    47.86     3.47
+C1_2           lennard-jones    47.86     3.47
+C1_3           lennard-jones    47.86     3.47
+C2_3           lennard-jones    47.86     3.47
+H_CR           lennard-jones     7.65     2.85
+H_C2           lennard-jones     7.65     2.85
+H_C3           lennard-jones     7.65     2.85
+O_3            lennard-jones    48.19     3.03
+C_DCM          lennard-jones    47.86     3.47
+H_DCM          lennard-jones     7.65     2.85
+Cl_DCM         lennard-jones   142.6      3.52
+# general mixing rule for Lennard-Jones
+Lorentz-Berthelot

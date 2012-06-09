@@ -1,0 +1,26 @@
+#number of pseudo atoms
+23
+#type        print  as  scatt  oxidation mass       charge  polarization B-factor radii  connectivity
+UNIT         yes     H     H   -         1.0        1.0     0.0          1.0      1.0    0
+He           yes    He    He   -         4.002602   0.0     0.0          1.0      1.0    0
+O            yes      O    O   -         15.9994   -0.823   1.11         1.0      0.68   2
+Oa           yes      O    O   -         15.9994   -0.823   1.11         1.0      0.68   2
+Op           yes      O    O   -         15.9994   -0.823   1.11         1.0      0.68   2
+Si           yes     Si    Si  -         28.0855    1.396   0.44         1.0      1.18   4
+Al           yes     Al    Al  -         26.981539  1.396   0.44         1.0      1.18   4
+P            yes     P     P   -         30.97376   0.0     0.0          1.0      1.00   0
+CH4_sp3      yes     C     C   -         16.04246   0.00001 1.0          1.0      1.00   0
+CH3_sp3      yes     C     C   -         15.03452   0.0     0.0          1.0      1.00   0
+CH2_sp3      yes     C     C   -         14.02658   0.0     0.0          1.0      1.00   0
+CH_sp3       yes     C     C   -         13.01864   0.0     0.0          1.0      1.00   0
+C_sp3        yes     C     C   -         12.0       0.0     0.0          1.0      1.00   0
+C_benz       yes     C     C   -         12.0      -0.095   0.0          1.0      0.70   0
+H_benz       yes     H     H   -         1.00794    0.095   0.0          1.0      0.320  0
+Na           yes     Na    Na  -         22.98977   1.0     0.15         1.0      1.27   0
+K            yes     K     K   -         40.078     1.0     0.78         1.0      1.00   0
+IonP         yes     K     K   -         40.078     1.0     0.78         1.0      1.00   0
+IonN         yes     K     K   -         40.078    -1.0     0.78         1.0      1.00   0
+K            yes     K     K   -         40.078     1.0     0.78         1.0      1.00   0
+C_aro        yes     C     C   -         12.0      -0.115   1.9          1.0      1.00   0
+CH3_aro      yes     C     C   -         12.0       0.115   2.0          1.0      1.00   0
+H_aro        yes     H     H   -         1.00794    0.115   0.64         1.0      1.00   0

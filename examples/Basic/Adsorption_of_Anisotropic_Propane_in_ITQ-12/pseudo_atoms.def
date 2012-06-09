@@ -1,0 +1,14 @@
+#number of pseudo atoms
+11
+#type      print   as    chem  oxidation   mass        charge   polarization B-factor radii  connectivity anisotropic anisotropic-type   tinker-type
+UNIT       yes     H     H     -           1.0         1.0      0.0          1.0      1.0    0            0           absolute           0
+He         yes     He    He    -           4.002602    0.0      0.0          1.0      1.0    0            0           absolute           0
+O          yes     O     O     -           15.9994    -1.025    0.0          1.0      0.5    2            0           absolute           0
+Si         yes     Si    Si    -           28.0855     2.05     0.0          1.0      1.18   4            0           absolute           0
+CH4        yes     C     C     -           16.04246    0.0      0.0          1.0      1.00   0            0           absolute           0
+CH3_sp3    yes     C     C     -           15.03452    0.0      0.0          1.0      1.00   0            0.216       absolute           0
+CH2_sp3    yes     C     C     -           14.02658    0.0      0.0          1.0      1.00   0            0.384       absolute           0
+CH_sp3     yes     C     C     -           13.01864    0.0      0.0          1.0      1.00   0            0.646       absolute           0
+CH2_sp2    yes     C     C     -           14.02658    0.0      0.0          1.0      1.00   0            0.295       absolute           0
+CH_sp2     yes     C     C     -           13.01864    0.0      0.0          1.0      1.00   0            0.414       absolute           0
+C_sp2      yes     C     C     -           12.0        0.0      0.0          1.0      1.00   0            0           absolute           0

@@ -1,0 +1,36 @@
+SimulationType                   MonteCarlo
+NumberOfCycles                   100000000
+NumberOfInitializationCycles     5000
+PrintEvery                       1000
+
+Forcefield                       GarciaPerez2006
+
+Framework                        0
+FrameworkName                    DDR
+RemoveAtomNumberCodeFromLabel    yes
+ShiftUnitCells                   0.0 0.0 0.0
+UnitCells                        2 2 1
+ExternalTemperature              300.0
+PutMoleculeOnBarrier             yes
+BarrierPosition                  0.5 0.5 1.0
+WritedcTSTSnapShotsToFile        yes
+WritedcTSTSnapShotsEvery         1000
+
+
+component 0 MoleculeName                     methane
+            StartingBead                     0
+            MoleculeDefinition               TraPPE
+            TranslationProbability           1.0
+              TranslationDirection           ORTHOGONAL_TO_AB_DIR
+            RotationProbability              1.0
+            ReinsertionInPlaceProbability    1.0
+            CreateNumberOfMolecules          0
+
+component 1 MoleculeName                     methane
+            StartingBead                     0
+            MoleculeDefinition               TraPPE
+            TranslationProbability           1.0
+              TranslationDirection           XYZ
+            RotationProbability              1.0
+            ReinsertionInPlaceProbability    1.0
+            CreateNumberOfMolecules          23

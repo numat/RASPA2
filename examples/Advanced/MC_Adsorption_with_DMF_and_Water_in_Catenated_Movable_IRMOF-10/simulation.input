@@ -1,0 +1,53 @@
+SimulationType                MC
+NumberOfCycles                1000
+NumberOfInitializationCycles  10
+RestartFile                   no
+PrintEvery                    10
+
+ContinueAfterCrash            no
+WriteBinaryRestartFileEvery   100
+
+
+Forcefield                    Dubbeldam2007FlexibleIRMOF-16
+CutOff                        12.0
+EwaldPrecision                1e-6
+
+Framework 0
+FrameworkName IRMOF-16
+FlexibleFramework no
+ShiftUnitCells 0.0 0.0 0.0
+FrameworkName IRMOF-16
+FlexibleFramework no
+ShiftUnitCells 0.16666 0.16666 0.16666
+
+FrameworkDefinitions Dubbeldam2007FlexibleIRMOF-16
+ComputeFrameworkSpacingHistogram yes
+ExternalTemperature 298.0
+ExternalPressure 0.5e5
+
+FrameworkShiftMoveProbability 1.0
+
+Component 0 MoleculeName             DMF_CS2
+            MoleculeDefinition       Rigid
+            TranslationProbability   0.5
+            RotationProbability      0.5
+            ReinsertionProbability   0.25
+            ExtraFrameworkMolecule   yes
+            CreateNumberOfMolecules  16
+
+Component 1 MoleculeName             Tip5p
+            MoleculeDefinition       Water
+            TranslationProbability   0.5
+            RotationProbability      0.5
+            ReinsertionProbability   0.25
+            ExtraFrameworkMolecule   yes
+            CreateNumberOfMolecules  40
+
+Component 2 MoleculeName             CO2
+            MoleculeDefinition       TraPPE
+            TranslationProbability   0.5
+            RotationProbability      0.5
+            ReinsertionProbability   0.25
+            SwapProbability          1.0
+            ExtraFrameworkMolecule   no
+            CreateNumberOfMolecules  0

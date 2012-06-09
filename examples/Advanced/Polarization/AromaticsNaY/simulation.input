@@ -1,0 +1,41 @@
+SimulationType                MonteCarlo
+NumberOfCycles                1
+NumberOfInitializationCycles  0
+PrintEvery                    100
+RestartFile                   no
+
+RandomSeed 10
+
+Forcefield                          AromaticsFuchs2001
+ComputePolarization                 yes
+BackPolarization                    yes
+NumberOfBackPolarizationSteps       5
+ChargeMethod                        Ewald
+CutOff                              12.0
+
+OmitIntraFrameworkPolarization yes
+OmitAdsorbateAdsorbatePolarization yes
+OmitCationCationPolarization yes
+OmitAdsorbateCationPolarization yes
+
+Framework 0
+FrameworkName FAU_Fitch
+UnitCells 1 1 1
+ExternalTemperature 423
+ExternalPressure 0
+
+ComputeEnergyHistogram yes
+WriteEnergyHistogramEvery 500
+EnergyHistogramSize 500
+EnergyHistogramLowerLimit -11000
+EnergyHistogramUpperLimit 2000
+
+component 0 MoleculeName             m-xylene
+            StartingBead             0
+            MoleculeDefinition       AromaticsFuchs
+            TranslationProbability   1.0
+            RotationProbability      1.0
+            ReinsertionProbability   1.0
+            SwapProbability          0.0
+            CreateNumberOfMolecules  1
+

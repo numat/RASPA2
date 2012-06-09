@@ -1,0 +1,47 @@
+SimulationType                   MC
+NumberOfCycles                   10000000000000
+NumberOfInitializationCycles     1000
+NumberOfEquilibrationCycles      0
+PrintEvery                       1000
+
+Forcefield                       GarciaPerez2006
+
+Framework                        0
+FrameworkName                    DDR
+RemoveAtomNumberCodeFromLabel    yes
+ShiftUnitCells                   0.0 0.0 0.0
+UnitCells                        2 2 1
+ExternalTemperature              300.0
+
+ComputePositionHistogram         yes
+WritePositionHistogramEvery      5000
+PositionHistogramMappingType     AB_DIAGONAL
+
+component 0 MoleculeName                     methane
+            StartingBead                     0
+            MoleculeDefinition               TraPPE
+            BlockPockets                     yes
+            BlockPocketsFileName             DDR
+            BiasingProfile                   Profile.dat
+            BiasingDirection                 AB_DIAGONAL
+            BiasingMethod                    Umbrella
+            UmbrellaFactor                   0.8
+            RestrictMovesToBox               yes
+            BoxAxisABC_Min                   0 0 0
+            BoxAxisABC_Max                   1 1 0.16666666666666666666 
+            BoxAxisABC_Min2                  0 0 0.83333333333333333333
+            BoxAxisABC_Max2                  1 1 1
+            TranslationProbability           1.0
+            RotationProbability              1.0
+            ReinsertionProbability           1.0
+            CreateNumberOfMolecules          1
+
+component 1 MoleculeName                     methane
+            StartingBead                     0
+            MoleculeDefinition               TraPPE
+            BlockPockets                     yes
+            BlockPocketsFileName             DDR
+            TranslationProbability           1.0
+            RotationProbability              1.0
+            ReinsertionProbability           1.0
+            CreateNumberOfMolecules          23

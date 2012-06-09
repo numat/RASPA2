@@ -1,0 +1,118 @@
+RASPA 2011 (version 0.99)
+========================
+
+This software is a general purpose classical simulation package. It has been developed at
+Northwestern University (Evanston, USA) during 2006-2011 in active collaboration 
+with University Pablo de Olavide (Seville, Spain).
+It can be used for the simulation of molecules in gases, fluids, zeolites, aluminosilicates,
+metal-organic frameworks, carbon nanotubes and external fields.
+It has incorporated most of the capacilities of DLPOLY, BIGMAC, BIGGERMAC, TINKER, MUSIC, GULP, and COTA.
+
+Unique aspects of RASPA:
+1) No other code has such an interwoven (MD, MC, Minimization) structure
+2) Bond-dipoles implemented using Ewald
+3) dynamically corrected Transition State Theory
+4) flexible framework models
+5) multiple systems with multiple frameworks
+
+
+CAPABILITIES:
+=============
+
+The software has the following capabilities:
+
+  [A] General
+  ===========
+   1) linear and branched (chiral) molecules
+   2) a molecule can consist of rigid and flexible units (i.e. aromatics)
+   3) general configurational-bias Monte Carlo (including intra molecular cross-terms potentials)
+   4) over 50 molecules included, automatic generation of TraPPE molecules
+   5) over 50 zeolites and metal-organic frameworks included
+   6) NVT, muVT, NPT, and osmotic ensembles.
+   7) fixed and flexible framework models
+   8) multiple system (i.e. [hyper] parallel tempering)
+   9) multiple frameworks per system (i.e. catenation in MOFS, clays, and slit-pores)
+  10) tricubic grid interpolation for rigid frameworks
+  11) many funtional forms for stretch, bend, (improper) torsion, stretch-stretch, stretch-bend, bend-bend,
+      bend-torsion, stretch-torsion, and inversion-bends.
+      compatible force fields:
+        * MM2/MM3 (bond-dipoles)
+        * TraPPE
+        * OPLS (1-4 VDW and Coulomb scaling)
+  12) Multi-components for adsorption and diffusion
+  13) Automatic computation of fugacity coefficients for single and multicomponents using e.g. Peng-Robinson
+  14) Computation of analytical Hessian for mode analysis, normal-mode Monte-Carlo, minimization
+  15) Adsorption computations, absolute and excess properties
+  16) powder diffraction patterns (neutron, electron, and x-ray scattering)
+  17) computation of 'surface areas', 'void fractions', and 'pore-size distributions' of frameworks
+  18) charges and bond-dipoles using Ewald summation
+  19) calculation of:
+      - radial distribution function
+      - bond/bend/torsion distribution
+      - principle moments of inertia
+  20) (anamolous) scattering factors for neutral atoms and ions
+  21) spline-fitting, used for Umbrella sampling and dcTST
+  22) polarization using self-consistent iteration
+
+  [B] Molecular Dynamics
+  ======================
+   1) linear and branched molecules
+   2) NVE,NVT,NPT,NPT-PR ensembles
+   3) Sympletic, measure preserving integration, quaternions for rigid units
+   4) Thermo and Barostats: Nose-Hoover
+   5) Automatic generation of non-overlapping initial configuration (upto very high densities)
+   6) calculation of:
+      - mean squared displacement (order-n algorithm) for self-and corrected diffusivity
+   7) generation of pdb-movies
+   8) Infrared (IR),Neutron-scattering (NS) spectra
+   9) Elastic constants (Born term implemented for most potentials)
+   
+  [C] Monte Carlo capabilities 
+  ============================
+   1) NVT, NPT, muVT, osmotic ensembles
+   2) Configurational Bias Monte carlo (CBMC)
+      - branches are handled correctly (all grown at the same time)
+      - cbcm can handle very stiff potentials
+      - cbcm can handle a large number of ligands
+      - the stereo-chemistry can be specified
+      - coupled-decoupled for torsion (there can be several torsions on the same bond)
+   3) Automatic generation of non-overlapping initial configuration
+   4) calculation of the Rosenbluth factors, Henry coefficients and heats of adsorption
+   5) free energy profiles in nanoporous materials (for dynamically corrected transition state theory)
+   6) adsorption in zeolites, metal-organic frameworks, and carbon nanotubes
+   7) MC moves:
+      - translation
+      - random translation
+      - random rotation
+      - CBMC (partial regrow)
+      - reinsertion
+      - swap (insertion and deletion)
+      - identity switch
+      - volume-move (isotropic, non-isotropic, or full-cell)
+      - hybrid MD-move
+      - parallel tempering
+      - hyper parallel tempering
+
+  [D] dcTST capabilities
+  ======================
+   1) Computation of self-diffusivity at infinite dilution
+   2) Computation of self-diffusivity at finite loading using umbrella or histogram sampling
+
+  [E] Minimization capabilities
+  =============================
+   1) minimization of positions and unit cell shape/size.
+   2) Mode-following or Baker's minimization
+   3) hard and soft constraints, distance/angle/dihedral
+   3) Snyman minimization
+   4) "Global" minimization
+
+  [F] Zero Kelvin properties
+  ==========================
+   1) Elastic constants (including the relaxation term)
+   2) Infra-red spectrum
+
+  [G] Visualization
+  =================
+    1) pdb-output
+    2) VTK (Visualization ToolKit) output of framework
+    3) 3D volume-rendering output of a probe molecules

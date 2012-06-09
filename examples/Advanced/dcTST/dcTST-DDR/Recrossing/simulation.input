@@ -1,0 +1,20 @@
+SimulationType                   BarrierRecrossing
+
+Forcefield                       GarciaPerez2006
+
+Framework                        0
+FrameworkName                    DDR
+ShiftUnitCells                   0.0 0.0 0.0
+RemoveAtomNumberCodeFromLabel    yes
+UnitCells                        2 2 1
+ExternalTemperature              300.0
+FreeEnergyMappingType            AB_DIAGONAL
+BarrierPosition                  0.5 0.5 1.0
+MaxBarrierDistance               4.0
+MaxBarrierTime                   10.0
+NumberOfVelocities               1
+
+component 0 MoleculeName                     methane
+            StartingBead                     0
+            MoleculeDefinition               TraPPE
+            CreateNumberOfMolecules          0

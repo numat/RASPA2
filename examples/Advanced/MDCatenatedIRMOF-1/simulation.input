@@ -1,0 +1,30 @@
+SimulationType                   MolecularDynamics
+NumberOfCycles                   10000
+NumberOfEquilibrationCycles      1000
+NumberOfInitializationCycles     100
+PrintEvery                       100
+RestartFile                      no
+
+Ensemble NPT
+
+ContinueAfterCrash no
+WriteBinaryRestartFileEvery  25000
+
+ChargeMethod                               Ewald
+InternalFrameworkLennardJonesInteractions  yes
+CutOff                                     12.0
+TimeStep                                   0.001
+Forcefield                                 Dubbeldam2007FlexibleIRMOF-1
+EwaldPrecision                             1e-6
+
+Framework 0
+FrameworkName IRMOF-1
+UnitCells 1 1 1
+FlexibleFramework yes
+ShiftUnitCells 0.25 0.25 0.25
+FrameworkName IRMOF-1
+UnitCells 1 1 1
+FlexibleFramework yes
+FrameworkDefinitions Dubbeldam2007FlexibleIRMOF-1
+ExternalTemperature 300.0
+ExternalPressure    1.0e5

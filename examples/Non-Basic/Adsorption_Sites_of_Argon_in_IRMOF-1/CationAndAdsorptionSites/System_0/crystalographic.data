@@ -1,0 +1,86 @@
+
+Crystallographic data
+=================================================
+
+Average unclassified: 0.153901
+
+
+Cation Position 0
+--------------------------
+Relative Occupation   0.975643 Ions 31.221 Occupation   0.975643
+  [  0.341910   0.158090   0.158090] -> [  0.341911   0.158084   0.158075]
+  distances [x]   0.155384 [y]   0.155369 [z]   0.155873 [xyz]   0.269407   0.308953 count: 7649075.000000
+B-factor:
+  0.038907   0.000041   0.038906
+  0.000041   0.039154  -0.000040
+  0.038906  -0.000040   0.039154
+
+Cation Position 1
+--------------------------
+Relative Occupation   0.000586 Ions 0.019 Occupation   0.000586
+  [  0.124400   0.124400   0.124400] -> [  0.124818   0.124299   0.124202]
+  distances [x]   0.151084 [y]   0.141154 [z]   0.150429 [xyz]   0.255694   0.286761 count: 4597.000000
+B-factor:
+  0.038147   0.000007   0.031419
+  0.000007   0.037744   0.006978
+  0.031419   0.006978   0.037725
+
+Cation Position 2
+--------------------------
+Relative Occupation   0.015749 Ions 0.504 Occupation   0.005250
+  [  0.245800   0.084100   0.084100] -> [  0.245542   0.084360   0.083519]
+  distances [x]   0.172102 [y]   0.172057 [z]   0.169750 [xyz]   0.296712   0.335778 count: 123473.000000
+B-factor:
+  0.045504  -0.000180   0.044983
+ -0.000180   0.043955   0.001857
+  0.044983   0.001857   0.043956
+
+Cation Position 3
+--------------------------
+Relative Occupation   0.003212 Ions 0.103 Occupation   0.002141
+  [  0.341800   0.158200   0.000000] -> [  0.341336   0.157344   0.000226]
+  distances [x]   0.222629 [y]   0.212391 [z]   0.215985 [xyz]   0.375930   0.428775 count: 25181.000000
+B-factor:
+  0.075732  -0.000793   0.073023
+ -0.000793   0.074430  -0.002653
+  0.073023  -0.002653   0.074320
+
+Cation Position 4
+--------------------------
+Relative Occupation   0.000000 Ions 0.000 Occupation   0.000000
+  [  0.119000   0.103000   0.000000] -> [       nan        nan        nan]
+  distances [x]        nan [y]        nan [z]        nan [xyz]        nan        nan count: 0.000000
+B-factor:
+       nan        nan        nan
+       nan        nan        nan
+       nan        nan        nan
+
+Cation Position 5
+--------------------------
+Relative Occupation   0.000000 Ions 0.000 Occupation   0.000000
+  [  0.327100   0.000000   0.000000] -> [       nan        nan        nan]
+  distances [x]        nan [y]        nan [z]        nan [xyz]        nan        nan count: 0.000000
+B-factor:
+       nan        nan        nan
+       nan        nan        nan
+       nan        nan        nan
+
+Cation Position 6
+--------------------------
+Relative Occupation   0.000000 Ions 0.000 Occupation   0.000000
+  [  0.427300   0.072700   0.072700] -> [       nan        nan        nan]
+  distances [x]        nan [y]        nan [z]        nan [xyz]        nan        nan count: 0.000000
+B-factor:
+       nan        nan        nan
+       nan        nan        nan
+       nan        nan        nan
+
+Cation Position 7
+--------------------------
+Relative Occupation   0.000000 Ions 0.000 Occupation   0.000000
+  [  0.000000   0.000000   0.000000] -> [       nan        nan        nan]
+  distances [x]        nan [y]        nan [z]        nan [xyz]        nan        nan count: 0.000000
+B-factor:
+       nan        nan        nan
+       nan        nan        nan
+       nan        nan        nan

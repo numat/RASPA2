@@ -1,0 +1,29 @@
+Box:
+========================================================================
+   40.044000000000     0.000000000000     0.000000000000
+    0.000000000000    39.798000000000     0.000000000000
+    0.000000000000     0.000000000000    26.766000000000
+
+
+Maximum changes for MC-moves:
+========================================================================
+Volume change, maximum: 0.025000
+
+
+Components: 3
+========================================================================
+
+Translation change component 0 [ calcium ], maximum: 0.300000,0.300000,0.300000
+Translation change component 1 [ 44methylethyloctane_L ], maximum: 0.300000,0.300000,0.300000
+Translation change component 2 [ 44methylethyloctane_R ], maximum: 0.300000,0.300000,0.300000
+
+Component: 0     Cation       0 molecules of calcium
+------------------------------------------------------------------------
+
+Component: 1     Adsorbate    0 molecules of 44methylethyloctane_L
+------------------------------------------------------------------------
+
+Component: 2     Adsorbate    0 molecules of 44methylethyloctane_R
+------------------------------------------------------------------------
+
+

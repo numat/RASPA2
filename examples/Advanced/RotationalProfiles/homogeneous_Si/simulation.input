@@ -1,0 +1,62 @@
+SimulationType                   Minimization
+#MinimizationMethod               Snyman
+NumberOfCycles                   10
+NumberOfInitializationCycles     100
+PrintEvery                       10
+RestartFile                      yes
+
+ContinueAfterCrash  no
+WriteBinaryRestartFileEvery  10000
+
+RemoveTranslationFromHessian yes
+RemoveRotationFromHessian yes
+MaximumNumberOfMinimizationSteps 4000
+MaximumStepLength 0.1
+MinimizationConvergenceFactor 1.25
+RMSGradientTolerance 1e-5
+MaxGradientTolerance 1e-5
+
+TimeScaleParameterThermostat 0.01
+Ensemble NVT
+
+ChargeMethod                               CoulombTruncated
+InternalFrameworkLennardJonesInteractions  yes
+TimeStep                                   0.0005
+CutOff                                     12.0
+CutOffCoulomb                              100.0
+Forcefield                                 Local
+EwaldPrecision                             1e-8
+EnergyOverlapCriteria                      1e8
+
+Framework 0
+FrameworkName MnSalen-oxo_Si
+UnitCells 1 1 1
+ExternalTemperature 2000.0
+ExternalPressure 1e5
+FlexibleFramework                yes
+FrameworkDefinitions             Local
+InputFileType cssr
+Movies yes
+WriteMoviesEvery 1
+
+DistanceConstraintType DistanceSquared
+BendConstraintType CosThetaSquared
+DihedralConstraintType Phi
+OutOfPlaneConstraintType Chi
+
+DistanceConstraint F 0 1 A 0 12 2.0
+AngleConstraint F 0 0 F 0 1 A 0 12 122.0
+DihedralConstraint F 0 3 F 0 0 F 0 1 A 0 12 -130.7755
+
+HybridNVEMoveProbability 1.0
+NumberOfHybridNVESteps 20
+
+component 0 MoleculeName                     chromene_S_flexible
+            StartingBead                     12
+            MoleculeDefinition               All-Atom
+            RotationProbability              1.0
+            RestrictEnantionface             yes
+            Enantioface                      Si
+            EnantiofaceAtoms                 F 0 3 F 0 0 F 0 1 A 0 12 A 0 10
+            ExtraFrameworkMolecule           no
+            CreateNumberOfMolecules          0

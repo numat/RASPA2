@@ -1,0 +1,65 @@
+SimulationType                   Minimization
+#MinimizationMethod               Snyman
+NumberOfCycles                   1
+NumberOfInitializationCycles     0
+PrintEvery                       10
+RestartFile                      yes
+
+ContinueAfterCrash  no
+WriteBinaryRestartFileEvery  10000
+
+RemoveTranslationFromHessian no
+RemoveRotationFromHessian no
+MaximumNumberOfMinimizationSteps 1000
+MaximumStepLength 0.05
+MinimizationConvergenceFactor 1.25
+RMSGradientTolerance 1e-4
+MaxGradientTolerance 1e-4
+
+TimeScaleParameterThermostat 0.01
+
+Ensemble NVT
+ChargeMethod                               Ewald
+InternalFrameworkLennardJonesInteractions  yes
+TimeStep                                   0.0005
+CutOff                                     12.0
+CutOffCoulomb                              14.5
+Forcefield                                 Local
+EwaldPrecision                             1e-8
+EnergyOverlapCriteria                      1e8
+
+Framework 0
+FrameworkName MnSalenMof-bothOxo_Si661
+UnitCells 1 1 1
+ExternalTemperature 2000.0
+ExternalPressure 1e5
+FlexibleFramework                yes
+FrameworkDefinitions             Local
+InputFileType cssr
+Movies yes
+WriteMoviesEvery 10
+
+FrameworkFixedInitialization fixed
+ActiveFrameworkAtoms 178   17 25 97 105 112 121 129 137 496 504 512 520 528 536 544 552 560 568 576 584 593 601 608 616 624 633 641 648 652 656 660 664 668 672 676 678 682 686 690 694 699 707 715 723 731 739 747 755 763 771 779 787 795 803 811 819 827 835 843 851 859 867 875 883 891 899 907 915 923 931 939 943 951 959 967 975 983 991 999 1007 1015 1023 1031 1039 1047 1055 1063 1071 1094 1102 1174 1182 1191 1198 1206 1214 1575 1583 1591 1599 1607 1615 1623 1631 1639 1647 1655 1663 1671 1679 1687 1695 1703 1711 1719 1727 1735 1742 1746 1751 1759 1767 1775 1783 1791 1799 1807 1815 1822 1830 1838 1846 1854 1862 1870 1878 1886 1894 1902 1910 1918 1926 1934 1942 1950 1958 1966 1974 1982 1990 1998 2006 2014 2022 2030 2038 2046 2054 2062 2070 2078 2086 2094 2102 2110 2118 2126 2134 2142 2150 2158 2166 2174 2182 2190 2198 2272 2273
+
+DistanceConstraintType DistanceSquared
+BendConstraintType CosThetaSquared
+DihedralConstraintType Phi
+OutOfPlaneConstraintType Chi
+
+DistanceConstraint F 0 2273 A 0 12  2.0
+AngleConstraint F 0 1094 F 0 2273 A 0 12 122.0
+DihedralConstraint F 0 1182 F 0 1094 F 0 2273 A 0 12 -134.6843
+
+HybridNVEMoveProbability 1.0
+NumberOfHybridNVESteps 20
+
+component 0 MoleculeName                     chromene_S_flexible
+            StartingBead                     12
+            MoleculeDefinition               All-Atom
+            RotationProbability              1.0
+            RestrictEnantionface             yes
+            Enantioface                      Si
+            EnantiofaceAtoms                 F 0 1182 F 0 1094 F 0 2273 A 0 12 A 0 10
+            ExtraFrameworkMolecule           no
+            CreateNumberOfMolecules          0

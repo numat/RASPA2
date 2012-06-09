@@ -1,0 +1,36 @@
+
+Crystallographic data
+=================================================
+
+Average unclassified: 2.307411
+
+
+Cation Position 0
+--------------------------
+Relative Occupation   0.705131 Ions 67.693 Occupation   1.057697
+  [  0.099600   0.099600   0.099600] -> [  0.396302   0.099926   0.096774]
+  distances [x]   0.519006 [y]   0.524375 [z]   0.516497 [xyz]   0.900614   0.904551 count: 16584752.000000
+B-factor:
+  0.293951  -0.030021   0.328736
+ -0.030021   0.285191   0.033480
+  0.328736   0.033480   0.290501
+
+Cation Position 1
+--------------------------
+Relative Occupation   0.270833 Ions 26.000 Occupation   0.270833
+  [  0.216500   0.211100   0.000000] -> [  0.215047   0.212678   0.001844]
+  distances [x]   0.354670 [y]   0.198350 [z]   0.156862 [xyz]   0.435590   0.498325 count: 6370026.000000
+B-factor:
+  0.217816  -0.005578   0.054507
+ -0.005578   0.034717  -0.007743
+  0.054507  -0.007743   0.034490
+
+Cation Position 2
+--------------------------
+Relative Occupation   0.000000 Ions 0.000 Occupation   0.000000
+  [  0.250000   0.106000   0.106000] -> [       nan        nan        nan]
+  distances [x]        nan [y]        nan [z]        nan [xyz]        nan        nan count: 0.000000
+B-factor:
+       nan        nan        nan
+       nan        nan        nan
+       nan        nan        nan

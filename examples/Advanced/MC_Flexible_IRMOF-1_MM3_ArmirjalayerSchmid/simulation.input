@@ -1,0 +1,63 @@
+SimulationType                   MC
+NumberOfCycles                   2000
+NumberOfEquilibrationCycles      0
+NumberOfInitializationCycles     100
+PrintEvery                       10
+RestartFile                      no
+
+
+ChargeMethod                               Ewald
+InternalFrameworkLennardJonesInteractions  yes
+DielectricConstantOfTheMedium              1.5
+CutOff                                     12.0
+TimeStep                                   0.0005
+Forcefield                                 AmirjalayerSchmid
+EwaldPrecision                             1e-6
+
+Remove12NeighboursFromChargeChargeInteraction yes
+Remove13NeighboursFromChargeChargeInteraction yes
+Remove14NeighboursFromChargeChargeInteraction no
+
+Remove11NeighboursFromChargeBondDipoleInteraction yes
+Remove12NeighboursFromChargeBondDipoleInteraction yes
+Remove13NeighboursFromChargeBondDipoleInteraction yes
+Remove14NeighboursFromChargeBondDipoleInteraction no
+
+Remove12NeighboursFromBondDipoleBondDipoleInteraction yes
+Remove13NeighboursFromBondDipoleBondDipoleInteraction no
+Remove14NeighboursFromBondDipoleBondDipoleInteraction no
+
+Framework 0
+FrameworkName IRMOF-1
+UnitCells 1 1 1
+FrameworkDefinitions AmirjalayerSchmid
+FlexibleFramework yes
+ExternalTemperature 298.0
+ExternalPressure    10.0e5
+
+FrameworkChangeMoveProbability 1.0
+
+HybridNVEMoveProbability 0.25
+
+Component 0 MoleculeName             ethane
+            StartingBead             0
+            MolFraction              0.9
+            MoleculeDefinition       TraPPE
+            IdealGasRosenbluthWeight 1.0
+            TranslationProbability   1.0
+            RotationProbability      1.0
+            ReinsertionProbability   1.0
+            SwapProbability          1.0
+            CreateNumberOfMolecules  20
+
+Component 1 MoleculeName             CO2
+            StartingBead             0
+            MolFraction              0.1
+            MoleculeDefinition       TraPPE
+            IdealGasRosenbluthWeight 1.0
+            TranslationProbability   1.0
+            RotationProbability      1.0
+            ReinsertionProbability   1.0
+            SwapProbability          1.0
+            CreateNumberOfMolecules  20
+

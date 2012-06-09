@@ -1,0 +1,263 @@
+#CoreShells bond  BondDipoles UreyBradley bend  inv  tors improper-torsion bond/bond bond/bend bend/bend stretch/torsion bend/torsion
+          0   38            0           0   78   14   127                0         0         0         0               0            0
+#bond stretch atom n1-n2, equilibrium distance, bondforce-constant
+Nsa Csa  HARMONIC_BOND 528380.364 1.34
+Nsc Csj  HARMONIC_BOND 704507.151 1.305
+Nsb Csj  HARMONIC_BOND 704507.151 1.305
+Nsc Csk  HARMONIC_BOND 352253.576 1.47
+Nsb Csk  HARMONIC_BOND 352253.576 1.47
+Nsc Mn   HARMONIC_BOND 352253.576 2.00
+Nsb Mn   HARMONIC_BOND 352253.576 2.00
+Osa Csg  HARMONIC_BOND 528380.364 1.31
+Osb Csg  HARMONIC_BOND 528380.364 1.31
+Osa Mn   HARMONIC_BOND 352253.576 1.90
+Osb Mn   HARMONIC_BOND 352253.576 1.90
+Mn  Cl   HARMONIC_BOND 352253.576 2.39
+Csa Csb  HARMONIC_BOND 528380.364 1.39
+Csb Csc  HARMONIC_BOND 528380.364 1.39
+Csc Csd  HARMONIC_BOND 352253.576 1.44
+Csd Cse  HARMONIC_BOND 528380.364 1.39
+Cse Csf  HARMONIC_BOND 528380.364 1.39
+Csf Csg  HARMONIC_BOND 528380.364 1.39
+Csg Csh  HARMONIC_BOND 528380.364 1.39
+Csh Csi  HARMONIC_BOND 528380.364 1.39
+Csi Csd  HARMONIC_BOND 528380.364 1.39
+Csh Csj  HARMONIC_BOND 528380.364 1.39
+Csf Csn  HARMONIC_BOND 352253.576 1.46
+Csn Cso  HARMONIC_BOND 352253.576 1.53
+Csk Csk  HARMONIC_BOND 352253.576 1.53
+Csk Csl  HARMONIC_BOND 352253.576 1.53
+Csl Csm  HARMONIC_BOND 352253.576 1.53
+Csm Csm  HARMONIC_BOND 352253.576 1.53
+Csa Hsa  HARMONIC_BOND 352253.576 1.1
+Csb Hsb  HARMONIC_BOND 352253.576 1.1
+Cse Hsc  HARMONIC_BOND 352253.576 1.1
+Csi Hsd  HARMONIC_BOND 352253.576 1.1
+Csj Hse  HARMONIC_BOND 352253.576 1.1
+Csk Hsf  HARMONIC_BOND 352253.576 1.11
+Csl Hsg  HARMONIC_BOND 352253.576 1.11
+Csm Hsh  HARMONIC_BOND 352253.576 1.11
+Cso Hsi  HARMONIC_BOND 352253.576 1.11
+Oxo Mn   HARMONIC_BOND 352253.576 1.64
+#bend bending atom n1-n2-n3, equilibrium distance, bondforce-constant
+Csa Nsa Csa  HARMONIC_BEND 50321.939 116.6
+Nsa Csa Csb  HARMONIC_BEND 50321.939 124.1
+Nsa Csa Hsa  HARMONIC_BEND 50321.939 116.3
+Csb Csa Hsa  HARMONIC_BEND 50321.939 120.0
+Csa Csb Csc  HARMONIC_BEND 50321.939 120.0
+Csa Csb Hsb  HARMONIC_BEND 50321.939 120.0
+Csc Csb Hsb  HARMONIC_BEND 50321.939 120.0
+Csb Csc Csb  HARMONIC_BEND 50321.939 120.0
+Csb Csc Csd  HARMONIC_BEND 50321.939 120.0
+Csc Csd Cse  HARMONIC_BEND 50321.939 120.0
+Csc Csd Csi  HARMONIC_BEND 50321.939 120.0
+Cse Csd Csi  HARMONIC_BEND 50321.939 120.0
+Csd Cse Csf  HARMONIC_BEND 50321.939 120.0
+Csd Cse Hsc  HARMONIC_BEND 50321.939 120.0
+Csf Cse Hsc  HARMONIC_BEND 50321.939 120.0
+Cse Csf Csg  HARMONIC_BEND 50321.939 120.0
+Cse Csf Csn  HARMONIC_BEND 50321.939 120.0
+Csg Csf Csn  HARMONIC_BEND 50321.939 120.0
+Csf Csg Csh  HARMONIC_BEND 50321.939 120.0
+Csf Csg Osa  HARMONIC_BEND 50321.939 120.0
+Csh Csg Osa  HARMONIC_BEND 50321.939 120.0
+Csf Csg Osb  HARMONIC_BEND 50321.939 120.0
+Csh Csg Osb  HARMONIC_BEND 50321.939 120.0
+Csg Csh Csi  HARMONIC_BEND 50321.939 120.0
+Csg Csh Csj  HARMONIC_BEND 50321.939 120.0
+Csi Csh Csj  HARMONIC_BEND 50321.939 120.0
+Csh Csi Csd  HARMONIC_BEND 50321.939 120.0
+Csh Csi Hsd  HARMONIC_BEND 50321.939 120.0
+Csd Csi Hsd  HARMONIC_BEND 50321.939 120.0
+Csh Csj Nsb  HARMONIC_BEND 50321.939 120.0
+Csh Csj Nsc  HARMONIC_BEND 50321.939 120.0
+Csh Csj Hse  HARMONIC_BEND 50321.939 120.0
+Nsb Csj Hse  HARMONIC_BEND 50321.939 120.0
+Nsc Csj Hse  HARMONIC_BEND 50321.939 120.0
+Csf Csn Cso  HARMONIC_BEND 50321.939 109.471
+Cso Csn Cso  HARMONIC_BEND 50321.939 109.471
+Csn Cso Hsi  HARMONIC_BEND 50321.939 109.471
+Hsi Cso Hsi  HARMONIC_BEND 50321.939 109.471
+Nsb Csk Csk  HARMONIC_BEND 50321.939 109.471
+Nsb Csk Csl  HARMONIC_BEND 50321.939 109.471
+Nsb Csk Hsf  HARMONIC_BEND 50321.939 109.471
+Nsc Csk Csk  HARMONIC_BEND 50321.939 109.471
+Nsc Csk Csl  HARMONIC_BEND 50321.939 109.471
+Nsc Csk Hsf  HARMONIC_BEND 50321.939 109.471
+Csk Csk Csl  HARMONIC_BEND 50321.939 109.471
+Csk Csk Hsf  HARMONIC_BEND 50321.939 109.471
+Csl Csk Hsf  HARMONIC_BEND 50321.939 109.471
+Csk Csl Csm  HARMONIC_BEND 50321.939 109.471
+Csk Csl Hsg  HARMONIC_BEND 50321.939 109.471
+Csm Csl Hsg  HARMONIC_BEND 50321.939 109.471
+Hsg Csl Hsg  HARMONIC_BEND 50321.939 109.471
+Csl Csm Csm  HARMONIC_BEND 50321.939 109.471
+Csl Csm Hsh  HARMONIC_BEND 50321.939 109.471
+Csm Csm Hsh  HARMONIC_BEND 50321.939 109.471
+Hsh Csm Hsh  HARMONIC_BEND 50321.939 109.471
+Csg Osa Mn   HARMONIC_BEND 50321.939 128.7
+Csg Osb Mn   HARMONIC_BEND 50321.939 128.7
+Csj Nsb Csk  HARMONIC_BEND 50321.939 123.4
+Csj Nsb Mn   HARMONIC_BEND 50321.939 124.2
+Csk Nsb Mn   HARMONIC_BEND 50321.939 112.1
+Csj Nsc Csk  HARMONIC_BEND 50321.939 123.4
+Csj Nsc Mn   HARMONIC_BEND 50321.939 124.2
+Csk Nsc Mn   HARMONIC_BEND 50321.939 112.1
+Osa Mn  Osb  HARMONIC_BEND 50321.939  95.6
+Osa Mn  Nsb  HARMONIC_BEND 50321.939  90.5
+Osa Mn  Nsc  HARMONIC_BEND 50321.939 170.2
+Osa Mn  Cl   HARMONIC_BEND 50321.939  88.2
+Osb Mn  Nsb  HARMONIC_BEND 50321.939 170.2
+Osb Mn  Nsc  HARMONIC_BEND 50321.939  90.5
+Osb Mn  Cl   HARMONIC_BEND 50321.939  88.2
+Nsb Mn  Nsc  HARMONIC_BEND 50321.939  82.5
+Nsb Mn  Cl   HARMONIC_BEND 50321.939  84.3
+Nsc Mn  Cl   HARMONIC_BEND 50321.939  84.3
+Osa Mn  Oxo  HARMONIC_BEND 50321.939 100.4
+Osb Mn  Oxo  HARMONIC_BEND 50321.939  91.95
+Nsb Mn  Oxo  HARMONIC_BEND 50321.939  94.0
+Nsc Mn  Oxo  HARMONIC_BEND 50321.939  87.7
+Cl  Mn  Oxo  HARMONIC_BEND 50321.939 171.4
+#inversion bend atom n1-n2-n3-n4,
+Nsa Csa Csb Hsa  PLANAR_INVERSION 20128.776
+Csa Csb Csc Hsb  PLANAR_INVERSION 20128.776
+Csd Csc Csb Csb  PLANAR_INVERSION 20128.776
+Csc Csd Cse Csi  PLANAR_INVERSION 20128.776
+Csd Cse Csf Hsc  PLANAR_INVERSION 20128.776
+Cse Csf Csg Csn  PLANAR_INVERSION 20128.776
+Csf Csg Csh Osa  PLANAR_INVERSION 20128.776
+Csf Csg Csh Osb  PLANAR_INVERSION 20128.776
+Csg Csh Csi Csj  PLANAR_INVERSION 20128.776
+Csd Csi Csh Hsd  PLANAR_INVERSION 20128.776
+Nsb Csj Csh Hse  PLANAR_INVERSION 20128.776
+Nsc Csj Csh Hse  PLANAR_INVERSION 20128.776
+Csj Nsb Csk Mn   PLANAR_INVERSION 20128.776
+Csj Nsc Csk Mn   PLANAR_INVERSION 20128.776
+#torsion atom n1-n2-n3-n4,
+Csa Nsa Csa Csb  FOURIER_SERIES_DIHEDRAL     0.0      6290.242     0.0    0.0    0.0   0.0
+Csa Nsa Csa Hsa  FOURIER_SERIES_DIHEDRAL     0.0      6290.242     0.0    0.0    0.0   0.0
+Nsa Csa Csb Csc  FOURIER_SERIES_DIHEDRAL     0.0      3145.121     0.0    0.0    0.0   0.0
+Nsa Csa Csb Hsb  FOURIER_SERIES_DIHEDRAL     0.0      3145.121     0.0    0.0    0.0   0.0
+Hsa Csa Csb Csc  FOURIER_SERIES_DIHEDRAL     0.0      3145.121     0.0    0.0    0.0   0.0
+Hsa Csa Csb Hsb  FOURIER_SERIES_DIHEDRAL     0.0      3145.121     0.0    0.0    0.0   0.0
+Csa Csb Csc Csb  FOURIER_SERIES_DIHEDRAL     0.0      3145.121     0.0    0.0    0.0   0.0
+Csa Csb Csc Csd  FOURIER_SERIES_DIHEDRAL     0.0      3145.121     0.0    0.0    0.0   0.0
+Hsb Csb Csc Csb  FOURIER_SERIES_DIHEDRAL     0.0      3145.121     0.0    0.0    0.0   0.0
+Hsb Csb Csc Csd  FOURIER_SERIES_DIHEDRAL     0.0      3145.121     0.0    0.0    0.0   0.0
+Csb Csc Csd Cse  FOURIER_SERIES_DIHEDRAL2    0.0      1388.885     0.0  865.537  0.0 213.365
+Csb Csc Csd Csi  FOURIER_SERIES_DIHEDRAL2    0.0      1388.885     0.0  865.537  0.0 213.365
+Csc Csd Cse Csf  FOURIER_SERIES_DIHEDRAL     0.0      3145.121     0.0    0.0    0.0   0.0
+Csc Csd Cse Hsc  FOURIER_SERIES_DIHEDRAL     0.0      3145.121     0.0    0.0    0.0   0.0
+Csi Csd Cse Csf  FOURIER_SERIES_DIHEDRAL     0.0      3145.121     0.0    0.0    0.0   0.0
+Csi Csd Cse Hsc  FOURIER_SERIES_DIHEDRAL     0.0      3145.121     0.0    0.0    0.0   0.0
+Csd Cse Csf Csg  FOURIER_SERIES_DIHEDRAL     0.0      3145.121     0.0    0.0    0.0   0.0
+Csd Cse Csf Csn  FOURIER_SERIES_DIHEDRAL     0.0      3145.121     0.0    0.0    0.0   0.0
+Hsc Cse Csf Csg  FOURIER_SERIES_DIHEDRAL     0.0      3145.121     0.0    0.0    0.0   0.0
+Hsc Cse Csf Csn  FOURIER_SERIES_DIHEDRAL     0.0      3145.121     0.0    0.0    0.0   0.0
+Cse Csf Csg Csh  FOURIER_SERIES_DIHEDRAL     0.0      3145.121     0.0    0.0    0.0   0.0
+Cse Csf Csg Osa  FOURIER_SERIES_DIHEDRAL     0.0      3145.121     0.0    0.0    0.0   0.0
+Cse Csf Csg Osb  FOURIER_SERIES_DIHEDRAL     0.0      3145.121     0.0    0.0    0.0   0.0
+Csn Csf Csg Csh  FOURIER_SERIES_DIHEDRAL     0.0      3145.121     0.0    0.0    0.0   0.0
+Csn Csf Csg Osa  FOURIER_SERIES_DIHEDRAL     0.0      3145.121     0.0    0.0    0.0   0.0
+Csn Csf Csg Osb  FOURIER_SERIES_DIHEDRAL     0.0      3145.121     0.0    0.0    0.0   0.0
+Cse Csf Csn Cso  FOURIER_SERIES_DIHEDRAL     0.0         0.0       0.0    0.0    0.0  84.037
+Csg Csf Csn Cso  FOURIER_SERIES_DIHEDRAL     0.0         0.0       0.0    0.0    0.0  84.037
+Csf Csn Cso Hsi  FOURIER_SERIES_DIHEDRAL     0.0         0.0     111.7147 0.0    0.0   0.0
+Cso Csn Cso Hsi  FOURIER_SERIES_DIHEDRAL     0.0         0.0     111.7147 0.0    0.0   0.0
+Csf Csg Csh Csi  FOURIER_SERIES_DIHEDRAL     0.0      3145.121     0.0    0.0    0.0   0.0
+Csf Csg Csh Csj  FOURIER_SERIES_DIHEDRAL     0.0      3145.121     0.0    0.0    0.0   0.0
+Osa Csg Csh Csi  FOURIER_SERIES_DIHEDRAL     0.0      3145.121     0.0    0.0    0.0   0.0
+Osa Csg Csh Csj  FOURIER_SERIES_DIHEDRAL     0.0      3145.121     0.0    0.0    0.0   0.0
+Osb Csg Csh Csi  FOURIER_SERIES_DIHEDRAL     0.0      3145.121     0.0    0.0    0.0   0.0
+Osb Csg Csh Csj  FOURIER_SERIES_DIHEDRAL     0.0      3145.121     0.0    0.0    0.0   0.0
+Csg Csh Csi Csd  FOURIER_SERIES_DIHEDRAL     0.0      3145.121     0.0    0.0    0.0   0.0
+Csg Csh Csi Hsd  FOURIER_SERIES_DIHEDRAL     0.0      3145.121     0.0    0.0    0.0   0.0
+Csj Csh Csi Csd  FOURIER_SERIES_DIHEDRAL     0.0      3145.121     0.0    0.0    0.0   0.0
+Csj Csh Csi Hsd  FOURIER_SERIES_DIHEDRAL     0.0      3145.121     0.0    0.0    0.0   0.0
+Csh Csi Csd Csc  FOURIER_SERIES_DIHEDRAL     0.0      3145.121     0.0    0.0    0.0   0.0
+Csh Csi Csd Cse  FOURIER_SERIES_DIHEDRAL     0.0      3145.121     0.0    0.0    0.0   0.0
+Hsd Csi Csd Csc  FOURIER_SERIES_DIHEDRAL     0.0      3145.121     0.0    0.0    0.0   0.0
+Hsd Csi Csd Cse  FOURIER_SERIES_DIHEDRAL     0.0      3145.121     0.0    0.0    0.0   0.0
+Csg Csh Csj Nsb  FOURIER_SERIES_DIHEDRAL     0.0      3145.121     0.0    0.0    0.0   0.0
+Csg Csh Csj Nsc  FOURIER_SERIES_DIHEDRAL     0.0      3145.121     0.0    0.0    0.0   0.0
+Csg Csh Csj Hse  FOURIER_SERIES_DIHEDRAL     0.0      3145.121     0.0    0.0    0.0   0.0
+Csi Csh Csj Nsb  FOURIER_SERIES_DIHEDRAL     0.0      3145.121     0.0    0.0    0.0   0.0
+Csi Csh Csj Nsc  FOURIER_SERIES_DIHEDRAL     0.0      3145.121     0.0    0.0    0.0   0.0
+Csi Csh Csj Hse  FOURIER_SERIES_DIHEDRAL     0.0      3145.121     0.0    0.0    0.0   0.0
+Csl Csk Csk Csl  FOURIER_SERIES_DIHEDRAL     0.0         0.0     111.7147 0.0    0.0   0.0
+Csl Csk Csk Hsf  FOURIER_SERIES_DIHEDRAL     0.0         0.0     111.7147 0.0    0.0   0.0
+Csl Csk Csk Nsb  FOURIER_SERIES_DIHEDRAL     0.0         0.0     111.7147 0.0    0.0   0.0
+Csl Csk Csk Nsc  FOURIER_SERIES_DIHEDRAL     0.0         0.0     111.7147 0.0    0.0   0.0
+Hsf Csk Csk Hsf  FOURIER_SERIES_DIHEDRAL     0.0         0.0     111.7147 0.0    0.0   0.0
+Hsf Csk Csk Nsb  FOURIER_SERIES_DIHEDRAL     0.0         0.0     111.7147 0.0    0.0   0.0
+Hsf Csk Csk Nsc  FOURIER_SERIES_DIHEDRAL     0.0         0.0     111.7147 0.0    0.0   0.0
+Nsb Csk Csk Nsc  FOURIER_SERIES_DIHEDRAL     0.0         0.0     111.7147 0.0    0.0   0.0
+Csk Csk Csl Csm  FOURIER_SERIES_DIHEDRAL     0.0         0.0     111.7147 0.0    0.0   0.0
+Csk Csk Csl Hsg  FOURIER_SERIES_DIHEDRAL     0.0         0.0     111.7147 0.0    0.0   0.0
+Hsf Csk Csl Csm  FOURIER_SERIES_DIHEDRAL     0.0         0.0     111.7147 0.0    0.0   0.0
+Hsf Csk Csl Hsg  FOURIER_SERIES_DIHEDRAL     0.0         0.0     111.7147 0.0    0.0   0.0
+Nsb Csk Csl Csm  FOURIER_SERIES_DIHEDRAL     0.0         0.0     111.7147 0.0    0.0   0.0
+Nsb Csk Csl Hsg  FOURIER_SERIES_DIHEDRAL     0.0         0.0     111.7147 0.0    0.0   0.0
+Nsc Csk Csl Csm  FOURIER_SERIES_DIHEDRAL     0.0         0.0     111.7147 0.0    0.0   0.0
+Nsc Csk Csl Hsg  FOURIER_SERIES_DIHEDRAL     0.0         0.0     111.7147 0.0    0.0   0.0
+Csk Csl Csm Csm  FOURIER_SERIES_DIHEDRAL     0.0         0.0     111.7147 0.0    0.0   0.0
+Csk Csl Csm Hsh  FOURIER_SERIES_DIHEDRAL     0.0         0.0     111.7147 0.0    0.0   0.0
+Hsg Csl Csm Csm  FOURIER_SERIES_DIHEDRAL     0.0         0.0     111.7147 0.0    0.0   0.0
+Hsg Csl Csm Hsh  FOURIER_SERIES_DIHEDRAL     0.0         0.0     111.7147 0.0    0.0   0.0
+Csl Csm Csm Csl  FOURIER_SERIES_DIHEDRAL     0.0         0.0     111.7147 0.0    0.0   0.0
+Csl Csm Csm Hsh  FOURIER_SERIES_DIHEDRAL     0.0         0.0     111.7147 0.0    0.0   0.0
+Hsh Csm Csm Hsh  FOURIER_SERIES_DIHEDRAL     0.0         0.0     111.7147 0.0    0.0   0.0
+Csf Csg Osa Mn   FOURIER_SERIES_DIHEDRAL     0.0       503.219     0.0    0.0    0.0   0.0
+Csh Csg Osa Mn   FOURIER_SERIES_DIHEDRAL     0.0       503.219     0.0    0.0    0.0   0.0
+Csf Csg Osb Mn   FOURIER_SERIES_DIHEDRAL     0.0       503.219     0.0    0.0    0.0   0.0
+Csh Csg Osb Mn   FOURIER_SERIES_DIHEDRAL     0.0       503.219     0.0    0.0    0.0   0.0
+Csh Csj Nsb Csk  FOURIER_SERIES_DIHEDRAL     0.0      3145.121     0.0    0.0    0.0   0.0
+Csh Csj Nsb Mn   FOURIER_SERIES_DIHEDRAL     0.0      3145.121     0.0    0.0    0.0   0.0
+Hse Csj Nsb Csk  FOURIER_SERIES_DIHEDRAL     0.0      3145.121     0.0    0.0    0.0   0.0
+Hse Csj Nsb Mn   FOURIER_SERIES_DIHEDRAL     0.0      3145.121     0.0    0.0    0.0   0.0
+Csh Csj Nsc Csk  FOURIER_SERIES_DIHEDRAL     0.0      3145.121     0.0    0.0    0.0   0.0
+Csh Csj Nsc Mn   FOURIER_SERIES_DIHEDRAL     0.0      3145.121     0.0    0.0    0.0   0.0
+Hse Csj Nsc Csk  FOURIER_SERIES_DIHEDRAL     0.0      3145.121     0.0    0.0    0.0   0.0
+Hse Csj Nsc Mn   FOURIER_SERIES_DIHEDRAL     0.0      3145.121     0.0    0.0    0.0   0.0
+Csk Csk Nsb Csj  FOURIER_SERIES_DIHEDRAL     0.0         0.0       0.0    0.0    0.0  84.037
+Csk Csk Nsb Mn   FOURIER_SERIES_DIHEDRAL     0.0         0.0     111.7147 0.0    0.0   0.0  
+Csl Csk Nsb Csj  FOURIER_SERIES_DIHEDRAL     0.0         0.0       0.0    0.0    0.0  84.037
+Csl Csk Nsb Mn   FOURIER_SERIES_DIHEDRAL     0.0         0.0     111.7147 0.0    0.0   0.0
+Hsf Csk Nsb Csj  FOURIER_SERIES_DIHEDRAL     0.0         0.0       0.0    0.0    0.0  84.037
+Hsf Csk Nsb Mn   FOURIER_SERIES_DIHEDRAL     0.0         0.0     111.7147 0.0    0.0   0.0
+Csk Csk Nsc Csj  FOURIER_SERIES_DIHEDRAL     0.0         0.0       0.0    0.0    0.0  84.037
+Csk Csk Nsc Mn   FOURIER_SERIES_DIHEDRAL     0.0         0.0     111.7147 0.0    0.0   0.0
+Csl Csk Nsc Csj  FOURIER_SERIES_DIHEDRAL     0.0         0.0       0.0    0.0    0.0  84.037
+Csl Csk Nsc Mn   FOURIER_SERIES_DIHEDRAL     0.0         0.0     111.7147 0.0    0.0   0.0
+Hsf Csk Nsc Csj  FOURIER_SERIES_DIHEDRAL     0.0         0.0       0.0    0.0    0.0  84.037
+Hsf Csk Nsc Mn   FOURIER_SERIES_DIHEDRAL     0.0         0.0     111.7147 0.0    0.0   0.0
+Csg Osa Mn  Osb  FOURIER_SERIES_DIHEDRAL     0.0         0.0       0.0    0.0    0.0   0.0
+Csg Osa Mn  Nsb  FOURIER_SERIES_DIHEDRAL     0.0         0.0       0.0    0.0    0.0   0.0
+Csg Osa Mn  Nsc  FOURIER_SERIES_DIHEDRAL     0.0         0.0       0.0    0.0    0.0   0.0
+Csg Osa Mn  Cl   FOURIER_SERIES_DIHEDRAL     0.0         0.0       0.0    0.0    0.0   0.0
+Csg Osb Mn  Osa  FOURIER_SERIES_DIHEDRAL     0.0         0.0       0.0    0.0    0.0   0.0
+Csg Osb Mn  Nsb  FOURIER_SERIES_DIHEDRAL     0.0         0.0       0.0    0.0    0.0   0.0
+Csg Osb Mn  Nsc  FOURIER_SERIES_DIHEDRAL     0.0         0.0       0.0    0.0    0.0   0.0
+Csg Osb Mn  Cl   FOURIER_SERIES_DIHEDRAL     0.0         0.0       0.0    0.0    0.0   0.0
+Csj Nsb Mn  Osa  FOURIER_SERIES_DIHEDRAL     0.0         0.0       0.0    0.0    0.0   0.0
+Csj Nsb Mn  Osb  FOURIER_SERIES_DIHEDRAL     0.0         0.0       0.0    0.0    0.0   0.0
+Csj Nsb Mn  Nsc  FOURIER_SERIES_DIHEDRAL     0.0         0.0       0.0    0.0    0.0   0.0
+Csj Nsb Mn  Cl   FOURIER_SERIES_DIHEDRAL     0.0         0.0       0.0    0.0    0.0   0.0
+Csk Nsb Mn  Osa  FOURIER_SERIES_DIHEDRAL     0.0         0.0       0.0    0.0    0.0   0.0
+Csk Nsb Mn  Osb  FOURIER_SERIES_DIHEDRAL     0.0         0.0       0.0    0.0    0.0   0.0
+Csk Nsb Mn  Nsc  FOURIER_SERIES_DIHEDRAL     0.0         0.0       0.0    0.0    0.0   0.0
+Csk Nsb Mn  Cl   FOURIER_SERIES_DIHEDRAL     0.0         0.0       0.0    0.0    0.0   0.0
+Csj Nsc Mn  Osa  FOURIER_SERIES_DIHEDRAL     0.0         0.0       0.0    0.0    0.0   0.0
+Csj Nsc Mn  Osb  FOURIER_SERIES_DIHEDRAL     0.0         0.0       0.0    0.0    0.0   0.0
+Csj Nsc Mn  Nsb  FOURIER_SERIES_DIHEDRAL     0.0         0.0       0.0    0.0    0.0   0.0
+Csj Nsc Mn  Cl   FOURIER_SERIES_DIHEDRAL     0.0         0.0       0.0    0.0    0.0   0.0
+Csk Nsc Mn  Osa  FOURIER_SERIES_DIHEDRAL     0.0         0.0       0.0    0.0    0.0   0.0
+Csk Nsc Mn  Osb  FOURIER_SERIES_DIHEDRAL     0.0         0.0       0.0    0.0    0.0   0.0
+Csk Nsc Mn  Nsb  FOURIER_SERIES_DIHEDRAL     0.0         0.0       0.0    0.0    0.0   0.0
+Csk Nsc Mn  Cl   FOURIER_SERIES_DIHEDRAL     0.0         0.0       0.0    0.0    0.0   0.0
+Csg Osa Mn  Oxo  FOURIER_SERIES_DIHEDRAL     0.0         0.0       0.0    0.0    0.0   0.0
+Csg Osb Mn  Oxo  FOURIER_SERIES_DIHEDRAL     0.0         0.0       0.0    0.0    0.0   0.0
+Csj Nsb Mn  Oxo  FOURIER_SERIES_DIHEDRAL     0.0         0.0       0.0    0.0    0.0   0.0
+Csk Nsb Mn  Oxo  FOURIER_SERIES_DIHEDRAL     0.0         0.0       0.0    0.0    0.0   0.0
+Csj Nsc Mn  Oxo  FOURIER_SERIES_DIHEDRAL     0.0         0.0       0.0    0.0    0.0   0.0
+Csk Nsc Mn  Oxo  FOURIER_SERIES_DIHEDRAL     0.0         0.0       0.0    0.0    0.0   0.0

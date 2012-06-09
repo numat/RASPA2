@@ -1,0 +1,43 @@
+# rules to overwrite
+0
+# number of defined interactions
+31
+# type       type2       interaction
+UNIT         UNIT        lennard-jones      1.0           1.0
+He           O           lennard-jones     28.0           3.265
+He           Oa          lennard-jones     28.0           3.265
+CH4_sp3      O           lennard-jones    115.00          3.47
+CH4_sp3      Oa          lennard-jones    115.00          3.47
+CH3_sp3      O           lennard-jones     93.00          3.48
+CH3_sp3      Oa          lennard-jones     93.00          3.48
+CH2_sp3      O           lennard-jones     60.50          3.58
+CH2_sp3      Oa          lennard-jones     60.50          3.58
+CH_sp3       O           lennard-jones     40.00          3.92
+CH_sp3       Oa          lennard-jones     40.00          3.92
+C_sp3        O           lennard-jones     10.0           4.56
+C_sp3        Oa          lennard-jones     10.0           4.56
+C_aro        O           PELLENQ_NICHOLSON          1.480372e8      3.865534106  291163.0   1.84182e6   1.18131e7
+C_aro        Oa          PELLENQ_NICHOLSON          1.480372e8      3.865534106  291163.0   1.84182e6   1.18131e7
+H_aro        O           PELLENQ_NICHOLSON          1.188402e8      4.729626556  88964.6    439708.0    2.25849e6
+H_aro        Oa          PELLENQ_NICHOLSON          1.188402e8      4.729626556  88964.6    439708.0    2.25849e6
+CH3_aro      O           PELLENQ_NICHOLSON          2.293381e8      3.717446809  358909.0   2.15745e6   1.34225e7
+CH3_aro      Oa          PELLENQ_NICHOLSON          2.293381e8      3.717446809  358909.0   2.15745e6   1.34225e7
+C_aro        Si          PELLENQ_NICHOLSON          2.27486e8       4.822189512  117672.0   664019.0    0.0
+C_aro        Al          PELLENQ_NICHOLSON          2.27486e8       4.822189512  117672.0   664019.0    0.0
+H_aro        Si          PELLENQ_NICHOLSON          1.82620e8       6.245651491  35918.7    152874.0    0.0
+H_aro        Al          PELLENQ_NICHOLSON          1.82620e8       6.245651491  35918.7    152874.0    0.0
+CH3_aro      Si          PELLENQ_NICHOLSON          3.52420e8       4.593898305  145269.0   776465.0    0.0
+CH3_aro      Al          PELLENQ_NICHOLSON          3.52420e8       4.593898305  145269.0   776465.0    0.0
+C_aro        Na          PELLENQ_NICHOLSON          8.10555e7       3.693044655  51035.0    244233.0    1.27423e6
+H_aro        Na          PELLENQ_NICHOLSON          6.50691e7       4.473952484  15185.7    54524.2     215306.0
+CH3_aro      Na          PELLENQ_NICHOLSON          1.255707e8      3.557647059  66428.7    290349.0    1.43634e6
+C_aro        K           PELLENQ_NICHOLSON          8.10555e7       3.501854494  229796.074 1371147.345 8461368.945
+H_aro        K           PELLENQ_NICHOLSON          6.50691e7       4.196396396  69479.682  323534.385  1585932.687
+CH3_aro      K           PELLENQ_NICHOLSON          1.255707e8      3.379881657  288943.947 1619244.743 9625503.099
+# mixing rules to overwrite
+0
+
+# conversion formula
+# ((4.35914*10^(-18)*6.0221419947*10^23)/8.314464919)*(0.529177^6)
+# ((4.35914*10^(-18)*6.0221419947*10^23)/8.314464919)*(0.529177^8)
+# ((4.35914*10^(-18)*6.0221419947*10^23)/8.314464919)*(0.529177^10)

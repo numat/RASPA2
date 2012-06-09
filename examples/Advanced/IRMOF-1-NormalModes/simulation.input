@@ -1,0 +1,26 @@
+SimulationType  Spectra
+NumberOfCycles  1
+PrintEvery      1
+RestartFile     yes
+
+Ensemble        NVT
+
+ComputeNormalModes yes
+MinimumMode 0
+MaximumMode 10
+ModeResolution 50
+
+CutOff                           12.0
+ChargeMethod                     Ewald
+Forcefield                       Dubbeldam2007FlexibleIRMOF-1
+EwaldPrecision                   1e-8
+
+Framework 0
+Frameworkname IRMOF-1
+UnitCells 1 1 1
+ExternalPressure 0.0
+ExternalTemperature 300.0
+
+FlexibleFramework yes
+FrameworkDefinitions Dubbeldam2007FlexibleIRMOF-1
+
