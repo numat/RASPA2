@@ -3,39 +3,31 @@ use File::Copy;
 use File::Path;
 
 # framework-information
-@framework = ("ZnBDC");  # list of structures
-@HeliumVoidFraction = ("0.516026");  # list of helium-voidfractions for the structures
-@UnitCells = ("4 2 2"); # list of sizes of the unit cells for the structures
-@Forcefield=("GenericMOFs");
+@Forcefield=("Dubbeldam2007FlexibleIRMOF-1");
+
+@epsilon=(10,11,12,13,14,15,16);
+@sigma=(4.65,4.66,4.67,4.68,4.69);
+
+$FitAtom="CH_sp3";
 
 # temperature-information
-@temperature = (313.0); # list of temperatures
-@molecule = ("hexane","3-methylpentane","22-dimethylbutane"); # list of molecules
-@mol_fraction = (1.0,1.0,1.0);
-
-# loading-information
-$loading_start = 1;
-$loading_end = 80;
-$number_of_loading_points = 32; # 32 point equally spaced
+@temperature = (300.0,450.0); # list of temperatures
+@molecule = ("isobutane"); # list of molecules
+@idealgas = ([1.0],[1.0]); # list of IG Rosenbluth weights for each temperature
 
 # simulation-information
-$SimulationType="MolecularDynamics";
-$NumberOfCycles="100000000000";
-$NumberOfInitializationCycles="10000";
-$NumberOfEquilibrationCycles="100000";
-$PrintEvery="10000";
+$SimulationType="MonteCarlo";
+$NumberOfCycles="50000";
+$NumberOfInitializationCycles="20000";
+$PrintEvery="5000";
 $RestartFile="no";
 
 # system and queuing information
-$divide_into_batches="yes"; # combine serial run in larger blocks
-$batches = 8; # combine into an 8-core job
-$queue = "mof1"; # the queue type
-$job_name = "MD"; # name of the job
-
-for($i=0;$i<$number_of_loading_points;$i++)
-{
-  $loading[$i]=($loading_end-$loading_start)*($i/($number_of_loading_points-1))+$loading_start;
-}
+$divide_into_batches="no"; # combine serial run in larger blocks
+$batches = 12; # combine into an 8-core job
+$queue = "VASP"; # the queue type
+$job_name = "MC_GIBBS_FIT"; # name of the job
+@file_list = ("force_field_mixing_rules.def"); # list of files copied to all the directories
 
 # get cluster-name
 chomp($cluster = `hostname -s`);
@@ -47,40 +39,54 @@ close(DATw4);
 $index_batches=0;
 $count=0;
 
-$index_framework=0;
-foreach (@framework)
+$index_molecule=0;
+foreach (@molecule)
 {
-  $dir_fr=$framework[$index_framework];
-  mkpath($dir_fr);
-
   $index_temperature=0;
   foreach (@temperature)
   {
-    $dir_temp="$dir_fr/$temperature[$index_temperature]K";
-    mkpath($dir_temp);
-
-    $index_molecule=0;
-    foreach (@molecule)
+    $index_sigma=0;
+    foreach (@sigma)
     {
-      $dir_mol="$dir_temp/$molecule[$index_molecule]";
-      mkpath($dir_mol);
-
-      $index_loading=0;
-      foreach (@loading)
+      $index_epsilon=0;
+      foreach (@epsilon)
       {
-        $dir_loading="$dir_mol/$loading[$index_loading]_mol_per_cell";
-        mkpath($dir_loading);
+        $dir_press="$molecule[$index_molecule]/$temperature[$index_temperature]/$sigma[$index_sigma]/$epsilon[$index_epsilon]";
+        mkpath($dir_press);
 
-        open(DATw1, ">$dir_loading/run") || die("Could not open file!");
+        open(DATw1, ">$dir_press/run") || die("Could not open file!");
         printf DATw1 "#! /bin/sh -f\n";
         printf DATw1 "export RASPA_DIR=\${HOME}/RASPA/simulations/\n";
-        printf DATw1 "\${RASPA_DIR}/bin/simulate \$1";
+        printf DATw1 "\${RASPA_DIR}/bin/simulate \$1\n";
         close(DATw1);
-        chmod 0755, "$dir_loading/run";
+        chmod 0755, "$dir_press/run";
+
+        # copy files to the dir
+        for($i = 0; $i < scalar @file_list; $i++)
+        {
+          copy("$file_list[$i]","$dir_press/$file_list[$i]") or die "Copy failed: $!";
+        }
+
+        # read in the forcefield file
+        open(FILE,"$dir_press/force_field_mixing_rules.def") || die("Cannot Open File");
+        my(@fcont) = <FILE>;
+        close FILE;
+       
+        # replace atom LJ paramters by the trial ones 
+        open(FOUT,">$dir_press/force_field_mixing_rules.def") || die("Cannot Open File");
+        foreach $line (@fcont)
+        {
+          if($line =~ /$FitAtom/)
+          {
+              $line = "$FitAtom        Lennard-jones     $epsilon[$index_epsilon]       $sigma[$index_sigma]\n";
+          }
+          print FOUT $line;
+        }
+        close FOUT;
 
         if(($cluster eq "login3") || ($cluster eq "login4"))
         {
-          open(DATw1, ">$dir_loading/bsub.job") || die("Could not open file!");
+          open(DATw1, ">$dir_press/bsub.job") || die("Could not open file!");
           printf DATw1 "#!/bin/bash\n";
           printf DATw1 "#PBS -S /bin/bash\n";
           printf DATw1 "#PBS -l nodes=1\n";
@@ -94,15 +100,15 @@ foreach (@framework)
           printf DATw1 "\n";
           printf DATw1 "cd \${PBS_O_WORKDIR}\n";
           printf DATw1 "\n";
-          printf DATw1 "echo \$JOB_ID > jobid\n";
+          printf DATw1 "echo \$PBS_JOBID > jobid\n";
           printf DATw1 "export RASPA_DIR=\${HOME}/RASPA/simulations/\n";
           printf DATw1 "\${RASPA_DIR}/bin//simulate \$1\n";
           close(DATw1);
-          chmod 0755, "$dir_loading/bsub.job";
+          chmod 0755, "$dir_press/bsub.job";
         }
         elsif($cluster eq "carbon")
         {
-          open(DATw1, ">$dir_loading/bsub.job") || die("Could not open file!");
+          open(DATw1, ">$dir_press/bsub.job") || die("Could not open file!");
           printf DATw1 "#!/bin/bash\n";
           printf DATw1 "# script for Grid Engine\n";
           printf DATw1 "#\$ -S /bin/bash\n";
@@ -116,11 +122,11 @@ foreach (@framework)
           printf DATw1 "export RASPA_DIR=\${HOME}/RASPA/simulations/\n";
           printf DATw1 "\${RASPA_DIR}/bin/simulate \$1\n";
           close(DATw1);
-          chmod 0755, "$dir_loading/bsub.job";
+          chmod 0755, "$dir_press/bsub.job";
         }
         elsif($cluster eq "kraken")
         {
-          open(DATw1, ">$dir_loading/bsub.job") || die("Could not open file!");
+          open(DATw1, ">$dir_press/bsub.job") || die("Could not open file!");
           printf DATw1 "#!/bin/bash\n";
           printf DATw1 "# script for Grid Engine\n";
           printf DATw1 "#\$ -S /bin/bash\n";
@@ -137,48 +143,50 @@ foreach (@framework)
           printf DATw1 "export RASPA_DIR=\${HOME}/RASPA/simulations/\n";
           printf DATw1 "\${RASPA_DIR}/bin/simulate \$1\n";
           close(DATw1);
-          chmod 0755, "$dir_loading/bsub.job";
+          chmod 0755, "$dir_press/bsub.job";
+        }
+        else
+        {
+          die("Unknown cluster!");
         }
 
-        open(DATw3, ">$dir_loading/simulation.input") || die("Could not open file!");
+        open(DATw3, ">$dir_press/simulation.input") || die("Could not open file!");
         print DATw3 "SimulationType                $SimulationType\n";
         print DATw3 "NumberOfCycles                $NumberOfCycles\n";
         print DATw3 "NumberOfInitializationCycles  $NumberOfInitializationCycles\n";
-        print DATw3 "NumberOfEquilibrationCycles   $NumberOfEquilibrationCycles\n";
         print DATw3 "PrintEvery                    $PrintEvery\n";
         print DATw3 "RestartFile                   $RestartFile\n";
         print DATw3 "\n";
         print DATw3 "ContinueAfterCrash no\n";
         print DATw3 "WriteBinaryRestartFileEvery 5000\n";
         print DATw3 "\n";
-        print DATw3 "Ensemble                      NVT\n";
-        print DATw3 "\n";
         print DATw3 "ChargeMethod                  Ewald\n";
-        print DATw3 "Forcefield                    $Forcefield[$index_framework]\n";
-        print DATw3 "EwaldPrecision                1e-6\n";
-        print DATw3 "TimeStep                      0.0005\n";
+        print DATw3 "Forcefield                    $Forcefield[$index_molecule]\n";
         print DATw3 "\n";
-        print DATw3 "Framework           0\n";
-        print DATw3 "FrameworkName       $framework[$index_framework]\n";
-        print DATw3 "UnitCells           $UnitCells[$index_framework]\n";
-        print DATw3 "HeliumVoidFraction  $HeliumVoidFraction[$index_framework]\n";
+        print DATw3 "Box 0\n";
+        print DATw3 "BoxLengths 30 30 30\n";
+        print DATw3 "BoxAngles 90 90 90\n";
         print DATw3 "ExternalTemperature $temperature[$index_temperature]\n";
-        print DATw3 "ExternalPressure    0\n";
-        print DATw3 "ComputeMSD          yes\n";
-        print DATw3 "WriteMSDEvery       5000\n";
+        print DATw3 "\n";
+        print DATw3 "Box 1\n";
+        print DATw3 "BoxLengths 50 50 50\n";
+        print DATw3 "BoxAngles 90 90 90\n";
+        print DATw3 "ExternalTemperature $temperature[$index_temperature]\n";
+        print DATw3 "\n";
+        print DATw3 "GibbsVolumeChangeProbability 1.0\n";
         print DATw3 "\n";
 
-        print DATw3 "\n";
         print DATw3 "Component 0 MoleculeName              $molecule[$index_molecule]\n";
         print DATw3 "            StartingBead              0\n";
         print DATw3 "            MoleculeDefinition        TraPPE\n";
+        print DATw3 "            IdealGasRosenbluthWeight  $idealgas[$index_temperature][$index_molecule]\n";
         print DATw3 "            FugacityCoefficient       1.0\n";
         print DATw3 "            TranslationProbability    1.0\n";
         print DATw3 "            RotationProbability       1.0\n";
         print DATw3 "            ReinsertionProbability    1.0\n";
         print DATw3 "            CBMCProbability           1.0\n";
-        print DATw3 "            SwapProbability           0.0\n";
-        printf DATw3 "            CreateNumberOfMolecules   %d\n",$loading[$index_loading]*$mol_fraction[$index_molecule];
+        print DATw3 "            GibbsSwapProbability      1.0\n";
+        print DATw3 "            CreateNumberOfMolecules   200 75\n";
         close(DATw3);
 
         if($divide_into_batches eq "yes")
@@ -217,10 +225,9 @@ foreach (@framework)
               printf DATw4 "#\$ -V\n";
               printf DATw4 "#\$ -cwd\n";
               printf DATw4 "#\$ -pe orte $batches\n";
-              printf DATw4 "#\$ -notify\n";
               printf DATw4 "\n";
               close(DATw4);
-              chmod 0755, "$dir_loading/bsub.job";
+              chmod 0755, "$dir_press/bsub.job";
             }
             elsif($cluster eq "kraken")
             {
@@ -233,13 +240,16 @@ foreach (@framework)
               printf DATw4 "#\$ -V\n";
               printf DATw4 "#\$ -cwd\n";
               printf DATw4 "#\$ -pe orte $batches\n";
-              printf DATw4 "#\$ -notify\n";
               printf DATw4 "\n";
               printf DATw4 "# set path for intel compiler libraries\n";
               printf DATw4 "source /opt/intel/cce/10.1.018/bin/iccvars.sh\n";
               printf DATw4 "\n";
               close(DATw4);
-              chmod 0755, "$dir_loading/bsub.job";
+              chmod 0755, "$dir_press/bsub.job";
+            }
+            else
+            {
+              die("Unknown cluster!");
             }
 
             open(DATw5, ">>submit") || die("Could not open file!");
@@ -248,7 +258,7 @@ foreach (@framework)
           }
 
           open(DATw5, ">>submit_$index_batches") || die("Could not open file!");
-          print DATw5 "cd \"$dir_loading\"\n";
+          print DATw5 "cd \"$dir_press\"\n";
           print DATw5 ".\/run > out 2\>\&1\&\n";
           print DATw5 "cd -\n";
 
@@ -260,19 +270,18 @@ foreach (@framework)
         else
         {
           open(DATw4, ">>submit") || die("Could not open file!");
-          print DATw4 "cd \"$dir_loading\"\n";
+          print DATw4 "cd \"$dir_press\"\n";
           print DATw4 "qsub bsub.job\n";
           print DATw4 "cd -\n";
           close(DATw4);
         }
-
-        $index_loading=$index_loading+1;
+        $index_epsilon=$index_epsilon+1;
       }
-      $index_molecule=$index_molecule+1;
+      $index_sigma=$index_sigma+1;
     }
     $index_temperature=$index_temperature+1;
   }
-  $index_framework=$index_framework+1;
+  $index_molecule=$index_molecule+1;
 }
 
 # put a "wait" on the last submit which (probably) is not a full batch

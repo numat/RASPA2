@@ -110,6 +110,7 @@ foreach (@framework)
         printf DATw1 "#\$ -N $job_name\n";
         printf DATw1 "#\$ -V\n";
         printf DATw1 "#\$ -cwd\n";
+        printf DATw1 "#\$ -notify\n";
         printf DATw1 "\n";
         printf DATw1 "echo \$JOB_ID > jobid\n";
         printf DATw1 "export RASPA_DIR=\${HOME}/RASPA/simulations/\n";
@@ -127,6 +128,7 @@ foreach (@framework)
         printf DATw1 "#\$ -N $job_name\n";
         printf DATw1 "#\$ -V\n";
         printf DATw1 "#\$ -cwd\n";
+        printf DATw1 "#\$ -notify\n";
         printf DATw1 "\n";
         printf DATw1 "# set path for intel compiler libraries\n";
         printf DATw1 "source /opt/intel/cce/10.1.018/bin/iccvars.sh\n";
@@ -218,6 +220,7 @@ foreach (@framework)
             printf DATw4 "#\$ -V\n";
             printf DATw4 "#\$ -cwd\n";
             printf DATw4 "#\$ -pe orte $batches\n";
+            printf DATw4 "#\$ -notify\n";
             printf DATw4 "\n";
             close(DATw4);
             chmod 0755, "$dir_loading/bsub.job";
@@ -233,6 +236,7 @@ foreach (@framework)
             printf DATw4 "#\$ -V\n";
             printf DATw4 "#\$ -cwd\n";
             printf DATw4 "#\$ -pe orte $batches\n";
+            printf DATw4 "#\$ -notify\n";
             printf DATw4 "\n";
             printf DATw4 "# set path for intel compiler libraries\n";
             printf DATw4 "source /opt/intel/cce/10.1.018/bin/iccvars.sh\n";

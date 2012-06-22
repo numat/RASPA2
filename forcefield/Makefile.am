@@ -13,4 +13,6 @@ SUBDIRS = GenericMOFs \
           Nicholas \
           Dubbeldam2012MIL-100 \
           Dubbeldam2012MIL-101 \
-          McKendrick2012FlexibleMIL-53
+          McKendrick2012FlexibleMIL-53 \
+          GarciaPerez2012 \
+          TraPPE
