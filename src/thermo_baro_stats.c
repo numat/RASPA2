@@ -3511,6 +3511,7 @@ void WriteRestartThermoBarostats(FILE *FilePtr)
   fwrite(therm_baro_stats.ExternalSurfaceTension,NumberOfSystems,sizeof(VECTOR),FilePtr);
   for(i=0;i<NumberOfSystems;i++)
     fwrite(therm_baro_stats.ExternalPressure[i],NumberOfIsothermPressures,sizeof(REAL),FilePtr);
+  fwrite(therm_baro_stats.ExternalStress,NumberOfSystems,sizeof(REAL_MATRIX3x3),FilePtr);
 
   fwrite(&w,1,sizeof(w),FilePtr);
 
@@ -3580,6 +3581,7 @@ void AllocateThermoBaroStatMemory(void)
   therm_baro_stats.ExternalPressure=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
   for(i=0;i<NumberOfSystems;i++)
     therm_baro_stats.ExternalPressure[i]=(REAL*)calloc(NumberOfIsothermPressures,sizeof(REAL));
+  therm_baro_stats.ExternalStress=(REAL*)calloc(NumberOfSystems,sizeof(REAL_MATRIX3x3));
 
   CellVelocity=(REAL_MATRIX3x3*)calloc(NumberOfSystems,sizeof(REAL_MATRIX3x3));
   CellMass=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
@@ -3694,6 +3696,7 @@ void ReadRestartThermoBarostats(FILE *FilePtr)
   fread(therm_baro_stats.ExternalSurfaceTension,NumberOfSystems,sizeof(VECTOR),FilePtr);
   for(i=0;i<NumberOfSystems;i++)
     fread(therm_baro_stats.ExternalPressure[i],NumberOfIsothermPressures,sizeof(REAL),FilePtr);
+  fread(therm_baro_stats.ExternalStress,NumberOfSystems,sizeof(REAL_MATRIX3x3),FilePtr);
 
   fread(&w,1,sizeof(w),FilePtr);
 

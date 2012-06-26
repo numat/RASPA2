@@ -17,7 +17,6 @@ MaximumStepLength 0.1
 RemoveTranslationFromHessian yes
 RemoveRotationFromHessian yes
 
-#Ensemble NPT
 Ensemble NPTPR
 NPTPRCellType RegularUpperTriangle
 
@@ -30,9 +29,9 @@ Forcefield                       Local
 Box 0
 BoxLengths 20 20
 BoxAngles 90
-UnitCells 1 1 1
-ExternalPressure 1
-ExternalTemperature 1
+UnitCells 1 1
+ExternalPressure 1.0
+ExternalTemperature 1.0
 Movies no
 WriteMoviesEvery 10
 

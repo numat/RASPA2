@@ -40,7 +40,9 @@ typedef struct thermo_barostats
   REAL time_scale_parameter_thermostat;                          // in picoseconds
   REAL time_scale_parameter_barostat;                            // in picoseconds
   REAL *ExternalTemperature;               // in Kelvin
-  REAL **ExternalPressure;                  // in Pascal
+  REAL **ExternalPressure;                 // in Pascal
+  int UseExternalStress;                   
+  REAL_MATRIX3x3 *ExternalStress;          // in Pascal
   REAL_MATRIX3x3 *ExternalPressureTensor;  // in Pascal
   VECTOR *ExternalSurfaceTension;          // in Pascal
   int NumberOfYoshidaSuzukiSteps;

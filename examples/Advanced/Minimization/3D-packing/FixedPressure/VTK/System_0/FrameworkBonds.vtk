@@ -1,0 +1,7 @@
+# vtk DataFile Version 1.0
+Cube
+ASCII
+
+DATASET POLYDATA
+POINTS 0 float
+LINES 0 0

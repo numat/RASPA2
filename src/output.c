@@ -1204,6 +1204,27 @@ void PrintPreSimulationStatusCurrentSystem(int system)
         fprintf(FilePtr,"\t point %3d: External Pressure: %lf [Pa]\n",i,(double)therm_baro_stats.ExternalPressure[system][i]*PRESSURE_CONVERSION_FACTOR);
     }
   }
+  if(therm_baro_stats.UseExternalStress)
+  {
+    switch(Dimension)
+    {
+      case 2:
+        fprintf(FilePtr,"External Stress: {{%f,%f},{-,%lf}} [Pa]\n",
+          (double)therm_baro_stats.ExternalStress[system].ax*PRESSURE_CONVERSION_FACTOR,
+          (double)therm_baro_stats.ExternalStress[system].ay*PRESSURE_CONVERSION_FACTOR,
+          (double)therm_baro_stats.ExternalStress[system].by*PRESSURE_CONVERSION_FACTOR);
+        break;
+      case 3:
+        fprintf(FilePtr,"External Stress: {{%lf,%lf,%lf},{-,%f,%f},{-,-,%lf}} [Pa]\n",
+          (double)therm_baro_stats.ExternalStress[system].ax*PRESSURE_CONVERSION_FACTOR,
+          (double)therm_baro_stats.ExternalStress[system].ay*PRESSURE_CONVERSION_FACTOR,
+          (double)therm_baro_stats.ExternalStress[system].az*PRESSURE_CONVERSION_FACTOR,
+          (double)therm_baro_stats.ExternalStress[system].by*PRESSURE_CONVERSION_FACTOR,
+          (double)therm_baro_stats.ExternalStress[system].bz*PRESSURE_CONVERSION_FACTOR,
+          (double)therm_baro_stats.ExternalStress[system].cz*PRESSURE_CONVERSION_FACTOR);
+        break;
+    }
+  }
   fprintf(FilePtr,"\n\n");
 
 

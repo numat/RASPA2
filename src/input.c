@@ -210,6 +210,7 @@ int ReadInputFile(char *inputfilename)
   seed=0lu;
 
   UseReducedUnits=FALSE;
+  therm_baro_stats.UseExternalStress=FALSE;
   Dimension=3;
 
   UseTabularGrid=FALSE;
@@ -1790,6 +1791,36 @@ int ReadInputFile(char *inputfilename)
       sscanf(arguments,"%lf",&therm_baro_stats.time_scale_parameter_thermostat);
     if(strcasecmp("TimeScaleParameterBarostat",keyword)==0) 
       sscanf(arguments,"%lf",&therm_baro_stats.time_scale_parameter_barostat);
+    if(strcasecmp("ExternalStress",keyword)==0)
+    {
+      therm_baro_stats.UseExternalStress=TRUE;
+      switch(Dimension)
+      {
+        case 2:
+         sscanf(arguments,"%lf %lf %lf",&therm_baro_stats.ExternalStress[CurrentSystem].ax,
+             &therm_baro_stats.ExternalStress[CurrentSystem].bx,&therm_baro_stats.ExternalStress[CurrentSystem].by);
+         therm_baro_stats.ExternalStress[CurrentSystem].ax/=PRESSURE_CONVERSION_FACTOR;
+         therm_baro_stats.ExternalStress[CurrentSystem].bx/=PRESSURE_CONVERSION_FACTOR;
+         therm_baro_stats.ExternalStress[CurrentSystem].by/=PRESSURE_CONVERSION_FACTOR;
+         therm_baro_stats.ExternalStress[CurrentSystem].ay=therm_baro_stats.ExternalStress[CurrentSystem].bx;
+         break;
+        case 3:
+         sscanf(arguments,"%lf %lf %lf %lf %lf %lf",&therm_baro_stats.ExternalStress[CurrentSystem].ax,
+           &therm_baro_stats.ExternalStress[CurrentSystem].bx,&therm_baro_stats.ExternalStress[CurrentSystem].bz,
+           &therm_baro_stats.ExternalStress[CurrentSystem].by,&therm_baro_stats.ExternalStress[CurrentSystem].cy,
+           &therm_baro_stats.ExternalStress[CurrentSystem].cz);
+         therm_baro_stats.ExternalStress[CurrentSystem].ax/=PRESSURE_CONVERSION_FACTOR;
+         therm_baro_stats.ExternalStress[CurrentSystem].bx/=PRESSURE_CONVERSION_FACTOR;
+         therm_baro_stats.ExternalStress[CurrentSystem].cx/=PRESSURE_CONVERSION_FACTOR;
+         therm_baro_stats.ExternalStress[CurrentSystem].by/=PRESSURE_CONVERSION_FACTOR;
+         therm_baro_stats.ExternalStress[CurrentSystem].cy/=PRESSURE_CONVERSION_FACTOR;
+         therm_baro_stats.ExternalStress[CurrentSystem].cz/=PRESSURE_CONVERSION_FACTOR;
+         therm_baro_stats.ExternalStress[CurrentSystem].ay=therm_baro_stats.ExternalStress[CurrentSystem].bx;
+         therm_baro_stats.ExternalStress[CurrentSystem].az=therm_baro_stats.ExternalStress[CurrentSystem].cx;
+         therm_baro_stats.ExternalStress[CurrentSystem].bz=therm_baro_stats.ExternalStress[CurrentSystem].cy;
+         break;
+      }
+    }
 
     // read MD ensembles
     if(strcasecmp("Ensemble",keyword)==0) 

@@ -1,0 +1,11 @@
+# general rule for shifted vs truncated
+shifted
+# general rule tailcorrections
+no
+# number of defined interactions
+2
+# type interaction
+LJ1             WCA    1.0       1.0
+LJ2             WCA    1.0       1.2
+# general mixing rule for Lennard-Jones
+Lorentz-Berthelot

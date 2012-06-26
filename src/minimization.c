@@ -1978,15 +1978,38 @@ void EvaluateDerivatives(int n,REAL *Energy,REAL* Gradient,REAL_MATRIX Hessian,R
             break;
           case REGULAR:
           case REGULAR_UPPER_TRIANGLE:
-            switch(Dimension)
+            if(therm_baro_stats.UseExternalStress)
             {
-              case 3:
-                Gradient[NumberOfCoordinatesMinimizationVariables+5]+=ExtPressure*Volume[CurrentSystem];
-              case 2:
-                Gradient[NumberOfCoordinatesMinimizationVariables+Dimension]+=ExtPressure*Volume[CurrentSystem];
-              case 1:
-                Gradient[NumberOfCoordinatesMinimizationVariables]+=ExtPressure*Volume[CurrentSystem];
-                break;
+              switch(Dimension)
+              {
+                case 3:
+                  Gradient[NumberOfCoordinatesMinimizationVariables]+=therm_baro_stats.ExternalStress[CurrentSystem].ax*Volume[CurrentSystem];
+                  Gradient[NumberOfCoordinatesMinimizationVariables+1]+=therm_baro_stats.ExternalStress[CurrentSystem].bx*Volume[CurrentSystem];
+                  Gradient[NumberOfCoordinatesMinimizationVariables+2]+=therm_baro_stats.ExternalStress[CurrentSystem].cx*Volume[CurrentSystem];
+                  Gradient[NumberOfCoordinatesMinimizationVariables+3]+=therm_baro_stats.ExternalStress[CurrentSystem].by*Volume[CurrentSystem];
+                  Gradient[NumberOfCoordinatesMinimizationVariables+4]+=therm_baro_stats.ExternalStress[CurrentSystem].cy*Volume[CurrentSystem];
+                  Gradient[NumberOfCoordinatesMinimizationVariables+5]+=therm_baro_stats.ExternalStress[CurrentSystem].cz*Volume[CurrentSystem];
+                  break;
+                case 2:
+                  Gradient[NumberOfCoordinatesMinimizationVariables]+=therm_baro_stats.ExternalStress[CurrentSystem].ax*Volume[CurrentSystem];
+                  Gradient[NumberOfCoordinatesMinimizationVariables+1]+=therm_baro_stats.ExternalStress[CurrentSystem].bx*Volume[CurrentSystem];
+                  Gradient[NumberOfCoordinatesMinimizationVariables+2]+=therm_baro_stats.ExternalStress[CurrentSystem].by*Volume[CurrentSystem];
+                case 1:
+                  break;
+              }
+            }
+            else
+            {
+              switch(Dimension)
+              {
+                case 3:
+                  Gradient[NumberOfCoordinatesMinimizationVariables+5]+=ExtPressure*Volume[CurrentSystem];
+                case 2:
+                  Gradient[NumberOfCoordinatesMinimizationVariables+Dimension]+=ExtPressure*Volume[CurrentSystem];
+                case 1:
+                  Gradient[NumberOfCoordinatesMinimizationVariables]+=ExtPressure*Volume[CurrentSystem];
+                  break;
+              }
             }
             break;
         }
@@ -2056,18 +2079,48 @@ void EvaluateDerivatives(int n,REAL *Energy,REAL* Gradient,REAL_MATRIX Hessian,R
             break;
           case REGULAR:
           case REGULAR_UPPER_TRIANGLE:
-            switch(Dimension)
+            if(therm_baro_stats.UseExternalStress)
             {
-              case 3:
-                Hessian.element[NumberOfCoordinatesMinimizationVariables][NumberOfCoordinatesMinimizationVariables+5]+=ExtPressure*Volume[CurrentSystem];
-                Hessian.element[NumberOfCoordinatesMinimizationVariables+3][NumberOfCoordinatesMinimizationVariables+5]+=ExtPressure*Volume[CurrentSystem];
-                Hessian.element[NumberOfCoordinatesMinimizationVariables+5][NumberOfCoordinatesMinimizationVariables+5]+=ExtPressure*Volume[CurrentSystem];
-              case 2:
-                Hessian.element[NumberOfCoordinatesMinimizationVariables][NumberOfCoordinatesMinimizationVariables+Dimension]+=ExtPressure*Volume[CurrentSystem];
-                Hessian.element[NumberOfCoordinatesMinimizationVariables+Dimension][NumberOfCoordinatesMinimizationVariables+Dimension]+=ExtPressure*Volume[CurrentSystem];
-              case 1:
-                Hessian.element[NumberOfCoordinatesMinimizationVariables][NumberOfCoordinatesMinimizationVariables]+=ExtPressure*Volume[CurrentSystem];
-                break;
+              switch(Dimension)
+              {
+                case 3:
+                  Hessian.element[NumberOfCoordinatesMinimizationVariables][NumberOfCoordinatesMinimizationVariables]+=therm_baro_stats.ExternalStress[CurrentSystem].ax*Volume[CurrentSystem];
+                  Hessian.element[NumberOfCoordinatesMinimizationVariables][NumberOfCoordinatesMinimizationVariables+1]+=therm_baro_stats.ExternalStress[CurrentSystem].bx*Volume[CurrentSystem];
+                  Hessian.element[NumberOfCoordinatesMinimizationVariables][NumberOfCoordinatesMinimizationVariables+2]+=therm_baro_stats.ExternalStress[CurrentSystem].cx*Volume[CurrentSystem];
+                  Hessian.element[NumberOfCoordinatesMinimizationVariables][NumberOfCoordinatesMinimizationVariables+3]+=therm_baro_stats.ExternalStress[CurrentSystem].by*Volume[CurrentSystem];
+                  Hessian.element[NumberOfCoordinatesMinimizationVariables][NumberOfCoordinatesMinimizationVariables+4]+=therm_baro_stats.ExternalStress[CurrentSystem].bz*Volume[CurrentSystem];
+                  Hessian.element[NumberOfCoordinatesMinimizationVariables][NumberOfCoordinatesMinimizationVariables+5]+=therm_baro_stats.ExternalStress[CurrentSystem].cz*Volume[CurrentSystem];
+                  Hessian.element[NumberOfCoordinatesMinimizationVariables+3][NumberOfCoordinatesMinimizationVariables+3]+=therm_baro_stats.ExternalStress[CurrentSystem].by*Volume[CurrentSystem];
+                  Hessian.element[NumberOfCoordinatesMinimizationVariables+3][NumberOfCoordinatesMinimizationVariables+4]+=therm_baro_stats.ExternalStress[CurrentSystem].bz*Volume[CurrentSystem];
+                  Hessian.element[NumberOfCoordinatesMinimizationVariables+3][NumberOfCoordinatesMinimizationVariables+5]+=therm_baro_stats.ExternalStress[CurrentSystem].cz*Volume[CurrentSystem];
+                  Hessian.element[NumberOfCoordinatesMinimizationVariables+5][NumberOfCoordinatesMinimizationVariables+5]+=therm_baro_stats.ExternalStress[CurrentSystem].cz*Volume[CurrentSystem];
+                  break;
+                case 2:
+                  Hessian.element[NumberOfCoordinatesMinimizationVariables][NumberOfCoordinatesMinimizationVariables]+=therm_baro_stats.ExternalStress[CurrentSystem].ax*Volume[CurrentSystem];
+                  Hessian.element[NumberOfCoordinatesMinimizationVariables][NumberOfCoordinatesMinimizationVariables+1]+=therm_baro_stats.ExternalStress[CurrentSystem].bx*Volume[CurrentSystem];
+                  Hessian.element[NumberOfCoordinatesMinimizationVariables][NumberOfCoordinatesMinimizationVariables+2]+=therm_baro_stats.ExternalStress[CurrentSystem].by*Volume[CurrentSystem];
+                  Hessian.element[NumberOfCoordinatesMinimizationVariables+2][NumberOfCoordinatesMinimizationVariables+2]+=therm_baro_stats.ExternalStress[CurrentSystem].by*Volume[CurrentSystem];
+                  break;
+                case 1:
+                  Hessian.element[NumberOfCoordinatesMinimizationVariables][NumberOfCoordinatesMinimizationVariables]+=therm_baro_stats.ExternalStress[CurrentSystem].ax*Volume[CurrentSystem];
+                  break;
+              }
+            }
+            else
+            {
+              switch(Dimension)
+              {
+                case 3:
+                  Hessian.element[NumberOfCoordinatesMinimizationVariables][NumberOfCoordinatesMinimizationVariables+5]+=ExtPressure*Volume[CurrentSystem];
+                  Hessian.element[NumberOfCoordinatesMinimizationVariables+3][NumberOfCoordinatesMinimizationVariables+5]+=ExtPressure*Volume[CurrentSystem];
+                  Hessian.element[NumberOfCoordinatesMinimizationVariables+5][NumberOfCoordinatesMinimizationVariables+5]+=ExtPressure*Volume[CurrentSystem];
+                case 2:
+                  Hessian.element[NumberOfCoordinatesMinimizationVariables][NumberOfCoordinatesMinimizationVariables+Dimension]+=ExtPressure*Volume[CurrentSystem];
+                  Hessian.element[NumberOfCoordinatesMinimizationVariables+Dimension][NumberOfCoordinatesMinimizationVariables+Dimension]+=ExtPressure*Volume[CurrentSystem];
+                case 1:
+                  Hessian.element[NumberOfCoordinatesMinimizationVariables][NumberOfCoordinatesMinimizationVariables]+=ExtPressure*Volume[CurrentSystem];
+                  break;
+              }
             }
             break;
         }
@@ -3861,7 +3914,26 @@ void BakerMinimization(int np,int nb,REAL *x,int run)
 
   Pressure=-(StrainFirstDerivative.ax+StrainFirstDerivative.by+StrainFirstDerivative.cz)/(Dimension*Volume[CurrentSystem]);
   fprintf(OutputFilePtr[CurrentSystem],"Final pressure after minimization: %18.10f [Pa]\n",(double)(Pressure*PRESSURE_CONVERSION_FACTOR));
-
+  switch(Dimension)
+  {
+    case 3:
+     fprintf(OutputFilePtr[CurrentSystem],"Final stress after minimization: {{%f,%f,%f},{-,%f,%f},{-,-,%f}} %s\n",
+          (double)(-StrainFirstDerivative.ax*PRESSURE_CONVERSION_FACTOR/Volume[CurrentSystem]),
+          (double)(-StrainFirstDerivative.bx*PRESSURE_CONVERSION_FACTOR/Volume[CurrentSystem]),
+          (double)(-StrainFirstDerivative.cx*PRESSURE_CONVERSION_FACTOR/Volume[CurrentSystem]),
+          (double)(-StrainFirstDerivative.by*PRESSURE_CONVERSION_FACTOR/Volume[CurrentSystem]),
+          (double)(-StrainFirstDerivative.bz*PRESSURE_CONVERSION_FACTOR/Volume[CurrentSystem]),
+          (double)(-StrainFirstDerivative.cz*PRESSURE_CONVERSION_FACTOR/Volume[CurrentSystem]),
+          UseReducedUnits?"[-]":"[Pa]");
+      break;
+    case 2:
+     fprintf(OutputFilePtr[CurrentSystem],"Final stress after minimization: {{%f,%f},{-,%f}} %s\n",
+          (double)(-StrainFirstDerivative.ax*PRESSURE_CONVERSION_FACTOR/Volume[CurrentSystem]),
+          (double)(-StrainFirstDerivative.bx*PRESSURE_CONVERSION_FACTOR/Volume[CurrentSystem]),
+          (double)(-StrainFirstDerivative.by*PRESSURE_CONVERSION_FACTOR/Volume[CurrentSystem]),
+          UseReducedUnits?"[-]":"[Pa]");
+      break;
+  }
   fprintf(OutputFilePtr[CurrentSystem],"\n\n");
 
   fprintf(OutputFilePtr[CurrentSystem],"Volume [A^3]: %18.10f\n",Volume[CurrentSystem]);
@@ -5020,6 +5092,26 @@ void SnymanMinimization(int np,int nb,REAL *x,int run)
   fprintf(OutputFilePtr[CurrentSystem],"Final energy after minimization: %18.10f\n",(double)(Energy*ENERGY_TO_KELVIN));
   Pressure=-(StrainFirstDerivative.ax+StrainFirstDerivative.by+StrainFirstDerivative.cz)/(Dimension*Volume[CurrentSystem]);
   fprintf(OutputFilePtr[CurrentSystem],"Final pressure after minimization: %18.10f [Pa]\n",(double)(Pressure*PRESSURE_CONVERSION_FACTOR));
+  switch(Dimension)
+  {
+    case 3:
+     fprintf(OutputFilePtr[CurrentSystem],"Final stress after minimization: {{%f,%f,%f},{-,%f,%f},{-,-,%f}} %s\n",
+          (double)(-StrainFirstDerivative.ax*PRESSURE_CONVERSION_FACTOR/Volume[CurrentSystem]),
+          (double)(-StrainFirstDerivative.bx*PRESSURE_CONVERSION_FACTOR/Volume[CurrentSystem]),
+          (double)(-StrainFirstDerivative.cx*PRESSURE_CONVERSION_FACTOR/Volume[CurrentSystem]),
+          (double)(-StrainFirstDerivative.by*PRESSURE_CONVERSION_FACTOR/Volume[CurrentSystem]),
+          (double)(-StrainFirstDerivative.bz*PRESSURE_CONVERSION_FACTOR/Volume[CurrentSystem]),
+          (double)(-StrainFirstDerivative.cz*PRESSURE_CONVERSION_FACTOR/Volume[CurrentSystem]),
+          UseReducedUnits?"[-]":"[Pa]");
+      break;
+    case 2:
+     fprintf(OutputFilePtr[CurrentSystem],"Final stress after minimization: {{%f,%f},{-,%f}} %s\n",
+          (double)(-StrainFirstDerivative.ax*PRESSURE_CONVERSION_FACTOR/Volume[CurrentSystem]),
+          (double)(-StrainFirstDerivative.bx*PRESSURE_CONVERSION_FACTOR/Volume[CurrentSystem]),
+          (double)(-StrainFirstDerivative.by*PRESSURE_CONVERSION_FACTOR/Volume[CurrentSystem]),
+          UseReducedUnits?"[-]":"[Pa]");
+      break;
+  }
   fprintf(OutputFilePtr[CurrentSystem],"\n\n");
 
 
@@ -5048,6 +5140,26 @@ void SnymanMinimization(int np,int nb,REAL *x,int run)
   fprintf(OutputFilePtr[CurrentSystem],"Final energy after minimization: %18.10f\n",(double)(UTotal[CurrentSystem]*ENERGY_TO_KELVIN));
   Pressure=-(StrainDerivativeTensor[CurrentSystem].ax+StrainDerivativeTensor[CurrentSystem].by+StrainDerivativeTensor[CurrentSystem].cz)/(Dimension*Volume[CurrentSystem]);
   fprintf(OutputFilePtr[CurrentSystem],"Final pressure after minimization: %18.10f [Pa]\n",(double)(Pressure*PRESSURE_CONVERSION_FACTOR));
+  switch(Dimension)
+  {
+    case 3:
+     fprintf(OutputFilePtr[CurrentSystem],"Final stress after minimization: {{%f,%f,%f},{-,%f,%f},{-,-,%f}} %s\n",
+          (double)(-StrainFirstDerivative.ax*PRESSURE_CONVERSION_FACTOR/Volume[CurrentSystem]),
+          (double)(-StrainFirstDerivative.bx*PRESSURE_CONVERSION_FACTOR/Volume[CurrentSystem]),
+          (double)(-StrainFirstDerivative.cx*PRESSURE_CONVERSION_FACTOR/Volume[CurrentSystem]),
+          (double)(-StrainFirstDerivative.by*PRESSURE_CONVERSION_FACTOR/Volume[CurrentSystem]),
+          (double)(-StrainFirstDerivative.bz*PRESSURE_CONVERSION_FACTOR/Volume[CurrentSystem]),
+          (double)(-StrainFirstDerivative.cz*PRESSURE_CONVERSION_FACTOR/Volume[CurrentSystem]),
+          UseReducedUnits?"[-]":"[Pa]");
+      break;
+    case 2:
+     fprintf(OutputFilePtr[CurrentSystem],"Final stress after minimization: {{%f,%f},{-,%f}} %s\n",
+          (double)(-StrainFirstDerivative.ax*PRESSURE_CONVERSION_FACTOR/Volume[CurrentSystem]),
+          (double)(-StrainFirstDerivative.bx*PRESSURE_CONVERSION_FACTOR/Volume[CurrentSystem]),
+          (double)(-StrainFirstDerivative.by*PRESSURE_CONVERSION_FACTOR/Volume[CurrentSystem]),
+          UseReducedUnits?"[-]":"[Pa]");
+      break;
+  }
   fprintf(OutputFilePtr[CurrentSystem],"\n\n");
 
   fprintf(OutputFilePtr[CurrentSystem],"      Box: %18.10f %18.10f %18.10f     Strain derivative: %18.10f %18.10f %18.10f\n",

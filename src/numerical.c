@@ -186,15 +186,48 @@ void NumericallyComputeGradient(int np,int nb,REAL *x,REAL *NumericalGradient)
           {
             case 3:
              NumericalGradient[np+5]-=pressure/Volume[CurrentSystem];
-             NumericalGradient[np+5]+=ExtPressure*Volume[CurrentSystem];
             case 2:
               NumericalGradient[np+Dimension]-=pressure/Volume[CurrentSystem];
-              NumericalGradient[np+Dimension]+=ExtPressure*Volume[CurrentSystem];
             case 1:
               NumericalGradient[np]-=pressure/Volume[CurrentSystem];
-              NumericalGradient[np]+=ExtPressure*Volume[CurrentSystem];
               break;
           }
+
+            if(therm_baro_stats.UseExternalStress)
+            {
+              switch(Dimension)
+              {
+                case 3:
+                  NumericalGradient[np]+=therm_baro_stats.ExternalStress[CurrentSystem].ax*Volume[CurrentSystem];
+                  NumericalGradient[np+1]+=therm_baro_stats.ExternalStress[CurrentSystem].bx*Volume[CurrentSystem];
+                  NumericalGradient[np+2]+=therm_baro_stats.ExternalStress[CurrentSystem].cx*Volume[CurrentSystem];
+                  NumericalGradient[np+3]+=therm_baro_stats.ExternalStress[CurrentSystem].by*Volume[CurrentSystem];
+                  NumericalGradient[np+4]+=therm_baro_stats.ExternalStress[CurrentSystem].cy*Volume[CurrentSystem];
+                  NumericalGradient[np+5]+=therm_baro_stats.ExternalStress[CurrentSystem].cz*Volume[CurrentSystem];
+                  break;
+                case 2:
+                  NumericalGradient[np]+=therm_baro_stats.ExternalStress[CurrentSystem].ax*Volume[CurrentSystem];
+                  NumericalGradient[np+1]+=therm_baro_stats.ExternalStress[CurrentSystem].bx*Volume[CurrentSystem];
+                  NumericalGradient[np+2]+=therm_baro_stats.ExternalStress[CurrentSystem].by*Volume[CurrentSystem];
+                case 1:
+                  NumericalGradient[np]+=therm_baro_stats.ExternalStress[CurrentSystem].ax*Volume[CurrentSystem];
+                  break;
+              }
+            }
+            else
+            {
+              switch(Dimension)
+              {
+                case 3:
+                  NumericalGradient[np+5]+=ExtPressure*Volume[CurrentSystem];
+                case 2:
+                  NumericalGradient[np+Dimension]+=ExtPressure*Volume[CurrentSystem];
+                case 1:
+                  NumericalGradient[np]+=ExtPressure*Volume[CurrentSystem];
+                  break;
+              }
+            }
+
           break;
       }
   }
