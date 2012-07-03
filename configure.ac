@@ -41,6 +41,7 @@ forcefield/GarciaPerez2012/Makefile \
 forcefield/TraPPE/Makefile \
 molecules/Makefile \
 molecules/TraPPE/Makefile \
+molecules/TraPPE-UA/Makefile \
 framework/Makefile \
 framework/Dubbeldam2007FlexibleIRMOF-1/Makefile \
 framework/Dubbeldam2007FlexibleIRMOF-10/Makefile \

@@ -3581,7 +3581,7 @@ void AllocateThermoBaroStatMemory(void)
   therm_baro_stats.ExternalPressure=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
   for(i=0;i<NumberOfSystems;i++)
     therm_baro_stats.ExternalPressure[i]=(REAL*)calloc(NumberOfIsothermPressures,sizeof(REAL));
-  therm_baro_stats.ExternalStress=(REAL*)calloc(NumberOfSystems,sizeof(REAL_MATRIX3x3));
+  therm_baro_stats.ExternalStress=(REAL_MATRIX3x3*)calloc(NumberOfSystems,sizeof(REAL_MATRIX3x3));
 
   CellVelocity=(REAL_MATRIX3x3*)calloc(NumberOfSystems,sizeof(REAL_MATRIX3x3));
   CellMass=(REAL*)calloc(NumberOfSystems,sizeof(REAL));

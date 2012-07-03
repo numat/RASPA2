@@ -5230,14 +5230,10 @@ int ReadInputFile(char *inputfilename)
 
   for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
   {
-    // compute the intial center-of-mass position
-    Framework[CurrentSystem].IntialCenterOfMassPosition=GetFrameworkCenterOfMass();
-
-    IntialCenterOfMassPosition[CurrentSystem]=GetCenterOfMassCurrentSystem();
-
     if(Ensemble[CurrentSystem]==NPTPR) BoundaryCondition[CurrentSystem]=TRICLINIC;
     if(ProbabilityBoxShapeChangeMove>0.0) BoundaryCondition[CurrentSystem]=TRICLINIC;
   }
+
 
   // if the boundary-condition is still not set, let it default to 'triclinic'
   for(i=0;i<NumberOfSystems;i++)
@@ -5299,6 +5295,13 @@ int ReadInputFile(char *inputfilename)
 
   // compute the Inertia-tensors and quaternions for all rigid molecules
   ComputeQuaternions();
+
+  for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
+  {
+    // compute the intial center-of-mass position
+    Framework[CurrentSystem].IntialCenterOfMassPosition=GetFrameworkCenterOfMass();
+    IntialCenterOfMassPosition[CurrentSystem]=GetCenterOfMassCurrentSystem();
+  }
 
   CheckConfigMoves();
 

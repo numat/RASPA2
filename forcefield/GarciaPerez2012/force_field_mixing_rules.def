@@ -8,7 +8,7 @@ no
 He             lennard-jones    10.9      2.64
 CH4_sp3        lennard-jones    158.5     3.72
 CH3_sp3        lennard-jones    108.5     3.755
-CH2_sp3        lennard-jones     52.0     3.95
+CH2_sp3        lennard-jones     52.0     4.04
 CH_sp3         lennard-jones     17.0     4.67
 C_sp3          lennard-jones      0.8     6.38
 CH2_sp2        lennard-jones     93.0     3.685
