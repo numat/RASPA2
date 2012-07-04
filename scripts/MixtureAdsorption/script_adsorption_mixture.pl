@@ -15,11 +15,12 @@ use File::Path;
 @idealgas = ([0.00874526,0.0477596,0.0535328,0.226576,0.0873119]); # list of IG Rosenbluth weights for each temperature
 
 # pressure-information
-$pressure_start = 1e-5;
-$pressure_end = 1e5;
-$number_of_pressure_points = 11; # 11 point equally spaced in log-scale
-$pressure_unit="Pa";  # "bar", "kPa", or "Pa"
-$pressure_scale="log"; # "log" or "linear"
+$pressure_type = "pressure";     # "pressure" or "fugacity"
+$pressure_start = 1e-5;          # lowest pressure/fugacity
+$pressure_end = 1e5;             # highest pressure/fugacity
+$number_of_pressure_points = 11; # number of point equally spaced in log-scale or linear-scale
+$pressure_unit="Pa";             # "bar", "kPa", or "Pa"
+$pressure_scale="log";           # "log" or "linear"
 
 # simulation-information
 $SimulationType="MonteCarlo";
@@ -198,7 +199,7 @@ foreach (@framework)
         print DATw3 "            StartingBead              0\n";
         print DATw3 "            MoleculeDefinition        TraPPE\n";
         print DATw3 "            IdealGasRosenbluthWeight  $idealgas[$index_temperature][$index_molecule]\n";
-        print DATw3 "            FugacityCoefficient       1.0\n";
+        if($pressure_type eq "fugacity") {printf DATw3 "            FugacityCoefficient       1.0\n";}
         print DATw3 "            TranslationProbability    1.0\n";
         print DATw3 "            RotationProbability       1.0\n";
         print DATw3 "            ReinsertionProbability    1.0\n";

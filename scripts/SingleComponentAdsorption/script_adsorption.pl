@@ -15,11 +15,12 @@ use File::Path;
 @idealgas = ([0.00874526,0.0477596,0.0535328,0.226576,0.0873119,0.00186805,0.0103826,0.0107136,0.0446854,0.0171425]); # list of IG Rosenbluth weights for each temperature
 
 # pressure-information
-$pressure_start = 1e-5;
-$pressure_end = 1e5;
-$number_of_pressure_points = 11; # 11 points equally spaced in log-scale
-$pressure_unit="Pa";  # "bar", "kPa", or "Pa"
-$pressure_scale="log"; # "log" or "linear"
+$pressure_type = "pressure";     # "pressure" or "fugacity"
+$pressure_start = 1e-5;          # lowest pressure
+$pressure_end = 1e5;             # highest pressure
+$number_of_pressure_points = 11; # number of points equally spaced in log-scale or linear scale
+$pressure_unit="Pa";             # "bar", "kPa", or "Pa"
+$pressure_scale="log";           # "log" or "linear"
 
 # simulation-information
 $SimulationType="MonteCarlo";
@@ -29,7 +30,7 @@ $PrintEvery="5000";
 $RestartFile="no";
 
 # system and queuing information
-$divide_into_batches="yes"; # combine serial run in larger blocks
+$divide_into_batches="no"; # combine serial run in larger blocks
 $batches = 4; # combine into an 8-core job
 $queue = "mof1"; # the queue type
 $job_name = "Adsorption"; # name of the job
@@ -194,7 +195,7 @@ foreach (@framework)
         print DATw3 "            StartingBead              0\n";
         print DATw3 "            MoleculeDefinition        TraPPE\n";
         print DATw3 "            IdealGasRosenbluthWeight  $idealgas[$index_temperature][$index_molecule]\n";
-        print DATw3 "            FugacityCoefficient       1.0\n";
+        if($pressure_type eq "fugacity") {printf DATw3 "            FugacityCoefficient       1.0\n";}
         print DATw3 "            TranslationProbability    1.0\n";
         print DATw3 "            RotationProbability       1.0\n";
         print DATw3 "            ReinsertionProbability    1.0\n";
