@@ -817,15 +817,9 @@ void ReadComponentDefinition(int comp)
     ReadLine(line,1024,FilePtr);
     sscanf(line,"%s",buffer);
     if(strcasecmp("rigid",buffer)==0)
-    {
       Components[comp].Groups[i].Rigid=TRUE;
-      Components[comp].NumberOfRigidAtoms+=Components[comp].Groups[i].NumberOfGroupAtoms;
-    }
     else if(strcasecmp("flexible",buffer)==0)
-    {
       Components[comp].Groups[i].Rigid=FALSE;
-      Components[comp].NumberOfFlexibleAtoms+=Components[comp].Groups[i].NumberOfGroupAtoms;
-    }
     else
     {
       printf("Error:  Unknown group type (should be 'Flexible' or 'Rigid')\n");
@@ -842,6 +836,11 @@ void ReadComponentDefinition(int comp)
         &Components[comp].Groups[i].NumberOfGroupAtoms,
         &Components[comp].Groups[i].NumberOfPermanentDipoles,
         &Components[comp].Groups[i].NumberOfPolarizabilities);
+
+    if(Components[comp].Groups[i].Rigid)
+      Components[comp].NumberOfRigidAtoms+=Components[comp].Groups[i].NumberOfGroupAtoms;
+    else
+      Components[comp].NumberOfFlexibleAtoms+=Components[comp].Groups[i].NumberOfGroupAtoms;
 
     mass=0.0;
     if(Components[comp].Groups[i].NumberOfGroupAtoms>0)
