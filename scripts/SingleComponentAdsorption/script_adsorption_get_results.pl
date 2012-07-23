@@ -4,7 +4,7 @@ use File::Path;
 use File::Find;
 
 # list of frameworks
-@framework = ("DON");
+@framework = ("fe2bdp3-minusb");
 
 # temperature-information
 @temperature = (433.0); # list of temperatures
@@ -37,7 +37,7 @@ foreach (@framework)
         $fugacity=`gawk '/Partial fugacity:/{++c;if(c==1) printf \$3" "}' '$file'`;
         $fugacitycoefficient=`gawk '/Fugacity coefficient:/{++c;if(c==1) printf \$3" "}' '$file'`;
         $press=`gawk '/Partial pressure:/{++c;if(c==1) printf \$3" "}' '$file'`;
-        $absloading=`gawk '/Average loading absolute \\[molecules/{printf pr1" "pr2}{pr1=\$2;pr2=\$4}' '$file'`;
+        $absloading=`gawk '/Average loading absolute \\[molecules/{printf pr1" "pr2}{pr1=\$2;pr2=\$4" "}' '$file'`;
         $absloading_molec_uc=`gawk '/Average loading absolute \\[molecules/{++c;if(c==1) printf \$6" "\$8" "}' '$file'`;
         $absloading_mol_kg=`gawk '/Average loading absolute \\[mol\\/kg/{printf \$6" "\$8" "}' '$file'`;
         $absloading_mg_g=`gawk '/Average loading absolute \\[mil/{++c;if(c==1) printf \$6" "\$8" "}' '$file'`;
