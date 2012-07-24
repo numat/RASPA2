@@ -1,4 +1,4 @@
-#!/opt/perl/bin/perl -w
+#!/usr/bin/perl -w
 use File::Copy;
 use File::Path;
 
