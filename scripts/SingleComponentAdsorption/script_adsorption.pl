@@ -1,38 +1,38 @@
-#!/usr/bin/perl -w
+#!/opt/perl/bin/perl -w
 use File::Copy;
 use File::Path;
 
 # framework-information
-@framework = ("MFI_SI","IRMOF-1");  # list of structures
-@HeliumVoidFraction = ("0.292012","0.801937");  # list of helium-voidfractions for the structures
-@UnitCells = ("2 2 4","1 1 1"); # list of sizes of the unit cells for the structures
-@Forcefield=("GarciaPerez2006","GenericMOFs");
-@RemoveAtomNumberCodeFromLabel=("yes","no");
+@framework = ("fe2bdp3-minusb");  # list of structures
+@HeliumVoidFraction = ("0.40829");  # list of helium-voidfractions for the structures
+@UnitCells = ("6 1 1"); # list of sizes of the unit cells for the structures
+@Forcefield=("GenericMOFs");
+@RemoveAtomNumberCodeFromLabel=("yes");
 
 # temperature-information
 @temperature = (433.0); # list of temperatures
-@molecule = ("hexane","2-methylpentane","3-methylpentane","22-dimethylbutane","23-dimethylbutane","heptane","2-methylhexane","3-methylhexane","22-dimethylpentane","23-dimethylpentane"); # list of molecules
-@idealgas = ([0.00874526,0.0477596,0.0535328,0.226576,0.0873119,0.00186805,0.0103826,0.0107136,0.0446854,0.0171425]); # list of IG Rosenbluth weights for each temperature
+@molecule = ("hexane","2-methylpentane","3-methylpentane","22-dimethylbutane","23-dimethylbutane"); # list of molecules
+@idealgas = ([0.00874526,0.0477596,0.0535328,0.226576,0.0873119]); # list of IG Rosenbluth weights for each temperature
 
 # pressure-information
-$pressure_type = "pressure";     # "pressure" or "fugacity"
-$pressure_start = 1e-5;          # lowest pressure
-$pressure_end = 1e5;             # highest pressure
-$number_of_pressure_points = 11; # number of points equally spaced in log-scale or linear scale
+$pressure_type = "fugacity";     # "pressure" or "fugacity"
+$pressure_start = 1e-3;          # lowest pressure
+$pressure_end = 1e10;            # highest pressure
+$number_of_pressure_points = 48; # number of points equally spaced in log-scale or linear scale
 $pressure_unit="Pa";             # "bar", "kPa", or "Pa"
 $pressure_scale="log";           # "log" or "linear"
 
 # simulation-information
 $SimulationType="MonteCarlo";
-$NumberOfCycles="150000";
-$NumberOfInitializationCycles="50000";
+$NumberOfCycles="400000";
+$NumberOfInitializationCycles="150000";
 $PrintEvery="5000";
 $RestartFile="no";
 
 # system and queuing information
 $divide_into_batches="no"; # combine serial run in larger blocks
 $batches = 4; # combine into an 8-core job
-$queue = "mof1"; # the queue type
+$queue = "VASP,mof3,mof4,bio-serial,serial"; # the queue type
 $job_name = "Adsorption"; # name of the job
 @file_list = (); # list of files copied to all the directories
 

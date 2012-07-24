@@ -3,12 +3,11 @@ use File::Copy;
 use File::Path;
 
 # forcefield-information
-@Forcefield=("GarciaPerez2006");
-@RemoveAtomNumberCodeFromLabel=("yes");
+$Forcefield=("GarciaPerez2012");
 
 # temperature-information
-@temperature = (433.0); # list of temperatures
-@molecule = ("hexane","2-methylpentane","3-methylpentane","22-dimethylbutane","23-dimethylbutane","heptane","2-methylhexane","3-methylhexane","22-dimethylpentane","23-dimethylpentane"); # list of molecules
+@temperature = (150,160,170,180,190,200,210,220,230,240,250,260,270,280,290,300,310,320,330,340,350,360,370,380,390,400,410,420,430,440,450,460,470,480,490,500,510,520,530,540); # list of temperatures
+@molecule = ("pentane","heptane","2-methylbutane","2-methylpentane"); # list of molecules
 
 # simulation-information
 $SimulationType="MonteCarlo";
@@ -18,9 +17,9 @@ $PrintEvery="10000";
 $RestartFile="no";
 
 # system and queuing information
-$divide_into_batches="yes"; # combine serial run in larger blocks
+$divide_into_batches="no"; # combine serial run in larger blocks
 $batches = 4; # combine into an 8-core job
-$queue = "mof1"; # the queue type
+$queue = "mof1,mof2"; # the queue type
 $job_name = "IdealGasRosenbluth"; # name of the job
 
 # get cluster-name
@@ -39,7 +38,7 @@ foreach (@temperature)
   $index_molecule=0;
   foreach (@molecule)
   {
-    $dir_molecule="$dir_fr/$temperature[$index_temperature]K/$molecule[$index_molecule]";
+    $dir_molecule="$temperature[$index_temperature]K/$molecule[$index_molecule]";
     mkpath($dir_molecule);
 
     open(DATw1, ">$dir_molecule/run") || die("Could not open file!");
@@ -122,8 +121,7 @@ foreach (@temperature)
     print DATw3 "WriteBinaryRestartFileEvery 5000\n";
     print DATw3 "\n";
     print DATw3 "ChargeMethod                  Ewald\n";
-    print DATw3 "Forcefield                    $Forcefield[$index_framework]\n";
-    print DATw3 "RemoveAtomNumberCodeFromLabel $RemoveAtomNumberCodeFromLabel[$index_framework]\n";
+    print DATw3 "Forcefield                    $Forcefield\n";
     print DATw3 "\n";
     print DATw3 "Box                 0\n";
     print DATw3 "BoxAngles           50 50 50\n";

@@ -1,13 +1,13 @@
-#!/usr/bin/perl -w
+#!/opt/perl/bin/perl -w
 use File::Copy;
 use File::Path;
 
 # framework-information
-@framework = ("MIL-100-primitive", "MIL-101-primitive");  # list of structures
-@HeliumVoidFraction = ("0.712419", "0.808882");  # list of helium-voidfractions for the structures
-@UnitCells = ("1 1 1","1 1 1"); # list of sizes of the unit cells for the structures
-@Forcefield=("GenericMOFs","GenericMOFs");
-@RemoveAtomNumberCodeFromLabel=("yes","yes");
+@framework = ("fe2bdp3-minusb");  # list of structures
+@HeliumVoidFraction = ("0.40829");  # list of helium-voidfractions for the structures
+@UnitCells = ("5 1 1"); # list of sizes of the unit cells for the structures
+@Forcefield=("GenericMOFs");
+@RemoveAtomNumberCodeFromLabel=("yes");
 
 # temperature-information
 @temperature = (433.0); # list of temperatures
@@ -15,16 +15,16 @@ use File::Path;
 @idealgas = ([0.00874526,0.0477596,0.0535328,0.226576,0.0873119]); # list of IG Rosenbluth weights for each temperature
 
 # pressure-information
-$pressure_type = "pressure";     # "pressure" or "fugacity"
-$pressure_start = 1e-5;          # lowest pressure/fugacity
-$pressure_end = 1e5;             # highest pressure/fugacity
-$number_of_pressure_points = 11; # number of point equally spaced in log-scale or linear-scale
+$pressure_type = "fugacity";     # "pressure" or "fugacity"
+$pressure_start = 1e-3;          # lowest pressure
+$pressure_end = 1e10;            # highest pressure
+$number_of_pressure_points = 48; # number of points equally spaced in log-scale or linear scale
 $pressure_unit="Pa";             # "bar", "kPa", or "Pa"
 $pressure_scale="log";           # "log" or "linear"
 
 # simulation-information
 $SimulationType="MonteCarlo";
-$NumberOfCycles="150000";
+$NumberOfCycles="100000";
 $NumberOfInitializationCycles="50000";
 $PrintEvery="5000";
 $RestartFile="no";
@@ -32,7 +32,7 @@ $RestartFile="no";
 # system and queuing information
 $divide_into_batches="no"; # combine serial run in larger blocks
 $batches = 8; # combine into an 8-core job
-$queue = "mof1"; # the queue type
+$queue = "VASP,mof3,mof4"; # the queue type
 $job_name = "Mixture"; # name of the job
 @file_list = (); # list of files copied to all the directories
 

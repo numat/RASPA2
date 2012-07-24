@@ -4,7 +4,7 @@ use File::Path;
 use File::Find;
 
 #framework-information
-@framework = ("graphite-square-channel-14.2A");
+@framework = ("fe2bdp3-minusb");
 
 # temperature-information
 @temperature = (433.0); # list of temperatures
@@ -35,17 +35,17 @@ foreach (@framework)
 
     foreach $file (@files)
     {
-      $fugacity=`gawk '/Partial fugacity:/{++c;if(c==1) printf \$3" "}' '$file'`;
-      $fugacitycoefficient=`gawk '/Fugacity coefficient:/{++c;if(c==1) printf \$3" "}' '$file'`;
-      $press=`gawk '/Partial pressure:/{++c;if(c==1) printf \$3" "}' '$file'`;
-      $absloading=`gawk '/Average loading absolute \\[molecules/{printf pr1" "pr2}{pr1=\$2;pr2=\$4}' '$file'`;
-      $absloading_molec_uc=`gawk '/Average loading absolute \\[molecules/{++c;if(c==1) printf \$6" "\$8" "}' '$file'`;
-      $absloading_mol_kg=`gawk '/Average loading absolute \\[mol\\/kg/{++c;if(c==1) printf \$6" "\$8" "}' '$file'`;
-      $absloading_mg_g=`gawk '/Average loading absolute \\[mil/{++c;if(c==1) printf \$6" "\$8" "}' '$file'`;
-      $excloading=`gawk '/Average loading excess \\[molecules/{printf pr1" "pr2}{pr1=\$2;pr2=\$4}' '$file'`;
-      $excloading_molec_uc=`gawk '/Average loading excess \\[molecules/{++c;if(c==1) printf \$6" "\$8" "}' '$file'`;
-      $excloading_mol_kg=`gawk '/Average loading excess \\[mol\\/kg/{++c;if(c==1) printf \$6" "\$8" "}' '$file'`;
-      $excloading_mg_g=`gawk '/Average loading excess \\[mil/{++c;if(c==1) printf \$6" "\$8" "}' '$file'`;
+      $fugacity=`gawk '/Partial fugacity:/{printf \$3" "}' '$file'`;
+      $fugacitycoefficient=`gawk '/Fugacity coefficient:/{printf \$3" "}' '$file'`;
+      $press=`gawk '/Partial pressure:/{printf \$3" "}' '$file'`;
+      $absloading=`gawk '/Average loading absolute \\[molecules/{printf \$6" "\$8" "}' '$file'`;
+      $absloading_molec_uc=`gawk '/Average loading absolute \\[molecules/{printf \$6" "\$8" "}' '$file'`;
+      $absloading_mol_kg=`gawk '/Average loading absolute \\[mol\\/kg/{printf \$6" "\$8" "}' '$file'`;
+      $absloading_mg_g=`gawk '/Average loading absolute \\[mil/{printf \$6" "\$8" "}' '$file'`;
+      $excloading=`gawk '/Average loading excess \\[molecules/{printf \$6" "\$8" "}' '$file'`;
+      $excloading_molec_uc=`gawk '/Average loading excess \\[molecules/{printf \$6" "\$8" "}' '$file'`;
+      $excloading_mol_kg=`gawk '/Average loading excess \\[mol\\/kg/{printf \$6" "\$8" "}' '$file'`;
+      $excloading_mg_g=`gawk '/Average loading excess \\[mil/{printf \$6" "\$8" "}' '$file'`;
 
       printf DATw2 "$fugacity $fugacitycoefficient $press $absloading $absloading_molec_uc $absloading_mol_kg $absloading_mg_g $excloading $excloading_molec_uc $excloading_mol_kg $excloading_mg_g\n";
     } 
