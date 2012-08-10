@@ -101,9 +101,11 @@ int main(int argc, char **argv)
         strcpy(raspa_dir,optarg);
         RASPA_DIRECTORY=raspa_dir;
         break;
+      case 'v':
+        printf("RASPA 1.6-2 (2012)\n");
+        return 0;
       default:
         return 1;
-        break;
     }
   }
 
