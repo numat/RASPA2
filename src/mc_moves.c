@@ -9625,7 +9625,7 @@ void PrintFrameworkShiftStatistics(FILE *FilePtr)
  * ----------------------------------------------------------------------------------------------------- *
  * Function   | Monte Carlo move to do a Gibbs particle transfer from one box to the other.              *
  * Parameters | -                                                                                        *
- * Note       |                                                                                          *
+ * Note       | The ideal gas Rosenbluth weights cancel.                                                 *
  *********************************************************************************************************/
 
 int GibbsParticleTransferAdsorbateMove(void)
@@ -10000,7 +10000,7 @@ int GibbsParticleTransferAdsorbateMove(void)
  * ----------------------------------------------------------------------------------------------------- *
  * Function   | Monte Carlo move to do a Gibbs particle transfer from one box to the other.              *
  * Parameters | -                                                                                        *
- * Note       |                                                                                          *
+ * Note       | The ideal gas Rosenbluth weights cancel.                                                 *
  *********************************************************************************************************/
 
 int GibbsParticleTransferCationMove(void)
