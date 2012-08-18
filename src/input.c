@@ -6988,8 +6988,22 @@ void ReadRestartFile(void)
 
     if(!(FilePtrIn=fopen(buffer,"r")))
     {
-      printf("Could NOT open file: %s\n",buffer);
-      exit(0);
+      sprintf(buffer,"RestartInitial/System_%d/restart_%s_%d.%d.%d_%lf",
+              CurrentSystem,
+              Framework[CurrentSystem].Name[0],
+              NumberOfUnitCells[CurrentSystem].x,
+              NumberOfUnitCells[CurrentSystem].y,
+              NumberOfUnitCells[CurrentSystem].z,
+              (double)therm_baro_stats.ExternalPressure[CurrentSystem][CurrentIsothermPressure]*PRESSURE_CONVERSION_FACTOR);
+      if(!(FilePtrIn=fopen(buffer,"r")))
+      {
+        sprintf(buffer,"RestartInitial/System_%d/restart.dat",CurrentSystem);
+        if(!(FilePtrIn=fopen(buffer,"r")))
+        {
+          printf("Could NOT open file: %s\n",buffer);
+          exit(0);
+        }
+      }
     }
 
     while(fgets(line,1024,FilePtrIn))
