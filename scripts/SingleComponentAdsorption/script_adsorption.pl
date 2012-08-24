@@ -8,6 +8,7 @@ use File::Path;
 @UnitCells = ("6 1 1"); # list of sizes of the unit cells for the structures
 @Forcefield=("GenericMOFs");
 @RemoveAtomNumberCodeFromLabel=("yes");
+@CutOff=("12.8");
 
 # temperature-information
 @temperature = (433.0); # list of temperatures
@@ -178,6 +179,7 @@ foreach (@framework)
         print DATw3 "\n";
         print DATw3 "ChargeMethod                  Ewald\n";
         print DATw3 "Forcefield                    $Forcefield[$index_framework]\n";
+        print DATw3 "CutOffVDW                     $CutOff[$index_framework]\n";
         print DATw3 "RemoveAtomNumberCodeFromLabel $RemoveAtomNumberCodeFromLabel[$index_framework]\n";
         print DATw3 "\n";
         print DATw3 "Framework           0\n";

@@ -809,6 +809,25 @@ void ParseForceFieldSelfParameters(char *Arguments,int i,char *PotentialName)
     PotentialParms[i][i][3]=arg4;
     PotentialParms[i][i][4]=(REAL)0.0;
   }
+  // if(r<p_4) 1e10 else p_0*exp(-p_1*r)-p_2/r^5-p_3/r^6
+  // ======================================================================================
+  // p_0/k_B [K]
+  // p_1     [A^-1]
+  // p_2/k_B [K A^5]
+  // p_3/k_B [K A^6]
+  // p_4     [A]
+  // p_5/k_B [K]  (non-zero for a shifted potential)
+  if(strcasecmp(PotentialName,"DZUBAK2012")==0)
+  {
+    PotentialType[i][i]=DZUBAK2012;
+    sscanf(Arguments,"%lf %lf %lf %lf %lf",&arg1,&arg2,&arg3,&arg4,&arg5);
+    PotentialParms[i][i][0]=arg1*KELVIN_TO_ENERGY;
+    PotentialParms[i][i][1]=arg2;
+    PotentialParms[i][i][2]=arg3*KELVIN_TO_ENERGY;
+    PotentialParms[i][i][3]=arg4*KELVIN_TO_ENERGY;
+    PotentialParms[i][i][4]=arg5;
+    PotentialParms[i][i][5]=(REAL)0.0;
+  }
   // sqrt(p_0^i*p_0^j)*[1.84e5*exp(-12/P)-2.25*P^6]  if P>=3.02
   // sqrt(p_0^i*p_0^j)*192.27*P^2                    if P<3.02
   // ======================================================================================
@@ -2053,6 +2072,34 @@ void ParseForceFieldBinaryParameters(char *Arguments,int i,int j,char *Potential
     PotentialParms[i][j][3]=arg4;
     PotentialParms[j][i][4]=(REAL)0.0;
     PotentialParms[i][j][4]=(REAL)0.0;
+  }
+
+
+  // if(r<p_4) 1e10 else p_0*exp(-p_1*r)-p_2/r^6-p_3/r^6
+  // ======================================================================================
+  // p_0/k_B [K]
+  // p_1     [A^-1]
+  // p_2/k_B [K A^5]
+  // p_3/k_B [K A^6]
+  // p_4     [A]
+  // p_5/k_B [K]  (non-zero for a shifted potential)
+  if(strcasecmp(PotentialName,"DZUBAK2012")==0)
+  {
+    PotentialType[i][j]=DZUBAK2012;
+    PotentialType[j][i]=DZUBAK2012;
+    sscanf(Arguments,"%lf %lf %lf %lf %lf",&arg1,&arg2,&arg3,&arg4,&arg5);
+    PotentialParms[j][i][0]=arg1*KELVIN_TO_ENERGY;
+    PotentialParms[i][j][0]=arg1*KELVIN_TO_ENERGY;
+    PotentialParms[j][i][1]=arg2;
+    PotentialParms[i][j][1]=arg2;
+    PotentialParms[j][i][2]=arg3*KELVIN_TO_ENERGY;
+    PotentialParms[i][j][2]=arg3*KELVIN_TO_ENERGY;
+    PotentialParms[j][i][3]=arg4*KELVIN_TO_ENERGY;
+    PotentialParms[i][j][3]=arg4*KELVIN_TO_ENERGY;
+    PotentialParms[j][i][4]=arg5;
+    PotentialParms[i][j][4]=arg5;
+    PotentialParms[j][i][5]=(REAL)0.0;
+    PotentialParms[i][j][5]=(REAL)0.0;
   }
 
   // sqrt(p_0^i*p_0^j)*[1.84e5*exp(-12/P)-2.25*P^6]  if P>=3.02
@@ -4809,6 +4856,14 @@ void ComputePotentialShifts(void)
         case BUCKINGHAM2_SMOOTHED3:
         case BUCKINGHAM2_SMOOTHED5:
           break;
+        case DZUBAK2012:
+          if(ShiftPotential[i][j])
+            arg5=PotentialValue(i,j,CutOffVDWSquared);
+          else
+            arg5=(REAL)0.0;
+          PotentialParms[j][i][5]=arg5;
+          PotentialParms[i][j][5]=arg5;
+          break;
         case MM3_VDW:
         case MM3_HYDROGEN_VDW:
           if(ShiftPotential[i][j])
@@ -5209,7 +5264,7 @@ void ComputeDampingCoefficientsSecondDerivatives(REAL r, REAL b,REAL *f6,REAL *f
 
 REAL PotentialValue(int typeA,int typeB,REAL rr)
 {
-  REAL fcVal,r,U,rri3,rri3_2;
+  REAL fcVal,r,U,rri3,rri3_2,rri5;
   REAL arg1,arg2,arg3,arg4,arg5,arg6,arg7;
   REAL ri6,ri9;
   REAL exp1,exp2,exp_term,P;
@@ -5862,6 +5917,27 @@ REAL PotentialValue(int typeA,int typeB,REAL rr)
         return SwitchingValue*(exp_term-rri3);
       }
       return exp_term-rri3;
+    case DZUBAK2012:
+      // if(r<p_4) 1e10 else p_0*exp(-p_1*r)-p_2/r^5-p_3/r^6
+      // ======================================================================================
+      // p_0/k_B [K]
+      // p_1     [A^-1]
+      // p_2/k_B [K A^5]
+      // p_3/k_B [K A^6]
+      // p_4     [A]
+      // p_5/k_B [K]  (non-zero for a shifted potential)
+      arg1=PotentialParms[typeA][typeB][0];
+      arg2=PotentialParms[typeA][typeB][1];
+      arg3=PotentialParms[typeA][typeB][2];
+      arg4=PotentialParms[typeA][typeB][3];
+      arg5=PotentialParms[typeA][typeB][4];
+      arg6=PotentialParms[typeA][typeB][5];
+      r=sqrt(rr);
+      if(r<arg5) return 1e10;
+      rri5=arg3*SQR(1.0/rr)/r;
+      rri6=arg4*CUBE(1.0/rr);
+      exp_term=arg1*exp(-arg2*r);
+      return exp_term-rri5-rri6-arg6;
     case MM3_VDW:
     case MM3_HYDROGEN_VDW:
       // sqrt(p_0^i*p_0^j)*[1.84e5*exp(-12/P)-2.25*P^6]  if P>=3.02
@@ -7285,6 +7361,8 @@ void PotentialGradient(int typeA,int typeB,REAL rr,REAL *energy,REAL *force_fact
         fcVal=U*SwitchingValueDerivative/r+fcVal*SwitchingValue;
         U*=SwitchingValue;
       }
+      break;
+    case DZUBAK2012:
       break;
     case MM3_VDW:
     case MM3_HYDROGEN_VDW:
@@ -8961,6 +9039,8 @@ void PotentialSecondDerivative(int typeA,int typeB,REAL rr,REAL *energy,REAL *fa
         U*=SwitchingValue;
       }
       break;
+    case DZUBAK2012:
+      break;
     case MM3_VDW:
     case MM3_HYDROGEN_VDW:
       // sqrt(p_0^i*p_0^j)*[1.84e5*exp(-12/P)-2.25*P^6]  if P>=3.02
@@ -9394,14 +9474,14 @@ void PotentialSecondDerivative(int typeA,int typeB,REAL rr,REAL *energy,REAL *fa
       }
       break;
     case HYDRATED_ION_WATER:
-      // p_0*exp(-p_1*r)-p_2/r^4-p_3/r^6-p_4/r^12
-      // ======================================================================================
-      // p_0/k_B [K]
-      // p_1     [A^-1]
-      // p_2/k_B [K A^4]
-      // p_3/k_B [K A^6]
-      // p_4/k_B [K A^12]
-      // p_5/k_B [K]  (non-zero for a shifted potential)
+     // p_0*exp(-p_1*r)-p_2/r^4-p_3/r^6-p_4/r^12
+     // ======================================================================================
+     // p_0/k_B [K]
+     // p_1     [A^-1]
+     // p_2/k_B [K A^4]
+     // p_3/k_B [K A^6]
+     // p_4/k_B [K A^12]
+     // p_5/k_B [K]  (non-zero for a shifted potential)
       arg1=PotentialParms[typeA][typeB][0];
       arg2=PotentialParms[typeA][typeB][1];
       arg3=PotentialParms[typeA][typeB][2];
@@ -10045,6 +10125,8 @@ REAL PotentialCorrection(int typeA,int typeB,REAL r)
     case BUCKINGHAM2_SMOOTHED3:
     case BUCKINGHAM2_SMOOTHED5:
       break;
+    case DZUBAK2012:
+      break;
     case MM3_VDW:
     case MM3_HYDROGEN_VDW:
       // sqrt(p_0^i*p_0^j)*[1.84e5*exp(-12/P)-2.25*P^6]  if P>=3.02
@@ -10361,6 +10443,8 @@ REAL PotentialCorrectionPressure(int typeA,int typeB,REAL r)
     case BUCKINGHAM2_SMOOTHED3:
     case BUCKINGHAM2_SMOOTHED5:
       break;
+    case DZUBAK2012:
+      return 0;
     case MM3_VDW:
     case MM3_HYDROGEN_VDW:
       // sqrt(p_0^i*p_0^j)*[1.84e5*exp(-12/P)-2.25*P^6]  if P>=3.02
@@ -11136,3 +11220,5 @@ void ComputeSwitchingFactors(void)
   SwitchingBondDipoleBondDipoleFactors7[6]=(36.0*cut+139.0*off)/temp;
   SwitchingBondDipoleBondDipoleFactors7[7]= -25.0/temp;
 }
+
+

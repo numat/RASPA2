@@ -1,16 +1,15 @@
-data_Mg-DOBDC
+data_MOF-74-VASP
 
-_audit_creation_method RASPA-1.0
-_audit_creation_date 2012-1-5
-_audit_author_name 'Ozgur Yazaydin'
+_audit_creation_method VASP
+_audit_creation_date 2012-22-8
+_audit_author_name 'David Dubbeldam'
 
-_cell_length_a    25.8765
-_cell_length_b    25.8765
-_cell_length_c    6.7856
+_cell_length_a    26.136
+_cell_length_b    26.136
+_cell_length_c    6.942
 _cell_angle_alpha 90
 _cell_angle_beta  90
 _cell_angle_gamma 120
-_cell_volume      3934.87
 
 _symmetry_cell_setting          trigonal
 _symmetry_space_group_name_Hall '-R 3'
@@ -44,14 +43,14 @@ _atom_site_type_symbol
 _atom_site_fract_x
 _atom_site_fract_y
 _atom_site_fract_z
-Mg1      Mg    0.64159      0.68514      0.47189  
-O1       O     0.96943      0.29776      0.36038  
-O2       O     0.92763      0.23048      0.6102   
-O3       O     0.25494      0.94205      0.67383  
-C1       C     0.92667      0.2458       0.42703  
-C2       C     0.87918      0.20711      0.29083  
-C3       C     0.21254      0.88926      0.7549   
-C4       C     0.1663       0.84759      0.63558  
-H1       H     0.16529      0.85803      0.47918  
+Mg1      Mg    0.63990      0.68573      0.46836 
+O1       O     0.96721      0.29743      0.36040 
+O2       O     0.92780      0.23034      0.59466 
+O3       O     0.25334      0.93973      0.67281 
+C1       C     0.92683      0.24635      0.42241 
+C2       C     0.87927      0.20718      0.28663 
+C3       C     0.21197      0.88869      0.75473 
+C4       C     0.16537      0.84702      0.64147 
+H1       H     0.16364      0.85728      0.49031 
 
 

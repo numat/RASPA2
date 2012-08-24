@@ -4,13 +4,12 @@ _audit_creation_method RASPA-1.0
 _audit_creation_date 2012-1-5
 _audit_author_name 'Ozgur Yazaydin'
 
-_cell_length_a    25.8765
-_cell_length_b    25.8765
-_cell_length_c    6.7856
+_cell_length_a    26.136
+_cell_length_b    26.136
+_cell_length_c    6.942
 _cell_angle_alpha 90
 _cell_angle_beta  90
 _cell_angle_gamma 120
-_cell_volume      3934.87
 
 _symmetry_cell_setting          trigonal
 _symmetry_space_group_name_Hall '-R 3'

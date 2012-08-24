@@ -2826,6 +2826,25 @@ void PrintPreSimulationStatusCurrentSystem(int system)
               (double)PotentialParms[i][j][2]*ENERGY_TO_KELVIN,
               (double)PotentialParms[i][j][3]);
             break;
+          case DZUBAK2012:
+            // if(r<p_3) 1e10 else p_0*exp(-p_1*r)-p_2/r^6
+            // ======================================================================================
+            // p_0/k_B [K]
+            // p_1     [A^-1]
+            // p_2/k_B [K A^5]
+            // p_3/k_B [K A^6]
+            // p_4     [A]  (non-zero for a shifted potential)
+            // p_5/k_B [K]  (non-zero for a shifted potential)
+            fprintf(FilePtr,"%7s - %7s [DZUBAK2012] p_0/k_B: %8.5lf [K], p_1: %8.5lf [A^-1], p_2/k_B: %8.5lf [K A^5], p_3/k_B: %8.5lf [K A^6], p_4: %8.5lf [A], shift/k_B: %8.5lf [K]\n",
+              PseudoAtoms[i].Name,
+              PseudoAtoms[j].Name,
+              (double)PotentialParms[i][j][0]*ENERGY_TO_KELVIN,
+              (double)PotentialParms[i][j][1],
+              (double)PotentialParms[i][j][2]*ENERGY_TO_KELVIN,
+              (double)PotentialParms[i][j][3]*ENERGY_TO_KELVIN,
+              (double)PotentialParms[i][j][4],
+              (double)PotentialParms[i][j][5]*ENERGY_TO_KELVIN);
+            break;
           case MM3_VDW:
             // sqrt(p_0^i*p_0^j)*[1.84e-5*exp(-12/P)-2.25*P^6]  if P>=3.02
             // sqrt(p_0^i*p_0^j)*192.27*P^2                     if P<3.02

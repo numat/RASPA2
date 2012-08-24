@@ -38,6 +38,11 @@ forcefield/Dubbeldam2012MIL-100/Makefile \
 forcefield/Dubbeldam2012MIL-101/Makefile \
 forcefield/McKendrick2012FlexibleMIL-53/Makefile \
 forcefield/GarciaPerez2012/Makefile \
+forcefield/Dzubak2012-IRMOF-1/Makefile \
+forcefield/Dzubak2012-MgMOF-74/Makefile \
+forcefield/Dzubak2012-MgMOF-74-extended/Makefile \
+forcefield/Dzubak2012-ZnMOF-74/Makefile \
+forcefield/MgMOF-74-Yazaydin/Makefile \
 forcefield/TraPPE/Makefile \
 molecules/Makefile \
 molecules/TraPPE/Makefile \
