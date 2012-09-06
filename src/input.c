@@ -315,6 +315,8 @@ int ReadInputFile(char *inputfilename)
   CutOffChargeBondDipoleSwitch=0.0;
   CutOffBondDipoleBondDipoleSwitch=0.0;
 
+  CreateTinkerInput=FALSE;
+
   // tail-corrections do not apply on shifted potentials
   ShiftPotentials=TRUE;
   TailCorrections=FALSE;
@@ -1306,6 +1308,11 @@ int ReadInputFile(char *inputfilename)
     if(strcasecmp("NumberOfEquilibrationCycles",keyword)==0) sscanf(arguments,"%lld",&NumberOfEquilibrationCycles);
     if(strcasecmp("NumberOfVelocityScalingCycles",keyword)==0) sscanf(arguments,"%lld",&NumberOfVelocityScalingCycles);
 
+    if(strcasecmp("CreateTinkerInput",keyword)==0)
+    {
+      if(strcasecmp("yes",firstargument)==0) CreateTinkerInput=TRUE;
+      if(strcasecmp("no",firstargument)==0) CreateTinkerInput=FALSE;
+    }
 
     // read restart-options
     if(strcasecmp("RestartFile",keyword)==0)
@@ -5009,7 +5016,7 @@ int ReadInputFile(char *inputfilename)
     MaximumBoxShapeChange[i].cx=0.1;
     MaximumBoxShapeChange[i].cy=0.1;
     MaximumBoxShapeChange[i].cz=0.1;
-    MaximumGibbsVolumeChange[i]=0.1;
+    MaximumGibbsVolumeChange[i]=0.5;
 
     for(j=0;j<NumberOfComponents;j++)
     {

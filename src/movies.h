@@ -75,5 +75,7 @@ void AllocateMovieMemory(void);
 void WriteRestartMovies(FILE *FilePtr);
 void ReadRestartMovies(FILE *FilePtr);
 
+void WriteSnapshotTinker(char *string);
+
 
 #endif

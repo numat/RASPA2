@@ -120,6 +120,14 @@ int main(int argc, char **argv)
   WriteFrameworkDefinitionTinker("initial");
   WriteFrameworkDefinitionMOL("initial");
   WriteFrameworkDefinitionCIF("initial");
+  WriteSnapshotTinker("initial");
+
+  if(CreateTinkerInput)
+  {
+    WriteFrameworkDefinitionTinker("tinker");
+    WriteTinkerParameterFile();
+    WriteTinkerKeyFile();
+  }
 
   // compute powder diffraction pattern
   if(ComputePowderDiffractionPattern)
@@ -234,9 +242,9 @@ int main(int argc, char **argv)
   WriteFrameworkDefinitionGulp("final");
   WriteFrameworkDefinitionVASP("final");
   WriteFrameworkDefinitionPDB("final");
-  WriteFrameworkDefinitionTinker("final");
   WriteFrameworkDefinitionMOL("final");
   WriteFrameworkDefinitionCIF("final");
+  WriteSnapshotTinker("final");
 
   return 0;
 }

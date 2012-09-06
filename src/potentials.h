@@ -33,6 +33,8 @@ extern int GeneralMixingRule;
 extern int IndividualMixingRules;
 extern int IndividualInteractions;
 
+extern int CreateTinkerInput;
+
 enum{NO_MIXING_RULE,LORENTZ_BERTHELOT,JORGENSEN};
 
 enum{NO_BIASING,UMBRELLA,RUIZ_MONTERO};
@@ -346,5 +348,8 @@ REAL SwitchingFunctionBendDerivative(REAL theta);
 
 void ComputeDampingCoefficients(REAL r, REAL b,REAL *f6,REAL *f8,REAL *f10);
 void ComputeSwitchingFactors(void);
+
+void WriteTinkerParameterFile(void);
+void WriteTinkerKeyFile(void);
 
 #endif

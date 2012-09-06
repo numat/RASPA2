@@ -2123,3 +2123,92 @@ void ReadRestartMovies(FILE *FilePtr)
   }
 }
 
+/*********************************************************************************************************
+ * Name       | WriteSnapshotTinker                                                                      *
+ * ----------------------------------------------------------------------------------------------------- *
+ * Function   | writes a Tinker-file in 'P1' (no symmetry)                                               *
+ * Parameters | -                                                                                        *
+ *********************************************************************************************************/
+
+void WriteSnapshotTinker(char *string)
+{
+  int i,j,k,Type;
+  char buffer[256];
+  FILE *FilePtr;
+  int  SerialNumber;           // Atom serial number
+  char AtomName[10]="      C"; // Atom Name
+  int *AtomId;
+  VECTOR r;
+  int count;
+
+  AtomId=(int*)calloc(NumberOfPseudoAtoms,sizeof(int));
+  mkdir("Tinker",S_IRWXU);
+
+  for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
+  {
+    sprintf(buffer,"Tinker/System_%d",CurrentSystem);
+    mkdir(buffer,S_IRWXU);
+
+    // write tinker xyz-format
+    for(j=0;j<NumberOfPseudoAtoms;j++)
+      AtomId[j]=0;
+    sprintf(buffer,"Tinker/System_%d/Snapshot_%s%s.txyz",CurrentSystem,string,FileNameAppend);
+    FilePtr=fopen(buffer,"w");
+
+    count=0;
+    for(i=0;i<NumberOfAdsorbateMolecules[CurrentSystem];i++)
+      for(j=0;j<Adsorbates[CurrentSystem][i].NumberOfAtoms;j++)
+        if(PseudoAtoms[Adsorbates[CurrentSystem][i].Atoms[j].Type].PrintToPDB) count++;
+
+    fprintf(FilePtr,"%8d %s\n",Framework[CurrentSystem].TotalNumberOfAtoms+count,Framework[CurrentSystem].Name[CurrentFramework]);
+    SerialNumber=1;
+
+    if(Framework[CurrentSystem].FrameworkModel!=NONE)
+    {
+      for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
+      {
+        for(j=0;j<Framework[CurrentSystem].NumberOfAtoms[CurrentFramework];j++)
+        {
+          Type=Framework[CurrentSystem].Atoms[CurrentFramework][j].Type;
+          if(PseudoAtoms[Type].PrintToPDB)
+          {
+            r=Framework[CurrentSystem].Atoms[CurrentFramework][j].Position;
+            sprintf(AtomName,"%3s",PseudoAtoms[Type].PrintToPDBName);
+            fprintf(FilePtr,"%6d%3s %12.6lf %12.6lf %12.6lf %6d",
+                    SerialNumber++,AtomName,(double)r.x,(double)r.y,(double)r.z,Type+1);
+            for(i=0;i<Framework[CurrentSystem].Connectivity[CurrentFramework][j];i++)
+              fprintf(FilePtr," %4d",
+                      Framework[CurrentSystem].Neighbours[CurrentFramework][j][i]+1);
+            fprintf(FilePtr,"\n");
+          }
+        }
+      }
+    }
+
+    count=Framework[CurrentSystem].TotalNumberOfAtoms;
+    for(i=0;i<NumberOfAdsorbateMolecules[CurrentSystem];i++)
+    {
+      Type=Adsorbates[CurrentSystem][i].Type;
+
+      for(j=0;j<Adsorbates[CurrentSystem][i].NumberOfAtoms;j++)
+      {
+        if(PseudoAtoms[Adsorbates[CurrentSystem][i].Atoms[j].Type].PrintToPDB)
+        {
+          r=Adsorbates[CurrentSystem][i].Atoms[j].Position;
+          sprintf(AtomName,"%3s",PseudoAtoms[Adsorbates[CurrentSystem][i].Atoms[j].Type].PrintToPDBName);
+          fprintf(FilePtr,"%6d%3s %12.6lf %12.6lf %12.6lf %6d",
+                  SerialNumber++,AtomName,(double)r.x,(double)r.y,(double)r.z,Adsorbates[CurrentSystem][i].Atoms[j].Type+1);
+          for(k=0;k<Components[Type].Connectivity[j];k++)
+            fprintf(FilePtr," %4d",
+                    Components[Type].ConnectivityList[j][k]+1+count);
+          fprintf(FilePtr,"\n");
+        }
+      }
+      count+=Adsorbates[CurrentSystem][i].NumberOfAtoms;
+    }
+
+    fclose(FilePtr);
+  }
+  free(AtomId);
+}
+

@@ -30,6 +30,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <sys/stat.h>
 #include "potentials.h"
 #include "simulation.h"
 #include "molecule.h"
@@ -54,6 +55,8 @@
 int GeneralMixingRule;
 int IndividualMixingRules;
 int IndividualInteractions;
+
+int CreateTinkerInput;
 
 POTENTIAL BondTypes[NR_BOND_TYPES]=
   {{2,"HARMONIC_BOND"},
@@ -11221,4 +11224,113 @@ void ComputeSwitchingFactors(void)
   SwitchingBondDipoleBondDipoleFactors7[7]= -25.0/temp;
 }
 
+void WriteTinkerParameterFile(void)
+{
+  int i,j;
+  char buffer[256];
+  char name[256];
+  FILE *FilePtr;
 
+  mkdir("Tinker",S_IRWXU);
+  for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
+  {
+    sprintf(buffer,"Tinker/System_%d",CurrentSystem);
+    mkdir(buffer,S_IRWXU);
+
+    sprintf(buffer,"Tinker/System_%d/%s.prm",CurrentSystem,ForceField);
+    FilePtr=fopen(buffer,"w");
+
+    fprintf(FilePtr,"vdwindex                TYPE\n"); 
+    fprintf(FilePtr,"vdwtype                 LENNARD-JONES\n");
+    fprintf(FilePtr,"radiusrule              ARITHMETIC\n");
+    fprintf(FilePtr,"radiustype              SIGMA\n");
+    fprintf(FilePtr,"radiussize              DIAMETER\n");
+    fprintf(FilePtr,"epsilonrule             GEOMETRIC\n");
+    fprintf(FilePtr,"torsionunit             1.0\n");
+    fprintf(FilePtr,"imptorunit              1.0\n");
+    fprintf(FilePtr,"vdw-14-scale            1.0\n");
+    fprintf(FilePtr,"chg-14-scale            1.0\n");
+    fprintf(FilePtr,"dielectric              %g\n",DielectricConstantOfTheMedium);
+    fprintf(FilePtr,"electric                %-18.10f\n",COULOMBIC_CONVERSION_FACTOR*ENERGY_TO_KCAL_PER_MOL);
+    fprintf(FilePtr,"\n");
+
+
+    for(i=0;i<NumberOfPseudoAtoms;i++)
+    {
+      sprintf(name,"\"%s\"",PseudoAtoms[i].Name);
+      fprintf(FilePtr,"atom         %5d %4s %10s %5d  %18.10f %5d\n",
+          i+1,
+          PseudoAtoms[i].ChemicalElement,
+          name,
+          i+1,
+          PseudoAtoms[i].Mass,
+          PseudoAtoms[i].Connectivity);
+    }
+    fprintf(FilePtr,"\n");
+
+    for(i=0;i<NumberOfPseudoAtoms;i++)
+    {
+      if(PseudoAtoms[i].HasCharges)
+        fprintf(FilePtr,"charge %d %g\n",i+1,PseudoAtoms[i].Charge1);
+    }
+    fprintf(FilePtr,"\n");
+
+    for(i=0;i<NumberOfPseudoAtoms;i++)
+      for(j=i;j<NumberOfPseudoAtoms;j++)
+      {
+        switch(PotentialType[i][j])
+        {
+          case LENNARD_JONES:
+            fprintf(FilePtr,"vdwpr  %3d %3d  %18.10f %18.10f\n",
+               i+1,
+               j+1,
+               PotentialParms[i][j][1],
+               PotentialParms[i][j][0]*ENERGY_TO_KCAL_PER_MOL);
+            break;
+        }
+      }
+    fprintf(FilePtr,"\n");
+
+     
+
+    fclose(FilePtr);
+  }
+}
+
+void WriteTinkerKeyFile(void)
+{
+  char buffer[256];
+  FILE *FilePtr;
+
+  mkdir("Tinker",S_IRWXU);
+  for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
+  {
+    sprintf(buffer,"Tinker/System_%d",CurrentSystem);
+    mkdir(buffer,S_IRWXU);
+
+    sprintf(buffer,"Tinker/System_%d/%s.key",CurrentSystem,ForceField);
+    FilePtr=fopen(buffer,"w");
+    fprintf(FilePtr,"parameters ./%s.prm\n",ForceField);
+    fprintf(FilePtr,"\n");
+
+    fprintf(FilePtr,"spacegroup     P1\n");
+    fprintf(FilePtr,"a-axis         %g\n",BoxProperties[CurrentSystem].ax);
+    fprintf(FilePtr,"b-axis         %g\n",BoxProperties[CurrentSystem].ay);
+    fprintf(FilePtr,"c-axis         %g\n",BoxProperties[CurrentSystem].az);
+    fprintf(FilePtr,"alpha          %g\n",AlphaAngle[CurrentSystem]*180.0/M_PI);
+    fprintf(FilePtr,"beta           %g\n",BetaAngle[CurrentSystem]*180.0/M_PI);
+    fprintf(FilePtr,"gamma          %g\n",GammaAngle[CurrentSystem]*180.0/M_PI);
+    fprintf(FilePtr,"\n");
+
+    fprintf(FilePtr,"ewald\n");
+    fprintf(FilePtr,"ewald-alpha             %g\n",Alpha[CurrentSystem]);
+    fprintf(FilePtr,"ewald-cutoff            %g\n",CutOffChargeCharge);
+    fprintf(FilePtr,"\n");
+   
+    fprintf(FilePtr,"vdw-cutoff              %g\n",CutOffVDW);
+    fprintf(FilePtr,"vdw-taper               %g\n",CutOffVDW);
+    fprintf(FilePtr,"\n");
+
+    fclose(FilePtr);
+  }
+}
