@@ -1,4 +1,5 @@
 #include <math.h>
+#include "vtkVersion.h"
 #include "vtkPlaneCollection.h"
 #include "vtkDoubleArray.h"
 #include "vtkDataArray.h"
@@ -842,7 +843,12 @@ VisibilityFractionMax.z=0.75;
     PolyData->SetLines(polys);
 
     vtkTubeFilter *TubesFrame=vtkTubeFilter::New();
+
+    #if(VTK_MAJOR_VERSION<6)
+     TubesFrame->SetInput(PolyData);
+    #else
       TubesFrame->SetInputData(PolyData);
+    #endif
       TubesFrame->SetRadius(0.3*FrameThickness);
       TubesFrame->SetNumberOfSides(3*Resolution);
     vtkPolyDataMapper *TubeMapperFrame=vtkPolyDataMapper::New();
@@ -925,7 +931,11 @@ VisibilityFractionMax.z=0.75;
     PolyData->SetLines(polys);
 
     vtkTubeFilter *TubesFrame=vtkTubeFilter::New();
-      TubesFrame->SetInputData(PolyData);
+      #if(VTK_MAJOR_VERSION<6)
+        TubesFrame->SetInput(PolyData);
+      #else
+        TubesFrame->SetInputData(PolyData);
+      #endif
       TubesFrame->SetRadius(0.3*FrameThickness);
       TubesFrame->SetNumberOfSides(3*Resolution);
     vtkPolyDataMapper *TubeMapperFrame=vtkPolyDataMapper::New();
@@ -951,7 +961,11 @@ VisibilityFractionMax.z=0.75;
       multiLineTextPropAxes->SetColor(AxesLabelColor.x,AxesLabelColor.y,AxesLabelColor.z);
 
     vtkCubeAxesActor2D *axes=vtkCubeAxesActor2D::New();
-      axes->SetInputConnection(TubesFrame->GetOutputPort());
+      #if(VTK_MAJOR_VERSION<6)
+        axes->SetInput(TubesFrame->GetOutput());
+      #else
+        axes->SetInputConnection(TubesFrame->GetOutputPort());
+      #endif
       axes->SetCamera(ren1->GetActiveCamera());
       axes->SetLabelFormat("%4.3f");
       axes->SetFlyModeToOuterEdges();
