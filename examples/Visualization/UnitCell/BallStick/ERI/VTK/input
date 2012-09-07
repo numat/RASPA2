@@ -1,7 +1,7 @@
 BoxLengths 13.27 13.27 15.05       // the lengths of the cell-vectors
 CellAngles 90.0 90.0 120.0         // the angles of the cell-vectors
 
-OutputFileName "ERI-YZ-view.jpg"   // the name of the output-file
+OutputFileName "ERI-YZ-view"   // the name of the output-file
 
 FrameworkAtoms ON         // draw the framework atoms
 

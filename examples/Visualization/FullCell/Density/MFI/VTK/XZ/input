@@ -1,7 +1,7 @@
 BoxLengths 40.044 39.798 53.532   // the lengths of the cell-vectors
 CellAngles 90.0 90.0 90.0         // the angles of the cell-vectors
 
-OutputFileName "MFI-2x2x4-XZ-view-density.jpg"   // the name of the output-file
+OutputFileName "MFI-2x2x4-XZ-view-density"   // the name of the output-file
 
 FrameworkAtoms OFF         // draw the framework atoms
 

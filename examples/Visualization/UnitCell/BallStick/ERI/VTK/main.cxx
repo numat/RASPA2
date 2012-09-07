@@ -218,8 +218,7 @@ double AdditionalAzimuth=0.0;
 double AdditionalElevation=0.0;
 double AdditionalRoll=0.0;
 
-VECTOR VisibilityFractionMax;
-
+VECTOR VisibilityFractionMax={1.0,1.0,1.0};
 
 // control of the cell-frame
 int Frame=FULL_CELL;
@@ -265,6 +264,8 @@ int SIZE_Z=150-1;
 #define MAX2(x,y) (((x)>(y))?(x):(y))
 
 double epsilon=1e-3;
+
+double magnification=1;
 
 typedef struct real_matrix3x3
 {
@@ -320,10 +321,7 @@ int main( int argc, char *argv[] )
   VECTOR v1,v2;
   VECTOR plane_normal1,plane_normal2,plane_normal3;
   double length;
-
-VisibilityFractionMax.x=1.0;
-VisibilityFractionMax.y=1.0;
-VisibilityFractionMax.z=0.75;
+  char buffer[256];
 
   ReadInputFile();
 
@@ -1759,35 +1757,40 @@ VisibilityFractionMax.z=0.75;
 
   // set this to 8 for final picture
   renWin->SetAAFrames(AA);
+  renWin->Render();
 
-  // output the inital frame as a jpg-picture
-  vtkWindowToImageFilter *w2if=vtkWindowToImageFilter::New();
-    w2if->SetInput(renWin);
+  vtkRenderLargeImage *renderLarge =vtkRenderLargeImage::New();
+    renderLarge->SetInput(ren1);
+    renderLarge->SetMagnification(magnification);
 
-  vtkJPEGWriter *write=vtkJPEGWriter::New();
-    write->SetFileName(OutputFileName);
-    write->SetInputConnection(w2if->GetOutputPort());
-    renWin->Render();
-    w2if->Modified();
-    write->Write();
+  vtkPNGWriter *writer_png =vtkPNGWriter::New();
+    sprintf(buffer,"%s.png",OutputFileName);
+    writer_png->SetFileName(buffer);
+    writer_png->SetInputConnection(renderLarge->GetOutputPort());
+    writer_png->Write();
+
+  vtkJPEGWriter *writer =vtkJPEGWriter::New();
+    sprintf(buffer,"%s.jpg",OutputFileName);
+    writer->SetFileName(buffer);
+    writer->SetInputConnection(renderLarge->GetOutputPort());
+    writer->Write();
 
   if(Movie==ON)
   {
-    char buffer[256];
 
     for(int i=0;i<=360;i+=1)
     {
       printf("Angle: %d\n",i);
       if(i<10)
-        sprintf(buffer,"00%d.png",i);
+        sprintf(buffer,"00%d.jpg",i);
       else if(i<100)
-        sprintf(buffer,"0%d.png",i);
-      else sprintf(buffer,"%d.png",i);
-      write->SetFileName(buffer);
-      write->Write();
+        sprintf(buffer,"0%d.jpg",i);
+      else sprintf(buffer,"%d.jpg",i);
+      writer->SetFileName(buffer);
+      writer->Write();
       ren1->GetActiveCamera()->Azimuth(1.0);
       renWin->Render();
-      w2if->Modified();
+      ren1->Modified();
     }
   }
 
@@ -1889,6 +1892,8 @@ int ReadInputFile(void)
         sscanf(arguments,"%lf %lf %lf",&AlphaAngle,&BetaAngle,&GammaAngle);
       if(strcasecmp("ZoomFactor",keyword)==0) sscanf(arguments,"%lf",&ZoomFactor);
       if(strcasecmp("ScaleFactor",keyword)==0) sscanf(arguments,"%lf",&ScaleFactor);
+      if(strcasecmp("VisibilityFractionMax",keyword)==0) sscanf(arguments,"%lf %lf %lf",&VisibilityFractionMax.x,
+         &VisibilityFractionMax.y,&VisibilityFractionMax.z);
       if(strcasecmp("Azimuth",keyword)==0) sscanf(arguments,"%lf",&Azimuth);
       if(strcasecmp("Elevation",keyword)==0) sscanf(arguments,"%lf",&Elevation);
       if(strcasecmp("Roll",keyword)==0) sscanf(arguments,"%lf",&Roll);
@@ -1896,6 +1901,7 @@ int ReadInputFile(void)
       if(strcasecmp("AdditionalElevation",keyword)==0) sscanf(arguments,"%lf",&AdditionalElevation);
       if(strcasecmp("AdditionalRoll",keyword)==0) sscanf(arguments,"%lf",&AdditionalRoll);
       if(strcasecmp("ImageSize",keyword)==0) sscanf(arguments,"%d %d",&ImageSizeX,&ImageSizeY);
+      if(strcasecmp("Magnification",keyword)==0) sscanf(arguments,"%lf",&magnification);
       if(strcasecmp("Resolution",keyword)==0) sscanf(arguments,"%d",&Resolution);
       if(strcasecmp("AA",keyword)==0) sscanf(arguments,"%d",&AA);
       if(strcasecmp("SampleDistance",keyword)==0) sscanf(arguments,"%lf",&SampleDistance);

@@ -1,7 +1,7 @@
 BoxLengths 40.044 39.798 53.532   // the lengths of the cell-vectors
 CellAngles 90.0 90.0 90.0         // the angles of the cell-vectors
 
-OutputFileName "MFI_2x2x4-YZ-view.jpg"   // the name of the output-file
+OutputFileName "MFI_2x2x4-YZ-view"   // the name of the output-file
 
 FrameworkAtoms ON                                  // draw the framework atoms
 FrameworkAtomsFilename "../FrameworkAtoms.vtk"     //

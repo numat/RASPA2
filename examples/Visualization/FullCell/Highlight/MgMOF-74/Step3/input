@@ -1,7 +1,7 @@
 BoxLengths 51.75300 51.75300 27.14240   // the lengths of the cell-vectors
 CellAngles 90.0 90.0 120.0              // the angles of the cell-vectors
 
-OutputFileName "MgMOF-74-step3.jpg"
+OutputFileName "MgMOF-74-step3"
 
 FrameworkAtoms OFF                 // don't draw the framework atoms
 
