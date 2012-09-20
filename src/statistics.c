@@ -200,6 +200,8 @@ static REAL **PressureAverage;
 static REAL **UNoseHooverAverage;
 
 static REAL **HeatOfVaporization;
+static REAL **EnergyPerMolecule;
+static REAL **VolumePerMolecule;
 
 static REAL_MATRIX9x9 **BornTermAverage;
 static REAL_MATRIX9x9 **ConfigurationalStressFluctuationTermAverage;
@@ -1045,6 +1047,8 @@ void InitializesEnergyAveragesAllSystems(void)
       UNoseHooverAverage[k][i]=0.0;
 
       HeatOfVaporization[k][i]=0.0;
+      EnergyPerMolecule[k][i]=0.0;
+      VolumePerMolecule[k][i]=0.0;
 
       InitializeMatrix9x9(&BornTermAverage[k][i]);
     }
@@ -1302,6 +1306,8 @@ void UpdateEnergyAveragesCurrentSystem(void)
   HeatOfVaporization[CurrentSystem][Block]+=therm_baro_stats.ExternalTemperature[CurrentSystem]-
                               (UAdsorbateAdsorbate[CurrentSystem]+UCationCation[CurrentSystem])/
                               (NumberOfAdsorbateMolecules[CurrentSystem]+NumberOfCationMolecules[CurrentSystem]);
+  EnergyPerMolecule[CurrentSystem][Block]+=UTotal[CurrentSystem]/NumberOfMolecules;
+  VolumePerMolecule[CurrentSystem][Block]+=Volume[CurrentSystem]/NumberOfMolecules;
 
   if(ComputePrincipleMomentsOfInertia)
     MeasurePrincipleMomentsOfInertia();
@@ -2205,12 +2211,13 @@ void PrintPropertyStatus(long long CurrentCycle,long long NumberOfCycles, FILE *
   fprintf(FilePtr,"\tCation surface area:                 %18.10lf [m^2/g]  %18.10lf [m^2/cm^3] %18.10f [A^2]\n",
         (double)(GetAverageCationSurfaceArea()*SQR(ANGSTROM)*AVOGADRO_CONSTANT/(Framework[CurrentSystem].FrameworkMass)),
         (double)(1.0e4*GetAverageCationSurfaceArea()/Volume[CurrentSystem]),(double)GetAverageCationSurfaceArea());
-
+/*
   fprintf(FilePtr,"Isothermal expansion coefficient: %18.10lf [10^6 K^-1]\n",(double)GetAverageIsothermalExpansionCoefficient());
   fprintf(FilePtr,"Isothermal compressibility coefficient: %18.10lf [10^12 Pa^-1]\n",
           (double)GetAverageIsothermalCompressibilityCoefficient());
   fprintf(FilePtr,"Heat capacity: %18.10lf [J/mole/K]\n",(double)GetAverageHeatCapacity());
   fprintf(FilePtr,"Heat of vaporization: %18.10lf [J/mole/K]\n",(double)GetAverageProperty(HeatOfVaporization));
+*/
 
   fprintf(FilePtr,"Henry coefficients\n");
   for(i=0;i<NumberOfComponents;i++)
@@ -3136,37 +3143,99 @@ void PrintAverageTotalSystemEnergiesMC(FILE *FilePtr)
   fprintf(FilePtr,"\tAverage   %18.5lf [cal/mol/K] +/- %18.5lf [cal/mol/K]\n",
           (double)(sum*J_TO_CAL/(REAL)NR_BLOCKS),(double)(tmp*J_TO_CAL));
 
-
-  // Heat of vaporization
-  fprintf(FilePtr,"\n");
-  fprintf(FilePtr,"Heat of vaporization:\n");
-  fprintf(FilePtr,"=====================\n");
-  sum=sum2=0.0;
-  N=NumberOfAdsorbateMolecules[CurrentSystem]+NumberOfCationMolecules[CurrentSystem];
-  if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
-    N+=Framework[CurrentSystem].TotalNumberOfAtoms;
-  for(i=0;i<NR_BLOCKS;i++)
+  if(NumberOfSystems==2)
   {
-    if(BlockCount[CurrentSystem][i]>0.0)
+    // Heat of vaporization
+    fprintf(FilePtr,"\n");
+    fprintf(FilePtr,"Heat of vaporization:\n");
+    fprintf(FilePtr,"=====================\n");
+    sum=sum2=0.0;
+    N=NumberOfAdsorbateMolecules[CurrentSystem]+NumberOfCationMolecules[CurrentSystem];
+    if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+      N+=Framework[CurrentSystem].TotalNumberOfAtoms;
+    for(i=0;i<NR_BLOCKS;i++)
     {
-      tmp=(-UTotalAverage[CurrentSystem][i]/(N*BlockCount[CurrentSystem][i])+
-           therm_baro_stats.ExternalTemperature[CurrentSystem])*ENERGY_TO_KELVIN;
-      sum+=tmp;
-      sum2+=SQR(tmp);
+      if(BlockCount[CurrentSystem][i]>0.0)
+      {
+        tmp=ENERGY_TO_KELVIN*((fabs(EnergyPerMolecule[CurrentSystem][i]-EnergyPerMolecule[1-CurrentSystem][i])/BlockCount[CurrentSystem][i])
+             +((MolecularStressTensorAverage[CurrentSystem][i].ax+MolecularStressTensorAverage[CurrentSystem][i].by+
+              MolecularStressTensorAverage[CurrentSystem][i].cz)/(3.0*BlockCount[CurrentSystem][i]))*
+              (fabs(VolumePerMolecule[CurrentSystem][i]-VolumePerMolecule[1-CurrentSystem][i])/BlockCount[CurrentSystem][i]));
+        sum+=tmp;
+        sum2+=SQR(tmp);
 
-      fprintf(FilePtr,"\tBlock[%2d] %-18.5lf [K]\n",i,(double)tmp);
+        fprintf(FilePtr,"\tBlock[%2d] %-18.5lf [K]\n",i,(double)tmp);
+      }
+      else
+        fprintf(FilePtr,"\tBlock[%2d] %-18.5lf [K]\n",i,(double)0.0);
     }
-    else
-      fprintf(FilePtr,"\tBlock[%2d] %-18.5lf [K]\n",i,(double)0.0);
+    fprintf(FilePtr,"\t------------------------------------------------------------------------------\n");
+    tmp=2.0*sqrt(fabs((sum2/(REAL)NR_BLOCKS)-SQR(sum)/(REAL)SQR(NR_BLOCKS)));
+    fprintf(FilePtr,"\tAverage   %18.5lf +/- %18lf [K]\n",
+      (double)(sum/(REAL)NR_BLOCKS),(double)tmp);
+    fprintf(FilePtr,"\tAverage   %18.5lf +/- %18lf [kJ/mol]\n",
+      (double)(sum*KELVIN_TO_KJ_PER_MOL/(REAL)NR_BLOCKS),(double)(tmp*KELVIN_TO_KJ_PER_MOL));
+    fprintf(FilePtr,"\tAverage   %18.5lf +/- %18lf [kcal/mol]\n",
+      (double)(sum*KELVIN_TO_KCAL_PER_MOL/(REAL)NR_BLOCKS),(double)(tmp*KELVIN_TO_KCAL_PER_MOL));
+
+
+    fprintf(FilePtr,"\n");
+    fprintf(FilePtr,"Heat of vaporization term (U_v/N_v-U_l/N_l):\n");
+    fprintf(FilePtr,"============================================\n");
+    sum=sum2=0.0;
+    for(i=0;i<NR_BLOCKS;i++)
+    {
+      if(BlockCount[CurrentSystem][i]>0.0)
+      {
+        tmp=ENERGY_TO_KELVIN*fabs(EnergyPerMolecule[CurrentSystem][i]-EnergyPerMolecule[1-CurrentSystem][i])/BlockCount[CurrentSystem][i];
+        sum+=tmp;
+        sum2+=SQR(tmp);
+
+        fprintf(FilePtr,"\tBlock[%2d] %-18.5lf [K]\n",i,(double)tmp);
+      }
+      else
+        fprintf(FilePtr,"\tBlock[%2d] %-18.5lf [K]\n",i,(double)0.0);
+    }
+    fprintf(FilePtr,"\t------------------------------------------------------------------------------\n");
+    tmp=2.0*sqrt(fabs((sum2/(REAL)NR_BLOCKS)-SQR(sum)/(REAL)SQR(NR_BLOCKS)));
+    fprintf(FilePtr,"\tAverage   %18.5lf +/- %18lf [K]\n",
+      (double)(sum/(REAL)NR_BLOCKS),(double)tmp);
+    fprintf(FilePtr,"\tAverage   %18.5lf +/- %18lf [kJ/mol]\n",
+      (double)(sum*KELVIN_TO_KJ_PER_MOL/(REAL)NR_BLOCKS),(double)(tmp*KELVIN_TO_KJ_PER_MOL));
+    fprintf(FilePtr,"\tAverage   %18.5lf +/- %18lf [kcal/mol]\n",
+      (double)(sum*KELVIN_TO_KCAL_PER_MOL/(REAL)NR_BLOCKS),(double)(tmp*KELVIN_TO_KCAL_PER_MOL));
+
+    fprintf(FilePtr,"\n");
+    fprintf(FilePtr,"Heat of vaporization term p (V_v-V_l), [is approximately RT]:\n");
+    fprintf(FilePtr,"=============================================================\n");
+    sum=sum2=0.0;
+    N=NumberOfAdsorbateMolecules[CurrentSystem]+NumberOfCationMolecules[CurrentSystem];
+    if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+      N+=Framework[CurrentSystem].TotalNumberOfAtoms;
+    for(i=0;i<NR_BLOCKS;i++)
+    {
+      if(BlockCount[CurrentSystem][i]>0.0)
+      {
+        tmp=ENERGY_TO_KELVIN*fabs(((MolecularStressTensorAverage[CurrentSystem][i].ax+MolecularStressTensorAverage[CurrentSystem][i].by+
+              MolecularStressTensorAverage[CurrentSystem][i].cz)/(3.0*BlockCount[CurrentSystem][i]))*
+             (VolumePerMolecule[CurrentSystem][i]-VolumePerMolecule[1-CurrentSystem][i])/BlockCount[CurrentSystem][i]);
+        sum+=tmp;
+        sum2+=SQR(tmp);
+
+        fprintf(FilePtr,"\tBlock[%2d] %-18.5lf [K]\n",i,(double)tmp);
+      }
+      else
+        fprintf(FilePtr,"\tBlock[%2d] %-18.5lf [K]\n",i,(double)0.0);
+    }
+    fprintf(FilePtr,"\t------------------------------------------------------------------------------\n");
+    tmp=2.0*sqrt(fabs((sum2/(REAL)NR_BLOCKS)-SQR(sum)/(REAL)SQR(NR_BLOCKS)));
+    fprintf(FilePtr,"\tAverage   %18.5lf +/- %18lf [K]\n",
+      (double)(sum/(REAL)NR_BLOCKS),(double)tmp);
+    fprintf(FilePtr,"\tAverage   %18.5lf +/- %18lf [kJ/mol]\n",
+      (double)(sum*KELVIN_TO_KJ_PER_MOL/(REAL)NR_BLOCKS),(double)(tmp*KELVIN_TO_KJ_PER_MOL));
+    fprintf(FilePtr,"\tAverage   %18.5lf +/- %18lf [kcal/mol]\n",
+      (double)(sum*KELVIN_TO_KCAL_PER_MOL/(REAL)NR_BLOCKS),(double)(tmp*KELVIN_TO_KCAL_PER_MOL));
   }
-  fprintf(FilePtr,"\t------------------------------------------------------------------------------\n");
-  tmp=2.0*sqrt(fabs((sum2/(REAL)NR_BLOCKS)-SQR(sum)/(REAL)SQR(NR_BLOCKS)));
-  fprintf(FilePtr,"\tAverage   %18.5lf +/- %18lf [K]\n",
-    (double)(sum/(REAL)NR_BLOCKS),(double)tmp);
-  fprintf(FilePtr,"\tAverage   %18.5lf +/- %18lf [kJ/mol]\n",
-    (double)(sum*KELVIN_TO_KJ_PER_MOL/(REAL)NR_BLOCKS),(double)(tmp*KELVIN_TO_KJ_PER_MOL));
-  fprintf(FilePtr,"\tAverage   %18.5lf +/- %18lf [kcal/mol]\n",
-    (double)(sum*KELVIN_TO_KCAL_PER_MOL/(REAL)NR_BLOCKS),(double)(tmp*KELVIN_TO_KCAL_PER_MOL));
 
   // Heat of desorption
   fprintf(FilePtr,"\n");
@@ -3881,6 +3950,8 @@ void WriteRestartStatistics(FILE *FilePtr)
     fwrite(PressureAverage[i],sizeof(REAL),NumberOfBlocks,FilePtr);
     fwrite(UNoseHooverAverage[i],sizeof(REAL),NumberOfBlocks,FilePtr);
     fwrite(HeatOfVaporization[i],sizeof(REAL),NumberOfBlocks,FilePtr);
+    fwrite(EnergyPerMolecule[i],sizeof(REAL),NumberOfBlocks,FilePtr);
+    fwrite(VolumePerMolecule[i],sizeof(REAL),NumberOfBlocks,FilePtr);
 
     fwrite(BornTermAverage[i],sizeof(REAL_MATRIX9x9),NumberOfBlocks,FilePtr);
     fwrite(ConfigurationalStressFluctuationTermAverage[i],sizeof(REAL_MATRIX9x9),NumberOfBlocks,FilePtr);
@@ -4058,6 +4129,8 @@ void AllocateStatisticsMemory(void)
   PressureAverage=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
   UNoseHooverAverage=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
   HeatOfVaporization=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
+  EnergyPerMolecule=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
+  VolumePerMolecule=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
 
   BornTermAverage=(REAL_MATRIX9x9**)calloc(NumberOfSystems,sizeof(REAL_MATRIX9x9*));
   ConfigurationalStressFluctuationTermAverage=(REAL_MATRIX9x9**)calloc(NumberOfSystems,sizeof(REAL_MATRIX9x9*));
@@ -4223,6 +4296,8 @@ void AllocateStatisticsMemory(void)
     PressureAverage[i]=(REAL*)calloc(NumberOfBlocks,sizeof(REAL));
     UNoseHooverAverage[i]=(REAL*)calloc(NumberOfBlocks,sizeof(REAL));
     HeatOfVaporization[i]=(REAL*)calloc(NumberOfBlocks,sizeof(REAL));
+    EnergyPerMolecule[i]=(REAL*)calloc(NumberOfBlocks,sizeof(REAL));
+    VolumePerMolecule[i]=(REAL*)calloc(NumberOfBlocks,sizeof(REAL));
 
     BornTermAverage[i]=(REAL_MATRIX9x9*)calloc(NumberOfBlocks,sizeof(REAL_MATRIX9x9));
     ConfigurationalStressFluctuationTermAverage[i]=(REAL_MATRIX9x9*)calloc(NumberOfBlocks,sizeof(REAL_MATRIX9x9));
@@ -4425,6 +4500,8 @@ void ReadRestartStatistics(FILE *FilePtr)
     fread(PressureAverage[i],sizeof(REAL),NumberOfBlocks,FilePtr);
     fread(UNoseHooverAverage[i],sizeof(REAL),NumberOfBlocks,FilePtr);
     fread(HeatOfVaporization[i],sizeof(REAL),NumberOfBlocks,FilePtr);
+    fread(EnergyPerMolecule[i],sizeof(REAL),NumberOfBlocks,FilePtr);
+    fread(VolumePerMolecule[i],sizeof(REAL),NumberOfBlocks,FilePtr);
 
     fread(BornTermAverage[i],sizeof(REAL_MATRIX9x9),NumberOfBlocks,FilePtr);
     fread(ConfigurationalStressFluctuationTermAverage[i],sizeof(REAL_MATRIX9x9),NumberOfBlocks,FilePtr);

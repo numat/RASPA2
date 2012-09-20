@@ -1,0 +1,31 @@
+SimulationType                MonteCarlo
+NumberOfCycles                10000
+NumberOfInitializationCycles  5000
+PrintEvery                    100
+RestartFile                   no
+
+Forcefield                    TraPPE
+
+Box 0
+BoxLengths 27 27 27
+BoxAngles 90 90 90
+ExternalTemperature 185.0
+ComputePressure yes
+
+Box 1
+BoxLengths 80 80 80
+BoxAngles 90 90 90
+ExternalTemperature 185.0
+ComputePressure yes
+
+GibbsVolumeChangeProbability 1.0
+
+Component 0 MoleculeName             ethane
+            StartingBead             0
+            MoleculeDefinitions      TraPPE-UA
+            TranslationProbability   1.0
+            RotationProbability      1.0
+            ReinsertionProbability   1.0
+            GibbsSwapProbability     1.0
+            CreateNumberOfMolecules  300 32
+
