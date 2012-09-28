@@ -20,4 +20,5 @@ SUBDIRS = GenericMOFs \
           Dzubak2012-MgMOF-74-extended \
           Dzubak2012-ZnMOF-74 \
           MgMOF-74-Yazaydin \
+          CastilloVlugtCalero2009 \
           TraPPE

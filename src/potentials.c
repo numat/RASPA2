@@ -6561,7 +6561,7 @@ void PotentialGradient(int typeA,int typeB,REAL rr,REAL *energy,REAL *force_fact
   REAL ri6,ri9;
   REAL exp1,exp2,exp_term,P;
   REAL f6,f8,f10,f6d,f8d,f10d;
-  REAL rri2,rri4,rri6,rri8,rri10,rri12,rri14,rri16;
+  REAL rri2,rri4,rri5,rri6,rri8,rri10,rri12,rri14,rri16;
   REAL term1,term2;
   REAL SwitchingValue,SwitchingValueDerivative;
 
@@ -7366,6 +7366,34 @@ void PotentialGradient(int typeA,int typeB,REAL rr,REAL *energy,REAL *force_fact
       }
       break;
     case DZUBAK2012:
+      // if(r<p_4) 1e10 else p_0*exp(-p_1*r)-p_2/r^5-p_3/r^6
+      // ======================================================================================
+      // p_0/k_B [K]
+      // p_1     [A^-1]
+      // p_2/k_B [K A^5]
+      // p_3/k_B [K A^6]
+      // p_4     [A]
+      // p_5/k_B [K]  (non-zero for a shifted potential)
+      arg1=PotentialParms[typeA][typeB][0];
+      arg2=PotentialParms[typeA][typeB][1];
+      arg3=PotentialParms[typeA][typeB][2];
+      arg4=PotentialParms[typeA][typeB][3];
+      arg5=PotentialParms[typeA][typeB][4];
+      arg6=PotentialParms[typeA][typeB][5];
+      r=sqrt(rr);
+      if(r<arg5)
+      {
+        U=1e10;
+        fcVal=0.0;
+      }
+      else
+      {
+        rri5=arg3*SQR(1.0/rr)/r;
+        rri6=arg4*CUBE(1.0/rr);
+        exp_term=arg1*exp(-arg2*r);
+        U=exp_term-rri5-rri6-arg6;
+        fcVal=-(arg2*exp_term/r-(5.0/rr)*rri5-(6.0/rr)*rri6);
+      }
       break;
     case MM3_VDW:
     case MM3_HYDROGEN_VDW:

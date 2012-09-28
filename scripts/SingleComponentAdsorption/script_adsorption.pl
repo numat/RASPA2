@@ -3,30 +3,32 @@ use File::Copy;
 use File::Path;
 
 # framework-information
-@framework = ("fe2bdp3-minusb");  # list of structures
-@HeliumVoidFraction = ("0.40829");  # list of helium-voidfractions for the structures
-@UnitCells = ("6 1 1"); # list of sizes of the unit cells for the structures
-@Forcefield=("GenericMOFs");
-@RemoveAtomNumberCodeFromLabel=("yes");
-@CutOff=("12.8");
+@Framework = ("MIL-47");  # list of structures
+@HeliumVoidFraction = ("0.606");  # list of helium-voidfractions for the structures
+@UnitCells = ("4 2 2"); # list of sizes of the unit cells for the structures
+@Forcefield=("CastilloVlugtCalero2009");
+@UseChargesFromCIFFile=("yes");
+@RemoveAtomNumberCodeFromLabel=("no");
+@CutOff=("12.0");
 
 # temperature-information
-@temperature = (433.0); # list of temperatures
-@molecule = ("hexane","2-methylpentane","3-methylpentane","22-dimethylbutane","23-dimethylbutane"); # list of molecules
-@idealgas = ([0.00874526,0.0477596,0.0535328,0.226576,0.0873119]); # list of IG Rosenbluth weights for each temperature
+@Temperature = (433.0); # list of temperatures
+@Molecule = ("m-xylene","p-xylene","o-xylene"); # list of molecules
+@MoleculeDefinition = ("CastilloVlugtCalero2009","CastilloVlugtCalero2009","CastilloVlugtCalero2009");
+@Idealgas = ([1.0,1.0,1.0]); # list of IG Rosenbluth weights for each temperature
 
 # pressure-information
 $pressure_type = "fugacity";     # "pressure" or "fugacity"
-$pressure_start = 1e-3;          # lowest pressure
-$pressure_end = 1e10;            # highest pressure
-$number_of_pressure_points = 48; # number of points equally spaced in log-scale or linear scale
+$pressure_start = 1e-2;          # lowest pressure
+$pressure_end = 1e9;            # highest pressure
+$number_of_pressure_points = 12; # number of points equally spaced in log-scale or linear scale
 $pressure_unit="Pa";             # "bar", "kPa", or "Pa"
 $pressure_scale="log";           # "log" or "linear"
 
 # simulation-information
 $SimulationType="MonteCarlo";
-$NumberOfCycles="400000";
-$NumberOfInitializationCycles="150000";
+$NumberOfCycles="100000";
+$NumberOfInitializationCycles="50000";
 $PrintEvery="5000";
 $RestartFile="no";
 
@@ -68,18 +70,18 @@ $index_batches=0;
 $count=0;
 
 $index_framework=0;
-foreach (@framework)
+foreach (@Framework)
 {
-  $dir_fr=$framework[$index_framework];
+  $dir_fr=$Framework[$index_framework];
   mkpath($dir_fr);
 
   $index_temperature=0;
-  foreach (@temperature)
+  foreach (@Temperature)
   {
     $index_molecule=0;
-    foreach (@molecule)
+    foreach (@Molecule)
     {
-      $dir_molecule="$dir_fr/$temperature[$index_temperature]K/$molecule[$index_molecule]";
+      $dir_molecule="$dir_fr/$Temperature[$index_temperature]K/$Molecule[$index_molecule]";
       mkpath($dir_molecule);
 
       $index_pressure=0;
@@ -182,21 +184,22 @@ foreach (@framework)
         print DATw3 "CutOffVDW                     $CutOff[$index_framework]\n";
         print DATw3 "RemoveAtomNumberCodeFromLabel $RemoveAtomNumberCodeFromLabel[$index_framework]\n";
         print DATw3 "\n";
-        print DATw3 "Framework           0\n";
-        print DATw3 "FrameworkName       $framework[$index_framework]\n";
-        print DATw3 "UnitCells           $UnitCells[$index_framework]\n";
-        print DATw3 "HeliumVoidFraction  $HeliumVoidFraction[$index_framework]\n";
-        print DATw3 "ExternalTemperature $temperature[$index_temperature]\n";
+        print DATw3 "Framework             0\n";
+        print DATw3 "FrameworkName         $Framework[$index_framework]\n";
+        print DATw3 "UseChargesFromCIFFile $UseChargesFromCIFFile[$index_framework]\n";
+        print DATw3 "UnitCells             $UnitCells[$index_framework]\n";
+        print DATw3 "HeliumVoidFraction    $HeliumVoidFraction[$index_framework]\n";
+        print DATw3 "ExternalTemperature   $Temperature[$index_temperature]\n";
         if($pressure_unit eq "bar") {printf DATw3 "ExternalPressure    %g\n", $pressure[$index_pressure]*1e5}
         elsif($pressure_unit eq "kPa") {printf DATw3 "ExternalPressure    %g\n", $pressure[$index_pressure]*1e3}
         elsif($pressure_unit eq "Pa")  {printf DATw3 "ExternalPressure    %g\n", $pressure[$index_pressure]}
         print DATw3 "\n";
 
         print DATw3 "\n";
-        print DATw3 "Component 0 MoleculeName              $molecule[$index_molecule]\n";
+        print DATw3 "Component 0 MoleculeName              $Molecule[$index_molecule]\n";
         print DATw3 "            StartingBead              0\n";
-        print DATw3 "            MoleculeDefinition        TraPPE\n";
-        print DATw3 "            IdealGasRosenbluthWeight  $idealgas[$index_temperature][$index_molecule]\n";
+        print DATw3 "            MoleculeDefinition        $MoleculeDefinition[$index_molecule]\n";
+        print DATw3 "            IdealGasRosenbluthWeight  $Idealgas[$index_temperature][$index_molecule]\n";
         if($pressure_type eq "fugacity") {printf DATw3 "            FugacityCoefficient       1.0\n";}
         print DATw3 "            TranslationProbability    1.0\n";
         print DATw3 "            RotationProbability       1.0\n";

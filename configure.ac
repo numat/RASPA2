@@ -43,10 +43,12 @@ forcefield/Dzubak2012-MgMOF-74/Makefile \
 forcefield/Dzubak2012-MgMOF-74-extended/Makefile \
 forcefield/Dzubak2012-ZnMOF-74/Makefile \
 forcefield/MgMOF-74-Yazaydin/Makefile \
+forcefield/CastilloVlugtCalero2009/Makefile \
 forcefield/TraPPE/Makefile \
 molecules/Makefile \
 molecules/TraPPE/Makefile \
 molecules/TraPPE-UA/Makefile \
+molecules/CastilloVlugtCalero2009/Makefile \
 framework/Makefile \
 framework/Dubbeldam2007FlexibleIRMOF-1/Makefile \
 framework/Dubbeldam2007FlexibleIRMOF-10/Makefile \
