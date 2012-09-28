@@ -1306,8 +1306,11 @@ void UpdateEnergyAveragesCurrentSystem(void)
   HeatOfVaporization[CurrentSystem][Block]+=therm_baro_stats.ExternalTemperature[CurrentSystem]-
                               (UAdsorbateAdsorbate[CurrentSystem]+UCationCation[CurrentSystem])/
                               (NumberOfAdsorbateMolecules[CurrentSystem]+NumberOfCationMolecules[CurrentSystem]);
-  EnergyPerMolecule[CurrentSystem][Block]+=UTotal[CurrentSystem]/NumberOfMolecules;
-  VolumePerMolecule[CurrentSystem][Block]+=Volume[CurrentSystem]/NumberOfMolecules;
+  if(NumberOfMolecules>0)
+  {
+    EnergyPerMolecule[CurrentSystem][Block]+=UTotal[CurrentSystem]/NumberOfMolecules;
+    VolumePerMolecule[CurrentSystem][Block]+=Volume[CurrentSystem]/NumberOfMolecules;
+  }
 
   if(ComputePrincipleMomentsOfInertia)
     MeasurePrincipleMomentsOfInertia();
