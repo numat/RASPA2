@@ -734,6 +734,50 @@ VECTOR Perpendicular(VECTOR a,VECTOR b)
   return v;
 }
 
+
+// Random-rotation matrix Shoemake’s method
+void RandomArrayRotationMatrix(VECTOR *Cord,int n)
+{
+  int i;
+  REAL R[3][3];
+  POINT p;
+  REAL R1,R2;
+  REAL X0,Y1,Y2;
+  REAL U0,U1,U2,U3;
+  REAL COEFI,COEFUU,COEFE;
+
+  X0=RandomNumber();
+  Y1=2.0*M_PI*RandomNumber();
+  Y2=2.0*M_PI*RandomNumber();
+  R1=sqrt(1.0-X0);
+  R2=sqrt(X0);
+  U0=cos(Y2)*R2;
+  U1=sin(Y1)*R1;
+  U2=cos(Y1)*R1;
+  U3=sin(Y2)*R2;
+  COEFI=2.0*U0*U0-1.0;
+  COEFUU=2.0;
+  COEFE=2.0*U0;
+  R[0][0]=COEFI+COEFUU*U1*U1;
+  R[1][1]=COEFI+COEFUU*U2*U2;
+  R[2][2]=COEFI+COEFUU*U3*U3;
+  R[1][2]=COEFUU*U2*U3-COEFE*U1;
+  R[2][0]=COEFUU*U3*U1-COEFE*U2;
+  R[0][1]=COEFUU*U1*U2-COEFE*U3;
+  R[2][1]=COEFUU*U3*U2+COEFE*U1;
+  R[0][2]=COEFUU*U1*U3+COEFE*U2;
+  R[1][0]=COEFUU*U2*U1+COEFE*U3;
+
+  for(i=0;i<n;i++)
+  {
+    p.x=Cord[i].x*R[0][0]+Cord[i].y*R[0][1]+Cord[i].z*R[0][2];
+    p.y=Cord[i].x*R[1][0]+Cord[i].y*R[1][1]+Cord[i].z*R[1][2];
+    p.z=Cord[i].x*R[2][0]+Cord[i].y*R[2][1]+Cord[i].z*R[2][2];
+    Cord[i]=p;
+  }
+}
+
+
 void RotationAroundXYZAxis(VECTOR v,VECTOR *Cord,int n,REAL theta)
 {
   int i;
@@ -764,6 +808,41 @@ void RotationAroundXYZAxis(VECTOR v,VECTOR *Cord,int n,REAL theta)
     Cord[i].y=s;
     Cord[i].z=c;
   }
+}
+
+// by Glenn Murray: 'Rotation About an Arbitrary Axis in 3 Dimensions'
+// http://inside.mines.edu/~gmurray/ArbitraryAxisRotation/
+// tested with: http://twist-and-shout.appspot.com
+void RotationArrayAroundXYZAxisAtPoint(POINT origin,VECTOR v,POINT *Cord,int n,REAL theta)
+{
+  int i;
+  REAL s,c;
+  VECTOR p;
+
+  c=cos(theta);
+  s=sin(theta);
+
+  for(i=0;i<n;i++)
+  {
+    p=Cord[i];
+    Cord[i].x=(origin.x*(SQR(v.y)+SQR(v.z))-v.x*(origin.y*v.y+origin.z*v.z-v.x*p.x-v.y*p.y-v.z*p.z))*(1.0-c)+p.x*c+(-origin.z*v.y+origin.y*v.z-v.z*p.y+v.y*p.z)*s;
+    Cord[i].y=(origin.y*(SQR(v.x)+SQR(v.z))-v.y*(origin.x*v.x+origin.z*v.z-v.x*p.x-v.y*p.y-v.z*p.z))*(1.0-c)+p.y*c+( origin.z*v.x-origin.x*v.z+v.z*p.x-v.x*p.z)*s;
+    Cord[i].z=(origin.z*(SQR(v.x)+SQR(v.y))-v.z*(origin.x*v.x+origin.y*v.y-v.x*p.x-v.y*p.y-v.z*p.z))*(1.0-c)+p.z*c+(-origin.y*v.x+origin.x*v.y-v.y*p.x+v.x*p.y)*s;
+  }
+}
+
+VECTOR RotationAroundXYZAxisAtPoint(POINT origin,VECTOR v,POINT p,REAL theta)
+{
+  REAL s,c;
+  VECTOR Cord;
+
+  c=cos(theta);
+  s=sin(theta);
+
+  Cord.x=(origin.x*(SQR(v.y)+SQR(v.z))-v.x*(origin.y*v.y+origin.z*v.z-v.x*p.x-v.y*p.y-v.z*p.z))*(1.0-c)+p.x*c+(-origin.z*v.y+origin.y*v.z-v.z*p.y+v.y*p.z)*s;
+  Cord.y=(origin.y*(SQR(v.x)+SQR(v.z))-v.y*(origin.x*v.x+origin.z*v.z-v.x*p.x-v.y*p.y-v.z*p.z))*(1.0-c)+p.y*c+( origin.z*v.x-origin.x*v.z+v.z*p.x-v.x*p.z)*s;
+  Cord.z=(origin.z*(SQR(v.x)+SQR(v.y))-v.z*(origin.x*v.x+origin.y*v.y-v.x*p.x-v.y*p.y-v.z*p.z))*(1.0-c)+p.z*c+(-origin.y*v.x+origin.x*v.y-v.y*p.x+v.x*p.y)*s;
+  return Cord;
 }
 
 VECTOR TransformMapping(REAL_MATRIX3x3 m,VECTOR t)

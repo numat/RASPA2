@@ -29,6 +29,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <float.h>
 #include "cbmc.h"
 #include "constants.h"
 #include "simulation.h"
@@ -78,7 +79,8 @@ VECTOR **TrialPositions;
 
 int OVERLAP;
 static REAL *Bfac;
-static int *Trover;
+static REAL *Bold;
+static int *Overlap;
 
 int NumberOfTrialPositions;
 int NumberOfTrialPositionsForTheFirstBead;
@@ -351,7 +353,7 @@ static int *PossibleCurrentBeads;
 static int **MoleculeTodoConnectivity;
 static int **MoleculeConnectivity;
 
-static int HandleFirstBead(int Code);
+static int HandleFirstBead(int Switch);
 static void Interactions(void);
 static int GenerateTrialOrientationsSimpleSphere(int Old);
 static int GenerateTrialOrientationsMCScheme(int Old);
@@ -360,9 +362,9 @@ static int ComputeExternalEnergies(void);
 static int Rosen(void);
 static int RosenOld(void);
 
-static REAL ComputeSumRosenbluthWeight(REAL *Bfac,int *Trover,int NumberOfPositions);
-static REAL ComputeNormalizedRosenbluthWeight(REAL *Bfac,int *Trover,int NumberOfPositions);
-static int SelectTrialPosition(REAL *Bfac,int *Trover,int NumberOfPositions);
+static REAL ComputeSumRosenbluthWeight(REAL *BoltzmannFactors,int *Overlap,int NumberOfTrialPositions);
+static REAL ComputeNormalizedRosenbluthWeight(REAL *BoltzmannFactors,int *Overlap,int NumberOfTrialPositions);
+static int SelectTrialPosition(REAL *BoltzmannFactors,int *Overlap,int NumberOfTrialPositions);
 
 
 /*********************************************************************************************************
@@ -486,15 +488,15 @@ void CalculateAnisotropicTrialPositions(int TypeMolA,VECTOR *TrialPosition,VECTO
  * Used in    | 'GrowMolecule' and 'RetraceMolecule'.                                                    *
  *********************************************************************************************************/
 
-REAL ComputeSumRosenbluthWeight(REAL *Bfac,int *Trover,int NumberOfPositions)
+REAL ComputeSumRosenbluthWeight(REAL *BoltzmannFactors,int *Overlap,int NumberOfTrialPositions)
 {
   int i;
   REAL SumBoltzmannFactors;
 
   SumBoltzmannFactors=0.0;
-  for(i=0;i<NumberOfPositions;i++)
-    if(!Trover[i])
-      SumBoltzmannFactors+=exp(Bfac[i]);
+  for(i=0;i<NumberOfTrialPositions;i++)
+    if(!Overlap[i])
+      SumBoltzmannFactors+=exp(BoltzmannFactors[i]);
   return SumBoltzmannFactors;
 
 }
@@ -507,16 +509,16 @@ REAL ComputeSumRosenbluthWeight(REAL *Bfac,int *Trover,int NumberOfPositions)
  * Used in    | 'GenerateTrialOrientationsMCScheme', 'Rosen', 'RosenOld'                                 *
  *********************************************************************************************************/
 
-REAL ComputeNormalizedRosenbluthWeight(REAL *Bfac,int *Trover,int NumberOfPositions)
+REAL ComputeNormalizedRosenbluthWeight(REAL *BoltzmannFactors,int *Overlap,int NumberOfPositions)
 {
   int i;
   REAL SumBoltzmannFactors;
 
   SumBoltzmannFactors=0.0;
-  for(i=0;i<NumberOfPositions;i++)
-    if(!Trover[i])
-      SumBoltzmannFactors+=exp(Bfac[i]);
-  return SumBoltzmannFactors/(REAL)NumberOfPositions;
+  for(i=0;i<NumberOfTrialPositions;i++)
+    if(!Overlap[i])
+      SumBoltzmannFactors+=exp(BoltzmannFactors[i]);
+  return SumBoltzmannFactors/(REAL)NumberOfTrialPositions;
 
 }
 
@@ -528,37 +530,28 @@ REAL ComputeNormalizedRosenbluthWeight(REAL *Bfac,int *Trover,int NumberOfPositi
  * Used in    | 'HandleFirstBead', 'GenerateTrialOrientationsMCScheme', 'Rosen'                          *
  *********************************************************************************************************/
 
-int SelectTrialPosition(REAL *Bfac,int *Trover,int NumberOfPositions)
+int SelectTrialPosition(REAL *BoltzmannFactors,int *Overlap,int NumberOfTrialPositions)
 {
   int i;
-  int selected,success;
+  int selected;
   REAL SumShiftedBoltzmannFactors;
   REAL ws,cumw,largest_value;
 
-  // find largest value of the energy
-  largest_value=0.0;
-  success=FALSE;
-  for(i=0;i<NumberOfPositions;i++)
-  {
-    if(!Trover[i])
-    {
-      if(!success)
-      {
-        success=TRUE;
-        largest_value=Bfac[i];
-      }
-      else
-        if(Bfac[i]>largest_value) largest_value=Bfac[i];
-    }
-  }
+  // energies are always bounded from below [-U_max, infinity>
+  // find the lowest energy value, i.e. the largest value of (-Beta U)
+  largest_value=-DBL_MAX;
+  for(i=0;i<NumberOfTrialPositions;i++)
+    if(!Overlap[i])
+      if(Bfac[i]>largest_value) largest_value=Bfac[i];
 
-  // shift the energies down
+  // standard trick: shift the Boltzmann factors down to avoid numerical problems
+  // the largest value of 'ShiftedBoltzmannFactors' will be 1 (which corresponds to the lowest energy).
   SumShiftedBoltzmannFactors=0.0;
-  for(i=0;i<NumberOfPositions;i++)
+  for(i=0;i<NumberOfTrialPositions;i++)
   {
-    if(!Trover[i])
+    if(!Overlap[i])
     {
-      ShiftedBoltzmannFactors[i]=exp(Bfac[i]-largest_value);
+      ShiftedBoltzmannFactors[i]=exp(BoltzmannFactors[i]-largest_value);
       SumShiftedBoltzmannFactors+=ShiftedBoltzmannFactors[i];
     }
     else
@@ -568,7 +561,6 @@ int SelectTrialPosition(REAL *Bfac,int *Trover,int NumberOfPositions)
   // select the Boltzmann factor
   selected=0;
   cumw=ShiftedBoltzmannFactors[0];
-
   ws=RandomNumber()*SumShiftedBoltzmannFactors;
   while(cumw<ws)
     cumw+=ShiftedBoltzmannFactors[++selected];
@@ -577,7 +569,6 @@ int SelectTrialPosition(REAL *Bfac,int *Trover,int NumberOfPositions)
 }
 
 
-enum {CBMC_INSERTION,CBMC_PARTIAL_INSERTION,CBMC_DELETION,CBMC_RETRACE_REINSERTION};
 
 //     1. New Configuration
 //        Generate NUMBER_OF_TRIAL_POSITIONS_FOR_THE_FIRST_BEAD random positions, 
@@ -594,7 +585,7 @@ enum {CBMC_INSERTION,CBMC_PARTIAL_INSERTION,CBMC_DELETION,CBMC_RETRACE_REINSERTI
 //        using the growth of a trial chain.
 //        The first trial position is the old configuration. This is only used in the subroutine Reinsertion();
 //        See Esselink/Loyens/Smit, Phys.Rev.E.,1995,51,2.
-int HandleFirstBead(int Code)
+int HandleFirstBead(int Switch)
 {
   int i,type,start;
   int NumberOfFirstPositions;
@@ -606,43 +597,21 @@ int HandleFirstBead(int Code)
 
   OVERLAP=TRUE;
   RosenBluthFactorFirstBead=0.0;
-  if((Code==2)||(Code==4)) NumberOfFirstPositions=1;
+
+  // determine the number of trial positions for the first bead
+  if((Switch==CBMC_PARTIAL_INSERTION)||(Switch==CBMC_RETRACE_REINSERTION)) NumberOfFirstPositions=1;
   else NumberOfFirstPositions=NumberOfTrialPositionsForTheFirstBead;
 
   for(i=0;i<NumberOfFirstPositions;i++)
   {
-    if((i==0)&&(Code!=1))
-      Trial[i]=FirstBeadPosition;
-    else
+    if((i!=0)||(Switch==CBMC_INSERTION))
     {
       FirstBeadPosition.x=FirstBeadPosition.y=FirstBeadPosition.z=0.0;
-      if(Components[CurrentComponent].RestrictMoves)
-      {
-        // generate random fractional point between 0.0 and 1.0 and retry when it is not inside the specified range
-        s.x=s.y=s.z=0.0;
-        do
-        {
-          switch(Dimension)
-          {
-            case 3:
-              s.z=RandomNumber();
-            case 2:
-              s.y=RandomNumber();
-            case 1:
-              s.x=RandomNumber();
-              break;
-          }
 
-          // convert to a the Cartesian position in the simulation box
-          FirstBeadPosition.x=Box[CurrentSystem].ax*s.x+Box[CurrentSystem].bx*s.y+Box[CurrentSystem].cx*s.z;
-          FirstBeadPosition.y=Box[CurrentSystem].ay*s.x+Box[CurrentSystem].by*s.y+Box[CurrentSystem].cy*s.z;
-          FirstBeadPosition.z=Box[CurrentSystem].az*s.x+Box[CurrentSystem].bz*s.y+Box[CurrentSystem].cz*s.z;
-        } while(!ValidCartesianPoint(CurrentComponent,FirstBeadPosition));
-      }
-      else
+      // generate random fractional point between 0.0 and 1.0 and retry when it is not inside the specified range
+      s.x=s.y=s.z=0.0;
+      do
       {
-        // generate random fractional point between 0 and 1
-        s.x=s.y=s.z=0.0;
         switch(Dimension)
         {
           case 3:
@@ -653,10 +622,12 @@ int HandleFirstBead(int Code)
             s.x=RandomNumber();
             break;
         }
+
+        // convert to a the Cartesian position in the simulation box
         FirstBeadPosition=ConvertFromABCtoXYZ(s);
-      }
-      Trial[i]=FirstBeadPosition;
+      } while(!ValidCartesianPoint(CurrentComponent,FirstBeadPosition));
     }
+    Trial[i]=FirstBeadPosition;
 
     posA=Trial[i];
     start=Components[CurrentComponent].StartingBead;
@@ -686,14 +657,22 @@ int HandleFirstBead(int Code)
     if((!Components[CurrentComponent].ExtraFrameworkMolecule)||(!OmitCationCationCoulombInteractions))
       CalculateInterChargeEnergyCationAtPosition(posA,type,&EnergyCationChargeCharge,&EnergyCationChargeBondDipole,CurrentCationMolecule);
 
-    if((EnergyHostVDW>=EnergyOverlapCriteria)||(EnergyHostChargeCharge>=EnergyOverlapCriteria))
+    if((EnergyHostVDW>=EnergyOverlapCriteria)||(EnergyHostChargeCharge>=EnergyOverlapCriteria)||
+       (EnergyAdsorbateVDW>=EnergyOverlapCriteria)||(EnergyAdsorbateChargeCharge>=EnergyOverlapCriteria)||
+       (EnergyCationVDW>=EnergyOverlapCriteria)||(EnergyCationChargeCharge>=EnergyOverlapCriteria))
     {
-      Trover[i]=TRUE;
+      // set overlap of trial positionm 'i' to TRUE
+      Overlap[i]=TRUE;
+
+      // set OVERLAP such that it will be true when ALL trial position have overlap
       OVERLAP=OVERLAP&TRUE;
     }
     else
     {
-      Trover[i]=FALSE;
+      // set overlap of trial positionm 'i' to FALSE
+      Overlap[i]=FALSE;
+
+      // set OVERLAP such that it will be false when ONE trial position has no overlap
       OVERLAP=OVERLAP&FALSE;
 
       EnergiesHostVDW[i]=EnergyHostVDW;
@@ -712,6 +691,7 @@ int HandleFirstBead(int Code)
       EnergiesAdsorbateBondDipoleBondDipole[i]=0.0;
       EnergiesCationBondDipoleBondDipole[i]=0.0;
 
+      // set the Boltzmann factor for trial position 'i'
       if(BiasingMethod==LJ_BIASING)
         Bfac[i]=-Beta[CurrentSystem]*(EnergyHostVDW+EnergyAdsorbateVDW+EnergyCationVDW);
       else
@@ -720,18 +700,19 @@ int HandleFirstBead(int Code)
                        EnergyHostChargeCharge+EnergyAdsorbateChargeCharge+EnergyCationChargeCharge+
                        EnergyHostChargeBondDipole+EnergyAdsorbateChargeBondDipole+EnergyCationChargeBondDipole);
       }
+      Bold[i]=Bfac[i];
     }
   }
   if (OVERLAP) return 0;  // return when all trial-positions overlap
 
   i=0;
-  RosenBluthFactorFirstBead=ComputeSumRosenbluthWeight(Bfac,Trover,NumberOfFirstPositions);
-  if(Code==1)
+  RosenBluthFactorFirstBead=ComputeSumRosenbluthWeight(Bfac,Overlap,NumberOfFirstPositions);
+  if(Switch==CBMC_INSERTION)
   {
-    i=SelectTrialPosition(Bfac,Trover,NumberOfFirstPositions);
-    ERR=RosenBluthFactorFirstBead-exp(Bfac[i]);
+    i=SelectTrialPosition(Bfac,Overlap,NumberOfFirstPositions);
+    ERR=RosenBluthFactorFirstBead-exp(Bold[i]);
   }
-  else if(Code==4)
+  else if(Switch==CBMC_RETRACE_REINSERTION)
   {
     i=0;
     RosenBluthFactorFirstBead+=ERR;
@@ -756,10 +737,10 @@ int HandleFirstBead(int Code)
   EnergyAdsorbateBondDipoleBondDipoleFirstBead=0.0;
   EnergyCationBondDipoleBondDipoleFirstBead=0.0;
 
-  if (Code!=2) RosenBluthFactorFirstBead/=(REAL)NumberOfTrialPositionsForTheFirstBead;
+  if (Switch!=CBMC_PARTIAL_INSERTION) RosenBluthFactorFirstBead/=(REAL)NumberOfTrialPositionsForTheFirstBead;
 
   // check if the Rosenbluth factor is reasonable; only for a new configuration
-  if ((Code==1)&&(RosenBluthFactorFirstBead<MinimumRosenbluthFactor)) OVERLAP=TRUE;
+  if ((Switch==CBMC_INSERTION)&&(RosenBluthFactorFirstBead<MinimumRosenbluthFactor)) OVERLAP=TRUE;
 
   return 0;
 }
@@ -1131,7 +1112,6 @@ int ComputeExternalEnergies(void)
   int TRIAL_OVERLAP;
   POINT posA,posB,posAVDW;
 
-
   TRIAL_OVERLAP=FALSE;
   OVERLAP=TRUE;
       
@@ -1424,13 +1404,13 @@ int ComputeExternalEnergies(void)
                           EnergiesIntra+EnergiesIntraChargeCharge+EnergiesIntraChargeBondDipole+EnergiesIntraBondDipoleBondDipole);
       }
 
-      Trover[Itrial]=FALSE;
+      Overlap[Itrial]=FALSE;
       OVERLAP=FALSE;
     }
     else
     {
       Bfac[Itrial]=0.0;
-      Trover[Itrial]=TRUE;
+      Overlap[Itrial]=TRUE;
     } 
   } 
   return 0;
@@ -1492,7 +1472,7 @@ int GenerateTrialOrientationsSimpleSphere(int Old)
 
   for(iu=0;iu<NumberOfTrialPositions;iu++)
   {
-    if(!(Old&&iu==0))    // generate 'k' new trial positions for the second bead except for iu=0 when retracing
+    if(!(Old&&iu==0))    // generate 'k' new trial positions for the second bead except for the first trial position (iu=0) when retracing
     {
       vec=RandomNumberOnUnitSphere();
 
@@ -1508,7 +1488,7 @@ int GenerateTrialOrientationsSimpleSphere(int Old)
           cord[j].z=Components[CurrentComponent].Positions[atom_nr].z-Components[CurrentComponent].Positions[CurrentBead].z;
         }
 
-        RotationAroundXYZAxis(vec,cord,Components[CurrentComponent].Groups[CurrentGroup].NumberOfGroupAtoms,(2.0*RandomNumber()-1.0)*M_PI);
+        RandomArrayRotationMatrix(cord,Components[CurrentComponent].Groups[CurrentGroup].NumberOfGroupAtoms);
 
         for(j=0;j<Components[CurrentComponent].Groups[CurrentGroup].NumberOfGroupAtoms;j++)
         {
@@ -2356,17 +2336,17 @@ int GenerateTrialOrientationsMCScheme(int Old)
           newtrs+=CalculateBendTorsionEnergy(BendTorsions[j],iu);
 
         Bfac[k]=-Beta[CurrentSystem]*newtrs;
-        Trover[k]=FALSE;
+        Overlap[k]=FALSE;
       }
 
-      RosenbluthTorsion[iu]=ComputeNormalizedRosenbluthWeight(Bfac,Trover,NumberOfTrialPositionsTorsion);
+      RosenbluthTorsion[iu]=ComputeNormalizedRosenbluthWeight(Bfac,Overlap,NumberOfTrialPositionsTorsion);
 
       if((iu==0)&&Old)
         sel=0;
       else
       {
         if(NumberOfTorsions>0)
-          sel=SelectTrialPosition(Bfac,Trover,NumberOfTrialPositionsTorsion);
+          sel=SelectTrialPosition(Bfac,Overlap,NumberOfTrialPositionsTorsion);
         else
           sel=(int)(RandomNumber()*(REAL)NumberOfTrialPositionsTorsion);
       }
@@ -2736,9 +2716,8 @@ int Rosen(void)
     ComputeExternalEnergies();
 
     if(OVERLAP) return 2;
-
-    weight=ComputeNormalizedRosenbluthWeight(Bfac,Trover,NumberOfTrialPositions);
-    iwalk=SelectTrialPosition(Bfac,Trover,NumberOfTrialPositions);
+    weight=ComputeNormalizedRosenbluthWeight(Bfac,Overlap,NumberOfTrialPositions);
+    iwalk=SelectTrialPosition(Bfac,Overlap,NumberOfTrialPositions);
 
     RosenbluthNew*=weight*RosenbluthTorsion[iwalk];
 
@@ -2836,7 +2815,7 @@ int RosenOld(void)
 
     if (OVERLAP) return 2;
 
-    weight=ComputeNormalizedRosenbluthWeight(Bfac,Trover,NumberOfTrialPositions);
+    weight=ComputeNormalizedRosenbluthWeight(Bfac,Overlap,NumberOfTrialPositions);
     RosenbluthOld*=weight*RosenbluthTorsion[0];
 
     UBondOld[CurrentSystem]+=UBondTrial[0];
@@ -2962,7 +2941,7 @@ REAL RetraceMolecule(int Iicode)
     BeadsAlreadyPlaced[0]=start;
   }
 
-  if(Components[CurrentComponent].NumberOfAtoms!=1)
+  if(Components[CurrentComponent].NumberOfAtoms>1)
     RosenOld();
 
   // calculate anisotropic sites
@@ -3061,7 +3040,7 @@ REAL GrowMolecule(int Iicode)
     NewPosition[CurrentSystem][BeadsAlreadyPlaced[0]]=FirstBeadPosition;
   }
 
-  if(Components[CurrentComponent].NumberOfAtoms!=1)
+  if(Components[CurrentComponent].NumberOfAtoms>1)
     Rosen();
 
   if (OVERLAP) return 0;
@@ -3082,7 +3061,6 @@ REAL GrowMolecule(int Iicode)
   UHostVDWNew[CurrentSystem]+=UVDWCorrectionFramework;
   UAdsorbateVDWNew[CurrentSystem]+=UVDWCorrectionAdsorbate;
   UCationVDWNew[CurrentSystem]+=UVDWCorrectionCation;
-  
 
   // the old config can be used as a starting point
   Components[CurrentComponent].LMCMOL=TRUE;
@@ -3144,9 +3122,9 @@ void MakeInitialAdsorbate(void)
         NewPosition[CurrentSystem][StartingBead].y=Box[CurrentSystem].ay*s.x+Box[CurrentSystem].by*s.y+Box[CurrentSystem].cy*s.z;
         NewPosition[CurrentSystem][StartingBead].z=Box[CurrentSystem].az*s.x+Box[CurrentSystem].bz*s.y+Box[CurrentSystem].cz*s.z;
       } while(!ValidCartesianPoint(CurrentComponent,NewPosition[CurrentSystem][StartingBead]));
-      GrowMolecule(2);
+      GrowMolecule(CBMC_PARTIAL_INSERTION);
     }
-    else GrowMolecule(1);
+    else GrowMolecule(CBMC_INSERTION);
   }
   while(OVERLAP==TRUE||BlockedPocket(NewPosition[CurrentSystem][Components[CurrentComponent].StartingBead]));
   InsertAdsorbateMolecule();
@@ -3204,9 +3182,9 @@ void MakeInitialCation(void)
         NewPosition[CurrentSystem][StartingBead].z=Box[CurrentSystem].az*s.x+Box[CurrentSystem].bz*s.y+Box[CurrentSystem].cz*s.z;
       }
       while(!ValidCartesianPoint(CurrentComponent,NewPosition[CurrentSystem][StartingBead]));
-      GrowMolecule(2);
+      GrowMolecule(CBMC_PARTIAL_INSERTION);
     }
-    else GrowMolecule(1);
+    else GrowMolecule(CBMC_INSERTION);
   }
   while(OVERLAP==TRUE||BlockedPocket(NewPosition[CurrentSystem][Components[CurrentComponent].StartingBead]));
 
@@ -3424,7 +3402,8 @@ void AllocateCBMCMemory(void)
     TrialPositions[i]=(VECTOR*)calloc(MaxNumberOfBeads,sizeof(VECTOR));
 
   Bfac=(REAL*)calloc(MaxTrial,sizeof(REAL));
-  Trover=(int*)calloc(MaxTrial,sizeof(REAL));
+  Bold=(REAL*)calloc(MaxTrial,sizeof(REAL));
+  Overlap=(int*)calloc(MaxTrial,sizeof(REAL));
   ShiftedBoltzmannFactors=(REAL*)calloc(MaxTrial,sizeof(REAL));
 
   Trial=(VECTOR*)calloc(MaxTrial,sizeof(VECTOR));

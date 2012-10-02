@@ -2116,7 +2116,7 @@ void SampleFreeEnergyProfile(int Switch)
             // grow a trial molecule at position 'C' from scratch, the new Rosenbluth weight is stored in variable 'value'
             NewPosition[CurrentSystem][StartingBead]=C;
             NumberOfBeadsAlreadyPlaced=0;
-            value=GrowMolecule(2);
+            value=GrowMolecule(CBMC_PARTIAL_INSERTION);
 
             if(OVERLAP||BlockedPocket(NewPosition[CurrentSystem][StartingBead]))
               value=0.0; // set the Rosenbluth weight at zero if an overlap occurs or when the position is 'blocked'

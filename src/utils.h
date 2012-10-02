@@ -129,6 +129,9 @@ VECTOR RandomNumberOnCone(VECTOR v,REAL theta);
 VECTOR Perpendicular(VECTOR a,VECTOR b);
 void CalculateRotationMatrix(VECTOR a,VECTOR b,REAL_MATRIX3x3 *rot);
 void RotationAroundXYZAxis(VECTOR v,VECTOR *Cord,int n,REAL theta);
+void RandomArrayRotationMatrix(VECTOR *Cord,int n);
+VECTOR RotationAroundXYZAxisAtPoint(POINT origin,VECTOR v,POINT Cord,REAL theta);
+void RotationArrayAroundXYZAxisAtPoint(POINT origin,VECTOR v,POINT *Cord,int n,REAL theta);
 
 REAL DotProdukt(VECTOR a,VECTOR b);
 VECTOR RotateVectorAboutX(VECTOR vec,REAL angle);

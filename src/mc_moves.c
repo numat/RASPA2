@@ -2349,7 +2349,6 @@ int RotationMoveAdsorbate(void)
 {
   int i,d,count,nr_atoms,start;
   int StartingBead;
-  VECTOR vec;
   REAL DeltaU;
   VECTOR pos,posA,posB,posC,posD,posE;
 
@@ -2382,9 +2381,7 @@ int RotationMoveAdsorbate(void)
               Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[start].Position.z;
   }
 
-  vec=RandomNumberOnUnitSphere();
-
-  RotationAroundXYZAxis(vec,cord,nr_atoms,(2.0*RandomNumber()-1.0)*M_PI);
+  RandomArrayRotationMatrix(cord,nr_atoms);
 
   for(i=0;i<nr_atoms;i++)
   {
@@ -2595,7 +2592,6 @@ int RotationMoveCation(void)
 {
   int i,d,count,nr_atoms,start;
   int StartingBead;
-  VECTOR vec;
   REAL DeltaU;
   VECTOR pos,posA,posB,posC,posD,posE;
 
@@ -2628,9 +2624,7 @@ int RotationMoveCation(void)
               Cations[CurrentSystem][CurrentCationMolecule].Atoms[start].Position.z;
   }
 
-  vec=RandomNumberOnUnitSphere();
-
-  RotationAroundXYZAxis(vec,cord,nr_atoms,(2.0*RandomNumber()-1.0)*M_PI);
+  RandomArrayRotationMatrix(cord,nr_atoms);
 
   for(i=0;i<nr_atoms;i++)
   {
@@ -2907,7 +2901,7 @@ int PartialReinsertionAdsorbateMove(void)
   for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
     NewPosition[CurrentSystem][i]=Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[i].Position;
 
-  RosenbluthNew=GrowMolecule(2);
+  RosenbluthNew=GrowMolecule(CBMC_PARTIAL_INSERTION);
   if (OVERLAP) return 0;
 
   for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
@@ -2920,7 +2914,7 @@ int PartialReinsertionAdsorbateMove(void)
   NumberOfBeadsAlreadyPlaced=Components[CurrentComponent].NumberOfUnchangedAtomsConfig[d];
   for(i=0;i<NumberOfBeadsAlreadyPlaced;i++)
     BeadsAlreadyPlaced[i]=Components[CurrentComponent].UnchangedAtomsConfig[d][i];
-  RosenbluthOld=RetraceMolecule(2);
+  RosenbluthOld=RetraceMolecule(CBMC_PARTIAL_INSERTION);
   if (OVERLAP) return 0;
 
   PartialReinsertionAccepted[CurrentSystem][CurrentComponent][0]+=1.0;
@@ -3132,7 +3126,7 @@ int PartialReinsertionCationMove(void)
     BeadsAlreadyPlaced[i]=Components[CurrentComponent].UnchangedAtomsConfig[d][i];
   for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
     NewPosition[CurrentSystem][i]=Cations[CurrentSystem][CurrentCationMolecule].Atoms[i].Position;
-  RosenbluthNew=GrowMolecule(2);
+  RosenbluthNew=GrowMolecule(CBMC_PARTIAL_INSERTION);
   if (OVERLAP) return 0;
 
   for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
@@ -3145,7 +3139,7 @@ int PartialReinsertionCationMove(void)
   NumberOfBeadsAlreadyPlaced=Components[CurrentComponent].NumberOfUnchangedAtomsConfig[d];
   for(i=0;i<NumberOfBeadsAlreadyPlaced;i++)
     BeadsAlreadyPlaced[i]=Components[CurrentComponent].UnchangedAtomsConfig[d][i];
-  RosenbluthOld=RetraceMolecule(2);
+  RosenbluthOld=RetraceMolecule(CBMC_PARTIAL_INSERTION);
   if (OVERLAP) return 0;
 
   PartialReinsertionAccepted[CurrentSystem][CurrentComponent][0]+=1.0;
@@ -3394,7 +3388,7 @@ int ReinsertionAdsorbateMove(void)
   ReinsertionAttempts[CurrentSystem][CurrentComponent]+=1.0;
 
   NumberOfBeadsAlreadyPlaced=0;
-  RosenbluthNew=GrowMolecule(1);
+  RosenbluthNew=GrowMolecule(CBMC_INSERTION);
   if (OVERLAP) return 0;
 
   for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
@@ -3406,7 +3400,7 @@ int ReinsertionAdsorbateMove(void)
   ReinsertionAccepted[CurrentSystem][CurrentComponent][0]+=1.0;
 
   NumberOfBeadsAlreadyPlaced=0;
-  RosenbluthOld=RetraceMolecule(4);
+  RosenbluthOld=RetraceMolecule(CBMC_RETRACE_REINSERTION);
 
   PreFactor=1.0;
   if((ChargeMethod==EWALD)&&(!OmitEwaldFourier))
@@ -3617,7 +3611,7 @@ int ReinsertionCationMove(void)
   ReinsertionAttempts[CurrentSystem][CurrentComponent]+=1.0;
 
   NumberOfBeadsAlreadyPlaced=0;
-  RosenbluthNew=GrowMolecule(1);
+  RosenbluthNew=GrowMolecule(CBMC_INSERTION);
   if (OVERLAP) return 0;
 
   for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
@@ -3627,7 +3621,7 @@ int ReinsertionCationMove(void)
   }
 
   NumberOfBeadsAlreadyPlaced=0;
-  RosenbluthOld=RetraceMolecule(4);
+  RosenbluthOld=RetraceMolecule(CBMC_RETRACE_REINSERTION);
 
   PreFactor=1.0;
   if(ChargeMethod!=NONE)
@@ -3879,7 +3873,7 @@ int ReinsertionInPlaceAdsorbateMove(void)
 
   StartingBead=Components[CurrentComponent].StartingBead;
   NewPosition[CurrentSystem][StartingBead]=Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[StartingBead].Position;
-  RosenbluthNew=GrowMolecule(2);
+  RosenbluthNew=GrowMolecule(CBMC_PARTIAL_INSERTION);
   if (OVERLAP) return 0;
 
   for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
@@ -3891,7 +3885,7 @@ int ReinsertionInPlaceAdsorbateMove(void)
   ReinsertionInPlaceAccepted[CurrentSystem][CurrentComponent][0]+=1.0;
 
   NumberOfBeadsAlreadyPlaced=0;
-  RosenbluthOld=RetraceMolecule(2);
+  RosenbluthOld=RetraceMolecule(CBMC_PARTIAL_INSERTION);
 
   PreFactor=1.0;
   if(ChargeMethod!=NONE)
@@ -4107,7 +4101,7 @@ int ReinsertionInPlaceCationMove(void)
   NumberOfBeadsAlreadyPlaced=0;
   StartingBead=Components[CurrentComponent].StartingBead;
   NewPosition[CurrentSystem][StartingBead]=Cations[CurrentSystem][CurrentCationMolecule].Atoms[StartingBead].Position;
-  RosenbluthNew=GrowMolecule(2);
+  RosenbluthNew=GrowMolecule(CBMC_PARTIAL_INSERTION);
   if (OVERLAP) return 0;
 
   for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
@@ -4117,7 +4111,7 @@ int ReinsertionInPlaceCationMove(void)
   }
 
   NumberOfBeadsAlreadyPlaced=0;
-  RosenbluthOld=RetraceMolecule(2);
+  RosenbluthOld=RetraceMolecule(CBMC_PARTIAL_INSERTION);
 
   PreFactor=1.0;
   if((ChargeMethod==EWALD)&&(!OmitEwaldFourier))
@@ -4427,7 +4421,7 @@ int ReinsertionInPlaneAdsorbateMove(void)
   NewPosition[CurrentSystem][StartingBead].x=Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[StartingBead].Position.x+rotated_displacement.x;
   NewPosition[CurrentSystem][StartingBead].y=Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[StartingBead].Position.y+rotated_displacement.y;
   NewPosition[CurrentSystem][StartingBead].z=Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[StartingBead].Position.z+rotated_displacement.z;
-  RosenbluthNew=GrowMolecule(2);
+  RosenbluthNew=GrowMolecule(CBMC_PARTIAL_INSERTION);
   if (OVERLAP) return 0;
 
   for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
@@ -4439,7 +4433,7 @@ int ReinsertionInPlaneAdsorbateMove(void)
   ReinsertionInPlaneAccepted[CurrentSystem][CurrentComponent][0]+=1.0;
 
   NumberOfBeadsAlreadyPlaced=0;
-  RosenbluthOld=RetraceMolecule(2);
+  RosenbluthOld=RetraceMolecule(CBMC_PARTIAL_INSERTION);
 
   PreFactor=1.0;
   if(ChargeMethod!=NONE)
@@ -4715,7 +4709,7 @@ int ReinsertionInPlaneCationMove(void)
   NewPosition[CurrentSystem][StartingBead].y=Cations[CurrentSystem][CurrentCationMolecule].Atoms[StartingBead].Position.y+rotated_displacement.y;
   NewPosition[CurrentSystem][StartingBead].z=Cations[CurrentSystem][CurrentCationMolecule].Atoms[StartingBead].Position.z+rotated_displacement.z;
 
-  RosenbluthNew=GrowMolecule(2);
+  RosenbluthNew=GrowMolecule(CBMC_PARTIAL_INSERTION);
   if (OVERLAP) return 0;
 
   for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
@@ -4727,7 +4721,7 @@ int ReinsertionInPlaneCationMove(void)
   ReinsertionInPlaneAccepted[CurrentSystem][CurrentComponent][0]+=1.0;
 
   NumberOfBeadsAlreadyPlaced=0;
-  RosenbluthOld=RetraceMolecule(2);
+  RosenbluthOld=RetraceMolecule(CBMC_PARTIAL_INSERTION);
 
   PreFactor=1.0;
   if(ChargeMethod!=NONE)
@@ -5099,7 +5093,7 @@ int IdentityChangeAdsorbateMove(void)
 */
 
 
-  RosenbluthNew=GrowMolecule(2);
+  RosenbluthNew=GrowMolecule(CBMC_PARTIAL_INSERTION);
   if (OVERLAP) return 0;
 
   for(i=0;i<Components[NewComponent].NumberOfAtoms;i++)
@@ -5123,7 +5117,7 @@ int IdentityChangeAdsorbateMove(void)
   }
 */
 
-  RosenbluthOld=RetraceMolecule(2);
+  RosenbluthOld=RetraceMolecule(CBMC_PARTIAL_INSERTION);
 
 
   // compute the tail-correction difference
@@ -5405,7 +5399,7 @@ int IdentityChangeCationMove(void)
   // grow the 'New'-component
   NumberOfBeadsAlreadyPlaced=0;
   CurrentComponent=NewComponent;
-  RosenbluthNew=GrowMolecule(2);
+  RosenbluthNew=GrowMolecule(CBMC_PARTIAL_INSERTION);
   if (OVERLAP) return 0;
 
   for(i=0;i<Components[NewComponent].NumberOfAtoms;i++)
@@ -5421,7 +5415,7 @@ int IdentityChangeCationMove(void)
   // retrace the 'Old'-component
   NumberOfBeadsAlreadyPlaced=0;
   CurrentComponent=OldComponent;
-  RosenbluthOld=RetraceMolecule(2);
+  RosenbluthOld=RetraceMolecule(CBMC_PARTIAL_INSERTION);
 
   // compute the tail-correction difference
   UTailOld=TailMolecularEnergyDifferenceRemove();
@@ -5721,7 +5715,7 @@ int SwapAddAdsorbateMove(void)
   CurrentCationMolecule=NumberOfCationMolecules[CurrentSystem];
 
   NumberOfBeadsAlreadyPlaced=0;
-  RosenbluthNew=GrowMolecule(1);
+  RosenbluthNew=GrowMolecule(CBMC_INSERTION);
   if (OVERLAP) return 0;
 
   for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
@@ -5927,7 +5921,7 @@ int SwapRemoveAdsorbateMove(void)
 
   // calculate the Old Rosenbluth factor
   NumberOfBeadsAlreadyPlaced=0;
-  RosenbluthOld=RetraceMolecule(3);
+  RosenbluthOld=RetraceMolecule(CBMC_DELETION);
   if (OVERLAP) return 0;
 
   SwapRemoveAccepted[CurrentSystem][CurrentComponent][0]+=1.0;
@@ -6108,7 +6102,7 @@ int SwapAddCationMove(void)
   CurrentCationMolecule=NumberOfCationMolecules[CurrentSystem];
 
   NumberOfBeadsAlreadyPlaced=0;
-  RosenbluthNew=GrowMolecule(1);
+  RosenbluthNew=GrowMolecule(CBMC_INSERTION);
   if (OVERLAP) return 0;
 
   for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
@@ -6307,7 +6301,7 @@ int SwapRemoveCationMove(void)
 
   // calculate the Old Rosenbluth factor
   NumberOfBeadsAlreadyPlaced=0;
-  RosenbluthOld=RetraceMolecule(3);
+  RosenbluthOld=RetraceMolecule(CBMC_DELETION);
   if (OVERLAP) return 0;
   SwapRemoveAccepted[CurrentSystem][CurrentComponent][0]+=1.0;
 
@@ -6561,7 +6555,7 @@ REAL WidomAdsorbateMove(void)
   WidomRosenbluthFactorCount[CurrentSystem][CurrentComponent][Block]+=1.0;
 
   NumberOfBeadsAlreadyPlaced=0;
-  RosenbluthNew=GrowMolecule(1);
+  RosenbluthNew=GrowMolecule(CBMC_INSERTION);
 
   if(OVERLAP) 
     return 0.0;
@@ -6639,7 +6633,7 @@ REAL WidomCationMove(void)
   WidomRosenbluthFactorCount[CurrentSystem][CurrentComponent][Block]+=1.0;
     
   NumberOfBeadsAlreadyPlaced=0;
-  RosenbluthNew=GrowMolecule(1);
+  RosenbluthNew=GrowMolecule(CBMC_INSERTION);
   if(OVERLAP) return 0;
 
   for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
@@ -9662,7 +9656,7 @@ int GibbsParticleTransferAdsorbateMove(void)
   CurrentAdsorbateMolecule=NumberOfAdsorbateMolecules[CurrentSystem];
   CurrentCationMolecule=NumberOfCationMolecules[CurrentSystem];
   NumberOfBeadsAlreadyPlaced=0;
-  RosenbluthNew=GrowMolecule(1);
+  RosenbluthNew=GrowMolecule(CBMC_INSERTION);
   if (OVERLAP) return 0;
 
   UTailNew=TailMolecularEnergyDifferenceAdd();
@@ -9707,7 +9701,7 @@ int GibbsParticleTransferAdsorbateMove(void)
 
   // calculate the Old Rosenbluth factor
   NumberOfBeadsAlreadyPlaced=0;
-  RosenbluthOld=RetraceMolecule(3);
+  RosenbluthOld=RetraceMolecule(CBMC_DELETION);
 
   UTailOld=TailMolecularEnergyDifferenceRemove();
   RosenbluthOld*=exp(-Beta[CurrentSystem]*UTailOld);
@@ -10037,7 +10031,7 @@ int GibbsParticleTransferCationMove(void)
   CurrentAdsorbateMolecule=NumberOfAdsorbateMolecules[CurrentSystem];
   CurrentCationMolecule=NumberOfCationMolecules[CurrentSystem];
   NumberOfBeadsAlreadyPlaced=0;
-  RosenbluthNew=GrowMolecule(1);
+  RosenbluthNew=GrowMolecule(CBMC_INSERTION);
   if (OVERLAP) return 0;
 
   UTailNew=TailMolecularEnergyDifferenceAdd();
@@ -10082,7 +10076,7 @@ int GibbsParticleTransferCationMove(void)
 
   // calculate the Old Rosenbluth factor
   NumberOfBeadsAlreadyPlaced=0;
-  RosenbluthOld=RetraceMolecule(3);
+  RosenbluthOld=RetraceMolecule(CBMC_DELETION);
 
   UTailOld=TailMolecularEnergyDifferenceRemove();
   RosenbluthOld*=exp(-Beta[CurrentSystem]*UTailOld);
@@ -10976,7 +10970,7 @@ int GibbsIdentityChangeAdsorbateMove(void)
 
   // grow the 'New'-component
   NumberOfBeadsAlreadyPlaced=0;
-  RosenbluthNewA=GrowMolecule(2);
+  RosenbluthNewA=GrowMolecule(CBMC_PARTIAL_INSERTION);
   if (OVERLAP) return 0;
 
   // in box B an attempt is made to change a molecule of type B into A
@@ -10992,7 +10986,7 @@ int GibbsIdentityChangeAdsorbateMove(void)
 
   // grow the 'New'-component
   NumberOfBeadsAlreadyPlaced=0;
-  RosenbluthNewB=GrowMolecule(2);
+  RosenbluthNewB=GrowMolecule(CBMC_PARTIAL_INSERTION);
   if (OVERLAP) return 0;
 
   // in box A an attempt is made to change a molecule of type A into B
@@ -11002,7 +10996,7 @@ int GibbsIdentityChangeAdsorbateMove(void)
   // retrace the 'Old'-component
   NumberOfBeadsAlreadyPlaced=0;
   CurrentComponent=ComponentA;
-  RosenbluthOldA=RetraceMolecule(2);
+  RosenbluthOldA=RetraceMolecule(CBMC_PARTIAL_INSERTION);
 
   // compute the tail-correction and Ewald-correction difference in Box I
   UTailCorrectionDifferenceA=TailMolecularEnergyDifferenceAddRemove(ComponentB,ComponentA);
@@ -11026,7 +11020,7 @@ int GibbsIdentityChangeAdsorbateMove(void)
   // retrace the 'Old'-component
   NumberOfBeadsAlreadyPlaced=0;
   CurrentComponent=ComponentB;
-  RosenbluthOldB=RetraceMolecule(2);
+  RosenbluthOldB=RetraceMolecule(CBMC_PARTIAL_INSERTION);
 
   // compute the tail-correction and Ewald-correction difference in Box II
   UTailCorrectionDifferenceB=TailMolecularEnergyDifferenceAddRemove(ComponentA,ComponentB);
@@ -11408,7 +11402,7 @@ int GibbsIdentityChangeCationMove(void)
 
   // grow the 'New'-component
   NumberOfBeadsAlreadyPlaced=0;
-  RosenbluthNewA=GrowMolecule(2);
+  RosenbluthNewA=GrowMolecule(CBMC_PARTIAL_INSERTION);
   if (OVERLAP) return 0;
 
   // in box B an attempt is made to change a molecule of type B into A
@@ -11424,7 +11418,7 @@ int GibbsIdentityChangeCationMove(void)
 
   // grow the 'New'-component
   NumberOfBeadsAlreadyPlaced=0;
-  RosenbluthNewB=GrowMolecule(2);
+  RosenbluthNewB=GrowMolecule(CBMC_PARTIAL_INSERTION);
   if (OVERLAP) return 0;
 
   // in box A an attempt is made to change a molecule of type A into B
@@ -11434,7 +11428,7 @@ int GibbsIdentityChangeCationMove(void)
   // retrace the 'Old'-component
   NumberOfBeadsAlreadyPlaced=0;
   CurrentComponent=ComponentA;
-  RosenbluthOldA=RetraceMolecule(2);
+  RosenbluthOldA=RetraceMolecule(CBMC_PARTIAL_INSERTION);
 
   // compute the tail-correction and Ewald-correction difference in Box I
   UTailCorrectionDifferenceA=TailMolecularEnergyDifferenceAddRemove(ComponentB,ComponentA);
@@ -11457,7 +11451,7 @@ int GibbsIdentityChangeCationMove(void)
   // retrace the 'Old'-component
   NumberOfBeadsAlreadyPlaced=0;
   CurrentComponent=ComponentB;
-  RosenbluthOldB=RetraceMolecule(2);
+  RosenbluthOldB=RetraceMolecule(CBMC_PARTIAL_INSERTION);
 
   // compute the tail-correction and Ewald-correction difference in Box II
   UTailCorrectionDifferenceB=TailMolecularEnergyDifferenceAddRemove(ComponentA,ComponentB);

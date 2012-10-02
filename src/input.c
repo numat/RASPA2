@@ -5274,7 +5274,7 @@ int ReadInputFile(char *inputfilename)
         NewPosition[CurrentSystem][StartingBead].x=UnitCellBox[CurrentSystem].ax*s.x+UnitCellBox[CurrentSystem].bx*s.y+UnitCellBox[CurrentSystem].cx*s.z;
         NewPosition[CurrentSystem][StartingBead].y=UnitCellBox[CurrentSystem].ay*s.x+UnitCellBox[CurrentSystem].by*s.y+UnitCellBox[CurrentSystem].cy*s.z;
         NewPosition[CurrentSystem][StartingBead].z=UnitCellBox[CurrentSystem].az*s.x+UnitCellBox[CurrentSystem].bz*s.y+UnitCellBox[CurrentSystem].cz*s.z;
-        GrowMolecule(2);
+        GrowMolecule(CBMC_PARTIAL_INSERTION);
       }
       while(OVERLAP==TRUE);
       InsertAdsorbateMolecule();
