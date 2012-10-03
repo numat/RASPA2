@@ -232,7 +232,7 @@ void InitializeEwald(REAL precision,int Automatic)
     kx=kvec[i].x;
     ky=kvec[i].y;
     kz=kvec[i].z;
-    recip_cutoff=ReciprocalCutOffSquared[CurrentSystem];
+    recip_cutoff=ReciprocalCutOffSquared[i];
 
     nvec=0;
     for(ii=0;ii<=kx;ii++)

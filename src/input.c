@@ -315,8 +315,6 @@ int ReadInputFile(char *inputfilename)
   CutOffChargeBondDipoleSwitch=0.0;
   CutOffBondDipoleBondDipoleSwitch=0.0;
 
-  CreateTinkerInput=FALSE;
-
   // tail-corrections do not apply on shifted potentials
   ShiftPotentials=TRUE;
   TailCorrections=FALSE;
@@ -1308,11 +1306,6 @@ int ReadInputFile(char *inputfilename)
     if(strcasecmp("NumberOfEquilibrationCycles",keyword)==0) sscanf(arguments,"%lld",&NumberOfEquilibrationCycles);
     if(strcasecmp("NumberOfVelocityScalingCycles",keyword)==0) sscanf(arguments,"%lld",&NumberOfVelocityScalingCycles);
 
-    if(strcasecmp("CreateTinkerInput",keyword)==0)
-    {
-      if(strcasecmp("yes",firstargument)==0) CreateTinkerInput=TRUE;
-      if(strcasecmp("no",firstargument)==0) CreateTinkerInput=FALSE;
-    }
 
     // read restart-options
     if(strcasecmp("RestartFile",keyword)==0)
@@ -5221,9 +5214,6 @@ int ReadInputFile(char *inputfilename)
     PseudoAtoms[i].AnomalousScatteringType=GetAnomalousScatteringNumber(PseudoAtoms[i].PrintToPDBName);
   }
 
-  InitializeEwald(EwaldPrecision,EwaldAutomatic);
-  AllocateEwaldMemory();
-
   if(Framework[0].FrameworkModel==GRID)
   {
     CurrentSystem=0;
@@ -5258,6 +5248,9 @@ int ReadInputFile(char *inputfilename)
       InitializeReplicaBox();
   }
 
+  InitializeEwald(EwaldPrecision,EwaldAutomatic);
+  AllocateEwaldMemory();
+
   for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
   {
 
@@ -5274,7 +5267,7 @@ int ReadInputFile(char *inputfilename)
         NewPosition[CurrentSystem][StartingBead].x=UnitCellBox[CurrentSystem].ax*s.x+UnitCellBox[CurrentSystem].bx*s.y+UnitCellBox[CurrentSystem].cx*s.z;
         NewPosition[CurrentSystem][StartingBead].y=UnitCellBox[CurrentSystem].ay*s.x+UnitCellBox[CurrentSystem].by*s.y+UnitCellBox[CurrentSystem].cy*s.z;
         NewPosition[CurrentSystem][StartingBead].z=UnitCellBox[CurrentSystem].az*s.x+UnitCellBox[CurrentSystem].bz*s.y+UnitCellBox[CurrentSystem].cz*s.z;
-        GrowMolecule(CBMC_PARTIAL_INSERTION);
+        GrowMolecule(2);
       }
       while(OVERLAP==TRUE);
       InsertAdsorbateMolecule();
@@ -6995,22 +6988,8 @@ void ReadRestartFile(void)
 
     if(!(FilePtrIn=fopen(buffer,"r")))
     {
-      sprintf(buffer,"RestartInitial/System_%d/restart_%s_%d.%d.%d_%lf",
-              CurrentSystem,
-              Framework[CurrentSystem].Name[0],
-              NumberOfUnitCells[CurrentSystem].x,
-              NumberOfUnitCells[CurrentSystem].y,
-              NumberOfUnitCells[CurrentSystem].z,
-              (double)therm_baro_stats.ExternalPressure[CurrentSystem][CurrentIsothermPressure]*PRESSURE_CONVERSION_FACTOR);
-      if(!(FilePtrIn=fopen(buffer,"r")))
-      {
-        sprintf(buffer,"RestartInitial/System_%d/restart.dat",CurrentSystem);
-        if(!(FilePtrIn=fopen(buffer,"r")))
-        {
-          printf("Could NOT open file: %s\n",buffer);
-          exit(0);
-        }
-      }
+      printf("Could NOT open file: %s\n",buffer);
+      exit(0);
     }
 
     while(fgets(line,1024,FilePtrIn))

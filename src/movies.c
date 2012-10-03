@@ -2160,9 +2160,9 @@ void WriteSnapshotTinker(char *string)
       for(j=0;j<Adsorbates[CurrentSystem][i].NumberOfAtoms;j++)
         if(PseudoAtoms[Adsorbates[CurrentSystem][i].Atoms[j].Type].PrintToPDB) count++;
 
-    fprintf(FilePtr,"%8d %s\n",Framework[CurrentSystem].TotalNumberOfAtoms+count,Framework[CurrentSystem].Name[CurrentFramework]);
     SerialNumber=1;
 
+    fprintf(FilePtr,"%8d %s\n",Framework[CurrentSystem].TotalNumberOfAtoms+count,Framework[CurrentSystem].Name[0]);
     if(Framework[CurrentSystem].FrameworkModel!=NONE)
     {
       for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
