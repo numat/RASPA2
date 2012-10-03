@@ -5016,7 +5016,7 @@ int ReadInputFile(char *inputfilename)
     MaximumBoxShapeChange[i].cx=0.1;
     MaximumBoxShapeChange[i].cy=0.1;
     MaximumBoxShapeChange[i].cz=0.1;
-    MaximumGibbsVolumeChange[i]=0.5;
+    MaximumGibbsVolumeChange[i]=0.1;
 
     for(j=0;j<NumberOfComponents;j++)
     {
