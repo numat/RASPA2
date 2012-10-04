@@ -4910,6 +4910,7 @@ int ReadInputFile(char *inputfilename)
 
   // read forcefields after the structure has been read
   // (because CIF-files can add atom-types)
+  CurrentSystem=0;
   ReadForceFieldDefinitionsMixingRules();
   ReadForceFieldDefinitions();
   ComputeDummyInteractions();

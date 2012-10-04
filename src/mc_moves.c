@@ -7166,7 +7166,7 @@ void OptimizeVolumeChangeAcceptence(void)
 
 void PrintVolumeChangeStatistics(FILE *FilePtr)
 {
-  if(ProbabilityVolumeChangeMove)
+  if(ProbabilityVolumeChangeMove>0.0)
   {
     fprintf(FilePtr,"Performance of the volume change move:\n");
     fprintf(FilePtr,"======================================\n");
