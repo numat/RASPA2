@@ -1,1 +1,1 @@
-SUBDIRS = TraPPE TraPPE-UA CastilloVlugtCalero2009
+SUBDIRS = TraPPE TraPPE-UA CastilloVlugtCalero2009 EPM2

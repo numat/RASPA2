@@ -48,6 +48,7 @@ forcefield/TraPPE/Makefile \
 molecules/Makefile \
 molecules/TraPPE/Makefile \
 molecules/TraPPE-UA/Makefile \
+molecules/EPM2/Makefile \
 molecules/CastilloVlugtCalero2009/Makefile \
 framework/Makefile \
 framework/Dubbeldam2007FlexibleIRMOF-1/Makefile \
