@@ -79,7 +79,6 @@ VECTOR **TrialPositions;
 
 int OVERLAP;
 static REAL *Bfac;
-static REAL *Bold;
 static int *Overlap;
 
 int NumberOfTrialPositions;
@@ -542,7 +541,7 @@ int SelectTrialPosition(REAL *BoltzmannFactors,int *Overlap,int NumberOfTrialPos
   largest_value=-DBL_MAX;
   for(i=0;i<NumberOfTrialPositions;i++)
     if(!Overlap[i])
-      if(Bfac[i]>largest_value) largest_value=Bfac[i];
+      if(BoltzmannFactors[i]>largest_value) largest_value=BoltzmannFactors[i];
 
   // standard trick: shift the Boltzmann factors down to avoid numerical problems
   // the largest value of 'ShiftedBoltzmannFactors' will be 1 (which corresponds to the lowest energy).
@@ -700,7 +699,6 @@ int HandleFirstBead(int Switch)
                        EnergyHostChargeCharge+EnergyAdsorbateChargeCharge+EnergyCationChargeCharge+
                        EnergyHostChargeBondDipole+EnergyAdsorbateChargeBondDipole+EnergyCationChargeBondDipole);
       }
-      Bold[i]=Bfac[i];
     }
   }
   if (OVERLAP) return 0;  // return when all trial-positions overlap
@@ -710,7 +708,7 @@ int HandleFirstBead(int Switch)
   if(Switch==CBMC_INSERTION)
   {
     i=SelectTrialPosition(Bfac,Overlap,NumberOfFirstPositions);
-    ERR=RosenBluthFactorFirstBead-exp(Bold[i]);
+    ERR=RosenBluthFactorFirstBead-exp(Bfac[i]);
   }
   else if(Switch==CBMC_RETRACE_REINSERTION)
   {
@@ -3402,7 +3400,6 @@ void AllocateCBMCMemory(void)
     TrialPositions[i]=(VECTOR*)calloc(MaxNumberOfBeads,sizeof(VECTOR));
 
   Bfac=(REAL*)calloc(MaxTrial,sizeof(REAL));
-  Bold=(REAL*)calloc(MaxTrial,sizeof(REAL));
   Overlap=(int*)calloc(MaxTrial,sizeof(REAL));
   ShiftedBoltzmannFactors=(REAL*)calloc(MaxTrial,sizeof(REAL));
 

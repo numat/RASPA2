@@ -2354,12 +2354,13 @@ void PrintPreSimulationStatusCurrentSystem(int system)
             // p_2     [u]    reduced mass in unified atomic mass units
             // p_3/k_B [K]    (non-zero for a shifted potential)
             // T       [K]    the temperature
-            fprintf(FilePtr,"%7s - %7s [FEYNMAN_HIBBS_LENNARD_JONES] p_0/k_B: %8.5lf [K], p_1: %8.5lf [A], p_2: %8.5lf [u], shift/k_B: %8.5lf [K], tailcorrection: %s\n",
+            fprintf(FilePtr,"%7s - %7s [FEYNMAN_HIBBS_LENNARD_JONES] p_0/k_B: %8.5lf [K], p_1: %8.5lf [A], p_2: %8.5lf [u] (h^2/(24p_2k_BT)=%8.5f), shift/k_B: %8.5lf [K], tailcorrection: %s\n",
               PseudoAtoms[i].Name,
               PseudoAtoms[j].Name,
               (double)PotentialParms[i][j][0]*ENERGY_TO_KELVIN,
               (double)PotentialParms[i][j][1],
               (double)PotentialParms[i][j][2],
+              (double)(FH_CONVERSION_FACTOR/PotentialParms[i][j][2]),
               (double)PotentialParms[i][j][3]*ENERGY_TO_KELVIN,
               TailCorrection[i][j]?"yes":"no");
             break;
