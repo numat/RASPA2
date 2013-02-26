@@ -4,7 +4,7 @@ NumberOfInitializationCycles  10000
 PrintEvery                    1000
 RestartFile                   yes
 
-Forcefield                    GarciaPerez2006
+Forcefield                    TraPPE
 
 Box 0
 BoxLengths 30 30 30
@@ -20,7 +20,7 @@ GibbsVolumeChangeProbability 1.0
 
 Component 0 MoleculeName             CO2
             StartingBead             1
-            MoleculeDefinitions      TraPPE
+            MoleculeDefinition       TraPPE
             TranslationProbability   1.0
             RotationProbability      1.0
             ReinsertionProbability   1.0

@@ -1,27 +1,16 @@
-/*****************************************************************************************************
+/*************************************************************************************************************
     RASPA: a molecular-dynamics, monte-carlo and optimization code for nanoporous materials
-    Copyright (C) 2006-2012 David Dubbeldam, Sofia Calero, Donald E. Ellis, and Randall Q. Snurr.
+    Copyright (C) 2006-2013 David Dubbeldam, Sofia Calero, Thijs Vlugt, Donald E. Ellis, and Randall Q. Snurr.
 
     D.Dubbeldam@uva.nl            http://molsim.science.uva.nl/
     scaldia@upo.es                http://www.upo.es/raspa/
+    t.j.h.vlugt@tudelft.nl        http://homepage.tudelft.nl/v9k6y
     don-ellis@northwestern.edu    http://dvworld.northwestern.edu/
     snurr@northwestern.edu        http://zeolites.cqe.northwestern.edu/
 
-    This file 'statistics.c' is part of RASPA.
+    This file 'statistics.c' is part of RASPA-2.0
 
-    RASPA is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    RASPA is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *****************************************************************************************************/
+ *************************************************************************************************************/
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -1497,6 +1486,8 @@ void PrintIntervalStatusInit(long long CurrentCycle,long long NumberOfCycles,FIL
         Components[i].Name,
         Components[i].NumberOfMolecules[CurrentSystem],
         (double)(Components[i].Mass*(REAL)Components[i].NumberOfMolecules[CurrentSystem]/Volume[CurrentSystem])*DENSITY_CONVERSION_FACTOR);
+      if(Components[i].CFMoleculePresent[CurrentSystem])
+        fprintf(FilePtr,"Fractional molecule-id: %d\n",Components[i].FractionalMolecule[CurrentSystem]);
 
       loading=(REAL)Components[i].NumberOfMolecules[CurrentSystem]/(REAL)number_of_unit_cells;
       average_loading=GetAverageComponentProperty(NumberOfMoleculesPerComponentAverage,i)/(REAL)number_of_unit_cells;
@@ -1521,9 +1512,14 @@ void PrintIntervalStatusInit(long long CurrentCycle,long long NumberOfCycles,FIL
       fprintf(FilePtr,"----------------------------------------------------------------------------------------------------------------------------------------------------\n");
     }
   }
-  fprintf(FilePtr,"Number of Framework-atoms: %d\n",Framework[CurrentSystem].TotalNumberOfAtoms);
-  fprintf(FilePtr,"Number of Adsorbates:      %d\n",NumberOfAdsorbateMolecules[CurrentSystem]);
-  fprintf(FilePtr,"Number of Cations:         %d\n",NumberOfCationMolecules[CurrentSystem]);
+  
+  fprintf(FilePtr,"Degrees of freedom:        %6d (trans: %d, rot: %d, vibr: %d, constr: %d)\n",
+           DegreesOfFreedom[CurrentSystem],
+           DegreesOfFreedomTranslation[CurrentSystem],DegreesOfFreedomRotation[CurrentSystem],
+           DegreesOfFreedomVibration[CurrentSystem],DegreesOfFreedomConstraint[CurrentSystem]);
+  fprintf(FilePtr,"Number of Framework-atoms: %6d\n",Framework[CurrentSystem].TotalNumberOfAtoms);
+  fprintf(FilePtr,"Number of Adsorbates:      %6d\n",NumberOfAdsorbateMolecules[CurrentSystem]);
+  fprintf(FilePtr,"Number of Cations:         %6d\n",NumberOfCationMolecules[CurrentSystem]);
   fprintf(FilePtr,"\n");
 
   fprintf(FilePtr,"Current total potential energy:       % 22.10lf [K]\n",
@@ -1658,6 +1654,8 @@ void PrintIntervalStatusEquilibration(long long CurrentCycle,long long NumberOfC
         Components[i].Name,
         Components[i].NumberOfMolecules[CurrentSystem],
         (double)(Components[i].Mass*(REAL)Components[i].NumberOfMolecules[CurrentSystem]/Volume[CurrentSystem])*DENSITY_CONVERSION_FACTOR);
+      if(Components[i].CFMoleculePresent[CurrentSystem])
+        fprintf(FilePtr,"Fractional molecule-id: %d\n",Components[i].FractionalMolecule[CurrentSystem]);
 
       loading=(REAL)Components[i].NumberOfMolecules[CurrentSystem]/(REAL)number_of_unit_cells;
       average_loading=GetAverageComponentProperty(NumberOfMoleculesPerComponentAverage,i)/(REAL)number_of_unit_cells;
@@ -1682,9 +1680,13 @@ void PrintIntervalStatusEquilibration(long long CurrentCycle,long long NumberOfC
       fprintf(FilePtr,"----------------------------------------------------------------------------------------------------------------------------------------------------\n");
     }
   }
-  fprintf(FilePtr,"Number of Framework-atoms: %d\n",Framework[CurrentSystem].TotalNumberOfAtoms);
-  fprintf(FilePtr,"Number of Adsorbates:      %d\n",NumberOfAdsorbateMolecules[CurrentSystem]);
-  fprintf(FilePtr,"Number of Cations:         %d\n",NumberOfCationMolecules[CurrentSystem]);
+  fprintf(FilePtr,"Degrees of freedom:        %6d (trans: %d, rot: %d, vibr: %d, constr: %d)\n",
+           DegreesOfFreedom[CurrentSystem],
+           DegreesOfFreedomTranslation[CurrentSystem],DegreesOfFreedomRotation[CurrentSystem],
+           DegreesOfFreedomVibration[CurrentSystem],DegreesOfFreedomConstraint[CurrentSystem]);
+  fprintf(FilePtr,"Number of Framework-atoms: %6d\n",Framework[CurrentSystem].TotalNumberOfAtoms);
+  fprintf(FilePtr,"Number of Adsorbates:      %6d\n",NumberOfAdsorbateMolecules[CurrentSystem]);
+  fprintf(FilePtr,"Number of Cations:         %6d\n",NumberOfCationMolecules[CurrentSystem]);
   fprintf(FilePtr,"\n");
 
   if(SimulationType==MOLECULAR_DYNAMICS)
@@ -2443,6 +2445,8 @@ void PrintIntervalStatus(long long CurrentCycle,long long NumberOfCycles, FILE *
         (double)GetAverageComponentProperty(NumberOfMoleculesPerComponentAverage,i),
         (double)(Components[i].Mass*(REAL)Components[i].NumberOfMolecules[CurrentSystem]/Volume[CurrentSystem])*DENSITY_CONVERSION_FACTOR,
         (double)GetAverageComponentProperty(DensityPerComponentAverage,i)*DENSITY_CONVERSION_FACTOR);
+      if(Components[i].CFMoleculePresent[CurrentSystem])
+        fprintf(FilePtr,"Fractional molecule-id: %d\n",Components[i].FractionalMolecule[CurrentSystem]);
 
       loading=(REAL)Components[i].NumberOfMolecules[CurrentSystem]/(REAL)number_of_unit_cells;
       average_loading=GetAverageComponentProperty(NumberOfMoleculesPerComponentAverage,i)/(REAL)number_of_unit_cells;
@@ -2478,9 +2482,13 @@ void PrintIntervalStatus(long long CurrentCycle,long long NumberOfCycles, FILE *
     fprintf(FilePtr,"----------------------------------------------------------------------------------------------------------------------------------------------------\n");
   }
 
-  fprintf(FilePtr,"Number of Framework-atoms: %d\n",Framework[CurrentSystem].TotalNumberOfAtoms);
-  fprintf(FilePtr,"Number of Adsorbates:      %d\n",NumberOfAdsorbateMolecules[CurrentSystem]);
-  fprintf(FilePtr,"Number of Cations:         %d\n",NumberOfCationMolecules[CurrentSystem]);
+  fprintf(FilePtr,"Degrees of freedom:        %6d (trans: %d, rot: %d, vibr: %d, constr: %d)\n",
+           DegreesOfFreedom[CurrentSystem],
+           DegreesOfFreedomTranslation[CurrentSystem],DegreesOfFreedomRotation[CurrentSystem],
+           DegreesOfFreedomVibration[CurrentSystem],DegreesOfFreedomConstraint[CurrentSystem]);
+  fprintf(FilePtr,"Number of Framework-atoms: %6d\n",Framework[CurrentSystem].TotalNumberOfAtoms);
+  fprintf(FilePtr,"Number of Adsorbates:      %6d\n",NumberOfAdsorbateMolecules[CurrentSystem]);
+  fprintf(FilePtr,"Number of Cations:         %6d\n",NumberOfCationMolecules[CurrentSystem]);
   fprintf(FilePtr,"\n");
 
   if(SimulationType==MOLECULAR_DYNAMICS)

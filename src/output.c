@@ -1,27 +1,16 @@
-/*****************************************************************************************************
+/*************************************************************************************************************
     RASPA: a molecular-dynamics, monte-carlo and optimization code for nanoporous materials
-    Copyright (C) 2006-2012 David Dubbeldam, Sofia Calero, Donald E. Ellis, and Randall Q. Snurr.
+    Copyright (C) 2006-2013 David Dubbeldam, Sofia Calero, Thijs Vlugt, Donald E. Ellis, and Randall Q. Snurr.
 
     D.Dubbeldam@uva.nl            http://molsim.science.uva.nl/
     scaldia@upo.es                http://www.upo.es/raspa/
+    t.j.h.vlugt@tudelft.nl        http://homepage.tudelft.nl/v9k6y
     don-ellis@northwestern.edu    http://dvworld.northwestern.edu/
     snurr@northwestern.edu        http://zeolites.cqe.northwestern.edu/
 
-    This file 'output.c' is part of RASPA.
+    This file 'output.c' is part of RASPA-2.0
 
-    RASPA is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    RASPA is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *****************************************************************************************************/
+ *************************************************************************************************************/
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -180,16 +169,18 @@ void PrintPreSimulationStatus(void)
 
 void PrintPreSimulationStatusCurrentSystem(int system)
 {
-  int i,j,k,m,l;
+  int i,j,k,m,l,f1;
   int ncell,k1,k2,k3;
-  int A,B,Type,nr_args;
+  int A,B,Type,nr_args,typeA;
   int nr_free,nr_fixed;
   REAL charge,NetCharge;
   REAL smallest_charge,largest_charge;
   VECTOR Dipole,eigenvalues;
   REAL_MATRIX3x3 Quadrupole,Eigenvectors;
   char charge_string[256];
+  char framework_charge_string[256];
   char polarization_string[256];
+  REAL total_count,total_charge;
   FILE *FilePtr;
   char my_date[] = "Compile Date = " __DATE__;
   char my_time[] = "Compile Time = " __TIME__;
@@ -238,7 +229,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
   fprintf(FilePtr,"Compiler and run-time data\n");
   fprintf(FilePtr,"===========================================================================\n");
 
-  fprintf(FilePtr,"%s\n","RASPA 1.6-6");
+  fprintf(FilePtr,"%s\n","RASPA 1.7-1");
   
   #if defined (__LP64__) || defined (__64BIT__) || defined (_LP64) || (__WORDSIZE == 64)
     fprintf(FilePtr,"Compiled as a 64-bits application\n");
@@ -1282,6 +1273,21 @@ void PrintPreSimulationStatusCurrentSystem(int system)
   }
   fprintf(FilePtr,"\n\n");
 
+  fprintf(FilePtr,"CFC-RXMC parameters\n");
+  fprintf(FilePtr,"===========================================================================\n");
+  fprintf(FilePtr,"Number of reactions: %d\n",NumberOfReactions);
+  for(i=0;i<NumberOfReactions;i++)
+  {
+    fprintf(FilePtr,"\tReaction [%d]:",i);
+    for(j=0;j<NumberOfComponents;j++)
+      fprintf(FilePtr," %d",ReactantsStoichiometry[i][j]);
+    fprintf(FilePtr," -->");
+    for(j=0;j<NumberOfComponents;j++)
+      fprintf(FilePtr," %d",ProductsStoichiometry[i][j]);
+    fprintf(FilePtr,"\n");
+  }
+  fprintf(FilePtr,"\n\n");
+
   fprintf(FilePtr,"Rattle parameters\n");
   fprintf(FilePtr,"===========================================================================\n");
   fprintf(FilePtr,"Distance constraint type: %s\n",DistanceConstraintType==DISTANCE_R?"r-r_0":"r^2-r^2_0");
@@ -1964,7 +1970,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
       nr_fixed=nr_free=0;
       for(k=0;k<Framework[system].NumberOfAtoms[i];k++)
       {
-        if(Framework[system].Atoms[i][k].Fixed)
+        if(Framework[system].Atoms[i][k].Fixed.x&&Framework[system].Atoms[i][k].Fixed.y&&Framework[system].Atoms[i][k].Fixed.z)
           nr_fixed++;
         else
           nr_free++;
@@ -1973,12 +1979,18 @@ void PrintPreSimulationStatusCurrentSystem(int system)
       fprintf(FilePtr,"Number of fixed framework atoms: %d  (active: %d)\n",Framework[system].NumberOfFixedAtoms[i],Framework[system].NumberOfFreeAtoms[i]);
       fprintf(FilePtr,"fixed atom-list: ");
       for(k=0;k<Framework[system].NumberOfAtoms[i];k++)
-        if(Framework[system].Atoms[i][k].Fixed) fprintf(FilePtr,"%d ",k);
+      {
+        sprintf(buffer1,"(%d, [%c%c%c])",k,Framework[system].Atoms[i][k].Fixed.x?'X':'-',
+            Framework[system].Atoms[i][k].Fixed.y?'Y':'-',Framework[system].Atoms[i][k].Fixed.z?'Z':'-');
+        if(Framework[system].Atoms[i][k].Fixed.x||Framework[system].Atoms[i][k].Fixed.y||Framework[system].Atoms[i][k].Fixed.z) 
+          fprintf(FilePtr,"%s ",buffer1);
+      }
       fprintf(FilePtr,"\n");
       fprintf(FilePtr,"Number of active framework atoms: %d  (fixed: %d)\n",nr_free,nr_fixed);
       fprintf(FilePtr,"active atom-list: ");
       for(k=0;k<Framework[system].NumberOfAtoms[i];k++)
-        if(!Framework[system].Atoms[i][k].Fixed) fprintf(FilePtr,"%d ",k);
+        if(Framework[system].Atoms[i][k].Fixed.x&&Framework[system].Atoms[i][k].Fixed.y&&Framework[system].Atoms[i][k].Fixed.z) 
+          fprintf(FilePtr,"%d ",k);
       fprintf(FilePtr,"\n");
     }
   }
@@ -1992,13 +2004,17 @@ void PrintPreSimulationStatusCurrentSystem(int system)
     Type=Adsorbates[system][m].Type;
     for(l=0;l<Components[Type].NumberOfGroups;l++)
     {
-      if(!Components[Type].Groups[l].Rigid) // rigid unit
+      if(!Components[Type].Groups[l].Rigid) // free unit
       {
         for(k=0;k<Components[Type].Groups[l].NumberOfGroupAtoms;k++)
         {
           A=Components[Type].Groups[l].Atoms[k];
-          if(Adsorbates[system][m].Atoms[k].Fixed)
-            fprintf(FilePtr,"(%d,%d) ",m,A);
+
+          sprintf(buffer1,"(%d,%d,[%c%c%c])",m,A,Adsorbates[system][m].Atoms[k].Fixed.x?'X':'-',
+              Adsorbates[system][m].Atoms[k].Fixed.y?'Y':'-',Adsorbates[system][m].Atoms[k].Fixed.z?'Z':'-');
+
+          if(Adsorbates[system][m].Atoms[k].Fixed.x||Adsorbates[system][m].Atoms[k].Fixed.y||Adsorbates[system][m].Atoms[k].Fixed.z)
+            fprintf(FilePtr,"%s ",buffer1);
         }
       }
     }
@@ -2013,8 +2029,11 @@ void PrintPreSimulationStatusCurrentSystem(int system)
     {
       if(Components[Type].Groups[l].Rigid) // rigid unit
       {
-        if(Adsorbates[system][m].Groups[l].FixedCenterOfMass)
-          fprintf(FilePtr,"(%d,%d) ",m,l);
+        sprintf(buffer1,"(%d,%d,[%c%c%c])",m,l,Adsorbates[system][m].Groups[l].FixedCenterOfMass.x?'X':'-',
+            Adsorbates[system][m].Groups[l].FixedCenterOfMass.y?'Y':'-',Adsorbates[system][m].Groups[l].FixedCenterOfMass.z?'Z':'-');
+
+        if(Adsorbates[system][m].Groups[l].FixedCenterOfMass.x||Adsorbates[system][m].Groups[l].FixedCenterOfMass.y||Adsorbates[system][m].Groups[l].FixedCenterOfMass.z)
+          fprintf(FilePtr,"%s ",buffer1);
       }
     }
   }
@@ -2028,8 +2047,11 @@ void PrintPreSimulationStatusCurrentSystem(int system)
     {
       if(Components[Type].Groups[l].Rigid) // rigid unit
       {
-        if(Adsorbates[system][m].Groups[l].FixedOrientation)
-          fprintf(FilePtr,"(%d,%d) ",m,l);
+        sprintf(buffer1,"(%d,%d,[%c%c%c])",m,l,Adsorbates[system][m].Groups[l].FixedOrientation.x?'X':'-',
+            Adsorbates[system][m].Groups[l].FixedOrientation.y?'Y':'-',Adsorbates[system][m].Groups[l].FixedOrientation.z?'Z':'-');
+
+        if(Adsorbates[system][m].Groups[l].FixedOrientation.x||Adsorbates[system][m].Groups[l].FixedOrientation.y||Adsorbates[system][m].Groups[l].FixedOrientation.z)
+          fprintf(FilePtr,"%s ",buffer1);
       }
     }
   }
@@ -2049,8 +2071,12 @@ void PrintPreSimulationStatusCurrentSystem(int system)
         for(k=0;k<Components[Type].Groups[l].NumberOfGroupAtoms;k++)
         {
           A=Components[Type].Groups[l].Atoms[k];
-          if(Cations[system][m].Atoms[k].Fixed)
-            fprintf(FilePtr,"(%d,%d) ",m,A);
+
+          sprintf(buffer1,"(%d,%d,[%c%c%c])",m,A,Cations[system][m].Atoms[k].Fixed.x?'X':'-',
+              Cations[system][m].Atoms[k].Fixed.y?'Y':'-',Cations[system][m].Atoms[k].Fixed.z?'Z':'-');
+
+          if(Cations[system][m].Atoms[k].Fixed.x||Cations[system][m].Atoms[k].Fixed.y||Cations[system][m].Atoms[k].Fixed.z)
+            fprintf(FilePtr,"%s ",buffer1);
         }
       }
     }
@@ -2065,8 +2091,11 @@ void PrintPreSimulationStatusCurrentSystem(int system)
     {
       if(Components[Type].Groups[l].Rigid) // rigid unit
       {
-        if(Cations[system][m].Groups[l].FixedCenterOfMass)
-          fprintf(FilePtr,"(%d,%d) ",m,l);
+        sprintf(buffer1,"(%d,%d,[%c%c%c])",m,l,Cations[system][m].Groups[l].FixedCenterOfMass.x?'X':'-',
+            Cations[system][m].Groups[l].FixedCenterOfMass.y?'Y':'-',Cations[system][m].Groups[l].FixedCenterOfMass.z?'Z':'-');
+
+        if(Cations[system][m].Groups[l].FixedCenterOfMass.x||Cations[system][m].Groups[l].FixedCenterOfMass.y||Cations[system][m].Groups[l].FixedCenterOfMass.z)
+          fprintf(FilePtr,"%s ",buffer1);
       }
     }
   }
@@ -2080,8 +2109,11 @@ void PrintPreSimulationStatusCurrentSystem(int system)
     {
       if(Components[Type].Groups[l].Rigid) // rigid unit
       {
-        if(Cations[system][m].Groups[l].FixedOrientation)
-          fprintf(FilePtr,"(%d,%d) ",m,l);
+        sprintf(buffer1,"(%d,%d,[%c%c%c])",m,l,Cations[system][m].Groups[l].FixedOrientation.x?'X':'-',
+            Cations[system][m].Groups[l].FixedOrientation.y?'Y':'-',Cations[system][m].Groups[l].FixedOrientation.z?'Z':'-');
+
+        if(Cations[system][m].Groups[l].FixedOrientation.x||Cations[system][m].Groups[l].FixedOrientation.y||Cations[system][m].Groups[l].FixedOrientation.z)
+          fprintf(FilePtr,"%s ",buffer1);
       }
     }
   }
@@ -2170,7 +2202,29 @@ void PrintPreSimulationStatusCurrentSystem(int system)
     fprintf(FilePtr,"===========================================================================\n");
       for(i=0;i<NumberOfPseudoAtoms;i++)
       {
-        sprintf(charge_string,"%-12.9f",PseudoAtoms[i].Charge1);
+        sprintf(framework_charge_string,"no");
+        switch(PseudoAtoms[i].ChargeDefinitionType)
+        {
+          case CHARGE_ATOM_FROM_PSEUDO_ATOM_DEFINITION:
+            sprintf(charge_string,"%-12.9f       ",PseudoAtoms[i].Charge1);
+            if(PseudoAtoms[i].FrameworkAtom)
+              sprintf(framework_charge_string,"yes (charge from pseudo-atoms file)");
+            break;
+          case CHARGE_ATOM_FROM_STRUCTURE_FILE:
+            sprintf(charge_string,"%-12.9f   (av)",PseudoAtoms[i].Charge1);
+            if(PseudoAtoms[i].FrameworkAtom)
+              sprintf(framework_charge_string,"yes (charge from structure file)");
+            break;
+          case CHARGE_NOT_DEFINED:
+            sprintf(charge_string,"%-12.9f (-na-)",PseudoAtoms[i].Charge1);
+            if(PseudoAtoms[i].FrameworkAtom)
+              sprintf(framework_charge_string,"yes (charge definition not found)");
+            break;
+          default:
+            printf("ERROR: undefined ChargeDefinitionType (output.c)\n");
+            exit(0);
+            break;
+        }
 
         switch(PolarizationMatrix)
         {
@@ -2191,7 +2245,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
 
         fprintf(FilePtr,"Pseudo Atom[%4d] Name %-8s Oxidation: %-8s Element: %-4s pdb-name: %-4s Scat. Types: %3d %3d Mass=%-12.9f B-factor:%-8.3lf\n"
                       "                 Charge=%s  Polarization=%s [A^3] (considered %-s and %-s)  Interactions: %s\n"
-                      "                 Anisotropic factor: %8.3lf [-] (%s), Radius: %8.3lf [A]\n",
+                      "                 Anisotropic factor: %8.3lf [-] (%s), Radius: %8.3lf [A], Framework-atom: %3s\n",
            i,
            PseudoAtoms[i].Name,
            PseudoAtoms[i].OxidationStateString,
@@ -2201,14 +2255,15 @@ void PrintPreSimulationStatusCurrentSystem(int system)
            PseudoAtoms[i].AnomalousScatteringType,
            (double)PseudoAtoms[i].Mass,
            (double)PseudoAtoms[i].TemperatureFactor,
-           PseudoAtoms[i].ChargeDefinitionType==CHARGE_PER_ATOM_TYPE?charge_string:" -na-",
+           charge_string,
            polarization_string,
            PseudoAtoms[i].HasCharges?"a charged atom":"a chargeless atom",
            PseudoAtoms[i].IsPolarizable?"polarizable":"no polarization",
            PseudoAtoms[i].Interaction?"yes":" no",
            (double)PseudoAtoms[i].AnisotropicDisplacement,
            PseudoAtoms[i].AnisotropicType==RELATIVE?"Relative":"Absolute",
-           PseudoAtoms[i].Radius);
+           PseudoAtoms[i].Radius,
+           framework_charge_string);
       }
     fprintf(FilePtr,"\n\n");
   }
@@ -2303,6 +2358,20 @@ void PrintPreSimulationStatusCurrentSystem(int system)
             // p_1     [A]    size parameter sigma
             // p_2/k_B [K]    (non-zero for a shifted potential)
             fprintf(FilePtr,"%7s - %7s [LENNARD_JONES] p_0/k_B: %9.5lf [K], p_1: %7.5lf [A], shift/k_B: %12.8lf [K], tailcorrection: %s\n",
+              PseudoAtoms[i].Name,
+              PseudoAtoms[j].Name,
+              (double)PotentialParms[i][j][0]*ENERGY_TO_KELVIN,
+              (double)PotentialParms[i][j][1],
+              (double)PotentialParms[i][j][2]*ENERGY_TO_KELVIN,
+              TailCorrection[i][j]?"yes":"no");
+            break;
+          case LENNARD_JONES_CONTINUOUS_FRACTIONAL:
+            // 4*p_0*((p_1/r)^12-(p_1/r)^6)
+            // ======================================================================================
+            // p_0/k_B [K]    strength parameter epsilon
+            // p_1     [A]    size parameter sigma
+            // p_2/k_B [K]    (non-zero for a shifted potential)
+            fprintf(FilePtr,"%7s - %7s [LENNARD_JONES_CONTINUOUS_FRACTIONAL] p_0/k_B: %9.5lf [K], p_1: %7.5lf [A], shift/k_B: %12.8lf [K], tailcorrection: %s\n",
               PseudoAtoms[i].Name,
               PseudoAtoms[j].Name,
               (double)PotentialParms[i][j][0]*ENERGY_TO_KELVIN,
@@ -3528,6 +3597,12 @@ void PrintPreSimulationStatusCurrentSystem(int system)
 
       fprintf(FilePtr,"\tStarting bead for growth               : %d\n",Components[i].StartingBead);
       fprintf(FilePtr,"\n");
+      fprintf(FilePtr,"\tDegrees of freedom                     : %d\n",Components[i].DegreesOfFreedom);
+      fprintf(FilePtr,"\tTranslational degrees of freedom       : %d\n",Components[i].TranslationalDegreesOfFreedom);
+      fprintf(FilePtr,"\tRotational degrees of freedom          : %d\n",Components[i].RotationalDegreesOfFreedom);
+      fprintf(FilePtr,"\tVibrational degrees of freedom         : %d\n",Components[i].VibrationalDegreesOfFreedom);
+      fprintf(FilePtr,"\tConstraint degrees of freedom          : %d\n",Components[i].ConstraintDegreesOfFreedom);
+      fprintf(FilePtr,"\n");
 
       fprintf(FilePtr,"\tNumber of atoms                        : %d\n",Components[i].NumberOfAtoms);
       fprintf(FilePtr,"\n");
@@ -3634,6 +3709,8 @@ void PrintPreSimulationStatusCurrentSystem(int system)
       for(j=0;j<Components[i].NumberOfIdentityChanges;j++)
         fprintf(FilePtr,"\t\t\tmove %d    component %d => %d\n",j,i,Components[i].IdentityChanges[j]);
       fprintf(FilePtr,"\t\tPercentage of swap (insert/delete) moves:     %lf\n",(double)(100.0*Components[i].FractionOfSwapMove));
+      fprintf(FilePtr,"\t\tPercentage of CF swap lambda moves:           %lf\n",(double)(100.0*Components[i].FractionOfCFSwapLambdaMove));
+      fprintf(FilePtr,"\t\tPercentage of CFCB swap lambda moves:         %lf\n",(double)(100.0*Components[i].FractionOfCFCBSwapLambdaMove));
       fprintf(FilePtr,"\t\tPercentage of Widom insertion moves:          %lf\n",(double)(100.0*Components[i].FractionOfWidomMove));
       fprintf(FilePtr,"\t\tPercentage of surface-area moves:             %lf\n",(double)(100.0*Components[i].FractionOfSurfaceAreaMove));
       fprintf(FilePtr,"\t\tPercentage of Gibbs particle-transfer moves:  %lf\n",(double)(100.0*Components[i].FractionOfGibbsSwapChangeMove));
@@ -5327,8 +5404,9 @@ void PrintPreSimulationStatusCurrentSystem(int system)
                  Framework[system].NumberOfTorsionsPerType[i]);
                  fprintf(FilePtr,"\t  args: %d   ",TorsionTypes[Framework[system].TorsionDefinitionType[i]].nr_args);
                  for(k=0;k<TorsionTypes[Framework[system].TorsionDefinitionType[i]].nr_args;k++)
-                   fprintf(FilePtr,"arg[%d]=%lf ",k,(double)Framework[system].TorsionArgumentDefinitions[i][k]);
-                 fprintf(FilePtr,"\n");
+                   fprintf(FilePtr,"arg[%d]=%-12.6lf ",k,(double)Framework[system].TorsionArgumentDefinitions[i][k]);
+                 fprintf(FilePtr," VDW-scaling: %-12.6lf  q-scaling: %-12.6lf\n",Framework[system].TorsionArgumentDefinitions[i][6],
+                   Framework[system].TorsionArgumentDefinitions[i][7]);
             }
             fprintf(FilePtr,"\n");
           }
@@ -5516,33 +5594,43 @@ void PrintPreSimulationStatusCurrentSystem(int system)
             fprintf(FilePtr,"\tNumber of Intra Coulomb bonddipoles:             %d\n",Framework[system].NumberOfIntraBondDipoles[CurrentFramework]);
             fprintf(FilePtr,"\tNumber of excluded Intra VDW:                    %d\n",Framework[system].NumberOfExcludedIntraVDW[CurrentFramework]);
             fprintf(FilePtr,"\tNumber of excluded intra charge-charge:          %d\n",Framework[system].NumberOfExcludedIntraChargeCharge[CurrentFramework]);
+            fprintf(FilePtr,"\tNumber of excluded intra charge-charge 1-4:      %d\n",Framework[system].NumberOfExcludedIntra14ScalingChargeCharge[CurrentFramework]);
             fprintf(FilePtr,"\tNumber of excluded intra charge-bonddipole:      %d\n",Framework[system].NumberOfExcludedIntraChargeBondDipole[CurrentFramework]);
             fprintf(FilePtr,"\tNumber of excluded intra bonddipole-bonddipole:  %d\n",Framework[system].NumberOfExcludedIntraBondDipoleBondDipole[CurrentFramework]);
           }
           fprintf(FilePtr,"\n\n");
+          fprintf(FilePtr,"\tNumber of 1-2 intra-framework pairs: %d\n",Framework[system].NumberOfIntra12Interactions);
+          fprintf(FilePtr,"\tNumber of 1-3 intra-framework pairs: %d\n",Framework[system].NumberOfIntra13Interactions);
+          fprintf(FilePtr,"\tNumber of 1-4 intra-framework pairs: %d\n",Framework[system].NumberOfIntra14Interactions);
+          fprintf(FilePtr,"\tNumber of 1-2,1-3 intra-framework pairs: %d\n",Framework[system].NumberOfIntra123Interactions);
+          fprintf(FilePtr,"\tNumber of 1-2,1-3,1-4 intra-framework pairs: %d\n",Framework[system].NumberOfIntra1234Interactions);
           if(RemoveBondNeighboursFromLongRangeInteraction)
-            fprintf(FilePtr,"1-2 Interactions are excluded from VDW and Coulomb interactions\n");
+            fprintf(FilePtr,"\tBond interactions are excluded from VDW and Coulomb interactions\n");
           else
-            fprintf(FilePtr,"1-2 Interactions are *included* in the VDW and Coulomb interactions\n");
+            fprintf(FilePtr,"\tBond interactions are *included* in the VDW and Coulomb interactions\n");
           if(RemoveBendNeighboursFromLongRangeInteraction)
-            fprintf(FilePtr,"1-3 Interactions are excluded from VDW and Coulomb interactions\n");
+            fprintf(FilePtr,"\tBend interactions are excluded from VDW and Coulomb interactions\n");
           else
-            fprintf(FilePtr,"1-3 Interactions are *included* in the VDW and Coulomb interactions\n");
+            fprintf(FilePtr,"\tBend interactions are *included* in the VDW and Coulomb interactions\n");
           if(RemoveTorsionNeighboursFromLongRangeInteraction)
-            fprintf(FilePtr,"1-4 Interactions are excluded from VDW and Coulomb interactions\n");
+            fprintf(FilePtr,"\tTorsion interactions are excluded from VDW and Coulomb interactions\n");
           else
-            fprintf(FilePtr,"1-4 Interactions are *included* in the VDW and Coulomb interactions\n");
-          fprintf(FilePtr,"Remove12NeighboursFromChargeChargeInteraction %s\n",Remove12NeighboursFromChargeChargeInteraction?"yes":"no");
-          fprintf(FilePtr,"Remove13NeighboursFromChargeChargeInteraction %s\n",Remove13NeighboursFromChargeChargeInteraction?"yes":"no");
-          fprintf(FilePtr,"Remove14NeighboursFromChargeChargeInteraction %s\n",Remove14NeighboursFromChargeChargeInteraction?"yes":"no");
-          fprintf(FilePtr,"Remove11NeighboursFromChargeBondDipoleInteraction %s\n",Remove11NeighboursFromChargeBondDipoleInteraction?"yes":"no");
-          fprintf(FilePtr,"Remove12NeighboursFromChargeBondDipoleInteraction %s\n",Remove12NeighboursFromChargeBondDipoleInteraction?"yes":"no");
-          fprintf(FilePtr,"Remove13NeighboursFromChargeBondDipoleInteraction %s\n",Remove13NeighboursFromChargeBondDipoleInteraction?"yes":"no");
-          fprintf(FilePtr,"Remove14NeighboursFromChargeBondDipoleInteraction %s\n",Remove14NeighboursFromChargeBondDipoleInteraction?"yes":"no");
-          fprintf(FilePtr,"Remove12NeighboursFromBondDipoleBondDipoleInteraction %s\n",Remove12NeighboursFromBondDipoleBondDipoleInteraction?"yes":"no");
-          fprintf(FilePtr,"Remove13NeighboursFromBondDipoleBondDipoleInteraction %s\n",Remove13NeighboursFromBondDipoleBondDipoleInteraction?"yes":"no");
-          fprintf(FilePtr,"Remove14NeighboursFromBondDipoleBondDipoleInteraction %s\n",Remove14NeighboursFromBondDipoleBondDipoleInteraction?"yes":"no");
-          fprintf(FilePtr,"InternalFrameworkLennardJonesInteractions %s\n",InternalFrameworkLennardJonesInteractions?"yes":"no");
+            fprintf(FilePtr,"\tTorsion interactions are *included* in the VDW and Coulomb interactions\n");
+          fprintf(FilePtr,"\tRemove12NeighboursFromVDWInteraction %s\n",Remove12NeighboursFromVDWInteraction?"yes":"no");
+          fprintf(FilePtr,"\tRemove13NeighboursFromVDWInteraction %s\n",Remove13NeighboursFromVDWInteraction?"yes":"no");
+          fprintf(FilePtr,"\tRemove14NeighboursFromVDWInteraction %s\n",Remove14NeighboursFromVDWInteraction?"yes":"no");
+          fprintf(FilePtr,"\tRemove12NeighboursFromChargeChargeInteraction %s\n",Remove12NeighboursFromChargeChargeInteraction?"yes":"no");
+          fprintf(FilePtr,"\tRemove13NeighboursFromChargeChargeInteraction %s\n",Remove13NeighboursFromChargeChargeInteraction?"yes":"no");
+          fprintf(FilePtr,"\tRemove14NeighboursFromChargeChargeInteraction %s\n",Remove14NeighboursFromChargeChargeInteraction?"yes":"no");
+          fprintf(FilePtr,"\tRemove11NeighboursFromChargeBondDipoleInteraction %s\n",Remove11NeighboursFromChargeBondDipoleInteraction?"yes":"no");
+          fprintf(FilePtr,"\tRemove12NeighboursFromChargeBondDipoleInteraction %s\n",Remove12NeighboursFromChargeBondDipoleInteraction?"yes":"no");
+          fprintf(FilePtr,"\tRemove13NeighboursFromChargeBondDipoleInteraction %s\n",Remove13NeighboursFromChargeBondDipoleInteraction?"yes":"no");
+          fprintf(FilePtr,"\tRemove14NeighboursFromChargeBondDipoleInteraction %s\n",Remove14NeighboursFromChargeBondDipoleInteraction?"yes":"no");
+          fprintf(FilePtr,"\tRemove12NeighboursFromBondDipoleBondDipoleInteraction %s\n",Remove12NeighboursFromBondDipoleBondDipoleInteraction?"yes":"no");
+          fprintf(FilePtr,"\tRemove13NeighboursFromBondDipoleBondDipoleInteraction %s\n",Remove13NeighboursFromBondDipoleBondDipoleInteraction?"yes":"no");
+          fprintf(FilePtr,"\tRemove14NeighboursFromBondDipoleBondDipoleInteraction %s\n",Remove14NeighboursFromBondDipoleBondDipoleInteraction?"yes":"no");
+          fprintf(FilePtr,"\tInternalFrameworkLennardJonesInteractions %s\n",InternalFrameworkLennardJonesInteractions?"yes":"no");
+
           fprintf(FilePtr,"\n");
           break;
         default:
@@ -5825,6 +5913,11 @@ void PrintPreSimulationStatusCurrentSystem(int system)
           fprintf(FilePtr,"\trule %d: modify (%s-%s-%s) to (%s-%s-%s)\n",i,
             ModifyFrameworkAtoms[i][0],ModifyFrameworkAtoms[i][1],ModifyFrameworkAtoms[i][2],
             ModifyFrameworkAtoms[i][3],ModifyFrameworkAtoms[i][4],ModifyFrameworkAtoms[i][5]);
+          break;
+        case MODIFY_FRAMEWORKATOM_PLANAR:
+          fprintf(FilePtr,"\trule %d: modify (%s-%s-%s-%s-%s) to (%s-%s-%s-%s-%s)\n",i,
+            ModifyFrameworkAtoms[i][0],ModifyFrameworkAtoms[i][1],ModifyFrameworkAtoms[i][2],ModifyFrameworkAtoms[i][3],ModifyFrameworkAtoms[i][4],
+            ModifyFrameworkAtoms[i][5],ModifyFrameworkAtoms[i][6],ModifyFrameworkAtoms[i][7],ModifyFrameworkAtoms[i][8],ModifyFrameworkAtoms[i][9]);
           break;
       }
     }
@@ -6158,6 +6251,8 @@ void PrintPostSimulationStatus(void)
     PrintGibbsVolumeChangeStatistics(FilePtr);
     PrintGibbsSwapStatistics(FilePtr);
     PrintGibbsIdentityChangeStatistics(FilePtr);
+    PrintCFSwapLambdaStatistics(FilePtr);
+    PrintCFCBSwapLambdaStatistics(FilePtr);
     fprintf(FilePtr,"\n\n");
 
     UHostHostRunning=UHostHost[CurrentSystem];
@@ -6313,140 +6408,140 @@ void PrintEnergyStatus(FILE *FilePtr)
   fprintf(FilePtr,"\n");
 
   fprintf(FilePtr,"Internal energy:\n");
-  fprintf(FilePtr,"Host stretch energy:                                    %18.5lf\n",(double)UHostBond[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"Host UreyBradley energy:                                %18.5lf\n",(double)UHostUreyBradley[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"Host bend energy:                                       %18.5lf\n",(double)UHostBend[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"Host inversion-bend energy:                             %18.5lf\n",(double)UHostInversionBend[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"Host torsion energy:                                    %18.5lf\n",(double)UHostTorsion[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"Host improper torsion energy:                           %18.5lf\n",(double)UHostImproperTorsion[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"Host out-of-plane energy:                               %18.5lf\n",(double)UHostOutOfPlane[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"Host stretch/stretch energy:                            %18.5lf\n",(double)UHostBondBond[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"Host bend/bend energy:                                  %18.5lf\n",(double)UHostBendBend[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"Host stretch/bend energy:                               %18.5lf\n",(double)UHostBondBend[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"Host stretch/torsion energy:                            %18.5lf\n",(double)UHostBondTorsion[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"Host bend/torsion energy:                               %18.5lf\n",(double)UHostBendTorsion[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"Host stretch energy:                                    %18.8lf\n",(double)UHostBond[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"Host UreyBradley energy:                                %18.8lf\n",(double)UHostUreyBradley[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"Host bend energy:                                       %18.8lf\n",(double)UHostBend[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"Host inversion-bend energy:                             %18.8lf\n",(double)UHostInversionBend[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"Host torsion energy:                                    %18.8lf\n",(double)UHostTorsion[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"Host improper torsion energy:                           %18.8lf\n",(double)UHostImproperTorsion[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"Host out-of-plane energy:                               %18.8lf\n",(double)UHostOutOfPlane[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"Host stretch/stretch energy:                            %18.8lf\n",(double)UHostBondBond[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"Host bend/bend energy:                                  %18.8lf\n",(double)UHostBendBend[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"Host stretch/bend energy:                               %18.8lf\n",(double)UHostBondBend[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"Host stretch/torsion energy:                            %18.8lf\n",(double)UHostBondTorsion[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"Host bend/torsion energy:                               %18.8lf\n",(double)UHostBendTorsion[CurrentSystem]*ENERGY_TO_KELVIN);
   fprintf(FilePtr,"\n");
 
-  fprintf(FilePtr,"Adsorbate stretch energy:                               %18.5lf\n",(double)UAdsorbateBond[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"Adsorbate UreyBradley energy:                           %18.5lf\n",(double)UAdsorbateUreyBradley[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"Adsorbate bend energy:                                  %18.5lf\n",(double)UAdsorbateBend[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"Adsorbate inversion-bend energy:                        %18.5lf\n",(double)UAdsorbateInversionBend[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"Adsorbate torsion energy:                               %18.5lf\n",(double)UAdsorbateTorsion[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"Adsorbate improper torsion energy:                      %18.5lf\n",(double)UAdsorbateImproperTorsion[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"Adsorbate out-of-plane energy:                          %18.5lf\n",(double)UAdsorbateOutOfPlane[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"Adsorbate stretch/stretch energy:                       %18.5lf\n",(double)UAdsorbateBondBond[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"Adsorbate bend/bend energy:                             %18.5lf\n",(double)UAdsorbateBendBend[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"Adsorbate stretch/bend energy:                          %18.5lf\n",(double)UAdsorbateBondBend[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"Adsorbate stretch/torsion energy:                       %18.5lf\n",(double)UAdsorbateBondTorsion[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"Adsorbate bend/torsion energy:                          %18.5lf\n",(double)UAdsorbateBendTorsion[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"Adsorbate intra VDW energy:                             %18.5lf\n",(double)UAdsorbateIntraVDW[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"Adsorbate intra charge-charge Coulomb energy:           %18.5lf\n",(double)UAdsorbateIntraChargeCharge[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"Adsorbate intra charge-bonddipole Coulomb energy:       %18.5lf\n",(double)UAdsorbateIntraChargeBondDipole[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"Adsorbate intra bonddipole-bonddipole Coulomb energy:   %18.5lf\n",(double)UAdsorbateIntraBondDipoleBondDipole[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"Adsorbate stretch energy:                               %18.8lf\n",(double)UAdsorbateBond[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"Adsorbate UreyBradley energy:                           %18.8lf\n",(double)UAdsorbateUreyBradley[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"Adsorbate bend energy:                                  %18.8lf\n",(double)UAdsorbateBend[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"Adsorbate inversion-bend energy:                        %18.8lf\n",(double)UAdsorbateInversionBend[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"Adsorbate torsion energy:                               %18.8lf\n",(double)UAdsorbateTorsion[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"Adsorbate improper torsion energy:                      %18.8lf\n",(double)UAdsorbateImproperTorsion[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"Adsorbate out-of-plane energy:                          %18.8lf\n",(double)UAdsorbateOutOfPlane[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"Adsorbate stretch/stretch energy:                       %18.8lf\n",(double)UAdsorbateBondBond[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"Adsorbate bend/bend energy:                             %18.8lf\n",(double)UAdsorbateBendBend[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"Adsorbate stretch/bend energy:                          %18.8lf\n",(double)UAdsorbateBondBend[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"Adsorbate stretch/torsion energy:                       %18.8lf\n",(double)UAdsorbateBondTorsion[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"Adsorbate bend/torsion energy:                          %18.8lf\n",(double)UAdsorbateBendTorsion[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"Adsorbate intra VDW energy:                             %18.8lf\n",(double)UAdsorbateIntraVDW[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"Adsorbate intra charge-charge Coulomb energy:           %18.8lf\n",(double)UAdsorbateIntraChargeCharge[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"Adsorbate intra charge-bonddipole Coulomb energy:       %18.8lf\n",(double)UAdsorbateIntraChargeBondDipole[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"Adsorbate intra bonddipole-bonddipole Coulomb energy:   %18.8lf\n",(double)UAdsorbateIntraBondDipoleBondDipole[CurrentSystem]*ENERGY_TO_KELVIN);
   fprintf(FilePtr,"\n");
 
-  fprintf(FilePtr,"Cation stretch energy:                                  %18.5lf\n",(double)UCationBond[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"Cation UreyBradley energy:                              %18.5lf\n",(double)UCationUreyBradley[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"Cation bend energy:                                     %18.5lf\n",(double)UCationBend[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"Cation inversion-bend energy:                           %18.5lf\n",(double)UCationInversionBend[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"Cation torsion energy:                                  %18.5lf\n",(double)UCationTorsion[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"Cation improper torsion energy:                         %18.5lf\n",(double)UCationImproperTorsion[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"Cation out-of-plane energy:                             %18.5lf\n",(double)UCationOutOfPlane[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"Cation stretch/stretch energy:                          %18.5lf\n",(double)UCationBondBond[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"Cation bend/bend energy:                                %18.5lf\n",(double)UCationBendBend[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"Cation stretch/bend energy:                             %18.5lf\n",(double)UCationBondBend[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"Cation stretch/torsion energy:                          %18.5lf\n",(double)UCationBondTorsion[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"Cation bend/torsion energy:                             %18.5lf\n",(double)UCationBendTorsion[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"Cation intra VDW energy:                                %18.5lf\n",(double)UCationIntraVDW[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"Cation intra charge-charge Coulomb energy:              %18.5lf\n",(double)UCationIntraChargeCharge[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"Cation intra charge-bonddipole Coulomb energy:          %18.5lf\n",(double)UCationIntraChargeBondDipole[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"Cation intra bonddipole-bonddipole Coulomb energy:      %18.5lf\n",(double)UCationIntraBondDipoleBondDipole[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"Cation stretch energy:                                  %18.8lf\n",(double)UCationBond[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"Cation UreyBradley energy:                              %18.8lf\n",(double)UCationUreyBradley[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"Cation bend energy:                                     %18.8lf\n",(double)UCationBend[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"Cation inversion-bend energy:                           %18.8lf\n",(double)UCationInversionBend[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"Cation torsion energy:                                  %18.8lf\n",(double)UCationTorsion[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"Cation improper torsion energy:                         %18.8lf\n",(double)UCationImproperTorsion[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"Cation out-of-plane energy:                             %18.8lf\n",(double)UCationOutOfPlane[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"Cation stretch/stretch energy:                          %18.8lf\n",(double)UCationBondBond[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"Cation bend/bend energy:                                %18.8lf\n",(double)UCationBendBend[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"Cation stretch/bend energy:                             %18.8lf\n",(double)UCationBondBend[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"Cation stretch/torsion energy:                          %18.8lf\n",(double)UCationBondTorsion[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"Cation bend/torsion energy:                             %18.8lf\n",(double)UCationBendTorsion[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"Cation intra VDW energy:                                %18.8lf\n",(double)UCationIntraVDW[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"Cation intra charge-charge Coulomb energy:              %18.8lf\n",(double)UCationIntraChargeCharge[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"Cation intra charge-bonddipole Coulomb energy:          %18.8lf\n",(double)UCationIntraChargeBondDipole[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"Cation intra bonddipole-bonddipole Coulomb energy:      %18.8lf\n",(double)UCationIntraBondDipoleBondDipole[CurrentSystem]*ENERGY_TO_KELVIN);
   fprintf(FilePtr,"\n");
 
-  fprintf(FilePtr,"Host/Host energy:                                     %18.5lf\n",(double)UHostHost[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"\tHost/Host VDW energy:                                 %18.5lf\n",(double)UHostHostVDW[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"\tHost/Host Coulomb energy:                             %18.5lf\n",(double)UHostHostCoulomb[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"\tHost/Host charge-charge Real energy:                  %18.5lf\n",(double)UHostHostChargeChargeReal[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"\tHost/Host charge-charge Fourier energy:               %18.5lf\n",(double)UHostHostChargeChargeFourier[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"\tHost/Host charge-bonddipole Real energy:              %18.5lf\n",(double)UHostHostChargeBondDipoleReal[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"\tHost/Host charge-bonddipole Fourier energy:           %18.5lf\n",(double)UHostHostChargeBondDipoleFourier[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"\tHost/Host bondipole-bonddipole Real energy:           %18.5lf\n",(double)UHostHostBondDipoleBondDipoleReal[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"\tHost/Host bondipole-bonddipole Fourier energy:        %18.5lf\n",(double)UHostHostBondDipoleBondDipoleFourier[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"Host/Host energy:                                     %18.8lf\n",(double)UHostHost[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"\tHost/Host VDW energy:                                 %18.8lf\n",(double)UHostHostVDW[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"\tHost/Host Coulomb energy:                             %18.8lf\n",(double)UHostHostCoulomb[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"\tHost/Host charge-charge Real energy:                  %18.8lf\n",(double)UHostHostChargeChargeReal[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"\tHost/Host charge-charge Fourier energy:               %18.8lf\n",(double)UHostHostChargeChargeFourier[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"\tHost/Host charge-bonddipole Real energy:              %18.8lf\n",(double)UHostHostChargeBondDipoleReal[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"\tHost/Host charge-bonddipole Fourier energy:           %18.8lf\n",(double)UHostHostChargeBondDipoleFourier[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"\tHost/Host bondipole-bonddipole Real energy:           %18.8lf\n",(double)UHostHostBondDipoleBondDipoleReal[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"\tHost/Host bondipole-bonddipole Fourier energy:        %18.8lf\n",(double)UHostHostBondDipoleBondDipoleFourier[CurrentSystem]*ENERGY_TO_KELVIN);
   fprintf(FilePtr,"\n");
 
-  fprintf(FilePtr,"Host/Adsorbate energy:                                %18.5lf\n",(double)UHostAdsorbate[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"\tHost/Adsorbate VDW energy:                            %18.5lf\n",(double)UHostAdsorbateVDW[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"\tHost/Adsorbate Coulomb energy:                        %18.5lf\n",(double)UHostAdsorbateCoulomb[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"\tHost/Adsorbate charge-charge Real energy:             %18.5lf\n",(double)UHostAdsorbateChargeChargeReal[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"\tHost/Adsorbate charge-charge Fourier energy:          %18.5lf\n",(double)UHostAdsorbateChargeChargeFourier[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"\tHost/Adsorbate charge-bonddipole Real energy:         %18.5lf\n",(double)UHostAdsorbateChargeBondDipoleReal[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"\tHost/Adsorbate charge-bonddipole Fourier energy:      %18.5lf\n",(double)UHostAdsorbateChargeBondDipoleFourier[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"\tHost/Adsorbate bondipole-bonddipole Real energy:      %18.5lf\n",(double)UHostAdsorbateBondDipoleBondDipoleReal[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"\tHost/Adsorbate bondipole-bonddipole Fourier energy:   %18.5lf\n",(double)UHostAdsorbateBondDipoleBondDipoleFourier[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"Host/Adsorbate energy:                                %18.8lf\n",(double)UHostAdsorbate[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"\tHost/Adsorbate VDW energy:                            %18.8lf\n",(double)UHostAdsorbateVDW[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"\tHost/Adsorbate Coulomb energy:                        %18.8lf\n",(double)UHostAdsorbateCoulomb[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"\tHost/Adsorbate charge-charge Real energy:             %18.8lf\n",(double)UHostAdsorbateChargeChargeReal[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"\tHost/Adsorbate charge-charge Fourier energy:          %18.8lf\n",(double)UHostAdsorbateChargeChargeFourier[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"\tHost/Adsorbate charge-bonddipole Real energy:         %18.8lf\n",(double)UHostAdsorbateChargeBondDipoleReal[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"\tHost/Adsorbate charge-bonddipole Fourier energy:      %18.8lf\n",(double)UHostAdsorbateChargeBondDipoleFourier[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"\tHost/Adsorbate bondipole-bonddipole Real energy:      %18.8lf\n",(double)UHostAdsorbateBondDipoleBondDipoleReal[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"\tHost/Adsorbate bondipole-bonddipole Fourier energy:   %18.8lf\n",(double)UHostAdsorbateBondDipoleBondDipoleFourier[CurrentSystem]*ENERGY_TO_KELVIN);
   fprintf(FilePtr,"\n");
 
-  fprintf(FilePtr,"Host/Cation energy:                                   %18.5lf\n",(double)UHostCation[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"\tHost/Cation VDW energy:                               %18.5lf\n",(double)UHostCationVDW[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"\tHost/Cation Coulomb energy:                           %18.5lf\n",(double)UHostCationCoulomb[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"\tHost/Cation charge-charge Real energy:                %18.5lf\n",(double)UHostCationChargeChargeReal[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"\tHost/Cation charge-charge Fourier energy:             %18.5lf\n",(double)UHostCationChargeChargeFourier[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"\tHost/Cation charge-bonddipole Real energy:            %18.5lf\n",(double)UHostCationChargeBondDipoleReal[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"\tHost/Cation charge-bonddipole Fourier energy:         %18.5lf\n",(double)UHostCationChargeBondDipoleFourier[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"\tHost/Cation bondipole-bonddipole Real energy:         %18.5lf\n",(double)UHostCationBondDipoleBondDipoleReal[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"\tHost/Cation bondipole-bonddipole Fourier energy:      %18.5lf\n",(double)UHostCationBondDipoleBondDipoleFourier[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"Host/Cation energy:                                   %18.8lf\n",(double)UHostCation[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"\tHost/Cation VDW energy:                               %18.8lf\n",(double)UHostCationVDW[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"\tHost/Cation Coulomb energy:                           %18.8lf\n",(double)UHostCationCoulomb[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"\tHost/Cation charge-charge Real energy:                %18.8lf\n",(double)UHostCationChargeChargeReal[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"\tHost/Cation charge-charge Fourier energy:             %18.8lf\n",(double)UHostCationChargeChargeFourier[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"\tHost/Cation charge-bonddipole Real energy:            %18.8lf\n",(double)UHostCationChargeBondDipoleReal[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"\tHost/Cation charge-bonddipole Fourier energy:         %18.8lf\n",(double)UHostCationChargeBondDipoleFourier[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"\tHost/Cation bondipole-bonddipole Real energy:         %18.8lf\n",(double)UHostCationBondDipoleBondDipoleReal[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"\tHost/Cation bondipole-bonddipole Fourier energy:      %18.8lf\n",(double)UHostCationBondDipoleBondDipoleFourier[CurrentSystem]*ENERGY_TO_KELVIN);
   fprintf(FilePtr,"\n");
 
-  fprintf(FilePtr,"Adsorbate/Adsorbate energy:                                %18.5lf\n",(double)UAdsorbateAdsorbate[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"\tAdsorbate/Adsorbate VDW energy:                            %18.5lf\n",(double)UAdsorbateAdsorbateVDW[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"\tAdsorbate/Adsorbate Coulomb energy:                        %18.5lf\n",(double)UAdsorbateAdsorbateCoulomb[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"\tAdsorbate/Adsorbate charge-charge Real energy:             %18.5lf\n",(double)UAdsorbateAdsorbateChargeChargeReal[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"\tAdsorbate/Adsorbate charge-charge Fourier energy:          %18.5lf\n",(double)UAdsorbateAdsorbateChargeChargeFourier[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"\tAdsorbate/Adsorbate charge-bonddipole Real energy:         %18.5lf\n",(double)UAdsorbateAdsorbateChargeBondDipoleReal[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"\tAdsorbate/Adsorbate charge-bonddipole Fourier energy:      %18.5lf\n",(double)UAdsorbateAdsorbateChargeBondDipoleFourier[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"\tAdsorbate/Adsorbate bondipole-bonddipole Real energy:      %18.5lf\n",(double)UAdsorbateAdsorbateBondDipoleBondDipoleReal[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"\tAdsorbate/Adsorbate bondipole-bonddipole Fourier energy:   %18.5lf\n",(double)UAdsorbateAdsorbateBondDipoleBondDipoleFourier[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"Adsorbate/Adsorbate energy:                                %18.8lf\n",(double)UAdsorbateAdsorbate[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"\tAdsorbate/Adsorbate VDW energy:                            %18.8lf\n",(double)UAdsorbateAdsorbateVDW[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"\tAdsorbate/Adsorbate Coulomb energy:                        %18.8lf\n",(double)UAdsorbateAdsorbateCoulomb[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"\tAdsorbate/Adsorbate charge-charge Real energy:             %18.8lf\n",(double)UAdsorbateAdsorbateChargeChargeReal[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"\tAdsorbate/Adsorbate charge-charge Fourier energy:          %18.8lf\n",(double)UAdsorbateAdsorbateChargeChargeFourier[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"\tAdsorbate/Adsorbate charge-bonddipole Real energy:         %18.8lf\n",(double)UAdsorbateAdsorbateChargeBondDipoleReal[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"\tAdsorbate/Adsorbate charge-bonddipole Fourier energy:      %18.8lf\n",(double)UAdsorbateAdsorbateChargeBondDipoleFourier[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"\tAdsorbate/Adsorbate bondipole-bonddipole Real energy:      %18.8lf\n",(double)UAdsorbateAdsorbateBondDipoleBondDipoleReal[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"\tAdsorbate/Adsorbate bondipole-bonddipole Fourier energy:   %18.8lf\n",(double)UAdsorbateAdsorbateBondDipoleBondDipoleFourier[CurrentSystem]*ENERGY_TO_KELVIN);
   fprintf(FilePtr,"\n");
 
-  fprintf(FilePtr,"Adsorbate/Cation energy:                                   %18.5lf\n",(double)UAdsorbateCation[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"\tAdsorbate/Cation VDW energy:                               %18.5lf\n",(double)UAdsorbateCationVDW[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"\tAdsorbate/Cation Coulomb energy:                           %18.5lf\n",(double)UAdsorbateCationCoulomb[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"\tAdsorbate/Cation charge-charge Real energy:                %18.5lf\n",(double)UAdsorbateCationChargeChargeReal[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"\tAdsorbate/Cation charge-charge Fourier energy:             %18.5lf\n",(double)UAdsorbateCationChargeChargeFourier[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"\tAdsorbate/Cation charge-bonddipole Real energy:            %18.5lf\n",(double)UAdsorbateCationChargeBondDipoleReal[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"\tAdsorbate/Cation charge-bonddipole Fourier energy:         %18.5lf\n",(double)UAdsorbateCationChargeBondDipoleFourier[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"\tAdsorbate/Cation bondipole-bonddipole Real energy:         %18.5lf\n",(double)UAdsorbateCationBondDipoleBondDipoleReal[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"\tAdsorbate/Cation bondipole-bonddipole Fourier energy:      %18.5lf\n",(double)UAdsorbateCationBondDipoleBondDipoleFourier[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"Adsorbate/Cation energy:                                   %18.8lf\n",(double)UAdsorbateCation[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"\tAdsorbate/Cation VDW energy:                               %18.8lf\n",(double)UAdsorbateCationVDW[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"\tAdsorbate/Cation Coulomb energy:                           %18.8lf\n",(double)UAdsorbateCationCoulomb[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"\tAdsorbate/Cation charge-charge Real energy:                %18.8lf\n",(double)UAdsorbateCationChargeChargeReal[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"\tAdsorbate/Cation charge-charge Fourier energy:             %18.8lf\n",(double)UAdsorbateCationChargeChargeFourier[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"\tAdsorbate/Cation charge-bonddipole Real energy:            %18.8lf\n",(double)UAdsorbateCationChargeBondDipoleReal[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"\tAdsorbate/Cation charge-bonddipole Fourier energy:         %18.8lf\n",(double)UAdsorbateCationChargeBondDipoleFourier[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"\tAdsorbate/Cation bondipole-bonddipole Real energy:         %18.8lf\n",(double)UAdsorbateCationBondDipoleBondDipoleReal[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"\tAdsorbate/Cation bondipole-bonddipole Fourier energy:      %18.8lf\n",(double)UAdsorbateCationBondDipoleBondDipoleFourier[CurrentSystem]*ENERGY_TO_KELVIN);
   fprintf(FilePtr,"\n");
 
-  fprintf(FilePtr,"Cation/Cation energy:                                   %18.5lf\n",(double)UCationCation[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"\tCation/Cation VDW energy:                               %18.5lf\n",(double)UCationCationVDW[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"\tCation/Cation Coulomb energy:                           %18.5lf\n",(double)UCationCationCoulomb[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"\tCation/Cation charge-charge Real energy:                %18.5lf\n",(double)UCationCationChargeChargeReal[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"\tCation/Cation charge-charge Fourier energy:             %18.5lf\n",(double)UCationCationChargeChargeFourier[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"\tCation/Cation charge-bonddipole Real energy:            %18.5lf\n",(double)UCationCationChargeBondDipoleReal[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"\tCation/Cation charge-bonddipole Fourier energy:         %18.5lf\n",(double)UCationCationChargeBondDipoleFourier[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"\tCation/Cation bondipole-bonddipole Real energy:         %18.5lf\n",(double)UCationCationBondDipoleBondDipoleReal[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"\tCation/Cation bondipole-bonddipole Fourier energy:      %18.5lf\n",(double)UCationCationBondDipoleBondDipoleFourier[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"Cation/Cation energy:                                   %18.8lf\n",(double)UCationCation[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"\tCation/Cation VDW energy:                               %18.8lf\n",(double)UCationCationVDW[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"\tCation/Cation Coulomb energy:                           %18.8lf\n",(double)UCationCationCoulomb[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"\tCation/Cation charge-charge Real energy:                %18.8lf\n",(double)UCationCationChargeChargeReal[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"\tCation/Cation charge-charge Fourier energy:             %18.8lf\n",(double)UCationCationChargeChargeFourier[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"\tCation/Cation charge-bonddipole Real energy:            %18.8lf\n",(double)UCationCationChargeBondDipoleReal[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"\tCation/Cation charge-bonddipole Fourier energy:         %18.8lf\n",(double)UCationCationChargeBondDipoleFourier[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"\tCation/Cation bondipole-bonddipole Real energy:         %18.8lf\n",(double)UCationCationBondDipoleBondDipoleReal[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"\tCation/Cation bondipole-bonddipole Fourier energy:      %18.8lf\n",(double)UCationCationBondDipoleBondDipoleFourier[CurrentSystem]*ENERGY_TO_KELVIN);
   fprintf(FilePtr,"\n");
 
 
   fprintf(FilePtr,"Polarization energy:\n");
-  fprintf(FilePtr,"\tHost polarization energy:                             %18.5lf\n",(double)UHostPolarization[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"\tAdsorbate polarization energy:                        %18.5lf\n",(double)UAdsorbatePolarization[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"\tCation polarization energy:                           %18.5lf\n",(double)UCationPolarization[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"\tHost back-polarization energy:                             %18.5lf\n",(double)UHostBackPolarization[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"\tAdsorbate back-polarization energy:                        %18.5lf\n",(double)UAdsorbateBackPolarization[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"\tCation back-polarization energy:                           %18.5lf\n",(double)UCationBackPolarization[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"\tHost polarization energy:                             %18.8lf\n",(double)UHostPolarization[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"\tAdsorbate polarization energy:                        %18.8lf\n",(double)UAdsorbatePolarization[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"\tCation polarization energy:                           %18.8lf\n",(double)UCationPolarization[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"\tHost back-polarization energy:                             %18.8lf\n",(double)UHostBackPolarization[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"\tAdsorbate back-polarization energy:                        %18.8lf\n",(double)UAdsorbateBackPolarization[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"\tCation back-polarization energy:                           %18.8lf\n",(double)UCationBackPolarization[CurrentSystem]*ENERGY_TO_KELVIN);
   fprintf(FilePtr,"\n");
 
-  fprintf(FilePtr,"Tail-correction energy:                               %18.5lf\n",(double)UTailCorrection[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"Tail-correction energy:                               %18.8lf\n",(double)UTailCorrection[CurrentSystem]*ENERGY_TO_KELVIN);
   fprintf(FilePtr,"\n");
-  fprintf(FilePtr,"Distance constraints energy:                          %18.5lf\n",(double)UDistanceConstraints[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"Angle constraints energy:                             %18.5lf\n",(double)UAngleConstraints[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"Dihedral constraints energy:                          %18.5lf\n",(double)UDihedralConstraints[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"Inversion-bend constraints energy:                    %18.5lf\n",(double)UInversionBendConstraints[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"Out-of-plane distance constraints energy:             %18.5lf\n",(double)UOutOfPlaneDistanceConstraints[CurrentSystem]*ENERGY_TO_KELVIN);
-  fprintf(FilePtr,"Exclusion constraints energy:                         %18.5lf\n",(double)UExclusionConstraints[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"Distance constraints energy:                          %18.8lf\n",(double)UDistanceConstraints[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"Angle constraints energy:                             %18.8lf\n",(double)UAngleConstraints[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"Dihedral constraints energy:                          %18.8lf\n",(double)UDihedralConstraints[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"Inversion-bend constraints energy:                    %18.8lf\n",(double)UInversionBendConstraints[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"Out-of-plane distance constraints energy:             %18.8lf\n",(double)UOutOfPlaneDistanceConstraints[CurrentSystem]*ENERGY_TO_KELVIN);
+  fprintf(FilePtr,"Exclusion constraints energy:                         %18.8lf\n",(double)UExclusionConstraints[CurrentSystem]*ENERGY_TO_KELVIN);
   fprintf(FilePtr,"\n");
 
   fprintf(FilePtr,"===================================================================\n");
@@ -6791,7 +6886,7 @@ void PrintRestartFile(void)
                   (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Force.y,
                   (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Force.z,
                   (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Charge,
-                  (int)Framework[CurrentSystem].Atoms[CurrentFramework][j].Fixed);
+                  (int)Framework[CurrentSystem].Atoms[CurrentFramework][j].Fixed.x);
     }
     fprintf(FilePtrOut,"\n");
   }
@@ -6917,7 +7012,7 @@ void PrintRestartFile(void)
                     (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Force.y,
                     (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Force.z,
                     (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Charge,
-                    (int)Framework[CurrentSystem].Atoms[CurrentFramework][j].Fixed);
+                    (int)Framework[CurrentSystem].Atoms[CurrentFramework][j].Fixed.x);
                 ncell++;
                 index=0;
               }

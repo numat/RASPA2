@@ -1,7 +1,7 @@
 #number of pseudo atoms
 4
 #type      print   as    chem  oxidation   mass        charge   polarization  B-factor radii  connectivity anisotropic anisotropic-type   tinker-type
-plus       yes     He    He    -           4.002602    1.0      0.0 0.0 0.0   1.0      1.0    0            0           absolute           0
-min        yes     Ar    Ar    -           39.948     -1.0      0.0 0.0 0.0   1.0      1.0    0            0           absolute           0
-neut1      yes     Ar    Ar    -           39.948      0.0      0.1 0.0 0.0   1.0      1.0    0            0           absolute           0
-neut2      yes     Ar    Ar    -           39.948      0.0      0.1 0.1 0.1   1.0      1.0    0            0           absolute           0
+plus       yes     He    He    0           4.002602    1.0      0.0 0.0 0.0   1.0      1.0    0            0           absolute           0
+min        yes     Ar    Ar    0           39.948     -1.0      0.0 0.0 0.0   1.0      1.0    0            0           absolute           0
+neut1      yes     Ar    Ar    0           39.948      0.0      0.1 0.0 0.0   1.0      1.0    0            0           absolute           0
+neut2      yes     Ar    Ar    0           39.948      0.0      0.1 0.1 0.1   1.0      1.0    0            0           absolute           0

@@ -1,27 +1,16 @@
-/*****************************************************************************************************
+/*************************************************************************************************************
     RASPA: a molecular-dynamics, monte-carlo and optimization code for nanoporous materials
-    Copyright (C) 2006-2012 David Dubbeldam, Sofia Calero, Donald E. Ellis, and Randall Q. Snurr.
+    Copyright (C) 2006-2013 David Dubbeldam, Sofia Calero, Thijs Vlugt, Donald E. Ellis, and Randall Q. Snurr.
 
     D.Dubbeldam@uva.nl            http://molsim.science.uva.nl/
     scaldia@upo.es                http://www.upo.es/raspa/
+    t.j.h.vlugt@tudelft.nl        http://homepage.tudelft.nl/v9k6y
     don-ellis@northwestern.edu    http://dvworld.northwestern.edu/
     snurr@northwestern.edu        http://zeolites.cqe.northwestern.edu/
 
-    This file 'framework_phonon.h' is part of RASPA.
+    This file 'framework_phonon.c' is part of RASPA-2.0
 
-    RASPA is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    RASPA is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *****************************************************************************************************/
+ *************************************************************************************************************/
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -412,7 +401,7 @@ void ComputeFrameworkAdsorbateVDWPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COM
   f1=f2=0.0;
   index2=0;
   // first loop over adsorbate molecules
-
+/*
   for(fr=0;fr<Framework[CurrentSystem].NumberOfFrameworks;fr++)
   {
     for(i=0;i<Framework[CurrentSystem].NumberOfAtoms[fr];i++)
@@ -563,7 +552,9 @@ void ComputeFrameworkAdsorbateVDWPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COM
           }
     }
   }
+*/
 }
+
 
 void ComputeFrameworkAdsorbateChargeChargePhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX_MATRIX HessianMatrix,
                                                   REAL_MATRIX3x3 *StrainDerivative,int ComputeGradient,int ComputeHessian)
@@ -582,6 +573,7 @@ void ComputeFrameworkAdsorbateChargeChargePhonon(VECTOR k,REAL *Energy,REAL* Gra
   int ncell,k1,k2,k3;
   COMPLEX phase_factor;
 
+/*
   f1=f2=0.0;
   index2=0;
   // first loop over adsorbate molecules
@@ -758,6 +750,7 @@ void ComputeFrameworkAdsorbateChargeChargePhonon(VECTOR k,REAL *Energy,REAL* Gra
           }
     }
   }
+*/
 }
 
 void ComputeFrameworkCationVDWPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX_MATRIX HessianMatrix,
@@ -781,6 +774,7 @@ void ComputeFrameworkCationVDWPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLE
   index2=0;
   // first loop over adsorbate molecules
 
+/*
   for(fr=0;fr<Framework[CurrentSystem].NumberOfFrameworks;fr++)
   {
     for(i=0;i<Framework[CurrentSystem].NumberOfAtoms[fr];i++)
@@ -926,6 +920,7 @@ void ComputeFrameworkCationVDWPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLE
           }
     }
   }
+*/
 }
 
 void ComputeFrameworkCationChargeChargePhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX_MATRIX HessianMatrix,
@@ -945,6 +940,7 @@ void ComputeFrameworkCationChargeChargePhonon(VECTOR k,REAL *Energy,REAL* Gradie
   int ncell,k1,k2,k3;
   COMPLEX phase_factor;
 
+/*
   f1=f2=0.0;
   index2=0;
   for(fr=0;fr<Framework[CurrentSystem].NumberOfFrameworks;fr++)
@@ -1119,6 +1115,7 @@ void ComputeFrameworkCationChargeChargePhonon(VECTOR k,REAL *Energy,REAL* Gradie
           }
     }
   }
+*/
 }
 
 
@@ -1237,6 +1234,8 @@ void ComputeFrameworkIntraVDWPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX
     }
   }
 */
+
+/*
   for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
   {
     for(f2=f1;f2<Framework[CurrentSystem].NumberOfFrameworks;f2++)
@@ -1345,6 +1344,7 @@ void ComputeFrameworkIntraVDWPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX
       }
     }
   }
+*/
 }
 
 void ComputeFrameworkIntraChargeChargePhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX_MATRIX HessianMatrix,
@@ -1360,6 +1360,7 @@ void ComputeFrameworkIntraChargeChargePhonon(VECTOR k,REAL *Energy,REAL* Gradien
   COMPLEX phase_factor;
   REAL dot_product;
 
+/*
   for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
   {
     for(f2=f1;f2<Framework[CurrentSystem].NumberOfFrameworks;f2++)
@@ -1495,6 +1496,7 @@ void ComputeFrameworkIntraChargeChargePhonon(VECTOR k,REAL *Energy,REAL* Gradien
       }
     }
   }
+*/
 }
 
 
@@ -1517,6 +1519,7 @@ void ComputeFrameworkBondPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX_MAT
   COMPLEX phase_factor;
   REAL dot_product;
 
+/*
   for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
   {
     for(i=0;i<Framework[CurrentSystem].NumberOfBonds[f1];i++)
@@ -1717,6 +1720,7 @@ void ComputeFrameworkBondPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX_MAT
       }
     }
   }
+*/
 }
 
 
@@ -1804,7 +1808,7 @@ void ComputeFrameworkBendPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX_MAT
   VECTOR vec_u,vec_v;
   REAL u,v,dot_product;
   COMPLEX phase_factor_ab,phase_factor_bc,phase_factor_ac;
-
+/*
   for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
   {
     for(i=0;i<Framework[CurrentSystem].NumberOfBends[f1];i++)
@@ -2243,7 +2247,7 @@ void ComputeFrameworkBendPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX_MAT
       }
     }
   }
-
+*/
 }
 
 static inline void GradientStrainTorsion(REAL *Gradient,REAL_MATRIX3x3 S)
@@ -2332,6 +2336,7 @@ void ComputeFrameworkTorsionPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX_
   REAL u,w,v;
   VECTOR fa,fb,fc,fd;
 
+/*
   for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
   {
     for(i=0;i<Framework[CurrentSystem].NumberOfTorsions[f1];i++)
@@ -3025,6 +3030,7 @@ void ComputeFrameworkTorsionPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX_
       }
     }
   }
+*/
 }
 
 void ComputeFrameworkImproperTorsionPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX_MATRIX HessianMatrix,REAL_MATRIX3x3 *StrainDerivative,int ComputeGradient,int ComputeHessian)
@@ -3046,6 +3052,7 @@ void ComputeFrameworkImproperTorsionPhonon(VECTOR k,REAL *Energy,REAL* Gradient,
   VECTOR vec_u,vec_v,vec_w;
   VECTOR fa,fb,fc,fd;
 
+/*
   for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
   {
     for(i=0;i<Framework[CurrentSystem].NumberOfImproperTorsions[f1];i++)
@@ -3742,4 +3749,5 @@ void ComputeFrameworkImproperTorsionPhonon(VECTOR k,REAL *Energy,REAL* Gradient,
       }
     }
   }
+*/
 }

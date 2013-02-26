@@ -1,27 +1,16 @@
-/*****************************************************************************************************
+/*************************************************************************************************************
     RASPA: a molecular-dynamics, monte-carlo and optimization code for nanoporous materials
-    Copyright (C) 2006-2012 David Dubbeldam, Sofia Calero, Donald E. Ellis, and Randall Q. Snurr.
+    Copyright (C) 2006-2013 David Dubbeldam, Sofia Calero, Thijs Vlugt, Donald E. Ellis, and Randall Q. Snurr.
 
     D.Dubbeldam@uva.nl            http://molsim.science.uva.nl/
     scaldia@upo.es                http://www.upo.es/raspa/
+    t.j.h.vlugt@tudelft.nl        http://homepage.tudelft.nl/v9k6y
     don-ellis@northwestern.edu    http://dvworld.northwestern.edu/
     snurr@northwestern.edu        http://zeolites.cqe.northwestern.edu/
 
-    This file 'framework_hessian.c' is part of RASPA.
+    This file 'framework_hessian.c' is part of RASPA-2.0
 
-    RASPA is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    RASPA is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *****************************************************************************************************/
+ *************************************************************************************************************/
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -47,6 +36,7 @@
 #include "spectra.h"
 #include "rigid.h"
 #include "minimization.h"
+#include "internal_hessian.h"
 
 
 void CalculateDerivativesAtPositionVDW(VECTOR pos,int typeA,REAL *value,VECTOR *first_derivative,
@@ -165,7 +155,7 @@ void CalculateDerivativesAtPositionReal(VECTOR pos,int typeA,REAL *value,VECTOR 
 
 // Hessian: Center of mass - Center of mass
 // ========================================
-static inline void HessianAtomicPositionPosition(REAL_MATRIX HessianMatrix,int index_i,int index_j,REAL f1,REAL f2,VECTOR dr,REAL ReplicaFactor)
+static inline void HessianAtomicPositionPosition(REAL_MATRIX HessianMatrix,INT_VECTOR3 index_i,INT_VECTOR3 index_j,REAL f1,REAL f2,VECTOR dr,REAL ReplicaFactor)
 {
   REAL_MATRIX3x3 Hessian;
 
@@ -175,48 +165,39 @@ static inline void HessianAtomicPositionPosition(REAL_MATRIX HessianMatrix,int i
 
   if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
   { 
-    if(index_i>=0)
-    {
-      HessianMatrix.element[index_i][index_i]+=ReplicaFactor*Hessian.ax;
-      HessianMatrix.element[index_i][index_i+1]+=ReplicaFactor*Hessian.ay;
-      HessianMatrix.element[index_i][index_i+2]+=ReplicaFactor*Hessian.az;
-      HessianMatrix.element[index_i+1][index_i+1]+=ReplicaFactor*Hessian.by;
-      HessianMatrix.element[index_i+1][index_i+2]+=ReplicaFactor*Hessian.bz;
-      HessianMatrix.element[index_i+2][index_i+2]+=ReplicaFactor*Hessian.cz;
-    }
+    if((index_i.x>=0)&&(index_i.x>=0)) HessianMatrix.element[index_i.x][index_i.x]+=ReplicaFactor*Hessian.ax;
+    if((index_i.x>=0)&&(index_i.y>=0)) HessianMatrix.element[index_i.x][index_i.y]+=ReplicaFactor*Hessian.ay;
+    if((index_i.x>=0)&&(index_i.z>=0)) HessianMatrix.element[index_i.x][index_i.z]+=ReplicaFactor*Hessian.az;
+    if((index_i.y>=0)&&(index_i.y>=0)) HessianMatrix.element[index_i.y][index_i.y]+=ReplicaFactor*Hessian.by;
+    if((index_i.y>=0)&&(index_i.z>=0)) HessianMatrix.element[index_i.y][index_i.z]+=ReplicaFactor*Hessian.bz;
+    if((index_i.z>=0)&&(index_i.z>=0)) HessianMatrix.element[index_i.z][index_i.z]+=ReplicaFactor*Hessian.cz;
   }
 
-  if(index_j>=0)
-  { 
-    HessianMatrix.element[index_j][index_j]+=ReplicaFactor*Hessian.ax;
-    HessianMatrix.element[index_j][index_j+1]+=ReplicaFactor*Hessian.ay;
-    HessianMatrix.element[index_j][index_j+2]+=ReplicaFactor*Hessian.az;
-    HessianMatrix.element[index_j+1][index_j+1]+=ReplicaFactor*Hessian.by;
-    HessianMatrix.element[index_j+1][index_j+2]+=ReplicaFactor*Hessian.bz;
-    HessianMatrix.element[index_j+2][index_j+2]+=ReplicaFactor*Hessian.cz;
-  }
+  if((index_j.x>=0)&&(index_j.x>=0)) HessianMatrix.element[index_j.x][index_j.x]+=ReplicaFactor*Hessian.ax;
+  if((index_j.x>=0)&&(index_j.y>=0)) HessianMatrix.element[index_j.x][index_j.y]+=ReplicaFactor*Hessian.ay;
+  if((index_j.x>=0)&&(index_j.z>=0)) HessianMatrix.element[index_j.x][index_j.z]+=ReplicaFactor*Hessian.az;
+  if((index_j.y>=0)&&(index_j.y>=0)) HessianMatrix.element[index_j.y][index_j.y]+=ReplicaFactor*Hessian.by;
+  if((index_j.y>=0)&&(index_j.z>=0)) HessianMatrix.element[index_j.y][index_j.z]+=ReplicaFactor*Hessian.bz;
+  if((index_j.z>=0)&&(index_j.z>=0)) HessianMatrix.element[index_j.z][index_j.z]+=ReplicaFactor*Hessian.cz;
 
   if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
   {
-    if((index_i>=0)&&(index_j>=0))
-    {
-      HessianMatrix.element[index_i][index_j]-=Hessian.ax;
-      HessianMatrix.element[index_i][index_j+1]-=Hessian.ay;
-      HessianMatrix.element[index_i][index_j+2]-=Hessian.az;
-      HessianMatrix.element[index_i+1][index_j]-=Hessian.ay;
-      HessianMatrix.element[index_i+1][index_j+1]-=Hessian.by;
-      HessianMatrix.element[index_i+1][index_j+2]-=Hessian.bz;
-      HessianMatrix.element[index_i+2][index_j]-=Hessian.az;
-      HessianMatrix.element[index_i+2][index_j+1]-=Hessian.bz;
-      HessianMatrix.element[index_i+2][index_j+2]-=Hessian.cz;
-    }
+    if((index_i.x>=0)&&(index_j.x>=0)) HessianMatrix.element[index_i.x][index_j.x]-=Hessian.ax;
+    if((index_i.x>=0)&&(index_j.y>=0)) HessianMatrix.element[index_i.x][index_j.y]-=Hessian.ay;
+    if((index_i.x>=0)&&(index_j.z>=0)) HessianMatrix.element[index_i.x][index_j.z]-=Hessian.az;
+    if((index_i.y>=0)&&(index_j.x>=0)) HessianMatrix.element[index_i.y][index_j.x]-=Hessian.ay;
+    if((index_i.y>=0)&&(index_j.y>=0)) HessianMatrix.element[index_i.y][index_j.y]-=Hessian.by;
+    if((index_i.y>=0)&&(index_j.z>=0)) HessianMatrix.element[index_i.y][index_j.z]-=Hessian.bz;
+    if((index_i.z>=0)&&(index_j.x>=0)) HessianMatrix.element[index_i.z][index_j.x]-=Hessian.az;
+    if((index_i.z>=0)&&(index_j.y>=0)) HessianMatrix.element[index_i.z][index_j.y]-=Hessian.bz;
+    if((index_i.z>=0)&&(index_j.z>=0)) HessianMatrix.element[index_i.z][index_j.z]-=Hessian.cz;
   }
 }
 
 
 // Hessian: Center of mass - Orientation
 // =====================================
-static inline void HessianCenterOfMassOrientationJ(REAL_MATRIX HessianMatrix,int index_i,int index_j,int index_j2,int index2,REAL f1,REAL f2,VECTOR dr)
+static inline void HessianCenterOfMassOrientationJ(REAL_MATRIX HessianMatrix,INT_VECTOR3 index_i,INT_VECTOR3 index_j,INT_VECTOR3 index_j2,int index2,REAL f1,REAL f2,VECTOR dr)
 {
   REAL_MATRIX3x3 Hessian;
   VECTOR vecj1,vecj2,vecj3;
@@ -237,20 +218,17 @@ static inline void HessianCenterOfMassOrientationJ(REAL_MATRIX HessianMatrix,int
   Hessian.cy=f2*(dr.x*vecj2.x+dr.y*vecj2.y+dr.z*vecj2.z)*dr.z+f1*vecj2.z;
   Hessian.cz=f2*(dr.x*vecj3.x+dr.y*vecj3.y+dr.z*vecj3.z)*dr.z+f1*vecj3.z;
 
-  if((index_j>=0)&&(index_j2>=0))
-  {
-    HessianMatrix.element[index_j][index_j2]+=Hessian.ax;
-    HessianMatrix.element[index_j][index_j2+1]+=Hessian.ay;
-    HessianMatrix.element[index_j][index_j2+2]+=Hessian.az;
+  if((index_j.x>=0)&&(index_j2.x>=0))  HessianMatrix.element[index_j.x][index_j2.x]+=Hessian.ax;
+  if((index_j.x>=0)&&(index_j2.y>=0))  HessianMatrix.element[index_j.x][index_j2.y]+=Hessian.ay;
+  if((index_j.x>=0)&&(index_j2.z>=0))  HessianMatrix.element[index_j.x][index_j2.z]+=Hessian.az;
 
-    HessianMatrix.element[index_j+1][index_j2]+=Hessian.bx;
-    HessianMatrix.element[index_j+1][index_j2+1]+=Hessian.by;
-    HessianMatrix.element[index_j+1][index_j2+2]+=Hessian.bz;
+  if((index_j.y>=0)&&(index_j2.x>=0))  HessianMatrix.element[index_j.y][index_j2.x]+=Hessian.bx;
+  if((index_j.y>=0)&&(index_j2.y>=0))  HessianMatrix.element[index_j.y][index_j2.y]+=Hessian.by;
+  if((index_j.y>=0)&&(index_j2.z>=0))  HessianMatrix.element[index_j.y][index_j2.z]+=Hessian.bz;
 
-    HessianMatrix.element[index_j+2][index_j2]+=Hessian.cx;
-    HessianMatrix.element[index_j+2][index_j2+1]+=Hessian.cy;
-    HessianMatrix.element[index_j+2][index_j2+2]+=Hessian.cz;
-  }
+  if((index_j.z>=0)&&(index_j2.x>=0))  HessianMatrix.element[index_j.z][index_j2.x]+=Hessian.cx;
+  if((index_j.z>=0)&&(index_j2.y>=0))  HessianMatrix.element[index_j.z][index_j2.y]+=Hessian.cy;
+  if((index_j.z>=0)&&(index_j2.z>=0))  HessianMatrix.element[index_j.z][index_j2.z]+=Hessian.cz;
 
   Hessian.ax=f2*(dr.x*vecj1.x+dr.y*vecj1.y+dr.z*vecj1.z)*dr.x+f1*vecj1.x;
   Hessian.ay=f2*(dr.x*vecj2.x+dr.y*vecj2.y+dr.z*vecj2.z)*dr.x+f1*vecj2.x;
@@ -266,26 +244,23 @@ static inline void HessianCenterOfMassOrientationJ(REAL_MATRIX HessianMatrix,int
 
   if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
   {
-    if((index_i>=0)&&(index_j2>=0))
-    {
-      HessianMatrix.element[index_i][index_j2]-=Hessian.ax;
-      HessianMatrix.element[index_i][index_j2+1]-=Hessian.ay;
-      HessianMatrix.element[index_i][index_j2+2]-=Hessian.az;
+    if((index_i.x>=0)&&(index_j2.x>=0)) HessianMatrix.element[index_i.x][index_j2.x]-=Hessian.ax;
+    if((index_i.x>=0)&&(index_j2.y>=0)) HessianMatrix.element[index_i.x][index_j2.y]-=Hessian.ay;
+    if((index_i.x>=0)&&(index_j2.z>=0)) HessianMatrix.element[index_i.x][index_j2.z]-=Hessian.az;
 
-      HessianMatrix.element[index_i+1][index_j2]-=Hessian.bx;
-      HessianMatrix.element[index_i+1][index_j2+1]-=Hessian.by;
-      HessianMatrix.element[index_i+1][index_j2+2]-=Hessian.bz;
+    if((index_i.y>=0)&&(index_j2.x>=0)) HessianMatrix.element[index_i.y][index_j2.x]-=Hessian.bx;
+    if((index_i.y>=0)&&(index_j2.y>=0)) HessianMatrix.element[index_i.y][index_j2.y]-=Hessian.by;
+    if((index_i.y>=0)&&(index_j2.z>=0)) HessianMatrix.element[index_i.y][index_j2.z]-=Hessian.bz;
 
-      HessianMatrix.element[index_i+2][index_j2]-=Hessian.cx;
-      HessianMatrix.element[index_i+2][index_j2+1]-=Hessian.cy;
-      HessianMatrix.element[index_i+2][index_j2+2]-=Hessian.cz;
-    }
+    if((index_i.z>=0)&&(index_j2.x>=0)) HessianMatrix.element[index_i.z][index_j2.x]-=Hessian.cx;
+    if((index_i.z>=0)&&(index_j2.y>=0)) HessianMatrix.element[index_i.z][index_j2.y]-=Hessian.cy;
+    if((index_i.z>=0)&&(index_j2.z>=0)) HessianMatrix.element[index_i.z][index_j2.z]-=Hessian.cz;
   }
 }
 
 // Hessian: Orientation - Orientation
 // ==================================
-static inline void HessianOrientationOrientationJ(REAL_MATRIX HessianMatrix,int index_j2,int index2,REAL f1,REAL f2,VECTOR dr)
+static inline void HessianOrientationOrientationJ(REAL_MATRIX HessianMatrix,INT_VECTOR3 index_j2,int index2,REAL f1,REAL f2,VECTOR dr)
 {
   REAL_MATRIX3x3 Hessian;
   VECTOR vecj1,vecj2,vecj3;
@@ -302,44 +277,41 @@ static inline void HessianOrientationOrientationJ(REAL_MATRIX HessianMatrix,int 
   DDvecJAZ=DDVecAZ[index2];
   DDvecJBZ=DDVecBZ[index2];
 
-  if(index_j2>=0)
-  {
-    Hessian.ax=-f1*(dr.x*DDvecJAX.x+dr.y*DDvecJAX.y+dr.z*DDvecJAX.z)
-               +f2*(dr.x*vecj1.x+dr.y*vecj1.y+dr.z*vecj1.z)*(dr.x*vecj1.x+dr.y*vecj1.y+dr.z*vecj1.z)
-               +f1*(vecj1.x*vecj1.x+vecj1.y*vecj1.y+vecj1.z*vecj1.z);
+  Hessian.ax=-f1*(dr.x*DDvecJAX.x+dr.y*DDvecJAX.y+dr.z*DDvecJAX.z)
+             +f2*(dr.x*vecj1.x+dr.y*vecj1.y+dr.z*vecj1.z)*(dr.x*vecj1.x+dr.y*vecj1.y+dr.z*vecj1.z)
+             +f1*(vecj1.x*vecj1.x+vecj1.y*vecj1.y+vecj1.z*vecj1.z);
 
-    Hessian.by=-f1*(dr.x*DDvecJBY.x+dr.y*DDvecJBY.y+dr.z*DDvecJBY.z)+
-               f2*(dr.x*vecj2.x+dr.y*vecj2.y+dr.z*vecj2.z)*(dr.x*vecj2.x+dr.y*vecj2.y+dr.z*vecj2.z)+
-               f1*(vecj2.x*vecj2.x+vecj2.y*vecj2.y+vecj2.z*vecj2.z);
+  Hessian.by=-f1*(dr.x*DDvecJBY.x+dr.y*DDvecJBY.y+dr.z*DDvecJBY.z)+
+             f2*(dr.x*vecj2.x+dr.y*vecj2.y+dr.z*vecj2.z)*(dr.x*vecj2.x+dr.y*vecj2.y+dr.z*vecj2.z)+
+             f1*(vecj2.x*vecj2.x+vecj2.y*vecj2.y+vecj2.z*vecj2.z);
 
-    Hessian.cz=-f1*(dr.x*DDvecJCZ.x+dr.y*DDvecJCZ.y+dr.z*DDvecJCZ.z)+
-               f2*(dr.x*vecj3.x+dr.y*vecj3.y+dr.z*vecj3.z)*(dr.x*vecj3.x+dr.y*vecj3.y+dr.z*vecj3.z)+
-               f1*(vecj3.x*vecj3.x+vecj3.y*vecj3.y+vecj3.z*vecj3.z);
+  Hessian.cz=-f1*(dr.x*DDvecJCZ.x+dr.y*DDvecJCZ.y+dr.z*DDvecJCZ.z)+
+             f2*(dr.x*vecj3.x+dr.y*vecj3.y+dr.z*vecj3.z)*(dr.x*vecj3.x+dr.y*vecj3.y+dr.z*vecj3.z)+
+             f1*(vecj3.x*vecj3.x+vecj3.y*vecj3.y+vecj3.z*vecj3.z);
 
-    Hessian.ay=-f1*(dr.x*DDvecJAY.x+dr.y*DDvecJAY.y+dr.z*DDvecJAY.z)+
-               f2*(dr.x*vecj1.x+dr.y*vecj1.y+dr.z*vecj1.z)*(dr.x*vecj2.x+dr.y*vecj2.y+dr.z*vecj2.z)+
-               f1*(vecj1.x*vecj2.x+vecj1.y*vecj2.y+vecj1.z*vecj2.z);
+  Hessian.ay=-f1*(dr.x*DDvecJAY.x+dr.y*DDvecJAY.y+dr.z*DDvecJAY.z)+
+             f2*(dr.x*vecj1.x+dr.y*vecj1.y+dr.z*vecj1.z)*(dr.x*vecj2.x+dr.y*vecj2.y+dr.z*vecj2.z)+
+             f1*(vecj1.x*vecj2.x+vecj1.y*vecj2.y+vecj1.z*vecj2.z);
 
-    Hessian.az=-f1*(dr.x*DDvecJAZ.x+dr.y*DDvecJAZ.y+dr.z*DDvecJAZ.z)+
-               f2*(dr.x*vecj1.x+dr.y*vecj1.y+dr.z*vecj1.z)*(dr.x*vecj3.x+dr.y*vecj3.y+dr.z*vecj3.z)+
-               f1*(vecj1.x*vecj3.x+vecj1.y*vecj3.y+vecj1.z*vecj3.z);
+  Hessian.az=-f1*(dr.x*DDvecJAZ.x+dr.y*DDvecJAZ.y+dr.z*DDvecJAZ.z)+
+             f2*(dr.x*vecj1.x+dr.y*vecj1.y+dr.z*vecj1.z)*(dr.x*vecj3.x+dr.y*vecj3.y+dr.z*vecj3.z)+
+             f1*(vecj1.x*vecj3.x+vecj1.y*vecj3.y+vecj1.z*vecj3.z);
 
-    Hessian.bz=-f1*(dr.x*DDvecJBZ.x+dr.y*DDvecJBZ.y+dr.z*DDvecJBZ.z)+
-               f2*(dr.x*vecj2.x+dr.y*vecj2.y+dr.z*vecj2.z)*(dr.x*vecj3.x+dr.y*vecj3.y+dr.z*vecj3.z)+
-               f1*(vecj2.x*vecj3.x+vecj2.y*vecj3.y+vecj2.z*vecj3.z);
+  Hessian.bz=-f1*(dr.x*DDvecJBZ.x+dr.y*DDvecJBZ.y+dr.z*DDvecJBZ.z)+
+             f2*(dr.x*vecj2.x+dr.y*vecj2.y+dr.z*vecj2.z)*(dr.x*vecj3.x+dr.y*vecj3.y+dr.z*vecj3.z)+
+             f1*(vecj2.x*vecj3.x+vecj2.y*vecj3.y+vecj2.z*vecj3.z);
 
-    HessianMatrix.element[index_j2][index_j2]+=Hessian.ax;
-    HessianMatrix.element[index_j2+1][index_j2+1]+=Hessian.by;
-    HessianMatrix.element[index_j2+2][index_j2+2]+=Hessian.cz;
-    HessianMatrix.element[index_j2][index_j2+1]+=Hessian.ay;
-    HessianMatrix.element[index_j2][index_j2+2]+=Hessian.az;
-    HessianMatrix.element[index_j2+1][index_j2+2]+=Hessian.bz;
-  }
+  if((index_j2.x>=0)&&(index_j2.x>=0)) HessianMatrix.element[index_j2.x][index_j2.x]+=Hessian.ax;
+  if((index_j2.y>=0)&&(index_j2.y>=0)) HessianMatrix.element[index_j2.y][index_j2.y]+=Hessian.by;
+  if((index_j2.z>=0)&&(index_j2.z>=0)) HessianMatrix.element[index_j2.z][index_j2.z]+=Hessian.cz;
+  if((index_j2.x>=0)&&(index_j2.y>=0)) HessianMatrix.element[index_j2.x][index_j2.y]+=Hessian.ay;
+  if((index_j2.x>=0)&&(index_j2.z>=0)) HessianMatrix.element[index_j2.x][index_j2.z]+=Hessian.az;
+  if((index_j2.y>=0)&&(index_j2.z>=0)) HessianMatrix.element[index_j2.y][index_j2.z]+=Hessian.bz;
 }
 
 // Hessian: Center of mass - Strain (part I)
 // =========================================
-static inline void HessianAtomicPositionStrain(REAL_MATRIX HessianMatrix,int index_i,int index_j,REAL f1,REAL f2,VECTOR dr)
+static inline void HessianAtomicPositionStrain(REAL_MATRIX HessianMatrix,INT_VECTOR3 index_i,INT_VECTOR3 index_j,REAL f1,REAL f2,VECTOR dr)
 {
   int n;
 
@@ -349,20 +321,14 @@ static inline void HessianAtomicPositionStrain(REAL_MATRIX HessianMatrix,int ind
     case NPT:
       if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
       {
-        if(index_i>=0)
-        {
-          HessianMatrix.element[index_i][n]+=f2*dr.x*dr.x*dr.x+2.0*f1*dr.x+f2*dr.y*dr.y*dr.x+f2*dr.z*dr.z*dr.x;     // xx x + yy x + zz x
-          HessianMatrix.element[index_i+1][n]+=f2*dr.x*dr.x*dr.y+f2*dr.y*dr.y*dr.y+2.0*f1*dr.y+f2*dr.z*dr.z*dr.y;   // xx y + yy y + zz y
-          HessianMatrix.element[index_i+2][n]+=f2*dr.x*dr.x*dr.z+f2*dr.y*dr.y*dr.z+f2*dr.z*dr.z*dr.z+2.0*f1*dr.z;   // xx z + yy z + zz z
-        }
+        if(index_i.x>=0) HessianMatrix.element[index_i.x][n]+=f2*dr.x*dr.x*dr.x+2.0*f1*dr.x+f2*dr.y*dr.y*dr.x+f2*dr.z*dr.z*dr.x;   // xx x + yy x + zz x
+        if(index_i.y>=0) HessianMatrix.element[index_i.y][n]+=f2*dr.x*dr.x*dr.y+f2*dr.y*dr.y*dr.y+2.0*f1*dr.y+f2*dr.z*dr.z*dr.y;   // xx y + yy y + zz y
+        if(index_i.z>=0) HessianMatrix.element[index_i.z][n]+=f2*dr.x*dr.x*dr.z+f2*dr.y*dr.y*dr.z+f2*dr.z*dr.z*dr.z+2.0*f1*dr.z;   // xx z + yy z + zz z
       }
 
-      if(index_j>=0)
-      {
-        HessianMatrix.element[index_j][n]-=f2*dr.x*dr.x*dr.x+2.0*f1*dr.x+f2*dr.y*dr.y*dr.x+f2*dr.z*dr.z*dr.x;
-        HessianMatrix.element[index_j+1][n]-=f2*dr.x*dr.x*dr.y+f2*dr.y*dr.y*dr.y+2.0*f1*dr.y+f2*dr.z*dr.z*dr.y;
-        HessianMatrix.element[index_j+2][n]-=f2*dr.x*dr.x*dr.z+f2*dr.y*dr.y*dr.z+f2*dr.z*dr.z*dr.z+2.0*f1*dr.z;
-      }
+      if(index_j.x>=0) HessianMatrix.element[index_j.x][n]-=f2*dr.x*dr.x*dr.x+2.0*f1*dr.x+f2*dr.y*dr.y*dr.x+f2*dr.z*dr.z*dr.x;
+      if(index_j.y>=0) HessianMatrix.element[index_j.y][n]-=f2*dr.x*dr.x*dr.y+f2*dr.y*dr.y*dr.y+2.0*f1*dr.y+f2*dr.z*dr.z*dr.y;
+      if(index_j.z>=0) HessianMatrix.element[index_j.z][n]-=f2*dr.x*dr.x*dr.z+f2*dr.y*dr.y*dr.z+f2*dr.z*dr.z*dr.z+2.0*f1*dr.z;
       break;
     case NPTPR:
     case NPHPR:
@@ -372,89 +338,77 @@ static inline void HessianAtomicPositionStrain(REAL_MATRIX HessianMatrix,int ind
         case ANISOTROPIC:
           if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
           {
-            if(index_i>=0)
-            {
-              HessianMatrix.element[index_i][n]+=f2*dr.x*dr.x*dr.x+2.0*f1*dr.x;
-              HessianMatrix.element[index_i][n+1]+=f2*dr.y*dr.y*dr.x;
-              HessianMatrix.element[index_i][n+2]+=f2*dr.z*dr.z*dr.x;
+            if(index_i.x>=0) HessianMatrix.element[index_i.x][n]+=f2*dr.x*dr.x*dr.x+2.0*f1*dr.x;
+            if(index_i.x>=0) HessianMatrix.element[index_i.x][n+1]+=f2*dr.y*dr.y*dr.x;
+            if(index_i.x>=0) HessianMatrix.element[index_i.x][n+2]+=f2*dr.z*dr.z*dr.x;
 
-              HessianMatrix.element[index_i+1][n]+=f2*dr.x*dr.x*dr.y;
-              HessianMatrix.element[index_i+1][n+1]+=f2*dr.y*dr.y*dr.y+2.0*f1*dr.y;
-              HessianMatrix.element[index_i+1][n+2]+=f2*dr.z*dr.z*dr.y;
+            if(index_i.y>=0) HessianMatrix.element[index_i.y][n]+=f2*dr.x*dr.x*dr.y;
+            if(index_i.y>=0) HessianMatrix.element[index_i.y][n+1]+=f2*dr.y*dr.y*dr.y+2.0*f1*dr.y;
+            if(index_i.y>=0) HessianMatrix.element[index_i.y][n+2]+=f2*dr.z*dr.z*dr.y;
 
-              HessianMatrix.element[index_i+2][n]+=f2*dr.x*dr.x*dr.z;
-              HessianMatrix.element[index_i+2][n+1]+=f2*dr.y*dr.y*dr.z;
-              HessianMatrix.element[index_i+2][n+2]+=f2*dr.z*dr.z*dr.z+2.0*f1*dr.z;
-            }
+            if(index_i.z>=0) HessianMatrix.element[index_i.z][n]+=f2*dr.x*dr.x*dr.z;
+            if(index_i.z>=0) HessianMatrix.element[index_i.z][n+1]+=f2*dr.y*dr.y*dr.z;
+            if(index_i.z>=0) HessianMatrix.element[index_i.z][n+2]+=f2*dr.z*dr.z*dr.z+2.0*f1*dr.z;
           }
 
-          if(index_j>=0)
-          {
-            HessianMatrix.element[index_j][n]-=f2*dr.x*dr.x*dr.x+2.0*f1*dr.x;
-            HessianMatrix.element[index_j][n+1]-=f2*dr.y*dr.y*dr.x;
-            HessianMatrix.element[index_j][n+2]-=f2*dr.z*dr.z*dr.x;
+          if(index_j.x>=0) HessianMatrix.element[index_j.x][n]-=f2*dr.x*dr.x*dr.x+2.0*f1*dr.x;
+          if(index_j.x>=0) HessianMatrix.element[index_j.x][n+1]-=f2*dr.y*dr.y*dr.x;
+          if(index_j.x>=0) HessianMatrix.element[index_j.x][n+2]-=f2*dr.z*dr.z*dr.x;
 
-            HessianMatrix.element[index_j+1][n]-=f2*dr.x*dr.x*dr.y;
-            HessianMatrix.element[index_j+1][n+1]-=f2*dr.y*dr.y*dr.y+2.0*f1*dr.y;
-            HessianMatrix.element[index_j+1][n+2]-=f2*dr.z*dr.z*dr.y;
+          if(index_j.y>=0) HessianMatrix.element[index_j.y][n]-=f2*dr.x*dr.x*dr.y;
+          if(index_j.y>=0) HessianMatrix.element[index_j.y][n+1]-=f2*dr.y*dr.y*dr.y+2.0*f1*dr.y;
+          if(index_j.y>=0) HessianMatrix.element[index_j.y][n+2]-=f2*dr.z*dr.z*dr.y;
 
-            HessianMatrix.element[index_j+2][n]-=f2*dr.x*dr.x*dr.z;
-            HessianMatrix.element[index_j+2][n+1]-=f2*dr.y*dr.y*dr.z;
-            HessianMatrix.element[index_j+2][n+2]-=f2*dr.z*dr.z*dr.z+2.0*f1*dr.z;
-          }
+          if(index_j.z>=0) HessianMatrix.element[index_j.z][n]-=f2*dr.x*dr.x*dr.z;
+          if(index_j.z>=0) HessianMatrix.element[index_j.z][n+1]-=f2*dr.y*dr.y*dr.z;
+          if(index_j.z>=0) HessianMatrix.element[index_j.z][n+2]-=f2*dr.z*dr.z*dr.z+2.0*f1*dr.z;
           break;
         case REGULAR:
         case REGULAR_UPPER_TRIANGLE:
           if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
           {
-            if(index_i>=0)
-            {
-              HessianMatrix.element[index_i][n]+=f2*dr.x*dr.x*dr.x+2.0*f1*dr.x;
-              HessianMatrix.element[index_i][n+1]+=f2*dr.x*dr.y*dr.x+f1*dr.y;
-              HessianMatrix.element[index_i][n+2]+=f2*dr.x*dr.z*dr.x+f1*dr.z;
-              HessianMatrix.element[index_i][n+3]+=f2*dr.y*dr.y*dr.x;
-              HessianMatrix.element[index_i][n+4]+=f2*dr.y*dr.z*dr.x;
-              HessianMatrix.element[index_i][n+5]+=f2*dr.z*dr.z*dr.x;
+            if(index_i.x>=0)  HessianMatrix.element[index_i.x][n]+=f2*dr.x*dr.x*dr.x+2.0*f1*dr.x;
+            if(index_i.x>=0)  HessianMatrix.element[index_i.x][n+1]+=f2*dr.x*dr.y*dr.x+f1*dr.y;
+            if(index_i.x>=0)  HessianMatrix.element[index_i.x][n+2]+=f2*dr.x*dr.z*dr.x+f1*dr.z;
+            if(index_i.x>=0)  HessianMatrix.element[index_i.x][n+3]+=f2*dr.y*dr.y*dr.x;
+            if(index_i.x>=0)  HessianMatrix.element[index_i.x][n+4]+=f2*dr.y*dr.z*dr.x;
+            if(index_i.x>=0)  HessianMatrix.element[index_i.x][n+5]+=f2*dr.z*dr.z*dr.x;
 
-              HessianMatrix.element[index_i+1][n]+=f2*dr.x*dr.x*dr.y;
-              HessianMatrix.element[index_i+1][n+1]+=f2*dr.x*dr.y*dr.y+f1*dr.x;
-              HessianMatrix.element[index_i+1][n+2]+=f2*dr.x*dr.z*dr.y;
-              HessianMatrix.element[index_i+1][n+3]+=f2*dr.y*dr.y*dr.y+2.0*f1*dr.y;
-              HessianMatrix.element[index_i+1][n+4]+=f2*dr.y*dr.z*dr.y+f1*dr.z;
-              HessianMatrix.element[index_i+1][n+5]+=f2*dr.z*dr.z*dr.y;
+            if(index_i.y>=0)  HessianMatrix.element[index_i.y][n]+=f2*dr.x*dr.x*dr.y;
+            if(index_i.y>=0)  HessianMatrix.element[index_i.y][n+1]+=f2*dr.x*dr.y*dr.y+f1*dr.x;
+            if(index_i.y>=0)  HessianMatrix.element[index_i.y][n+2]+=f2*dr.x*dr.z*dr.y;
+            if(index_i.y>=0)  HessianMatrix.element[index_i.y][n+3]+=f2*dr.y*dr.y*dr.y+2.0*f1*dr.y;
+            if(index_i.y>=0)  HessianMatrix.element[index_i.y][n+4]+=f2*dr.y*dr.z*dr.y+f1*dr.z;
+            if(index_i.y>=0)  HessianMatrix.element[index_i.y][n+5]+=f2*dr.z*dr.z*dr.y;
 
-              HessianMatrix.element[index_i+2][n]+=f2*dr.x*dr.x*dr.z;
-              HessianMatrix.element[index_i+2][n+1]+=f2*dr.x*dr.y*dr.z;
-              HessianMatrix.element[index_i+2][n+2]+=f2*dr.x*dr.z*dr.z+f1*dr.x;
-              HessianMatrix.element[index_i+2][n+3]+=f2*dr.y*dr.y*dr.z;
-              HessianMatrix.element[index_i+2][n+4]+=f2*dr.y*dr.z*dr.z+f1*dr.y;
-              HessianMatrix.element[index_i+2][n+5]+=f2*dr.z*dr.z*dr.z+2.0*f1*dr.z;
-            }
+            if(index_i.z>=0)  HessianMatrix.element[index_i.z][n]+=f2*dr.x*dr.x*dr.z;
+            if(index_i.z>=0)  HessianMatrix.element[index_i.z][n+1]+=f2*dr.x*dr.y*dr.z;
+            if(index_i.z>=0)  HessianMatrix.element[index_i.z][n+2]+=f2*dr.x*dr.z*dr.z+f1*dr.x;
+            if(index_i.z>=0)  HessianMatrix.element[index_i.z][n+3]+=f2*dr.y*dr.y*dr.z;
+            if(index_i.z>=0)  HessianMatrix.element[index_i.z][n+4]+=f2*dr.y*dr.z*dr.z+f1*dr.y;
+            if(index_i.z>=0)  HessianMatrix.element[index_i.z][n+5]+=f2*dr.z*dr.z*dr.z+2.0*f1*dr.z;
           }
 
-          if(index_j>=0)
-          {
-            HessianMatrix.element[index_j][n]-=f2*dr.x*dr.x*dr.x+2.0*f1*dr.x;
-            HessianMatrix.element[index_j][n+1]-=f2*dr.x*dr.y*dr.x+f1*dr.y;
-            HessianMatrix.element[index_j][n+2]-=f2*dr.x*dr.z*dr.x+f1*dr.z;
-            HessianMatrix.element[index_j][n+3]-=f2*dr.y*dr.y*dr.x;
-            HessianMatrix.element[index_j][n+4]-=f2*dr.y*dr.z*dr.x;
-            HessianMatrix.element[index_j][n+5]-=f2*dr.z*dr.z*dr.x;
+          if(index_j.x>=0)  HessianMatrix.element[index_j.x][n]-=f2*dr.x*dr.x*dr.x+2.0*f1*dr.x;
+          if(index_j.x>=0)  HessianMatrix.element[index_j.x][n+1]-=f2*dr.x*dr.y*dr.x+f1*dr.y;
+          if(index_j.x>=0)  HessianMatrix.element[index_j.x][n+2]-=f2*dr.x*dr.z*dr.x+f1*dr.z;
+          if(index_j.x>=0)  HessianMatrix.element[index_j.x][n+3]-=f2*dr.y*dr.y*dr.x;
+          if(index_j.x>=0)  HessianMatrix.element[index_j.x][n+4]-=f2*dr.y*dr.z*dr.x;
+          if(index_j.x>=0)  HessianMatrix.element[index_j.x][n+5]-=f2*dr.z*dr.z*dr.x;
 
-            HessianMatrix.element[index_j+1][n]-=f2*dr.x*dr.x*dr.y;
-            HessianMatrix.element[index_j+1][n+1]-=f2*dr.x*dr.y*dr.y+f1*dr.x;
-            HessianMatrix.element[index_j+1][n+2]-=f2*dr.x*dr.z*dr.y;
-            HessianMatrix.element[index_j+1][n+3]-=f2*dr.y*dr.y*dr.y+2.0*f1*dr.y;
-            HessianMatrix.element[index_j+1][n+4]-=f2*dr.y*dr.z*dr.y+f1*dr.z;
-            HessianMatrix.element[index_j+1][n+5]-=f2*dr.z*dr.z*dr.y;
+          if(index_j.y>=0)  HessianMatrix.element[index_j.y][n]-=f2*dr.x*dr.x*dr.y;
+          if(index_j.y>=0)  HessianMatrix.element[index_j.y][n+1]-=f2*dr.x*dr.y*dr.y+f1*dr.x;
+          if(index_j.y>=0)  HessianMatrix.element[index_j.y][n+2]-=f2*dr.x*dr.z*dr.y;
+          if(index_j.y>=0)  HessianMatrix.element[index_j.y][n+3]-=f2*dr.y*dr.y*dr.y+2.0*f1*dr.y;
+          if(index_j.y>=0)  HessianMatrix.element[index_j.y][n+4]-=f2*dr.y*dr.z*dr.y+f1*dr.z;
+          if(index_j.y>=0)  HessianMatrix.element[index_j.y][n+5]-=f2*dr.z*dr.z*dr.y;
 
-            HessianMatrix.element[index_j+2][n]-=f2*dr.x*dr.x*dr.z;
-            HessianMatrix.element[index_j+2][n+1]-=f2*dr.x*dr.y*dr.z;
-            HessianMatrix.element[index_j+2][n+2]-=f2*dr.x*dr.z*dr.z+f1*dr.x;
-            HessianMatrix.element[index_j+2][n+3]-=f2*dr.y*dr.y*dr.z;
-            HessianMatrix.element[index_j+2][n+4]-=f2*dr.y*dr.z*dr.z+f1*dr.y;
-            HessianMatrix.element[index_j+2][n+5]-=f2*dr.z*dr.z*dr.z+2.0*f1*dr.z;
-          }
+          if(index_j.z>=0)  HessianMatrix.element[index_j.z][n]-=f2*dr.x*dr.x*dr.z;
+          if(index_j.z>=0)  HessianMatrix.element[index_j.z][n+1]-=f2*dr.x*dr.y*dr.z;
+          if(index_j.z>=0)  HessianMatrix.element[index_j.z][n+2]-=f2*dr.x*dr.z*dr.z+f1*dr.x;
+          if(index_j.z>=0)  HessianMatrix.element[index_j.z][n+3]-=f2*dr.y*dr.y*dr.z;
+          if(index_j.z>=0)  HessianMatrix.element[index_j.z][n+4]-=f2*dr.y*dr.z*dr.z+f1*dr.y;
+          if(index_j.z>=0)  HessianMatrix.element[index_j.z][n+5]-=f2*dr.z*dr.z*dr.z+2.0*f1*dr.z;
           break;                                   
         case MONOCLINIC:
         case MONOCLINIC_UPPER_TRIANGLE:
@@ -463,122 +417,104 @@ static inline void HessianAtomicPositionStrain(REAL_MATRIX HessianMatrix,int ind
             case MONOCLINIC_ALPHA_ANGLE:
               if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
               {
-                if(index_i>=0)
-                {
-                  HessianMatrix.element[index_i][n]+=f2*dr.x*dr.x*dr.x+2.0*f1*dr.x;
-                  HessianMatrix.element[index_i][n+1]+=f2*dr.y*dr.y*dr.x;
-                  HessianMatrix.element[index_i][n+2]+=f2*dr.y*dr.z*dr.x;
-                  HessianMatrix.element[index_i][n+3]+=f2*dr.z*dr.z*dr.x;
+                if(index_i.x>=0) HessianMatrix.element[index_i.x][n]+=f2*dr.x*dr.x*dr.x+2.0*f1*dr.x;
+                if(index_i.x>=0) HessianMatrix.element[index_i.x][n+1]+=f2*dr.y*dr.y*dr.x;
+                if(index_i.x>=0) HessianMatrix.element[index_i.x][n+2]+=f2*dr.y*dr.z*dr.x;
+                if(index_i.x>=0) HessianMatrix.element[index_i.x][n+3]+=f2*dr.z*dr.z*dr.x;
 
-                  HessianMatrix.element[index_i+1][n]+=f2*dr.x*dr.x*dr.y;
-                  HessianMatrix.element[index_i+1][n+1]+=f2*dr.y*dr.y*dr.y+2.0*f1*dr.y;
-                  HessianMatrix.element[index_i+1][n+2]+=f2*dr.y*dr.z*dr.y+f1*dr.z;
-                  HessianMatrix.element[index_i+1][n+3]+=f2*dr.z*dr.z*dr.y;
+                if(index_i.y>=0) HessianMatrix.element[index_i.y][n]+=f2*dr.x*dr.x*dr.y;
+                if(index_i.y>=0) HessianMatrix.element[index_i.y][n+1]+=f2*dr.y*dr.y*dr.y+2.0*f1*dr.y;
+                if(index_i.y>=0) HessianMatrix.element[index_i.y][n+2]+=f2*dr.y*dr.z*dr.y+f1*dr.z;
+                if(index_i.y>=0) HessianMatrix.element[index_i.y][n+3]+=f2*dr.z*dr.z*dr.y;
 
-                  HessianMatrix.element[index_i+2][n]+=f2*dr.x*dr.x*dr.z;
-                  HessianMatrix.element[index_i+2][n+1]+=f2*dr.y*dr.y*dr.z;
-                  HessianMatrix.element[index_i+2][n+2]+=f2*dr.y*dr.z*dr.z+f1*dr.y;
-                  HessianMatrix.element[index_i+2][n+3]+=f2*dr.z*dr.z*dr.z+2.0*f1*dr.z;
-                }
+                if(index_i.z>=0) HessianMatrix.element[index_i.z][n]+=f2*dr.x*dr.x*dr.z;
+                if(index_i.z>=0) HessianMatrix.element[index_i.z][n+1]+=f2*dr.y*dr.y*dr.z;
+                if(index_i.z>=0) HessianMatrix.element[index_i.z][n+2]+=f2*dr.y*dr.z*dr.z+f1*dr.y;
+                if(index_i.z>=0) HessianMatrix.element[index_i.z][n+3]+=f2*dr.z*dr.z*dr.z+2.0*f1*dr.z;
               }
 
-              if(index_j>=0)
-              {
-                HessianMatrix.element[index_j][n]-=f2*dr.x*dr.x*dr.x+2.0*f1*dr.x;
-                HessianMatrix.element[index_j][n+1]-=f2*dr.y*dr.y*dr.x;
-                HessianMatrix.element[index_j][n+2]-=f2*dr.y*dr.z*dr.x;
-                HessianMatrix.element[index_j][n+3]-=f2*dr.z*dr.z*dr.x;
+              if(index_j.x>=0)  HessianMatrix.element[index_j.x][n]-=f2*dr.x*dr.x*dr.x+2.0*f1*dr.x;
+              if(index_j.x>=0)  HessianMatrix.element[index_j.x][n+1]-=f2*dr.y*dr.y*dr.x;
+              if(index_j.x>=0)  HessianMatrix.element[index_j.x][n+2]-=f2*dr.y*dr.z*dr.x;
+              if(index_j.x>=0)  HessianMatrix.element[index_j.x][n+3]-=f2*dr.z*dr.z*dr.x;
 
-                HessianMatrix.element[index_j+1][n]-=f2*dr.x*dr.x*dr.y;
-                HessianMatrix.element[index_j+1][n+1]-=f2*dr.y*dr.y*dr.y+2.0*f1*dr.y;
-                HessianMatrix.element[index_j+1][n+2]-=f2*dr.y*dr.z*dr.y+f1*dr.z;
-                HessianMatrix.element[index_j+1][n+3]-=f2*dr.z*dr.z*dr.y;
+              if(index_j.y>=0)  HessianMatrix.element[index_j.y][n]-=f2*dr.x*dr.x*dr.y;
+              if(index_j.y>=0)  HessianMatrix.element[index_j.y][n+1]-=f2*dr.y*dr.y*dr.y+2.0*f1*dr.y;
+              if(index_j.y>=0)  HessianMatrix.element[index_j.y][n+2]-=f2*dr.y*dr.z*dr.y+f1*dr.z;
+              if(index_j.y>=0)  HessianMatrix.element[index_j.y][n+3]-=f2*dr.z*dr.z*dr.y;
 
-                HessianMatrix.element[index_j+2][n]-=f2*dr.x*dr.x*dr.z;
-                HessianMatrix.element[index_j+2][n+1]-=f2*dr.y*dr.y*dr.z;
-                HessianMatrix.element[index_j+2][n+2]-=f2*dr.y*dr.z*dr.z+f1*dr.y;
-                HessianMatrix.element[index_j+2][n+3]-=f2*dr.z*dr.z*dr.z+2.0*f1*dr.z;
-              }
+              if(index_j.z>=0)  HessianMatrix.element[index_j.z][n]-=f2*dr.x*dr.x*dr.z;
+              if(index_j.z>=0)  HessianMatrix.element[index_j.z][n+1]-=f2*dr.y*dr.y*dr.z;
+              if(index_j.z>=0)  HessianMatrix.element[index_j.z][n+2]-=f2*dr.y*dr.z*dr.z+f1*dr.y;
+              if(index_j.z>=0)  HessianMatrix.element[index_j.z][n+3]-=f2*dr.z*dr.z*dr.z+2.0*f1*dr.z;
               break;
             case MONOCLINIC_BETA_ANGLE:
               if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
               {
-                if(index_i>=0)
-                {
-                  HessianMatrix.element[index_i][n]+=f2*dr.x*dr.x*dr.x+2.0*f1*dr.x;
-                  HessianMatrix.element[index_i][n+1]+=f2*dr.x*dr.z*dr.x+f1*dr.z;
-                  HessianMatrix.element[index_i][n+2]+=f2*dr.y*dr.y*dr.x;
-                  HessianMatrix.element[index_i][n+3]+=f2*dr.z*dr.z*dr.x;
+                if(index_i.x>=0)  HessianMatrix.element[index_i.x][n]+=f2*dr.x*dr.x*dr.x+2.0*f1*dr.x;
+                if(index_i.x>=0)  HessianMatrix.element[index_i.x][n+1]+=f2*dr.x*dr.z*dr.x+f1*dr.z;
+                if(index_i.x>=0)  HessianMatrix.element[index_i.x][n+2]+=f2*dr.y*dr.y*dr.x;
+                if(index_i.x>=0)  HessianMatrix.element[index_i.x][n+3]+=f2*dr.z*dr.z*dr.x;
 
-                  HessianMatrix.element[index_i+1][n]+=f2*dr.x*dr.x*dr.y;
-                  HessianMatrix.element[index_i+1][n+1]+=f2*dr.x*dr.z*dr.y;
-                  HessianMatrix.element[index_i+1][n+2]+=f2*dr.y*dr.y*dr.y+2.0*f1*dr.y;
-                  HessianMatrix.element[index_i+1][n+3]+=f2*dr.z*dr.z*dr.y;
+                if(index_i.y>=0)  HessianMatrix.element[index_i.y][n]+=f2*dr.x*dr.x*dr.y;
+                if(index_i.y>=0)  HessianMatrix.element[index_i.y][n+1]+=f2*dr.x*dr.z*dr.y;
+                if(index_i.y>=0)  HessianMatrix.element[index_i.y][n+2]+=f2*dr.y*dr.y*dr.y+2.0*f1*dr.y;
+                if(index_i.y>=0)  HessianMatrix.element[index_i.y][n+3]+=f2*dr.z*dr.z*dr.y;
 
-                  HessianMatrix.element[index_i+2][n]+=f2*dr.x*dr.x*dr.z;
-                  HessianMatrix.element[index_i+2][n+1]+=f2*dr.x*dr.z*dr.z+f1*dr.x;
-                  HessianMatrix.element[index_i+2][n+2]+=f2*dr.y*dr.y*dr.z;
-                  HessianMatrix.element[index_i+2][n+3]+=f2*dr.z*dr.z*dr.z+2.0*f1*dr.z;
-                }
+                if(index_i.z>=0)  HessianMatrix.element[index_i.z][n]+=f2*dr.x*dr.x*dr.z;
+                if(index_i.z>=0)  HessianMatrix.element[index_i.z][n+1]+=f2*dr.x*dr.z*dr.z+f1*dr.x;
+                if(index_i.z>=0)  HessianMatrix.element[index_i.z][n+2]+=f2*dr.y*dr.y*dr.z;
+                if(index_i.z>=0)  HessianMatrix.element[index_i.z][n+3]+=f2*dr.z*dr.z*dr.z+2.0*f1*dr.z;
               }
 
-              if(index_j>=0)
-              {
-                HessianMatrix.element[index_j][n]-=f2*dr.x*dr.x*dr.x+2.0*f1*dr.x;
-                HessianMatrix.element[index_j][n+1]-=f2*dr.x*dr.z*dr.x+f1*dr.z;
-                HessianMatrix.element[index_j][n+2]-=f2*dr.y*dr.y*dr.x;
-                HessianMatrix.element[index_j][n+3]-=f2*dr.z*dr.z*dr.x;
+              if(index_j.x>=0)  HessianMatrix.element[index_j.x][n]-=f2*dr.x*dr.x*dr.x+2.0*f1*dr.x;
+              if(index_j.x>=0)  HessianMatrix.element[index_j.x][n+1]-=f2*dr.x*dr.z*dr.x+f1*dr.z;
+              if(index_j.x>=0)  HessianMatrix.element[index_j.x][n+2]-=f2*dr.y*dr.y*dr.x;
+              if(index_j.x>=0)  HessianMatrix.element[index_j.x][n+3]-=f2*dr.z*dr.z*dr.x;
 
-                HessianMatrix.element[index_j+1][n]-=f2*dr.x*dr.x*dr.y;
-                HessianMatrix.element[index_j+1][n+1]-=f2*dr.x*dr.z*dr.y;
-                HessianMatrix.element[index_j+1][n+2]-=f2*dr.y*dr.y*dr.y+2.0*f1*dr.y;
-                HessianMatrix.element[index_j+1][n+3]-=f2*dr.z*dr.z*dr.y;
+              if(index_j.y>=0)  HessianMatrix.element[index_j.y][n]-=f2*dr.x*dr.x*dr.y;
+              if(index_j.y>=0)  HessianMatrix.element[index_j.y][n+1]-=f2*dr.x*dr.z*dr.y;
+              if(index_j.y>=0)  HessianMatrix.element[index_j.y][n+2]-=f2*dr.y*dr.y*dr.y+2.0*f1*dr.y;
+              if(index_j.y>=0)  HessianMatrix.element[index_j.y][n+3]-=f2*dr.z*dr.z*dr.y;
 
-                HessianMatrix.element[index_j+2][n]-=f2*dr.x*dr.x*dr.z;
-                HessianMatrix.element[index_j+2][n+1]-=f2*dr.x*dr.z*dr.z+f1*dr.x;
-                HessianMatrix.element[index_j+2][n+2]-=f2*dr.y*dr.y*dr.z;
-                HessianMatrix.element[index_j+2][n+3]-=f2*dr.z*dr.z*dr.z+2.0*f1*dr.z;
-              }
+              if(index_j.z>=0)  HessianMatrix.element[index_j.z][n]-=f2*dr.x*dr.x*dr.z;
+              if(index_j.z>=0)  HessianMatrix.element[index_j.z][n+1]-=f2*dr.x*dr.z*dr.z+f1*dr.x;
+              if(index_j.z>=0)  HessianMatrix.element[index_j.z][n+2]-=f2*dr.y*dr.y*dr.z;
+              if(index_j.z>=0)  HessianMatrix.element[index_j.z][n+3]-=f2*dr.z*dr.z*dr.z+2.0*f1*dr.z;
               break;
             case MONOCLINIC_GAMMA_ANGLE:
               if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
               {
-                if(index_i>=0)
-                {
-                  HessianMatrix.element[index_i][n]+=f2*dr.x*dr.x*dr.x+2.0*f1*dr.x;
-                  HessianMatrix.element[index_i][n+1]+=f2*dr.x*dr.y*dr.x+f1*dr.y;
-                  HessianMatrix.element[index_i][n+2]+=f2*dr.y*dr.y*dr.x;
-                  HessianMatrix.element[index_i][n+3]+=f2*dr.z*dr.z*dr.x;
+                if(index_i.x>=0) HessianMatrix.element[index_i.x][n]+=f2*dr.x*dr.x*dr.x+2.0*f1*dr.x;
+                if(index_i.x>=0) HessianMatrix.element[index_i.x][n+1]+=f2*dr.x*dr.y*dr.x+f1*dr.y;
+                if(index_i.x>=0) HessianMatrix.element[index_i.x][n+2]+=f2*dr.y*dr.y*dr.x;
+                if(index_i.x>=0) HessianMatrix.element[index_i.x][n+3]+=f2*dr.z*dr.z*dr.x;
 
-                  HessianMatrix.element[index_i+1][n]+=f2*dr.x*dr.x*dr.y;
-                  HessianMatrix.element[index_i+1][n+1]+=f2*dr.x*dr.y*dr.y+f1*dr.x;
-                  HessianMatrix.element[index_i+1][n+2]+=f2*dr.y*dr.y*dr.y+2.0*f1*dr.y;
-                  HessianMatrix.element[index_i+1][n+3]+=f2*dr.z*dr.z*dr.y;
+                if(index_i.y>=0) HessianMatrix.element[index_i.y][n]+=f2*dr.x*dr.x*dr.y;
+                if(index_i.y>=0) HessianMatrix.element[index_i.y][n+1]+=f2*dr.x*dr.y*dr.y+f1*dr.x;
+                if(index_i.y>=0) HessianMatrix.element[index_i.y][n+2]+=f2*dr.y*dr.y*dr.y+2.0*f1*dr.y;
+                if(index_i.y>=0) HessianMatrix.element[index_i.y][n+3]+=f2*dr.z*dr.z*dr.y;
 
-                  HessianMatrix.element[index_i+2][n]+=f2*dr.x*dr.x*dr.z;
-                  HessianMatrix.element[index_i+2][n+1]+=f2*dr.x*dr.y*dr.z;
-                  HessianMatrix.element[index_i+2][n+2]+=f2*dr.y*dr.y*dr.z;
-                  HessianMatrix.element[index_i+2][n+3]+=f2*dr.z*dr.z*dr.z+2.0*f1*dr.z;
-                }
+                if(index_i.z>=0) HessianMatrix.element[index_i.z][n]+=f2*dr.x*dr.x*dr.z;
+                if(index_i.z>=0) HessianMatrix.element[index_i.z][n+1]+=f2*dr.x*dr.y*dr.z;
+                if(index_i.z>=0) HessianMatrix.element[index_i.z][n+2]+=f2*dr.y*dr.y*dr.z;
+                if(index_i.z>=0) HessianMatrix.element[index_i.z][n+3]+=f2*dr.z*dr.z*dr.z+2.0*f1*dr.z;
               }
 
-              if(index_j>=0)
-              {
-                HessianMatrix.element[index_j][n]-=f2*dr.x*dr.x*dr.x+2.0*f1*dr.x;
-                HessianMatrix.element[index_j][n+1]-=f2*dr.x*dr.y*dr.x+f1*dr.y;
-                HessianMatrix.element[index_j][n+2]-=f2*dr.y*dr.y*dr.x;
-                HessianMatrix.element[index_j][n+3]-=f2*dr.z*dr.z*dr.x;
+              if(index_j.x>=0) HessianMatrix.element[index_j.x][n]-=f2*dr.x*dr.x*dr.x+2.0*f1*dr.x;
+              if(index_j.x>=0) HessianMatrix.element[index_j.x][n+1]-=f2*dr.x*dr.y*dr.x+f1*dr.y;
+              if(index_j.x>=0) HessianMatrix.element[index_j.x][n+2]-=f2*dr.y*dr.y*dr.x;
+              if(index_j.x>=0) HessianMatrix.element[index_j.x][n+3]-=f2*dr.z*dr.z*dr.x;
 
-                HessianMatrix.element[index_j+1][n]-=f2*dr.x*dr.x*dr.y;
-                HessianMatrix.element[index_j+1][n+1]-=f2*dr.x*dr.y*dr.y+f1*dr.x;
-                HessianMatrix.element[index_j+1][n+2]-=f2*dr.y*dr.y*dr.y+2.0*f1*dr.y;
-                HessianMatrix.element[index_j+1][n+3]-=f2*dr.z*dr.z*dr.y;
+              if(index_j.y>=0) HessianMatrix.element[index_j.y][n]-=f2*dr.x*dr.x*dr.y;
+              if(index_j.y>=0) HessianMatrix.element[index_j.y][n+1]-=f2*dr.x*dr.y*dr.y+f1*dr.x;
+              if(index_j.y>=0) HessianMatrix.element[index_j.y][n+2]-=f2*dr.y*dr.y*dr.y+2.0*f1*dr.y;
+              if(index_j.y>=0) HessianMatrix.element[index_j.y][n+3]-=f2*dr.z*dr.z*dr.y;
 
-                HessianMatrix.element[index_j+2][n]-=f2*dr.x*dr.x*dr.z;
-                HessianMatrix.element[index_j+2][n+1]-=f2*dr.x*dr.y*dr.z;
-                HessianMatrix.element[index_j+2][n+2]-=f2*dr.y*dr.y*dr.z;
-                HessianMatrix.element[index_j+2][n+3]-=f2*dr.z*dr.z*dr.z+2.0*f1*dr.z;
-              }
+              if(index_j.z>=0) HessianMatrix.element[index_j.z][n]-=f2*dr.x*dr.x*dr.z;
+              if(index_j.z>=0) HessianMatrix.element[index_j.z][n+1]-=f2*dr.x*dr.y*dr.z;
+              if(index_j.z>=0) HessianMatrix.element[index_j.z][n+2]-=f2*dr.y*dr.y*dr.z;
+              if(index_j.z>=0) HessianMatrix.element[index_j.z][n+3]-=f2*dr.z*dr.z*dr.z+2.0*f1*dr.z;
               break;
           }
           break;  
@@ -597,7 +533,7 @@ static inline void HessianAtomicPositionStrain(REAL_MATRIX HessianMatrix,int ind
 
 // Hessian: Center of mass - Strain (part II)
 // ==========================================
-static inline void HessianCenterOfMassStrainJ(REAL_MATRIX HessianMatrix,int index_i,int index_j,REAL f1,REAL f2,VECTOR dr,VECTOR posB,VECTOR comB)
+static inline void HessianCenterOfMassStrainJ(REAL_MATRIX HessianMatrix,INT_VECTOR3 index_i,INT_VECTOR3 index_j,REAL f1,REAL f2,VECTOR dr,VECTOR posB,VECTOR comB)
 {
   int n;
 
@@ -607,20 +543,14 @@ static inline void HessianCenterOfMassStrainJ(REAL_MATRIX HessianMatrix,int inde
     case NPT:
       if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
       {
-        if(index_i>=0)
-        {
-          HessianMatrix.element[index_i][n]+=(posB.x-comB.x)*(f2*dr.x*dr.x+f1)+(posB.y-comB.y)*(f2*dr.x*dr.y)+(posB.z-comB.z)*(f2*dr.x*dr.z);
-          HessianMatrix.element[index_i+1][n]+=(posB.x-comB.x)*(f2*dr.y*dr.x)+(posB.y-comB.y)*(f2*dr.y*dr.y+f1)+(posB.z-comB.z)*(f2*dr.y*dr.z);
-          HessianMatrix.element[index_i+2][n]+=(posB.x-comB.x)*(f2*dr.z*dr.x)+(posB.y-comB.y)*(f2*dr.z*dr.y)+(posB.z-comB.z)*(f2*dr.z*dr.z+f1);
-        }
+        if(index_i.x>=0) HessianMatrix.element[index_i.x][n]+=(posB.x-comB.x)*(f2*dr.x*dr.x+f1)+(posB.y-comB.y)*(f2*dr.x*dr.y)+(posB.z-comB.z)*(f2*dr.x*dr.z);
+        if(index_i.y>=0) HessianMatrix.element[index_i.y][n]+=(posB.x-comB.x)*(f2*dr.y*dr.x)+(posB.y-comB.y)*(f2*dr.y*dr.y+f1)+(posB.z-comB.z)*(f2*dr.y*dr.z);
+        if(index_i.z>=0) HessianMatrix.element[index_i.z][n]+=(posB.x-comB.x)*(f2*dr.z*dr.x)+(posB.y-comB.y)*(f2*dr.z*dr.y)+(posB.z-comB.z)*(f2*dr.z*dr.z+f1);
       }
 
-      if(index_j>=0)
-      {
-        HessianMatrix.element[index_j][n]-=(posB.x-comB.x)*(f2*dr.x*dr.x+f1)+(posB.y-comB.y)*(f2*dr.x*dr.y)+(posB.z-comB.z)*(f2*dr.x*dr.z);
-        HessianMatrix.element[index_j+1][n]-=(posB.x-comB.x)*(f2*dr.y*dr.x)+(posB.y-comB.y)*(f2*dr.y*dr.y+f1)+(posB.z-comB.z)*(f2*dr.y*dr.z);
-        HessianMatrix.element[index_j+2][n]-=(posB.x-comB.x)*(f2*dr.z*dr.x)+(posB.y-comB.y)*(f2*dr.z*dr.y)+(posB.z-comB.z)*(f2*dr.z*dr.z+f1);
-      }
+      if(index_j.x>=0) HessianMatrix.element[index_j.x][n]-=(posB.x-comB.x)*(f2*dr.x*dr.x+f1)+(posB.y-comB.y)*(f2*dr.x*dr.y)+(posB.z-comB.z)*(f2*dr.x*dr.z);
+      if(index_j.y>=0) HessianMatrix.element[index_j.y][n]-=(posB.x-comB.x)*(f2*dr.y*dr.x)+(posB.y-comB.y)*(f2*dr.y*dr.y+f1)+(posB.z-comB.z)*(f2*dr.y*dr.z);
+      if(index_j.z>=0) HessianMatrix.element[index_j.z][n]-=(posB.x-comB.x)*(f2*dr.z*dr.x)+(posB.y-comB.y)*(f2*dr.z*dr.y)+(posB.z-comB.z)*(f2*dr.z*dr.z+f1);
       break;
     case NPTPR:
     case NPHPR:
@@ -630,140 +560,122 @@ static inline void HessianCenterOfMassStrainJ(REAL_MATRIX HessianMatrix,int inde
         case ANISOTROPIC:
           if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
           {
-            if(index_i>=0)
-            {
-              HessianMatrix.element[index_i][n]+=(posB.x-comB.x)*(f2*dr.x*dr.x+f1);
-              HessianMatrix.element[index_i][n+1]+=(posB.y-comB.y)*(f2*dr.x*dr.y);
-              HessianMatrix.element[index_i][n+2]+=(posB.z-comB.z)*(f2*dr.x*dr.z);
+            if(index_i.x>=0)  HessianMatrix.element[index_i.x][n]+=(posB.x-comB.x)*(f2*dr.x*dr.x+f1);
+            if(index_i.x>=0)  HessianMatrix.element[index_i.x][n+1]+=(posB.y-comB.y)*(f2*dr.x*dr.y);
+            if(index_i.x>=0)  HessianMatrix.element[index_i.x][n+2]+=(posB.z-comB.z)*(f2*dr.x*dr.z);
 
-              HessianMatrix.element[index_i+1][n]+=(posB.x-comB.x)*(f2*dr.y*dr.x);
-              HessianMatrix.element[index_i+1][n+1]+=(posB.y-comB.y)*(f2*dr.y*dr.y+f1);
-              HessianMatrix.element[index_i+1][n+2]+=(posB.z-comB.z)*(f2*dr.y*dr.z);
+            if(index_i.y>=0)  HessianMatrix.element[index_i.y][n]+=(posB.x-comB.x)*(f2*dr.y*dr.x);
+            if(index_i.y>=0)  HessianMatrix.element[index_i.y][n+1]+=(posB.y-comB.y)*(f2*dr.y*dr.y+f1);
+            if(index_i.y>=0)  HessianMatrix.element[index_i.y][n+2]+=(posB.z-comB.z)*(f2*dr.y*dr.z);
 
-              HessianMatrix.element[index_i+2][n]+=(posB.x-comB.x)*(f2*dr.z*dr.x);
-              HessianMatrix.element[index_i+2][n+1]+=(posB.y-comB.y)*(f2*dr.z*dr.y);
-              HessianMatrix.element[index_i+2][n+2]+=(posB.z-comB.z)*(f2*dr.z*dr.z+f1);
-            }
+            if(index_i.z>=0)  HessianMatrix.element[index_i.z][n]+=(posB.x-comB.x)*(f2*dr.z*dr.x);
+            if(index_i.z>=0)  HessianMatrix.element[index_i.z][n+1]+=(posB.y-comB.y)*(f2*dr.z*dr.y);
+            if(index_i.z>=0)  HessianMatrix.element[index_i.z][n+2]+=(posB.z-comB.z)*(f2*dr.z*dr.z+f1);
           }
 
-          if(index_j>=0)
-          {
-            HessianMatrix.element[index_j][n]-=(posB.x-comB.x)*(f2*dr.x*dr.x+f1);
-            HessianMatrix.element[index_j][n+1]-=(posB.y-comB.y)*(f2*dr.x*dr.y);
-            HessianMatrix.element[index_j][n+2]-=(posB.z-comB.z)*(f2*dr.x*dr.z);
+          if(index_j.x>=0) HessianMatrix.element[index_j.x][n]-=(posB.x-comB.x)*(f2*dr.x*dr.x+f1);
+          if(index_j.x>=0) HessianMatrix.element[index_j.x][n+1]-=(posB.y-comB.y)*(f2*dr.x*dr.y);
+          if(index_j.x>=0) HessianMatrix.element[index_j.x][n+2]-=(posB.z-comB.z)*(f2*dr.x*dr.z);
 
-            HessianMatrix.element[index_j+1][n]-=(posB.x-comB.x)*(f2*dr.y*dr.x);
-            HessianMatrix.element[index_j+1][n+1]-=(posB.y-comB.y)*(f2*dr.y*dr.y+f1);
-            HessianMatrix.element[index_j+1][n+2]-=(posB.z-comB.z)*(f2*dr.y*dr.z);
+          if(index_j.y>=0) HessianMatrix.element[index_j.y][n]-=(posB.x-comB.x)*(f2*dr.y*dr.x);
+          if(index_j.y>=0) HessianMatrix.element[index_j.y][n+1]-=(posB.y-comB.y)*(f2*dr.y*dr.y+f1);
+          if(index_j.y>=0) HessianMatrix.element[index_j.y][n+2]-=(posB.z-comB.z)*(f2*dr.y*dr.z);
 
-            HessianMatrix.element[index_j+2][n]-=(posB.x-comB.x)*(f2*dr.z*dr.x);
-            HessianMatrix.element[index_j+2][n+1]-=(posB.y-comB.y)*(f2*dr.z*dr.y);
-            HessianMatrix.element[index_j+2][n+2]-=(posB.z-comB.z)*(f2*dr.z*dr.z+f1);
-          }
+          if(index_j.z>=0) HessianMatrix.element[index_j.z][n]-=(posB.x-comB.x)*(f2*dr.z*dr.x);
+          if(index_j.z>=0) HessianMatrix.element[index_j.z][n+1]-=(posB.y-comB.y)*(f2*dr.z*dr.y);
+          if(index_j.z>=0) HessianMatrix.element[index_j.z][n+2]-=(posB.z-comB.z)*(f2*dr.z*dr.z+f1);
           break;
         case REGULAR:
           if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
           {
-            if(index_i>=0)
-            {
-              HessianMatrix.element[index_i][n]+=(posB.x-comB.x)*(f2*dr.x*dr.x+f1);
-              HessianMatrix.element[index_i][n+1]+=0.5*((posB.y-comB.y)*(f2*dr.x*dr.x+f1)+(posB.x-comB.x)*(f2*dr.x*dr.y));
-              HessianMatrix.element[index_i][n+2]+=0.5*((posB.z-comB.z)*(f2*dr.x*dr.x+f1)+(posB.x-comB.x)*(f2*dr.x*dr.z));
-              HessianMatrix.element[index_i][n+3]+=(posB.y-comB.y)*(f2*dr.x*dr.y);
-              HessianMatrix.element[index_i][n+4]+=0.5*((posB.z-comB.z)*(f2*dr.x*dr.y)+(posB.y-comB.y)*(f2*dr.x*dr.z));
-              HessianMatrix.element[index_i][n+5]+=(posB.z-comB.z)*(f2*dr.x*dr.z);
+            if(index_i.x>=0) HessianMatrix.element[index_i.x][n]+=(posB.x-comB.x)*(f2*dr.x*dr.x+f1);
+            if(index_i.x>=0) HessianMatrix.element[index_i.x][n+1]+=0.5*((posB.y-comB.y)*(f2*dr.x*dr.x+f1)+(posB.x-comB.x)*(f2*dr.x*dr.y));
+            if(index_i.x>=0) HessianMatrix.element[index_i.x][n+2]+=0.5*((posB.z-comB.z)*(f2*dr.x*dr.x+f1)+(posB.x-comB.x)*(f2*dr.x*dr.z));
+            if(index_i.x>=0) HessianMatrix.element[index_i.x][n+3]+=(posB.y-comB.y)*(f2*dr.x*dr.y);
+            if(index_i.x>=0) HessianMatrix.element[index_i.x][n+4]+=0.5*((posB.z-comB.z)*(f2*dr.x*dr.y)+(posB.y-comB.y)*(f2*dr.x*dr.z));
+            if(index_i.x>=0) HessianMatrix.element[index_i.x][n+5]+=(posB.z-comB.z)*(f2*dr.x*dr.z);
 
-              HessianMatrix.element[index_i+1][n]+=(posB.x-comB.x)*(f2*dr.y*dr.x);
-              HessianMatrix.element[index_i+1][n+1]+=0.5*((posB.y-comB.y)*(f2*dr.y*dr.x)+(posB.x-comB.x)*(f2*dr.y*dr.y+f1));
-              HessianMatrix.element[index_i+1][n+2]+=0.5*((posB.z-comB.z)*(f2*dr.y*dr.x)+(posB.x-comB.x)*(f2*dr.y*dr.z));
-              HessianMatrix.element[index_i+1][n+3]+=(posB.y-comB.y)*(f2*dr.y*dr.y+f1);
-              HessianMatrix.element[index_i+1][n+4]+=0.5*((posB.z-comB.z)*(f2*dr.y*dr.y+f1)+(posB.y-comB.y)*(f2*dr.y*dr.z));
-              HessianMatrix.element[index_i+1][n+5]+=(posB.z-comB.z)*(f2*dr.y*dr.z);
+            if(index_i.y>=0) HessianMatrix.element[index_i.y][n]+=(posB.x-comB.x)*(f2*dr.y*dr.x);
+            if(index_i.y>=0) HessianMatrix.element[index_i.y][n+1]+=0.5*((posB.y-comB.y)*(f2*dr.y*dr.x)+(posB.x-comB.x)*(f2*dr.y*dr.y+f1));
+            if(index_i.y>=0) HessianMatrix.element[index_i.y][n+2]+=0.5*((posB.z-comB.z)*(f2*dr.y*dr.x)+(posB.x-comB.x)*(f2*dr.y*dr.z));
+            if(index_i.y>=0) HessianMatrix.element[index_i.y][n+3]+=(posB.y-comB.y)*(f2*dr.y*dr.y+f1);
+            if(index_i.y>=0) HessianMatrix.element[index_i.y][n+4]+=0.5*((posB.z-comB.z)*(f2*dr.y*dr.y+f1)+(posB.y-comB.y)*(f2*dr.y*dr.z));
+            if(index_i.y>=0) HessianMatrix.element[index_i.y][n+5]+=(posB.z-comB.z)*(f2*dr.y*dr.z);
 
-              HessianMatrix.element[index_i+2][n]+=(posB.x-comB.x)*(f2*dr.z*dr.x);
-              HessianMatrix.element[index_i+2][n+1]+=0.5*((posB.y-comB.y)*(f2*dr.z*dr.x)+(posB.x-comB.x)*(f2*dr.z*dr.y));
-              HessianMatrix.element[index_i+2][n+2]+=0.5*((posB.z-comB.z)*(f2*dr.z*dr.x)+(posB.x-comB.x)*(f2*dr.z*dr.z+f1));
-              HessianMatrix.element[index_i+2][n+3]+=(posB.y-comB.y)*(f2*dr.z*dr.y);
-              HessianMatrix.element[index_i+2][n+4]+=0.5*((posB.z-comB.z)*(f2*dr.z*dr.y)+(posB.y-comB.y)*(f2*dr.z*dr.z+f1));
-              HessianMatrix.element[index_i+2][n+5]+=(posB.z-comB.z)*(f2*dr.z*dr.z+f1);
-            }
+            if(index_i.z>=0) HessianMatrix.element[index_i.z][n]+=(posB.x-comB.x)*(f2*dr.z*dr.x);
+            if(index_i.z>=0) HessianMatrix.element[index_i.z][n+1]+=0.5*((posB.y-comB.y)*(f2*dr.z*dr.x)+(posB.x-comB.x)*(f2*dr.z*dr.y));
+            if(index_i.z>=0) HessianMatrix.element[index_i.z][n+2]+=0.5*((posB.z-comB.z)*(f2*dr.z*dr.x)+(posB.x-comB.x)*(f2*dr.z*dr.z+f1));
+            if(index_i.z>=0) HessianMatrix.element[index_i.z][n+3]+=(posB.y-comB.y)*(f2*dr.z*dr.y);
+            if(index_i.z>=0) HessianMatrix.element[index_i.z][n+4]+=0.5*((posB.z-comB.z)*(f2*dr.z*dr.y)+(posB.y-comB.y)*(f2*dr.z*dr.z+f1));
+            if(index_i.z>=0) HessianMatrix.element[index_i.z][n+5]+=(posB.z-comB.z)*(f2*dr.z*dr.z+f1);
           }
 
-          if(index_j>=0)
-          {
-            HessianMatrix.element[index_j][n]-=(posB.x-comB.x)*(f2*dr.x*dr.x+f1);
-            HessianMatrix.element[index_j][n+1]-=0.5*((posB.y-comB.y)*(f2*dr.x*dr.x+f1)+(posB.x-comB.x)*(f2*dr.x*dr.y));
-            HessianMatrix.element[index_j][n+2]-=0.5*((posB.z-comB.z)*(f2*dr.x*dr.x+f1)+(posB.x-comB.x)*(f2*dr.x*dr.z));
-            HessianMatrix.element[index_j][n+3]-=(posB.y-comB.y)*(f2*dr.x*dr.y);
-            HessianMatrix.element[index_j][n+4]-=0.5*((posB.z-comB.z)*(f2*dr.x*dr.y)+(posB.y-comB.y)*(f2*dr.x*dr.z));
-            HessianMatrix.element[index_j][n+5]-=(posB.z-comB.z)*(f2*dr.x*dr.z);
+          if(index_j.x>=0) HessianMatrix.element[index_j.x][n]-=(posB.x-comB.x)*(f2*dr.x*dr.x+f1);
+          if(index_j.x>=0) HessianMatrix.element[index_j.x][n+1]-=0.5*((posB.y-comB.y)*(f2*dr.x*dr.x+f1)+(posB.x-comB.x)*(f2*dr.x*dr.y));
+          if(index_j.x>=0) HessianMatrix.element[index_j.x][n+2]-=0.5*((posB.z-comB.z)*(f2*dr.x*dr.x+f1)+(posB.x-comB.x)*(f2*dr.x*dr.z));
+          if(index_j.x>=0) HessianMatrix.element[index_j.x][n+3]-=(posB.y-comB.y)*(f2*dr.x*dr.y);
+          if(index_j.x>=0) HessianMatrix.element[index_j.x][n+4]-=0.5*((posB.z-comB.z)*(f2*dr.x*dr.y)+(posB.y-comB.y)*(f2*dr.x*dr.z));
+          if(index_j.x>=0) HessianMatrix.element[index_j.x][n+5]-=(posB.z-comB.z)*(f2*dr.x*dr.z);
 
-            HessianMatrix.element[index_j+1][n]-=(posB.x-comB.x)*(f2*dr.y*dr.x);
-            HessianMatrix.element[index_j+1][n+1]-=0.5*((posB.y-comB.y)*(f2*dr.y*dr.x)+(posB.x-comB.x)*(f2*dr.y*dr.y+f1));
-            HessianMatrix.element[index_j+1][n+2]-=0.5*((posB.z-comB.z)*(f2*dr.y*dr.x)+(posB.x-comB.x)*(f2*dr.y*dr.z));
-            HessianMatrix.element[index_j+1][n+3]-=(posB.y-comB.y)*(f2*dr.y*dr.y+f1);
-            HessianMatrix.element[index_j+1][n+4]-=0.5*((posB.z-comB.z)*(f2*dr.y*dr.y+f1)+(posB.y-comB.y)*(f2*dr.y*dr.z));
-            HessianMatrix.element[index_j+1][n+5]-=(posB.z-comB.z)*(f2*dr.y*dr.z);
+          if(index_j.y>=0) HessianMatrix.element[index_j.y][n]-=(posB.x-comB.x)*(f2*dr.y*dr.x);
+          if(index_j.y>=0) HessianMatrix.element[index_j.y][n+1]-=0.5*((posB.y-comB.y)*(f2*dr.y*dr.x)+(posB.x-comB.x)*(f2*dr.y*dr.y+f1));
+          if(index_j.y>=0) HessianMatrix.element[index_j.y][n+2]-=0.5*((posB.z-comB.z)*(f2*dr.y*dr.x)+(posB.x-comB.x)*(f2*dr.y*dr.z));
+          if(index_j.y>=0) HessianMatrix.element[index_j.y][n+3]-=(posB.y-comB.y)*(f2*dr.y*dr.y+f1);
+          if(index_j.y>=0) HessianMatrix.element[index_j.y][n+4]-=0.5*((posB.z-comB.z)*(f2*dr.y*dr.y+f1)+(posB.y-comB.y)*(f2*dr.y*dr.z));
+          if(index_j.y>=0) HessianMatrix.element[index_j.y][n+5]-=(posB.z-comB.z)*(f2*dr.y*dr.z);
 
-            HessianMatrix.element[index_j+2][n]-=(posB.x-comB.x)*(f2*dr.z*dr.x);
-            HessianMatrix.element[index_j+2][n+1]-=0.5*((posB.y-comB.y)*(f2*dr.z*dr.x)+(posB.x-comB.x)*(f2*dr.z*dr.y));
-            HessianMatrix.element[index_j+2][n+2]-=0.5*((posB.z-comB.z)*(f2*dr.z*dr.x)+(posB.x-comB.x)*(f2*dr.z*dr.z+f1));
-            HessianMatrix.element[index_j+2][n+3]-=(posB.y-comB.y)*(f2*dr.z*dr.y);
-            HessianMatrix.element[index_j+2][n+4]-=0.5*((posB.z-comB.z)*(f2*dr.z*dr.y)+(posB.y-comB.y)*(f2*dr.z*dr.z+f1));
-            HessianMatrix.element[index_j+2][n+5]-=(posB.z-comB.z)*(f2*dr.z*dr.z+f1);
-          }
+          if(index_j.z>=0) HessianMatrix.element[index_j.z][n]-=(posB.x-comB.x)*(f2*dr.z*dr.x);
+          if(index_j.z>=0) HessianMatrix.element[index_j.z][n+1]-=0.5*((posB.y-comB.y)*(f2*dr.z*dr.x)+(posB.x-comB.x)*(f2*dr.z*dr.y));
+          if(index_j.z>=0) HessianMatrix.element[index_j.z][n+2]-=0.5*((posB.z-comB.z)*(f2*dr.z*dr.x)+(posB.x-comB.x)*(f2*dr.z*dr.z+f1));
+          if(index_j.z>=0) HessianMatrix.element[index_j.z][n+3]-=(posB.y-comB.y)*(f2*dr.z*dr.y);
+          if(index_j.z>=0) HessianMatrix.element[index_j.z][n+4]-=0.5*((posB.z-comB.z)*(f2*dr.z*dr.y)+(posB.y-comB.y)*(f2*dr.z*dr.z+f1));
+          if(index_j.z>=0) HessianMatrix.element[index_j.z][n+5]-=(posB.z-comB.z)*(f2*dr.z*dr.z+f1);
           break;                                   
         case REGULAR_UPPER_TRIANGLE:
           if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
           {
-            if(index_i>=0)
-            {
-              HessianMatrix.element[index_i  ][n  ]+=(posB.x-comB.x)*(f2*dr.x*dr.x+f1);
-              HessianMatrix.element[index_i  ][n+1]+=(posB.y-comB.y)*(f2*dr.x*dr.x+f1);
-              HessianMatrix.element[index_i  ][n+2]+=(posB.z-comB.z)*(f2*dr.x*dr.x+f1);
-              HessianMatrix.element[index_i  ][n+3]+=(posB.y-comB.y)*(f2*dr.x*dr.y);
-              HessianMatrix.element[index_i  ][n+4]+=(posB.z-comB.z)*(f2*dr.x*dr.y);
-              HessianMatrix.element[index_i  ][n+5]+=(posB.z-comB.z)*(f2*dr.x*dr.z);
+            if(index_i.x>=0) HessianMatrix.element[index_i.x][n  ]+=(posB.x-comB.x)*(f2*dr.x*dr.x+f1);
+            if(index_i.x>=0) HessianMatrix.element[index_i.x][n+1]+=(posB.y-comB.y)*(f2*dr.x*dr.x+f1);
+            if(index_i.x>=0) HessianMatrix.element[index_i.x][n+2]+=(posB.z-comB.z)*(f2*dr.x*dr.x+f1);
+            if(index_i.x>=0) HessianMatrix.element[index_i.x][n+3]+=(posB.y-comB.y)*(f2*dr.x*dr.y);
+            if(index_i.x>=0) HessianMatrix.element[index_i.x][n+4]+=(posB.z-comB.z)*(f2*dr.x*dr.y);
+            if(index_i.x>=0) HessianMatrix.element[index_i.x][n+5]+=(posB.z-comB.z)*(f2*dr.x*dr.z);
 
-              HessianMatrix.element[index_i+1][n  ]+=(posB.x-comB.x)*(f2*dr.y*dr.x);
-              HessianMatrix.element[index_i+1][n+1]+=(posB.y-comB.y)*(f2*dr.y*dr.x);
-              HessianMatrix.element[index_i+1][n+2]+=(posB.z-comB.z)*(f2*dr.y*dr.x);
-              HessianMatrix.element[index_i+1][n+3]+=(posB.y-comB.y)*(f2*dr.y*dr.y+f1);
-              HessianMatrix.element[index_i+1][n+4]+=(posB.z-comB.z)*(f2*dr.y*dr.y+f1);
-              HessianMatrix.element[index_i+1][n+5]+=(posB.z-comB.z)*(f2*dr.y*dr.z);
+            if(index_i.y>=0) HessianMatrix.element[index_i.y][n  ]+=(posB.x-comB.x)*(f2*dr.y*dr.x);
+            if(index_i.y>=0) HessianMatrix.element[index_i.y][n+1]+=(posB.y-comB.y)*(f2*dr.y*dr.x);
+            if(index_i.y>=0) HessianMatrix.element[index_i.y][n+2]+=(posB.z-comB.z)*(f2*dr.y*dr.x);
+            if(index_i.y>=0) HessianMatrix.element[index_i.y][n+3]+=(posB.y-comB.y)*(f2*dr.y*dr.y+f1);
+            if(index_i.y>=0) HessianMatrix.element[index_i.y][n+4]+=(posB.z-comB.z)*(f2*dr.y*dr.y+f1);
+            if(index_i.y>=0) HessianMatrix.element[index_i.y][n+5]+=(posB.z-comB.z)*(f2*dr.y*dr.z);
 
-              HessianMatrix.element[index_i+2][n  ]+=(posB.x-comB.x)*(f2*dr.z*dr.x);
-              HessianMatrix.element[index_i+2][n+1]+=(posB.y-comB.y)*(f2*dr.z*dr.x);
-              HessianMatrix.element[index_i+2][n+2]+=(posB.z-comB.z)*(f2*dr.z*dr.x);
-              HessianMatrix.element[index_i+2][n+3]+=(posB.y-comB.y)*(f2*dr.z*dr.y);
-              HessianMatrix.element[index_i+2][n+4]+=(posB.z-comB.z)*(f2*dr.z*dr.y);
-              HessianMatrix.element[index_i+2][n+5]+=(posB.z-comB.z)*(f2*dr.z*dr.z+f1);
-            }
+            if(index_i.z>=0) HessianMatrix.element[index_i.z][n  ]+=(posB.x-comB.x)*(f2*dr.z*dr.x);
+            if(index_i.z>=0) HessianMatrix.element[index_i.z][n+1]+=(posB.y-comB.y)*(f2*dr.z*dr.x);
+            if(index_i.z>=0) HessianMatrix.element[index_i.z][n+2]+=(posB.z-comB.z)*(f2*dr.z*dr.x);
+            if(index_i.z>=0) HessianMatrix.element[index_i.z][n+3]+=(posB.y-comB.y)*(f2*dr.z*dr.y);
+            if(index_i.z>=0) HessianMatrix.element[index_i.z][n+4]+=(posB.z-comB.z)*(f2*dr.z*dr.y);
+            if(index_i.z>=0) HessianMatrix.element[index_i.z][n+5]+=(posB.z-comB.z)*(f2*dr.z*dr.z+f1);
           }
 
-          if(index_j>=0)
-          {
-            HessianMatrix.element[index_j  ][n  ]-=(posB.x-comB.x)*(f2*dr.x*dr.x+f1);
-            HessianMatrix.element[index_j  ][n+1]-=(posB.y-comB.y)*(f2*dr.x*dr.x+f1);
-            HessianMatrix.element[index_j  ][n+2]-=(posB.z-comB.z)*(f2*dr.x*dr.x+f1);
-            HessianMatrix.element[index_j  ][n+3]-=(posB.y-comB.y)*(f2*dr.x*dr.y);
-            HessianMatrix.element[index_j  ][n+4]-=(posB.z-comB.z)*(f2*dr.x*dr.y);
-            HessianMatrix.element[index_j  ][n+5]-=(posB.z-comB.z)*(f2*dr.x*dr.z);
+          if(index_j.x>=0) HessianMatrix.element[index_j.x][n  ]-=(posB.x-comB.x)*(f2*dr.x*dr.x+f1);
+          if(index_j.x>=0) HessianMatrix.element[index_j.x][n+1]-=(posB.y-comB.y)*(f2*dr.x*dr.x+f1);
+          if(index_j.x>=0) HessianMatrix.element[index_j.x][n+2]-=(posB.z-comB.z)*(f2*dr.x*dr.x+f1);
+          if(index_j.x>=0) HessianMatrix.element[index_j.x][n+3]-=(posB.y-comB.y)*(f2*dr.x*dr.y);
+          if(index_j.x>=0) HessianMatrix.element[index_j.x][n+4]-=(posB.z-comB.z)*(f2*dr.x*dr.y);
+          if(index_j.x>=0) HessianMatrix.element[index_j.x][n+5]-=(posB.z-comB.z)*(f2*dr.x*dr.z);
 
-            HessianMatrix.element[index_j+1][n  ]-=(posB.x-comB.x)*(f2*dr.y*dr.x);
-            HessianMatrix.element[index_j+1][n+1]-=(posB.y-comB.y)*(f2*dr.y*dr.x);
-            HessianMatrix.element[index_j+1][n+2]-=(posB.z-comB.z)*(f2*dr.y*dr.x);
-            HessianMatrix.element[index_j+1][n+3]-=(posB.y-comB.y)*(f2*dr.y*dr.y+f1);
-            HessianMatrix.element[index_j+1][n+4]-=(posB.z-comB.z)*(f2*dr.y*dr.y+f1);
-            HessianMatrix.element[index_j+1][n+5]-=(posB.z-comB.z)*(f2*dr.y*dr.z);
+          if(index_j.y>=0) HessianMatrix.element[index_j.y][n  ]-=(posB.x-comB.x)*(f2*dr.y*dr.x);
+          if(index_j.y>=0) HessianMatrix.element[index_j.y][n+1]-=(posB.y-comB.y)*(f2*dr.y*dr.x);
+          if(index_j.y>=0) HessianMatrix.element[index_j.y][n+2]-=(posB.z-comB.z)*(f2*dr.y*dr.x);
+          if(index_j.y>=0) HessianMatrix.element[index_j.y][n+3]-=(posB.y-comB.y)*(f2*dr.y*dr.y+f1);
+          if(index_j.y>=0) HessianMatrix.element[index_j.y][n+4]-=(posB.z-comB.z)*(f2*dr.y*dr.y+f1);
+          if(index_j.y>=0) HessianMatrix.element[index_j.y][n+5]-=(posB.z-comB.z)*(f2*dr.y*dr.z);
 
-            HessianMatrix.element[index_j+2][n  ]-=(posB.x-comB.x)*(f2*dr.z*dr.x);
-            HessianMatrix.element[index_j+2][n+1]-=(posB.y-comB.y)*(f2*dr.z*dr.x);
-            HessianMatrix.element[index_j+2][n+2]-=(posB.z-comB.z)*(f2*dr.z*dr.x);
-            HessianMatrix.element[index_j+2][n+3]-=(posB.y-comB.y)*(f2*dr.z*dr.y);
-            HessianMatrix.element[index_j+2][n+4]-=(posB.z-comB.z)*(f2*dr.z*dr.y);
-            HessianMatrix.element[index_j+2][n+5]-=(posB.z-comB.z)*(f2*dr.z*dr.z+f1);
-          }
+          if(index_j.z>=0) HessianMatrix.element[index_j.z][n  ]-=(posB.x-comB.x)*(f2*dr.z*dr.x);
+          if(index_j.z>=0) HessianMatrix.element[index_j.z][n+1]-=(posB.y-comB.y)*(f2*dr.z*dr.x);
+          if(index_j.z>=0) HessianMatrix.element[index_j.z][n+2]-=(posB.z-comB.z)*(f2*dr.z*dr.x);
+          if(index_j.z>=0) HessianMatrix.element[index_j.z][n+3]-=(posB.y-comB.y)*(f2*dr.z*dr.y);
+          if(index_j.z>=0) HessianMatrix.element[index_j.z][n+4]-=(posB.z-comB.z)*(f2*dr.z*dr.y);
+          if(index_j.z>=0) HessianMatrix.element[index_j.z][n+5]-=(posB.z-comB.z)*(f2*dr.z*dr.z+f1);
           break;                                   
         case MONOCLINIC:
           switch(MonoclinicAngleType[CurrentSystem])
@@ -771,122 +683,104 @@ static inline void HessianCenterOfMassStrainJ(REAL_MATRIX HessianMatrix,int inde
             case MONOCLINIC_ALPHA_ANGLE:
               if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
               {
-                if(index_i>=0)
-                {
-                  HessianMatrix.element[index_i][n]+=(posB.x-comB.x)*(f2*dr.x*dr.x+f1);
-                  HessianMatrix.element[index_i][n+1]+=(posB.y-comB.y)*(f2*dr.x*dr.y);
-                  HessianMatrix.element[index_i][n+2]+=0.5*((posB.z-comB.z)*(f2*dr.x*dr.y)+(posB.y-comB.y)*(f2*dr.x*dr.z));
-                  HessianMatrix.element[index_i][n+3]+=(posB.z-comB.z)*(f2*dr.x*dr.z);
+                if(index_i.x>=0) HessianMatrix.element[index_i.x][n]+=(posB.x-comB.x)*(f2*dr.x*dr.x+f1);
+                if(index_i.x>=0) HessianMatrix.element[index_i.x][n+1]+=(posB.y-comB.y)*(f2*dr.x*dr.y);
+                if(index_i.x>=0) HessianMatrix.element[index_i.x][n+2]+=0.5*((posB.z-comB.z)*(f2*dr.x*dr.y)+(posB.y-comB.y)*(f2*dr.x*dr.z));
+                if(index_i.x>=0) HessianMatrix.element[index_i.x][n+3]+=(posB.z-comB.z)*(f2*dr.x*dr.z);
 
-                  HessianMatrix.element[index_i+1][n]+=(posB.x-comB.x)*(f2*dr.y*dr.x);
-                  HessianMatrix.element[index_i+1][n+1]+=(posB.y-comB.y)*(f2*dr.y*dr.y+f1);
-                  HessianMatrix.element[index_i+1][n+2]+=0.5*((posB.z-comB.z)*(f2*dr.y*dr.y+f1)+(posB.y-comB.y)*(f2*dr.y*dr.z));
-                  HessianMatrix.element[index_i+1][n+3]+=(posB.z-comB.z)*(f2*dr.y*dr.z);
+                if(index_i.y>=0) HessianMatrix.element[index_i.y][n]+=(posB.x-comB.x)*(f2*dr.y*dr.x);
+                if(index_i.y>=0) HessianMatrix.element[index_i.y][n+1]+=(posB.y-comB.y)*(f2*dr.y*dr.y+f1);
+                if(index_i.y>=0) HessianMatrix.element[index_i.y][n+2]+=0.5*((posB.z-comB.z)*(f2*dr.y*dr.y+f1)+(posB.y-comB.y)*(f2*dr.y*dr.z));
+                if(index_i.y>=0) HessianMatrix.element[index_i.y][n+3]+=(posB.z-comB.z)*(f2*dr.y*dr.z);
 
-                  HessianMatrix.element[index_i+2][n]+=(posB.x-comB.x)*(f2*dr.z*dr.x);
-                  HessianMatrix.element[index_i+2][n+1]+=(posB.y-comB.y)*(f2*dr.z*dr.y);
-                  HessianMatrix.element[index_i+2][n+2]+=0.5*((posB.z-comB.z)*(f2*dr.z*dr.y)+(posB.y-comB.y)*(f2*dr.z*dr.z+f1));
-                  HessianMatrix.element[index_i+2][n+3]+=(posB.z-comB.z)*(f2*dr.z*dr.z+f1);
-                }
+                if(index_i.z>=0) HessianMatrix.element[index_i.z][n]+=(posB.x-comB.x)*(f2*dr.z*dr.x);
+                if(index_i.z>=0) HessianMatrix.element[index_i.z][n+1]+=(posB.y-comB.y)*(f2*dr.z*dr.y);
+                if(index_i.z>=0) HessianMatrix.element[index_i.z][n+2]+=0.5*((posB.z-comB.z)*(f2*dr.z*dr.y)+(posB.y-comB.y)*(f2*dr.z*dr.z+f1));
+                if(index_i.z>=0) HessianMatrix.element[index_i.z][n+3]+=(posB.z-comB.z)*(f2*dr.z*dr.z+f1);
               }
 
-              if(index_j>=0)
-              {
-                HessianMatrix.element[index_j][n]-=(posB.x-comB.x)*(f2*dr.x*dr.x+f1);
-                HessianMatrix.element[index_j][n+1]-=(posB.y-comB.y)*(f2*dr.x*dr.y);
-                HessianMatrix.element[index_j][n+2]-=0.5*((posB.z-comB.z)*(f2*dr.x*dr.y)+(posB.y-comB.y)*(f2*dr.x*dr.z));
-                HessianMatrix.element[index_j][n+3]-=(posB.z-comB.z)*(f2*dr.x*dr.z);
+              if(index_j.x>=0) HessianMatrix.element[index_j.x][n]-=(posB.x-comB.x)*(f2*dr.x*dr.x+f1);
+              if(index_j.x>=0) HessianMatrix.element[index_j.x][n+1]-=(posB.y-comB.y)*(f2*dr.x*dr.y);
+              if(index_j.x>=0) HessianMatrix.element[index_j.x][n+2]-=0.5*((posB.z-comB.z)*(f2*dr.x*dr.y)+(posB.y-comB.y)*(f2*dr.x*dr.z));
+              if(index_j.x>=0) HessianMatrix.element[index_j.x][n+3]-=(posB.z-comB.z)*(f2*dr.x*dr.z);
 
-                HessianMatrix.element[index_j+1][n]-=(posB.x-comB.x)*(f2*dr.y*dr.x);
-                HessianMatrix.element[index_j+1][n+1]-=(posB.y-comB.y)*(f2*dr.y*dr.y+f1);
-                HessianMatrix.element[index_j+1][n+2]-=0.5*((posB.z-comB.z)*(f2*dr.y*dr.y+f1)+(posB.y-comB.y)*(f2*dr.y*dr.z));
-                HessianMatrix.element[index_j+1][n+3]-=(posB.z-comB.z)*(f2*dr.y*dr.z);
+              if(index_j.y>=0) HessianMatrix.element[index_j.y][n]-=(posB.x-comB.x)*(f2*dr.y*dr.x);
+              if(index_j.y>=0) HessianMatrix.element[index_j.y][n+1]-=(posB.y-comB.y)*(f2*dr.y*dr.y+f1);
+              if(index_j.y>=0) HessianMatrix.element[index_j.y][n+2]-=0.5*((posB.z-comB.z)*(f2*dr.y*dr.y+f1)+(posB.y-comB.y)*(f2*dr.y*dr.z));
+              if(index_j.y>=0) HessianMatrix.element[index_j.y][n+3]-=(posB.z-comB.z)*(f2*dr.y*dr.z);
 
-                HessianMatrix.element[index_j+2][n]-=(posB.x-comB.x)*(f2*dr.z*dr.x);
-                HessianMatrix.element[index_j+2][n+1]-=(posB.y-comB.y)*(f2*dr.z*dr.y);
-                HessianMatrix.element[index_j+2][n+2]-=0.5*((posB.z-comB.z)*(f2*dr.z*dr.y)+(posB.y-comB.y)*(f2*dr.z*dr.z+f1));
-                HessianMatrix.element[index_j+2][n+3]-=(posB.z-comB.z)*(f2*dr.z*dr.z+f1);
-              }
+              if(index_j.z>=0) HessianMatrix.element[index_j.z][n]-=(posB.x-comB.x)*(f2*dr.z*dr.x);
+              if(index_j.z>=0) HessianMatrix.element[index_j.z][n+1]-=(posB.y-comB.y)*(f2*dr.z*dr.y);
+              if(index_j.z>=0) HessianMatrix.element[index_j.z][n+2]-=0.5*((posB.z-comB.z)*(f2*dr.z*dr.y)+(posB.y-comB.y)*(f2*dr.z*dr.z+f1));
+              if(index_j.z>=0) HessianMatrix.element[index_j.z][n+3]-=(posB.z-comB.z)*(f2*dr.z*dr.z+f1);
               break;
             case MONOCLINIC_BETA_ANGLE:
               if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
               {
-                if(index_i>=0)
-                {
-                  HessianMatrix.element[index_i][n]+=(posB.x-comB.x)*(f2*dr.x*dr.x+f1);
-                  HessianMatrix.element[index_i][n+1]+=0.5*((posB.z-comB.z)*(f2*dr.x*dr.x+f1)+(posB.x-comB.x)*(f2*dr.x*dr.z));
-                  HessianMatrix.element[index_i][n+2]+=(posB.y-comB.y)*(f2*dr.x*dr.y);
-                  HessianMatrix.element[index_i][n+3]+=(posB.z-comB.z)*(f2*dr.x*dr.z);
+                if(index_i.x>=0) HessianMatrix.element[index_i.x][n]+=(posB.x-comB.x)*(f2*dr.x*dr.x+f1);
+                if(index_i.x>=0) HessianMatrix.element[index_i.x][n+1]+=0.5*((posB.z-comB.z)*(f2*dr.x*dr.x+f1)+(posB.x-comB.x)*(f2*dr.x*dr.z));
+                if(index_i.x>=0) HessianMatrix.element[index_i.x][n+2]+=(posB.y-comB.y)*(f2*dr.x*dr.y);
+                if(index_i.x>=0) HessianMatrix.element[index_i.x][n+3]+=(posB.z-comB.z)*(f2*dr.x*dr.z);
 
-                  HessianMatrix.element[index_i+1][n]+=(posB.x-comB.x)*(f2*dr.y*dr.x);
-                  HessianMatrix.element[index_i+1][n+1]+=0.5*((posB.z-comB.z)*(f2*dr.y*dr.x)+(posB.x-comB.x)*(f2*dr.y*dr.z));
-                  HessianMatrix.element[index_i+1][n+2]+=(posB.y-comB.y)*(f2*dr.y*dr.y+f1);
-                  HessianMatrix.element[index_i+1][n+3]+=(posB.z-comB.z)*(f2*dr.y*dr.z);
+                if(index_i.y>=0) HessianMatrix.element[index_i.y][n]+=(posB.x-comB.x)*(f2*dr.y*dr.x);
+                if(index_i.y>=0) HessianMatrix.element[index_i.y][n+1]+=0.5*((posB.z-comB.z)*(f2*dr.y*dr.x)+(posB.x-comB.x)*(f2*dr.y*dr.z));
+                if(index_i.y>=0) HessianMatrix.element[index_i.y][n+2]+=(posB.y-comB.y)*(f2*dr.y*dr.y+f1);
+                if(index_i.y>=0) HessianMatrix.element[index_i.y][n+3]+=(posB.z-comB.z)*(f2*dr.y*dr.z);
 
-                  HessianMatrix.element[index_i+2][n]+=(posB.x-comB.x)*(f2*dr.z*dr.x);
-                  HessianMatrix.element[index_i+2][n+1]+=0.5*((posB.z-comB.z)*(f2*dr.z*dr.x)+(posB.x-comB.x)*(f2*dr.z*dr.z+f1));
-                  HessianMatrix.element[index_i+2][n+2]+=(posB.y-comB.y)*(f2*dr.z*dr.y);
-                  HessianMatrix.element[index_i+2][n+3]+=(posB.z-comB.z)*(f2*dr.z*dr.z+f1);
-                }
+                if(index_i.z>=0) HessianMatrix.element[index_i.z][n]+=(posB.x-comB.x)*(f2*dr.z*dr.x);
+                if(index_i.z>=0) HessianMatrix.element[index_i.z][n+1]+=0.5*((posB.z-comB.z)*(f2*dr.z*dr.x)+(posB.x-comB.x)*(f2*dr.z*dr.z+f1));
+                if(index_i.z>=0) HessianMatrix.element[index_i.z][n+2]+=(posB.y-comB.y)*(f2*dr.z*dr.y);
+                if(index_i.z>=0) HessianMatrix.element[index_i.z][n+3]+=(posB.z-comB.z)*(f2*dr.z*dr.z+f1);
               }
 
-              if(index_j>=0)
-              {
-                HessianMatrix.element[index_j][n]-=(posB.x-comB.x)*(f2*dr.x*dr.x+f1);
-                HessianMatrix.element[index_j][n+1]-=0.5*((posB.z-comB.z)*(f2*dr.x*dr.x+f1)+(posB.x-comB.x)*(f2*dr.x*dr.z));
-                HessianMatrix.element[index_j][n+2]-=(posB.y-comB.y)*(f2*dr.x*dr.y);
-                HessianMatrix.element[index_j][n+3]-=(posB.z-comB.z)*(f2*dr.x*dr.z);
+              if(index_j.x>=0) HessianMatrix.element[index_j.x][n]-=(posB.x-comB.x)*(f2*dr.x*dr.x+f1);
+              if(index_j.x>=0) HessianMatrix.element[index_j.x][n+1]-=0.5*((posB.z-comB.z)*(f2*dr.x*dr.x+f1)+(posB.x-comB.x)*(f2*dr.x*dr.z));
+              if(index_j.x>=0) HessianMatrix.element[index_j.x][n+2]-=(posB.y-comB.y)*(f2*dr.x*dr.y);
+              if(index_j.x>=0) HessianMatrix.element[index_j.x][n+3]-=(posB.z-comB.z)*(f2*dr.x*dr.z);
 
-                HessianMatrix.element[index_j+1][n]-=(posB.x-comB.x)*(f2*dr.y*dr.x);
-                HessianMatrix.element[index_j+1][n+1]-=0.5*((posB.z-comB.z)*(f2*dr.y*dr.x)+(posB.x-comB.x)*(f2*dr.y*dr.z));
-                HessianMatrix.element[index_j+1][n+2]-=(posB.y-comB.y)*(f2*dr.y*dr.y+f1);
-                HessianMatrix.element[index_j+1][n+3]-=(posB.z-comB.z)*(f2*dr.y*dr.z);
+              if(index_j.y>=0) HessianMatrix.element[index_j.y][n]-=(posB.x-comB.x)*(f2*dr.y*dr.x);
+              if(index_j.y>=0) HessianMatrix.element[index_j.y][n+1]-=0.5*((posB.z-comB.z)*(f2*dr.y*dr.x)+(posB.x-comB.x)*(f2*dr.y*dr.z));
+              if(index_j.y>=0) HessianMatrix.element[index_j.y][n+2]-=(posB.y-comB.y)*(f2*dr.y*dr.y+f1);
+              if(index_j.y>=0) HessianMatrix.element[index_j.y][n+3]-=(posB.z-comB.z)*(f2*dr.y*dr.z);
 
-                HessianMatrix.element[index_j+2][n]-=(posB.x-comB.x)*(f2*dr.z*dr.x);
-                HessianMatrix.element[index_j+2][n+1]-=0.5*((posB.z-comB.z)*(f2*dr.z*dr.x)+(posB.x-comB.x)*(f2*dr.z*dr.z+f1));
-                HessianMatrix.element[index_j+2][n+2]-=(posB.y-comB.y)*(f2*dr.z*dr.y);
-                HessianMatrix.element[index_j+2][n+3]-=(posB.z-comB.z)*(f2*dr.z*dr.z+f1);
-              }
+              if(index_j.z>=0) HessianMatrix.element[index_j.z][n]-=(posB.x-comB.x)*(f2*dr.z*dr.x);
+              if(index_j.z>=0) HessianMatrix.element[index_j.z][n+1]-=0.5*((posB.z-comB.z)*(f2*dr.z*dr.x)+(posB.x-comB.x)*(f2*dr.z*dr.z+f1));
+              if(index_j.z>=0) HessianMatrix.element[index_j.z][n+2]-=(posB.y-comB.y)*(f2*dr.z*dr.y);
+              if(index_j.z>=0) HessianMatrix.element[index_j.z][n+3]-=(posB.z-comB.z)*(f2*dr.z*dr.z+f1);
               break;
             case MONOCLINIC_GAMMA_ANGLE:
               if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
               {
-                if(index_i>=0)
-                {
-                  HessianMatrix.element[index_i][n]+=(posB.x-comB.x)*(f2*dr.x*dr.x+f1);
-                  HessianMatrix.element[index_i][n+1]+=0.5*((posB.y-comB.y)*(f2*dr.x*dr.x+f1)+(posB.x-comB.x)*(f2*dr.x*dr.y));
-                  HessianMatrix.element[index_i][n+2]+=(posB.y-comB.y)*(f2*dr.x*dr.y);
-                  HessianMatrix.element[index_i][n+3]+=(posB.z-comB.z)*(f2*dr.x*dr.z);
+                if(index_i.x>=0) HessianMatrix.element[index_i.x][n]+=(posB.x-comB.x)*(f2*dr.x*dr.x+f1);
+                if(index_i.x>=0) HessianMatrix.element[index_i.x][n+1]+=0.5*((posB.y-comB.y)*(f2*dr.x*dr.x+f1)+(posB.x-comB.x)*(f2*dr.x*dr.y));
+                if(index_i.x>=0) HessianMatrix.element[index_i.x][n+2]+=(posB.y-comB.y)*(f2*dr.x*dr.y);
+                if(index_i.x>=0) HessianMatrix.element[index_i.x][n+3]+=(posB.z-comB.z)*(f2*dr.x*dr.z);
 
-                  HessianMatrix.element[index_i+1][n]+=(posB.x-comB.x)*(f2*dr.y*dr.x);
-                  HessianMatrix.element[index_i+1][n+1]+=0.5*((posB.y-comB.y)*(f2*dr.y*dr.x)+(posB.x-comB.x)*(f2*dr.y*dr.y+f1));
-                  HessianMatrix.element[index_i+1][n+2]+=(posB.y-comB.y)*(f2*dr.y*dr.y+f1);
-                  HessianMatrix.element[index_i+1][n+3]+=(posB.z-comB.z)*(f2*dr.y*dr.z);
+                if(index_i.y>=0) HessianMatrix.element[index_i.y][n]+=(posB.x-comB.x)*(f2*dr.y*dr.x);
+                if(index_i.y>=0) HessianMatrix.element[index_i.y][n+1]+=0.5*((posB.y-comB.y)*(f2*dr.y*dr.x)+(posB.x-comB.x)*(f2*dr.y*dr.y+f1));
+                if(index_i.y>=0) HessianMatrix.element[index_i.y][n+2]+=(posB.y-comB.y)*(f2*dr.y*dr.y+f1);
+                if(index_i.y>=0) HessianMatrix.element[index_i.y][n+3]+=(posB.z-comB.z)*(f2*dr.y*dr.z);
 
-                  HessianMatrix.element[index_i+2][n]+=(posB.x-comB.x)*(f2*dr.z*dr.x);
-                  HessianMatrix.element[index_i+2][n+1]+=0.5*((posB.y-comB.y)*(f2*dr.z*dr.x)+(posB.x-comB.x)*(f2*dr.z*dr.y));
-                  HessianMatrix.element[index_i+2][n+2]+=(posB.y-comB.y)*(f2*dr.z*dr.y);
-                  HessianMatrix.element[index_i+2][n+3]+=(posB.z-comB.z)*(f2*dr.z*dr.z+f1);
-                }
+                if(index_i.z>=0) HessianMatrix.element[index_i.z][n]+=(posB.x-comB.x)*(f2*dr.z*dr.x);
+                if(index_i.z>=0) HessianMatrix.element[index_i.z][n+1]+=0.5*((posB.y-comB.y)*(f2*dr.z*dr.x)+(posB.x-comB.x)*(f2*dr.z*dr.y));
+                if(index_i.z>=0) HessianMatrix.element[index_i.z][n+2]+=(posB.y-comB.y)*(f2*dr.z*dr.y);
+                if(index_i.z>=0) HessianMatrix.element[index_i.z][n+3]+=(posB.z-comB.z)*(f2*dr.z*dr.z+f1);
               }
 
-              if(index_j>=0)
-              {
-                HessianMatrix.element[index_j][n]-=(posB.x-comB.x)*(f2*dr.x*dr.x+f1);
-                HessianMatrix.element[index_j][n+1]-=0.5*((posB.y-comB.y)*(f2*dr.x*dr.x+f1)+(posB.x-comB.x)*(f2*dr.x*dr.y));
-                HessianMatrix.element[index_j][n+2]-=(posB.y-comB.y)*(f2*dr.x*dr.y);
-                HessianMatrix.element[index_j][n+3]-=(posB.z-comB.z)*(f2*dr.x*dr.z);
+              if(index_j.x>=0) HessianMatrix.element[index_j.x][n]-=(posB.x-comB.x)*(f2*dr.x*dr.x+f1);
+              if(index_j.x>=0) HessianMatrix.element[index_j.x][n+1]-=0.5*((posB.y-comB.y)*(f2*dr.x*dr.x+f1)+(posB.x-comB.x)*(f2*dr.x*dr.y));
+              if(index_j.x>=0) HessianMatrix.element[index_j.x][n+2]-=(posB.y-comB.y)*(f2*dr.x*dr.y);
+              if(index_j.x>=0) HessianMatrix.element[index_j.x][n+3]-=(posB.z-comB.z)*(f2*dr.x*dr.z);
 
-                HessianMatrix.element[index_j+1][n]-=(posB.x-comB.x)*(f2*dr.y*dr.x);
-                HessianMatrix.element[index_j+1][n+1]-=0.5*((posB.y-comB.y)*(f2*dr.y*dr.x)+(posB.x-comB.x)*(f2*dr.y*dr.y+f1));
-                HessianMatrix.element[index_j+1][n+2]-=(posB.y-comB.y)*(f2*dr.y*dr.y+f1);
-                HessianMatrix.element[index_j+1][n+3]-=(posB.z-comB.z)*(f2*dr.y*dr.z);
+              if(index_j.y>=0) HessianMatrix.element[index_j.y][n]-=(posB.x-comB.x)*(f2*dr.y*dr.x);
+              if(index_j.y>=0) HessianMatrix.element[index_j.y][n+1]-=0.5*((posB.y-comB.y)*(f2*dr.y*dr.x)+(posB.x-comB.x)*(f2*dr.y*dr.y+f1));
+              if(index_j.y>=0) HessianMatrix.element[index_j.y][n+2]-=(posB.y-comB.y)*(f2*dr.y*dr.y+f1);
+              if(index_j.y>=0) HessianMatrix.element[index_j.y][n+3]-=(posB.z-comB.z)*(f2*dr.y*dr.z);
 
-                HessianMatrix.element[index_j+2][n]-=(posB.x-comB.x)*(f2*dr.z*dr.x);
-                HessianMatrix.element[index_j+2][n+1]-=0.5*((posB.y-comB.y)*(f2*dr.z*dr.x)+(posB.x-comB.x)*(f2*dr.z*dr.y));
-                HessianMatrix.element[index_j+2][n+2]-=(posB.y-comB.y)*(f2*dr.z*dr.y);
-                HessianMatrix.element[index_j+2][n+3]-=(posB.z-comB.z)*(f2*dr.z*dr.z+f1);
-              }
+              if(index_j.z>=0) HessianMatrix.element[index_j.z][n]-=(posB.x-comB.x)*(f2*dr.z*dr.x);
+              if(index_j.z>=0) HessianMatrix.element[index_j.z][n+1]-=0.5*((posB.y-comB.y)*(f2*dr.z*dr.x)+(posB.x-comB.x)*(f2*dr.z*dr.y));
+              if(index_j.z>=0) HessianMatrix.element[index_j.z][n+2]-=(posB.y-comB.y)*(f2*dr.z*dr.y);
+              if(index_j.z>=0) HessianMatrix.element[index_j.z][n+3]-=(posB.z-comB.z)*(f2*dr.z*dr.z+f1);
               break;
           }
           break;
@@ -896,122 +790,104 @@ static inline void HessianCenterOfMassStrainJ(REAL_MATRIX HessianMatrix,int inde
             case MONOCLINIC_ALPHA_ANGLE:
               if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
               {
-                if(index_i>=0)
-                {
-                  HessianMatrix.element[index_i  ][n  ]+=(posB.x-comB.x)*(f2*dr.x*dr.x+f1);
-                  HessianMatrix.element[index_i  ][n+1]+=(posB.y-comB.y)*(f2*dr.x*dr.y);
-                  HessianMatrix.element[index_i  ][n+2]+=(posB.z-comB.z)*(f2*dr.x*dr.y);
-                  HessianMatrix.element[index_i  ][n+3]+=(posB.z-comB.z)*(f2*dr.x*dr.z);
+                if(index_i.x>=0)  HessianMatrix.element[index_i.x][n  ]+=(posB.x-comB.x)*(f2*dr.x*dr.x+f1);
+                if(index_i.x>=0)  HessianMatrix.element[index_i.x][n+1]+=(posB.y-comB.y)*(f2*dr.x*dr.y);
+                if(index_i.x>=0)  HessianMatrix.element[index_i.x][n+2]+=(posB.z-comB.z)*(f2*dr.x*dr.y);
+                if(index_i.x>=0)  HessianMatrix.element[index_i.x][n+3]+=(posB.z-comB.z)*(f2*dr.x*dr.z);
     
-                  HessianMatrix.element[index_i+1][n  ]+=(posB.x-comB.x)*(f2*dr.y*dr.x);
-                  HessianMatrix.element[index_i+1][n+1]+=(posB.y-comB.y)*(f2*dr.y*dr.y+f1);
-                  HessianMatrix.element[index_i+1][n+2]+=(posB.z-comB.z)*(f2*dr.y*dr.y+f1);
-                  HessianMatrix.element[index_i+1][n+3]+=(posB.z-comB.z)*(f2*dr.y*dr.z);
+                if(index_i.y>=0)  HessianMatrix.element[index_i.y][n  ]+=(posB.x-comB.x)*(f2*dr.y*dr.x);
+                if(index_i.y>=0)  HessianMatrix.element[index_i.y][n+1]+=(posB.y-comB.y)*(f2*dr.y*dr.y+f1);
+                if(index_i.y>=0)  HessianMatrix.element[index_i.y][n+2]+=(posB.z-comB.z)*(f2*dr.y*dr.y+f1);
+                if(index_i.y>=0)  HessianMatrix.element[index_i.y][n+3]+=(posB.z-comB.z)*(f2*dr.y*dr.z);
     
-                  HessianMatrix.element[index_i+2][n  ]+=(posB.x-comB.x)*(f2*dr.z*dr.x);
-                  HessianMatrix.element[index_i+2][n+1]+=(posB.y-comB.y)*(f2*dr.z*dr.y);
-                  HessianMatrix.element[index_i+2][n+2]+=(posB.z-comB.z)*(f2*dr.z*dr.y);
-                  HessianMatrix.element[index_i+2][n+3]+=(posB.z-comB.z)*(f2*dr.z*dr.z+f1);
-                }
+                if(index_i.z>=0)  HessianMatrix.element[index_i.z][n  ]+=(posB.x-comB.x)*(f2*dr.z*dr.x);
+                if(index_i.z>=0)  HessianMatrix.element[index_i.z][n+1]+=(posB.y-comB.y)*(f2*dr.z*dr.y);
+                if(index_i.z>=0)  HessianMatrix.element[index_i.z][n+2]+=(posB.z-comB.z)*(f2*dr.z*dr.y);
+                if(index_i.z>=0)  HessianMatrix.element[index_i.z][n+3]+=(posB.z-comB.z)*(f2*dr.z*dr.z+f1);
               }
     
-              if(index_j>=0)
-              {
-                HessianMatrix.element[index_j  ][n  ]-=(posB.x-comB.x)*(f2*dr.x*dr.x+f1);
-                HessianMatrix.element[index_j  ][n+1]-=(posB.y-comB.y)*(f2*dr.x*dr.y);
-                HessianMatrix.element[index_j  ][n+2]-=(posB.z-comB.z)*(f2*dr.x*dr.y);
-                HessianMatrix.element[index_j  ][n+3]-=(posB.z-comB.z)*(f2*dr.x*dr.z);
+              if(index_j.x>=0)  HessianMatrix.element[index_j.x][n  ]-=(posB.x-comB.x)*(f2*dr.x*dr.x+f1);
+              if(index_j.x>=0)  HessianMatrix.element[index_j.x][n+1]-=(posB.y-comB.y)*(f2*dr.x*dr.y);
+              if(index_j.x>=0)  HessianMatrix.element[index_j.x][n+2]-=(posB.z-comB.z)*(f2*dr.x*dr.y);
+              if(index_j.x>=0)  HessianMatrix.element[index_j.x][n+3]-=(posB.z-comB.z)*(f2*dr.x*dr.z);
     
-                HessianMatrix.element[index_j+1][n  ]-=(posB.x-comB.x)*(f2*dr.y*dr.x);
-                HessianMatrix.element[index_j+1][n+1]-=(posB.y-comB.y)*(f2*dr.y*dr.y+f1);
-                HessianMatrix.element[index_j+1][n+2]-=(posB.z-comB.z)*(f2*dr.y*dr.y+f1);
-                HessianMatrix.element[index_j+1][n+3]-=(posB.z-comB.z)*(f2*dr.y*dr.z);
+              if(index_j.y>=0)  HessianMatrix.element[index_j.y][n  ]-=(posB.x-comB.x)*(f2*dr.y*dr.x);
+              if(index_j.y>=0)  HessianMatrix.element[index_j.y][n+1]-=(posB.y-comB.y)*(f2*dr.y*dr.y+f1);
+              if(index_j.y>=0)  HessianMatrix.element[index_j.y][n+2]-=(posB.z-comB.z)*(f2*dr.y*dr.y+f1);
+              if(index_j.y>=0)  HessianMatrix.element[index_j.y][n+3]-=(posB.z-comB.z)*(f2*dr.y*dr.z);
     
-                HessianMatrix.element[index_j+2][n  ]-=(posB.x-comB.x)*(f2*dr.z*dr.x);
-                HessianMatrix.element[index_j+2][n+1]-=(posB.y-comB.y)*(f2*dr.z*dr.y);
-                HessianMatrix.element[index_j+2][n+2]-=(posB.z-comB.z)*(f2*dr.z*dr.y);
-                HessianMatrix.element[index_j+2][n+3]-=(posB.z-comB.z)*(f2*dr.z*dr.z+f1);
-              }
+              if(index_j.z>=0)  HessianMatrix.element[index_j.z][n  ]-=(posB.x-comB.x)*(f2*dr.z*dr.x);
+              if(index_j.z>=0)  HessianMatrix.element[index_j.z][n+1]-=(posB.y-comB.y)*(f2*dr.z*dr.y);
+              if(index_j.z>=0)  HessianMatrix.element[index_j.z][n+2]-=(posB.z-comB.z)*(f2*dr.z*dr.y);
+              if(index_j.z>=0)  HessianMatrix.element[index_j.z][n+3]-=(posB.z-comB.z)*(f2*dr.z*dr.z+f1);
               break;
             case MONOCLINIC_BETA_ANGLE:
               if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
               {
-                if(index_i>=0)
-                {
-                  HessianMatrix.element[index_i  ][n  ]+=(posB.x-comB.x)*(f2*dr.x*dr.x+f1);
-                  HessianMatrix.element[index_i  ][n+1]+=(posB.z-comB.z)*(f2*dr.x*dr.x+f1);
-                  HessianMatrix.element[index_i  ][n+2]+=(posB.y-comB.y)*(f2*dr.x*dr.y);
-                  HessianMatrix.element[index_i  ][n+3]+=(posB.z-comB.z)*(f2*dr.x*dr.z);
+                if(index_i.x>=0)  HessianMatrix.element[index_i.x][n  ]+=(posB.x-comB.x)*(f2*dr.x*dr.x+f1);
+                if(index_i.x>=0)  HessianMatrix.element[index_i.x][n+1]+=(posB.z-comB.z)*(f2*dr.x*dr.x+f1);
+                if(index_i.x>=0)  HessianMatrix.element[index_i.x][n+2]+=(posB.y-comB.y)*(f2*dr.x*dr.y);
+                if(index_i.x>=0)  HessianMatrix.element[index_i.x][n+3]+=(posB.z-comB.z)*(f2*dr.x*dr.z);
     
-                  HessianMatrix.element[index_i+1][n  ]+=(posB.x-comB.x)*(f2*dr.y*dr.x);
-                  HessianMatrix.element[index_i+1][n+1]+=(posB.z-comB.z)*(f2*dr.y*dr.x);
-                  HessianMatrix.element[index_i+1][n+2]+=(posB.y-comB.y)*(f2*dr.y*dr.y+f1);
-                  HessianMatrix.element[index_i+1][n+3]+=(posB.z-comB.z)*(f2*dr.y*dr.z);
+                if(index_i.y>=0)  HessianMatrix.element[index_i.y][n  ]+=(posB.x-comB.x)*(f2*dr.y*dr.x);
+                if(index_i.y>=0)  HessianMatrix.element[index_i.y][n+1]+=(posB.z-comB.z)*(f2*dr.y*dr.x);
+                if(index_i.y>=0)  HessianMatrix.element[index_i.y][n+2]+=(posB.y-comB.y)*(f2*dr.y*dr.y+f1);
+                if(index_i.y>=0)  HessianMatrix.element[index_i.y][n+3]+=(posB.z-comB.z)*(f2*dr.y*dr.z);
     
-                  HessianMatrix.element[index_i+2][n  ]+=(posB.x-comB.x)*(f2*dr.z*dr.x);
-                  HessianMatrix.element[index_i+2][n+1]+=(posB.z-comB.z)*(f2*dr.z*dr.x);
-                  HessianMatrix.element[index_i+2][n+2]+=(posB.y-comB.y)*(f2*dr.z*dr.y);
-                  HessianMatrix.element[index_i+2][n+3]+=(posB.z-comB.z)*(f2*dr.z*dr.z+f1);
-                }
+                if(index_i.z>=0)  HessianMatrix.element[index_i.z][n  ]+=(posB.x-comB.x)*(f2*dr.z*dr.x);
+                if(index_i.z>=0)  HessianMatrix.element[index_i.z][n+1]+=(posB.z-comB.z)*(f2*dr.z*dr.x);
+                if(index_i.z>=0)  HessianMatrix.element[index_i.z][n+2]+=(posB.y-comB.y)*(f2*dr.z*dr.y);
+                if(index_i.z>=0)  HessianMatrix.element[index_i.z][n+3]+=(posB.z-comB.z)*(f2*dr.z*dr.z+f1);
               }
     
-              if(index_j>=0)
-              {
-                HessianMatrix.element[index_j  ][n  ]-=(posB.x-comB.x)*(f2*dr.x*dr.x+f1);
-                HessianMatrix.element[index_j  ][n+1]-=(posB.z-comB.z)*(f2*dr.x*dr.x+f1);
-                HessianMatrix.element[index_j  ][n+2]-=(posB.y-comB.y)*(f2*dr.x*dr.y);
-                HessianMatrix.element[index_j  ][n+3]-=(posB.z-comB.z)*(f2*dr.x*dr.z);
+              if(index_j.x>=0)  HessianMatrix.element[index_j.x][n  ]-=(posB.x-comB.x)*(f2*dr.x*dr.x+f1);
+              if(index_j.x>=0)  HessianMatrix.element[index_j.x][n+1]-=(posB.z-comB.z)*(f2*dr.x*dr.x+f1);
+              if(index_j.x>=0)  HessianMatrix.element[index_j.x][n+2]-=(posB.y-comB.y)*(f2*dr.x*dr.y);
+              if(index_j.x>=0)  HessianMatrix.element[index_j.x][n+3]-=(posB.z-comB.z)*(f2*dr.x*dr.z);
     
-                HessianMatrix.element[index_j+1][n  ]-=(posB.x-comB.x)*(f2*dr.y*dr.x);
-                HessianMatrix.element[index_j+1][n+1]-=(posB.z-comB.z)*(f2*dr.y*dr.x);
-                HessianMatrix.element[index_j+1][n+2]-=(posB.y-comB.y)*(f2*dr.y*dr.y+f1);
-                HessianMatrix.element[index_j+1][n+3]-=(posB.z-comB.z)*(f2*dr.y*dr.z);
+              if(index_j.y>=0)  HessianMatrix.element[index_j.y][n  ]-=(posB.x-comB.x)*(f2*dr.y*dr.x);
+              if(index_j.y>=0)  HessianMatrix.element[index_j.y][n+1]-=(posB.z-comB.z)*(f2*dr.y*dr.x);
+              if(index_j.y>=0)  HessianMatrix.element[index_j.y][n+2]-=(posB.y-comB.y)*(f2*dr.y*dr.y+f1);
+              if(index_j.y>=0)  HessianMatrix.element[index_j.y][n+3]-=(posB.z-comB.z)*(f2*dr.y*dr.z);
     
-                HessianMatrix.element[index_j+2][n  ]-=(posB.x-comB.x)*(f2*dr.z*dr.x);
-                HessianMatrix.element[index_j+2][n+1]-=(posB.z-comB.z)*(f2*dr.z*dr.x);
-                HessianMatrix.element[index_j+2][n+2]-=(posB.y-comB.y)*(f2*dr.z*dr.y);
-                HessianMatrix.element[index_j+2][n+3]-=(posB.z-comB.z)*(f2*dr.z*dr.z+f1);
-              }
+              if(index_j.z>=0)  HessianMatrix.element[index_j.z][n  ]-=(posB.x-comB.x)*(f2*dr.z*dr.x);
+              if(index_j.z>=0)  HessianMatrix.element[index_j.z][n+1]-=(posB.z-comB.z)*(f2*dr.z*dr.x);
+              if(index_j.z>=0)  HessianMatrix.element[index_j.z][n+2]-=(posB.y-comB.y)*(f2*dr.z*dr.y);
+              if(index_j.z>=0)  HessianMatrix.element[index_j.z][n+3]-=(posB.z-comB.z)*(f2*dr.z*dr.z+f1);
               break;
             case MONOCLINIC_GAMMA_ANGLE:
               if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
               {
-                if(index_i>=0)
-                {
-                  HessianMatrix.element[index_i  ][n  ]+=(posB.x-comB.x)*(f2*dr.x*dr.x+f1);
-                  HessianMatrix.element[index_i  ][n+1]+=(posB.y-comB.y)*(f2*dr.x*dr.x+f1);
-                  HessianMatrix.element[index_i  ][n+2]+=(posB.y-comB.y)*(f2*dr.x*dr.y);
-                  HessianMatrix.element[index_i  ][n+3]+=(posB.z-comB.z)*(f2*dr.x*dr.z);
+                if(index_i.x>=0) HessianMatrix.element[index_i.x][n  ]+=(posB.x-comB.x)*(f2*dr.x*dr.x+f1);
+                if(index_i.x>=0) HessianMatrix.element[index_i.x][n+1]+=(posB.y-comB.y)*(f2*dr.x*dr.x+f1);
+                if(index_i.x>=0) HessianMatrix.element[index_i.x][n+2]+=(posB.y-comB.y)*(f2*dr.x*dr.y);
+                if(index_i.x>=0) HessianMatrix.element[index_i.x][n+3]+=(posB.z-comB.z)*(f2*dr.x*dr.z);
     
-                  HessianMatrix.element[index_i+1][n  ]+=(posB.x-comB.x)*(f2*dr.y*dr.x);
-                  HessianMatrix.element[index_i+1][n+1]+=(posB.y-comB.y)*(f2*dr.y*dr.x);
-                  HessianMatrix.element[index_i+1][n+2]+=(posB.y-comB.y)*(f2*dr.y*dr.y+f1);
-                  HessianMatrix.element[index_i+1][n+3]+=(posB.z-comB.z)*(f2*dr.y*dr.z);
+                if(index_i.y>=0) HessianMatrix.element[index_i.y][n  ]+=(posB.x-comB.x)*(f2*dr.y*dr.x);
+                if(index_i.y>=0) HessianMatrix.element[index_i.y][n+1]+=(posB.y-comB.y)*(f2*dr.y*dr.x);
+                if(index_i.y>=0) HessianMatrix.element[index_i.y][n+2]+=(posB.y-comB.y)*(f2*dr.y*dr.y+f1);
+                if(index_i.y>=0) HessianMatrix.element[index_i.y][n+3]+=(posB.z-comB.z)*(f2*dr.y*dr.z);
     
-                  HessianMatrix.element[index_i+2][n  ]+=(posB.x-comB.x)*(f2*dr.z*dr.x);
-                  HessianMatrix.element[index_i+2][n+1]+=(posB.y-comB.y)*(f2*dr.z*dr.x);
-                  HessianMatrix.element[index_i+2][n+2]+=(posB.y-comB.y)*(f2*dr.z*dr.y);
-                  HessianMatrix.element[index_i+2][n+3]+=(posB.z-comB.z)*(f2*dr.z*dr.z+f1);
-                }
+                if(index_i.z>=0) HessianMatrix.element[index_i.z][n  ]+=(posB.x-comB.x)*(f2*dr.z*dr.x);
+                if(index_i.z>=0) HessianMatrix.element[index_i.z][n+1]+=(posB.y-comB.y)*(f2*dr.z*dr.x);
+                if(index_i.z>=0) HessianMatrix.element[index_i.z][n+2]+=(posB.y-comB.y)*(f2*dr.z*dr.y);
+                if(index_i.z>=0) HessianMatrix.element[index_i.z][n+3]+=(posB.z-comB.z)*(f2*dr.z*dr.z+f1);
               }
     
-              if(index_j>=0)
-              {
-                HessianMatrix.element[index_j  ][n  ]-=(posB.x-comB.x)*(f2*dr.x*dr.x+f1);
-                HessianMatrix.element[index_j  ][n+1]-=(posB.y-comB.y)*(f2*dr.x*dr.x+f1);
-                HessianMatrix.element[index_j  ][n+2]-=(posB.y-comB.y)*(f2*dr.x*dr.y);
-                HessianMatrix.element[index_j  ][n+3]-=(posB.z-comB.z)*(f2*dr.x*dr.z);
+              if(index_j.x>=0) HessianMatrix.element[index_j.x][n  ]-=(posB.x-comB.x)*(f2*dr.x*dr.x+f1);
+              if(index_j.x>=0) HessianMatrix.element[index_j.x][n+1]-=(posB.y-comB.y)*(f2*dr.x*dr.x+f1);
+              if(index_j.x>=0) HessianMatrix.element[index_j.x][n+2]-=(posB.y-comB.y)*(f2*dr.x*dr.y);
+              if(index_j.x>=0) HessianMatrix.element[index_j.x][n+3]-=(posB.z-comB.z)*(f2*dr.x*dr.z);
     
-                HessianMatrix.element[index_j+1][n  ]-=(posB.x-comB.x)*(f2*dr.y*dr.x);
-                HessianMatrix.element[index_j+1][n+1]-=(posB.y-comB.y)*(f2*dr.y*dr.x);
-                HessianMatrix.element[index_j+1][n+2]-=(posB.y-comB.y)*(f2*dr.y*dr.y+f1);
-                HessianMatrix.element[index_j+1][n+3]-=(posB.z-comB.z)*(f2*dr.y*dr.z);
+              if(index_j.y>=0) HessianMatrix.element[index_j.y][n  ]-=(posB.x-comB.x)*(f2*dr.y*dr.x);
+              if(index_j.y>=0) HessianMatrix.element[index_j.y][n+1]-=(posB.y-comB.y)*(f2*dr.y*dr.x);
+              if(index_j.y>=0) HessianMatrix.element[index_j.y][n+2]-=(posB.y-comB.y)*(f2*dr.y*dr.y+f1);
+              if(index_j.y>=0) HessianMatrix.element[index_j.y][n+3]-=(posB.z-comB.z)*(f2*dr.y*dr.z);
     
-                HessianMatrix.element[index_j+2][n  ]-=(posB.x-comB.x)*(f2*dr.z*dr.x);
-                HessianMatrix.element[index_j+2][n+1]-=(posB.y-comB.y)*(f2*dr.z*dr.x);
-                HessianMatrix.element[index_j+2][n+2]-=(posB.y-comB.y)*(f2*dr.z*dr.y);
-                HessianMatrix.element[index_j+2][n+3]-=(posB.z-comB.z)*(f2*dr.z*dr.z+f1);
-              }
+              if(index_j.z>=0) HessianMatrix.element[index_j.z][n  ]-=(posB.x-comB.x)*(f2*dr.z*dr.x);
+              if(index_j.z>=0) HessianMatrix.element[index_j.z][n+1]-=(posB.y-comB.y)*(f2*dr.z*dr.x);
+              if(index_j.z>=0) HessianMatrix.element[index_j.z][n+2]-=(posB.y-comB.y)*(f2*dr.z*dr.y);
+              if(index_j.z>=0) HessianMatrix.element[index_j.z][n+3]-=(posB.z-comB.z)*(f2*dr.z*dr.z+f1);
               break;
           }
           break;  
@@ -1031,7 +907,7 @@ static inline void HessianCenterOfMassStrainJ(REAL_MATRIX HessianMatrix,int inde
 
 // Hessian: Orientation - Strain (part I)
 // ======================================
-static inline void HessianOrientationStrainJ(REAL_MATRIX HessianMatrix,int index_j2,int index2,REAL f1,REAL f2,VECTOR dr)
+static inline void HessianOrientationStrainJ(REAL_MATRIX HessianMatrix,INT_VECTOR3 index_j2,int index2,REAL f1,REAL f2,VECTOR dr)
 {
   int n;
   REAL_MATRIX3x3 Hessian;
@@ -1058,12 +934,9 @@ static inline void HessianOrientationStrainJ(REAL_MATRIX HessianMatrix,int index
   switch(Ensemble[CurrentSystem])
   {
     case NPT:
-      if(index_j2>=0)
-      {
-        HessianMatrix.element[index_j2][n]-=Hessian.ax*dr.x+Hessian.bx*dr.y+Hessian.cx*dr.z;
-        HessianMatrix.element[index_j2+1][n]-=Hessian.ay*dr.x+Hessian.by*dr.y+Hessian.cy*dr.z;
-        HessianMatrix.element[index_j2+2][n]-=Hessian.az*dr.x+Hessian.bz*dr.y+Hessian.cz*dr.z;
-      }
+      if(index_j2.x>=0)  HessianMatrix.element[index_j2.x][n]-=Hessian.ax*dr.x+Hessian.bx*dr.y+Hessian.cx*dr.z;
+      if(index_j2.y>=0)  HessianMatrix.element[index_j2.y][n]-=Hessian.ay*dr.x+Hessian.by*dr.y+Hessian.cy*dr.z;
+      if(index_j2.z>=0)  HessianMatrix.element[index_j2.z][n]-=Hessian.az*dr.x+Hessian.bz*dr.y+Hessian.cz*dr.z;
       break;
     case NPTPR:
     case NPHPR:
@@ -1071,130 +944,112 @@ static inline void HessianOrientationStrainJ(REAL_MATRIX HessianMatrix,int index
       {
         case ISOTROPIC:
         case ANISOTROPIC:
-          if(index_j2>=0)
-          { 
-            HessianMatrix.element[index_j2][n]-=Hessian.ax*dr.x;
-            HessianMatrix.element[index_j2][n+1]-=Hessian.bx*dr.y;
-            HessianMatrix.element[index_j2][n+2]-=Hessian.cx*dr.z;
-            
-            HessianMatrix.element[index_j2+1][n]-=Hessian.ay*dr.x;
-            HessianMatrix.element[index_j2+1][n+1]-=Hessian.by*dr.y;
-            HessianMatrix.element[index_j2+1][n+2]-=Hessian.cy*dr.z;
-          
-            HessianMatrix.element[index_j2+2][n]-=Hessian.az*dr.x;
-            HessianMatrix.element[index_j2+2][n+1]-=Hessian.bz*dr.y;
-            HessianMatrix.element[index_j2+2][n+2]-=Hessian.cz*dr.z;
-          } 
+          if(index_j2.x>=0)  HessianMatrix.element[index_j2.x][n]-=Hessian.ax*dr.x;
+          if(index_j2.x>=0)  HessianMatrix.element[index_j2.x][n+1]-=Hessian.bx*dr.y;
+          if(index_j2.x>=0)  HessianMatrix.element[index_j2.x][n+2]-=Hessian.cx*dr.z;
+
+          if(index_j2.y>=0)  HessianMatrix.element[index_j2.y][n]-=Hessian.ay*dr.x;
+          if(index_j2.y>=0)  HessianMatrix.element[index_j2.y][n+1]-=Hessian.by*dr.y;
+          if(index_j2.y>=0)  HessianMatrix.element[index_j2.y][n+2]-=Hessian.cy*dr.z;
+
+          if(index_j2.z>=0)  HessianMatrix.element[index_j2.z][n]-=Hessian.az*dr.x;
+          if(index_j2.z>=0)  HessianMatrix.element[index_j2.z][n+1]-=Hessian.bz*dr.y;
+          if(index_j2.z>=0)  HessianMatrix.element[index_j2.z][n+2]-=Hessian.cz*dr.z;
           break;
         case REGULAR:
-          if(index_j2>=0)
-          {
-            HessianMatrix.element[index_j2][n]-=Hessian.ax*dr.x;
-            HessianMatrix.element[index_j2][n+1]-=0.5*(Hessian.ax*dr.y+Hessian.bx*dr.x);
-            HessianMatrix.element[index_j2][n+2]-=0.5*(Hessian.ax*dr.z+Hessian.cx*dr.x);
-            HessianMatrix.element[index_j2][n+3]-=Hessian.bx*dr.y;
-            HessianMatrix.element[index_j2][n+4]-=0.5*(Hessian.bx*dr.z+Hessian.cx*dr.y);
-            HessianMatrix.element[index_j2][n+5]-=Hessian.cx*dr.z;
+          if(index_j2.x>=0)  HessianMatrix.element[index_j2.x][n]-=Hessian.ax*dr.x;
+          if(index_j2.x>=0)  HessianMatrix.element[index_j2.x][n+1]-=0.5*(Hessian.ax*dr.y+Hessian.bx*dr.x);
+          if(index_j2.x>=0)  HessianMatrix.element[index_j2.x][n+2]-=0.5*(Hessian.ax*dr.z+Hessian.cx*dr.x);
+          if(index_j2.x>=0)  HessianMatrix.element[index_j2.x][n+3]-=Hessian.bx*dr.y;
+          if(index_j2.x>=0)  HessianMatrix.element[index_j2.x][n+4]-=0.5*(Hessian.bx*dr.z+Hessian.cx*dr.y);
+          if(index_j2.x>=0)  HessianMatrix.element[index_j2.x][n+5]-=Hessian.cx*dr.z;
 
-            HessianMatrix.element[index_j2+1][n]-=Hessian.ay*dr.x;
-            HessianMatrix.element[index_j2+1][n+1]-=0.5*(Hessian.ay*dr.y+Hessian.by*dr.x);
-            HessianMatrix.element[index_j2+1][n+2]-=0.5*(Hessian.ay*dr.z+Hessian.cy*dr.x);
-            HessianMatrix.element[index_j2+1][n+3]-=Hessian.by*dr.y;
-            HessianMatrix.element[index_j2+1][n+4]-=0.5*(Hessian.by*dr.z+Hessian.cy*dr.y);
-            HessianMatrix.element[index_j2+1][n+5]-=Hessian.cy*dr.z;
+          if(index_j2.y>=0)  HessianMatrix.element[index_j2.y][n]-=Hessian.ay*dr.x;
+          if(index_j2.y>=0)  HessianMatrix.element[index_j2.y][n+1]-=0.5*(Hessian.ay*dr.y+Hessian.by*dr.x);
+          if(index_j2.y>=0)  HessianMatrix.element[index_j2.y][n+2]-=0.5*(Hessian.ay*dr.z+Hessian.cy*dr.x);
+          if(index_j2.y>=0)  HessianMatrix.element[index_j2.y][n+3]-=Hessian.by*dr.y;
+          if(index_j2.y>=0)  HessianMatrix.element[index_j2.y][n+4]-=0.5*(Hessian.by*dr.z+Hessian.cy*dr.y);
+          if(index_j2.y>=0)  HessianMatrix.element[index_j2.y][n+5]-=Hessian.cy*dr.z;
 
-            HessianMatrix.element[index_j2+2][n]-=Hessian.az*dr.x;
-            HessianMatrix.element[index_j2+2][n+1]-=0.5*(Hessian.az*dr.y+Hessian.bz*dr.x);
-            HessianMatrix.element[index_j2+2][n+2]-=0.5*(Hessian.az*dr.z+Hessian.cz*dr.x);
-            HessianMatrix.element[index_j2+2][n+3]-=Hessian.bz*dr.y;
-            HessianMatrix.element[index_j2+2][n+4]-=0.5*(Hessian.bz*dr.z+Hessian.cz*dr.y);
-            HessianMatrix.element[index_j2+2][n+5]-=Hessian.cz*dr.z;
-          }
+          if(index_j2.z>=0)  HessianMatrix.element[index_j2.z][n]-=Hessian.az*dr.x;
+          if(index_j2.z>=0)  HessianMatrix.element[index_j2.z][n+1]-=0.5*(Hessian.az*dr.y+Hessian.bz*dr.x);
+          if(index_j2.z>=0)  HessianMatrix.element[index_j2.z][n+2]-=0.5*(Hessian.az*dr.z+Hessian.cz*dr.x);
+          if(index_j2.z>=0)  HessianMatrix.element[index_j2.z][n+3]-=Hessian.bz*dr.y;
+          if(index_j2.z>=0)  HessianMatrix.element[index_j2.z][n+4]-=0.5*(Hessian.bz*dr.z+Hessian.cz*dr.y);
+          if(index_j2.z>=0)  HessianMatrix.element[index_j2.z][n+5]-=Hessian.cz*dr.z;
           break;                                   
         case REGULAR_UPPER_TRIANGLE:
-          if(index_j2>=0)
-          {
-            HessianMatrix.element[index_j2  ][n  ]-=Hessian.ax*dr.x;
-            HessianMatrix.element[index_j2  ][n+1]-=Hessian.ax*dr.y;
-            HessianMatrix.element[index_j2  ][n+2]-=Hessian.ax*dr.z;
-            HessianMatrix.element[index_j2  ][n+3]-=Hessian.bx*dr.y;
-            HessianMatrix.element[index_j2  ][n+4]-=Hessian.bx*dr.z;
-            HessianMatrix.element[index_j2  ][n+5]-=Hessian.cx*dr.z;
+          if(index_j2.x>=0)  HessianMatrix.element[index_j2.x][n  ]-=Hessian.ax*dr.x;
+          if(index_j2.x>=0)  HessianMatrix.element[index_j2.x][n+1]-=Hessian.ax*dr.y;
+          if(index_j2.x>=0)  HessianMatrix.element[index_j2.x][n+2]-=Hessian.ax*dr.z;
+          if(index_j2.x>=0)  HessianMatrix.element[index_j2.x][n+3]-=Hessian.bx*dr.y;
+          if(index_j2.x>=0)  HessianMatrix.element[index_j2.x][n+4]-=Hessian.bx*dr.z;
+          if(index_j2.x>=0)  HessianMatrix.element[index_j2.x][n+5]-=Hessian.cx*dr.z;
 
-            HessianMatrix.element[index_j2+1][n  ]-=Hessian.ay*dr.x;
-            HessianMatrix.element[index_j2+1][n+1]-=Hessian.ay*dr.y;
-            HessianMatrix.element[index_j2+1][n+2]-=Hessian.ay*dr.z;
-            HessianMatrix.element[index_j2+1][n+3]-=Hessian.by*dr.y;
-            HessianMatrix.element[index_j2+1][n+4]-=Hessian.by*dr.z;
-            HessianMatrix.element[index_j2+1][n+5]-=Hessian.cy*dr.z;
+          if(index_j2.y>=0)  HessianMatrix.element[index_j2.y][n  ]-=Hessian.ay*dr.x;
+          if(index_j2.y>=0)  HessianMatrix.element[index_j2.y][n+1]-=Hessian.ay*dr.y;
+          if(index_j2.y>=0)  HessianMatrix.element[index_j2.y][n+2]-=Hessian.ay*dr.z;
+          if(index_j2.y>=0)  HessianMatrix.element[index_j2.y][n+3]-=Hessian.by*dr.y;
+          if(index_j2.y>=0)  HessianMatrix.element[index_j2.y][n+4]-=Hessian.by*dr.z;
+          if(index_j2.y>=0)  HessianMatrix.element[index_j2.y][n+5]-=Hessian.cy*dr.z;
 
-            HessianMatrix.element[index_j2+2][n  ]-=Hessian.az*dr.x;
-            HessianMatrix.element[index_j2+2][n+1]-=Hessian.az*dr.y;
-            HessianMatrix.element[index_j2+2][n+2]-=Hessian.az*dr.z;
-            HessianMatrix.element[index_j2+2][n+3]-=Hessian.bz*dr.y;
-            HessianMatrix.element[index_j2+2][n+4]-=Hessian.bz*dr.z;
-            HessianMatrix.element[index_j2+2][n+5]-=Hessian.cz*dr.z;
-          }
+          if(index_j2.z>=0)  HessianMatrix.element[index_j2.z][n  ]-=Hessian.az*dr.x;
+          if(index_j2.z>=0)  HessianMatrix.element[index_j2.z][n+1]-=Hessian.az*dr.y;
+          if(index_j2.z>=0)  HessianMatrix.element[index_j2.z][n+2]-=Hessian.az*dr.z;
+          if(index_j2.z>=0)  HessianMatrix.element[index_j2.z][n+3]-=Hessian.bz*dr.y;
+          if(index_j2.z>=0)  HessianMatrix.element[index_j2.z][n+4]-=Hessian.bz*dr.z;
+          if(index_j2.z>=0)  HessianMatrix.element[index_j2.z][n+5]-=Hessian.cz*dr.z;
           break;
         case MONOCLINIC:
           switch(MonoclinicAngleType[CurrentSystem])
           {
             case MONOCLINIC_ALPHA_ANGLE:
-              if(index_j2>=0)
-              {
-                HessianMatrix.element[index_j2][n]-=Hessian.ax*dr.x;
-                HessianMatrix.element[index_j2][n+1]-=Hessian.bx*dr.y;
-                HessianMatrix.element[index_j2][n+2]-=0.5*(Hessian.bx*dr.z+Hessian.cx*dr.y);
-                HessianMatrix.element[index_j2][n+3]-=Hessian.cx*dr.z;
+              if(index_j2.x>=0)  HessianMatrix.element[index_j2.x][n]-=Hessian.ax*dr.x;
+              if(index_j2.x>=0)  HessianMatrix.element[index_j2.x][n+1]-=Hessian.bx*dr.y;
+              if(index_j2.x>=0)  HessianMatrix.element[index_j2.x][n+2]-=0.5*(Hessian.bx*dr.z+Hessian.cx*dr.y);
+              if(index_j2.x>=0)  HessianMatrix.element[index_j2.x][n+3]-=Hessian.cx*dr.z;
 
-                HessianMatrix.element[index_j2+1][n]-=Hessian.ay*dr.x;
-                HessianMatrix.element[index_j2+1][n+1]-=Hessian.by*dr.y;
-                HessianMatrix.element[index_j2+1][n+2]-=0.5*(Hessian.by*dr.z+Hessian.cy*dr.y);
-                HessianMatrix.element[index_j2+1][n+3]-=Hessian.cy*dr.z;
+              if(index_j2.y>=0)  HessianMatrix.element[index_j2.y][n]-=Hessian.ay*dr.x;
+              if(index_j2.y>=0)  HessianMatrix.element[index_j2.y][n+1]-=Hessian.by*dr.y;
+              if(index_j2.y>=0)  HessianMatrix.element[index_j2.y][n+2]-=0.5*(Hessian.by*dr.z+Hessian.cy*dr.y);
+              if(index_j2.y>=0)  HessianMatrix.element[index_j2.y][n+3]-=Hessian.cy*dr.z;
 
-                HessianMatrix.element[index_j2+2][n]-=Hessian.az*dr.x;
-                HessianMatrix.element[index_j2+2][n+1]-=Hessian.bz*dr.y;
-                HessianMatrix.element[index_j2+2][n+2]-=0.5*(Hessian.bz*dr.z+Hessian.cz*dr.y);
-                HessianMatrix.element[index_j2+2][n+3]-=Hessian.cz*dr.z;
-              }
+              if(index_j2.z>=0)  HessianMatrix.element[index_j2.z][n]-=Hessian.az*dr.x;
+              if(index_j2.z>=0)  HessianMatrix.element[index_j2.z][n+1]-=Hessian.bz*dr.y;
+              if(index_j2.z>=0)  HessianMatrix.element[index_j2.z][n+2]-=0.5*(Hessian.bz*dr.z+Hessian.cz*dr.y);
+              if(index_j2.z>=0)  HessianMatrix.element[index_j2.z][n+3]-=Hessian.cz*dr.z;
               break;
             case MONOCLINIC_BETA_ANGLE:
-              if(index_j2>=0)
-              {
-                HessianMatrix.element[index_j2][n]-=Hessian.ax*dr.x;
-                HessianMatrix.element[index_j2][n+1]-=0.5*(Hessian.ax*dr.z+Hessian.cx*dr.x);
-                HessianMatrix.element[index_j2][n+2]-=Hessian.bx*dr.y;
-                HessianMatrix.element[index_j2][n+3]-=Hessian.cx*dr.z;
+              if(index_j2.x>=0)  HessianMatrix.element[index_j2.x][n]-=Hessian.ax*dr.x;
+              if(index_j2.x>=0)  HessianMatrix.element[index_j2.x][n+1]-=0.5*(Hessian.ax*dr.z+Hessian.cx*dr.x);
+              if(index_j2.x>=0)  HessianMatrix.element[index_j2.x][n+2]-=Hessian.bx*dr.y;
+              if(index_j2.x>=0)  HessianMatrix.element[index_j2.x][n+3]-=Hessian.cx*dr.z;
 
-                HessianMatrix.element[index_j2+1][n]-=Hessian.ay*dr.x;
-                HessianMatrix.element[index_j2+1][n+1]-=0.5*(Hessian.ay*dr.z+Hessian.cy*dr.x);
-                HessianMatrix.element[index_j2+1][n+2]-=Hessian.by*dr.y;
-                HessianMatrix.element[index_j2+1][n+3]-=Hessian.cy*dr.z;
+              if(index_j2.y>=0)  HessianMatrix.element[index_j2.y][n]-=Hessian.ay*dr.x;
+              if(index_j2.y>=0)  HessianMatrix.element[index_j2.y][n+1]-=0.5*(Hessian.ay*dr.z+Hessian.cy*dr.x);
+              if(index_j2.y>=0)  HessianMatrix.element[index_j2.y][n+2]-=Hessian.by*dr.y;
+              if(index_j2.y>=0)  HessianMatrix.element[index_j2.y][n+3]-=Hessian.cy*dr.z;
 
-                HessianMatrix.element[index_j2+2][n]-=Hessian.az*dr.x;
-                HessianMatrix.element[index_j2+2][n+1]-=0.5*(Hessian.az*dr.z+Hessian.cz*dr.x);
-                HessianMatrix.element[index_j2+2][n+2]-=Hessian.bz*dr.y;
-                HessianMatrix.element[index_j2+2][n+3]-=Hessian.cz*dr.z;
-              }
+              if(index_j2.z>=0)  HessianMatrix.element[index_j2.z][n]-=Hessian.az*dr.x;
+              if(index_j2.z>=0)  HessianMatrix.element[index_j2.z][n+1]-=0.5*(Hessian.az*dr.z+Hessian.cz*dr.x);
+              if(index_j2.z>=0)  HessianMatrix.element[index_j2.z][n+2]-=Hessian.bz*dr.y;
+              if(index_j2.z>=0)  HessianMatrix.element[index_j2.z][n+3]-=Hessian.cz*dr.z;
               break;
             case MONOCLINIC_GAMMA_ANGLE:
-              if(index_j2>=0)
-              {
-                HessianMatrix.element[index_j2][n]-=Hessian.ax*dr.x;
-                HessianMatrix.element[index_j2][n+1]-=0.5*(Hessian.ax*dr.y+Hessian.bx*dr.x);
-                HessianMatrix.element[index_j2][n+2]-=Hessian.bx*dr.y;
-                HessianMatrix.element[index_j2][n+3]-=Hessian.cx*dr.z;
+              if(index_j2.x>=0)  HessianMatrix.element[index_j2.x][n]-=Hessian.ax*dr.x;
+              if(index_j2.x>=0)  HessianMatrix.element[index_j2.x][n+1]-=0.5*(Hessian.ax*dr.y+Hessian.bx*dr.x);
+              if(index_j2.x>=0)  HessianMatrix.element[index_j2.x][n+2]-=Hessian.bx*dr.y;
+              if(index_j2.x>=0)  HessianMatrix.element[index_j2.x][n+3]-=Hessian.cx*dr.z;
 
-                HessianMatrix.element[index_j2+1][n]-=Hessian.ay*dr.x;
-                HessianMatrix.element[index_j2+1][n+1]-=0.5*(Hessian.ay*dr.y+Hessian.by*dr.x);
-                HessianMatrix.element[index_j2+1][n+2]-=Hessian.by*dr.y;
-                HessianMatrix.element[index_j2+1][n+3]-=Hessian.cy*dr.z;
+              if(index_j2.y>=0)  HessianMatrix.element[index_j2.y][n]-=Hessian.ay*dr.x;
+              if(index_j2.y>=0)  HessianMatrix.element[index_j2.y][n+1]-=0.5*(Hessian.ay*dr.y+Hessian.by*dr.x);
+              if(index_j2.y>=0)  HessianMatrix.element[index_j2.y][n+2]-=Hessian.by*dr.y;
+              if(index_j2.y>=0)  HessianMatrix.element[index_j2.y][n+3]-=Hessian.cy*dr.z;
 
-                HessianMatrix.element[index_j2+2][n]-=Hessian.az*dr.x;
-                HessianMatrix.element[index_j2+2][n+1]-=0.5*(Hessian.az*dr.y+Hessian.bz*dr.x);
-                HessianMatrix.element[index_j2+2][n+2]-=Hessian.bz*dr.y;
-                HessianMatrix.element[index_j2+2][n+3]-=Hessian.cz*dr.z;
-              }
+              if(index_j2.z>=0)  HessianMatrix.element[index_j2.z][n]-=Hessian.az*dr.x;
+              if(index_j2.z>=0)  HessianMatrix.element[index_j2.z][n+1]-=0.5*(Hessian.az*dr.y+Hessian.bz*dr.x);
+              if(index_j2.z>=0)  HessianMatrix.element[index_j2.z][n+2]-=Hessian.bz*dr.y;
+              if(index_j2.z>=0)  HessianMatrix.element[index_j2.z][n+3]-=Hessian.cz*dr.z;
               break;
           }
           break;
@@ -1202,61 +1057,52 @@ static inline void HessianOrientationStrainJ(REAL_MATRIX HessianMatrix,int index
           switch(MonoclinicAngleType[CurrentSystem])
           {
             case MONOCLINIC_ALPHA_ANGLE:
-              if(index_j2>=0)
-              {
-                HessianMatrix.element[index_j2  ][n  ]-=Hessian.ax*dr.x;
-                HessianMatrix.element[index_j2  ][n+1]-=Hessian.bx*dr.y;
-                HessianMatrix.element[index_j2  ][n+2]-=Hessian.bx*dr.z;
-                HessianMatrix.element[index_j2  ][n+3]-=Hessian.cx*dr.z;
+              if(index_j2.x>=0)  HessianMatrix.element[index_j2.x][n  ]-=Hessian.ax*dr.x;
+              if(index_j2.x>=0)  HessianMatrix.element[index_j2.x][n+1]-=Hessian.bx*dr.y;
+              if(index_j2.x>=0)  HessianMatrix.element[index_j2.x][n+2]-=Hessian.bx*dr.z;
+              if(index_j2.x>=0)  HessianMatrix.element[index_j2.x][n+3]-=Hessian.cx*dr.z;
 
-                HessianMatrix.element[index_j2+1][n  ]-=Hessian.ay*dr.x;
-                HessianMatrix.element[index_j2+1][n+1]-=Hessian.by*dr.y;
-                HessianMatrix.element[index_j2+1][n+2]-=Hessian.by*dr.z;
-                HessianMatrix.element[index_j2+1][n+3]-=Hessian.cy*dr.z;
+              if(index_j2.y>=0)  HessianMatrix.element[index_j2.y][n  ]-=Hessian.ay*dr.x;
+              if(index_j2.y>=0)  HessianMatrix.element[index_j2.y][n+1]-=Hessian.by*dr.y;
+              if(index_j2.y>=0)  HessianMatrix.element[index_j2.y][n+2]-=Hessian.by*dr.z;
+              if(index_j2.y>=0)  HessianMatrix.element[index_j2.y][n+3]-=Hessian.cy*dr.z;
 
-                HessianMatrix.element[index_j2+2][n  ]-=Hessian.az*dr.x;
-                HessianMatrix.element[index_j2+2][n+1]-=Hessian.bz*dr.y;
-                HessianMatrix.element[index_j2+2][n+2]-=Hessian.bz*dr.z;
-                HessianMatrix.element[index_j2+2][n+3]-=Hessian.cz*dr.z;
-              }
+              if(index_j2.z>=0)  HessianMatrix.element[index_j2.z][n  ]-=Hessian.az*dr.x;
+              if(index_j2.z>=0)  HessianMatrix.element[index_j2.z][n+1]-=Hessian.bz*dr.y;
+              if(index_j2.z>=0)  HessianMatrix.element[index_j2.z][n+2]-=Hessian.bz*dr.z;
+              if(index_j2.z>=0)  HessianMatrix.element[index_j2.z][n+3]-=Hessian.cz*dr.z;
               break;
             case MONOCLINIC_BETA_ANGLE:
-              if(index_j2>=0)
-              {
-                HessianMatrix.element[index_j2  ][n  ]-=Hessian.ax*dr.x;
-                HessianMatrix.element[index_j2  ][n+1]-=Hessian.ax*dr.z;
-                HessianMatrix.element[index_j2  ][n+2]-=Hessian.bx*dr.y;
-                HessianMatrix.element[index_j2  ][n+3]-=Hessian.cx*dr.z;
+              if(index_j2.x>=0)  HessianMatrix.element[index_j2.x][n  ]-=Hessian.ax*dr.x;
+              if(index_j2.x>=0)  HessianMatrix.element[index_j2.x][n+1]-=Hessian.ax*dr.z;
+              if(index_j2.x>=0)  HessianMatrix.element[index_j2.x][n+2]-=Hessian.bx*dr.y;
+              if(index_j2.x>=0)  HessianMatrix.element[index_j2.x][n+3]-=Hessian.cx*dr.z;
 
-                HessianMatrix.element[index_j2+1][n  ]-=Hessian.ay*dr.x;
-                HessianMatrix.element[index_j2+1][n+1]-=Hessian.ay*dr.z;
-                HessianMatrix.element[index_j2+1][n+2]-=Hessian.by*dr.y;
-                HessianMatrix.element[index_j2+1][n+3]-=Hessian.cy*dr.z;
+              if(index_j2.y>=0)  HessianMatrix.element[index_j2.y][n  ]-=Hessian.ay*dr.x;
+              if(index_j2.y>=0)  HessianMatrix.element[index_j2.y][n+1]-=Hessian.ay*dr.z;
+              if(index_j2.y>=0)  HessianMatrix.element[index_j2.y][n+2]-=Hessian.by*dr.y;
+              if(index_j2.y>=0)  HessianMatrix.element[index_j2.y][n+3]-=Hessian.cy*dr.z;
 
-                HessianMatrix.element[index_j2+2][n  ]-=Hessian.az*dr.x;
-                HessianMatrix.element[index_j2+2][n+1]-=Hessian.az*dr.z;
-                HessianMatrix.element[index_j2+2][n+2]-=Hessian.bz*dr.y;
-                HessianMatrix.element[index_j2+2][n+3]-=Hessian.cz*dr.z;
-              }
+              if(index_j2.z>=0)  HessianMatrix.element[index_j2.z][n  ]-=Hessian.az*dr.x;
+              if(index_j2.z>=0)  HessianMatrix.element[index_j2.z][n+1]-=Hessian.az*dr.z;
+              if(index_j2.z>=0)  HessianMatrix.element[index_j2.z][n+2]-=Hessian.bz*dr.y;
+              if(index_j2.z>=0)  HessianMatrix.element[index_j2.z][n+3]-=Hessian.cz*dr.z;
               break;
             case MONOCLINIC_GAMMA_ANGLE:
-              if(index_j2>=0)
-              {
-                HessianMatrix.element[index_j2  ][n  ]-=Hessian.ax*dr.x;
-                HessianMatrix.element[index_j2  ][n+1]-=Hessian.ax*dr.y;
-                HessianMatrix.element[index_j2  ][n+2]-=Hessian.bx*dr.y;
-                HessianMatrix.element[index_j2  ][n+3]-=Hessian.cx*dr.z;
+              if(index_j2.x>=0)  HessianMatrix.element[index_j2.x][n  ]-=Hessian.ax*dr.x;
+              if(index_j2.x>=0)  HessianMatrix.element[index_j2.x][n+1]-=Hessian.ax*dr.y;
+              if(index_j2.x>=0)  HessianMatrix.element[index_j2.x][n+2]-=Hessian.bx*dr.y;
+              if(index_j2.x>=0)  HessianMatrix.element[index_j2.x][n+3]-=Hessian.cx*dr.z;
 
-                HessianMatrix.element[index_j2+1][n  ]-=Hessian.ay*dr.x;
-                HessianMatrix.element[index_j2+1][n+1]-=Hessian.ay*dr.y;
-                HessianMatrix.element[index_j2+1][n+2]-=Hessian.by*dr.y;
-                HessianMatrix.element[index_j2+1][n+3]-=Hessian.cy*dr.z;
+              if(index_j2.y>=0)  HessianMatrix.element[index_j2.y][n  ]-=Hessian.ay*dr.x;
+              if(index_j2.y>=0)  HessianMatrix.element[index_j2.y][n+1]-=Hessian.ay*dr.y;
+              if(index_j2.y>=0)  HessianMatrix.element[index_j2.y][n+2]-=Hessian.by*dr.y;
+              if(index_j2.y>=0)  HessianMatrix.element[index_j2.y][n+3]-=Hessian.cy*dr.z;
 
-                HessianMatrix.element[index_j2+2][n  ]-=Hessian.az*dr.x;
-                HessianMatrix.element[index_j2+2][n+1]-=Hessian.az*dr.y;
-                HessianMatrix.element[index_j2+2][n+2]-=Hessian.bz*dr.y;
-                HessianMatrix.element[index_j2+2][n+3]-=Hessian.cz*dr.z;
-              }
+              if(index_j2.z>=0)  HessianMatrix.element[index_j2.z][n  ]-=Hessian.az*dr.x;
+              if(index_j2.z>=0)  HessianMatrix.element[index_j2.z][n+1]-=Hessian.az*dr.y;
+              if(index_j2.z>=0)  HessianMatrix.element[index_j2.z][n+2]-=Hessian.bz*dr.y;
+              if(index_j2.z>=0)  HessianMatrix.element[index_j2.z][n+3]-=Hessian.cz*dr.z;
               break;
           }
           break;  
@@ -1275,7 +1121,7 @@ static inline void HessianOrientationStrainJ(REAL_MATRIX HessianMatrix,int index
 
 // Hessian: Orientation - Strain (part II)
 // =======================================
-static inline void HessianOrientationStrainJ_FR(REAL_MATRIX HessianMatrix,int index_j2,int index2,REAL f1,REAL f2,
+static inline void HessianOrientationStrainJ_FR(REAL_MATRIX HessianMatrix,INT_VECTOR3 index_j2,int index2,REAL f1,REAL f2,
                                                 VECTOR posB,VECTOR comB,VECTOR dr)
 {
   int n;
@@ -1303,12 +1149,9 @@ static inline void HessianOrientationStrainJ_FR(REAL_MATRIX HessianMatrix,int in
   switch(Ensemble[CurrentSystem])
   {
     case NPT:
-      if(index_j2>=0)
-      {
-        HessianMatrix.element[index_j2][n]-=(posB.x-comB.x)*Hessian.ax+(posB.y-comB.y)*Hessian.bx+(posB.z-comB.z)*Hessian.cx;
-        HessianMatrix.element[index_j2+1][n]-=(posB.x-comB.x)*Hessian.ay+(posB.y-comB.y)*Hessian.by+(posB.z-comB.z)*Hessian.cy;
-        HessianMatrix.element[index_j2+2][n]-=(posB.x-comB.x)*Hessian.az+(posB.y-comB.y)*Hessian.bz+(posB.z-comB.z)*Hessian.cz;
-      }
+      if(index_j2.x>=0)  HessianMatrix.element[index_j2.x][n]-=(posB.x-comB.x)*Hessian.ax+(posB.y-comB.y)*Hessian.bx+(posB.z-comB.z)*Hessian.cx;
+      if(index_j2.y>=0)  HessianMatrix.element[index_j2.y][n]-=(posB.x-comB.x)*Hessian.ay+(posB.y-comB.y)*Hessian.by+(posB.z-comB.z)*Hessian.cy;
+      if(index_j2.z>=0)  HessianMatrix.element[index_j2.z][n]-=(posB.x-comB.x)*Hessian.az+(posB.y-comB.y)*Hessian.bz+(posB.z-comB.z)*Hessian.cz;
       break;
     case NPTPR:
     case NPHPR:
@@ -1316,130 +1159,112 @@ static inline void HessianOrientationStrainJ_FR(REAL_MATRIX HessianMatrix,int in
       {
         case ISOTROPIC:
         case ANISOTROPIC:
-          if(index_j2>=0)
-          {
-            HessianMatrix.element[index_j2][n]-=(posB.x-comB.x)*Hessian.ax;
-            HessianMatrix.element[index_j2][n+1]-=(posB.y-comB.y)*Hessian.bx;
-            HessianMatrix.element[index_j2][n+2]-=(posB.z-comB.z)*Hessian.cx;
+          if(index_j2.x>=0) HessianMatrix.element[index_j2.x][n]-=(posB.x-comB.x)*Hessian.ax;
+          if(index_j2.x>=0) HessianMatrix.element[index_j2.x][n+1]-=(posB.y-comB.y)*Hessian.bx;
+          if(index_j2.x>=0) HessianMatrix.element[index_j2.x][n+2]-=(posB.z-comB.z)*Hessian.cx;
 
-            HessianMatrix.element[index_j2+1][n]-=(posB.x-comB.x)*Hessian.ay;
-            HessianMatrix.element[index_j2+1][n+1]-=(posB.y-comB.y)*Hessian.by;
-            HessianMatrix.element[index_j2+1][n+2]-=(posB.z-comB.z)*Hessian.cy;
+          if(index_j2.y>=0) HessianMatrix.element[index_j2.y][n]-=(posB.x-comB.x)*Hessian.ay;
+          if(index_j2.y>=0) HessianMatrix.element[index_j2.y][n+1]-=(posB.y-comB.y)*Hessian.by;
+          if(index_j2.y>=0) HessianMatrix.element[index_j2.y][n+2]-=(posB.z-comB.z)*Hessian.cy;
 
-            HessianMatrix.element[index_j2+2][n]-=(posB.x-comB.x)*Hessian.az;
-            HessianMatrix.element[index_j2+2][n+1]-=(posB.y-comB.y)*Hessian.bz;
-            HessianMatrix.element[index_j2+2][n+2]-=(posB.z-comB.z)*Hessian.cz;
-          }
+          if(index_j2.z>=0) HessianMatrix.element[index_j2.z][n]-=(posB.x-comB.x)*Hessian.az;
+          if(index_j2.z>=0) HessianMatrix.element[index_j2.z][n+1]-=(posB.y-comB.y)*Hessian.bz;
+          if(index_j2.z>=0) HessianMatrix.element[index_j2.z][n+2]-=(posB.z-comB.z)*Hessian.cz;
           break;
         case REGULAR:
-          if(index_j2>=0)
-          {
-            HessianMatrix.element[index_j2][n]-=(posB.x-comB.x)*Hessian.ax;
-            HessianMatrix.element[index_j2][n+1]-=0.5*((posB.y-comB.y)*Hessian.ax+(posB.x-comB.x)*Hessian.bx);
-            HessianMatrix.element[index_j2][n+2]-=0.5*((posB.z-comB.z)*Hessian.ax+(posB.x-comB.x)*Hessian.cx);
-            HessianMatrix.element[index_j2][n+3]-=(posB.y-comB.y)*Hessian.bx;
-            HessianMatrix.element[index_j2][n+4]-=0.5*((posB.z-comB.z)*Hessian.bx+(posB.y-comB.y)*Hessian.cx);
-            HessianMatrix.element[index_j2][n+5]-=(posB.z-comB.z)*Hessian.cx;
+          if(index_j2.x>=0)  HessianMatrix.element[index_j2.x][n]-=(posB.x-comB.x)*Hessian.ax;
+          if(index_j2.x>=0)  HessianMatrix.element[index_j2.x][n+1]-=0.5*((posB.y-comB.y)*Hessian.ax+(posB.x-comB.x)*Hessian.bx);
+          if(index_j2.x>=0)  HessianMatrix.element[index_j2.x][n+2]-=0.5*((posB.z-comB.z)*Hessian.ax+(posB.x-comB.x)*Hessian.cx);
+          if(index_j2.x>=0)  HessianMatrix.element[index_j2.x][n+3]-=(posB.y-comB.y)*Hessian.bx;
+          if(index_j2.x>=0)  HessianMatrix.element[index_j2.x][n+4]-=0.5*((posB.z-comB.z)*Hessian.bx+(posB.y-comB.y)*Hessian.cx);
+          if(index_j2.x>=0)  HessianMatrix.element[index_j2.x][n+5]-=(posB.z-comB.z)*Hessian.cx;
 
-            HessianMatrix.element[index_j2+1][n]-=(posB.x-comB.x)*Hessian.ay;
-            HessianMatrix.element[index_j2+1][n+1]-=0.5*((posB.y-comB.y)*Hessian.ay+(posB.x-comB.x)*Hessian.by);
-            HessianMatrix.element[index_j2+1][n+2]-=0.5*((posB.z-comB.z)*Hessian.ay+(posB.x-comB.x)*Hessian.cy);
-            HessianMatrix.element[index_j2+1][n+3]-=(posB.y-comB.y)*Hessian.by;
-            HessianMatrix.element[index_j2+1][n+4]-=0.5*((posB.z-comB.z)*Hessian.by+(posB.y-comB.y)*Hessian.cy);
-            HessianMatrix.element[index_j2+1][n+5]-=(posB.z-comB.z)*Hessian.cy;
+          if(index_j2.y>=0)  HessianMatrix.element[index_j2.y][n]-=(posB.x-comB.x)*Hessian.ay;
+          if(index_j2.y>=0)  HessianMatrix.element[index_j2.y][n+1]-=0.5*((posB.y-comB.y)*Hessian.ay+(posB.x-comB.x)*Hessian.by);
+          if(index_j2.y>=0)  HessianMatrix.element[index_j2.y][n+2]-=0.5*((posB.z-comB.z)*Hessian.ay+(posB.x-comB.x)*Hessian.cy);
+          if(index_j2.y>=0)  HessianMatrix.element[index_j2.y][n+3]-=(posB.y-comB.y)*Hessian.by;
+          if(index_j2.y>=0)  HessianMatrix.element[index_j2.y][n+4]-=0.5*((posB.z-comB.z)*Hessian.by+(posB.y-comB.y)*Hessian.cy);
+          if(index_j2.y>=0)  HessianMatrix.element[index_j2.y][n+5]-=(posB.z-comB.z)*Hessian.cy;
 
-            HessianMatrix.element[index_j2+2][n]-=(posB.x-comB.x)*Hessian.az;
-            HessianMatrix.element[index_j2+2][n+1]-=0.5*((posB.y-comB.y)*Hessian.az+(posB.x-comB.x)*Hessian.bz);
-            HessianMatrix.element[index_j2+2][n+2]-=0.5*((posB.z-comB.z)*Hessian.az+(posB.x-comB.x)*Hessian.cz);
-            HessianMatrix.element[index_j2+2][n+3]-=(posB.y-comB.y)*Hessian.bz;
-            HessianMatrix.element[index_j2+2][n+4]-=0.5*((posB.z-comB.z)*Hessian.bz+(posB.y-comB.y)*Hessian.cz);
-            HessianMatrix.element[index_j2+2][n+5]-=(posB.z-comB.z)*Hessian.cz;
-          }
+          if(index_j2.z>=0)  HessianMatrix.element[index_j2.z][n]-=(posB.x-comB.x)*Hessian.az;
+          if(index_j2.z>=0)  HessianMatrix.element[index_j2.z][n+1]-=0.5*((posB.y-comB.y)*Hessian.az+(posB.x-comB.x)*Hessian.bz);
+          if(index_j2.z>=0)  HessianMatrix.element[index_j2.z][n+2]-=0.5*((posB.z-comB.z)*Hessian.az+(posB.x-comB.x)*Hessian.cz);
+          if(index_j2.z>=0)  HessianMatrix.element[index_j2.z][n+3]-=(posB.y-comB.y)*Hessian.bz;
+          if(index_j2.z>=0)  HessianMatrix.element[index_j2.z][n+4]-=0.5*((posB.z-comB.z)*Hessian.bz+(posB.y-comB.y)*Hessian.cz);
+          if(index_j2.z>=0)  HessianMatrix.element[index_j2.z][n+5]-=(posB.z-comB.z)*Hessian.cz;
           break;                                   
         case REGULAR_UPPER_TRIANGLE:
-          if(index_j2>=0)
-          {
-            HessianMatrix.element[index_j2  ][n  ]-=(posB.x-comB.x)*Hessian.ax;
-            HessianMatrix.element[index_j2  ][n+1]-=(posB.y-comB.y)*Hessian.ax;
-            HessianMatrix.element[index_j2  ][n+2]-=(posB.z-comB.z)*Hessian.ax;
-            HessianMatrix.element[index_j2  ][n+3]-=(posB.y-comB.y)*Hessian.bx;
-            HessianMatrix.element[index_j2  ][n+4]-=(posB.z-comB.z)*Hessian.bx;
-            HessianMatrix.element[index_j2  ][n+5]-=(posB.z-comB.z)*Hessian.cx;
+          if(index_j2.x>=0) HessianMatrix.element[index_j2.x][n  ]-=(posB.x-comB.x)*Hessian.ax;
+          if(index_j2.x>=0) HessianMatrix.element[index_j2.x][n+1]-=(posB.y-comB.y)*Hessian.ax;
+          if(index_j2.x>=0) HessianMatrix.element[index_j2.x][n+2]-=(posB.z-comB.z)*Hessian.ax;
+          if(index_j2.x>=0) HessianMatrix.element[index_j2.x][n+3]-=(posB.y-comB.y)*Hessian.bx;
+          if(index_j2.x>=0) HessianMatrix.element[index_j2.x][n+4]-=(posB.z-comB.z)*Hessian.bx;
+          if(index_j2.x>=0) HessianMatrix.element[index_j2.x][n+5]-=(posB.z-comB.z)*Hessian.cx;
 
-            HessianMatrix.element[index_j2+1][n  ]-=(posB.x-comB.x)*Hessian.ay;
-            HessianMatrix.element[index_j2+1][n+1]-=(posB.y-comB.y)*Hessian.ay;
-            HessianMatrix.element[index_j2+1][n+2]-=(posB.z-comB.z)*Hessian.ay;
-            HessianMatrix.element[index_j2+1][n+3]-=(posB.y-comB.y)*Hessian.by;
-            HessianMatrix.element[index_j2+1][n+4]-=(posB.z-comB.z)*Hessian.by;
-            HessianMatrix.element[index_j2+1][n+5]-=(posB.z-comB.z)*Hessian.cy;
+          if(index_j2.y>=0) HessianMatrix.element[index_j2.y][n  ]-=(posB.x-comB.x)*Hessian.ay;
+          if(index_j2.y>=0) HessianMatrix.element[index_j2.y][n+1]-=(posB.y-comB.y)*Hessian.ay;
+          if(index_j2.y>=0) HessianMatrix.element[index_j2.y][n+2]-=(posB.z-comB.z)*Hessian.ay;
+          if(index_j2.y>=0) HessianMatrix.element[index_j2.y][n+3]-=(posB.y-comB.y)*Hessian.by;
+          if(index_j2.y>=0) HessianMatrix.element[index_j2.y][n+4]-=(posB.z-comB.z)*Hessian.by;
+          if(index_j2.y>=0) HessianMatrix.element[index_j2.y][n+5]-=(posB.z-comB.z)*Hessian.cy;
 
-            HessianMatrix.element[index_j2+2][n  ]-=(posB.x-comB.x)*Hessian.az;
-            HessianMatrix.element[index_j2+2][n+1]-=(posB.y-comB.y)*Hessian.az;
-            HessianMatrix.element[index_j2+2][n+2]-=(posB.z-comB.z)*Hessian.az;
-            HessianMatrix.element[index_j2+2][n+3]-=(posB.y-comB.y)*Hessian.bz;
-            HessianMatrix.element[index_j2+2][n+4]-=(posB.z-comB.z)*Hessian.bz;
-            HessianMatrix.element[index_j2+2][n+5]-=(posB.z-comB.z)*Hessian.cz;
-          }
+          if(index_j2.z>=0) HessianMatrix.element[index_j2.z][n  ]-=(posB.x-comB.x)*Hessian.az;
+          if(index_j2.z>=0) HessianMatrix.element[index_j2.z][n+1]-=(posB.y-comB.y)*Hessian.az;
+          if(index_j2.z>=0) HessianMatrix.element[index_j2.z][n+2]-=(posB.z-comB.z)*Hessian.az;
+          if(index_j2.z>=0) HessianMatrix.element[index_j2.z][n+3]-=(posB.y-comB.y)*Hessian.bz;
+          if(index_j2.z>=0) HessianMatrix.element[index_j2.z][n+4]-=(posB.z-comB.z)*Hessian.bz;
+          if(index_j2.z>=0) HessianMatrix.element[index_j2.z][n+5]-=(posB.z-comB.z)*Hessian.cz;
           break;
         case MONOCLINIC:
           switch(MonoclinicAngleType[CurrentSystem])
           {
             case MONOCLINIC_ALPHA_ANGLE:
-              if(index_j2>=0)
-              {
-                HessianMatrix.element[index_j2][n]-=(posB.x-comB.x)*Hessian.ax;
-                HessianMatrix.element[index_j2][n+1]-=(posB.y-comB.y)*Hessian.bx;
-                HessianMatrix.element[index_j2][n+2]-=0.5*((posB.z-comB.z)*Hessian.bx+(posB.y-comB.y)*Hessian.cx);
-                HessianMatrix.element[index_j2][n+3]-=(posB.z-comB.z)*Hessian.cx;
+              if(index_j2.x>=0) HessianMatrix.element[index_j2.x][n]-=(posB.x-comB.x)*Hessian.ax;
+              if(index_j2.x>=0) HessianMatrix.element[index_j2.x][n+1]-=(posB.y-comB.y)*Hessian.bx;
+              if(index_j2.x>=0) HessianMatrix.element[index_j2.x][n+2]-=0.5*((posB.z-comB.z)*Hessian.bx+(posB.y-comB.y)*Hessian.cx);
+              if(index_j2.x>=0) HessianMatrix.element[index_j2.x][n+3]-=(posB.z-comB.z)*Hessian.cx;
 
-                HessianMatrix.element[index_j2+1][n]-=(posB.x-comB.x)*Hessian.ay;
-                HessianMatrix.element[index_j2+1][n+1]-=(posB.y-comB.y)*Hessian.by;
-                HessianMatrix.element[index_j2+1][n+2]-=0.5*((posB.z-comB.z)*Hessian.by+(posB.y-comB.y)*Hessian.cy);
-                HessianMatrix.element[index_j2+1][n+3]-=(posB.z-comB.z)*Hessian.cy;
+              if(index_j2.y>=0) HessianMatrix.element[index_j2.y][n]-=(posB.x-comB.x)*Hessian.ay;
+              if(index_j2.y>=0) HessianMatrix.element[index_j2.y][n+1]-=(posB.y-comB.y)*Hessian.by;
+              if(index_j2.y>=0) HessianMatrix.element[index_j2.y][n+2]-=0.5*((posB.z-comB.z)*Hessian.by+(posB.y-comB.y)*Hessian.cy);
+              if(index_j2.y>=0) HessianMatrix.element[index_j2.y][n+3]-=(posB.z-comB.z)*Hessian.cy;
 
-                HessianMatrix.element[index_j2+2][n]-=(posB.x-comB.x)*Hessian.az;
-                HessianMatrix.element[index_j2+2][n+1]-=(posB.y-comB.y)*Hessian.bz;
-                HessianMatrix.element[index_j2+2][n+2]-=0.5*((posB.z-comB.z)*Hessian.bz+(posB.y-comB.y)*Hessian.cz);
-                HessianMatrix.element[index_j2+2][n+3]-=(posB.z-comB.z)*Hessian.cz;
-              }
+              if(index_j2.z>=0) HessianMatrix.element[index_j2.z][n]-=(posB.x-comB.x)*Hessian.az;
+              if(index_j2.z>=0) HessianMatrix.element[index_j2.z][n+1]-=(posB.y-comB.y)*Hessian.bz;
+              if(index_j2.z>=0) HessianMatrix.element[index_j2.z][n+2]-=0.5*((posB.z-comB.z)*Hessian.bz+(posB.y-comB.y)*Hessian.cz);
+              if(index_j2.z>=0) HessianMatrix.element[index_j2.z][n+3]-=(posB.z-comB.z)*Hessian.cz;
               break;
             case MONOCLINIC_BETA_ANGLE:
-              if(index_j2>=0)
-              {
-                HessianMatrix.element[index_j2][n]-=(posB.x-comB.x)*Hessian.ax;
-                HessianMatrix.element[index_j2][n+1]-=0.5*((posB.z-comB.z)*Hessian.ax+(posB.x-comB.x)*Hessian.cx);
-                HessianMatrix.element[index_j2][n+2]-=(posB.y-comB.y)*Hessian.bx;
-                HessianMatrix.element[index_j2][n+3]-=(posB.z-comB.z)*Hessian.cx;
+              if(index_j2.x>=0) HessianMatrix.element[index_j2.x][n]-=(posB.x-comB.x)*Hessian.ax;
+              if(index_j2.x>=0) HessianMatrix.element[index_j2.x][n+1]-=0.5*((posB.z-comB.z)*Hessian.ax+(posB.x-comB.x)*Hessian.cx);
+              if(index_j2.x>=0) HessianMatrix.element[index_j2.x][n+2]-=(posB.y-comB.y)*Hessian.bx;
+              if(index_j2.x>=0) HessianMatrix.element[index_j2.x][n+3]-=(posB.z-comB.z)*Hessian.cx;
 
-                HessianMatrix.element[index_j2+1][n]-=(posB.x-comB.x)*Hessian.ay;
-                HessianMatrix.element[index_j2+1][n+1]-=0.5*((posB.z-comB.z)*Hessian.ay+(posB.x-comB.x)*Hessian.cy);
-                HessianMatrix.element[index_j2+1][n+2]-=(posB.y-comB.y)*Hessian.by;
-                HessianMatrix.element[index_j2+1][n+3]-=(posB.z-comB.z)*Hessian.cy;
+              if(index_j2.y>=0) HessianMatrix.element[index_j2.y][n]-=(posB.x-comB.x)*Hessian.ay;
+              if(index_j2.y>=0) HessianMatrix.element[index_j2.y][n+1]-=0.5*((posB.z-comB.z)*Hessian.ay+(posB.x-comB.x)*Hessian.cy);
+              if(index_j2.y>=0) HessianMatrix.element[index_j2.y][n+2]-=(posB.y-comB.y)*Hessian.by;
+              if(index_j2.y>=0) HessianMatrix.element[index_j2.y][n+3]-=(posB.z-comB.z)*Hessian.cy;
 
-                HessianMatrix.element[index_j2+2][n]-=(posB.x-comB.x)*Hessian.az;
-                HessianMatrix.element[index_j2+2][n+1]-=0.5*((posB.z-comB.z)*Hessian.az+(posB.x-comB.x)*Hessian.cz);
-                HessianMatrix.element[index_j2+2][n+2]-=(posB.y-comB.y)*Hessian.bz;
-                HessianMatrix.element[index_j2+2][n+3]-=(posB.z-comB.z)*Hessian.cz;
-              }
+              if(index_j2.z>=0) HessianMatrix.element[index_j2.z][n]-=(posB.x-comB.x)*Hessian.az;
+              if(index_j2.z>=0) HessianMatrix.element[index_j2.z][n+1]-=0.5*((posB.z-comB.z)*Hessian.az+(posB.x-comB.x)*Hessian.cz);
+              if(index_j2.z>=0) HessianMatrix.element[index_j2.z][n+2]-=(posB.y-comB.y)*Hessian.bz;
+              if(index_j2.z>=0) HessianMatrix.element[index_j2.z][n+3]-=(posB.z-comB.z)*Hessian.cz;
               break;
             case MONOCLINIC_GAMMA_ANGLE:
-              if(index_j2>=0)
-              {
-                HessianMatrix.element[index_j2][n]-=(posB.x-comB.x)*Hessian.ax;
-                HessianMatrix.element[index_j2][n+1]-=0.5*((posB.y-comB.y)*Hessian.ax+(posB.x-comB.x)*Hessian.bx);
-                HessianMatrix.element[index_j2][n+2]-=(posB.y-comB.y)*Hessian.bx;
-                HessianMatrix.element[index_j2][n+3]-=(posB.z-comB.z)*Hessian.cx;
+              if(index_j2.x>=0)  HessianMatrix.element[index_j2.x][n]-=(posB.x-comB.x)*Hessian.ax;
+              if(index_j2.x>=0)  HessianMatrix.element[index_j2.x][n+1]-=0.5*((posB.y-comB.y)*Hessian.ax+(posB.x-comB.x)*Hessian.bx);
+              if(index_j2.x>=0)  HessianMatrix.element[index_j2.x][n+2]-=(posB.y-comB.y)*Hessian.bx;
+              if(index_j2.x>=0)  HessianMatrix.element[index_j2.x][n+3]-=(posB.z-comB.z)*Hessian.cx;
 
-                HessianMatrix.element[index_j2+1][n]-=(posB.x-comB.x)*Hessian.ay;
-                HessianMatrix.element[index_j2+1][n+1]-=0.5*((posB.y-comB.y)*Hessian.ay+(posB.x-comB.x)*Hessian.by);
-                HessianMatrix.element[index_j2+1][n+2]-=(posB.y-comB.y)*Hessian.by;
-                HessianMatrix.element[index_j2+1][n+3]-=(posB.z-comB.z)*Hessian.cy;
+              if(index_j2.y>=0)  HessianMatrix.element[index_j2.y][n]-=(posB.x-comB.x)*Hessian.ay;
+              if(index_j2.y>=0)  HessianMatrix.element[index_j2.y][n+1]-=0.5*((posB.y-comB.y)*Hessian.ay+(posB.x-comB.x)*Hessian.by);
+              if(index_j2.y>=0)  HessianMatrix.element[index_j2.y][n+2]-=(posB.y-comB.y)*Hessian.by;
+              if(index_j2.y>=0)  HessianMatrix.element[index_j2.y][n+3]-=(posB.z-comB.z)*Hessian.cy;
 
-                HessianMatrix.element[index_j2+2][n]-=(posB.x-comB.x)*Hessian.az;
-                HessianMatrix.element[index_j2+2][n+1]-=0.5*((posB.y-comB.y)*Hessian.az+(posB.x-comB.x)*Hessian.bz);
-                HessianMatrix.element[index_j2+2][n+2]-=(posB.y-comB.y)*Hessian.bz;
-                HessianMatrix.element[index_j2+2][n+3]-=(posB.z-comB.z)*Hessian.cz;
-              }
+              if(index_j2.z>=0)  HessianMatrix.element[index_j2.z][n]-=(posB.x-comB.x)*Hessian.az;
+              if(index_j2.z>=0)  HessianMatrix.element[index_j2.z][n+1]-=0.5*((posB.y-comB.y)*Hessian.az+(posB.x-comB.x)*Hessian.bz);
+              if(index_j2.z>=0)  HessianMatrix.element[index_j2.z][n+2]-=(posB.y-comB.y)*Hessian.bz;
+              if(index_j2.z>=0)  HessianMatrix.element[index_j2.z][n+3]-=(posB.z-comB.z)*Hessian.cz;
               break;
           }
           break;
@@ -1447,61 +1272,52 @@ static inline void HessianOrientationStrainJ_FR(REAL_MATRIX HessianMatrix,int in
           switch(MonoclinicAngleType[CurrentSystem])
           {
             case MONOCLINIC_ALPHA_ANGLE:
-              if(index_j2>=0)
-              {
-                HessianMatrix.element[index_j2  ][n  ]-=(posB.x-comB.x)*Hessian.ax;
-                HessianMatrix.element[index_j2  ][n+1]-=(posB.y-comB.y)*Hessian.bx;
-                HessianMatrix.element[index_j2  ][n+2]-=(posB.z-comB.z)*Hessian.bx;
-                HessianMatrix.element[index_j2  ][n+3]-=(posB.z-comB.z)*Hessian.cx;
+              if(index_j2.x>=0) HessianMatrix.element[index_j2.x][n  ]-=(posB.x-comB.x)*Hessian.ax;
+              if(index_j2.x>=0) HessianMatrix.element[index_j2.x][n+1]-=(posB.y-comB.y)*Hessian.bx;
+              if(index_j2.x>=0) HessianMatrix.element[index_j2.x][n+2]-=(posB.z-comB.z)*Hessian.bx;
+              if(index_j2.x>=0) HessianMatrix.element[index_j2.x][n+3]-=(posB.z-comB.z)*Hessian.cx;
 
-                HessianMatrix.element[index_j2+1][n  ]-=(posB.x-comB.x)*Hessian.ay;
-                HessianMatrix.element[index_j2+1][n+1]-=(posB.y-comB.y)*Hessian.by;
-                HessianMatrix.element[index_j2+1][n+2]-=(posB.z-comB.z)*Hessian.by;
-                HessianMatrix.element[index_j2+1][n+3]-=(posB.z-comB.z)*Hessian.cy;
+              if(index_j2.y>=0) HessianMatrix.element[index_j2.y][n  ]-=(posB.x-comB.x)*Hessian.ay;
+              if(index_j2.y>=0) HessianMatrix.element[index_j2.y][n+1]-=(posB.y-comB.y)*Hessian.by;
+              if(index_j2.y>=0) HessianMatrix.element[index_j2.y][n+2]-=(posB.z-comB.z)*Hessian.by;
+              if(index_j2.y>=0) HessianMatrix.element[index_j2.y][n+3]-=(posB.z-comB.z)*Hessian.cy;
 
-                HessianMatrix.element[index_j2+2][n  ]-=(posB.x-comB.x)*Hessian.az;
-                HessianMatrix.element[index_j2+2][n+1]-=(posB.y-comB.y)*Hessian.bz;
-                HessianMatrix.element[index_j2+2][n+2]-=(posB.z-comB.z)*Hessian.bz;
-                HessianMatrix.element[index_j2+2][n+3]-=(posB.z-comB.z)*Hessian.cz;
-              }
+              if(index_j2.z>=0) HessianMatrix.element[index_j2.z][n  ]-=(posB.x-comB.x)*Hessian.az;
+              if(index_j2.z>=0) HessianMatrix.element[index_j2.z][n+1]-=(posB.y-comB.y)*Hessian.bz;
+              if(index_j2.z>=0) HessianMatrix.element[index_j2.z][n+2]-=(posB.z-comB.z)*Hessian.bz;
+              if(index_j2.z>=0) HessianMatrix.element[index_j2.z][n+3]-=(posB.z-comB.z)*Hessian.cz;
               break;
             case MONOCLINIC_BETA_ANGLE:
-              if(index_j2>=0)
-              {
-                HessianMatrix.element[index_j2  ][n  ]-=(posB.x-comB.x)*Hessian.ax;
-                HessianMatrix.element[index_j2  ][n+1]-=(posB.z-comB.z)*Hessian.ax;
-                HessianMatrix.element[index_j2  ][n+2]-=(posB.y-comB.y)*Hessian.bx;
-                HessianMatrix.element[index_j2  ][n+3]-=(posB.z-comB.z)*Hessian.cx;
+              if(index_j2.x>=0) HessianMatrix.element[index_j2.x][n  ]-=(posB.x-comB.x)*Hessian.ax;
+              if(index_j2.x>=0) HessianMatrix.element[index_j2.x][n+1]-=(posB.z-comB.z)*Hessian.ax;
+              if(index_j2.x>=0) HessianMatrix.element[index_j2.x][n+2]-=(posB.y-comB.y)*Hessian.bx;
+              if(index_j2.x>=0) HessianMatrix.element[index_j2.x][n+3]-=(posB.z-comB.z)*Hessian.cx;
 
-                HessianMatrix.element[index_j2+1][n  ]-=(posB.x-comB.x)*Hessian.ay;
-                HessianMatrix.element[index_j2+1][n+1]-=(posB.z-comB.z)*Hessian.ay;
-                HessianMatrix.element[index_j2+1][n+2]-=(posB.y-comB.y)*Hessian.by;
-                HessianMatrix.element[index_j2+1][n+3]-=(posB.z-comB.z)*Hessian.cy;
+              if(index_j2.y>=0) HessianMatrix.element[index_j2.y][n  ]-=(posB.x-comB.x)*Hessian.ay;
+              if(index_j2.y>=0) HessianMatrix.element[index_j2.y][n+1]-=(posB.z-comB.z)*Hessian.ay;
+              if(index_j2.y>=0) HessianMatrix.element[index_j2.y][n+2]-=(posB.y-comB.y)*Hessian.by;
+              if(index_j2.y>=0) HessianMatrix.element[index_j2.y][n+3]-=(posB.z-comB.z)*Hessian.cy;
 
-                HessianMatrix.element[index_j2+2][n  ]-=(posB.x-comB.x)*Hessian.az;
-                HessianMatrix.element[index_j2+2][n+1]-=(posB.z-comB.z)*Hessian.az;
-                HessianMatrix.element[index_j2+2][n+2]-=(posB.y-comB.y)*Hessian.bz;
-                HessianMatrix.element[index_j2+2][n+3]-=(posB.z-comB.z)*Hessian.cz;
-              }
+              if(index_j2.z>=0) HessianMatrix.element[index_j2.z][n  ]-=(posB.x-comB.x)*Hessian.az;
+              if(index_j2.z>=0) HessianMatrix.element[index_j2.z][n+1]-=(posB.z-comB.z)*Hessian.az;
+              if(index_j2.z>=0) HessianMatrix.element[index_j2.z][n+2]-=(posB.y-comB.y)*Hessian.bz;
+              if(index_j2.z>=0) HessianMatrix.element[index_j2.z][n+3]-=(posB.z-comB.z)*Hessian.cz;
               break;
             case MONOCLINIC_GAMMA_ANGLE:
-              if(index_j2>=0)
-              {
-                HessianMatrix.element[index_j2  ][n  ]-=(posB.x-comB.x)*Hessian.ax;
-                HessianMatrix.element[index_j2  ][n+1]-=(posB.y-comB.y)*Hessian.ax;
-                HessianMatrix.element[index_j2  ][n+2]-=(posB.y-comB.y)*Hessian.bx;
-                HessianMatrix.element[index_j2  ][n+3]-=(posB.z-comB.z)*Hessian.cx;
+              if(index_j2.x>=0) HessianMatrix.element[index_j2.x][n  ]-=(posB.x-comB.x)*Hessian.ax;
+              if(index_j2.x>=0) HessianMatrix.element[index_j2.x][n+1]-=(posB.y-comB.y)*Hessian.ax;
+              if(index_j2.x>=0) HessianMatrix.element[index_j2.x][n+2]-=(posB.y-comB.y)*Hessian.bx;
+              if(index_j2.x>=0) HessianMatrix.element[index_j2.x][n+3]-=(posB.z-comB.z)*Hessian.cx;
 
-                HessianMatrix.element[index_j2+1][n  ]-=(posB.x-comB.x)*Hessian.ay;
-                HessianMatrix.element[index_j2+1][n+1]-=(posB.y-comB.y)*Hessian.ay;
-                HessianMatrix.element[index_j2+1][n+2]-=(posB.y-comB.y)*Hessian.by;
-                HessianMatrix.element[index_j2+1][n+3]-=(posB.z-comB.z)*Hessian.cy;
+              if(index_j2.y>=0) HessianMatrix.element[index_j2.y][n  ]-=(posB.x-comB.x)*Hessian.ay;
+              if(index_j2.y>=0) HessianMatrix.element[index_j2.y][n+1]-=(posB.y-comB.y)*Hessian.ay;
+              if(index_j2.y>=0) HessianMatrix.element[index_j2.y][n+2]-=(posB.y-comB.y)*Hessian.by;
+              if(index_j2.y>=0) HessianMatrix.element[index_j2.y][n+3]-=(posB.z-comB.z)*Hessian.cy;
 
-                HessianMatrix.element[index_j2+2][n  ]-=(posB.x-comB.x)*Hessian.az;
-                HessianMatrix.element[index_j2+2][n+1]-=(posB.y-comB.y)*Hessian.az;
-                HessianMatrix.element[index_j2+2][n+2]-=(posB.y-comB.y)*Hessian.bz;
-                HessianMatrix.element[index_j2+2][n+3]-=(posB.z-comB.z)*Hessian.cz;
-              }
+              if(index_j2.z>=0) HessianMatrix.element[index_j2.z][n  ]-=(posB.x-comB.x)*Hessian.az;
+              if(index_j2.z>=0) HessianMatrix.element[index_j2.z][n+1]-=(posB.y-comB.y)*Hessian.az;
+              if(index_j2.z>=0) HessianMatrix.element[index_j2.z][n+2]-=(posB.y-comB.y)*Hessian.bz;
+              if(index_j2.z>=0) HessianMatrix.element[index_j2.z][n+3]-=(posB.z-comB.z)*Hessian.cz;
               break;
           }
           break;  
@@ -1521,7 +1337,7 @@ static inline void HessianOrientationStrainJ_FR(REAL_MATRIX HessianMatrix,int in
 
 // Hessian: Strain - Strain 
 // ========================
-static inline void HessianAtomicStrainStrain(REAL_MATRIX HessianMatrix,int index_i,int index_j,REAL f1,REAL f2,VECTOR dr)
+static inline void HessianAtomicStrainStrain(REAL_MATRIX HessianMatrix,REAL f1,REAL f2,VECTOR dr)
 {
   int n;
 
@@ -2275,7 +2091,7 @@ void ComputeFrameworkAdsorbateVDWHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX
   REAL rr;
   REAL energy,f1,f2;
   VECTOR posA,posB,dr;
-  int index_i,index_j,index_j2;
+  INT_VECTOR3 index_i,index_j,index_j2;
   int index2;
   REAL ChargeA,ChargeB;
   VECTOR pos,comB;
@@ -2320,7 +2136,8 @@ void ComputeFrameworkAdsorbateVDWHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX
                   else
                   {
                     index_j=Adsorbates[CurrentSystem][J].Atoms[j].HessianIndex;
-                    index_j2=-1;
+                    index_j2=UNDEFINED_INT_VECTOR3;
+                    index2=-1;
                   }
 
                   typeB=Adsorbates[CurrentSystem][J].Atoms[j].Type;
@@ -2345,7 +2162,7 @@ void ComputeFrameworkAdsorbateVDWHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX
                     // add contribution to the energy
                     *Energy+=energy;
 
-                    if((index_i<0)&&(index_j<0)&&(index_j2<0)) continue;
+                    //if((index_i<0)&&(index_j<0)&&(index_j2<0)) continue;
 
                     StrainDerivative->ax+=f1*dr.x*dr.x;
                     StrainDerivative->bx+=f1*dr.x*dr.y;
@@ -2387,20 +2204,14 @@ void ComputeFrameworkAdsorbateVDWHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX
                     {
                       if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
                       {
-                        if(index_i>=0)
-                        {
-                          Gradient[index_i]+=f1*dr.x;
-                          Gradient[index_i+1]+=f1*dr.y;
-                          Gradient[index_i+2]+=f1*dr.z;
-                        }
+                        if(index_i.x>=0) Gradient[index_i.x]+=f1*dr.x;
+                        if(index_i.y>=0) Gradient[index_i.y]+=f1*dr.y;
+                        if(index_i.z>=0) Gradient[index_i.z]+=f1*dr.z;
                       }
   
-                      if(index_j>=0)
-                      {
-                        Gradient[index_j]-=f1*dr.x;
-                        Gradient[index_j+1]-=f1*dr.y;
-                        Gradient[index_j+2]-=f1*dr.z;
-                      }
+                      if(index_j.x>=0) Gradient[index_j.x]-=f1*dr.x;
+                      if(index_j.y>=0) Gradient[index_j.y]-=f1*dr.y;
+                      if(index_j.z>=0) Gradient[index_j.z]-=f1*dr.z;
 
                       GradientStrain(Gradient,f1,dr);
 
@@ -2409,12 +2220,9 @@ void ComputeFrameworkAdsorbateVDWHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX
                         GradientStrainJ(Gradient,f1,dr,posB,comB);
 
                         // add contribution to the first derivatives
-                        if(index_j2>=0)
-                        {
-                          Gradient[index_j2]-=f1*(dr.x*DVecX[index2].x+dr.y*DVecX[index2].y+dr.z*DVecX[index2].z);
-                          Gradient[index_j2+1]-=f1*(dr.x*DVecY[index2].x+dr.y*DVecY[index2].y+dr.z*DVecY[index2].z);
-                          Gradient[index_j2+2]-=f1*(dr.x*DVecZ[index2].x+dr.y*DVecZ[index2].y+dr.z*DVecZ[index2].z);
-                        }
+                        if(index_j2.x>=0) Gradient[index_j2.x]-=f1*(dr.x*DVecX[index2].x+dr.y*DVecX[index2].y+dr.z*DVecX[index2].z);
+                        if(index_j2.y>=0) Gradient[index_j2.y]-=f1*(dr.x*DVecY[index2].x+dr.y*DVecY[index2].y+dr.z*DVecY[index2].z);
+                        if(index_j2.z>=0) Gradient[index_j2.z]-=f1*(dr.x*DVecZ[index2].x+dr.y*DVecZ[index2].y+dr.z*DVecZ[index2].z);
                       }
                     }
 
@@ -2422,7 +2230,7 @@ void ComputeFrameworkAdsorbateVDWHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX
                     {
                       HessianAtomicPositionPosition(HessianMatrix,index_i,index_j,f1,f2,dr,1.0);
                       HessianAtomicPositionStrain(HessianMatrix,index_i,index_j,f1,f2,dr);
-                      HessianAtomicStrainStrain(HessianMatrix,index_i,index_j,f1,f2,dr);
+                      HessianAtomicStrainStrain(HessianMatrix,f1,f2,dr);
 
 
                       if(Components[TypeMolB].Groups[jg].Rigid)
@@ -2444,6 +2252,8 @@ void ComputeFrameworkAdsorbateVDWHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX
           }
     }
   }
+
+
 }
 
 void ComputeFrameworkAdsorbateChargeChargeHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX HessianMatrix,
@@ -2455,7 +2265,7 @@ void ComputeFrameworkAdsorbateChargeChargeHessian(REAL *Energy,REAL* Gradient,RE
   REAL rr;
   REAL f1,f2;
   VECTOR posA,posB,dr;
-  int index_i,index_j,index_j2;
+  INT_VECTOR3 index_i,index_j,index_j2;
   int index2;
   REAL ChargeA,ChargeB;
   VECTOR comB;
@@ -2499,7 +2309,8 @@ void ComputeFrameworkAdsorbateChargeChargeHessian(REAL *Energy,REAL* Gradient,RE
                   else
                   {
                     index_j=Adsorbates[CurrentSystem][J].Atoms[j].HessianIndex;
-                    index_j2=-1;
+                    index_j2=UNDEFINED_INT_VECTOR3;
+                    index2=-1;
                   }
 
                   typeB=Adsorbates[CurrentSystem][J].Atoms[j].Type;
@@ -2549,7 +2360,7 @@ void ComputeFrameworkAdsorbateChargeChargeHessian(REAL *Energy,REAL* Gradient,RE
                         break;
                     }
 
-                    if((index_i<0)&&(index_j<0)) continue;
+                    //if((index_i<0)&&(index_j<0)) continue;
 
                     StrainDerivative->ax+=f1*dr.x*dr.x;
                     StrainDerivative->bx+=f1*dr.x*dr.y;
@@ -2589,20 +2400,14 @@ void ComputeFrameworkAdsorbateChargeChargeHessian(REAL *Energy,REAL* Gradient,RE
                     {
                       if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
                       {
-                        if(index_i>=0)
-                        {
-                          Gradient[index_i]+=f1*dr.x;
-                          Gradient[index_i+1]+=f1*dr.y;
-                          Gradient[index_i+2]+=f1*dr.z;
-                        }
+                        if(index_i.x>=0) Gradient[index_i.x]+=f1*dr.x;
+                        if(index_i.y>=0) Gradient[index_i.y]+=f1*dr.y;
+                        if(index_i.z>=0) Gradient[index_i.z]+=f1*dr.z;
                       }
 
-                      if(index_j>=0)
-                      {
-                        Gradient[index_j]-=f1*dr.x;
-                        Gradient[index_j+1]-=f1*dr.y;
-                        Gradient[index_j+2]-=f1*dr.z;
-                      }
+                      if(index_j.x>=0) Gradient[index_j.x]-=f1*dr.x;
+                      if(index_j.y>=0) Gradient[index_j.y]-=f1*dr.y;
+                      if(index_j.z>=0) Gradient[index_j.z]-=f1*dr.z;
   
                       GradientStrain(Gradient,f1,dr);
 
@@ -2611,12 +2416,9 @@ void ComputeFrameworkAdsorbateChargeChargeHessian(REAL *Energy,REAL* Gradient,RE
                         GradientStrainJ(Gradient,f1,dr,posB,comB);
 
                          // add contribution to the first derivatives
-                        if(index_j2>=0)
-                        {
-                          Gradient[index_j2]-=f1*(dr.x*DVecX[index2].x+dr.y*DVecX[index2].y+dr.z*DVecX[index2].z);
-                          Gradient[index_j2+1]-=f1*(dr.x*DVecY[index2].x+dr.y*DVecY[index2].y+dr.z*DVecY[index2].z);
-                          Gradient[index_j2+2]-=f1*(dr.x*DVecZ[index2].x+dr.y*DVecZ[index2].y+dr.z*DVecZ[index2].z);
-                        }
+                        if(index_j2.x>=0) Gradient[index_j2.x]-=f1*(dr.x*DVecX[index2].x+dr.y*DVecX[index2].y+dr.z*DVecX[index2].z);
+                        if(index_j2.y>=0) Gradient[index_j2.y]-=f1*(dr.x*DVecY[index2].x+dr.y*DVecY[index2].y+dr.z*DVecY[index2].z);
+                        if(index_j2.z>=0) Gradient[index_j2.z]-=f1*(dr.x*DVecZ[index2].x+dr.y*DVecZ[index2].y+dr.z*DVecZ[index2].z);
                       }
                     }
 
@@ -2624,7 +2426,7 @@ void ComputeFrameworkAdsorbateChargeChargeHessian(REAL *Energy,REAL* Gradient,RE
                     {
                       HessianAtomicPositionPosition(HessianMatrix,index_i,index_j,f1,f2,dr,1.0);
                       HessianAtomicPositionStrain(HessianMatrix,index_i,index_j,f1,f2,dr);
-                      HessianAtomicStrainStrain(HessianMatrix,index_i,index_j,f1,f2,dr);
+                      HessianAtomicStrainStrain(HessianMatrix,f1,f2,dr);
 
                       if(Components[TypeMolB].Groups[jg].Rigid)
                       {
@@ -2656,10 +2458,10 @@ void ComputeFrameworkCationVDWHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX He
   REAL rr;
   REAL energy,f1,f2;
   VECTOR posA,posB,dr;
-  int index_i,index_j,index_j2;
+  INT_VECTOR3 index_i,index_j,index_j2;
   int index2;
   REAL ChargeA,ChargeB;
-  VECTOR comB;
+  VECTOR pos,comB;
   REAL r,temp1,temp2,temp3;
   int ncell,k1,k2,k3;
 
@@ -2676,6 +2478,7 @@ void ComputeFrameworkCationVDWHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX He
       typeA=Framework[CurrentSystem].Atoms[fr][i].Type;
       ChargeA=Framework[CurrentSystem].Atoms[fr][i].Charge;
 
+        // second loop over adsorbates
       ncell=0;
       for(k1=0;k1<NumberOfReplicaCells[CurrentSystem].x;k1++)
         for(k2=0;k2<NumberOfReplicaCells[CurrentSystem].y;k2++)
@@ -2689,7 +2492,7 @@ void ComputeFrameworkCationVDWHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX He
                 for(ja=0;ja<Components[TypeMolB].Groups[jg].NumberOfGroupAtoms;ja++)
                 {
                   j=Components[TypeMolB].Groups[jg].Atoms[ja];
-
+ 
                   if(Components[TypeMolB].Groups[jg].Rigid)
                   {
                     index_j=Cations[CurrentSystem][J].Groups[jg].HessianIndex;
@@ -2700,7 +2503,8 @@ void ComputeFrameworkCationVDWHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX He
                   else
                   {
                     index_j=Cations[CurrentSystem][J].Atoms[j].HessianIndex;
-                    index_j2=-1;
+                    index_j2=UNDEFINED_INT_VECTOR3;
+                    index2=-1;
                   }
 
                   typeB=Cations[CurrentSystem][J].Atoms[j].Type;
@@ -2725,6 +2529,8 @@ void ComputeFrameworkCationVDWHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX He
                     // add contribution to the energy
                     *Energy+=energy;
 
+                    //if((index_i<0)&&(index_j<0)&&(index_j2<0)) continue;
+
                     StrainDerivative->ax+=f1*dr.x*dr.x;
                     StrainDerivative->bx+=f1*dr.x*dr.y;
                     StrainDerivative->cx+=f1*dr.x*dr.z;
@@ -2743,6 +2549,8 @@ void ComputeFrameworkCationVDWHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX He
                       comB.x+=ReplicaShift[ncell].x;
                       comB.y+=ReplicaShift[ncell].y;
                       comB.z+=ReplicaShift[ncell].z;
+
+                      pos=Components[TypeMolB].Positions[j];
 
                       temp1=0.5*((posB.y-comB.y)*f1*dr.x+(posB.x-comB.x)*f1*dr.y);
                       temp2=0.5*((posB.z-comB.z)*f1*dr.x+(posB.x-comB.x)*f1*dr.z);
@@ -2763,20 +2571,14 @@ void ComputeFrameworkCationVDWHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX He
                     {
                       if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
                       {
-                        if(index_i>=0)
-                        {
-                          Gradient[index_i]+=f1*dr.x;
-                          Gradient[index_i+1]+=f1*dr.y;
-                          Gradient[index_i+2]+=f1*dr.z;
-                        }
+                        if(index_i.x>=0) Gradient[index_i.x]+=f1*dr.x;
+                        if(index_i.y>=0) Gradient[index_i.y]+=f1*dr.y;
+                        if(index_i.z>=0) Gradient[index_i.z]+=f1*dr.z;
                       }
-
-                      if(index_j>=0)
-                      {
-                        Gradient[index_j]-=f1*dr.x;
-                        Gradient[index_j+1]-=f1*dr.y;
-                        Gradient[index_j+2]-=f1*dr.z;
-                      }
+  
+                      if(index_j.x>=0) Gradient[index_j.x]-=f1*dr.x;
+                      if(index_j.y>=0) Gradient[index_j.y]-=f1*dr.y;
+                      if(index_j.z>=0) Gradient[index_j.z]-=f1*dr.z;
 
                       GradientStrain(Gradient,f1,dr);
 
@@ -2785,12 +2587,9 @@ void ComputeFrameworkCationVDWHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX He
                         GradientStrainJ(Gradient,f1,dr,posB,comB);
 
                         // add contribution to the first derivatives
-                        if(index_j2>=0)
-                        {
-                          Gradient[index_j2]-=f1*(dr.x*DVecX[index2].x+dr.y*DVecX[index2].y+dr.z*DVecX[index2].z);
-                          Gradient[index_j2+1]-=f1*(dr.x*DVecY[index2].x+dr.y*DVecY[index2].y+dr.z*DVecY[index2].z);
-                          Gradient[index_j2+2]-=f1*(dr.x*DVecZ[index2].x+dr.y*DVecZ[index2].y+dr.z*DVecZ[index2].z);
-                        }
+                        if(index_j2.x>=0) Gradient[index_j2.x]-=f1*(dr.x*DVecX[index2].x+dr.y*DVecX[index2].y+dr.z*DVecX[index2].z);
+                        if(index_j2.y>=0) Gradient[index_j2.y]-=f1*(dr.x*DVecY[index2].x+dr.y*DVecY[index2].y+dr.z*DVecY[index2].z);
+                        if(index_j2.z>=0) Gradient[index_j2.z]-=f1*(dr.x*DVecZ[index2].x+dr.y*DVecZ[index2].y+dr.z*DVecZ[index2].z);
                       }
                     }
 
@@ -2798,7 +2597,8 @@ void ComputeFrameworkCationVDWHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX He
                     {
                       HessianAtomicPositionPosition(HessianMatrix,index_i,index_j,f1,f2,dr,1.0);
                       HessianAtomicPositionStrain(HessianMatrix,index_i,index_j,f1,f2,dr);
-                      HessianAtomicStrainStrain(HessianMatrix,index_i,index_j,f1,f2,dr);
+                      HessianAtomicStrainStrain(HessianMatrix,f1,f2,dr);
+
 
                       if(Components[TypeMolB].Groups[jg].Rigid)
                       {
@@ -2810,7 +2610,7 @@ void ComputeFrameworkCationVDWHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX He
 
                         HessianCorrectionStrainStrain(HessianMatrix,f1,f2,dr,posB,comB);
                       }
-                    }
+                    } 
                   }
                 }
               }
@@ -2830,7 +2630,7 @@ void ComputeFrameworkCationChargeChargeHessian(REAL *Energy,REAL* Gradient,REAL_
   REAL rr;
   REAL f1,f2;
   VECTOR posA,posB,dr;
-  int index_i,index_j,index_j2;
+  INT_VECTOR3 index_i,index_j,index_j2;
   int index2;
   REAL ChargeA,ChargeB;
   VECTOR comB;
@@ -2872,7 +2672,8 @@ void ComputeFrameworkCationChargeChargeHessian(REAL *Energy,REAL* Gradient,REAL_
                   else
                   {
                     index_j=Cations[CurrentSystem][J].Atoms[j].HessianIndex;
-                    index_j2=-1;
+                    index_j2=UNDEFINED_INT_VECTOR3;
+                    index2=-1;
                   }
 
                   typeB=Cations[CurrentSystem][J].Atoms[j].Type;
@@ -2922,7 +2723,7 @@ void ComputeFrameworkCationChargeChargeHessian(REAL *Energy,REAL* Gradient,REAL_
                         break;
                     }
 
-                    if((index_j<0)&&(index_j2<0)) continue;
+                    //if((index_j<0)&&(index_j2<0)) continue;
 
                     StrainDerivative->ax+=f1*dr.x*dr.x;
                     StrainDerivative->bx+=f1*dr.x*dr.y;
@@ -2962,20 +2763,14 @@ void ComputeFrameworkCationChargeChargeHessian(REAL *Energy,REAL* Gradient,REAL_
                     {
                       if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
                       {
-                        if(index_i>=0)
-                        {
-                          Gradient[index_i]+=f1*dr.x;
-                          Gradient[index_i+1]+=f1*dr.y;
-                          Gradient[index_i+2]+=f1*dr.z;
-                        }
+                        if(index_i.x>=0) Gradient[index_i.x]+=f1*dr.x;
+                        if(index_i.y>=0) Gradient[index_i.y]+=f1*dr.y;
+                        if(index_i.z>=0) Gradient[index_i.z]+=f1*dr.z;
                       }
 
-                      if(index_j>=0)
-                      {
-                        Gradient[index_j]-=f1*dr.x;
-                        Gradient[index_j+1]-=f1*dr.y;
-                        Gradient[index_j+2]-=f1*dr.z;
-                      }
+                      if(index_j.x>=0) Gradient[index_j.x]-=f1*dr.x;
+                      if(index_j.y>=0) Gradient[index_j.y]-=f1*dr.y;
+                      if(index_j.z>=0) Gradient[index_j.z]-=f1*dr.z;
 
                       GradientStrain(Gradient,f1,dr);
 
@@ -2984,12 +2779,9 @@ void ComputeFrameworkCationChargeChargeHessian(REAL *Energy,REAL* Gradient,REAL_
                         GradientStrainJ(Gradient,f1,dr,posB,comB);
 
                         // add contribution to the first derivatives
-                        if(index_j2>=0)
-                        {
-                          Gradient[index_j2]-=f1*(dr.x*DVecX[index2].x+dr.y*DVecX[index2].y+dr.z*DVecX[index2].z);
-                          Gradient[index_j2+1]-=f1*(dr.x*DVecY[index2].x+dr.y*DVecY[index2].y+dr.z*DVecY[index2].z);
-                          Gradient[index_j2+2]-=f1*(dr.x*DVecZ[index2].x+dr.y*DVecZ[index2].y+dr.z*DVecZ[index2].z);
-                        }
+                        if(index_j2.x>=0) Gradient[index_j2.x]-=f1*(dr.x*DVecX[index2].x+dr.y*DVecX[index2].y+dr.z*DVecX[index2].z);
+                        if(index_j2.y>=0) Gradient[index_j2.y]-=f1*(dr.x*DVecY[index2].x+dr.y*DVecY[index2].y+dr.z*DVecY[index2].z);
+                        if(index_j2.z>=0) Gradient[index_j2.z]-=f1*(dr.x*DVecZ[index2].x+dr.y*DVecZ[index2].y+dr.z*DVecZ[index2].z);
                       }
                     }
 
@@ -2997,7 +2789,7 @@ void ComputeFrameworkCationChargeChargeHessian(REAL *Energy,REAL* Gradient,REAL_
                     {
                       HessianAtomicPositionPosition(HessianMatrix,index_i,index_j,f1,f2,dr,1.0);
                       HessianAtomicPositionStrain(HessianMatrix,index_i,index_j,f1,f2,dr);
-                      HessianAtomicStrainStrain(HessianMatrix,index_i,index_j,f1,f2,dr);
+                      HessianAtomicStrainStrain(HessianMatrix,f1,f2,dr);
 
                       if(Components[TypeMolB].Groups[jg].Rigid)
                       {
@@ -3025,12 +2817,14 @@ void ComputeFrameworkIntraVDWHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX Hes
                                      REAL_MATRIX3x3 *StrainDerivative,int ComputeGradient,int ComputeHessian)
 {
   int i,j,typeA,typeB,f1,f2,start;
-  REAL ChargeA,ChargeB,energy,DF,DDF;
-  REAL rr,r;
+  REAL energy,DF,DDF;
+  REAL rr;
   VECTOR posA,posB,dr;
-  int index_i,index_j;
+  INT_VECTOR3 index_i,index_j;
+  int A,B;
   int ncell,k1,k2,k3,indj;
   REAL ReplicaFactor;
+  REAL *parms;
 
   if(!InternalFrameworkLennardJonesInteractions) return;
 
@@ -3042,7 +2836,6 @@ void ComputeFrameworkIntraVDWHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX Hes
       {
         typeA=Framework[CurrentSystem].Atoms[f1][i].Type;
         posA=Framework[CurrentSystem].Atoms[f1][i].Position;
-        ChargeA=Framework[CurrentSystem].Atoms[f1][i].Charge;
         index_i=Framework[CurrentSystem].Atoms[f1][i].HessianIndex;
 
         ncell=0;
@@ -3059,7 +2852,6 @@ void ComputeFrameworkIntraVDWHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX Hes
                 {
                   typeB=Framework[CurrentSystem].Atoms[f2][j].Type;
                   posB=Framework[CurrentSystem].Atoms[f2][j].Position;
-                  ChargeB=Framework[CurrentSystem].Atoms[f2][j].Charge;
                   index_j=Framework[CurrentSystem].Atoms[f2][j].HessianIndex;
 
                   posB.x+=ReplicaShift[ncell].x;
@@ -3071,7 +2863,6 @@ void ComputeFrameworkIntraVDWHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX Hes
                   dr.z=posA.z-posB.z;
                   dr=ApplyReplicaBoundaryCondition(dr);
                   rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-                  r=sqrt(rr);
 
                   if(rr<CutOffVDWSquared)
                   {
@@ -3083,26 +2874,20 @@ void ComputeFrameworkIntraVDWHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX Hes
                     // add contribution to the energy
                     *Energy+=ReplicaFactor*energy;
 
-                    if((index_i<0)&&(index_j)<0) continue;
+                    //if((index_i<0)&&(index_j)<0) continue;
 
                     if(ComputeGradient)
                     {
                       // add contribution to the first derivatives
-                      if(index_i>=0)
-                      {
-                        Gradient[index_i]+=DF*dr.x;
-                        Gradient[index_i+1]+=DF*dr.y;
-                        Gradient[index_i+2]+=DF*dr.z;
-                      }
+                      if(index_i.x>=0) Gradient[index_i.x]+=DF*dr.x;
+                      if(index_i.y>=0) Gradient[index_i.y]+=DF*dr.y;
+                      if(index_i.z>=0) Gradient[index_i.z]+=DF*dr.z;
 
                       if(ncell==0)
                       {
-                        if(index_j>=0)
-                        {
-                          Gradient[index_j]-=DF*dr.x;
-                          Gradient[index_j+1]-=DF*dr.y;
-                          Gradient[index_j+2]-=DF*dr.z;
-                        }
+                        if(index_j.x>=0) Gradient[index_j.x]-=DF*dr.x;
+                        if(index_j.y>=0) Gradient[index_j.y]-=DF*dr.y;
+                        if(index_j.z>=0) Gradient[index_j.z]-=DF*dr.z;
                       }
 
                       GradientStrain(Gradient,ReplicaFactor*DF,dr);
@@ -3126,13 +2911,92 @@ void ComputeFrameworkIntraVDWHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX Hes
                       // add contribution to the second derivatives (Hessian matrix)
                       HessianAtomicPositionPosition(HessianMatrix,index_i,index_j,DF,DDF,dr,ReplicaFactor);
                       HessianAtomicPositionStrain(HessianMatrix,index_i,index_j,ReplicaFactor*DF,ReplicaFactor*DDF,dr);
-                      HessianAtomicStrainStrain(HessianMatrix,index_i,index_j,ReplicaFactor*DF,ReplicaFactor*DDF,dr);
+                      HessianAtomicStrainStrain(HessianMatrix,ReplicaFactor*DF,ReplicaFactor*DDF,dr);
                     }
                   }
                 }
               }
               ncell++;
             }
+      }
+    }
+  }
+
+  // contributions from interactions 1-4 torsions
+  // TODO: fix to handle anisotropic sites
+  for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
+  {
+    if(Framework[CurrentSystem].FrameworkModels[f1]==FLEXIBLE)
+    {
+      for(i=0;i<Framework[CurrentSystem].NumberOfTorsions[f1];i++)
+      {
+        parms=Framework[CurrentSystem].TorsionArguments[f1][i];
+
+        if(fabs(parms[6])>1e-8)
+        {
+          A=MIN2(Framework[CurrentSystem].Torsions[f1][i].A,Framework[CurrentSystem].Torsions[f1][i].D);
+          B=MAX2(Framework[CurrentSystem].Torsions[f1][i].A,Framework[CurrentSystem].Torsions[f1][i].D);
+
+          typeA=Framework[CurrentSystem].Atoms[f1][A].Type;
+          posA=Framework[CurrentSystem].Atoms[f1][A].Position;
+          index_i=Framework[CurrentSystem].Atoms[f1][A].HessianIndex;
+
+          typeB=Framework[CurrentSystem].Atoms[f1][B].Type;
+          posB=Framework[CurrentSystem].Atoms[f1][B].Position;
+          index_j=Framework[CurrentSystem].Atoms[f1][B].HessianIndex;
+
+          dr.x=posA.x-posB.x;
+          dr.y=posA.y-posB.y;
+          dr.z=posA.z-posB.z;
+          dr=ApplyBoundaryCondition(dr);
+          rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
+
+          PotentialSecondDerivative(typeA,typeB,rr,&energy,&DF,&DDF);
+
+          energy*=parms[6];
+          DF*=parms[6];
+          DDF*=parms[6];
+
+          // add contribution to the energy
+          *Energy+=energy;
+
+          //if((index_i<0)&&(index_j)<0) continue;
+
+          if(ComputeGradient)
+          {
+            // add contribution to the first derivatives
+            if(index_i.x>=0) Gradient[index_i.x]+=DF*dr.x;
+            if(index_i.y>=0) Gradient[index_i.y]+=DF*dr.y;
+            if(index_i.z>=0) Gradient[index_i.z]+=DF*dr.z;
+
+            if(index_j.x>=0) Gradient[index_j.x]-=DF*dr.x;
+            if(index_j.y>=0) Gradient[index_j.y]-=DF*dr.y;
+            if(index_j.z>=0) Gradient[index_j.z]-=DF*dr.z;
+
+            GradientStrain(Gradient,DF,dr);
+          }
+
+          // add contribution to the strain derivative tensor
+          StrainDerivative->ax+=DF*dr.x*dr.x;
+          StrainDerivative->bx+=DF*dr.y*dr.x;
+          StrainDerivative->cx+=DF*dr.z*dr.x;
+
+          StrainDerivative->ay+=DF*dr.x*dr.y;
+          StrainDerivative->by+=DF*dr.y*dr.y;
+          StrainDerivative->cy+=DF*dr.z*dr.y;
+
+          StrainDerivative->az+=DF*dr.x*dr.z;
+          StrainDerivative->bz+=DF*dr.y*dr.z;
+          StrainDerivative->cz+=DF*dr.z*dr.z;
+
+          if(ComputeHessian)
+          {
+            // add contribution to the second derivatives (Hessian matrix)
+            HessianAtomicPositionPosition(HessianMatrix,index_i,index_j,DF,DDF,dr,1.0);
+            HessianAtomicPositionStrain(HessianMatrix,index_i,index_j,DF,DDF,dr);
+            HessianAtomicStrainStrain(HessianMatrix,DF,DDF,dr);
+          }
+        }
       }
     }
   }
@@ -3145,9 +3009,11 @@ void ComputeFrameworkIntraChargeChargeHessian(REAL *Energy,REAL* Gradient,REAL_M
   REAL ChargeA,ChargeB,DF,DDF;
   REAL rr,r;
   VECTOR posA,posB,dr;
-  int index_i,index_j;
+  INT_VECTOR3 index_i,index_j;
+  int A,B;
   int ncell,k1,k2,k3,indj;
   REAL ReplicaFactor;
+  REAL *parms;
 
   if(ChargeMethod==NONE) return;
 
@@ -3172,7 +3038,7 @@ void ComputeFrameworkIntraChargeChargeHessian(REAL *Energy,REAL* Gradient,REAL_M
               for(j=start;j<Framework[CurrentSystem].NumberOfAtoms[f2];j++)
               {
                 indj=j+ncell*Framework[CurrentSystem].NumberOfAtoms[f2];
-                if(f1!=f2?TRUE:!BITVAL(Framework[CurrentSystem].ExclusionMatrix[f1][i][indj],0))
+                if(f1!=f2?TRUE:!BITVAL(Framework[CurrentSystem].ExclusionMatrix[f1][i][indj],1))
                 {
                   typeB=Framework[CurrentSystem].Atoms[f2][j].Type;
                   posB=Framework[CurrentSystem].Atoms[f2][j].Position;
@@ -3225,26 +3091,20 @@ void ComputeFrameworkIntraChargeChargeHessian(REAL *Energy,REAL* Gradient,REAL_M
                         break;
                     }
 
-                    if((index_i<0)&&(index_j)<0) continue;
+                    //if((index_i<0)&&(index_j)<0) continue;
 
                     if(ComputeGradient)
                     {
                       // add contribution to the first derivatives
-                      if(index_i>=0)
-                      {
-                        Gradient[index_i]+=DF*dr.x;
-                        Gradient[index_i+1]+=DF*dr.y;
-                        Gradient[index_i+2]+=DF*dr.z;
-                      }
+                      if(index_i.x>=0) Gradient[index_i.x]+=DF*dr.x;
+                      if(index_i.y>=0) Gradient[index_i.y]+=DF*dr.y;
+                      if(index_i.z>=0) Gradient[index_i.z]+=DF*dr.z;
 
                       if(ncell==0)
                       {
-                        if(index_j>=0)
-                        {
-                          Gradient[index_j]-=DF*dr.x;
-                          Gradient[index_j+1]-=DF*dr.y;
-                          Gradient[index_j+2]-=DF*dr.z;
-                        }
+                        if(index_j.x>=0) Gradient[index_j.x]-=DF*dr.x;
+                        if(index_j.y>=0) Gradient[index_j.y]-=DF*dr.y;
+                        if(index_j.z>=0) Gradient[index_j.z]-=DF*dr.z;
                       }
 
                       GradientStrain(Gradient,ReplicaFactor*DF,dr);
@@ -3268,13 +3128,92 @@ void ComputeFrameworkIntraChargeChargeHessian(REAL *Energy,REAL* Gradient,REAL_M
                       // add contribution to the second derivatives (Hessian matrix)
                       HessianAtomicPositionPosition(HessianMatrix,index_i,index_j,DF,DDF,dr,ReplicaFactor);
                       HessianAtomicPositionStrain(HessianMatrix,index_i,index_j,ReplicaFactor*DF,ReplicaFactor*DDF,dr);
-                      HessianAtomicStrainStrain(HessianMatrix,index_i,index_j,ReplicaFactor*DF,ReplicaFactor*DDF,dr);
+                      HessianAtomicStrainStrain(HessianMatrix,ReplicaFactor*DF,ReplicaFactor*DDF,dr);
                     }
                   }
                 }
               }
               ncell++;
             }
+      }
+    }
+  }
+
+  // contributions from interactions 1-4 torsions
+  // TODO: fix to handle anisotropic sites
+  for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
+  {
+    if(Framework[CurrentSystem].FrameworkModels[f1]==FLEXIBLE)
+    {
+      for(i=0;i<Framework[CurrentSystem].NumberOfTorsions[f1];i++)
+      {
+        parms=Framework[CurrentSystem].TorsionArguments[f1][i];
+
+        if(fabs(parms[7])>1e-8)
+        {
+          A=MIN2(Framework[CurrentSystem].Torsions[f1][i].A,Framework[CurrentSystem].Torsions[f1][i].D);
+          B=MAX2(Framework[CurrentSystem].Torsions[f1][i].A,Framework[CurrentSystem].Torsions[f1][i].D);
+
+          typeA=Framework[CurrentSystem].Atoms[f1][A].Type;
+          posA=Framework[CurrentSystem].Atoms[f1][A].Position;
+          ChargeA=Framework[CurrentSystem].Atoms[f1][A].Charge;
+          index_i=Framework[CurrentSystem].Atoms[f1][A].HessianIndex;
+
+          typeB=Framework[CurrentSystem].Atoms[f1][B].Type;
+          posB=Framework[CurrentSystem].Atoms[f1][B].Position;
+          ChargeB=Framework[CurrentSystem].Atoms[f1][B].Charge;
+          index_j=Framework[CurrentSystem].Atoms[f1][B].HessianIndex;
+
+          dr.x=posA.x-posB.x;
+          dr.y=posA.y-posB.y;
+          dr.z=posA.z-posB.z;
+          dr=ApplyBoundaryCondition(dr);
+          rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
+          r=sqrt(rr);
+
+
+          // add contribution to the energy
+          *Energy+=parms[7]*COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB*(1.0/r);
+          DF=-parms[7]*COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB/(rr*r);
+          DDF=parms[7]*3.0*COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB/(SQR(rr)*r);
+
+          //if((index_i<0)&&(index_j)<0) continue;
+
+          if(ComputeGradient)
+          {
+            // add contribution to the first derivatives
+            if(index_i.x>=0) Gradient[index_i.x]+=DF*dr.x;
+            if(index_i.y>=0) Gradient[index_i.y]+=DF*dr.y;
+            if(index_i.z>=0) Gradient[index_i.z]+=DF*dr.z;
+
+            if(index_j.x>=0) Gradient[index_j.x]-=DF*dr.x;
+            if(index_j.y>=0) Gradient[index_j.y]-=DF*dr.y;
+            if(index_j.z>=0) Gradient[index_j.z]-=DF*dr.z;
+
+            GradientStrain(Gradient,DF,dr);
+          }
+
+          // add contribution to the strain derivative tensor
+          StrainDerivative->ax+=DF*dr.x*dr.x;
+          StrainDerivative->bx+=DF*dr.y*dr.x;
+          StrainDerivative->cx+=DF*dr.z*dr.x;
+
+          StrainDerivative->ay+=DF*dr.x*dr.y;
+          StrainDerivative->by+=DF*dr.y*dr.y;
+          StrainDerivative->cy+=DF*dr.z*dr.y;
+
+          StrainDerivative->az+=DF*dr.x*dr.z;
+          StrainDerivative->bz+=DF*dr.y*dr.z;
+          StrainDerivative->cz+=DF*dr.z*dr.z;
+
+          if(ComputeHessian)
+          {
+            // add contribution to the second derivatives (Hessian matrix)
+            HessianAtomicPositionPosition(HessianMatrix,index_i,index_j,DF,DDF,dr,1.0);
+            HessianAtomicPositionStrain(HessianMatrix,index_i,index_j,DF,DDF,dr);
+            HessianAtomicStrainStrain(HessianMatrix,DF,DDF,dr);
+          }
+        }
       }
     }
   }
@@ -3295,7 +3234,7 @@ void ComputeFrameworkBondHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX Hessian
   REAL DDF;  // second derivative
   VECTOR dr; // atoms separation vector
   int A,B;   // atom-indices
-  int index_i,index_j; // indices of the Hessian
+  INT_VECTOR3 index_i,index_j; // indices of the Hessian
   REAL *parms;  // pointer to potential parameter
 
   for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
@@ -3451,24 +3390,18 @@ void ComputeFrameworkBondHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX Hessian
       // add contribution to the energy
       *Energy+=U;
 
-      if((index_i<0)&&(index_j<0)) continue;
+      //if((index_i<0)&&(index_j<0)) continue;
 
       if(ComputeGradient)
       {
         // add contribution to the first derivatives
-        if(index_i>=0)
-        {
-          Gradient[index_i]+=DF*dr.x;
-          Gradient[index_i+1]+=DF*dr.y;
-          Gradient[index_i+2]+=DF*dr.z;
-        }
+        if(index_i.x>=0) Gradient[index_i.x]+=DF*dr.x;
+        if(index_i.y>=0) Gradient[index_i.y]+=DF*dr.y;
+        if(index_i.z>=0) Gradient[index_i.z]+=DF*dr.z;
 
-        if(index_j>=0)
-        {
-          Gradient[index_j]-=DF*dr.x;
-          Gradient[index_j+1]-=DF*dr.y;
-          Gradient[index_j+2]-=DF*dr.z;
-        }
+        if(index_j.x>=0) Gradient[index_j.x]-=DF*dr.x;
+        if(index_j.y>=0) Gradient[index_j.y]-=DF*dr.y;
+        if(index_j.z>=0) Gradient[index_j.z]-=DF*dr.z;
 
         GradientStrain(Gradient,DF,dr);
       }
@@ -3491,1118 +3424,9 @@ void ComputeFrameworkBondHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX Hessian
         // add contribution to the second derivatives (Hessian matrix)
         HessianAtomicPositionPosition(HessianMatrix,index_i,index_j,DF,DDF,dr,1.0);
         HessianAtomicPositionStrain(HessianMatrix,index_i,index_j,DF,DDF,dr);
-        HessianAtomicStrainStrain(HessianMatrix,index_i,index_j,DF,DDF,dr);
+        HessianAtomicStrainStrain(HessianMatrix,DF,DDF,dr);
       }
     }
-  }
-}
-
-
-
-static inline void HessianBendStrainPosition(int index_i,int index_j,int index_k,REAL_MATRIX HessianMatrix,VECTOR vec_u,VECTOR vec_v,REAL u,REAL v,
-           REAL rab,REAL rbc,VECTOR Rab,VECTOR Rbc,VECTOR dtA,VECTOR dtC,REAL DF,REAL DDF,REAL_MATRIX3x3 S,REAL CosTheta)
-{
-  int n;
-  VECTOR veci,veck;
-  VECTOR vec_ddtax_i,vec_ddtax_k;
-  VECTOR vec_ddtay_i,vec_ddtay_k;
-  VECTOR vec_ddtaz_i,vec_ddtaz_k;
-  VECTOR vec_ddtcx_i,vec_ddtcx_k;
-  VECTOR vec_ddtcy_i,vec_ddtcy_k;
-  VECTOR vec_ddtcz_i,vec_ddtcz_k;
-
-  n=NumberOfCoordinatesMinimizationVariables;
-
-  veci.x=(1.0/CUBE(u))*(vec_u.x*vec_u.x*Rbc.x+vec_u.y*vec_u.x*Rbc.y+vec_u.z*vec_u.x*Rbc.z)-Rbc.x/u;
-  veci.y=(1.0/CUBE(u))*(vec_u.x*vec_u.y*Rbc.x+vec_u.y*vec_u.y*Rbc.y+vec_u.z*vec_u.y*Rbc.z)-Rbc.y/u;
-  veci.z=(1.0/CUBE(u))*(vec_u.x*vec_u.z*Rbc.x+vec_u.y*vec_u.z*Rbc.y+vec_u.z*vec_u.z*Rbc.z)-Rbc.z/u;
-
-  veck.x=(1.0/CUBE(v))*(vec_v.x*vec_v.x*Rab.x+vec_v.y*vec_v.x*Rab.y+vec_v.z*vec_v.x*Rab.z)-Rab.x/v;
-  veck.y=(1.0/CUBE(v))*(vec_v.x*vec_v.y*Rab.x+vec_v.y*vec_v.y*Rab.y+vec_v.z*vec_v.y*Rab.z)-Rab.y/v;
-  veck.z=(1.0/CUBE(v))*(vec_v.x*vec_v.z*Rab.x+vec_v.y*vec_v.z*Rab.y+vec_v.z*vec_v.z*Rab.z)-Rab.z/v;
-
-
-  // FINAL PART 1: derivative dtA.x=(Rbc.x-CosTheta*Rab.x)/rab
-  vec_ddtax_i.x=(veci.x*Rab.x+CosTheta*((1.0/CUBE(u))*(vec_u.x*vec_u.x)-1/u))/rab+CosTheta*Rab.x*(1.0/CUBE(u))*vec_u.x-(1.0/CUBE(u))*vec_u.x*Rbc.x;
-  vec_ddtax_i.y=(veci.y*Rab.x+CosTheta*(1.0/CUBE(u))*(vec_u.x*vec_u.y))/rab+CosTheta*Rab.x*(1.0/CUBE(u))*vec_u.y-(1.0/CUBE(u))*vec_u.y*Rbc.x;
-  vec_ddtax_i.z=(veci.z*Rab.x+CosTheta*(1.0/CUBE(u))*(vec_u.x*vec_u.z))/rab+CosTheta*Rab.x*(1.0/CUBE(u))*vec_u.z-(1.0/CUBE(u))*vec_u.z*Rbc.x;
-
-  vec_ddtax_k.x=veck.x*Rab.x/rab-((1.0/CUBE(v))*(vec_v.x*vec_v.x)-1/v)/rab;
-  vec_ddtax_k.y=veck.y*Rab.x/rab-(1.0/CUBE(v))*(vec_v.x*vec_v.y)/rab;
-  vec_ddtax_k.z=veck.z*Rab.x/rab-(1.0/CUBE(v))*(vec_v.x*vec_v.z)/rab;
-
-  // FINAL PART 1: derivative dtA.y=(Rbc.y-CosTheta*Rab.y)/rab
-  vec_ddtay_i.x=(veci.x*Rab.y+CosTheta*(1.0/CUBE(u))*(vec_u.y*vec_u.x))/rab+CosTheta*Rab.y*(1.0/CUBE(u))*vec_u.x-(1.0/CUBE(u))*vec_u.x*Rbc.y;
-  vec_ddtay_i.y=(veci.y*Rab.y+CosTheta*((1.0/CUBE(u))*(vec_u.y*vec_u.y)-1.0/u))/rab+CosTheta*Rab.y*(1.0/CUBE(u))*vec_u.y-(1.0/CUBE(u))*vec_u.y*Rbc.y;
-  vec_ddtay_i.z=(veci.z*Rab.y+CosTheta*(1.0/CUBE(u))*(vec_u.y*vec_u.z))/rab+CosTheta*Rab.y*(1.0/CUBE(u))*vec_u.z-(1.0/CUBE(u))*vec_u.z*Rbc.y;
-
-  vec_ddtay_k.x=veck.x*Rab.y/rab-(1.0/CUBE(v))*(vec_v.y*vec_v.x)/rab;
-  vec_ddtay_k.y=veck.y*Rab.y/rab-((1.0/CUBE(v))*(vec_v.y*vec_v.y)-1.0/v)/rab;
-  vec_ddtay_k.z=veck.z*Rab.y/rab-(1.0/CUBE(v))*(vec_v.y*vec_v.z)/rab;
-
-  // FINAL PART 1: derivative dtA.z=(Rbc.z-CosTheta*Rab.z)/rab
-  vec_ddtaz_i.x=(veci.x*Rab.z+CosTheta*(1.0/CUBE(u))*(vec_u.z*vec_u.x))/rab+CosTheta*Rab.z*(1.0/CUBE(u))*vec_u.x-(1.0/CUBE(u))*vec_u.x*Rbc.z;
-  vec_ddtaz_i.y=(veci.y*Rab.z+CosTheta*(1.0/CUBE(u))*(vec_u.z*vec_u.y))/rab+CosTheta*Rab.z*(1.0/CUBE(u))*vec_u.y-(1.0/CUBE(u))*vec_u.y*Rbc.z;
-  vec_ddtaz_i.z=(veci.z*Rab.z+CosTheta*((1.0/CUBE(u))*(vec_u.z*vec_u.z)-1.0/u))/rab+CosTheta*Rab.z*(1.0/CUBE(u))*vec_u.z-(1.0/CUBE(u))*vec_u.z*Rbc.z;
-
-  vec_ddtaz_k.x=veck.x*Rab.z/rab-(1.0/CUBE(v))*(vec_v.z*vec_v.x)/rab;
-  vec_ddtaz_k.y=veck.y*Rab.z/rab-(1.0/CUBE(v))*(vec_v.z*vec_v.y)/rab;
-  vec_ddtaz_k.z=veck.z*Rab.z/rab-((1.0/CUBE(v))*(vec_v.z*vec_v.z)-1.0/v)/rab;
-
-  // FINAL PART 2: derivative dtC.x=(Rab.x-CosTheta*Rbc.x)/rbc
-  vec_ddtcx_i.x=veci.x*Rbc.x/rbc-((1.0/CUBE(u))*(vec_u.x*vec_u.x)-1/u)/rbc;
-  vec_ddtcx_i.y=veci.y*Rbc.x/rbc-(1.0/CUBE(u))*(vec_u.x*vec_u.y)/rbc;
-  vec_ddtcx_i.z=veci.z*Rbc.x/rbc-(1.0/CUBE(u))*(vec_u.x*vec_u.z)/rbc;
-
-  vec_ddtcx_k.x=(veck.x*Rbc.x+CosTheta*((1.0/CUBE(v))*(vec_v.x*vec_v.x)-1/v))/rbc+CosTheta*Rbc.x*(1.0/CUBE(v))*vec_v.x-(1.0/CUBE(v))*vec_v.x*Rab.x;
-  vec_ddtcx_k.y=(veck.y*Rbc.x+CosTheta*(1.0/CUBE(v))*(vec_v.x*vec_v.y))/rbc+CosTheta*Rbc.x*(1.0/CUBE(v))*vec_v.y-(1.0/CUBE(v))*vec_v.y*Rab.x;
-  vec_ddtcx_k.z=(veck.z*Rbc.x+CosTheta*(1.0/CUBE(v))*(vec_v.x*vec_v.z))/rbc+CosTheta*Rbc.x*(1.0/CUBE(v))*vec_v.z-(1.0/CUBE(v))*vec_v.z*Rab.x;
-
-  // FINAL PART 2: derivative dtC.y=(Rab.y-CosTheta*Rbc.y)/rbc
-  vec_ddtcy_i.x=veci.x*Rbc.y/rbc-(1.0/CUBE(u))*(vec_u.y*vec_u.x)/rbc;
-  vec_ddtcy_i.y=veci.y*Rbc.y/rbc-((1.0/CUBE(u))*(vec_u.y*vec_u.y)-1.0/u)/rbc;
-  vec_ddtcy_i.z=veci.z*Rbc.y/rbc-(1.0/CUBE(u))*(vec_u.y*vec_u.z)/rbc;
-
-  vec_ddtcy_k.x=(veck.x*Rbc.y+CosTheta*(1.0/CUBE(v))*(vec_v.y*vec_v.x))/rbc+CosTheta*Rbc.y*(1.0/CUBE(v))*vec_v.x-(1.0/CUBE(v))*vec_v.x*Rab.y;
-  vec_ddtcy_k.y=(veck.y*Rbc.y+CosTheta*((1.0/CUBE(v))*(vec_v.y*vec_v.y)-1.0/v))/rbc+CosTheta*Rbc.y*(1.0/CUBE(v))*vec_v.y-(1.0/CUBE(v))*vec_v.y*Rab.y;
-  vec_ddtcy_k.z=(veck.z*Rbc.y+CosTheta*(1.0/CUBE(v))*(vec_v.y*vec_v.z))/rbc+CosTheta*Rbc.y*(1.0/CUBE(v))*vec_v.z-(1.0/CUBE(v))*vec_v.z*Rab.y;
-
-  // FINAL PART 2: derivative dtC.z=(Rab.z-CosTheta*Rbc.z)/rbc
-  vec_ddtcz_i.x=veci.x*Rbc.z/rbc-(1.0/CUBE(u))*(vec_u.z*vec_u.x)/rbc;
-  vec_ddtcz_i.y=veci.y*Rbc.z/rbc-(1.0/CUBE(u))*(vec_u.z*vec_u.y)/rbc;
-  vec_ddtcz_i.z=veci.z*Rbc.z/rbc-((1.0/CUBE(u))*(vec_u.z*vec_u.z)-1.0/u)/rbc;
-
-  vec_ddtcz_k.x=(veck.x*Rbc.z+CosTheta*(1.0/CUBE(v))*(vec_v.z*vec_v.x))/rbc+CosTheta*Rbc.z*(1.0/CUBE(v))*vec_v.x-(1.0/CUBE(v))*vec_v.x*Rab.z;
-  vec_ddtcz_k.y=(veck.y*Rbc.z+CosTheta*(1.0/CUBE(v))*(vec_v.z*vec_v.y))/rbc+CosTheta*Rbc.z*(1.0/CUBE(v))*vec_v.y-(1.0/CUBE(v))*vec_v.y*Rab.z;
-  vec_ddtcz_k.z=(veck.z*Rbc.z+CosTheta*((1.0/CUBE(v))*(vec_v.z*vec_v.z)-1.0/v))/rbc+CosTheta*Rbc.z*(1.0/CUBE(v))*vec_v.z-(1.0/CUBE(v))*vec_v.z*Rab.z;
-
-
-  switch(Ensemble[CurrentSystem])
-  {
-    case NPT:
-      // contribution is zero (i.e. cancels out)
-      break;
-    case NPTPR:
-    case NPHPR:
-      switch(NPTPRCellType[CurrentSystem])
-      {
-        case ISOTROPIC:
-        case ANISOTROPIC:
-          // S.ax=vec_u.x*DF*dtA.x+vec_v.x*DF*dtC.x;    [0]
-          veci.x=vec_ddtax_i.x*DF*vec_u.x+dtA.x*(DDF*dtA.x*vec_u.x+DF) +vec_ddtcx_i.x*DF*vec_v.x+dtC.x*DDF*dtA.x*vec_v.x;
-          veci.y=vec_ddtax_i.y*DF*vec_u.x+dtA.x*DDF*dtA.y*vec_u.x      +vec_ddtcx_i.y*DF*vec_v.x+dtC.x*DDF*dtA.y*vec_v.x;
-          veci.z=vec_ddtax_i.z*DF*vec_u.x+dtA.x*DDF*dtA.z*vec_u.x      +vec_ddtcx_i.z*DF*vec_v.x+dtC.x*DDF*dtA.z*vec_v.x;
-
-          veck.x=vec_ddtax_k.x*DF*vec_u.x+dtA.x*DDF*dtC.x*vec_u.x      +vec_ddtcx_k.x*DF*vec_v.x+dtC.x*(DDF*dtC.x*vec_v.x+DF);
-          veck.y=vec_ddtax_k.y*DF*vec_u.x+dtA.x*DDF*dtC.y*vec_u.x      +vec_ddtcx_k.y*DF*vec_v.x+dtC.x*DDF*dtC.y*vec_v.x;
-          veck.z=vec_ddtax_k.z*DF*vec_u.x+dtA.x*DDF*dtC.z*vec_u.x      +vec_ddtcx_k.z*DF*vec_v.x+dtC.x*DDF*dtC.z*vec_v.x;
-
-          HessianMatrix.element[index_i][n]+=veci.x;
-          HessianMatrix.element[index_i+1][n]+=veci.y;
-          HessianMatrix.element[index_i+2][n]+=veci.z;
-
-          HessianMatrix.element[index_j][n]-=(veci.x+veck.x);
-          HessianMatrix.element[index_j+1][n]-=(veci.y+veck.y);
-          HessianMatrix.element[index_j+2][n]-=(veci.z+veck.z);
-
-          HessianMatrix.element[index_k][n]+=veck.x;
-          HessianMatrix.element[index_k+1][n]+=veck.y;
-          HessianMatrix.element[index_k+2][n]+=veck.z;
-
-          veci.x=vec_ddtay_i.x*DF*vec_u.y+dtA.y*DDF*dtA.x*vec_u.y      +vec_ddtcy_i.x*DF*vec_v.y+dtC.y*DDF*dtA.x*vec_v.y;
-          veci.y=vec_ddtay_i.y*DF*vec_u.y+dtA.y*(DDF*dtA.y*vec_u.y+DF) +vec_ddtcy_i.y*DF*vec_v.y+dtC.y*DDF*dtA.y*vec_v.y;
-          veci.z=vec_ddtay_i.z*DF*vec_u.y+dtA.y*DDF*dtA.z*vec_u.y      +vec_ddtcy_i.z*DF*vec_v.y+dtC.y*DDF*dtA.z*vec_v.y;
-
-          veck.x=vec_ddtay_k.x*DF*vec_u.y+dtA.y*DDF*dtC.x*vec_u.y      +vec_ddtcy_k.x*DF*vec_v.y+dtC.y*DDF*dtC.x*vec_v.y;
-          veck.y=vec_ddtay_k.y*DF*vec_u.y+dtA.y*DDF*dtC.y*vec_u.y      +vec_ddtcy_k.y*DF*vec_v.y+dtC.y*(DDF*dtC.y*vec_v.y+DF);
-          veck.z=vec_ddtay_k.z*DF*vec_u.y+dtA.y*DDF*dtC.z*vec_u.y      +vec_ddtcy_k.z*DF*vec_v.y+dtC.y*DDF*dtC.z*vec_v.y;
-
-          HessianMatrix.element[index_i][n+1]+=veci.x;
-          HessianMatrix.element[index_i+1][n+1]+=veci.y;
-          HessianMatrix.element[index_i+2][n+1]+=veci.z;
-
-          HessianMatrix.element[index_j][n+1]-=(veci.x+veck.x);
-          HessianMatrix.element[index_j+1][n+1]-=(veci.y+veck.y);
-          HessianMatrix.element[index_j+2][n+1]-=(veci.z+veck.z);
-
-          HessianMatrix.element[index_k][n+1]+=veck.x;
-          HessianMatrix.element[index_k+1][n+1]+=veck.y;
-          HessianMatrix.element[index_k+2][n+1]+=veck.z;
-
-          veci.x=vec_ddtaz_i.x*DF*vec_u.z+dtA.z*DDF*dtA.x*vec_u.z      +vec_ddtcz_i.x*DF*vec_v.z+dtC.z*DDF*dtA.x*vec_v.z;
-          veci.y=vec_ddtaz_i.y*DF*vec_u.z+dtA.z*DDF*dtA.y*vec_u.z      +vec_ddtcz_i.y*DF*vec_v.z+dtC.z*DDF*dtA.y*vec_v.z;
-          veci.z=vec_ddtaz_i.z*DF*vec_u.z+dtA.z*(DDF*dtA.z*vec_u.z+DF) +vec_ddtcz_i.z*DF*vec_v.z+dtC.z*DDF*dtA.z*vec_v.z;
-
-          veck.x=vec_ddtaz_k.x*DF*vec_u.z+dtA.z*DDF*dtC.x*vec_u.z      +vec_ddtcz_k.x*DF*vec_v.z+dtC.z*DDF*dtC.x*vec_v.z;
-          veck.y=vec_ddtaz_k.y*DF*vec_u.z+dtA.z*DDF*dtC.y*vec_u.z      +vec_ddtcz_k.y*DF*vec_v.z+dtC.z*DDF*dtC.y*vec_v.z;
-          veck.z=vec_ddtaz_k.z*DF*vec_u.z+dtA.z*DDF*dtC.z*vec_u.z      +vec_ddtcz_k.z*DF*vec_v.z+dtC.z*(DDF*dtC.z*vec_v.z+DF);
-
-          HessianMatrix.element[index_i][n+2]+=veci.x;
-          HessianMatrix.element[index_i+1][n+2]+=veci.y;
-          HessianMatrix.element[index_i+2][n+2]+=veci.z;
-
-          HessianMatrix.element[index_j][n+2]-=(veci.x+veck.x);
-          HessianMatrix.element[index_j+1][n+2]-=(veci.y+veck.y);
-          HessianMatrix.element[index_j+2][n+2]-=(veci.z+veck.z);
-
-          HessianMatrix.element[index_k][n+2]+=veck.x;
-          HessianMatrix.element[index_k+1][n+2]+=veck.y;
-          HessianMatrix.element[index_k+2][n+2]+=veck.z;
-          break;
-        case REGULAR:
-        case REGULAR_UPPER_TRIANGLE:
-          // S.ax=vec_u.x*DF*dtA.x+vec_v.x*DF*dtC.x;    [0]
-          veci.x=vec_ddtax_i.x*DF*vec_u.x+dtA.x*(DDF*dtA.x*vec_u.x+DF) +vec_ddtcx_i.x*DF*vec_v.x+dtC.x*DDF*dtA.x*vec_v.x;
-          veci.y=vec_ddtax_i.y*DF*vec_u.x+dtA.x*DDF*dtA.y*vec_u.x      +vec_ddtcx_i.y*DF*vec_v.x+dtC.x*DDF*dtA.y*vec_v.x;
-          veci.z=vec_ddtax_i.z*DF*vec_u.x+dtA.x*DDF*dtA.z*vec_u.x      +vec_ddtcx_i.z*DF*vec_v.x+dtC.x*DDF*dtA.z*vec_v.x;
-
-          veck.x=vec_ddtax_k.x*DF*vec_u.x+dtA.x*DDF*dtC.x*vec_u.x      +vec_ddtcx_k.x*DF*vec_v.x+dtC.x*(DDF*dtC.x*vec_v.x+DF);
-          veck.y=vec_ddtax_k.y*DF*vec_u.x+dtA.x*DDF*dtC.y*vec_u.x      +vec_ddtcx_k.y*DF*vec_v.x+dtC.x*DDF*dtC.y*vec_v.x;
-          veck.z=vec_ddtax_k.z*DF*vec_u.x+dtA.x*DDF*dtC.z*vec_u.x      +vec_ddtcx_k.z*DF*vec_v.x+dtC.x*DDF*dtC.z*vec_v.x;
-
-          HessianMatrix.element[index_i][n]+=veci.x;
-          HessianMatrix.element[index_i+1][n]+=veci.y;
-          HessianMatrix.element[index_i+2][n]+=veci.z;
-
-          HessianMatrix.element[index_j][n]-=(veci.x+veck.x);
-          HessianMatrix.element[index_j+1][n]-=(veci.y+veck.y);
-          HessianMatrix.element[index_j+2][n]-=(veci.z+veck.z);
-
-          HessianMatrix.element[index_k][n]+=veck.x;
-          HessianMatrix.element[index_k+1][n]+=veck.y;
-          HessianMatrix.element[index_k+2][n]+=veck.z;
-
-          // S.ay=vec_u.x*DF*dtA.x+vec_v.x*DF*dtC.x;    [1] and [3]
-          veci.x=vec_ddtax_i.x*DF*vec_u.y+dtA.x*DDF*dtA.x*vec_u.y      +vec_ddtcx_i.x*DF*vec_v.y+dtC.x*DDF*dtA.x*vec_v.y;
-          veci.y=vec_ddtax_i.y*DF*vec_u.y+dtA.x*(DDF*dtA.y*vec_u.y+DF) +vec_ddtcx_i.y*DF*vec_v.y+dtC.x*DDF*dtA.y*vec_v.y;
-          veci.z=vec_ddtax_i.z*DF*vec_u.y+dtA.x*DDF*dtA.z*vec_u.y      +vec_ddtcx_i.z*DF*vec_v.y+dtC.x*DDF*dtA.z*vec_v.y;
-
-          veck.x=vec_ddtax_k.x*DF*vec_u.y+dtA.x*DDF*dtC.x*vec_u.y      +vec_ddtcx_k.x*DF*vec_v.y+dtC.x*DDF*dtC.x*vec_v.y;
-          veck.y=vec_ddtax_k.y*DF*vec_u.y+dtA.x*DDF*dtC.y*vec_u.y      +vec_ddtcx_k.y*DF*vec_v.y+dtC.x*(DDF*dtC.y*vec_v.y+DF);
-          veck.z=vec_ddtax_k.z*DF*vec_u.y+dtA.x*DDF*dtC.z*vec_u.y      +vec_ddtcx_k.z*DF*vec_v.y+dtC.x*DDF*dtC.z*vec_v.y;
-
-          HessianMatrix.element[index_i][n+1]+=veci.x;
-          HessianMatrix.element[index_i+1][n+1]+=veci.y;
-          HessianMatrix.element[index_i+2][n+1]+=veci.z;
-
-          HessianMatrix.element[index_j][n+1]-=(veci.x+veck.x);
-          HessianMatrix.element[index_j+1][n+1]-=(veci.y+veck.y);
-          HessianMatrix.element[index_j+2][n+1]-=(veci.z+veck.z);
-
-          HessianMatrix.element[index_k][n+1]+=veck.x;
-          HessianMatrix.element[index_k+1][n+1]+=veck.y;
-          HessianMatrix.element[index_k+2][n+1]+=veck.z;
-
-          // S.cx=vec_u.x*DF*dtA.x+vec_v.x*DF*dtC.x;   [2] and [6]
-          veci.x=vec_ddtax_i.x*DF*vec_u.z+dtA.x*DDF*dtA.x*vec_u.z      +vec_ddtcx_i.x*DF*vec_v.z+dtC.x*DDF*dtA.x*vec_v.z;
-          veci.y=vec_ddtax_i.y*DF*vec_u.z+dtA.x*DDF*dtA.y*vec_u.z      +vec_ddtcx_i.y*DF*vec_v.z+dtC.x*DDF*dtA.y*vec_v.z;
-          veci.z=vec_ddtax_i.z*DF*vec_u.z+dtA.x*(DDF*dtA.z*vec_u.z+DF) +vec_ddtcx_i.z*DF*vec_v.z+dtC.x*DDF*dtA.z*vec_v.z;
-
-          veck.x=vec_ddtax_k.x*DF*vec_u.z+dtA.x*DDF*dtC.x*vec_u.z      +vec_ddtcx_k.x*DF*vec_v.z+dtC.x*DDF*dtC.x*vec_v.z;
-          veck.y=vec_ddtax_k.y*DF*vec_u.z+dtA.x*DDF*dtC.y*vec_u.z      +vec_ddtcx_k.y*DF*vec_v.z+dtC.x*DDF*dtC.y*vec_v.z;
-          veck.z=vec_ddtax_k.z*DF*vec_u.z+dtA.x*DDF*dtC.z*vec_u.z      +vec_ddtcx_k.z*DF*vec_v.z+dtC.x*(DDF*dtC.z*vec_v.z+DF);
-
-          HessianMatrix.element[index_i][n+2]+=veci.x;
-          HessianMatrix.element[index_i+1][n+2]+=veci.y;
-          HessianMatrix.element[index_i+2][n+2]+=veci.z;
-
-          HessianMatrix.element[index_j][n+2]-=(veci.x+veck.x);
-          HessianMatrix.element[index_j+1][n+2]-=(veci.y+veck.y);
-          HessianMatrix.element[index_j+2][n+2]-=(veci.z+veck.z);
-
-          HessianMatrix.element[index_k][n+2]+=veck.x;
-          HessianMatrix.element[index_k+1][n+2]+=veck.y;
-          HessianMatrix.element[index_k+2][n+2]+=veck.z;
-
-          // vec_u.y*DF*dtA.y+rbc*vec_c.y*DF*dtC.y  [4]
-          veci.x=vec_ddtay_i.x*DF*vec_u.y+dtA.y*DDF*dtA.x*vec_u.y      +vec_ddtcy_i.x*DF*vec_v.y+dtC.y*DDF*dtA.x*vec_v.y;
-          veci.y=vec_ddtay_i.y*DF*vec_u.y+dtA.y*(DDF*dtA.y*vec_u.y+DF) +vec_ddtcy_i.y*DF*vec_v.y+dtC.y*DDF*dtA.y*vec_v.y;
-          veci.z=vec_ddtay_i.z*DF*vec_u.y+dtA.y*DDF*dtA.z*vec_u.y      +vec_ddtcy_i.z*DF*vec_v.y+dtC.y*DDF*dtA.z*vec_v.y;
-
-          veck.x=vec_ddtay_k.x*DF*vec_u.y+dtA.y*DDF*dtC.x*vec_u.y      +vec_ddtcy_k.x*DF*vec_v.y+dtC.y*DDF*dtC.x*vec_v.y;
-          veck.y=vec_ddtay_k.y*DF*vec_u.y+dtA.y*DDF*dtC.y*vec_u.y      +vec_ddtcy_k.y*DF*vec_v.y+dtC.y*(DDF*dtC.y*vec_v.y+DF);
-          veck.z=vec_ddtay_k.z*DF*vec_u.y+dtA.y*DDF*dtC.z*vec_u.y      +vec_ddtcy_k.z*DF*vec_v.y+dtC.y*DDF*dtC.z*vec_v.y;
-
-          HessianMatrix.element[index_i][n+3]+=veci.x;
-          HessianMatrix.element[index_i+1][n+3]+=veci.y;
-          HessianMatrix.element[index_i+2][n+3]+=veci.z;
-
-          HessianMatrix.element[index_j][n+3]-=(veci.x+veck.x);
-          HessianMatrix.element[index_j+1][n+3]-=(veci.y+veck.y);
-          HessianMatrix.element[index_j+2][n+3]-=(veci.z+veck.z);
-
-          HessianMatrix.element[index_k][n+3]+=veck.x;
-          HessianMatrix.element[index_k+1][n+3]+=veck.y;
-          HessianMatrix.element[index_k+2][n+3]+=veck.z;
-
-          // vec_u.y*DF*dtA.y+rbc*vec_c.y*DF*dtC.y  [5] [7]
-          veci.x=vec_ddtay_i.x*DF*vec_u.z+dtA.y*DDF*dtA.x*vec_u.z      +vec_ddtcy_i.x*DF*vec_v.z+dtC.y*DDF*dtA.x*vec_v.z;
-          veci.y=vec_ddtay_i.y*DF*vec_u.z+dtA.y*DDF*dtA.y*vec_u.z      +vec_ddtcy_i.y*DF*vec_v.z+dtC.y*DDF*dtA.y*vec_v.z;
-          veci.z=vec_ddtay_i.z*DF*vec_u.z+dtA.y*(DDF*dtA.z*vec_u.z+DF) +vec_ddtcy_i.z*DF*vec_v.z+dtC.y*DDF*dtA.z*vec_v.z;
-
-          veck.x=vec_ddtay_k.x*DF*vec_u.z+dtA.y*DDF*dtC.x*vec_u.z      +vec_ddtcy_k.x*DF*vec_v.z+dtC.y*DDF*dtC.x*vec_v.z;
-          veck.y=vec_ddtay_k.y*DF*vec_u.z+dtA.y*DDF*dtC.y*vec_u.z      +vec_ddtcy_k.y*DF*vec_v.z+dtC.y*DDF*dtC.y*vec_v.z;
-          veck.z=vec_ddtay_k.z*DF*vec_u.z+dtA.y*DDF*dtC.z*vec_u.z      +vec_ddtcy_k.z*DF*vec_v.z+dtC.y*(DDF*dtC.z*vec_v.z+DF);
-
-          HessianMatrix.element[index_i][n+4]+=veci.x;
-          HessianMatrix.element[index_i+1][n+4]+=veci.y;
-          HessianMatrix.element[index_i+2][n+4]+=veci.z;
-
-          HessianMatrix.element[index_j][n+4]-=(veci.x+veck.x);
-          HessianMatrix.element[index_j+1][n+4]-=(veci.y+veck.y);
-          HessianMatrix.element[index_j+2][n+4]-=(veci.z+veck.z);
-
-          HessianMatrix.element[index_k][n+4]+=veck.x;
-          HessianMatrix.element[index_k+1][n+4]+=veck.y;
-          HessianMatrix.element[index_k+2][n+4]+=veck.z;
-
-          // vec_u.y*DF*dtA.y+rbc*vec_c.y*DF*dtC.y  [5] [7]
-          veci.x=vec_ddtaz_i.x*DF*vec_u.z+dtA.z*DDF*dtA.x*vec_u.z      +vec_ddtcz_i.x*DF*vec_v.z+dtC.z*DDF*dtA.x*vec_v.z;
-          veci.y=vec_ddtaz_i.y*DF*vec_u.z+dtA.z*DDF*dtA.y*vec_u.z      +vec_ddtcz_i.y*DF*vec_v.z+dtC.z*DDF*dtA.y*vec_v.z;
-          veci.z=vec_ddtaz_i.z*DF*vec_u.z+dtA.z*(DDF*dtA.z*vec_u.z+DF) +vec_ddtcz_i.z*DF*vec_v.z+dtC.z*DDF*dtA.z*vec_v.z;
-
-          veck.x=vec_ddtaz_k.x*DF*vec_u.z+dtA.z*DDF*dtC.x*vec_u.z      +vec_ddtcz_k.x*DF*vec_v.z+dtC.z*DDF*dtC.x*vec_v.z;
-          veck.y=vec_ddtaz_k.y*DF*vec_u.z+dtA.z*DDF*dtC.y*vec_u.z      +vec_ddtcz_k.y*DF*vec_v.z+dtC.z*DDF*dtC.y*vec_v.z;
-          veck.z=vec_ddtaz_k.z*DF*vec_u.z+dtA.z*DDF*dtC.z*vec_u.z      +vec_ddtcz_k.z*DF*vec_v.z+dtC.z*(DDF*dtC.z*vec_v.z+DF);
-
-          HessianMatrix.element[index_i][n+5]+=veci.x;
-          HessianMatrix.element[index_i+1][n+5]+=veci.y;
-          HessianMatrix.element[index_i+2][n+5]+=veci.z;
-
-          HessianMatrix.element[index_j][n+5]-=(veci.x+veck.x);
-          HessianMatrix.element[index_j+1][n+5]-=(veci.y+veck.y);
-          HessianMatrix.element[index_j+2][n+5]-=(veci.z+veck.z);
-
-          HessianMatrix.element[index_k][n+5]+=veck.x;
-          HessianMatrix.element[index_k+1][n+5]+=veck.y;
-          HessianMatrix.element[index_k+2][n+5]+=veck.z;
-          break;
-        case MONOCLINIC:
-        case MONOCLINIC_UPPER_TRIANGLE:
-          switch(MonoclinicAngleType[CurrentSystem])
-          {
-            case MONOCLINIC_ALPHA_ANGLE:
-              // S.ax=vec_u.x*DF*dtA.x+vec_v.x*DF*dtC.x;    [0]
-              veci.x=vec_ddtax_i.x*DF*vec_u.x+dtA.x*(DDF*dtA.x*vec_u.x+DF) +vec_ddtcx_i.x*DF*vec_v.x+dtC.x*DDF*dtA.x*vec_v.x;
-              veci.y=vec_ddtax_i.y*DF*vec_u.x+dtA.x*DDF*dtA.y*vec_u.x      +vec_ddtcx_i.y*DF*vec_v.x+dtC.x*DDF*dtA.y*vec_v.x;
-              veci.z=vec_ddtax_i.z*DF*vec_u.x+dtA.x*DDF*dtA.z*vec_u.x      +vec_ddtcx_i.z*DF*vec_v.x+dtC.x*DDF*dtA.z*vec_v.x;
-
-              veck.x=vec_ddtax_k.x*DF*vec_u.x+dtA.x*DDF*dtC.x*vec_u.x      +vec_ddtcx_k.x*DF*vec_v.x+dtC.x*(DDF*dtC.x*vec_v.x+DF);
-              veck.y=vec_ddtax_k.y*DF*vec_u.x+dtA.x*DDF*dtC.y*vec_u.x      +vec_ddtcx_k.y*DF*vec_v.x+dtC.x*DDF*dtC.y*vec_v.x;
-              veck.z=vec_ddtax_k.z*DF*vec_u.x+dtA.x*DDF*dtC.z*vec_u.x      +vec_ddtcx_k.z*DF*vec_v.x+dtC.x*DDF*dtC.z*vec_v.x;
-
-              HessianMatrix.element[index_i][n]+=veci.x;
-              HessianMatrix.element[index_i+1][n]+=veci.y;
-              HessianMatrix.element[index_i+2][n]+=veci.z;
-
-              HessianMatrix.element[index_j][n]-=(veci.x+veck.x);
-              HessianMatrix.element[index_j+1][n]-=(veci.y+veck.y);
-              HessianMatrix.element[index_j+2][n]-=(veci.z+veck.z);
-
-              HessianMatrix.element[index_k][n]+=veck.x;
-              HessianMatrix.element[index_k+1][n]+=veck.y;
-              HessianMatrix.element[index_k+2][n]+=veck.z;
-
-              // vec_u.y*DF*dtA.y+rbc*vec_c.y*DF*dtC.y  [4]
-              veci.x=vec_ddtay_i.x*DF*vec_u.y+dtA.y*DDF*dtA.x*vec_u.y      +vec_ddtcy_i.x*DF*vec_v.y+dtC.y*DDF*dtA.x*vec_v.y;
-              veci.y=vec_ddtay_i.y*DF*vec_u.y+dtA.y*(DDF*dtA.y*vec_u.y+DF) +vec_ddtcy_i.y*DF*vec_v.y+dtC.y*DDF*dtA.y*vec_v.y;
-              veci.z=vec_ddtay_i.z*DF*vec_u.y+dtA.y*DDF*dtA.z*vec_u.y      +vec_ddtcy_i.z*DF*vec_v.y+dtC.y*DDF*dtA.z*vec_v.y;
-
-              veck.x=vec_ddtay_k.x*DF*vec_u.y+dtA.y*DDF*dtC.x*vec_u.y      +vec_ddtcy_k.x*DF*vec_v.y+dtC.y*DDF*dtC.x*vec_v.y;
-              veck.y=vec_ddtay_k.y*DF*vec_u.y+dtA.y*DDF*dtC.y*vec_u.y      +vec_ddtcy_k.y*DF*vec_v.y+dtC.y*(DDF*dtC.y*vec_v.y+DF);
-              veck.z=vec_ddtay_k.z*DF*vec_u.y+dtA.y*DDF*dtC.z*vec_u.y      +vec_ddtcy_k.z*DF*vec_v.y+dtC.y*DDF*dtC.z*vec_v.y;
-
-              HessianMatrix.element[index_i][n+1]+=veci.x;
-              HessianMatrix.element[index_i+1][n+1]+=veci.y;
-              HessianMatrix.element[index_i+2][n+1]+=veci.z;
-
-              HessianMatrix.element[index_j][n+1]-=(veci.x+veck.x);
-              HessianMatrix.element[index_j+1][n+1]-=(veci.y+veck.y);
-              HessianMatrix.element[index_j+2][n+1]-=(veci.z+veck.z);
-
-              HessianMatrix.element[index_k][n+1]+=veck.x;
-              HessianMatrix.element[index_k+1][n+1]+=veck.y;
-              HessianMatrix.element[index_k+2][n+1]+=veck.z;
-
-              // vec_u.y*DF*dtA.y+rbc*vec_c.y*DF*dtC.y  [5] [7]
-              veci.x=vec_ddtay_i.x*DF*vec_u.z+dtA.y*DDF*dtA.x*vec_u.z      +vec_ddtcy_i.x*DF*vec_v.z+dtC.y*DDF*dtA.x*vec_v.z;
-              veci.y=vec_ddtay_i.y*DF*vec_u.z+dtA.y*DDF*dtA.y*vec_u.z      +vec_ddtcy_i.y*DF*vec_v.z+dtC.y*DDF*dtA.y*vec_v.z;
-              veci.z=vec_ddtay_i.z*DF*vec_u.z+dtA.y*(DDF*dtA.z*vec_u.z+DF) +vec_ddtcy_i.z*DF*vec_v.z+dtC.y*DDF*dtA.z*vec_v.z;
-
-              veck.x=vec_ddtay_k.x*DF*vec_u.z+dtA.y*DDF*dtC.x*vec_u.z      +vec_ddtcy_k.x*DF*vec_v.z+dtC.y*DDF*dtC.x*vec_v.z;
-              veck.y=vec_ddtay_k.y*DF*vec_u.z+dtA.y*DDF*dtC.y*vec_u.z      +vec_ddtcy_k.y*DF*vec_v.z+dtC.y*DDF*dtC.y*vec_v.z;
-              veck.z=vec_ddtay_k.z*DF*vec_u.z+dtA.y*DDF*dtC.z*vec_u.z      +vec_ddtcy_k.z*DF*vec_v.z+dtC.y*(DDF*dtC.z*vec_v.z+DF);
-
-              HessianMatrix.element[index_i][n+2]+=veci.x;
-              HessianMatrix.element[index_i+1][n+2]+=veci.y;
-              HessianMatrix.element[index_i+2][n+2]+=veci.z;
-
-              HessianMatrix.element[index_j][n+2]-=(veci.x+veck.x);
-              HessianMatrix.element[index_j+1][n+2]-=(veci.y+veck.y);
-              HessianMatrix.element[index_j+2][n+2]-=(veci.z+veck.z);
-
-              HessianMatrix.element[index_k][n+2]+=veck.x;
-              HessianMatrix.element[index_k+1][n+2]+=veck.y;
-              HessianMatrix.element[index_k+2][n+2]+=veck.z;
-
-              // vec_u.y*DF*dtA.y+rbc*vec_c.y*DF*dtC.y  [5] [7]
-              veci.x=vec_ddtaz_i.x*DF*vec_u.z+dtA.z*DDF*dtA.x*vec_u.z      +vec_ddtcz_i.x*DF*vec_v.z+dtC.z*DDF*dtA.x*vec_v.z;
-              veci.y=vec_ddtaz_i.y*DF*vec_u.z+dtA.z*DDF*dtA.y*vec_u.z      +vec_ddtcz_i.y*DF*vec_v.z+dtC.z*DDF*dtA.y*vec_v.z;
-              veci.z=vec_ddtaz_i.z*DF*vec_u.z+dtA.z*(DDF*dtA.z*vec_u.z+DF) +vec_ddtcz_i.z*DF*vec_v.z+dtC.z*DDF*dtA.z*vec_v.z;
-
-              veck.x=vec_ddtaz_k.x*DF*vec_u.z+dtA.z*DDF*dtC.x*vec_u.z      +vec_ddtcz_k.x*DF*vec_v.z+dtC.z*DDF*dtC.x*vec_v.z;
-              veck.y=vec_ddtaz_k.y*DF*vec_u.z+dtA.z*DDF*dtC.y*vec_u.z      +vec_ddtcz_k.y*DF*vec_v.z+dtC.z*DDF*dtC.y*vec_v.z;
-              veck.z=vec_ddtaz_k.z*DF*vec_u.z+dtA.z*DDF*dtC.z*vec_u.z      +vec_ddtcz_k.z*DF*vec_v.z+dtC.z*(DDF*dtC.z*vec_v.z+DF);
-
-              HessianMatrix.element[index_i][n+3]+=veci.x;
-              HessianMatrix.element[index_i+1][n+3]+=veci.y;
-              HessianMatrix.element[index_i+2][n+3]+=veci.z;
-
-              HessianMatrix.element[index_j][n+3]-=(veci.x+veck.x);
-              HessianMatrix.element[index_j+1][n+3]-=(veci.y+veck.y);
-              HessianMatrix.element[index_j+2][n+3]-=(veci.z+veck.z);
-
-              HessianMatrix.element[index_k][n+3]+=veck.x;
-              HessianMatrix.element[index_k+1][n+3]+=veck.y;
-              HessianMatrix.element[index_k+2][n+3]+=veck.z;
-              break;
-            case MONOCLINIC_BETA_ANGLE:
-              // S.ax=vec_u.x*DF*dtA.x+vec_v.x*DF*dtC.x;    [0]
-              veci.x=vec_ddtax_i.x*DF*vec_u.x+dtA.x*(DDF*dtA.x*vec_u.x+DF) +vec_ddtcx_i.x*DF*vec_v.x+dtC.x*DDF*dtA.x*vec_v.x;
-              veci.y=vec_ddtax_i.y*DF*vec_u.x+dtA.x*DDF*dtA.y*vec_u.x      +vec_ddtcx_i.y*DF*vec_v.x+dtC.x*DDF*dtA.y*vec_v.x;
-              veci.z=vec_ddtax_i.z*DF*vec_u.x+dtA.x*DDF*dtA.z*vec_u.x      +vec_ddtcx_i.z*DF*vec_v.x+dtC.x*DDF*dtA.z*vec_v.x;
-
-              veck.x=vec_ddtax_k.x*DF*vec_u.x+dtA.x*DDF*dtC.x*vec_u.x      +vec_ddtcx_k.x*DF*vec_v.x+dtC.x*(DDF*dtC.x*vec_v.x+DF);
-              veck.y=vec_ddtax_k.y*DF*vec_u.x+dtA.x*DDF*dtC.y*vec_u.x      +vec_ddtcx_k.y*DF*vec_v.x+dtC.x*DDF*dtC.y*vec_v.x;
-              veck.z=vec_ddtax_k.z*DF*vec_u.x+dtA.x*DDF*dtC.z*vec_u.x      +vec_ddtcx_k.z*DF*vec_v.x+dtC.x*DDF*dtC.z*vec_v.x;
-
-              HessianMatrix.element[index_i][n]+=veci.x;
-              HessianMatrix.element[index_i+1][n]+=veci.y;
-              HessianMatrix.element[index_i+2][n]+=veci.z;
-
-              HessianMatrix.element[index_j][n]-=(veci.x+veck.x);
-              HessianMatrix.element[index_j+1][n]-=(veci.y+veck.y);
-              HessianMatrix.element[index_j+2][n]-=(veci.z+veck.z);
-
-              HessianMatrix.element[index_k][n]+=veck.x;
-              HessianMatrix.element[index_k+1][n]+=veck.y;
-              HessianMatrix.element[index_k+2][n]+=veck.z;
-
-              // S.cx=vec_u.x*DF*dtA.x+vec_v.x*DF*dtC.x;   [2] and [6]
-              veci.x=vec_ddtax_i.x*DF*vec_u.z+dtA.x*DDF*dtA.x*vec_u.z      +vec_ddtcx_i.x*DF*vec_v.z+dtC.x*DDF*dtA.x*vec_v.z;
-              veci.y=vec_ddtax_i.y*DF*vec_u.z+dtA.x*DDF*dtA.y*vec_u.z      +vec_ddtcx_i.y*DF*vec_v.z+dtC.x*DDF*dtA.y*vec_v.z;
-              veci.z=vec_ddtax_i.z*DF*vec_u.z+dtA.x*(DDF*dtA.z*vec_u.z+DF) +vec_ddtcx_i.z*DF*vec_v.z+dtC.x*DDF*dtA.z*vec_v.z;
-
-              veck.x=vec_ddtax_k.x*DF*vec_u.z+dtA.x*DDF*dtC.x*vec_u.z      +vec_ddtcx_k.x*DF*vec_v.z+dtC.x*DDF*dtC.x*vec_v.z;
-              veck.y=vec_ddtax_k.y*DF*vec_u.z+dtA.x*DDF*dtC.y*vec_u.z      +vec_ddtcx_k.y*DF*vec_v.z+dtC.x*DDF*dtC.y*vec_v.z;
-              veck.z=vec_ddtax_k.z*DF*vec_u.z+dtA.x*DDF*dtC.z*vec_u.z      +vec_ddtcx_k.z*DF*vec_v.z+dtC.x*(DDF*dtC.z*vec_v.z+DF);
-
-              HessianMatrix.element[index_i][n+1]+=veci.x;
-              HessianMatrix.element[index_i+1][n+1]+=veci.y;
-              HessianMatrix.element[index_i+2][n+1]+=veci.z;
-
-              HessianMatrix.element[index_j][n+1]-=(veci.x+veck.x);
-              HessianMatrix.element[index_j+1][n+1]-=(veci.y+veck.y);
-              HessianMatrix.element[index_j+2][n+1]-=(veci.z+veck.z);
-
-              HessianMatrix.element[index_k][n+1]+=veck.x;
-              HessianMatrix.element[index_k+1][n+1]+=veck.y;
-              HessianMatrix.element[index_k+2][n+1]+=veck.z;
-
-              // vec_u.y*DF*dtA.y+rbc*vec_c.y*DF*dtC.y  [4]
-              veci.x=vec_ddtay_i.x*DF*vec_u.y+dtA.y*DDF*dtA.x*vec_u.y      +vec_ddtcy_i.x*DF*vec_v.y+dtC.y*DDF*dtA.x*vec_v.y;
-              veci.y=vec_ddtay_i.y*DF*vec_u.y+dtA.y*(DDF*dtA.y*vec_u.y+DF) +vec_ddtcy_i.y*DF*vec_v.y+dtC.y*DDF*dtA.y*vec_v.y;
-              veci.z=vec_ddtay_i.z*DF*vec_u.y+dtA.y*DDF*dtA.z*vec_u.y      +vec_ddtcy_i.z*DF*vec_v.y+dtC.y*DDF*dtA.z*vec_v.y;
-
-              veck.x=vec_ddtay_k.x*DF*vec_u.y+dtA.y*DDF*dtC.x*vec_u.y      +vec_ddtcy_k.x*DF*vec_v.y+dtC.y*DDF*dtC.x*vec_v.y;
-              veck.y=vec_ddtay_k.y*DF*vec_u.y+dtA.y*DDF*dtC.y*vec_u.y      +vec_ddtcy_k.y*DF*vec_v.y+dtC.y*(DDF*dtC.y*vec_v.y+DF);
-              veck.z=vec_ddtay_k.z*DF*vec_u.y+dtA.y*DDF*dtC.z*vec_u.y      +vec_ddtcy_k.z*DF*vec_v.y+dtC.y*DDF*dtC.z*vec_v.y;
-
-              HessianMatrix.element[index_i][n+2]+=veci.x;
-              HessianMatrix.element[index_i+1][n+2]+=veci.y;
-              HessianMatrix.element[index_i+2][n+2]+=veci.z;
-
-              HessianMatrix.element[index_j][n+2]-=(veci.x+veck.x);
-              HessianMatrix.element[index_j+1][n+2]-=(veci.y+veck.y);
-              HessianMatrix.element[index_j+2][n+2]-=(veci.z+veck.z);
-
-              HessianMatrix.element[index_k][n+2]+=veck.x;
-              HessianMatrix.element[index_k+1][n+2]+=veck.y;
-              HessianMatrix.element[index_k+2][n+2]+=veck.z;
-
-              // vec_u.y*DF*dtA.y+rbc*vec_c.y*DF*dtC.y  [5] [7]
-              veci.x=vec_ddtaz_i.x*DF*vec_u.z+dtA.z*DDF*dtA.x*vec_u.z      +vec_ddtcz_i.x*DF*vec_v.z+dtC.z*DDF*dtA.x*vec_v.z;
-              veci.y=vec_ddtaz_i.y*DF*vec_u.z+dtA.z*DDF*dtA.y*vec_u.z      +vec_ddtcz_i.y*DF*vec_v.z+dtC.z*DDF*dtA.y*vec_v.z;
-              veci.z=vec_ddtaz_i.z*DF*vec_u.z+dtA.z*(DDF*dtA.z*vec_u.z+DF) +vec_ddtcz_i.z*DF*vec_v.z+dtC.z*DDF*dtA.z*vec_v.z;
-
-              veck.x=vec_ddtaz_k.x*DF*vec_u.z+dtA.z*DDF*dtC.x*vec_u.z      +vec_ddtcz_k.x*DF*vec_v.z+dtC.z*DDF*dtC.x*vec_v.z;
-              veck.y=vec_ddtaz_k.y*DF*vec_u.z+dtA.z*DDF*dtC.y*vec_u.z      +vec_ddtcz_k.y*DF*vec_v.z+dtC.z*DDF*dtC.y*vec_v.z;
-              veck.z=vec_ddtaz_k.z*DF*vec_u.z+dtA.z*DDF*dtC.z*vec_u.z      +vec_ddtcz_k.z*DF*vec_v.z+dtC.z*(DDF*dtC.z*vec_v.z+DF);
-
-              HessianMatrix.element[index_i][n+3]+=veci.x;
-              HessianMatrix.element[index_i+1][n+3]+=veci.y;
-              HessianMatrix.element[index_i+2][n+3]+=veci.z;
-
-              HessianMatrix.element[index_j][n+3]-=(veci.x+veck.x);
-              HessianMatrix.element[index_j+1][n+3]-=(veci.y+veck.y);
-              HessianMatrix.element[index_j+2][n+3]-=(veci.z+veck.z);
-
-              HessianMatrix.element[index_k][n+3]+=veck.x;
-              HessianMatrix.element[index_k+1][n+3]+=veck.y;
-              HessianMatrix.element[index_k+2][n+3]+=veck.z;
-              break;
-            case MONOCLINIC_GAMMA_ANGLE:
-              // S.ax=vec_u.x*DF*dtA.x+vec_v.x*DF*dtC.x;    [0]
-              veci.x=vec_ddtax_i.x*DF*vec_u.x+dtA.x*(DDF*dtA.x*vec_u.x+DF) +vec_ddtcx_i.x*DF*vec_v.x+dtC.x*DDF*dtA.x*vec_v.x;
-              veci.y=vec_ddtax_i.y*DF*vec_u.x+dtA.x*DDF*dtA.y*vec_u.x      +vec_ddtcx_i.y*DF*vec_v.x+dtC.x*DDF*dtA.y*vec_v.x;
-              veci.z=vec_ddtax_i.z*DF*vec_u.x+dtA.x*DDF*dtA.z*vec_u.x      +vec_ddtcx_i.z*DF*vec_v.x+dtC.x*DDF*dtA.z*vec_v.x;
-
-              veck.x=vec_ddtax_k.x*DF*vec_u.x+dtA.x*DDF*dtC.x*vec_u.x      +vec_ddtcx_k.x*DF*vec_v.x+dtC.x*(DDF*dtC.x*vec_v.x+DF);
-              veck.y=vec_ddtax_k.y*DF*vec_u.x+dtA.x*DDF*dtC.y*vec_u.x      +vec_ddtcx_k.y*DF*vec_v.x+dtC.x*DDF*dtC.y*vec_v.x;
-              veck.z=vec_ddtax_k.z*DF*vec_u.x+dtA.x*DDF*dtC.z*vec_u.x      +vec_ddtcx_k.z*DF*vec_v.x+dtC.x*DDF*dtC.z*vec_v.x;
-
-              HessianMatrix.element[index_i][n]+=veci.x;
-              HessianMatrix.element[index_i+1][n]+=veci.y;
-              HessianMatrix.element[index_i+2][n]+=veci.z;
-
-              HessianMatrix.element[index_j][n]-=(veci.x+veck.x);
-              HessianMatrix.element[index_j+1][n]-=(veci.y+veck.y);
-              HessianMatrix.element[index_j+2][n]-=(veci.z+veck.z);
-
-              HessianMatrix.element[index_k][n]+=veck.x;
-              HessianMatrix.element[index_k+1][n]+=veck.y;
-              HessianMatrix.element[index_k+2][n]+=veck.z;
-
-              // S.ay=vec_u.x*DF*dtA.x+vec_v.x*DF*dtC.x;    [1] and [3]
-              veci.x=vec_ddtax_i.x*DF*vec_u.y+dtA.x*DDF*dtA.x*vec_u.y      +vec_ddtcx_i.x*DF*vec_v.y+dtC.x*DDF*dtA.x*vec_v.y;
-              veci.y=vec_ddtax_i.y*DF*vec_u.y+dtA.x*(DDF*dtA.y*vec_u.y+DF) +vec_ddtcx_i.y*DF*vec_v.y+dtC.x*DDF*dtA.y*vec_v.y;
-              veci.z=vec_ddtax_i.z*DF*vec_u.y+dtA.x*DDF*dtA.z*vec_u.y      +vec_ddtcx_i.z*DF*vec_v.y+dtC.x*DDF*dtA.z*vec_v.y;
-
-              veck.x=vec_ddtax_k.x*DF*vec_u.y+dtA.x*DDF*dtC.x*vec_u.y      +vec_ddtcx_k.x*DF*vec_v.y+dtC.x*DDF*dtC.x*vec_v.y;
-              veck.y=vec_ddtax_k.y*DF*vec_u.y+dtA.x*DDF*dtC.y*vec_u.y      +vec_ddtcx_k.y*DF*vec_v.y+dtC.x*(DDF*dtC.y*vec_v.y+DF);
-              veck.z=vec_ddtax_k.z*DF*vec_u.y+dtA.x*DDF*dtC.z*vec_u.y      +vec_ddtcx_k.z*DF*vec_v.y+dtC.x*DDF*dtC.z*vec_v.y;
-
-              HessianMatrix.element[index_i][n+1]+=veci.x;
-              HessianMatrix.element[index_i+1][n+1]+=veci.y;
-              HessianMatrix.element[index_i+2][n+1]+=veci.z;
-
-              HessianMatrix.element[index_j][n+1]-=(veci.x+veck.x);
-              HessianMatrix.element[index_j+1][n+1]-=(veci.y+veck.y);
-              HessianMatrix.element[index_j+2][n+1]-=(veci.z+veck.z);
-
-              HessianMatrix.element[index_k][n+1]+=veck.x;
-              HessianMatrix.element[index_k+1][n+1]+=veck.y;
-              HessianMatrix.element[index_k+2][n+1]+=veck.z;
-
-              // vec_u.y*DF*dtA.y+rbc*vec_c.y*DF*dtC.y  [4]
-              veci.x=vec_ddtay_i.x*DF*vec_u.y+dtA.y*DDF*dtA.x*vec_u.y      +vec_ddtcy_i.x*DF*vec_v.y+dtC.y*DDF*dtA.x*vec_v.y;
-              veci.y=vec_ddtay_i.y*DF*vec_u.y+dtA.y*(DDF*dtA.y*vec_u.y+DF) +vec_ddtcy_i.y*DF*vec_v.y+dtC.y*DDF*dtA.y*vec_v.y;
-              veci.z=vec_ddtay_i.z*DF*vec_u.y+dtA.y*DDF*dtA.z*vec_u.y      +vec_ddtcy_i.z*DF*vec_v.y+dtC.y*DDF*dtA.z*vec_v.y;
-
-              veck.x=vec_ddtay_k.x*DF*vec_u.y+dtA.y*DDF*dtC.x*vec_u.y      +vec_ddtcy_k.x*DF*vec_v.y+dtC.y*DDF*dtC.x*vec_v.y;
-              veck.y=vec_ddtay_k.y*DF*vec_u.y+dtA.y*DDF*dtC.y*vec_u.y      +vec_ddtcy_k.y*DF*vec_v.y+dtC.y*(DDF*dtC.y*vec_v.y+DF);
-              veck.z=vec_ddtay_k.z*DF*vec_u.y+dtA.y*DDF*dtC.z*vec_u.y      +vec_ddtcy_k.z*DF*vec_v.y+dtC.y*DDF*dtC.z*vec_v.y;
-
-              HessianMatrix.element[index_i][n+2]+=veci.x;
-              HessianMatrix.element[index_i+1][n+2]+=veci.y;
-              HessianMatrix.element[index_i+2][n+2]+=veci.z;
-
-              HessianMatrix.element[index_j][n+2]-=(veci.x+veck.x);
-              HessianMatrix.element[index_j+1][n+2]-=(veci.y+veck.y);
-              HessianMatrix.element[index_j+2][n+2]-=(veci.z+veck.z);
-
-              HessianMatrix.element[index_k][n+2]+=veck.x;
-              HessianMatrix.element[index_k+1][n+2]+=veck.y;
-              HessianMatrix.element[index_k+2][n+2]+=veck.z;
-
-              // vec_u.y*DF*dtA.y+rbc*vec_c.y*DF*dtC.y  [5] [7]
-              veci.x=vec_ddtaz_i.x*DF*vec_u.z+dtA.z*DDF*dtA.x*vec_u.z      +vec_ddtcz_i.x*DF*vec_v.z+dtC.z*DDF*dtA.x*vec_v.z;
-              veci.y=vec_ddtaz_i.y*DF*vec_u.z+dtA.z*DDF*dtA.y*vec_u.z      +vec_ddtcz_i.y*DF*vec_v.z+dtC.z*DDF*dtA.y*vec_v.z;
-              veci.z=vec_ddtaz_i.z*DF*vec_u.z+dtA.z*(DDF*dtA.z*vec_u.z+DF) +vec_ddtcz_i.z*DF*vec_v.z+dtC.z*DDF*dtA.z*vec_v.z;
-
-              veck.x=vec_ddtaz_k.x*DF*vec_u.z+dtA.z*DDF*dtC.x*vec_u.z      +vec_ddtcz_k.x*DF*vec_v.z+dtC.z*DDF*dtC.x*vec_v.z;
-              veck.y=vec_ddtaz_k.y*DF*vec_u.z+dtA.z*DDF*dtC.y*vec_u.z      +vec_ddtcz_k.y*DF*vec_v.z+dtC.z*DDF*dtC.y*vec_v.z;
-              veck.z=vec_ddtaz_k.z*DF*vec_u.z+dtA.z*DDF*dtC.z*vec_u.z      +vec_ddtcz_k.z*DF*vec_v.z+dtC.z*(DDF*dtC.z*vec_v.z+DF);
-
-              HessianMatrix.element[index_i][n+3]+=veci.x;
-              HessianMatrix.element[index_i+1][n+3]+=veci.y;
-              HessianMatrix.element[index_i+2][n+3]+=veci.z;
-
-              HessianMatrix.element[index_j][n+3]-=(veci.x+veck.x);
-              HessianMatrix.element[index_j+1][n+3]-=(veci.y+veck.y);
-              HessianMatrix.element[index_j+2][n+3]-=(veci.z+veck.z);
-
-              HessianMatrix.element[index_k][n+3]+=veck.x;
-              HessianMatrix.element[index_k+1][n+3]+=veck.y;
-              HessianMatrix.element[index_k+2][n+3]+=veck.z;
-              break;
-          }
-          break;
-        default:
-          printf("Unknown NPTPRCellType\n");
-          exit(0);
-          break;
-      }
-      break;
-    case NVT:
-    case NVE:
-      break;
-  }
-}
-
-// strain-strain
-
-static inline void HessianBendStrainStrain(REAL_MATRIX HessianMatrix,VECTOR vec_u,VECTOR vec_v,REAL u,REAL v,REAL DF,REAL DDF,REAL_MATRIX3x3 S,REAL CosTheta)
-{
-  int n;
-  REAL_MATRIX3x3 T;
-
-  n=NumberOfCoordinatesMinimizationVariables;
-
-  T.ax=(vec_u.x*vec_v.x+vec_v.x*vec_u.x)/(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)-((vec_u.x*vec_u.x)/SQR(u)+(vec_v.x*vec_v.x)/SQR(v));
-  T.ay=(vec_u.x*vec_v.y+vec_v.x*vec_u.y)/(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)-((vec_u.x*vec_u.y)/SQR(u)+(vec_v.x*vec_v.y)/SQR(v));
-  T.az=(vec_u.x*vec_v.z+vec_v.x*vec_u.z)/(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)-((vec_u.x*vec_u.z)/SQR(u)+(vec_v.x*vec_v.z)/SQR(v));
-
-  T.bx=(vec_u.y*vec_v.x+vec_v.y*vec_u.x)/(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)-((vec_u.y*vec_u.x)/SQR(u)+(vec_v.y*vec_v.x)/SQR(v));
-  T.by=(vec_u.y*vec_v.y+vec_v.y*vec_u.y)/(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)-((vec_u.y*vec_u.y)/SQR(u)+(vec_v.y*vec_v.y)/SQR(v));
-  T.bz=(vec_u.y*vec_v.z+vec_v.y*vec_u.z)/(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)-((vec_u.y*vec_u.z)/SQR(u)+(vec_v.y*vec_v.z)/SQR(v));
-
-  T.cx=(vec_u.z*vec_v.x+vec_v.z*vec_u.x)/(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)-((vec_u.z*vec_u.x)/SQR(u)+(vec_v.z*vec_v.x)/SQR(v));
-  T.cy=(vec_u.z*vec_v.y+vec_v.z*vec_u.y)/(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)-((vec_u.z*vec_u.y)/SQR(u)+(vec_v.z*vec_v.y)/SQR(v));
-  T.cz=(vec_u.z*vec_v.z+vec_v.z*vec_u.z)/(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)-((vec_u.z*vec_u.z)/SQR(u)+(vec_v.z*vec_v.z)/SQR(v));
-
-  switch(Ensemble[CurrentSystem])
-  {
-    case NPT:
-      HessianMatrix.element[n][n]+=DDF*CosTheta*T.ax*CosTheta*T.ax+DF*CosTheta*(
-                    -(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                    2.0*((vec_u.x*vec_u.x*vec_u.x*vec_u.x)/SQR(SQR(u))+(vec_v.x*vec_v.x*vec_v.x*vec_v.x)/SQR(SQR(v)))
-                    +T.ax*T.ax)+2.0*S.ax;
-      HessianMatrix.element[n][n]+=2.0*(DDF*CosTheta*T.ax*CosTheta*T.by+DF*CosTheta*(
-                    -(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                    2.0*((vec_u.x*vec_u.x*vec_u.y*vec_u.y)/SQR(SQR(u))+(vec_v.x*vec_v.x*vec_v.y*vec_v.y)/SQR(SQR(v)))
-                    +T.ax*T.by));
-      HessianMatrix.element[n][n]+=2.0*(DDF*CosTheta*T.ax*CosTheta*T.cz+DF*CosTheta*(
-                    -(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                    2.0*((vec_u.x*vec_u.x*vec_u.z*vec_u.z)/SQR(SQR(u))+(vec_v.x*vec_v.x*vec_v.z*vec_v.z)/SQR(SQR(v)))
-                    +T.ax*T.cz));
-      HessianMatrix.element[n][n]+=DDF*CosTheta*T.by*CosTheta*T.by+DF*CosTheta*(
-                    -(vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                    2.0*((vec_u.y*vec_u.y*vec_u.y*vec_u.y)/SQR(SQR(u))+(vec_v.y*vec_v.y*vec_v.y*vec_v.y)/SQR(SQR(v)))
-                    +T.by*T.by)+2.0*S.by;
-      HessianMatrix.element[n][n]+=2.0*(DDF*CosTheta*T.by*CosTheta*T.cz+DF*CosTheta*(
-                    -(vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                    2.0*((vec_u.y*vec_u.y*vec_u.z*vec_u.z)/SQR(SQR(u))+(vec_v.y*vec_v.y*vec_v.z*vec_v.z)/SQR(SQR(v)))
-                    +T.by*T.cz));
-      HessianMatrix.element[n][n]+=DDF*CosTheta*T.cz*CosTheta*T.cz+DF*CosTheta*(
-                    -(vec_v.z*vec_u.z+vec_u.z*vec_v.z)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                    2.0*((vec_u.z*vec_u.z*vec_u.z*vec_u.z)/SQR(SQR(u))+(vec_v.z*vec_v.z*vec_v.z*vec_v.z)/SQR(SQR(v)))
-                    +T.cz*T.cz)+2.0*S.cz;
-      break;
-    case NPTPR:
-    case NPHPR:
-      switch(NPTPRCellType[CurrentSystem])
-      {
-        case ISOTROPIC:
-        case ANISOTROPIC:
-          HessianMatrix.element[n][n]+=DDF*CosTheta*T.ax*CosTheta*T.ax+DF*CosTheta*(
-                        -(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                        2.0*((vec_u.x*vec_u.x*vec_u.x*vec_u.x)/SQR(SQR(u))+(vec_v.x*vec_v.x*vec_v.x*vec_v.x)/SQR(SQR(v)))
-                        +T.ax*T.ax)+2.0*S.ax;
-          HessianMatrix.element[n][n+1]+=DDF*CosTheta*T.ax*CosTheta*T.by+DF*CosTheta*(
-                        -(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                        2.0*((vec_u.x*vec_u.x*vec_u.y*vec_u.y)/SQR(SQR(u))+(vec_v.x*vec_v.x*vec_v.y*vec_v.y)/SQR(SQR(v)))
-                        +T.ax*T.by);
-          HessianMatrix.element[n][n+2]+=DDF*CosTheta*T.ax*CosTheta*T.cz+DF*CosTheta*(
-                        -(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                        2.0*((vec_u.x*vec_u.x*vec_u.z*vec_u.z)/SQR(SQR(u))+(vec_v.x*vec_v.x*vec_v.z*vec_v.z)/SQR(SQR(v)))
-                        +T.ax*T.cz);
-
-          HessianMatrix.element[n+1][n+1]+=DDF*CosTheta*T.by*CosTheta*T.by+DF*CosTheta*(
-                        -(vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                        2.0*((vec_u.y*vec_u.y*vec_u.y*vec_u.y)/SQR(SQR(u))+(vec_v.y*vec_v.y*vec_v.y*vec_v.y)/SQR(SQR(v)))
-                        +T.by*T.by)+2.0*S.by;
-          HessianMatrix.element[n+1][n+2]+=DDF*CosTheta*T.by*CosTheta*T.cz+DF*CosTheta*(
-                        -(vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                        2.0*((vec_u.y*vec_u.y*vec_u.z*vec_u.z)/SQR(SQR(u))+(vec_v.y*vec_v.y*vec_v.z*vec_v.z)/SQR(SQR(v)))
-                        +T.by*T.cz);
-
-          HessianMatrix.element[n+2][n+2]+=DDF*CosTheta*T.cz*CosTheta*T.cz+DF*CosTheta*(
-                        -(vec_v.z*vec_u.z+vec_u.z*vec_v.z)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                        2.0*((vec_u.z*vec_u.z*vec_u.z*vec_u.z)/SQR(SQR(u))+(vec_v.z*vec_v.z*vec_v.z*vec_v.z)/SQR(SQR(v)))
-                        +T.cz*T.cz)+2.0*S.cz;
-          break;
-        case REGULAR:
-         HessianMatrix.element[n][n]+=DDF*CosTheta*T.ax*CosTheta*T.ax+DF*CosTheta*(
-                        -(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                        2.0*((vec_u.x*vec_u.x*vec_u.x*vec_u.x)/SQR(SQR(u))+(vec_v.x*vec_v.x*vec_v.x*vec_v.x)/SQR(SQR(v)))
-                        +T.ax*T.ax)+2.0*S.ax;
-          HessianMatrix.element[n][n+1]+=DDF*CosTheta*T.ax*CosTheta*T.ay+DF*CosTheta*(
-                        -(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.x*vec_u.y+vec_u.x*vec_v.y)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                        2.0*((vec_u.x*vec_u.x*vec_u.x*vec_u.y)/SQR(SQR(u))+(vec_v.x*vec_v.x*vec_v.x*vec_v.y)/SQR(SQR(v)))
-                        +T.ax*T.ay)+S.ay;
-          HessianMatrix.element[n][n+2]+=DDF*CosTheta*T.ax*CosTheta*T.az+DF*CosTheta*(
-                        -(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.x*vec_u.z+vec_u.x*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                        2.0*((vec_u.x*vec_u.x*vec_u.x*vec_u.z)/SQR(SQR(u))+(vec_v.x*vec_v.x*vec_v.x*vec_v.z)/SQR(SQR(v)))
-                        +T.ax*T.az)+S.az;
-          HessianMatrix.element[n][n+3]+=DDF*CosTheta*T.ax*CosTheta*T.by+DF*CosTheta*(
-                        -(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                        2.0*((vec_u.x*vec_u.x*vec_u.y*vec_u.y)/SQR(SQR(u))+(vec_v.x*vec_v.x*vec_v.y*vec_v.y)/SQR(SQR(v)))
-                        +T.ax*T.by);
-          HessianMatrix.element[n][n+4]+=DDF*CosTheta*T.ax*CosTheta*T.bz+DF*CosTheta*(
-                        -(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.y*vec_u.z+vec_u.y*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                        2.0*((vec_u.x*vec_u.x*vec_u.y*vec_u.z)/SQR(SQR(u))+(vec_v.x*vec_v.x*vec_v.y*vec_v.z)/SQR(SQR(v)))
-                        +T.ax*T.bz);
-          HessianMatrix.element[n][n+5]+=DDF*CosTheta*T.ax*CosTheta*T.cz+DF*CosTheta*(
-                        -(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                        2.0*((vec_u.x*vec_u.x*vec_u.z*vec_u.z)/SQR(SQR(u))+(vec_v.x*vec_v.x*vec_v.z*vec_v.z)/SQR(SQR(v)))
-                        +T.ax*T.cz);
-
-          HessianMatrix.element[n+1][n+1]+=DDF*CosTheta*T.ay*CosTheta*T.ay+DF*CosTheta*(
-                        -(vec_v.x*vec_u.y+vec_u.x*vec_v.y)*(vec_v.x*vec_u.y+vec_u.x*vec_v.y)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                        2.0*((vec_u.x*vec_u.y*vec_u.x*vec_u.y)/SQR(SQR(u))+(vec_v.x*vec_v.y*vec_v.x*vec_v.y)/SQR(SQR(v)))
-                        +T.ay*T.ay)+0.5*(S.ax+S.by);
-          HessianMatrix.element[n+1][n+2]+=DDF*CosTheta*T.ay*CosTheta*T.az+DF*CosTheta*(
-                        -(vec_v.x*vec_u.y+vec_u.x*vec_v.y)*(vec_v.x*vec_u.z+vec_u.x*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                        2.0*((vec_u.x*vec_u.y*vec_u.x*vec_u.z)/SQR(SQR(u))+(vec_v.x*vec_v.y*vec_v.x*vec_v.z)/SQR(SQR(v)))
-                        +T.ay*T.az)+0.5*(S.bz);
-          HessianMatrix.element[n+1][n+3]+=DDF*CosTheta*T.ay*CosTheta*T.by+DF*CosTheta*(
-                        -(vec_v.x*vec_u.y+vec_u.x*vec_v.y)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                        2.0*((vec_u.x*vec_u.y*vec_u.y*vec_u.y)/SQR(SQR(u))+(vec_v.x*vec_v.y*vec_v.y*vec_v.y)/SQR(SQR(v)))
-                        +T.ay*T.by)+S.ay;
-          HessianMatrix.element[n+1][n+4]+=DDF*CosTheta*T.ay*CosTheta*T.bz+DF*CosTheta*(
-                        -(vec_v.x*vec_u.y+vec_u.x*vec_v.y)*(vec_v.y*vec_u.z+vec_u.y*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                        2.0*((vec_u.x*vec_u.y*vec_u.y*vec_u.z)/SQR(SQR(u))+(vec_v.x*vec_v.y*vec_v.y*vec_v.z)/SQR(SQR(v)))
-                        +T.ay*T.bz)+0.5*S.az;
-          HessianMatrix.element[n+1][n+5]+=DDF*CosTheta*T.ay*CosTheta*T.cz+DF*CosTheta*(
-                        -(vec_v.x*vec_u.y+vec_u.x*vec_v.y)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                        2.0*((vec_u.x*vec_u.y*vec_u.z*vec_u.z)/SQR(SQR(u))+(vec_v.x*vec_v.y*vec_v.z*vec_v.z)/SQR(SQR(v)))
-                        +T.ay*T.cz);
-
-          HessianMatrix.element[n+2][n+2]+=DDF*CosTheta*T.az*CosTheta*T.az+DF*CosTheta*(
-                        -(vec_v.x*vec_u.z+vec_u.x*vec_v.z)*(vec_v.x*vec_u.z+vec_u.x*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                        2.0*((vec_u.x*vec_u.z*vec_u.x*vec_u.z)/SQR(SQR(u))+(vec_v.x*vec_v.z*vec_v.x*vec_v.z)/SQR(SQR(v)))
-                        +T.az*T.az)+0.5*(S.ax+S.cz);
-          HessianMatrix.element[n+2][n+3]+=DDF*CosTheta*T.az*CosTheta*T.by+DF*CosTheta*(
-                        -(vec_v.x*vec_u.z+vec_u.x*vec_v.z)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                        2.0*((vec_u.x*vec_u.z*vec_u.y*vec_u.y)/SQR(SQR(u))+(vec_v.x*vec_v.z*vec_v.y*vec_v.y)/SQR(SQR(v)))
-                        +T.az*T.by);
-          HessianMatrix.element[n+2][n+4]+=DDF*CosTheta*T.az*CosTheta*T.bz+DF*CosTheta*(
-                        -(vec_v.x*vec_u.z+vec_u.x*vec_v.z)*(vec_v.y*vec_u.z+vec_u.y*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                        2.0*((vec_u.x*vec_u.z*vec_u.y*vec_u.z)/SQR(SQR(u))+(vec_v.x*vec_v.z*vec_v.y*vec_v.z)/SQR(SQR(v)))
-                        +T.az*T.bz)+0.5*S.ay;
-          HessianMatrix.element[n+2][n+5]+=DDF*CosTheta*T.az*CosTheta*T.cz+DF*CosTheta*(
-                        -(vec_v.x*vec_u.z+vec_u.x*vec_v.z)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                        2.0*((vec_u.x*vec_u.z*vec_u.z*vec_u.z)/SQR(SQR(u))+(vec_v.x*vec_v.z*vec_v.z*vec_v.z)/SQR(SQR(v)))
-                        +T.az*T.cz)+S.az;
-
-          HessianMatrix.element[n+3][n+3]+=DDF*CosTheta*T.by*CosTheta*T.by+DF*CosTheta*(
-                        -(vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                        2.0*((vec_u.y*vec_u.y*vec_u.y*vec_u.y)/SQR(SQR(u))+(vec_v.y*vec_v.y*vec_v.y*vec_v.y)/SQR(SQR(v)))
-                        +T.by*T.by)+2.0*S.by;
-          HessianMatrix.element[n+3][n+4]+=DDF*CosTheta*T.by*CosTheta*T.bz+DF*CosTheta*(
-                        -(vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_v.y*vec_u.z+vec_u.y*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                        2.0*((vec_u.y*vec_u.y*vec_u.y*vec_u.z)/SQR(SQR(u))+(vec_v.y*vec_v.y*vec_v.y*vec_v.z)/SQR(SQR(v)))
-                        +T.by*T.bz)+S.bz;
-          HessianMatrix.element[n+3][n+5]+=DDF*CosTheta*T.by*CosTheta*T.cz+DF*CosTheta*(
-                        -(vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                        2.0*((vec_u.y*vec_u.y*vec_u.z*vec_u.z)/SQR(SQR(u))+(vec_v.y*vec_v.y*vec_v.z*vec_v.z)/SQR(SQR(v)))
-                        +T.by*T.cz);
-
-          HessianMatrix.element[n+4][n+4]+=DDF*CosTheta*T.bz*CosTheta*T.bz+DF*CosTheta*(
-                        -(vec_v.y*vec_u.z+vec_u.y*vec_v.z)*(vec_v.y*vec_u.z+vec_u.y*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                        2.0*((vec_u.y*vec_u.z*vec_u.y*vec_u.z)/SQR(SQR(u))+(vec_v.y*vec_v.z*vec_v.y*vec_v.z)/SQR(SQR(v)))
-                        +T.bz*T.bz)+0.5*(S.by+S.cz);
-          HessianMatrix.element[n+4][n+5]+=DDF*CosTheta*T.bz*CosTheta*T.cz+DF*CosTheta*(
-                        -(vec_v.y*vec_u.z+vec_u.y*vec_v.z)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                        2.0*((vec_u.y*vec_u.z*vec_u.z*vec_u.z)/SQR(SQR(u))+(vec_v.y*vec_v.z*vec_v.z*vec_v.z)/SQR(SQR(v)))
-                        +T.bz*T.cz)+S.bz;
-
-          HessianMatrix.element[n+5][n+5]+=DDF*CosTheta*T.cz*CosTheta*T.cz+DF*CosTheta*(
-                        -(vec_v.z*vec_u.z+vec_u.z*vec_v.z)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                        2.0*((vec_u.z*vec_u.z*vec_u.z*vec_u.z)/SQR(SQR(u))+(vec_v.z*vec_v.z*vec_v.z*vec_v.z)/SQR(SQR(v)))
-                        +T.cz*T.cz)+2.0*S.cz;
-          break;
-        case REGULAR_UPPER_TRIANGLE:
-          HessianMatrix.element[n][n]+=DDF*CosTheta*T.ax*CosTheta*T.ax+DF*CosTheta*(
-                        -(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                        2.0*((vec_u.x*vec_u.x*vec_u.x*vec_u.x)/SQR(SQR(u))+(vec_v.x*vec_v.x*vec_v.x*vec_v.x)/SQR(SQR(v)))
-                        +T.ax*T.ax)+2.0*S.ax;
-          HessianMatrix.element[n][n+1]+=DDF*CosTheta*T.ax*CosTheta*T.ay+DF*CosTheta*(
-                        -(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.x*vec_u.y+vec_u.x*vec_v.y)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                        2.0*((vec_u.x*vec_u.x*vec_u.x*vec_u.y)/SQR(SQR(u))+(vec_v.x*vec_v.x*vec_v.x*vec_v.y)/SQR(SQR(v)))
-                        +T.ax*T.ay)+S.ay;
-          HessianMatrix.element[n][n+2]+=DDF*CosTheta*T.ax*CosTheta*T.az+DF*CosTheta*(
-                        -(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.x*vec_u.z+vec_u.x*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                        2.0*((vec_u.x*vec_u.x*vec_u.x*vec_u.z)/SQR(SQR(u))+(vec_v.x*vec_v.x*vec_v.x*vec_v.z)/SQR(SQR(v)))
-                        +T.ax*T.az)+S.az;
-          HessianMatrix.element[n][n+3]+=DDF*CosTheta*T.ax*CosTheta*T.by+DF*CosTheta*(
-                        -(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                        2.0*((vec_u.x*vec_u.x*vec_u.y*vec_u.y)/SQR(SQR(u))+(vec_v.x*vec_v.x*vec_v.y*vec_v.y)/SQR(SQR(v)))
-                        +T.ax*T.by);
-          HessianMatrix.element[n][n+4]+=DDF*CosTheta*T.ax*CosTheta*T.bz+DF*CosTheta*(
-                        -(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.y*vec_u.z+vec_u.y*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                        2.0*((vec_u.x*vec_u.x*vec_u.y*vec_u.z)/SQR(SQR(u))+(vec_v.x*vec_v.x*vec_v.y*vec_v.z)/SQR(SQR(v)))
-                        +T.ax*T.bz);
-          HessianMatrix.element[n][n+5]+=DDF*CosTheta*T.ax*CosTheta*T.cz+DF*CosTheta*(
-                        -(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                        2.0*((vec_u.x*vec_u.x*vec_u.z*vec_u.z)/SQR(SQR(u))+(vec_v.x*vec_v.x*vec_v.z*vec_v.z)/SQR(SQR(v)))
-                        +T.ax*T.cz);
-
-          HessianMatrix.element[n+1][n+1]+=DDF*CosTheta*T.ay*CosTheta*T.ay+DF*CosTheta*(
-                        -(vec_v.x*vec_u.y+vec_u.x*vec_v.y)*(vec_v.x*vec_u.y+vec_u.x*vec_v.y)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                        2.0*((vec_u.x*vec_u.y*vec_u.x*vec_u.y)/SQR(SQR(u))+(vec_v.x*vec_v.y*vec_v.x*vec_v.y)/SQR(SQR(v)))
-                        +T.ay*T.ay)+S.by;
-          HessianMatrix.element[n+1][n+2]+=DDF*CosTheta*T.ay*CosTheta*T.az+DF*CosTheta*(
-                        -(vec_v.x*vec_u.y+vec_u.x*vec_v.y)*(vec_v.x*vec_u.z+vec_u.x*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                        2.0*((vec_u.x*vec_u.y*vec_u.x*vec_u.z)/SQR(SQR(u))+(vec_v.x*vec_v.y*vec_v.x*vec_v.z)/SQR(SQR(v)))
-                        +T.ay*T.az)+S.bz;
-          HessianMatrix.element[n+1][n+3]+=DDF*CosTheta*T.ay*CosTheta*T.by+DF*CosTheta*(
-                        -(vec_v.x*vec_u.y+vec_u.x*vec_v.y)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                        2.0*((vec_u.x*vec_u.y*vec_u.y*vec_u.y)/SQR(SQR(u))+(vec_v.x*vec_v.y*vec_v.y*vec_v.y)/SQR(SQR(v)))
-                        +T.ay*T.by);
-          HessianMatrix.element[n+1][n+4]+=DDF*CosTheta*T.ay*CosTheta*T.bz+DF*CosTheta*(
-                        -(vec_v.x*vec_u.y+vec_u.x*vec_v.y)*(vec_v.y*vec_u.z+vec_u.y*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                        2.0*((vec_u.x*vec_u.y*vec_u.y*vec_u.z)/SQR(SQR(u))+(vec_v.x*vec_v.y*vec_v.y*vec_v.z)/SQR(SQR(v)))
-                        +T.ay*T.bz);
-          HessianMatrix.element[n+1][n+5]+=DDF*CosTheta*T.ay*CosTheta*T.cz+DF*CosTheta*(
-                        -(vec_v.x*vec_u.y+vec_u.x*vec_v.y)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                        2.0*((vec_u.x*vec_u.y*vec_u.z*vec_u.z)/SQR(SQR(u))+(vec_v.x*vec_v.y*vec_v.z*vec_v.z)/SQR(SQR(v)))
-                        +T.ay*T.cz);
-
-          HessianMatrix.element[n+2][n+2]+=DDF*CosTheta*T.az*CosTheta*T.az+DF*CosTheta*(
-                        -(vec_v.x*vec_u.z+vec_u.x*vec_v.z)*(vec_v.x*vec_u.z+vec_u.x*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                        2.0*((vec_u.x*vec_u.z*vec_u.x*vec_u.z)/SQR(SQR(u))+(vec_v.x*vec_v.z*vec_v.x*vec_v.z)/SQR(SQR(v)))
-                        +T.az*T.az)+S.cz;
-          HessianMatrix.element[n+2][n+3]+=DDF*CosTheta*T.az*CosTheta*T.by+DF*CosTheta*(
-                        -(vec_v.x*vec_u.z+vec_u.x*vec_v.z)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                        2.0*((vec_u.x*vec_u.z*vec_u.y*vec_u.y)/SQR(SQR(u))+(vec_v.x*vec_v.z*vec_v.y*vec_v.y)/SQR(SQR(v)))
-                        +T.az*T.by);
-          HessianMatrix.element[n+2][n+4]+=DDF*CosTheta*T.az*CosTheta*T.bz+DF*CosTheta*(
-                        -(vec_v.x*vec_u.z+vec_u.x*vec_v.z)*(vec_v.y*vec_u.z+vec_u.y*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                        2.0*((vec_u.x*vec_u.z*vec_u.y*vec_u.z)/SQR(SQR(u))+(vec_v.x*vec_v.z*vec_v.y*vec_v.z)/SQR(SQR(v)))
-                        +T.az*T.bz);
-          HessianMatrix.element[n+2][n+5]+=DDF*CosTheta*T.az*CosTheta*T.cz+DF*CosTheta*(
-                        -(vec_v.x*vec_u.z+vec_u.x*vec_v.z)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                        2.0*((vec_u.x*vec_u.z*vec_u.z*vec_u.z)/SQR(SQR(u))+(vec_v.x*vec_v.z*vec_v.z*vec_v.z)/SQR(SQR(v)))
-                        +T.az*T.cz);
-
-          HessianMatrix.element[n+3][n+3]+=DDF*CosTheta*T.by*CosTheta*T.by+DF*CosTheta*(
-                        -(vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                        2.0*((vec_u.y*vec_u.y*vec_u.y*vec_u.y)/SQR(SQR(u))+(vec_v.y*vec_v.y*vec_v.y*vec_v.y)/SQR(SQR(v)))
-                        +T.by*T.by)+2.0*S.by;
-          HessianMatrix.element[n+3][n+4]+=DDF*CosTheta*T.by*CosTheta*T.bz+DF*CosTheta*(
-                        -(vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_v.y*vec_u.z+vec_u.y*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                        2.0*((vec_u.y*vec_u.y*vec_u.y*vec_u.z)/SQR(SQR(u))+(vec_v.y*vec_v.y*vec_v.y*vec_v.z)/SQR(SQR(v)))
-                        +T.by*T.bz)+S.bz;
-          HessianMatrix.element[n+3][n+5]+=DDF*CosTheta*T.by*CosTheta*T.cz+DF*CosTheta*(
-                        -(vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                        2.0*((vec_u.y*vec_u.y*vec_u.z*vec_u.z)/SQR(SQR(u))+(vec_v.y*vec_v.y*vec_v.z*vec_v.z)/SQR(SQR(v)))
-                        +T.by*T.cz);
-
-          HessianMatrix.element[n+4][n+4]+=DDF*CosTheta*T.bz*CosTheta*T.bz+DF*CosTheta*(
-                        -(vec_v.y*vec_u.z+vec_u.y*vec_v.z)*(vec_v.y*vec_u.z+vec_u.y*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                        2.0*((vec_u.y*vec_u.z*vec_u.y*vec_u.z)/SQR(SQR(u))+(vec_v.y*vec_v.z*vec_v.y*vec_v.z)/SQR(SQR(v)))
-                        +T.bz*T.bz)+S.cz;
-          HessianMatrix.element[n+4][n+5]+=DDF*CosTheta*T.bz*CosTheta*T.cz+DF*CosTheta*(
-                        -(vec_v.y*vec_u.z+vec_u.y*vec_v.z)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                        2.0*((vec_u.y*vec_u.z*vec_u.z*vec_u.z)/SQR(SQR(u))+(vec_v.y*vec_v.z*vec_v.z*vec_v.z)/SQR(SQR(v)))
-                        +T.bz*T.cz);
-
-          HessianMatrix.element[n+5][n+5]+=DDF*CosTheta*T.cz*CosTheta*T.cz+DF*CosTheta*(
-                        -(vec_v.z*vec_u.z+vec_u.z*vec_v.z)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                        2.0*((vec_u.z*vec_u.z*vec_u.z*vec_u.z)/SQR(SQR(u))+(vec_v.z*vec_v.z*vec_v.z*vec_v.z)/SQR(SQR(v)))
-                        +T.cz*T.cz)+2.0*S.cz;
-          break;
-        case MONOCLINIC:
-          switch(MonoclinicAngleType[CurrentSystem])
-          {
-            case MONOCLINIC_ALPHA_ANGLE:
-              HessianMatrix.element[n][n]+=DDF*CosTheta*T.ax*CosTheta*T.ax+DF*CosTheta*(
-                            -(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.x*vec_u.x*vec_u.x*vec_u.x)/SQR(SQR(u))+(vec_v.x*vec_v.x*vec_v.x*vec_v.x)/SQR(SQR(v)))
-                            +T.ax*T.ax)+2.0*S.ax;
-              HessianMatrix.element[n][n+1]+=DDF*CosTheta*T.ax*CosTheta*T.by+DF*CosTheta*(
-                            -(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.x*vec_u.x*vec_u.y*vec_u.y)/SQR(SQR(u))+(vec_v.x*vec_v.x*vec_v.y*vec_v.y)/SQR(SQR(v)))
-                            +T.ax*T.by);
-              HessianMatrix.element[n][n+2]+=DDF*CosTheta*T.ax*CosTheta*T.bz+DF*CosTheta*(
-                            -(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.y*vec_u.z+vec_u.y*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.x*vec_u.x*vec_u.y*vec_u.z)/SQR(SQR(u))+(vec_v.x*vec_v.x*vec_v.y*vec_v.z)/SQR(SQR(v)))
-                            +T.ax*T.bz);
-              HessianMatrix.element[n][n+3]+=DDF*CosTheta*T.ax*CosTheta*T.cz+DF*CosTheta*(
-                            -(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.x*vec_u.x*vec_u.z*vec_u.z)/SQR(SQR(u))+(vec_v.x*vec_v.x*vec_v.z*vec_v.z)/SQR(SQR(v)))
-                            +T.ax*T.cz);
-
-              HessianMatrix.element[n+1][n+1]+=DDF*CosTheta*T.by*CosTheta*T.by+DF*CosTheta*(
-                            -(vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.y*vec_u.y*vec_u.y*vec_u.y)/SQR(SQR(u))+(vec_v.y*vec_v.y*vec_v.y*vec_v.y)/SQR(SQR(v)))
-                            +T.by*T.by)+2.0*S.by;
-              HessianMatrix.element[n+1][n+2]+=DDF*CosTheta*T.by*CosTheta*T.bz+DF*CosTheta*(
-                            -(vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_v.y*vec_u.z+vec_u.y*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.y*vec_u.y*vec_u.y*vec_u.z)/SQR(SQR(u))+(vec_v.y*vec_v.y*vec_v.y*vec_v.z)/SQR(SQR(v)))
-                            +T.by*T.bz)+S.bz;
-              HessianMatrix.element[n+1][n+3]+=DDF*CosTheta*T.by*CosTheta*T.cz+DF*CosTheta*(
-                            -(vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.y*vec_u.y*vec_u.z*vec_u.z)/SQR(SQR(u))+(vec_v.y*vec_v.y*vec_v.z*vec_v.z)/SQR(SQR(v)))
-                            +T.by*T.cz);
-
-              HessianMatrix.element[n+2][n+2]+=DDF*CosTheta*T.bz*CosTheta*T.bz+DF*CosTheta*(
-                            -(vec_v.y*vec_u.z+vec_u.y*vec_v.z)*(vec_v.y*vec_u.z+vec_u.y*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.y*vec_u.z*vec_u.y*vec_u.z)/SQR(SQR(u))+(vec_v.y*vec_v.z*vec_v.y*vec_v.z)/SQR(SQR(v)))
-                            +T.bz*T.bz)+0.5*(S.by+S.cz);
-              HessianMatrix.element[n+2][n+3]+=DDF*CosTheta*T.bz*CosTheta*T.cz+DF*CosTheta*(
-                            -(vec_v.y*vec_u.z+vec_u.y*vec_v.z)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.y*vec_u.z*vec_u.z*vec_u.z)/SQR(SQR(u))+(vec_v.y*vec_v.z*vec_v.z*vec_v.z)/SQR(SQR(v)))
-                            +T.bz*T.cz)+S.bz;
-
-              HessianMatrix.element[n+3][n+3]+=DDF*CosTheta*T.cz*CosTheta*T.cz+DF*CosTheta*(
-                            -(vec_v.z*vec_u.z+vec_u.z*vec_v.z)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.z*vec_u.z*vec_u.z*vec_u.z)/SQR(SQR(u))+(vec_v.z*vec_v.z*vec_v.z*vec_v.z)/SQR(SQR(v)))
-                            +T.cz*T.cz)+2.0*S.cz;
-              break;
-            case MONOCLINIC_BETA_ANGLE:
-              HessianMatrix.element[n][n]+=DDF*CosTheta*T.ax*CosTheta*T.ax+DF*CosTheta*(
-                            -(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.x*vec_u.x*vec_u.x*vec_u.x)/SQR(SQR(u))+(vec_v.x*vec_v.x*vec_v.x*vec_v.x)/SQR(SQR(v)))
-                            +T.ax*T.ax)+2.0*S.ax;
-              HessianMatrix.element[n][n+1]+=DDF*CosTheta*T.ax*CosTheta*T.az+DF*CosTheta*(
-                            -(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.x*vec_u.z+vec_u.x*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.x*vec_u.x*vec_u.x*vec_u.z)/SQR(SQR(u))+(vec_v.x*vec_v.x*vec_v.x*vec_v.z)/SQR(SQR(v)))
-                            +T.ax*T.az)+S.az;
-              HessianMatrix.element[n][n+2]+=DDF*CosTheta*T.ax*CosTheta*T.by+DF*CosTheta*(
-                            -(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.x*vec_u.x*vec_u.y*vec_u.y)/SQR(SQR(u))+(vec_v.x*vec_v.x*vec_v.y*vec_v.y)/SQR(SQR(v)))
-                            +T.ax*T.by);
-              HessianMatrix.element[n][n+3]+=DDF*CosTheta*T.ax*CosTheta*T.cz+DF*CosTheta*(
-                            -(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.x*vec_u.x*vec_u.z*vec_u.z)/SQR(SQR(u))+(vec_v.x*vec_v.x*vec_v.z*vec_v.z)/SQR(SQR(v)))
-                            +T.ax*T.cz);
-
-              HessianMatrix.element[n+1][n+1]+=DDF*CosTheta*T.az*CosTheta*T.az+DF*CosTheta*(
-                            -(vec_v.x*vec_u.z+vec_u.x*vec_v.z)*(vec_v.x*vec_u.z+vec_u.x*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.x*vec_u.z*vec_u.x*vec_u.z)/SQR(SQR(u))+(vec_v.x*vec_v.z*vec_v.x*vec_v.z)/SQR(SQR(v)))
-                            +T.az*T.az)+0.5*(S.ax+S.cz);
-              HessianMatrix.element[n+1][n+2]+=DDF*CosTheta*T.az*CosTheta*T.by+DF*CosTheta*(
-                            -(vec_v.x*vec_u.z+vec_u.x*vec_v.z)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.x*vec_u.z*vec_u.y*vec_u.y)/SQR(SQR(u))+(vec_v.x*vec_v.z*vec_v.y*vec_v.y)/SQR(SQR(v)))
-                            +T.az*T.by);
-              HessianMatrix.element[n+1][n+3]+=DDF*CosTheta*T.az*CosTheta*T.cz+DF*CosTheta*(
-                            -(vec_v.x*vec_u.z+vec_u.x*vec_v.z)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.x*vec_u.z*vec_u.z*vec_u.z)/SQR(SQR(u))+(vec_v.x*vec_v.z*vec_v.z*vec_v.z)/SQR(SQR(v)))
-                            +T.az*T.cz)+S.az;
-
-              HessianMatrix.element[n+2][n+2]+=DDF*CosTheta*T.by*CosTheta*T.by+DF*CosTheta*(
-                            -(vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.y*vec_u.y*vec_u.y*vec_u.y)/SQR(SQR(u))+(vec_v.y*vec_v.y*vec_v.y*vec_v.y)/SQR(SQR(v)))
-                            +T.by*T.by)+2.0*S.by;
-              HessianMatrix.element[n+2][n+3]+=DDF*CosTheta*T.by*CosTheta*T.cz+DF*CosTheta*(
-                            -(vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.y*vec_u.y*vec_u.z*vec_u.z)/SQR(SQR(u))+(vec_v.y*vec_v.y*vec_v.z*vec_v.z)/SQR(SQR(v)))
-                            +T.by*T.cz);
-
-              HessianMatrix.element[n+3][n+3]+=DDF*CosTheta*T.cz*CosTheta*T.cz+DF*CosTheta*(
-                            -(vec_v.z*vec_u.z+vec_u.z*vec_v.z)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.z*vec_u.z*vec_u.z*vec_u.z)/SQR(SQR(u))+(vec_v.z*vec_v.z*vec_v.z*vec_v.z)/SQR(SQR(v)))
-                            +T.cz*T.cz)+2.0*S.cz;
-              break;
-            case MONOCLINIC_GAMMA_ANGLE:
-              HessianMatrix.element[n][n]+=DDF*CosTheta*T.ax*CosTheta*T.ax+DF*CosTheta*(
-                            -(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.x*vec_u.x*vec_u.x*vec_u.x)/SQR(SQR(u))+(vec_v.x*vec_v.x*vec_v.x*vec_v.x)/SQR(SQR(v)))
-                            +T.ax*T.ax)+2.0*S.ax;
-              HessianMatrix.element[n][n+1]+=DDF*CosTheta*T.ax*CosTheta*T.ay+DF*CosTheta*(
-                            -(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.x*vec_u.y+vec_u.x*vec_v.y)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.x*vec_u.x*vec_u.x*vec_u.y)/SQR(SQR(u))+(vec_v.x*vec_v.x*vec_v.x*vec_v.y)/SQR(SQR(v)))
-                            +T.ax*T.ay)+S.ay;
-              HessianMatrix.element[n][n+2]+=DDF*CosTheta*T.ax*CosTheta*T.by+DF*CosTheta*(
-                            -(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.x*vec_u.x*vec_u.y*vec_u.y)/SQR(SQR(u))+(vec_v.x*vec_v.x*vec_v.y*vec_v.y)/SQR(SQR(v)))
-                            +T.ax*T.by);
-              HessianMatrix.element[n][n+3]+=DDF*CosTheta*T.ax*CosTheta*T.cz+DF*CosTheta*(
-                            -(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.x*vec_u.x*vec_u.z*vec_u.z)/SQR(SQR(u))+(vec_v.x*vec_v.x*vec_v.z*vec_v.z)/SQR(SQR(v)))
-                            +T.ax*T.cz);
-
-              HessianMatrix.element[n+1][n+1]+=DDF*CosTheta*T.ay*CosTheta*T.ay+DF*CosTheta*(
-                            -(vec_v.x*vec_u.y+vec_u.x*vec_v.y)*(vec_v.x*vec_u.y+vec_u.x*vec_v.y)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.x*vec_u.y*vec_u.x*vec_u.y)/SQR(SQR(u))+(vec_v.x*vec_v.y*vec_v.x*vec_v.y)/SQR(SQR(v)))
-                            +T.ay*T.ay)+0.5*(S.ax+S.by);
-              HessianMatrix.element[n+1][n+2]+=DDF*CosTheta*T.ay*CosTheta*T.by+DF*CosTheta*(
-                            -(vec_v.x*vec_u.y+vec_u.x*vec_v.y)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.x*vec_u.y*vec_u.y*vec_u.y)/SQR(SQR(u))+(vec_v.x*vec_v.y*vec_v.y*vec_v.y)/SQR(SQR(v)))
-                            +T.ay*T.by)+S.ay;
-              HessianMatrix.element[n+1][n+3]+=DDF*CosTheta*T.ay*CosTheta*T.cz+DF*CosTheta*(
-                            -(vec_v.x*vec_u.y+vec_u.x*vec_v.y)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.x*vec_u.y*vec_u.z*vec_u.z)/SQR(SQR(u))+(vec_v.x*vec_v.y*vec_v.z*vec_v.z)/SQR(SQR(v)))
-                            +T.ay*T.cz);
-
-              HessianMatrix.element[n+2][n+2]+=DDF*CosTheta*T.by*CosTheta*T.by+DF*CosTheta*(
-                            -(vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.y*vec_u.y*vec_u.y*vec_u.y)/SQR(SQR(u))+(vec_v.y*vec_v.y*vec_v.y*vec_v.y)/SQR(SQR(v)))
-                            +T.by*T.by)+2.0*S.by;
-              HessianMatrix.element[n+2][n+3]+=DDF*CosTheta*T.by*CosTheta*T.cz+DF*CosTheta*(
-                            -(vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.y*vec_u.y*vec_u.z*vec_u.z)/SQR(SQR(u))+(vec_v.y*vec_v.y*vec_v.z*vec_v.z)/SQR(SQR(v)))
-                            +T.by*T.cz);
-
-              HessianMatrix.element[n+3][n+3]+=DDF*CosTheta*T.cz*CosTheta*T.cz+DF*CosTheta*(
-                            -(vec_v.z*vec_u.z+vec_u.z*vec_v.z)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.z*vec_u.z*vec_u.z*vec_u.z)/SQR(SQR(u))+(vec_v.z*vec_v.z*vec_v.z*vec_v.z)/SQR(SQR(v)))
-                            +T.cz*T.cz)+2.0*S.cz;
-              break;
-          }
-          break;
-        case MONOCLINIC_UPPER_TRIANGLE:
-          switch(MonoclinicAngleType[CurrentSystem])
-          {
-            case MONOCLINIC_ALPHA_ANGLE:
-              HessianMatrix.element[n][n]+=DDF*CosTheta*T.ax*CosTheta*T.ax+DF*CosTheta*(
-                            -(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.x*vec_u.x*vec_u.x*vec_u.x)/SQR(SQR(u))+(vec_v.x*vec_v.x*vec_v.x*vec_v.x)/SQR(SQR(v)))
-                            +T.ax*T.ax)+2.0*S.ax;
-              HessianMatrix.element[n][n+1]+=DDF*CosTheta*T.ax*CosTheta*T.by+DF*CosTheta*(
-                            -(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.x*vec_u.x*vec_u.y*vec_u.y)/SQR(SQR(u))+(vec_v.x*vec_v.x*vec_v.y*vec_v.y)/SQR(SQR(v)))
-                            +T.ax*T.by);
-              HessianMatrix.element[n][n+2]+=DDF*CosTheta*T.ax*CosTheta*T.bz+DF*CosTheta*(
-                            -(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.y*vec_u.z+vec_u.y*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.x*vec_u.x*vec_u.y*vec_u.z)/SQR(SQR(u))+(vec_v.x*vec_v.x*vec_v.y*vec_v.z)/SQR(SQR(v)))
-                            +T.ax*T.bz);
-              HessianMatrix.element[n][n+3]+=DDF*CosTheta*T.ax*CosTheta*T.cz+DF*CosTheta*(
-                            -(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.x*vec_u.x*vec_u.z*vec_u.z)/SQR(SQR(u))+(vec_v.x*vec_v.x*vec_v.z*vec_v.z)/SQR(SQR(v)))
-                            +T.ax*T.cz);
-
-              HessianMatrix.element[n+1][n+1]+=DDF*CosTheta*T.by*CosTheta*T.by+DF*CosTheta*(
-                            -(vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.y*vec_u.y*vec_u.y*vec_u.y)/SQR(SQR(u))+(vec_v.y*vec_v.y*vec_v.y*vec_v.y)/SQR(SQR(v)))
-                            +T.by*T.by)+2.0*S.by;
-              HessianMatrix.element[n+1][n+2]+=DDF*CosTheta*T.by*CosTheta*T.bz+DF*CosTheta*(
-                            -(vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_v.y*vec_u.z+vec_u.y*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.y*vec_u.y*vec_u.y*vec_u.z)/SQR(SQR(u))+(vec_v.y*vec_v.y*vec_v.y*vec_v.z)/SQR(SQR(v)))
-                            +T.by*T.bz)+S.bz;
-              HessianMatrix.element[n+1][n+3]+=DDF*CosTheta*T.by*CosTheta*T.cz+DF*CosTheta*(
-                            -(vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.y*vec_u.y*vec_u.z*vec_u.z)/SQR(SQR(u))+(vec_v.y*vec_v.y*vec_v.z*vec_v.z)/SQR(SQR(v)))
-                            +T.by*T.cz);
-
-              HessianMatrix.element[n+2][n+2]+=DDF*CosTheta*T.bz*CosTheta*T.bz+DF*CosTheta*(
-                            -(vec_v.y*vec_u.z+vec_u.y*vec_v.z)*(vec_v.y*vec_u.z+vec_u.y*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.y*vec_u.z*vec_u.y*vec_u.z)/SQR(SQR(u))+(vec_v.y*vec_v.z*vec_v.y*vec_v.z)/SQR(SQR(v)))
-                            +T.bz*T.bz)+S.cz;
-              HessianMatrix.element[n+2][n+3]+=DDF*CosTheta*T.bz*CosTheta*T.cz+DF*CosTheta*(
-                            -(vec_v.y*vec_u.z+vec_u.y*vec_v.z)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.y*vec_u.z*vec_u.z*vec_u.z)/SQR(SQR(u))+(vec_v.y*vec_v.z*vec_v.z*vec_v.z)/SQR(SQR(v)))
-                            +T.bz*T.cz);
-
-              HessianMatrix.element[n+3][n+3]+=DDF*CosTheta*T.cz*CosTheta*T.cz+DF*CosTheta*(
-                            -(vec_v.z*vec_u.z+vec_u.z*vec_v.z)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.z*vec_u.z*vec_u.z*vec_u.z)/SQR(SQR(u))+(vec_v.z*vec_v.z*vec_v.z*vec_v.z)/SQR(SQR(v)))
-                            +T.cz*T.cz)+2.0*S.cz;
-              break;
-            case MONOCLINIC_BETA_ANGLE:
-              HessianMatrix.element[n][n]+=DDF*CosTheta*T.ax*CosTheta*T.ax+DF*CosTheta*(
-                            -(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.x*vec_u.x*vec_u.x*vec_u.x)/SQR(SQR(u))+(vec_v.x*vec_v.x*vec_v.x*vec_v.x)/SQR(SQR(v)))
-                            +T.ax*T.ax)+2.0*S.ax;
-              HessianMatrix.element[n][n+1]+=DDF*CosTheta*T.ax*CosTheta*T.az+DF*CosTheta*(
-                            -(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.x*vec_u.z+vec_u.x*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.x*vec_u.x*vec_u.x*vec_u.z)/SQR(SQR(u))+(vec_v.x*vec_v.x*vec_v.x*vec_v.z)/SQR(SQR(v)))
-                            +T.ax*T.az)+S.az;
-              HessianMatrix.element[n][n+2]+=DDF*CosTheta*T.ax*CosTheta*T.by+DF*CosTheta*(
-                            -(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.x*vec_u.x*vec_u.y*vec_u.y)/SQR(SQR(u))+(vec_v.x*vec_v.x*vec_v.y*vec_v.y)/SQR(SQR(v)))
-                            +T.ax*T.by);
-              HessianMatrix.element[n][n+3]+=DDF*CosTheta*T.ax*CosTheta*T.cz+DF*CosTheta*(
-                            -(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.x*vec_u.x*vec_u.z*vec_u.z)/SQR(SQR(u))+(vec_v.x*vec_v.x*vec_v.z*vec_v.z)/SQR(SQR(v)))
-                            +T.ax*T.cz);
-
-              HessianMatrix.element[n+1][n+1]+=DDF*CosTheta*T.az*CosTheta*T.az+DF*CosTheta*(
-                            -(vec_v.x*vec_u.z+vec_u.x*vec_v.z)*(vec_v.x*vec_u.z+vec_u.x*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.x*vec_u.z*vec_u.x*vec_u.z)/SQR(SQR(u))+(vec_v.x*vec_v.z*vec_v.x*vec_v.z)/SQR(SQR(v)))
-                            +T.az*T.az)+S.cz;
-              HessianMatrix.element[n+1][n+2]+=DDF*CosTheta*T.az*CosTheta*T.by+DF*CosTheta*(
-                            -(vec_v.x*vec_u.z+vec_u.x*vec_v.z)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.x*vec_u.z*vec_u.y*vec_u.y)/SQR(SQR(u))+(vec_v.x*vec_v.z*vec_v.y*vec_v.y)/SQR(SQR(v)))
-                            +T.az*T.by);
-              HessianMatrix.element[n+1][n+3]+=DDF*CosTheta*T.az*CosTheta*T.cz+DF*CosTheta*(
-                            -(vec_v.x*vec_u.z+vec_u.x*vec_v.z)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.x*vec_u.z*vec_u.z*vec_u.z)/SQR(SQR(u))+(vec_v.x*vec_v.z*vec_v.z*vec_v.z)/SQR(SQR(v)))
-                            +T.az*T.cz);
-
-              HessianMatrix.element[n+2][n+2]+=DDF*CosTheta*T.by*CosTheta*T.by+DF*CosTheta*(
-                            -(vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.y*vec_u.y*vec_u.y*vec_u.y)/SQR(SQR(u))+(vec_v.y*vec_v.y*vec_v.y*vec_v.y)/SQR(SQR(v)))
-                            +T.by*T.by)+2.0*S.by;
-              HessianMatrix.element[n+2][n+3]+=DDF*CosTheta*T.by*CosTheta*T.cz+DF*CosTheta*(
-                            -(vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.y*vec_u.y*vec_u.z*vec_u.z)/SQR(SQR(u))+(vec_v.y*vec_v.y*vec_v.z*vec_v.z)/SQR(SQR(v)))
-                            +T.by*T.cz);
-
-              HessianMatrix.element[n+3][n+3]+=DDF*CosTheta*T.cz*CosTheta*T.cz+DF*CosTheta*(
-                            -(vec_v.z*vec_u.z+vec_u.z*vec_v.z)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.z*vec_u.z*vec_u.z*vec_u.z)/SQR(SQR(u))+(vec_v.z*vec_v.z*vec_v.z*vec_v.z)/SQR(SQR(v)))
-                            +T.cz*T.cz)+2.0*S.cz;
-              break;
-            case MONOCLINIC_GAMMA_ANGLE:
-              HessianMatrix.element[n][n]+=DDF*CosTheta*T.ax*CosTheta*T.ax+DF*CosTheta*(
-                            -(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.x*vec_u.x*vec_u.x*vec_u.x)/SQR(SQR(u))+(vec_v.x*vec_v.x*vec_v.x*vec_v.x)/SQR(SQR(v)))
-                            +T.ax*T.ax)+2.0*S.ax;
-              HessianMatrix.element[n][n+1]+=DDF*CosTheta*T.ax*CosTheta*T.ay+DF*CosTheta*(
-                            -(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.x*vec_u.y+vec_u.x*vec_v.y)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.x*vec_u.x*vec_u.x*vec_u.y)/SQR(SQR(u))+(vec_v.x*vec_v.x*vec_v.x*vec_v.y)/SQR(SQR(v)))
-                            +T.ax*T.ay)+S.ay;
-              HessianMatrix.element[n][n+2]+=DDF*CosTheta*T.ax*CosTheta*T.by+DF*CosTheta*(
-                            -(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.x*vec_u.x*vec_u.y*vec_u.y)/SQR(SQR(u))+(vec_v.x*vec_v.x*vec_v.y*vec_v.y)/SQR(SQR(v)))
-                            +T.ax*T.by);
-              HessianMatrix.element[n][n+3]+=DDF*CosTheta*T.ax*CosTheta*T.cz+DF*CosTheta*(
-                            -(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.x*vec_u.x*vec_u.z*vec_u.z)/SQR(SQR(u))+(vec_v.x*vec_v.x*vec_v.z*vec_v.z)/SQR(SQR(v)))
-                            +T.ax*T.cz);
-
-              HessianMatrix.element[n+1][n+1]+=DDF*CosTheta*T.ay*CosTheta*T.ay+DF*CosTheta*(
-                            -(vec_v.x*vec_u.y+vec_u.x*vec_v.y)*(vec_v.x*vec_u.y+vec_u.x*vec_v.y)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.x*vec_u.y*vec_u.x*vec_u.y)/SQR(SQR(u))+(vec_v.x*vec_v.y*vec_v.x*vec_v.y)/SQR(SQR(v)))
-                            +T.ay*T.ay)+S.by;
-              HessianMatrix.element[n+1][n+2]+=DDF*CosTheta*T.ay*CosTheta*T.by+DF*CosTheta*(
-                            -(vec_v.x*vec_u.y+vec_u.x*vec_v.y)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.x*vec_u.y*vec_u.y*vec_u.y)/SQR(SQR(u))+(vec_v.x*vec_v.y*vec_v.y*vec_v.y)/SQR(SQR(v)))
-                            +T.ay*T.by);
-              HessianMatrix.element[n+1][n+3]+=DDF*CosTheta*T.ay*CosTheta*T.cz+DF*CosTheta*(
-                            -(vec_v.x*vec_u.y+vec_u.x*vec_v.y)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.x*vec_u.y*vec_u.z*vec_u.z)/SQR(SQR(u))+(vec_v.x*vec_v.y*vec_v.z*vec_v.z)/SQR(SQR(v)))
-                            +T.ay*T.cz);
-
-              HessianMatrix.element[n+2][n+2]+=DDF*CosTheta*T.by*CosTheta*T.by+DF*CosTheta*(
-                            -(vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.y*vec_u.y*vec_u.y*vec_u.y)/SQR(SQR(u))+(vec_v.y*vec_v.y*vec_v.y*vec_v.y)/SQR(SQR(v)))
-                            +T.by*T.by)+2.0*S.by;
-              HessianMatrix.element[n+2][n+3]+=DDF*CosTheta*T.by*CosTheta*T.cz+DF*CosTheta*(
-                            -(vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.y*vec_u.y*vec_u.z*vec_u.z)/SQR(SQR(u))+(vec_v.y*vec_v.y*vec_v.z*vec_v.z)/SQR(SQR(v)))
-                            +T.by*T.cz);
-
-              HessianMatrix.element[n+3][n+3]+=DDF*CosTheta*T.cz*CosTheta*T.cz+DF*CosTheta*(
-                            -(vec_v.z*vec_u.z+vec_u.z*vec_v.z)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)/SQR(vec_u.x*vec_v.x+vec_u.y*vec_v.y+vec_u.z*vec_v.z)+
-                            2.0*((vec_u.z*vec_u.z*vec_u.z*vec_u.z)/SQR(SQR(u))+(vec_v.z*vec_v.z*vec_v.z*vec_v.z)/SQR(SQR(v)))
-                            +T.cz*T.cz)+2.0*S.cz;
-              break;
-          }
-          break;
-        default:
-          printf("Unknown NPTPRCellType\n");
-          exit(0);
-          break;
-      }
-      break;
-    case NVT:
-    case NVE:
-      break;
   }
 }
 
@@ -4683,7 +3507,8 @@ void ComputeFrameworkBendHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX Hessian
   REAL rab,rbc,rac;
   POINT posA,posB,posC;
   VECTOR Rab,Rbc,Rac;
-  int index_i,index_j,index_k;
+  INT_VECTOR3 index_i,index_j,index_k;
+  int index1,index2,index3;
   REAL DTDX,DF,DDF;
   REAL_MATRIX3x3 D2I,D2K,D2IK;
   VECTOR dtA,dtB,dtC;
@@ -4703,6 +3528,10 @@ void ComputeFrameworkBendHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX Hessian
       index_i=Framework[CurrentSystem].Atoms[f1][A].HessianIndex;
       index_j=Framework[CurrentSystem].Atoms[f1][B].HessianIndex;
       index_k=Framework[CurrentSystem].Atoms[f1][C].HessianIndex;
+
+      index1=Framework[CurrentSystem].Atoms[f1][A].HessianAtomIndex;
+      index2=Framework[CurrentSystem].Atoms[f1][B].HessianAtomIndex;
+      index3=Framework[CurrentSystem].Atoms[f1][C].HessianAtomIndex;
 
       posA=Framework[CurrentSystem].Atoms[f1][A].Position;
       posB=Framework[CurrentSystem].Atoms[f1][B].Position;
@@ -4846,7 +3675,7 @@ void ComputeFrameworkBendHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX Hessian
       // add contribution to the energy
       *Energy+=U;
 
-      if((index_i<0)&&(index_j<0)&&(index_k<0)) continue;
+      //if((index_i<0)&&(index_j<0)&&(index_k<0)) continue;
 
       // Calculate the components of the derivatives.
       dtA.x=(Rbc.x-CosTheta*Rab.x)/rab;
@@ -4888,26 +3717,17 @@ void ComputeFrameworkBendHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX Hessian
       // add contribution to the first derivatives
       if(ComputeGradient)
       {
-        if(index_i>=0)
-        {
-          Gradient[index_i]+=DF*dtA.x;
-          Gradient[index_i+1]+=DF*dtA.y;
-          Gradient[index_i+2]+=DF*dtA.z;
-        }
+        if(index_i.x>=0) Gradient[index_i.x]+=DF*dtA.x;
+        if(index_i.y>=0) Gradient[index_i.y]+=DF*dtA.y;
+        if(index_i.z>=0) Gradient[index_i.z]+=DF*dtA.z;
 
-        if(index_j>=0)
-        {
-          Gradient[index_j]+=DF*dtB.x;
-          Gradient[index_j+1]+=DF*dtB.y;
-          Gradient[index_j+2]+=DF*dtB.z;
-        }
+        if(index_j.x>=0) Gradient[index_j.x]+=DF*dtB.x;
+        if(index_j.y>=0) Gradient[index_j.y]+=DF*dtB.y;
+        if(index_j.z>=0) Gradient[index_j.z]+=DF*dtB.z;
 
-        if(index_k>=0)
-        {
-          Gradient[index_k]+=DF*dtC.x;
-          Gradient[index_k+1]+=DF*dtC.y;
-          Gradient[index_k+2]+=DF*dtC.z;
-        }
+        if(index_k.x>=0) Gradient[index_k.x]+=DF*dtC.x;
+        if(index_k.y>=0) Gradient[index_k.y]+=DF*dtC.y;
+        if(index_k.z>=0) Gradient[index_k.z]+=DF*dtC.z;
 
         GradientStrainBend(Gradient,S);
       }
@@ -4942,124 +3762,107 @@ void ComputeFrameworkBendHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX Hessian
         D2IK.cz=DF*(CosTheta*Rab.z*Rbc.z-Rab.z*Rab.z-Rbc.z*Rbc.z+1.0)/(rab*rbc);
 
         // Calculate AA-block of the Hessian
-        if(index_i>=0)
-        {
-          HessianMatrix.element[index_i][index_i]+=DDF*dtA.x*dtA.x+D2I.ax;
-          HessianMatrix.element[index_i][index_i+1]+=DDF*dtA.x*dtA.y+D2I.ay;
-          HessianMatrix.element[index_i+1][index_i+1]+=DDF*dtA.y*dtA.y+D2I.by;
-          HessianMatrix.element[index_i][index_i+2]+=DDF*dtA.x*dtA.z+D2I.az;
-          HessianMatrix.element[index_i+1][index_i+2]+=DDF*dtA.y*dtA.z+D2I.bz;
-          HessianMatrix.element[index_i+2][index_i+2]+=DDF*dtA.z*dtA.z+D2I.cz;
-        }
+        if((index_i.x>=0)&&(index_i.x>=0)) HessianMatrix.element[index_i.x][index_i.x]+=DDF*dtA.x*dtA.x+D2I.ax;
+        if((index_i.x>=0)&&(index_i.y>=0)) HessianMatrix.element[index_i.x][index_i.y]+=DDF*dtA.x*dtA.y+D2I.ay;
+        if((index_i.y>=0)&&(index_i.y>=0)) HessianMatrix.element[index_i.y][index_i.y]+=DDF*dtA.y*dtA.y+D2I.by;
+        if((index_i.x>=0)&&(index_i.z>=0)) HessianMatrix.element[index_i.x][index_i.z]+=DDF*dtA.x*dtA.z+D2I.az;
+        if((index_i.y>=0)&&(index_i.z>=0)) HessianMatrix.element[index_i.y][index_i.z]+=DDF*dtA.y*dtA.z+D2I.bz;
+        if((index_i.z>=0)&&(index_i.z>=0)) HessianMatrix.element[index_i.z][index_i.z]+=DDF*dtA.z*dtA.z+D2I.cz;
 
         // Calculate BB-block of the Hessian
-        if(index_j>=0)
-        {
-          HessianMatrix.element[index_j][index_j]+=DDF*dtB.x*dtB.x+(D2I.ax+D2K.ax+2.0*D2IK.ax);
-          HessianMatrix.element[index_j][index_j+1]+=DDF*dtB.x*dtB.y+(D2I.ay+D2K.ay+D2IK.ay+D2IK.bx);
-          HessianMatrix.element[index_j+1][index_j+1]+=DDF*dtB.y*dtB.y+(D2I.by+D2K.by+2.0*D2IK.by);
-          HessianMatrix.element[index_j][index_j+2]+=DDF*dtB.x*dtB.z+(D2I.az+D2K.az+D2IK.az+D2IK.cx);
-          HessianMatrix.element[index_j+1][index_j+2]+=DDF*dtB.y*dtB.z+(D2I.bz+D2K.bz+D2IK.bz+D2IK.cy);
-          HessianMatrix.element[index_j+2][index_j+2]+=DDF*dtB.z*dtB.z+(D2I.cz+D2K.cz+2.0*D2IK.cz);
-        }
+        if((index_j.x>=0)&&(index_j.x>=0)) HessianMatrix.element[index_j.x][index_j.x]+=DDF*dtB.x*dtB.x+(D2I.ax+D2K.ax+2.0*D2IK.ax);
+        if((index_j.x>=0)&&(index_j.y>=0)) HessianMatrix.element[index_j.x][index_j.y]+=DDF*dtB.x*dtB.y+(D2I.ay+D2K.ay+D2IK.ay+D2IK.bx);
+        if((index_j.y>=0)&&(index_j.y>=0)) HessianMatrix.element[index_j.y][index_j.y]+=DDF*dtB.y*dtB.y+(D2I.by+D2K.by+2.0*D2IK.by);
+        if((index_j.x>=0)&&(index_j.z>=0)) HessianMatrix.element[index_j.x][index_j.z]+=DDF*dtB.x*dtB.z+(D2I.az+D2K.az+D2IK.az+D2IK.cx);
+        if((index_j.y>=0)&&(index_j.z>=0)) HessianMatrix.element[index_j.y][index_j.z]+=DDF*dtB.y*dtB.z+(D2I.bz+D2K.bz+D2IK.bz+D2IK.cy);
+        if((index_j.z>=0)&&(index_j.z>=0)) HessianMatrix.element[index_j.z][index_j.z]+=DDF*dtB.z*dtB.z+(D2I.cz+D2K.cz+2.0*D2IK.cz);
 
         // Calculate the CC-block of the Hessian
-        if(index_k>=0)
-        {
-          HessianMatrix.element[index_k][index_k]+=DDF*dtC.x*dtC.x+D2K.ax;
-          HessianMatrix.element[index_k][index_k+1]+=DDF*dtC.x*dtC.y+D2K.ay;
-          HessianMatrix.element[index_k+1][index_k+1]+=DDF*dtC.y*dtC.y+D2K.by;
-          HessianMatrix.element[index_k][index_k+2]+=DDF*dtC.x*dtC.z+D2K.az;
-          HessianMatrix.element[index_k+1][index_k+2]+=DDF*dtC.y*dtC.z+D2K.bz;
-          HessianMatrix.element[index_k+2][index_k+2]+=DDF*dtC.z*dtC.z+D2K.cz;
-        }
+        if((index_k.x>=0)&&(index_k.x>=0)) HessianMatrix.element[index_k.x][index_k.x]+=DDF*dtC.x*dtC.x+D2K.ax;
+        if((index_k.x>=0)&&(index_k.y>=0)) HessianMatrix.element[index_k.x][index_k.y]+=DDF*dtC.x*dtC.y+D2K.ay;
+        if((index_k.y>=0)&&(index_k.y>=0)) HessianMatrix.element[index_k.y][index_k.y]+=DDF*dtC.y*dtC.y+D2K.by;
+        if((index_k.x>=0)&&(index_k.z>=0)) HessianMatrix.element[index_k.x][index_k.z]+=DDF*dtC.x*dtC.z+D2K.az;
+        if((index_k.y>=0)&&(index_k.z>=0)) HessianMatrix.element[index_k.y][index_k.z]+=DDF*dtC.y*dtC.z+D2K.bz;
+        if((index_k.z>=0)&&(index_k.z>=0)) HessianMatrix.element[index_k.z][index_k.z]+=DDF*dtC.z*dtC.z+D2K.cz;
 
         // Calculate the AB-block of the Hessian
-        if((index_i>=0)&&(index_j>=0))
+        if(index1<index2)
         {
-          if(index_i<index_j)
-          {
-            HessianMatrix.element[index_i][index_j]+=DDF*dtA.x*dtB.x-D2I.ax-D2IK.ax;
-            HessianMatrix.element[index_i][index_j+1]+=DDF*dtA.x*dtB.y-D2I.ay-D2IK.ay;
-            HessianMatrix.element[index_i][index_j+2]+=DDF*dtA.x*dtB.z-D2I.az-D2IK.az;
-            HessianMatrix.element[index_i+1][index_j]+=DDF*dtA.y*dtB.x-D2I.ay-D2IK.bx;
-            HessianMatrix.element[index_i+1][index_j+1]+=DDF*dtA.y*dtB.y-D2I.by-D2IK.by;
-            HessianMatrix.element[index_i+1][index_j+2]+=DDF*dtA.y*dtB.z-D2I.bz-D2IK.bz;
-            HessianMatrix.element[index_i+2][index_j]+=DDF*dtA.z*dtB.x-D2I.az-D2IK.cx;
-            HessianMatrix.element[index_i+2][index_j+1]+=DDF*dtA.z*dtB.y-D2I.bz-D2IK.cy;
-            HessianMatrix.element[index_i+2][index_j+2]+=DDF*dtA.z*dtB.z-D2I.cz-D2IK.cz;
-          }
-          else
-          {
-            HessianMatrix.element[index_j][index_i]+=DDF*dtA.x*dtB.x-D2I.ax-D2IK.ax;
-            HessianMatrix.element[index_j][index_i+1]+=DDF*dtA.y*dtB.x-D2I.ay-D2IK.bx;
-            HessianMatrix.element[index_j][index_i+2]+=DDF*dtA.z*dtB.x-D2I.az-D2IK.cx;
-            HessianMatrix.element[index_j+1][index_i]+=DDF*dtA.x*dtB.y-D2I.ay-D2IK.ay;
-            HessianMatrix.element[index_j+1][index_i+1]+=DDF*dtA.y*dtB.y-D2I.by-D2IK.by;
-            HessianMatrix.element[index_j+1][index_i+2]+=DDF*dtA.z*dtB.y-D2I.bz-D2IK.cy;
-            HessianMatrix.element[index_j+2][index_i]+=DDF*dtA.x*dtB.z-D2I.az-D2IK.az;
-            HessianMatrix.element[index_j+2][index_i+1]+=DDF*dtA.y*dtB.z-D2I.bz-D2IK.bz;
-            HessianMatrix.element[index_j+2][index_i+2]+=DDF*dtA.z*dtB.z-D2I.cz-D2IK.cz;
-          }
+          if((index_i.x>=0)&&(index_j.x>=0)) HessianMatrix.element[index_i.x][index_j.x]+=DDF*dtA.x*dtB.x-D2I.ax-D2IK.ax;
+          if((index_i.x>=0)&&(index_j.y>=0)) HessianMatrix.element[index_i.x][index_j.y]+=DDF*dtA.x*dtB.y-D2I.ay-D2IK.ay;
+          if((index_i.x>=0)&&(index_j.z>=0)) HessianMatrix.element[index_i.x][index_j.z]+=DDF*dtA.x*dtB.z-D2I.az-D2IK.az;
+          if((index_i.y>=0)&&(index_j.x>=0)) HessianMatrix.element[index_i.y][index_j.x]+=DDF*dtA.y*dtB.x-D2I.ay-D2IK.bx;
+          if((index_i.y>=0)&&(index_j.y>=0)) HessianMatrix.element[index_i.y][index_j.y]+=DDF*dtA.y*dtB.y-D2I.by-D2IK.by;
+          if((index_i.y>=0)&&(index_j.z>=0)) HessianMatrix.element[index_i.y][index_j.z]+=DDF*dtA.y*dtB.z-D2I.bz-D2IK.bz;
+          if((index_i.z>=0)&&(index_j.x>=0)) HessianMatrix.element[index_i.z][index_j.x]+=DDF*dtA.z*dtB.x-D2I.az-D2IK.cx;
+          if((index_i.z>=0)&&(index_j.y>=0)) HessianMatrix.element[index_i.z][index_j.y]+=DDF*dtA.z*dtB.y-D2I.bz-D2IK.cy;
+          if((index_i.z>=0)&&(index_j.z>=0)) HessianMatrix.element[index_i.z][index_j.z]+=DDF*dtA.z*dtB.z-D2I.cz-D2IK.cz;
+        }
+        else
+        {
+          if((index_j.x>=0)&&(index_i.x>=0)) HessianMatrix.element[index_j.x][index_i.x]+=DDF*dtA.x*dtB.x-D2I.ax-D2IK.ax;
+          if((index_j.x>=0)&&(index_i.y>=0)) HessianMatrix.element[index_j.x][index_i.y]+=DDF*dtA.y*dtB.x-D2I.ay-D2IK.bx;
+          if((index_j.x>=0)&&(index_i.z>=0)) HessianMatrix.element[index_j.x][index_i.z]+=DDF*dtA.z*dtB.x-D2I.az-D2IK.cx;
+          if((index_j.y>=0)&&(index_i.x>=0)) HessianMatrix.element[index_j.y][index_i.x]+=DDF*dtA.x*dtB.y-D2I.ay-D2IK.ay;
+          if((index_j.y>=0)&&(index_i.y>=0)) HessianMatrix.element[index_j.y][index_i.y]+=DDF*dtA.y*dtB.y-D2I.by-D2IK.by;
+          if((index_j.y>=0)&&(index_i.z>=0)) HessianMatrix.element[index_j.y][index_i.z]+=DDF*dtA.z*dtB.y-D2I.bz-D2IK.cy;
+          if((index_j.z>=0)&&(index_i.x>=0)) HessianMatrix.element[index_j.z][index_i.x]+=DDF*dtA.x*dtB.z-D2I.az-D2IK.az;
+          if((index_j.z>=0)&&(index_i.y>=0)) HessianMatrix.element[index_j.z][index_i.y]+=DDF*dtA.y*dtB.z-D2I.bz-D2IK.bz;
+          if((index_j.z>=0)&&(index_i.z>=0)) HessianMatrix.element[index_j.z][index_i.z]+=DDF*dtA.z*dtB.z-D2I.cz-D2IK.cz;
         }
 
         // Calculate the AC-block of the Hessian
-        if((index_i>=0)&&(index_k>=0))
+        if(index1<index3)
         {
-          if(index_i<index_k)
-          {
-            HessianMatrix.element[index_i][index_k]+=DDF*dtA.x*dtC.x+D2IK.ax;
-            HessianMatrix.element[index_i][index_k+1]+=DDF*dtA.x*dtC.y+D2IK.ay;
-            HessianMatrix.element[index_i][index_k+2]+=DDF*dtA.x*dtC.z+D2IK.az;
-            HessianMatrix.element[index_i+1][index_k]+=DDF*dtA.y*dtC.x+D2IK.bx;
-            HessianMatrix.element[index_i+1][index_k+1]+=DDF*dtA.y*dtC.y+D2IK.by;
-            HessianMatrix.element[index_i+1][index_k+2]+=DDF*dtA.y*dtC.z+D2IK.bz;
-            HessianMatrix.element[index_i+2][index_k]+=DDF*dtA.z*dtC.x+D2IK.cx;
-            HessianMatrix.element[index_i+2][index_k+1]+=DDF*dtA.z*dtC.y+D2IK.cy;
-            HessianMatrix.element[index_i+2][index_k+2]+=DDF*dtA.z*dtC.z+D2IK.cz;
-          }
-          else
-          {
-            HessianMatrix.element[index_k][index_i]+=DDF*dtA.x*dtC.x+D2IK.ax;
-            HessianMatrix.element[index_k][index_i+1]+=DDF*dtA.y*dtC.x+D2IK.bx;
-            HessianMatrix.element[index_k][index_i+2]+=DDF*dtA.z*dtC.x+D2IK.cx;
-            HessianMatrix.element[index_k+1][index_i]+=DDF*dtA.x*dtC.y+D2IK.ay;
-            HessianMatrix.element[index_k+1][index_i+1]+=DDF*dtA.y*dtC.y+D2IK.by;
-            HessianMatrix.element[index_k+1][index_i+2]+=DDF*dtA.z*dtC.y+D2IK.cy;
-            HessianMatrix.element[index_k+2][index_i]+=DDF*dtA.x*dtC.z+D2IK.az;
-            HessianMatrix.element[index_k+2][index_i+1]+=DDF*dtA.y*dtC.z+D2IK.bz;
-            HessianMatrix.element[index_k+2][index_i+2]+=DDF*dtA.z*dtC.z+D2IK.cz;
-          }
+          if((index_i.x>=0)&&(index_k.x>=0)) HessianMatrix.element[index_i.x][index_k.x]+=DDF*dtA.x*dtC.x+D2IK.ax;
+          if((index_i.x>=0)&&(index_k.y>=0)) HessianMatrix.element[index_i.x][index_k.y]+=DDF*dtA.x*dtC.y+D2IK.ay;
+          if((index_i.x>=0)&&(index_k.z>=0)) HessianMatrix.element[index_i.x][index_k.z]+=DDF*dtA.x*dtC.z+D2IK.az;
+          if((index_i.y>=0)&&(index_k.x>=0)) HessianMatrix.element[index_i.y][index_k.x]+=DDF*dtA.y*dtC.x+D2IK.bx;
+          if((index_i.y>=0)&&(index_k.y>=0)) HessianMatrix.element[index_i.y][index_k.y]+=DDF*dtA.y*dtC.y+D2IK.by;
+          if((index_i.y>=0)&&(index_k.z>=0)) HessianMatrix.element[index_i.y][index_k.z]+=DDF*dtA.y*dtC.z+D2IK.bz;
+          if((index_i.z>=0)&&(index_k.x>=0)) HessianMatrix.element[index_i.z][index_k.x]+=DDF*dtA.z*dtC.x+D2IK.cx;
+          if((index_i.z>=0)&&(index_k.y>=0)) HessianMatrix.element[index_i.z][index_k.y]+=DDF*dtA.z*dtC.y+D2IK.cy;
+          if((index_i.z>=0)&&(index_k.z>=0)) HessianMatrix.element[index_i.z][index_k.z]+=DDF*dtA.z*dtC.z+D2IK.cz;
+        }
+        else
+        {
+          if((index_k.x>=0)&&(index_i.x>=0)) HessianMatrix.element[index_k.x][index_i.x]+=DDF*dtA.x*dtC.x+D2IK.ax;
+          if((index_k.x>=0)&&(index_i.y>=0)) HessianMatrix.element[index_k.x][index_i.y]+=DDF*dtA.y*dtC.x+D2IK.bx;
+          if((index_k.x>=0)&&(index_i.z>=0)) HessianMatrix.element[index_k.x][index_i.z]+=DDF*dtA.z*dtC.x+D2IK.cx;
+          if((index_k.y>=0)&&(index_i.x>=0)) HessianMatrix.element[index_k.y][index_i.x]+=DDF*dtA.x*dtC.y+D2IK.ay;
+          if((index_k.y>=0)&&(index_i.y>=0)) HessianMatrix.element[index_k.y][index_i.y]+=DDF*dtA.y*dtC.y+D2IK.by;
+          if((index_k.y>=0)&&(index_i.z>=0)) HessianMatrix.element[index_k.y][index_i.z]+=DDF*dtA.z*dtC.y+D2IK.cy;
+          if((index_k.z>=0)&&(index_i.x>=0)) HessianMatrix.element[index_k.z][index_i.x]+=DDF*dtA.x*dtC.z+D2IK.az;
+          if((index_k.z>=0)&&(index_i.y>=0)) HessianMatrix.element[index_k.z][index_i.y]+=DDF*dtA.y*dtC.z+D2IK.bz;
+          if((index_k.z>=0)&&(index_i.z>=0)) HessianMatrix.element[index_k.z][index_i.z]+=DDF*dtA.z*dtC.z+D2IK.cz;
         }
 
         // Calculate the BC-block of the Hessian
-        if((index_j>=0)&&(index_k>=0))
+        if(index3<index2)
         {
-          if(index_k<index_j)
-          {
-            HessianMatrix.element[index_k][index_j]+=DDF*dtC.x*dtB.x-D2K.ax-D2IK.ax;
-            HessianMatrix.element[index_k][index_j+1]+=DDF*dtC.x*dtB.y-D2K.ay-D2IK.bx;
-            HessianMatrix.element[index_k][index_j+2]+=DDF*dtC.x*dtB.z-D2K.az-D2IK.cx;
-            HessianMatrix.element[index_k+1][index_j]+=DDF*dtC.y*dtB.x-D2K.ay-D2IK.ay;
-            HessianMatrix.element[index_k+1][index_j+1]+=DDF*dtC.y*dtB.y-D2K.by-D2IK.by;
-            HessianMatrix.element[index_k+1][index_j+2]+=DDF*dtC.y*dtB.z-D2K.bz-D2IK.cy;
-            HessianMatrix.element[index_k+2][index_j]+=DDF*dtC.z*dtB.x-D2K.az-D2IK.az;
-            HessianMatrix.element[index_k+2][index_j+1]+=DDF*dtC.z*dtB.y-D2K.bz-D2IK.bz;
-            HessianMatrix.element[index_k+2][index_j+2]+=DDF*dtC.z*dtB.z-D2K.cz-D2IK.cz;
-          }
-          else
-          {
-            HessianMatrix.element[index_j][index_k]+=DDF*dtC.x*dtB.x-D2K.ax-D2IK.ax;
-            HessianMatrix.element[index_j][index_k+1]+=DDF*dtC.y*dtB.x-D2K.ay-D2IK.ay;
-            HessianMatrix.element[index_j][index_k+2]+=DDF*dtC.z*dtB.x-D2K.az-D2IK.az;
-            HessianMatrix.element[index_j+1][index_k]+=DDF*dtC.x*dtB.y-D2K.ay-D2IK.bx;
-            HessianMatrix.element[index_j+1][index_k+1]+=DDF*dtC.y*dtB.y-D2K.by-D2IK.by;
-            HessianMatrix.element[index_j+1][index_k+2]+=DDF*dtC.z*dtB.y-D2K.bz-D2IK.bz;
-            HessianMatrix.element[index_j+2][index_k]+=DDF*dtC.x*dtB.z-D2K.az-D2IK.cx;
-            HessianMatrix.element[index_j+2][index_k+1]+=DDF*dtC.y*dtB.z-D2K.bz-D2IK.cy;
-            HessianMatrix.element[index_j+2][index_k+2]+=DDF*dtC.z*dtB.z-D2K.cz-D2IK.cz;
-          }
+          if((index_k.x>=0)&&(index_j.x>=0)) HessianMatrix.element[index_k.x][index_j.x]+=DDF*dtC.x*dtB.x-D2K.ax-D2IK.ax;
+          if((index_k.x>=0)&&(index_j.y>=0)) HessianMatrix.element[index_k.x][index_j.y]+=DDF*dtC.x*dtB.y-D2K.ay-D2IK.bx;
+          if((index_k.x>=0)&&(index_j.z>=0)) HessianMatrix.element[index_k.x][index_j.z]+=DDF*dtC.x*dtB.z-D2K.az-D2IK.cx;
+          if((index_k.y>=0)&&(index_j.x>=0)) HessianMatrix.element[index_k.y][index_j.x]+=DDF*dtC.y*dtB.x-D2K.ay-D2IK.ay;
+          if((index_k.y>=0)&&(index_j.y>=0)) HessianMatrix.element[index_k.y][index_j.y]+=DDF*dtC.y*dtB.y-D2K.by-D2IK.by;
+          if((index_k.y>=0)&&(index_j.z>=0)) HessianMatrix.element[index_k.y][index_j.z]+=DDF*dtC.y*dtB.z-D2K.bz-D2IK.cy;
+          if((index_k.z>=0)&&(index_j.x>=0)) HessianMatrix.element[index_k.z][index_j.x]+=DDF*dtC.z*dtB.x-D2K.az-D2IK.az;
+          if((index_k.z>=0)&&(index_j.y>=0)) HessianMatrix.element[index_k.z][index_j.y]+=DDF*dtC.z*dtB.y-D2K.bz-D2IK.bz;
+          if((index_k.z>=0)&&(index_j.z>=0)) HessianMatrix.element[index_k.z][index_j.z]+=DDF*dtC.z*dtB.z-D2K.cz-D2IK.cz;
         }
+        else
+        {
+          if((index_j.x>=0)&&(index_k.x>=0)) HessianMatrix.element[index_j.x][index_k.x]+=DDF*dtC.x*dtB.x-D2K.ax-D2IK.ax;
+          if((index_j.x>=0)&&(index_k.y>=0)) HessianMatrix.element[index_j.x][index_k.y]+=DDF*dtC.y*dtB.x-D2K.ay-D2IK.ay;
+          if((index_j.x>=0)&&(index_k.z>=0)) HessianMatrix.element[index_j.x][index_k.z]+=DDF*dtC.z*dtB.x-D2K.az-D2IK.az;
+          if((index_j.y>=0)&&(index_k.x>=0)) HessianMatrix.element[index_j.y][index_k.x]+=DDF*dtC.x*dtB.y-D2K.ay-D2IK.bx;
+          if((index_j.y>=0)&&(index_k.y>=0)) HessianMatrix.element[index_j.y][index_k.y]+=DDF*dtC.y*dtB.y-D2K.by-D2IK.by;
+          if((index_j.y>=0)&&(index_k.z>=0)) HessianMatrix.element[index_j.y][index_k.z]+=DDF*dtC.z*dtB.y-D2K.bz-D2IK.bz;
+          if((index_j.z>=0)&&(index_k.x>=0)) HessianMatrix.element[index_j.z][index_k.x]+=DDF*dtC.x*dtB.z-D2K.az-D2IK.cx;
+          if((index_j.z>=0)&&(index_k.y>=0)) HessianMatrix.element[index_j.z][index_k.y]+=DDF*dtC.y*dtB.z-D2K.bz-D2IK.cy;
+          if((index_j.z>=0)&&(index_k.z>=0)) HessianMatrix.element[index_j.z][index_k.z]+=DDF*dtC.z*dtB.z-D2K.cz-D2IK.cz;
+        }
+
 
         HessianBendStrainPosition(index_i,index_j,index_k,HessianMatrix,vec_u,vec_v,u,v,
                                   rab,rbc,Rab,Rbc,dtA,dtC,DF,DDF,S,CosTheta);
@@ -5069,2347 +3872,6 @@ void ComputeFrameworkBendHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX Hessian
     }
   }
 }
-
-static inline void HessianTorsionStrainPosition(REAL_MATRIX HessianMatrix,int index_i,int index_j,int index_k,int index_l,
-             VECTOR vec_u,VECTOR vec_v,VECTOR vec_w,REAL u,REAL v,REAL w,VECTOR fa,VECTOR fc,VECTOR fd,
-             VECTOR Dab,VECTOR Dcb,VECTOR Ddc,REAL rbc,REAL_MATRIX3x3 D2I,REAL_MATRIX3x3 D2K,REAL_MATRIX3x3 D2L,
-             REAL_MATRIX3x3 D2IJ,REAL_MATRIX3x3 D2IK,REAL_MATRIX3x3 D2IL,REAL_MATRIX3x3 D2JK,REAL_MATRIX3x3 D2JL,REAL_MATRIX3x3 D2KL,
-             VECTOR dtA,VECTOR dtB,VECTOR dtC,VECTOR dtD,REAL DDF,REAL_MATRIX3x3 S,REAL CosPhi)
-{
-  int n;
-  VECTOR veci,vecj,veck,vecl;
-
-  n=NumberOfCoordinatesMinimizationVariables;
-
-  switch(Ensemble[CurrentSystem])
-  {
-    case NPT:
-      // contribution is zero (i.e. cancels out)
-      break;
-    case NPTPR:
-    case NPHPR:
-      switch(NPTPRCellType[CurrentSystem])
-      {
-        case ISOTROPIC:
-        case ANISOTROPIC:
-          veci.x=Dab.x*(DDF*dtA.x*dtA.x+D2I.ax)+Dcb.x*rbc*(DDF*dtC.x*dtA.x+D2IK.ax)+
-                 Dcb.x*rbc*(DDF*dtD.x*dtA.x+D2IL.ax)+Ddc.x*(DDF*dtD.x*dtA.x+D2IL.ax)+fa.x;
-          veci.y=Dab.x*(DDF*dtA.x*dtA.y+D2I.ay)+Dcb.x*rbc*(DDF*dtC.x*dtA.y+D2IK.bx)+
-                 Dcb.x*rbc*(DDF*dtD.x*dtA.y+D2IL.bx)+Ddc.x*(DDF*dtD.x*dtA.y+D2IL.bx);
-          veci.z=Dab.x*(DDF*dtA.x*dtA.z+D2I.az)+Dcb.x*rbc*(DDF*dtC.x*dtA.z+D2IK.cx)+
-                 Dcb.x*rbc*(DDF*dtD.x*dtA.z+D2IL.cx)+Ddc.x*(DDF*dtD.x*dtA.z+D2IL.cx);
-
-          vecj.x=Dab.x*(DDF*dtA.x*dtB.x+D2IJ.ax)+Dcb.x*rbc*(DDF*dtC.x*dtB.x+D2JK.ax)+
-                 Dcb.x*rbc*(DDF*dtD.x*dtB.x+D2JL.ax)+Ddc.x*(DDF*dtD.x*dtB.x+D2JL.ax)-fa.x-fc.x-fd.x;
-          vecj.y=Dab.x*(DDF*dtA.x*dtB.y+D2IJ.ay)+Dcb.x*rbc*(DDF*dtC.x*dtB.y+D2JK.bx)+
-                 Dcb.x*rbc*(DDF*dtD.x*dtB.y+D2JL.bx)+Ddc.x*(DDF*dtD.x*dtB.y+D2JL.bx);
-          vecj.z=Dab.x*(DDF*dtA.x*dtB.z+D2IJ.az)+Dcb.x*rbc*(DDF*dtC.x*dtB.z+D2JK.cx)+
-                 Dcb.x*rbc*(DDF*dtD.x*dtB.z+D2JL.cx)+Ddc.x*(DDF*dtD.x*dtB.z+D2JL.cx);
-
-          veck.x=Dab.x*(DDF*dtA.x*dtC.x+D2IK.ax)+Dcb.x*rbc*(DDF*dtC.x*dtC.x+D2K.ax)+
-                 Dcb.x*rbc*(DDF*dtD.x*dtC.x+D2KL.ax)+Ddc.x*(DDF*dtD.x*dtC.x+D2KL.ax)+fc.x+fd.x-fd.x;
-          veck.y=Dab.x*(DDF*dtA.x*dtC.y+D2IK.ay)+Dcb.x*rbc*(DDF*dtC.x*dtC.y+D2K.ay)+
-                 Dcb.x*rbc*(DDF*dtD.x*dtC.y+D2KL.bx)+Ddc.x*(DDF*dtD.x*dtC.y+D2KL.bx);
-          veck.z=Dab.x*(DDF*dtA.x*dtC.z+D2IK.az)+Dcb.x*rbc*(DDF*dtC.x*dtC.z+D2K.az)+
-                 Dcb.x*rbc*(DDF*dtD.x*dtC.z+D2KL.cx)+Ddc.x*(DDF*dtD.x*dtC.z+D2KL.cx);
-
-          vecl.x=Dab.x*(DDF*dtA.x*dtD.x+D2IL.ax)+Dcb.x*rbc*(DDF*dtC.x*dtD.x+D2KL.ax)+
-                 Dcb.x*rbc*(DDF*dtD.x*dtD.x+D2L.ax)+Ddc.x*(DDF*dtD.x*dtD.x+D2L.ax)+fd.x;
-          vecl.y=Dab.x*(DDF*dtA.x*dtD.y+D2IL.ay)+Dcb.x*rbc*(DDF*dtC.x*dtD.y+D2KL.ay)+
-                 Dcb.x*rbc*(DDF*dtD.x*dtD.y+D2L.ay)+Ddc.x*(DDF*dtD.x*dtD.y+D2L.ay);
-          vecl.z=Dab.x*(DDF*dtA.x*dtD.z+D2IL.az)+Dcb.x*rbc*(DDF*dtC.x*dtD.z+D2KL.az)+
-                 Dcb.x*rbc*(DDF*dtD.x*dtD.z+D2L.az)+Ddc.x*(DDF*dtD.x*dtD.z+D2L.az);
-
-          HessianMatrix.element[index_i][n]+=veci.x;
-          HessianMatrix.element[index_i+1][n]+=veci.y;
-          HessianMatrix.element[index_i+2][n]+=veci.z;
-          HessianMatrix.element[index_j][n]+=vecj.x;
-          HessianMatrix.element[index_j+1][n]+=vecj.y;
-          HessianMatrix.element[index_j+2][n]+=vecj.z;
-          HessianMatrix.element[index_k][n]+=veck.x;
-          HessianMatrix.element[index_k+1][n]+=veck.y;
-          HessianMatrix.element[index_k+2][n]+=veck.z;
-          HessianMatrix.element[index_l][n]+=vecl.x;
-          HessianMatrix.element[index_l+1][n]+=vecl.y;
-          HessianMatrix.element[index_l+2][n]+=vecl.z;
-
-          veci.x=Dab.y*(DDF*dtA.y*dtA.x+D2I.ay)+Dcb.y*rbc*(DDF*dtC.y*dtA.x+D2IK.ay)+
-                 Dcb.y*rbc*(DDF*dtD.y*dtA.x+D2IL.ay)+Ddc.y*(DDF*dtD.y*dtA.x+D2IL.ay);
-          veci.y=Dab.y*(DDF*dtA.y*dtA.y+D2I.by)+fa.y+Dcb.y*rbc*(DDF*dtC.y*dtA.y+D2IK.by)+
-                 Dcb.y*rbc*(DDF*dtD.y*dtA.y+D2IL.by)+Ddc.y*(DDF*dtD.y*dtA.y+D2IL.by);
-          veci.z=Dab.y*(DDF*dtA.y*dtA.z+D2I.bz)+Dcb.y*rbc*(DDF*dtC.y*dtA.z+D2IK.cy)+
-                 Dcb.y*rbc*(DDF*dtD.y*dtA.z+D2IL.cy)+Ddc.y*(DDF*dtD.y*dtA.z+D2IL.cy);
-
-          vecj.x=Dab.y*(DDF*dtA.y*dtB.x+D2IJ.bx)+Dcb.y*rbc*(DDF*dtC.y*dtB.x+D2JK.ay)+
-                 Dcb.y*rbc*(DDF*dtD.y*dtB.x+D2JL.ay)+Ddc.y*(DDF*dtD.y*dtB.x+D2JL.ay);
-          vecj.y=Dab.y*(DDF*dtA.y*dtB.y+D2IJ.by)-fa.y+Dcb.y*rbc*(DDF*dtC.y*dtB.y+D2JK.by)-fc.y+
-                 Dcb.y*rbc*(DDF*dtD.y*dtB.y+D2JL.by)-fd.y+Ddc.y*(DDF*dtD.y*dtB.y+D2JL.by);
-          vecj.z=Dab.y*(DDF*dtA.y*dtB.z+D2IJ.bz)+Dcb.y*rbc*(DDF*dtC.y*dtB.z+D2JK.cy)+
-                 Dcb.y*rbc*(DDF*dtD.y*dtB.z+D2JL.cy)+Ddc.y*(DDF*dtD.y*dtB.z+D2JL.cy);
-
-          veck.x=Dab.y*(DDF*dtA.y*dtC.x+D2IK.bx)+Dcb.y*rbc*(DDF*dtC.y*dtC.x+D2K.ay)+
-                 Dcb.y*rbc*(DDF*dtD.y*dtC.x+D2KL.ay)+Ddc.y*(DDF*dtD.y*dtC.x+D2KL.ay);
-          veck.y=Dab.y*(DDF*dtA.y*dtC.y+D2IK.by)+Dcb.y*rbc*(DDF*dtC.y*dtC.y+D2K.by)+fc.y+
-                 Dcb.y*rbc*(DDF*dtD.y*dtC.y+D2KL.by)+fd.y+Ddc.y*(DDF*dtD.y*dtC.y+D2KL.by)-fd.y;
-          veck.z=Dab.y*(DDF*dtA.y*dtC.z+D2IK.bz)+Dcb.y*rbc*(DDF*dtC.y*dtC.z+D2K.bz)+
-                 Dcb.y*rbc*(DDF*dtD.y*dtC.z+D2KL.cy)+Ddc.y*(DDF*dtD.y*dtC.z+D2KL.cy);
-
-          vecl.x=Dab.y*(DDF*dtA.y*dtD.x+D2IL.bx)+Dcb.y*rbc*(DDF*dtC.y*dtD.x+D2KL.bx)+
-                 Dcb.y*rbc*(DDF*dtD.y*dtD.x+D2L.ay)+Ddc.y*(DDF*dtD.y*dtD.x+D2L.ay);
-          vecl.y=Dab.y*(DDF*dtA.y*dtD.y+D2IL.by)+Dcb.y*rbc*(DDF*dtC.y*dtD.y+D2KL.by)+
-                 Dcb.y*rbc*(DDF*dtD.y*dtD.y+D2L.by)+Ddc.y*(DDF*dtD.y*dtD.y+D2L.by)+fd.y;
-          vecl.z=Dab.y*(DDF*dtA.y*dtD.z+D2IL.bz)+Dcb.y*rbc*(DDF*dtC.y*dtD.z+D2KL.bz)+
-                 Dcb.y*rbc*(DDF*dtD.y*dtD.z+D2L.bz)+Ddc.y*(DDF*dtD.y*dtD.z+D2L.bz);
-
-          HessianMatrix.element[index_i][n+1]+=veci.x;
-          HessianMatrix.element[index_i+1][n+1]+=veci.y;
-          HessianMatrix.element[index_i+2][n+1]+=veci.z;
-          HessianMatrix.element[index_j][n+1]+=vecj.x;
-          HessianMatrix.element[index_j+1][n+1]+=vecj.y;
-          HessianMatrix.element[index_j+2][n+1]+=vecj.z;
-          HessianMatrix.element[index_k][n+1]+=veck.x;
-          HessianMatrix.element[index_k+1][n+1]+=veck.y;
-          HessianMatrix.element[index_k+2][n+1]+=veck.z;
-          HessianMatrix.element[index_l][n+1]+=vecl.x;
-          HessianMatrix.element[index_l+1][n+1]+=vecl.y;
-          HessianMatrix.element[index_l+2][n+1]+=vecl.z;
-
-          veci.x=Dab.z*(DDF*dtA.z*dtA.x+D2I.az)+Dcb.z*rbc*(DDF*dtC.z*dtA.x+D2IK.az)+
-                 Dcb.z*rbc*(DDF*dtD.z*dtA.x+D2IL.az)+Ddc.z*(DDF*dtD.z*dtA.x+D2IL.az);
-          veci.y=Dab.z*(DDF*dtA.z*dtA.y+D2I.bz)+Dcb.z*rbc*(DDF*dtC.z*dtA.y+D2IK.bz)+
-                 Dcb.z*rbc*(DDF*dtD.z*dtA.y+D2IL.bz)+Ddc.z*(DDF*dtD.z*dtA.y+D2IL.bz);
-          veci.z=Dab.z*(DDF*dtA.z*dtA.z+D2I.cz)+fa.z+Dcb.z*rbc*(DDF*dtC.z*dtA.z+D2IK.cz)+
-                 Dcb.z*rbc*(DDF*dtD.z*dtA.z+D2IL.cz)+Ddc.z*(DDF*dtD.z*dtA.z+D2IL.cz);
-
-          vecj.x=Dab.z*(DDF*dtA.z*dtB.x+D2IJ.cx)+Dcb.z*rbc*(DDF*dtC.z*dtB.x+D2JK.az)+
-                 Dcb.z*rbc*(DDF*dtD.z*dtB.x+D2JL.az)+Ddc.z*(DDF*dtD.z*dtB.x+D2JL.az);
-          vecj.y=Dab.z*(DDF*dtA.z*dtB.y+D2IJ.cy)+Dcb.z*rbc*(DDF*dtC.z*dtB.y+D2JK.bz)+
-                 Dcb.z*rbc*(DDF*dtD.z*dtB.y+D2JL.bz)+Ddc.z*(DDF*dtD.z*dtB.y+D2JL.bz);
-          vecj.z=Dab.z*(DDF*dtA.z*dtB.z+D2IJ.cz)-fa.z+Dcb.z*rbc*(DDF*dtC.z*dtB.z+D2JK.cz)-fc.z+
-                 Dcb.z*rbc*(DDF*dtD.z*dtB.z+D2JL.cz)-fd.z+Ddc.z*(DDF*dtD.z*dtB.z+D2JL.cz);
-
-          veck.x=Dab.z*(DDF*dtA.z*dtC.x+D2IK.cx)+Dcb.z*rbc*(DDF*dtC.z*dtC.x+D2K.az)+
-                 Dcb.z*rbc*(DDF*dtD.z*dtC.x+D2KL.az)+Ddc.z*(DDF*dtD.z*dtC.x+D2KL.az);
-          veck.y=Dab.z*(DDF*dtA.z*dtC.y+D2IK.cy)+Dcb.z*rbc*(DDF*dtC.z*dtC.y+D2K.bz)+
-                 Dcb.z*rbc*(DDF*dtD.z*dtC.y+D2KL.bz)+Ddc.z*(DDF*dtD.z*dtC.y+D2KL.bz);
-          veck.z=Dab.z*(DDF*dtA.z*dtC.z+D2IK.cz)+Dcb.z*rbc*(DDF*dtC.z*dtC.z+D2K.cz)+fc.z+
-                 Dcb.z*rbc*(DDF*dtD.z*dtC.z+D2KL.cz)+fd.z+Ddc.z*(DDF*dtD.z*dtC.z+D2KL.cz)-fd.z;
-
-          vecl.x=Dab.z*(DDF*dtA.z*dtD.x+D2IL.cx)+Dcb.z*rbc*(DDF*dtC.z*dtD.x+D2KL.cx)+
-                 Dcb.z*rbc*(DDF*dtD.z*dtD.x+D2L.az)+Ddc.z*(DDF*dtD.z*dtD.x+D2L.az);
-          vecl.y=Dab.z*(DDF*dtA.z*dtD.y+D2IL.cy)+Dcb.z*rbc*(DDF*dtC.z*dtD.y+D2KL.cy)+
-                 Dcb.z*rbc*(DDF*dtD.z*dtD.y+D2L.bz)+Ddc.z*(DDF*dtD.z*dtD.y+D2L.bz);
-          vecl.z=Dab.z*(DDF*dtA.z*dtD.z+D2IL.cz)+Dcb.z*rbc*(DDF*dtC.z*dtD.z+D2KL.cz)+
-                 Dcb.z*rbc*(DDF*dtD.z*dtD.z+D2L.cz)+Ddc.z*(DDF*dtD.z*dtD.z+D2L.cz)+fd.z;
-
-          HessianMatrix.element[index_i][n+2]+=veci.x;
-          HessianMatrix.element[index_i+1][n+2]+=veci.y;
-          HessianMatrix.element[index_i+2][n+2]+=veci.z;
-          HessianMatrix.element[index_j][n+2]+=vecj.x;
-          HessianMatrix.element[index_j+1][n+2]+=vecj.y;
-          HessianMatrix.element[index_j+2][n+2]+=vecj.z;
-          HessianMatrix.element[index_k][n+2]+=veck.x;
-          HessianMatrix.element[index_k+1][n+2]+=veck.y;
-          HessianMatrix.element[index_k+2][n+2]+=veck.z;
-          HessianMatrix.element[index_l][n+2]+=vecl.x;
-          HessianMatrix.element[index_l+1][n+2]+=vecl.y;
-          HessianMatrix.element[index_l+2][n+2]+=vecl.z;
-          break;
-        case REGULAR:
-        case REGULAR_UPPER_TRIANGLE:
-          //S.ax=Dab.x*fa.x+Dcb.x*rbc*(fc.x+fd.x)+Ddc.x*fd.x;
-          veci.x=Dab.x*(DDF*dtA.x*dtA.x+D2I.ax)+Dcb.x*rbc*(DDF*dtC.x*dtA.x+D2IK.ax)+
-                 Dcb.x*rbc*(DDF*dtD.x*dtA.x+D2IL.ax)+Ddc.x*(DDF*dtD.x*dtA.x+D2IL.ax)+fa.x;
-          veci.y=Dab.x*(DDF*dtA.x*dtA.y+D2I.ay)+Dcb.x*rbc*(DDF*dtC.x*dtA.y+D2IK.bx)+
-                 Dcb.x*rbc*(DDF*dtD.x*dtA.y+D2IL.bx)+Ddc.x*(DDF*dtD.x*dtA.y+D2IL.bx);
-          veci.z=Dab.x*(DDF*dtA.x*dtA.z+D2I.az)+Dcb.x*rbc*(DDF*dtC.x*dtA.z+D2IK.cx)+
-                 Dcb.x*rbc*(DDF*dtD.x*dtA.z+D2IL.cx)+Ddc.x*(DDF*dtD.x*dtA.z+D2IL.cx);
-
-          vecj.x=Dab.x*(DDF*dtA.x*dtB.x+D2IJ.ax)+Dcb.x*rbc*(DDF*dtC.x*dtB.x+D2JK.ax)+
-                 Dcb.x*rbc*(DDF*dtD.x*dtB.x+D2JL.ax)+Ddc.x*(DDF*dtD.x*dtB.x+D2JL.ax)-fa.x-fc.x-fd.x;
-          vecj.y=Dab.x*(DDF*dtA.x*dtB.y+D2IJ.ay)+Dcb.x*rbc*(DDF*dtC.x*dtB.y+D2JK.bx)+
-                 Dcb.x*rbc*(DDF*dtD.x*dtB.y+D2JL.bx)+Ddc.x*(DDF*dtD.x*dtB.y+D2JL.bx);
-          vecj.z=Dab.x*(DDF*dtA.x*dtB.z+D2IJ.az)+Dcb.x*rbc*(DDF*dtC.x*dtB.z+D2JK.cx)+
-                 Dcb.x*rbc*(DDF*dtD.x*dtB.z+D2JL.cx)+Ddc.x*(DDF*dtD.x*dtB.z+D2JL.cx);
-
-          veck.x=Dab.x*(DDF*dtA.x*dtC.x+D2IK.ax)+Dcb.x*rbc*(DDF*dtC.x*dtC.x+D2K.ax)+
-                 Dcb.x*rbc*(DDF*dtD.x*dtC.x+D2KL.ax)+Ddc.x*(DDF*dtD.x*dtC.x+D2KL.ax)+fc.x+fd.x-fd.x;
-          veck.y=Dab.x*(DDF*dtA.x*dtC.y+D2IK.ay)+Dcb.x*rbc*(DDF*dtC.x*dtC.y+D2K.ay)+
-                 Dcb.x*rbc*(DDF*dtD.x*dtC.y+D2KL.bx)+Ddc.x*(DDF*dtD.x*dtC.y+D2KL.bx);
-          veck.z=Dab.x*(DDF*dtA.x*dtC.z+D2IK.az)+Dcb.x*rbc*(DDF*dtC.x*dtC.z+D2K.az)+
-                 Dcb.x*rbc*(DDF*dtD.x*dtC.z+D2KL.cx)+Ddc.x*(DDF*dtD.x*dtC.z+D2KL.cx);
-
-          vecl.x=Dab.x*(DDF*dtA.x*dtD.x+D2IL.ax)+Dcb.x*rbc*(DDF*dtC.x*dtD.x+D2KL.ax)+
-                 Dcb.x*rbc*(DDF*dtD.x*dtD.x+D2L.ax)+Ddc.x*(DDF*dtD.x*dtD.x+D2L.ax)+fd.x;
-          vecl.y=Dab.x*(DDF*dtA.x*dtD.y+D2IL.ay)+Dcb.x*rbc*(DDF*dtC.x*dtD.y+D2KL.ay)+
-                 Dcb.x*rbc*(DDF*dtD.x*dtD.y+D2L.ay)+Ddc.x*(DDF*dtD.x*dtD.y+D2L.ay);
-          vecl.z=Dab.x*(DDF*dtA.x*dtD.z+D2IL.az)+Dcb.x*rbc*(DDF*dtC.x*dtD.z+D2KL.az)+
-                 Dcb.x*rbc*(DDF*dtD.x*dtD.z+D2L.az)+Ddc.x*(DDF*dtD.x*dtD.z+D2L.az);
-
-          HessianMatrix.element[index_i][n]+=veci.x;
-          HessianMatrix.element[index_i+1][n]+=veci.y;
-          HessianMatrix.element[index_i+2][n]+=veci.z;
-          HessianMatrix.element[index_j][n]+=vecj.x;
-          HessianMatrix.element[index_j+1][n]+=vecj.y;
-          HessianMatrix.element[index_j+2][n]+=vecj.z;
-          HessianMatrix.element[index_k][n]+=veck.x;
-          HessianMatrix.element[index_k+1][n]+=veck.y;
-          HessianMatrix.element[index_k+2][n]+=veck.z;
-          HessianMatrix.element[index_l][n]+=vecl.x;
-          HessianMatrix.element[index_l+1][n]+=vecl.y;
-          HessianMatrix.element[index_l+2][n]+=vecl.z;
-
-          //S.bx=Dab.y*fa.x+Dcb.y*rbc*(fc.x+fd.x)+Ddc.y*fd.x;
-          veci.x=Dab.y*(DDF*dtA.x*dtA.x+D2I.ax)+Dcb.y*rbc*(DDF*dtC.x*dtA.x+D2IK.ax)+
-                 Dcb.y*rbc*(DDF*dtD.x*dtA.x+D2IL.ax)+Ddc.y*(DDF*dtD.x*dtA.x+D2IL.ax);
-          veci.y=Dab.y*(DDF*dtA.x*dtA.y+D2I.ay)+Dcb.y*rbc*(DDF*dtC.x*dtA.y+D2IK.bx)+
-                 Dcb.y*rbc*(DDF*dtD.x*dtA.y+D2IL.bx)+Ddc.y*(DDF*dtD.x*dtA.y+D2IL.bx)+fa.x;
-          veci.z=Dab.y*(DDF*dtA.x*dtA.z+D2I.az)+Dcb.y*rbc*(DDF*dtC.x*dtA.z+D2IK.cx)+
-                 Dcb.y*rbc*(DDF*dtD.x*dtA.z+D2IL.cx)+Ddc.y*(DDF*dtD.x*dtA.z+D2IL.cx);
-
-          vecj.x=Dab.y*(DDF*dtA.x*dtB.x+D2IJ.ax)+Dcb.y*rbc*(DDF*dtC.x*dtB.x+D2JK.ax)+
-                 Dcb.y*rbc*(DDF*dtD.x*dtB.x+D2JL.ax)+Ddc.y*(DDF*dtD.x*dtB.x+D2JL.ax);
-          vecj.y=Dab.y*(DDF*dtA.x*dtB.y+D2IJ.ay)+Dcb.y*rbc*(DDF*dtC.x*dtB.y+D2JK.bx)+
-                 Dcb.y*rbc*(DDF*dtD.x*dtB.y+D2JL.bx)+Ddc.y*(DDF*dtD.x*dtB.y+D2JL.bx)-fa.x-fc.x-fd.x;
-          vecj.z=Dab.y*(DDF*dtA.x*dtB.z+D2IJ.az)+Dcb.y*rbc*(DDF*dtC.x*dtB.z+D2JK.cx)+
-                 Dcb.y*rbc*(DDF*dtD.x*dtB.z+D2JL.cx)+Ddc.y*(DDF*dtD.x*dtB.z+D2JL.cx);
-
-          veck.x=Dab.y*(DDF*dtA.x*dtC.x+D2IK.ax)+Dcb.y*rbc*(DDF*dtC.x*dtC.x+D2K.ax)+
-                 Dcb.y*rbc*(DDF*dtD.x*dtC.x+D2KL.ax)+Ddc.y*(DDF*dtD.x*dtC.x+D2KL.ax);
-          veck.y=Dab.y*(DDF*dtA.x*dtC.y+D2IK.ay)+Dcb.y*rbc*(DDF*dtC.x*dtC.y+D2K.ay)+
-                 Dcb.y*rbc*(DDF*dtD.x*dtC.y+D2KL.bx)+Ddc.y*(DDF*dtD.x*dtC.y+D2KL.bx)+fc.x+fd.x-fd.x;
-          veck.z=Dab.y*(DDF*dtA.x*dtC.z+D2IK.az)+Dcb.y*rbc*(DDF*dtC.x*dtC.z+D2K.az)+
-                 Dcb.y*rbc*(DDF*dtD.x*dtC.z+D2KL.cx)+Ddc.y*(DDF*dtD.x*dtC.z+D2KL.cx);
-
-          vecl.x=Dab.y*(DDF*dtA.x*dtD.x+D2IL.ax)+Dcb.y*rbc*(DDF*dtC.x*dtD.x+D2KL.ax)+
-                 Dcb.y*rbc*(DDF*dtD.x*dtD.x+D2L.ax)+Ddc.y*(DDF*dtD.x*dtD.x+D2L.ax);
-          vecl.y=Dab.y*(DDF*dtA.x*dtD.y+D2IL.ay)+Dcb.y*rbc*(DDF*dtC.x*dtD.y+D2KL.ay)+
-                 Dcb.y*rbc*(DDF*dtD.x*dtD.y+D2L.ay)+Ddc.y*(DDF*dtD.x*dtD.y+D2L.ay)+fd.x;
-          vecl.z=Dab.y*(DDF*dtA.x*dtD.z+D2IL.az)+Dcb.y*rbc*(DDF*dtC.x*dtD.z+D2KL.az)+
-                 Dcb.y*rbc*(DDF*dtD.x*dtD.z+D2L.az)+Ddc.y*(DDF*dtD.x*dtD.z+D2L.az);
-
-          HessianMatrix.element[index_i][n+1]+=veci.x;
-          HessianMatrix.element[index_i+1][n+1]+=veci.y;
-          HessianMatrix.element[index_i+2][n+1]+=veci.z;
-          HessianMatrix.element[index_j][n+1]+=vecj.x;
-          HessianMatrix.element[index_j+1][n+1]+=vecj.y;
-          HessianMatrix.element[index_j+2][n+1]+=vecj.z;
-          HessianMatrix.element[index_k][n+1]+=veck.x;
-          HessianMatrix.element[index_k+1][n+1]+=veck.y;
-          HessianMatrix.element[index_k+2][n+1]+=veck.z;
-          HessianMatrix.element[index_l][n+1]+=vecl.x;
-          HessianMatrix.element[index_l+1][n+1]+=vecl.y;
-          HessianMatrix.element[index_l+2][n+1]+=vecl.z;
-
-
-          veci.x=Dab.z*(DDF*dtA.x*dtA.x+D2I.ax)+Dcb.z*rbc*(DDF*dtC.x*dtA.x+D2IK.ax)+
-                Dcb.z*rbc*(DDF*dtD.x*dtA.x+D2IL.ax)+Ddc.z*(DDF*dtD.x*dtA.x+D2IL.ax);
-          veci.y=Dab.z*(DDF*dtA.x*dtA.y+D2I.ay)+Dcb.z*rbc*(DDF*dtC.x*dtA.y+D2IK.bx)+
-                Dcb.z*rbc*(DDF*dtD.x*dtA.y+D2IL.bx)+Ddc.z*(DDF*dtD.x*dtA.y+D2IL.bx);
-          veci.z=Dab.z*(DDF*dtA.x*dtA.z+D2I.az)+Dcb.z*rbc*(DDF*dtC.x*dtA.z+D2IK.cx)+
-                 Dcb.z*rbc*(DDF*dtD.x*dtA.z+D2IL.cx)+Ddc.z*(DDF*dtD.x*dtA.z+D2IL.cx)+fa.x;
-
-          vecj.x=Dab.z*(DDF*dtA.x*dtB.x+D2IJ.ax)+Dcb.z*rbc*(DDF*dtC.x*dtB.x+D2JK.ax)+
-                 Dcb.z*rbc*(DDF*dtD.x*dtB.x+D2JL.ax)+Ddc.z*(DDF*dtD.x*dtB.x+D2JL.ax);
-          vecj.y=Dab.z*(DDF*dtA.x*dtB.y+D2IJ.ay)+Dcb.z*rbc*(DDF*dtC.x*dtB.y+D2JK.bx)+
-                 Dcb.z*rbc*(DDF*dtD.x*dtB.y+D2JL.bx)+Ddc.z*(DDF*dtD.x*dtB.y+D2JL.bx);
-          vecj.z=Dab.z*(DDF*dtA.x*dtB.z+D2IJ.az)+Dcb.z*rbc*(DDF*dtC.x*dtB.z+D2JK.cx)+
-                 Dcb.z*rbc*(DDF*dtD.x*dtB.z+D2JL.cx)+Ddc.z*(DDF*dtD.x*dtB.z+D2JL.cx)-fa.x-fc.x-fd.x;
-
-          veck.x=Dab.z*(DDF*dtA.x*dtC.x+D2IK.ax)+Dcb.z*rbc*(DDF*dtC.x*dtC.x+D2K.ax)+
-                 Dcb.z*rbc*(DDF*dtD.x*dtC.x+D2KL.ax)+Ddc.z*(DDF*dtD.x*dtC.x+D2KL.ax);
-          veck.y=Dab.z*(DDF*dtA.x*dtC.y+D2IK.ay)+Dcb.z*rbc*(DDF*dtC.x*dtC.y+D2K.ay)+
-                 Dcb.z*rbc*(DDF*dtD.x*dtC.y+D2KL.bx)+Ddc.z*(DDF*dtD.x*dtC.y+D2KL.bx);
-          veck.z=Dab.z*(DDF*dtA.x*dtC.z+D2IK.az)+Dcb.z*rbc*(DDF*dtC.x*dtC.z+D2K.az)+
-                 Dcb.z*rbc*(DDF*dtD.x*dtC.z+D2KL.cx)+Ddc.z*(DDF*dtD.x*dtC.z+D2KL.cx)+fc.x+fd.x-fd.x;
-
-          vecl.x=Dab.z*(DDF*dtA.x*dtD.x+D2IL.ax)+Dcb.z*rbc*(DDF*dtC.x*dtD.x+D2KL.ax)+
-                 Dcb.z*rbc*(DDF*dtD.x*dtD.x+D2L.ax)+Ddc.z*(DDF*dtD.x*dtD.x+D2L.ax);
-          vecl.y=Dab.z*(DDF*dtA.x*dtD.y+D2IL.ay)+Dcb.z*rbc*(DDF*dtC.x*dtD.y+D2KL.ay)+
-                 Dcb.z*rbc*(DDF*dtD.x*dtD.y+D2L.ay)+Ddc.z*(DDF*dtD.x*dtD.y+D2L.ay);
-          vecl.z=Dab.z*(DDF*dtA.x*dtD.z+D2IL.az)+Dcb.z*rbc*(DDF*dtC.x*dtD.z+D2KL.az)+
-                 Dcb.z*rbc*(DDF*dtD.x*dtD.z+D2L.az)+Ddc.z*(DDF*dtD.x*dtD.z+D2L.az)+fd.x;
-
-          HessianMatrix.element[index_i][n+2]+=veci.x;
-          HessianMatrix.element[index_i+1][n+2]+=veci.y;
-          HessianMatrix.element[index_i+2][n+2]+=veci.z;
-          HessianMatrix.element[index_j][n+2]+=vecj.x;
-          HessianMatrix.element[index_j+1][n+2]+=vecj.y;
-          HessianMatrix.element[index_j+2][n+2]+=vecj.z;
-          HessianMatrix.element[index_k][n+2]+=veck.x;
-          HessianMatrix.element[index_k+1][n+2]+=veck.y;
-          HessianMatrix.element[index_k+2][n+2]+=veck.z;
-          HessianMatrix.element[index_l][n+2]+=vecl.x;
-          HessianMatrix.element[index_l+1][n+2]+=vecl.y;
-          HessianMatrix.element[index_l+2][n+2]+=vecl.z;
-
-
-          veci.x=Dab.y*(DDF*dtA.y*dtA.x+D2I.ay)+Dcb.y*rbc*(DDF*dtC.y*dtA.x+D2IK.ay)+
-                 Dcb.y*rbc*(DDF*dtD.y*dtA.x+D2IL.ay)+Ddc.y*(DDF*dtD.y*dtA.x+D2IL.ay);
-          veci.y=Dab.y*(DDF*dtA.y*dtA.y+D2I.by)+fa.y+Dcb.y*rbc*(DDF*dtC.y*dtA.y+D2IK.by)+
-                 Dcb.y*rbc*(DDF*dtD.y*dtA.y+D2IL.by)+Ddc.y*(DDF*dtD.y*dtA.y+D2IL.by);
-          veci.z=Dab.y*(DDF*dtA.y*dtA.z+D2I.bz)+Dcb.y*rbc*(DDF*dtC.y*dtA.z+D2IK.cy)+
-                 Dcb.y*rbc*(DDF*dtD.y*dtA.z+D2IL.cy)+Ddc.y*(DDF*dtD.y*dtA.z+D2IL.cy);
-
-          vecj.x=Dab.y*(DDF*dtA.y*dtB.x+D2IJ.bx)+Dcb.y*rbc*(DDF*dtC.y*dtB.x+D2JK.ay)+
-                 Dcb.y*rbc*(DDF*dtD.y*dtB.x+D2JL.ay)+Ddc.y*(DDF*dtD.y*dtB.x+D2JL.ay);
-          vecj.y=Dab.y*(DDF*dtA.y*dtB.y+D2IJ.by)-fa.y+Dcb.y*rbc*(DDF*dtC.y*dtB.y+D2JK.by)-fc.y+
-                 Dcb.y*rbc*(DDF*dtD.y*dtB.y+D2JL.by)-fd.y+Ddc.y*(DDF*dtD.y*dtB.y+D2JL.by);
-          vecj.z=Dab.y*(DDF*dtA.y*dtB.z+D2IJ.bz)+Dcb.y*rbc*(DDF*dtC.y*dtB.z+D2JK.cy)+
-                 Dcb.y*rbc*(DDF*dtD.y*dtB.z+D2JL.cy)+Ddc.y*(DDF*dtD.y*dtB.z+D2JL.cy);
-
-          veck.x=Dab.y*(DDF*dtA.y*dtC.x+D2IK.bx)+Dcb.y*rbc*(DDF*dtC.y*dtC.x+D2K.ay)+
-                 Dcb.y*rbc*(DDF*dtD.y*dtC.x+D2KL.ay)+Ddc.y*(DDF*dtD.y*dtC.x+D2KL.ay);
-          veck.y=Dab.y*(DDF*dtA.y*dtC.y+D2IK.by)+Dcb.y*rbc*(DDF*dtC.y*dtC.y+D2K.by)+fc.y+
-                 Dcb.y*rbc*(DDF*dtD.y*dtC.y+D2KL.by)+fd.y+Ddc.y*(DDF*dtD.y*dtC.y+D2KL.by)-fd.y;
-          veck.z=Dab.y*(DDF*dtA.y*dtC.z+D2IK.bz)+Dcb.y*rbc*(DDF*dtC.y*dtC.z+D2K.bz)+
-                 Dcb.y*rbc*(DDF*dtD.y*dtC.z+D2KL.cy)+Ddc.y*(DDF*dtD.y*dtC.z+D2KL.cy);
-
-          vecl.x=Dab.y*(DDF*dtA.y*dtD.x+D2IL.bx)+Dcb.y*rbc*(DDF*dtC.y*dtD.x+D2KL.bx)+
-                 Dcb.y*rbc*(DDF*dtD.y*dtD.x+D2L.ay)+Ddc.y*(DDF*dtD.y*dtD.x+D2L.ay);
-          vecl.y=Dab.y*(DDF*dtA.y*dtD.y+D2IL.by)+Dcb.y*rbc*(DDF*dtC.y*dtD.y+D2KL.by)+
-                 Dcb.y*rbc*(DDF*dtD.y*dtD.y+D2L.by)+Ddc.y*(DDF*dtD.y*dtD.y+D2L.by)+fd.y;
-          vecl.z=Dab.y*(DDF*dtA.y*dtD.z+D2IL.bz)+Dcb.y*rbc*(DDF*dtC.y*dtD.z+D2KL.bz)+
-                 Dcb.y*rbc*(DDF*dtD.y*dtD.z+D2L.bz)+Ddc.y*(DDF*dtD.y*dtD.z+D2L.bz);
-
-          HessianMatrix.element[index_i][n+3]+=veci.x;
-          HessianMatrix.element[index_i+1][n+3]+=veci.y;
-          HessianMatrix.element[index_i+2][n+3]+=veci.z;
-          HessianMatrix.element[index_j][n+3]+=vecj.x;
-          HessianMatrix.element[index_j+1][n+3]+=vecj.y;
-          HessianMatrix.element[index_j+2][n+3]+=vecj.z;
-          HessianMatrix.element[index_k][n+3]+=veck.x;
-          HessianMatrix.element[index_k+1][n+3]+=veck.y;
-          HessianMatrix.element[index_k+2][n+3]+=veck.z;
-          HessianMatrix.element[index_l][n+3]+=vecl.x;
-          HessianMatrix.element[index_l+1][n+3]+=vecl.y;
-          HessianMatrix.element[index_l+2][n+3]+=vecl.z;
-
-
-          veci.x=Dab.z*(DDF*dtA.y*dtA.x+D2I.ay)+Dcb.z*rbc*(DDF*dtC.y*dtA.x+D2IK.ay)+
-                 Dcb.z*rbc*(DDF*dtD.y*dtA.x+D2IL.ay)+Ddc.z*(DDF*dtD.y*dtA.x+D2IL.ay);
-          veci.y=Dab.z*(DDF*dtA.y*dtA.y+D2I.by)+Dcb.z*rbc*(DDF*dtC.y*dtA.y+D2IK.by)+
-                 Dcb.z*rbc*(DDF*dtD.y*dtA.y+D2IL.by)+Ddc.z*(DDF*dtD.y*dtA.y+D2IL.by);
-          veci.z=Dab.z*(DDF*dtA.y*dtA.z+D2I.bz)+Dcb.z*rbc*(DDF*dtC.y*dtA.z+D2IK.cy)+
-                 Dcb.z*rbc*(DDF*dtD.y*dtA.z+D2IL.cy)+Ddc.z*(DDF*dtD.y*dtA.z+D2IL.cy)+fa.y;
-
-          vecj.x=Dab.z*(DDF*dtA.y*dtB.x+D2IJ.bx)+Dcb.z*rbc*(DDF*dtC.y*dtB.x+D2JK.ay)+
-                 Dcb.z*rbc*(DDF*dtD.y*dtB.x+D2JL.ay)+Ddc.z*(DDF*dtD.y*dtB.x+D2JL.ay);
-          vecj.y=Dab.z*(DDF*dtA.y*dtB.y+D2IJ.by)+Dcb.z*rbc*(DDF*dtC.y*dtB.y+D2JK.by)+
-                 Dcb.z*rbc*(DDF*dtD.y*dtB.y+D2JL.by)+Ddc.z*(DDF*dtD.y*dtB.y+D2JL.by);
-          vecj.z=Dab.z*(DDF*dtA.y*dtB.z+D2IJ.bz)+Dcb.z*rbc*(DDF*dtC.y*dtB.z+D2JK.cy)+
-                 Dcb.z*rbc*(DDF*dtD.y*dtB.z+D2JL.cy)+Ddc.z*(DDF*dtD.y*dtB.z+D2JL.cy)-fa.y-fc.y-fd.y;
-
-          veck.x=Dab.z*(DDF*dtA.y*dtC.x+D2IK.bx)+Dcb.z*rbc*(DDF*dtC.y*dtC.x+D2K.ay)+
-                 Dcb.z*rbc*(DDF*dtD.y*dtC.x+D2KL.ay)+Ddc.z*(DDF*dtD.y*dtC.x+D2KL.ay);
-          veck.y=Dab.z*(DDF*dtA.y*dtC.y+D2IK.by)+Dcb.z*rbc*(DDF*dtC.y*dtC.y+D2K.by)+
-                 Dcb.z*rbc*(DDF*dtD.y*dtC.y+D2KL.by)+Ddc.z*(DDF*dtD.y*dtC.y+D2KL.by);
-          veck.z=Dab.z*(DDF*dtA.y*dtC.z+D2IK.bz)+Dcb.z*rbc*(DDF*dtC.y*dtC.z+D2K.bz)+
-                 Dcb.z*rbc*(DDF*dtD.y*dtC.z+D2KL.cy)+Ddc.z*(DDF*dtD.y*dtC.z+D2KL.cy)+fc.y+fd.y-fd.y;
-
-          vecl.x=Dab.z*(DDF*dtA.y*dtD.x+D2IL.bx)+Dcb.z*rbc*(DDF*dtC.y*dtD.x+D2KL.bx)+
-                 Dcb.z*rbc*(DDF*dtD.y*dtD.x+D2L.ay)+Ddc.z*(DDF*dtD.y*dtD.x+D2L.ay);
-          vecl.y=Dab.z*(DDF*dtA.y*dtD.y+D2IL.by)+Dcb.z*rbc*(DDF*dtC.y*dtD.y+D2KL.by)+
-                 Dcb.z*rbc*(DDF*dtD.y*dtD.y+D2L.by)+Ddc.z*(DDF*dtD.y*dtD.y+D2L.by);
-          vecl.z=Dab.z*(DDF*dtA.y*dtD.z+D2IL.bz)+Dcb.z*rbc*(DDF*dtC.y*dtD.z+D2KL.bz)+
-                 Dcb.z*rbc*(DDF*dtD.y*dtD.z+D2L.bz)+Ddc.z*(DDF*dtD.y*dtD.z+D2L.bz)+fd.y;
-
-          HessianMatrix.element[index_i][n+4]+=veci.x;
-          HessianMatrix.element[index_i+1][n+4]+=veci.y;
-          HessianMatrix.element[index_i+2][n+4]+=veci.z;
-          HessianMatrix.element[index_j][n+4]+=vecj.x;
-          HessianMatrix.element[index_j+1][n+4]+=vecj.y;
-          HessianMatrix.element[index_j+2][n+4]+=vecj.z;
-          HessianMatrix.element[index_k][n+4]+=veck.x;
-          HessianMatrix.element[index_k+1][n+4]+=veck.y;
-          HessianMatrix.element[index_k+2][n+4]+=veck.z;
-          HessianMatrix.element[index_l][n+4]+=vecl.x;
-          HessianMatrix.element[index_l+1][n+4]+=vecl.y;
-          HessianMatrix.element[index_l+2][n+4]+=vecl.z;
-
-          veci.x=Dab.z*(DDF*dtA.z*dtA.x+D2I.az)+Dcb.z*rbc*(DDF*dtC.z*dtA.x+D2IK.az)+
-                 Dcb.z*rbc*(DDF*dtD.z*dtA.x+D2IL.az)+Ddc.z*(DDF*dtD.z*dtA.x+D2IL.az);
-          veci.y=Dab.z*(DDF*dtA.z*dtA.y+D2I.bz)+Dcb.z*rbc*(DDF*dtC.z*dtA.y+D2IK.bz)+
-                 Dcb.z*rbc*(DDF*dtD.z*dtA.y+D2IL.bz)+Ddc.z*(DDF*dtD.z*dtA.y+D2IL.bz);
-          veci.z=Dab.z*(DDF*dtA.z*dtA.z+D2I.cz)+fa.z+Dcb.z*rbc*(DDF*dtC.z*dtA.z+D2IK.cz)+
-                 Dcb.z*rbc*(DDF*dtD.z*dtA.z+D2IL.cz)+Ddc.z*(DDF*dtD.z*dtA.z+D2IL.cz);
-
-          vecj.x=Dab.z*(DDF*dtA.z*dtB.x+D2IJ.cx)+Dcb.z*rbc*(DDF*dtC.z*dtB.x+D2JK.az)+
-                 Dcb.z*rbc*(DDF*dtD.z*dtB.x+D2JL.az)+Ddc.z*(DDF*dtD.z*dtB.x+D2JL.az);
-          vecj.y=Dab.z*(DDF*dtA.z*dtB.y+D2IJ.cy)+Dcb.z*rbc*(DDF*dtC.z*dtB.y+D2JK.bz)+
-                 Dcb.z*rbc*(DDF*dtD.z*dtB.y+D2JL.bz)+Ddc.z*(DDF*dtD.z*dtB.y+D2JL.bz);
-          vecj.z=Dab.z*(DDF*dtA.z*dtB.z+D2IJ.cz)-fa.z+Dcb.z*rbc*(DDF*dtC.z*dtB.z+D2JK.cz)-fc.z+
-                 Dcb.z*rbc*(DDF*dtD.z*dtB.z+D2JL.cz)-fd.z+Ddc.z*(DDF*dtD.z*dtB.z+D2JL.cz);
-
-          veck.x=Dab.z*(DDF*dtA.z*dtC.x+D2IK.cx)+Dcb.z*rbc*(DDF*dtC.z*dtC.x+D2K.az)+
-                 Dcb.z*rbc*(DDF*dtD.z*dtC.x+D2KL.az)+Ddc.z*(DDF*dtD.z*dtC.x+D2KL.az);
-          veck.y=Dab.z*(DDF*dtA.z*dtC.y+D2IK.cy)+Dcb.z*rbc*(DDF*dtC.z*dtC.y+D2K.bz)+
-                 Dcb.z*rbc*(DDF*dtD.z*dtC.y+D2KL.bz)+Ddc.z*(DDF*dtD.z*dtC.y+D2KL.bz);
-          veck.z=Dab.z*(DDF*dtA.z*dtC.z+D2IK.cz)+Dcb.z*rbc*(DDF*dtC.z*dtC.z+D2K.cz)+fc.z+
-                 Dcb.z*rbc*(DDF*dtD.z*dtC.z+D2KL.cz)+fd.z+Ddc.z*(DDF*dtD.z*dtC.z+D2KL.cz)-fd.z;
-
-          vecl.x=Dab.z*(DDF*dtA.z*dtD.x+D2IL.cx)+Dcb.z*rbc*(DDF*dtC.z*dtD.x+D2KL.cx)+
-                 Dcb.z*rbc*(DDF*dtD.z*dtD.x+D2L.az)+Ddc.z*(DDF*dtD.z*dtD.x+D2L.az);
-          vecl.y=Dab.z*(DDF*dtA.z*dtD.y+D2IL.cy)+Dcb.z*rbc*(DDF*dtC.z*dtD.y+D2KL.cy)+
-                 Dcb.z*rbc*(DDF*dtD.z*dtD.y+D2L.bz)+Ddc.z*(DDF*dtD.z*dtD.y+D2L.bz);
-          vecl.z=Dab.z*(DDF*dtA.z*dtD.z+D2IL.cz)+Dcb.z*rbc*(DDF*dtC.z*dtD.z+D2KL.cz)+
-                 Dcb.z*rbc*(DDF*dtD.z*dtD.z+D2L.cz)+Ddc.z*(DDF*dtD.z*dtD.z+D2L.cz)+fd.z;
-
-          HessianMatrix.element[index_i][n+5]+=veci.x;
-          HessianMatrix.element[index_i+1][n+5]+=veci.y;
-          HessianMatrix.element[index_i+2][n+5]+=veci.z;
-          HessianMatrix.element[index_j][n+5]+=vecj.x;
-          HessianMatrix.element[index_j+1][n+5]+=vecj.y;
-          HessianMatrix.element[index_j+2][n+5]+=vecj.z;
-          HessianMatrix.element[index_k][n+5]+=veck.x;
-          HessianMatrix.element[index_k+1][n+5]+=veck.y;
-          HessianMatrix.element[index_k+2][n+5]+=veck.z;
-          HessianMatrix.element[index_l][n+5]+=vecl.x;
-          HessianMatrix.element[index_l+1][n+5]+=vecl.y;
-          HessianMatrix.element[index_l+2][n+5]+=vecl.z;
-          break;
-        case MONOCLINIC:
-        case MONOCLINIC_UPPER_TRIANGLE:
-          switch(MonoclinicAngleType[CurrentSystem])
-          {
-            case MONOCLINIC_ALPHA_ANGLE:
-              //S.ax=Dab.x*fa.x+Dcb.x*rbc*(fc.x+fd.x)+Ddc.x*fd.x;
-              veci.x=Dab.x*(DDF*dtA.x*dtA.x+D2I.ax)+Dcb.x*rbc*(DDF*dtC.x*dtA.x+D2IK.ax)+
-                     Dcb.x*rbc*(DDF*dtD.x*dtA.x+D2IL.ax)+Ddc.x*(DDF*dtD.x*dtA.x+D2IL.ax)+fa.x;
-              veci.y=Dab.x*(DDF*dtA.x*dtA.y+D2I.ay)+Dcb.x*rbc*(DDF*dtC.x*dtA.y+D2IK.bx)+
-                     Dcb.x*rbc*(DDF*dtD.x*dtA.y+D2IL.bx)+Ddc.x*(DDF*dtD.x*dtA.y+D2IL.bx);
-              veci.z=Dab.x*(DDF*dtA.x*dtA.z+D2I.az)+Dcb.x*rbc*(DDF*dtC.x*dtA.z+D2IK.cx)+
-                     Dcb.x*rbc*(DDF*dtD.x*dtA.z+D2IL.cx)+Ddc.x*(DDF*dtD.x*dtA.z+D2IL.cx);
-
-              vecj.x=Dab.x*(DDF*dtA.x*dtB.x+D2IJ.ax)+Dcb.x*rbc*(DDF*dtC.x*dtB.x+D2JK.ax)+
-                     Dcb.x*rbc*(DDF*dtD.x*dtB.x+D2JL.ax)+Ddc.x*(DDF*dtD.x*dtB.x+D2JL.ax)-fa.x-fc.x-fd.x;
-              vecj.y=Dab.x*(DDF*dtA.x*dtB.y+D2IJ.ay)+Dcb.x*rbc*(DDF*dtC.x*dtB.y+D2JK.bx)+
-                     Dcb.x*rbc*(DDF*dtD.x*dtB.y+D2JL.bx)+Ddc.x*(DDF*dtD.x*dtB.y+D2JL.bx);
-              vecj.z=Dab.x*(DDF*dtA.x*dtB.z+D2IJ.az)+Dcb.x*rbc*(DDF*dtC.x*dtB.z+D2JK.cx)+
-                     Dcb.x*rbc*(DDF*dtD.x*dtB.z+D2JL.cx)+Ddc.x*(DDF*dtD.x*dtB.z+D2JL.cx);
-
-              veck.x=Dab.x*(DDF*dtA.x*dtC.x+D2IK.ax)+Dcb.x*rbc*(DDF*dtC.x*dtC.x+D2K.ax)+
-                     Dcb.x*rbc*(DDF*dtD.x*dtC.x+D2KL.ax)+Ddc.x*(DDF*dtD.x*dtC.x+D2KL.ax)+fc.x+fd.x-fd.x;
-              veck.y=Dab.x*(DDF*dtA.x*dtC.y+D2IK.ay)+Dcb.x*rbc*(DDF*dtC.x*dtC.y+D2K.ay)+
-                     Dcb.x*rbc*(DDF*dtD.x*dtC.y+D2KL.bx)+Ddc.x*(DDF*dtD.x*dtC.y+D2KL.bx);
-              veck.z=Dab.x*(DDF*dtA.x*dtC.z+D2IK.az)+Dcb.x*rbc*(DDF*dtC.x*dtC.z+D2K.az)+
-                     Dcb.x*rbc*(DDF*dtD.x*dtC.z+D2KL.cx)+Ddc.x*(DDF*dtD.x*dtC.z+D2KL.cx);
-
-              vecl.x=Dab.x*(DDF*dtA.x*dtD.x+D2IL.ax)+Dcb.x*rbc*(DDF*dtC.x*dtD.x+D2KL.ax)+
-                     Dcb.x*rbc*(DDF*dtD.x*dtD.x+D2L.ax)+Ddc.x*(DDF*dtD.x*dtD.x+D2L.ax)+fd.x;
-              vecl.y=Dab.x*(DDF*dtA.x*dtD.y+D2IL.ay)+Dcb.x*rbc*(DDF*dtC.x*dtD.y+D2KL.ay)+
-                     Dcb.x*rbc*(DDF*dtD.x*dtD.y+D2L.ay)+Ddc.x*(DDF*dtD.x*dtD.y+D2L.ay);
-              vecl.z=Dab.x*(DDF*dtA.x*dtD.z+D2IL.az)+Dcb.x*rbc*(DDF*dtC.x*dtD.z+D2KL.az)+
-                     Dcb.x*rbc*(DDF*dtD.x*dtD.z+D2L.az)+Ddc.x*(DDF*dtD.x*dtD.z+D2L.az);
-
-              HessianMatrix.element[index_i][n]+=veci.x;
-              HessianMatrix.element[index_i+1][n]+=veci.y;
-              HessianMatrix.element[index_i+2][n]+=veci.z;
-              HessianMatrix.element[index_j][n]+=vecj.x;
-              HessianMatrix.element[index_j+1][n]+=vecj.y;
-              HessianMatrix.element[index_j+2][n]+=vecj.z;
-              HessianMatrix.element[index_k][n]+=veck.x;
-              HessianMatrix.element[index_k+1][n]+=veck.y;
-              HessianMatrix.element[index_k+2][n]+=veck.z;
-              HessianMatrix.element[index_l][n]+=vecl.x;
-              HessianMatrix.element[index_l+1][n]+=vecl.y;
-              HessianMatrix.element[index_l+2][n]+=vecl.z;
-
-              veci.x=Dab.y*(DDF*dtA.y*dtA.x+D2I.ay)+Dcb.y*rbc*(DDF*dtC.y*dtA.x+D2IK.ay)+
-                     Dcb.y*rbc*(DDF*dtD.y*dtA.x+D2IL.ay)+Ddc.y*(DDF*dtD.y*dtA.x+D2IL.ay);
-              veci.y=Dab.y*(DDF*dtA.y*dtA.y+D2I.by)+fa.y+Dcb.y*rbc*(DDF*dtC.y*dtA.y+D2IK.by)+
-                     Dcb.y*rbc*(DDF*dtD.y*dtA.y+D2IL.by)+Ddc.y*(DDF*dtD.y*dtA.y+D2IL.by);
-              veci.z=Dab.y*(DDF*dtA.y*dtA.z+D2I.bz)+Dcb.y*rbc*(DDF*dtC.y*dtA.z+D2IK.cy)+
-                     Dcb.y*rbc*(DDF*dtD.y*dtA.z+D2IL.cy)+Ddc.y*(DDF*dtD.y*dtA.z+D2IL.cy);
-
-              vecj.x=Dab.y*(DDF*dtA.y*dtB.x+D2IJ.bx)+Dcb.y*rbc*(DDF*dtC.y*dtB.x+D2JK.ay)+
-                     Dcb.y*rbc*(DDF*dtD.y*dtB.x+D2JL.ay)+Ddc.y*(DDF*dtD.y*dtB.x+D2JL.ay);
-              vecj.y=Dab.y*(DDF*dtA.y*dtB.y+D2IJ.by)-fa.y+Dcb.y*rbc*(DDF*dtC.y*dtB.y+D2JK.by)-fc.y+
-                     Dcb.y*rbc*(DDF*dtD.y*dtB.y+D2JL.by)-fd.y+Ddc.y*(DDF*dtD.y*dtB.y+D2JL.by);
-              vecj.z=Dab.y*(DDF*dtA.y*dtB.z+D2IJ.bz)+Dcb.y*rbc*(DDF*dtC.y*dtB.z+D2JK.cy)+
-                     Dcb.y*rbc*(DDF*dtD.y*dtB.z+D2JL.cy)+Ddc.y*(DDF*dtD.y*dtB.z+D2JL.cy);
-
-              veck.x=Dab.y*(DDF*dtA.y*dtC.x+D2IK.bx)+Dcb.y*rbc*(DDF*dtC.y*dtC.x+D2K.ay)+
-                     Dcb.y*rbc*(DDF*dtD.y*dtC.x+D2KL.ay)+Ddc.y*(DDF*dtD.y*dtC.x+D2KL.ay);
-              veck.y=Dab.y*(DDF*dtA.y*dtC.y+D2IK.by)+Dcb.y*rbc*(DDF*dtC.y*dtC.y+D2K.by)+fc.y+
-                     Dcb.y*rbc*(DDF*dtD.y*dtC.y+D2KL.by)+fd.y+Ddc.y*(DDF*dtD.y*dtC.y+D2KL.by)-fd.y;
-              veck.z=Dab.y*(DDF*dtA.y*dtC.z+D2IK.bz)+Dcb.y*rbc*(DDF*dtC.y*dtC.z+D2K.bz)+
-                     Dcb.y*rbc*(DDF*dtD.y*dtC.z+D2KL.cy)+Ddc.y*(DDF*dtD.y*dtC.z+D2KL.cy);
-
-              vecl.x=Dab.y*(DDF*dtA.y*dtD.x+D2IL.bx)+Dcb.y*rbc*(DDF*dtC.y*dtD.x+D2KL.bx)+
-                     Dcb.y*rbc*(DDF*dtD.y*dtD.x+D2L.ay)+Ddc.y*(DDF*dtD.y*dtD.x+D2L.ay);
-              vecl.y=Dab.y*(DDF*dtA.y*dtD.y+D2IL.by)+Dcb.y*rbc*(DDF*dtC.y*dtD.y+D2KL.by)+
-                     Dcb.y*rbc*(DDF*dtD.y*dtD.y+D2L.by)+Ddc.y*(DDF*dtD.y*dtD.y+D2L.by)+fd.y;
-              vecl.z=Dab.y*(DDF*dtA.y*dtD.z+D2IL.bz)+Dcb.y*rbc*(DDF*dtC.y*dtD.z+D2KL.bz)+
-                     Dcb.y*rbc*(DDF*dtD.y*dtD.z+D2L.bz)+Ddc.y*(DDF*dtD.y*dtD.z+D2L.bz);
-
-              HessianMatrix.element[index_i][n+1]+=veci.x;
-              HessianMatrix.element[index_i+1][n+1]+=veci.y;
-              HessianMatrix.element[index_i+2][n+1]+=veci.z;
-              HessianMatrix.element[index_j][n+1]+=vecj.x;
-              HessianMatrix.element[index_j+1][n+1]+=vecj.y;
-              HessianMatrix.element[index_j+2][n+1]+=vecj.z;
-              HessianMatrix.element[index_k][n+1]+=veck.x;
-              HessianMatrix.element[index_k+1][n+1]+=veck.y;
-              HessianMatrix.element[index_k+2][n+1]+=veck.z;
-              HessianMatrix.element[index_l][n+1]+=vecl.x;
-              HessianMatrix.element[index_l+1][n+1]+=vecl.y;
-              HessianMatrix.element[index_l+2][n+1]+=vecl.z;
-
-
-              veci.x=Dab.z*(DDF*dtA.y*dtA.x+D2I.ay)+Dcb.z*rbc*(DDF*dtC.y*dtA.x+D2IK.ay)+
-                     Dcb.z*rbc*(DDF*dtD.y*dtA.x+D2IL.ay)+Ddc.z*(DDF*dtD.y*dtA.x+D2IL.ay);
-              veci.y=Dab.z*(DDF*dtA.y*dtA.y+D2I.by)+Dcb.z*rbc*(DDF*dtC.y*dtA.y+D2IK.by)+
-                     Dcb.z*rbc*(DDF*dtD.y*dtA.y+D2IL.by)+Ddc.z*(DDF*dtD.y*dtA.y+D2IL.by);
-              veci.z=Dab.z*(DDF*dtA.y*dtA.z+D2I.bz)+Dcb.z*rbc*(DDF*dtC.y*dtA.z+D2IK.cy)+
-                     Dcb.z*rbc*(DDF*dtD.y*dtA.z+D2IL.cy)+Ddc.z*(DDF*dtD.y*dtA.z+D2IL.cy)+fa.y;
-
-              vecj.x=Dab.z*(DDF*dtA.y*dtB.x+D2IJ.bx)+Dcb.z*rbc*(DDF*dtC.y*dtB.x+D2JK.ay)+
-                     Dcb.z*rbc*(DDF*dtD.y*dtB.x+D2JL.ay)+Ddc.z*(DDF*dtD.y*dtB.x+D2JL.ay);
-              vecj.y=Dab.z*(DDF*dtA.y*dtB.y+D2IJ.by)+Dcb.z*rbc*(DDF*dtC.y*dtB.y+D2JK.by)+
-                     Dcb.z*rbc*(DDF*dtD.y*dtB.y+D2JL.by)+Ddc.z*(DDF*dtD.y*dtB.y+D2JL.by);
-              vecj.z=Dab.z*(DDF*dtA.y*dtB.z+D2IJ.bz)+Dcb.z*rbc*(DDF*dtC.y*dtB.z+D2JK.cy)+
-                     Dcb.z*rbc*(DDF*dtD.y*dtB.z+D2JL.cy)+Ddc.z*(DDF*dtD.y*dtB.z+D2JL.cy)-fa.y-fc.y-fd.y;
-
-              veck.x=Dab.z*(DDF*dtA.y*dtC.x+D2IK.bx)+Dcb.z*rbc*(DDF*dtC.y*dtC.x+D2K.ay)+
-                     Dcb.z*rbc*(DDF*dtD.y*dtC.x+D2KL.ay)+Ddc.z*(DDF*dtD.y*dtC.x+D2KL.ay);
-              veck.y=Dab.z*(DDF*dtA.y*dtC.y+D2IK.by)+Dcb.z*rbc*(DDF*dtC.y*dtC.y+D2K.by)+
-                     Dcb.z*rbc*(DDF*dtD.y*dtC.y+D2KL.by)+Ddc.z*(DDF*dtD.y*dtC.y+D2KL.by);
-              veck.z=Dab.z*(DDF*dtA.y*dtC.z+D2IK.bz)+Dcb.z*rbc*(DDF*dtC.y*dtC.z+D2K.bz)+
-                     Dcb.z*rbc*(DDF*dtD.y*dtC.z+D2KL.cy)+Ddc.z*(DDF*dtD.y*dtC.z+D2KL.cy)+fc.y+fd.y-fd.y;
-
-              vecl.x=Dab.z*(DDF*dtA.y*dtD.x+D2IL.bx)+Dcb.z*rbc*(DDF*dtC.y*dtD.x+D2KL.bx)+
-                     Dcb.z*rbc*(DDF*dtD.y*dtD.x+D2L.ay)+Ddc.z*(DDF*dtD.y*dtD.x+D2L.ay);
-              vecl.y=Dab.z*(DDF*dtA.y*dtD.y+D2IL.by)+Dcb.z*rbc*(DDF*dtC.y*dtD.y+D2KL.by)+
-                     Dcb.z*rbc*(DDF*dtD.y*dtD.y+D2L.by)+Ddc.z*(DDF*dtD.y*dtD.y+D2L.by);
-              vecl.z=Dab.z*(DDF*dtA.y*dtD.z+D2IL.bz)+Dcb.z*rbc*(DDF*dtC.y*dtD.z+D2KL.bz)+
-                     Dcb.z*rbc*(DDF*dtD.y*dtD.z+D2L.bz)+Ddc.z*(DDF*dtD.y*dtD.z+D2L.bz)+fd.y;
-
-              HessianMatrix.element[index_i][n+2]+=veci.x;
-              HessianMatrix.element[index_i+1][n+2]+=veci.y;
-              HessianMatrix.element[index_i+2][n+2]+=veci.z;
-              HessianMatrix.element[index_j][n+2]+=vecj.x;
-              HessianMatrix.element[index_j+1][n+2]+=vecj.y;
-              HessianMatrix.element[index_j+2][n+2]+=vecj.z;
-              HessianMatrix.element[index_k][n+2]+=veck.x;
-              HessianMatrix.element[index_k+1][n+2]+=veck.y;
-              HessianMatrix.element[index_k+2][n+2]+=veck.z;
-              HessianMatrix.element[index_l][n+2]+=vecl.x;
-              HessianMatrix.element[index_l+1][n+2]+=vecl.y;
-              HessianMatrix.element[index_l+2][n+2]+=vecl.z;
-
-              veci.x=Dab.z*(DDF*dtA.z*dtA.x+D2I.az)+Dcb.z*rbc*(DDF*dtC.z*dtA.x+D2IK.az)+
-                     Dcb.z*rbc*(DDF*dtD.z*dtA.x+D2IL.az)+Ddc.z*(DDF*dtD.z*dtA.x+D2IL.az);
-              veci.y=Dab.z*(DDF*dtA.z*dtA.y+D2I.bz)+Dcb.z*rbc*(DDF*dtC.z*dtA.y+D2IK.bz)+
-                     Dcb.z*rbc*(DDF*dtD.z*dtA.y+D2IL.bz)+Ddc.z*(DDF*dtD.z*dtA.y+D2IL.bz);
-              veci.z=Dab.z*(DDF*dtA.z*dtA.z+D2I.cz)+fa.z+Dcb.z*rbc*(DDF*dtC.z*dtA.z+D2IK.cz)+
-                     Dcb.z*rbc*(DDF*dtD.z*dtA.z+D2IL.cz)+Ddc.z*(DDF*dtD.z*dtA.z+D2IL.cz);
-
-              vecj.x=Dab.z*(DDF*dtA.z*dtB.x+D2IJ.cx)+Dcb.z*rbc*(DDF*dtC.z*dtB.x+D2JK.az)+
-                     Dcb.z*rbc*(DDF*dtD.z*dtB.x+D2JL.az)+Ddc.z*(DDF*dtD.z*dtB.x+D2JL.az);
-              vecj.y=Dab.z*(DDF*dtA.z*dtB.y+D2IJ.cy)+Dcb.z*rbc*(DDF*dtC.z*dtB.y+D2JK.bz)+
-                     Dcb.z*rbc*(DDF*dtD.z*dtB.y+D2JL.bz)+Ddc.z*(DDF*dtD.z*dtB.y+D2JL.bz);
-              vecj.z=Dab.z*(DDF*dtA.z*dtB.z+D2IJ.cz)-fa.z+Dcb.z*rbc*(DDF*dtC.z*dtB.z+D2JK.cz)-fc.z+
-                     Dcb.z*rbc*(DDF*dtD.z*dtB.z+D2JL.cz)-fd.z+Ddc.z*(DDF*dtD.z*dtB.z+D2JL.cz);
-
-              veck.x=Dab.z*(DDF*dtA.z*dtC.x+D2IK.cx)+Dcb.z*rbc*(DDF*dtC.z*dtC.x+D2K.az)+
-                     Dcb.z*rbc*(DDF*dtD.z*dtC.x+D2KL.az)+Ddc.z*(DDF*dtD.z*dtC.x+D2KL.az);
-              veck.y=Dab.z*(DDF*dtA.z*dtC.y+D2IK.cy)+Dcb.z*rbc*(DDF*dtC.z*dtC.y+D2K.bz)+
-                     Dcb.z*rbc*(DDF*dtD.z*dtC.y+D2KL.bz)+Ddc.z*(DDF*dtD.z*dtC.y+D2KL.bz);
-              veck.z=Dab.z*(DDF*dtA.z*dtC.z+D2IK.cz)+Dcb.z*rbc*(DDF*dtC.z*dtC.z+D2K.cz)+fc.z+
-                     Dcb.z*rbc*(DDF*dtD.z*dtC.z+D2KL.cz)+fd.z+Ddc.z*(DDF*dtD.z*dtC.z+D2KL.cz)-fd.z;
-
-              vecl.x=Dab.z*(DDF*dtA.z*dtD.x+D2IL.cx)+Dcb.z*rbc*(DDF*dtC.z*dtD.x+D2KL.cx)+
-                     Dcb.z*rbc*(DDF*dtD.z*dtD.x+D2L.az)+Ddc.z*(DDF*dtD.z*dtD.x+D2L.az);
-              vecl.y=Dab.z*(DDF*dtA.z*dtD.y+D2IL.cy)+Dcb.z*rbc*(DDF*dtC.z*dtD.y+D2KL.cy)+
-                     Dcb.z*rbc*(DDF*dtD.z*dtD.y+D2L.bz)+Ddc.z*(DDF*dtD.z*dtD.y+D2L.bz);
-              vecl.z=Dab.z*(DDF*dtA.z*dtD.z+D2IL.cz)+Dcb.z*rbc*(DDF*dtC.z*dtD.z+D2KL.cz)+
-                     Dcb.z*rbc*(DDF*dtD.z*dtD.z+D2L.cz)+Ddc.z*(DDF*dtD.z*dtD.z+D2L.cz)+fd.z;
-
-              HessianMatrix.element[index_i][n+3]+=veci.x;
-              HessianMatrix.element[index_i+1][n+3]+=veci.y;
-              HessianMatrix.element[index_i+2][n+3]+=veci.z;
-              HessianMatrix.element[index_j][n+3]+=vecj.x;
-              HessianMatrix.element[index_j+1][n+3]+=vecj.y;
-              HessianMatrix.element[index_j+2][n+3]+=vecj.z;
-              HessianMatrix.element[index_k][n+3]+=veck.x;
-              HessianMatrix.element[index_k+1][n+3]+=veck.y;
-              HessianMatrix.element[index_k+2][n+3]+=veck.z;
-              HessianMatrix.element[index_l][n+3]+=vecl.x;
-              HessianMatrix.element[index_l+1][n+3]+=vecl.y;
-              HessianMatrix.element[index_l+2][n+3]+=vecl.z;
-              break;
-            case MONOCLINIC_BETA_ANGLE:
-              //S.ax=Dab.x*fa.x+Dcb.x*rbc*(fc.x+fd.x)+Ddc.x*fd.x;
-              veci.x=Dab.x*(DDF*dtA.x*dtA.x+D2I.ax)+Dcb.x*rbc*(DDF*dtC.x*dtA.x+D2IK.ax)+
-                     Dcb.x*rbc*(DDF*dtD.x*dtA.x+D2IL.ax)+Ddc.x*(DDF*dtD.x*dtA.x+D2IL.ax)+fa.x;
-              veci.y=Dab.x*(DDF*dtA.x*dtA.y+D2I.ay)+Dcb.x*rbc*(DDF*dtC.x*dtA.y+D2IK.bx)+
-                     Dcb.x*rbc*(DDF*dtD.x*dtA.y+D2IL.bx)+Ddc.x*(DDF*dtD.x*dtA.y+D2IL.bx);
-              veci.z=Dab.x*(DDF*dtA.x*dtA.z+D2I.az)+Dcb.x*rbc*(DDF*dtC.x*dtA.z+D2IK.cx)+
-                     Dcb.x*rbc*(DDF*dtD.x*dtA.z+D2IL.cx)+Ddc.x*(DDF*dtD.x*dtA.z+D2IL.cx);
-
-              vecj.x=Dab.x*(DDF*dtA.x*dtB.x+D2IJ.ax)+Dcb.x*rbc*(DDF*dtC.x*dtB.x+D2JK.ax)+
-                     Dcb.x*rbc*(DDF*dtD.x*dtB.x+D2JL.ax)+Ddc.x*(DDF*dtD.x*dtB.x+D2JL.ax)-fa.x-fc.x-fd.x;
-              vecj.y=Dab.x*(DDF*dtA.x*dtB.y+D2IJ.ay)+Dcb.x*rbc*(DDF*dtC.x*dtB.y+D2JK.bx)+
-                     Dcb.x*rbc*(DDF*dtD.x*dtB.y+D2JL.bx)+Ddc.x*(DDF*dtD.x*dtB.y+D2JL.bx);
-              vecj.z=Dab.x*(DDF*dtA.x*dtB.z+D2IJ.az)+Dcb.x*rbc*(DDF*dtC.x*dtB.z+D2JK.cx)+
-                     Dcb.x*rbc*(DDF*dtD.x*dtB.z+D2JL.cx)+Ddc.x*(DDF*dtD.x*dtB.z+D2JL.cx);
-
-              veck.x=Dab.x*(DDF*dtA.x*dtC.x+D2IK.ax)+Dcb.x*rbc*(DDF*dtC.x*dtC.x+D2K.ax)+
-                     Dcb.x*rbc*(DDF*dtD.x*dtC.x+D2KL.ax)+Ddc.x*(DDF*dtD.x*dtC.x+D2KL.ax)+fc.x+fd.x-fd.x;
-              veck.y=Dab.x*(DDF*dtA.x*dtC.y+D2IK.ay)+Dcb.x*rbc*(DDF*dtC.x*dtC.y+D2K.ay)+
-                     Dcb.x*rbc*(DDF*dtD.x*dtC.y+D2KL.bx)+Ddc.x*(DDF*dtD.x*dtC.y+D2KL.bx);
-              veck.z=Dab.x*(DDF*dtA.x*dtC.z+D2IK.az)+Dcb.x*rbc*(DDF*dtC.x*dtC.z+D2K.az)+
-                     Dcb.x*rbc*(DDF*dtD.x*dtC.z+D2KL.cx)+Ddc.x*(DDF*dtD.x*dtC.z+D2KL.cx);
-
-              vecl.x=Dab.x*(DDF*dtA.x*dtD.x+D2IL.ax)+Dcb.x*rbc*(DDF*dtC.x*dtD.x+D2KL.ax)+
-                     Dcb.x*rbc*(DDF*dtD.x*dtD.x+D2L.ax)+Ddc.x*(DDF*dtD.x*dtD.x+D2L.ax)+fd.x;
-              vecl.y=Dab.x*(DDF*dtA.x*dtD.y+D2IL.ay)+Dcb.x*rbc*(DDF*dtC.x*dtD.y+D2KL.ay)+
-                     Dcb.x*rbc*(DDF*dtD.x*dtD.y+D2L.ay)+Ddc.x*(DDF*dtD.x*dtD.y+D2L.ay);
-              vecl.z=Dab.x*(DDF*dtA.x*dtD.z+D2IL.az)+Dcb.x*rbc*(DDF*dtC.x*dtD.z+D2KL.az)+
-                     Dcb.x*rbc*(DDF*dtD.x*dtD.z+D2L.az)+Ddc.x*(DDF*dtD.x*dtD.z+D2L.az);
-
-              HessianMatrix.element[index_i][n]+=veci.x;
-              HessianMatrix.element[index_i+1][n]+=veci.y;
-              HessianMatrix.element[index_i+2][n]+=veci.z;
-              HessianMatrix.element[index_j][n]+=vecj.x;
-              HessianMatrix.element[index_j+1][n]+=vecj.y;
-              HessianMatrix.element[index_j+2][n]+=vecj.z;
-              HessianMatrix.element[index_k][n]+=veck.x;
-              HessianMatrix.element[index_k+1][n]+=veck.y;
-              HessianMatrix.element[index_k+2][n]+=veck.z;
-              HessianMatrix.element[index_l][n]+=vecl.x;
-              HessianMatrix.element[index_l+1][n]+=vecl.y;
-              HessianMatrix.element[index_l+2][n]+=vecl.z;
-
-              veci.x=Dab.z*(DDF*dtA.x*dtA.x+D2I.ax)+Dcb.z*rbc*(DDF*dtC.x*dtA.x+D2IK.ax)+
-                    Dcb.z*rbc*(DDF*dtD.x*dtA.x+D2IL.ax)+Ddc.z*(DDF*dtD.x*dtA.x+D2IL.ax);
-              veci.y=Dab.z*(DDF*dtA.x*dtA.y+D2I.ay)+Dcb.z*rbc*(DDF*dtC.x*dtA.y+D2IK.bx)+
-                    Dcb.z*rbc*(DDF*dtD.x*dtA.y+D2IL.bx)+Ddc.z*(DDF*dtD.x*dtA.y+D2IL.bx);
-              veci.z=Dab.z*(DDF*dtA.x*dtA.z+D2I.az)+Dcb.z*rbc*(DDF*dtC.x*dtA.z+D2IK.cx)+
-                     Dcb.z*rbc*(DDF*dtD.x*dtA.z+D2IL.cx)+Ddc.z*(DDF*dtD.x*dtA.z+D2IL.cx)+fa.x;
-
-              vecj.x=Dab.z*(DDF*dtA.x*dtB.x+D2IJ.ax)+Dcb.z*rbc*(DDF*dtC.x*dtB.x+D2JK.ax)+
-                     Dcb.z*rbc*(DDF*dtD.x*dtB.x+D2JL.ax)+Ddc.z*(DDF*dtD.x*dtB.x+D2JL.ax);
-              vecj.y=Dab.z*(DDF*dtA.x*dtB.y+D2IJ.ay)+Dcb.z*rbc*(DDF*dtC.x*dtB.y+D2JK.bx)+
-                     Dcb.z*rbc*(DDF*dtD.x*dtB.y+D2JL.bx)+Ddc.z*(DDF*dtD.x*dtB.y+D2JL.bx);
-              vecj.z=Dab.z*(DDF*dtA.x*dtB.z+D2IJ.az)+Dcb.z*rbc*(DDF*dtC.x*dtB.z+D2JK.cx)+
-                     Dcb.z*rbc*(DDF*dtD.x*dtB.z+D2JL.cx)+Ddc.z*(DDF*dtD.x*dtB.z+D2JL.cx)-fa.x-fc.x-fd.x;
-
-              veck.x=Dab.z*(DDF*dtA.x*dtC.x+D2IK.ax)+Dcb.z*rbc*(DDF*dtC.x*dtC.x+D2K.ax)+
-                     Dcb.z*rbc*(DDF*dtD.x*dtC.x+D2KL.ax)+Ddc.z*(DDF*dtD.x*dtC.x+D2KL.ax);
-              veck.y=Dab.z*(DDF*dtA.x*dtC.y+D2IK.ay)+Dcb.z*rbc*(DDF*dtC.x*dtC.y+D2K.ay)+
-                     Dcb.z*rbc*(DDF*dtD.x*dtC.y+D2KL.bx)+Ddc.z*(DDF*dtD.x*dtC.y+D2KL.bx);
-              veck.z=Dab.z*(DDF*dtA.x*dtC.z+D2IK.az)+Dcb.z*rbc*(DDF*dtC.x*dtC.z+D2K.az)+
-                     Dcb.z*rbc*(DDF*dtD.x*dtC.z+D2KL.cx)+Ddc.z*(DDF*dtD.x*dtC.z+D2KL.cx)+fc.x+fd.x-fd.x;
-
-              vecl.x=Dab.z*(DDF*dtA.x*dtD.x+D2IL.ax)+Dcb.z*rbc*(DDF*dtC.x*dtD.x+D2KL.ax)+
-                     Dcb.z*rbc*(DDF*dtD.x*dtD.x+D2L.ax)+Ddc.z*(DDF*dtD.x*dtD.x+D2L.ax);
-              vecl.y=Dab.z*(DDF*dtA.x*dtD.y+D2IL.ay)+Dcb.z*rbc*(DDF*dtC.x*dtD.y+D2KL.ay)+
-                     Dcb.z*rbc*(DDF*dtD.x*dtD.y+D2L.ay)+Ddc.z*(DDF*dtD.x*dtD.y+D2L.ay);
-              vecl.z=Dab.z*(DDF*dtA.x*dtD.z+D2IL.az)+Dcb.z*rbc*(DDF*dtC.x*dtD.z+D2KL.az)+
-                     Dcb.z*rbc*(DDF*dtD.x*dtD.z+D2L.az)+Ddc.z*(DDF*dtD.x*dtD.z+D2L.az)+fd.x;
-
-              HessianMatrix.element[index_i][n+1]+=veci.x;
-              HessianMatrix.element[index_i+1][n+1]+=veci.y;
-              HessianMatrix.element[index_i+2][n+1]+=veci.z;
-              HessianMatrix.element[index_j][n+1]+=vecj.x;
-              HessianMatrix.element[index_j+1][n+1]+=vecj.y;
-              HessianMatrix.element[index_j+2][n+1]+=vecj.z;
-              HessianMatrix.element[index_k][n+1]+=veck.x;
-              HessianMatrix.element[index_k+1][n+1]+=veck.y;
-              HessianMatrix.element[index_k+2][n+1]+=veck.z;
-              HessianMatrix.element[index_l][n+1]+=vecl.x;
-              HessianMatrix.element[index_l+1][n+1]+=vecl.y;
-              HessianMatrix.element[index_l+2][n+1]+=vecl.z;
-
-
-              veci.x=Dab.y*(DDF*dtA.y*dtA.x+D2I.ay)+Dcb.y*rbc*(DDF*dtC.y*dtA.x+D2IK.ay)+
-                     Dcb.y*rbc*(DDF*dtD.y*dtA.x+D2IL.ay)+Ddc.y*(DDF*dtD.y*dtA.x+D2IL.ay);
-              veci.y=Dab.y*(DDF*dtA.y*dtA.y+D2I.by)+fa.y+Dcb.y*rbc*(DDF*dtC.y*dtA.y+D2IK.by)+
-                     Dcb.y*rbc*(DDF*dtD.y*dtA.y+D2IL.by)+Ddc.y*(DDF*dtD.y*dtA.y+D2IL.by);
-              veci.z=Dab.y*(DDF*dtA.y*dtA.z+D2I.bz)+Dcb.y*rbc*(DDF*dtC.y*dtA.z+D2IK.cy)+
-                     Dcb.y*rbc*(DDF*dtD.y*dtA.z+D2IL.cy)+Ddc.y*(DDF*dtD.y*dtA.z+D2IL.cy);
-
-              vecj.x=Dab.y*(DDF*dtA.y*dtB.x+D2IJ.bx)+Dcb.y*rbc*(DDF*dtC.y*dtB.x+D2JK.ay)+
-                     Dcb.y*rbc*(DDF*dtD.y*dtB.x+D2JL.ay)+Ddc.y*(DDF*dtD.y*dtB.x+D2JL.ay);
-              vecj.y=Dab.y*(DDF*dtA.y*dtB.y+D2IJ.by)-fa.y+Dcb.y*rbc*(DDF*dtC.y*dtB.y+D2JK.by)-fc.y+
-                     Dcb.y*rbc*(DDF*dtD.y*dtB.y+D2JL.by)-fd.y+Ddc.y*(DDF*dtD.y*dtB.y+D2JL.by);
-              vecj.z=Dab.y*(DDF*dtA.y*dtB.z+D2IJ.bz)+Dcb.y*rbc*(DDF*dtC.y*dtB.z+D2JK.cy)+
-                     Dcb.y*rbc*(DDF*dtD.y*dtB.z+D2JL.cy)+Ddc.y*(DDF*dtD.y*dtB.z+D2JL.cy);
-
-              veck.x=Dab.y*(DDF*dtA.y*dtC.x+D2IK.bx)+Dcb.y*rbc*(DDF*dtC.y*dtC.x+D2K.ay)+
-                     Dcb.y*rbc*(DDF*dtD.y*dtC.x+D2KL.ay)+Ddc.y*(DDF*dtD.y*dtC.x+D2KL.ay);
-              veck.y=Dab.y*(DDF*dtA.y*dtC.y+D2IK.by)+Dcb.y*rbc*(DDF*dtC.y*dtC.y+D2K.by)+fc.y+
-                     Dcb.y*rbc*(DDF*dtD.y*dtC.y+D2KL.by)+fd.y+Ddc.y*(DDF*dtD.y*dtC.y+D2KL.by)-fd.y;
-              veck.z=Dab.y*(DDF*dtA.y*dtC.z+D2IK.bz)+Dcb.y*rbc*(DDF*dtC.y*dtC.z+D2K.bz)+
-                     Dcb.y*rbc*(DDF*dtD.y*dtC.z+D2KL.cy)+Ddc.y*(DDF*dtD.y*dtC.z+D2KL.cy);
-
-              vecl.x=Dab.y*(DDF*dtA.y*dtD.x+D2IL.bx)+Dcb.y*rbc*(DDF*dtC.y*dtD.x+D2KL.bx)+
-                     Dcb.y*rbc*(DDF*dtD.y*dtD.x+D2L.ay)+Ddc.y*(DDF*dtD.y*dtD.x+D2L.ay);
-              vecl.y=Dab.y*(DDF*dtA.y*dtD.y+D2IL.by)+Dcb.y*rbc*(DDF*dtC.y*dtD.y+D2KL.by)+
-                     Dcb.y*rbc*(DDF*dtD.y*dtD.y+D2L.by)+Ddc.y*(DDF*dtD.y*dtD.y+D2L.by)+fd.y;
-              vecl.z=Dab.y*(DDF*dtA.y*dtD.z+D2IL.bz)+Dcb.y*rbc*(DDF*dtC.y*dtD.z+D2KL.bz)+
-                     Dcb.y*rbc*(DDF*dtD.y*dtD.z+D2L.bz)+Ddc.y*(DDF*dtD.y*dtD.z+D2L.bz);
-
-              HessianMatrix.element[index_i][n+2]+=veci.x;
-              HessianMatrix.element[index_i+1][n+2]+=veci.y;
-              HessianMatrix.element[index_i+2][n+2]+=veci.z;
-              HessianMatrix.element[index_j][n+2]+=vecj.x;
-              HessianMatrix.element[index_j+1][n+2]+=vecj.y;
-              HessianMatrix.element[index_j+2][n+2]+=vecj.z;
-              HessianMatrix.element[index_k][n+2]+=veck.x;
-              HessianMatrix.element[index_k+1][n+2]+=veck.y;
-              HessianMatrix.element[index_k+2][n+2]+=veck.z;
-              HessianMatrix.element[index_l][n+2]+=vecl.x;
-              HessianMatrix.element[index_l+1][n+2]+=vecl.y;
-              HessianMatrix.element[index_l+2][n+2]+=vecl.z;
-
-
-              veci.x=Dab.z*(DDF*dtA.z*dtA.x+D2I.az)+Dcb.z*rbc*(DDF*dtC.z*dtA.x+D2IK.az)+
-                     Dcb.z*rbc*(DDF*dtD.z*dtA.x+D2IL.az)+Ddc.z*(DDF*dtD.z*dtA.x+D2IL.az);
-              veci.y=Dab.z*(DDF*dtA.z*dtA.y+D2I.bz)+Dcb.z*rbc*(DDF*dtC.z*dtA.y+D2IK.bz)+
-                     Dcb.z*rbc*(DDF*dtD.z*dtA.y+D2IL.bz)+Ddc.z*(DDF*dtD.z*dtA.y+D2IL.bz);
-              veci.z=Dab.z*(DDF*dtA.z*dtA.z+D2I.cz)+fa.z+Dcb.z*rbc*(DDF*dtC.z*dtA.z+D2IK.cz)+
-                     Dcb.z*rbc*(DDF*dtD.z*dtA.z+D2IL.cz)+Ddc.z*(DDF*dtD.z*dtA.z+D2IL.cz);
-
-              vecj.x=Dab.z*(DDF*dtA.z*dtB.x+D2IJ.cx)+Dcb.z*rbc*(DDF*dtC.z*dtB.x+D2JK.az)+
-                     Dcb.z*rbc*(DDF*dtD.z*dtB.x+D2JL.az)+Ddc.z*(DDF*dtD.z*dtB.x+D2JL.az);
-              vecj.y=Dab.z*(DDF*dtA.z*dtB.y+D2IJ.cy)+Dcb.z*rbc*(DDF*dtC.z*dtB.y+D2JK.bz)+
-                     Dcb.z*rbc*(DDF*dtD.z*dtB.y+D2JL.bz)+Ddc.z*(DDF*dtD.z*dtB.y+D2JL.bz);
-              vecj.z=Dab.z*(DDF*dtA.z*dtB.z+D2IJ.cz)-fa.z+Dcb.z*rbc*(DDF*dtC.z*dtB.z+D2JK.cz)-fc.z+
-                     Dcb.z*rbc*(DDF*dtD.z*dtB.z+D2JL.cz)-fd.z+Ddc.z*(DDF*dtD.z*dtB.z+D2JL.cz);
-
-              veck.x=Dab.z*(DDF*dtA.z*dtC.x+D2IK.cx)+Dcb.z*rbc*(DDF*dtC.z*dtC.x+D2K.az)+
-                     Dcb.z*rbc*(DDF*dtD.z*dtC.x+D2KL.az)+Ddc.z*(DDF*dtD.z*dtC.x+D2KL.az);
-              veck.y=Dab.z*(DDF*dtA.z*dtC.y+D2IK.cy)+Dcb.z*rbc*(DDF*dtC.z*dtC.y+D2K.bz)+
-                     Dcb.z*rbc*(DDF*dtD.z*dtC.y+D2KL.bz)+Ddc.z*(DDF*dtD.z*dtC.y+D2KL.bz);
-              veck.z=Dab.z*(DDF*dtA.z*dtC.z+D2IK.cz)+Dcb.z*rbc*(DDF*dtC.z*dtC.z+D2K.cz)+fc.z+
-                     Dcb.z*rbc*(DDF*dtD.z*dtC.z+D2KL.cz)+fd.z+Ddc.z*(DDF*dtD.z*dtC.z+D2KL.cz)-fd.z;
-
-              vecl.x=Dab.z*(DDF*dtA.z*dtD.x+D2IL.cx)+Dcb.z*rbc*(DDF*dtC.z*dtD.x+D2KL.cx)+
-                     Dcb.z*rbc*(DDF*dtD.z*dtD.x+D2L.az)+Ddc.z*(DDF*dtD.z*dtD.x+D2L.az);
-              vecl.y=Dab.z*(DDF*dtA.z*dtD.y+D2IL.cy)+Dcb.z*rbc*(DDF*dtC.z*dtD.y+D2KL.cy)+
-                     Dcb.z*rbc*(DDF*dtD.z*dtD.y+D2L.bz)+Ddc.z*(DDF*dtD.z*dtD.y+D2L.bz);
-              vecl.z=Dab.z*(DDF*dtA.z*dtD.z+D2IL.cz)+Dcb.z*rbc*(DDF*dtC.z*dtD.z+D2KL.cz)+
-                     Dcb.z*rbc*(DDF*dtD.z*dtD.z+D2L.cz)+Ddc.z*(DDF*dtD.z*dtD.z+D2L.cz)+fd.z;
-
-              HessianMatrix.element[index_i][n+3]+=veci.x;
-              HessianMatrix.element[index_i+1][n+3]+=veci.y;
-              HessianMatrix.element[index_i+2][n+3]+=veci.z;
-              HessianMatrix.element[index_j][n+3]+=vecj.x;
-              HessianMatrix.element[index_j+1][n+3]+=vecj.y;
-              HessianMatrix.element[index_j+2][n+3]+=vecj.z;
-              HessianMatrix.element[index_k][n+3]+=veck.x;
-              HessianMatrix.element[index_k+1][n+3]+=veck.y;
-              HessianMatrix.element[index_k+2][n+3]+=veck.z;
-              HessianMatrix.element[index_l][n+3]+=vecl.x;
-              HessianMatrix.element[index_l+1][n+3]+=vecl.y;
-              HessianMatrix.element[index_l+2][n+3]+=vecl.z;
-              break;
-            case MONOCLINIC_GAMMA_ANGLE:
-              //S.ax=Dab.x*fa.x+Dcb.x*rbc*(fc.x+fd.x)+Ddc.x*fd.x;
-              veci.x=Dab.x*(DDF*dtA.x*dtA.x+D2I.ax)+Dcb.x*rbc*(DDF*dtC.x*dtA.x+D2IK.ax)+
-                     Dcb.x*rbc*(DDF*dtD.x*dtA.x+D2IL.ax)+Ddc.x*(DDF*dtD.x*dtA.x+D2IL.ax)+fa.x;
-              veci.y=Dab.x*(DDF*dtA.x*dtA.y+D2I.ay)+Dcb.x*rbc*(DDF*dtC.x*dtA.y+D2IK.bx)+
-                     Dcb.x*rbc*(DDF*dtD.x*dtA.y+D2IL.bx)+Ddc.x*(DDF*dtD.x*dtA.y+D2IL.bx);
-              veci.z=Dab.x*(DDF*dtA.x*dtA.z+D2I.az)+Dcb.x*rbc*(DDF*dtC.x*dtA.z+D2IK.cx)+
-                     Dcb.x*rbc*(DDF*dtD.x*dtA.z+D2IL.cx)+Ddc.x*(DDF*dtD.x*dtA.z+D2IL.cx);
-
-              vecj.x=Dab.x*(DDF*dtA.x*dtB.x+D2IJ.ax)+Dcb.x*rbc*(DDF*dtC.x*dtB.x+D2JK.ax)+
-                     Dcb.x*rbc*(DDF*dtD.x*dtB.x+D2JL.ax)+Ddc.x*(DDF*dtD.x*dtB.x+D2JL.ax)-fa.x-fc.x-fd.x;
-              vecj.y=Dab.x*(DDF*dtA.x*dtB.y+D2IJ.ay)+Dcb.x*rbc*(DDF*dtC.x*dtB.y+D2JK.bx)+
-                     Dcb.x*rbc*(DDF*dtD.x*dtB.y+D2JL.bx)+Ddc.x*(DDF*dtD.x*dtB.y+D2JL.bx);
-              vecj.z=Dab.x*(DDF*dtA.x*dtB.z+D2IJ.az)+Dcb.x*rbc*(DDF*dtC.x*dtB.z+D2JK.cx)+
-                     Dcb.x*rbc*(DDF*dtD.x*dtB.z+D2JL.cx)+Ddc.x*(DDF*dtD.x*dtB.z+D2JL.cx);
-
-              veck.x=Dab.x*(DDF*dtA.x*dtC.x+D2IK.ax)+Dcb.x*rbc*(DDF*dtC.x*dtC.x+D2K.ax)+
-                     Dcb.x*rbc*(DDF*dtD.x*dtC.x+D2KL.ax)+Ddc.x*(DDF*dtD.x*dtC.x+D2KL.ax)+fc.x+fd.x-fd.x;
-              veck.y=Dab.x*(DDF*dtA.x*dtC.y+D2IK.ay)+Dcb.x*rbc*(DDF*dtC.x*dtC.y+D2K.ay)+
-                     Dcb.x*rbc*(DDF*dtD.x*dtC.y+D2KL.bx)+Ddc.x*(DDF*dtD.x*dtC.y+D2KL.bx);
-              veck.z=Dab.x*(DDF*dtA.x*dtC.z+D2IK.az)+Dcb.x*rbc*(DDF*dtC.x*dtC.z+D2K.az)+
-                     Dcb.x*rbc*(DDF*dtD.x*dtC.z+D2KL.cx)+Ddc.x*(DDF*dtD.x*dtC.z+D2KL.cx);
-
-              vecl.x=Dab.x*(DDF*dtA.x*dtD.x+D2IL.ax)+Dcb.x*rbc*(DDF*dtC.x*dtD.x+D2KL.ax)+
-                     Dcb.x*rbc*(DDF*dtD.x*dtD.x+D2L.ax)+Ddc.x*(DDF*dtD.x*dtD.x+D2L.ax)+fd.x;
-              vecl.y=Dab.x*(DDF*dtA.x*dtD.y+D2IL.ay)+Dcb.x*rbc*(DDF*dtC.x*dtD.y+D2KL.ay)+
-                     Dcb.x*rbc*(DDF*dtD.x*dtD.y+D2L.ay)+Ddc.x*(DDF*dtD.x*dtD.y+D2L.ay);
-              vecl.z=Dab.x*(DDF*dtA.x*dtD.z+D2IL.az)+Dcb.x*rbc*(DDF*dtC.x*dtD.z+D2KL.az)+
-                     Dcb.x*rbc*(DDF*dtD.x*dtD.z+D2L.az)+Ddc.x*(DDF*dtD.x*dtD.z+D2L.az);
-
-              HessianMatrix.element[index_i][n]+=veci.x;
-              HessianMatrix.element[index_i+1][n]+=veci.y;
-              HessianMatrix.element[index_i+2][n]+=veci.z;
-              HessianMatrix.element[index_j][n]+=vecj.x;
-              HessianMatrix.element[index_j+1][n]+=vecj.y;
-              HessianMatrix.element[index_j+2][n]+=vecj.z;
-              HessianMatrix.element[index_k][n]+=veck.x;
-              HessianMatrix.element[index_k+1][n]+=veck.y;
-              HessianMatrix.element[index_k+2][n]+=veck.z;
-              HessianMatrix.element[index_l][n]+=vecl.x;
-              HessianMatrix.element[index_l+1][n]+=vecl.y;
-              HessianMatrix.element[index_l+2][n]+=vecl.z;
-
-              //S.bx=Dab.y*fa.x+Dcb.y*rbc*(fc.x+fd.x)+Ddc.y*fd.x;
-              veci.x=Dab.y*(DDF*dtA.x*dtA.x+D2I.ax)+Dcb.y*rbc*(DDF*dtC.x*dtA.x+D2IK.ax)+
-                     Dcb.y*rbc*(DDF*dtD.x*dtA.x+D2IL.ax)+Ddc.y*(DDF*dtD.x*dtA.x+D2IL.ax);
-              veci.y=Dab.y*(DDF*dtA.x*dtA.y+D2I.ay)+Dcb.y*rbc*(DDF*dtC.x*dtA.y+D2IK.bx)+
-                     Dcb.y*rbc*(DDF*dtD.x*dtA.y+D2IL.bx)+Ddc.y*(DDF*dtD.x*dtA.y+D2IL.bx)+fa.x;
-              veci.z=Dab.y*(DDF*dtA.x*dtA.z+D2I.az)+Dcb.y*rbc*(DDF*dtC.x*dtA.z+D2IK.cx)+
-                     Dcb.y*rbc*(DDF*dtD.x*dtA.z+D2IL.cx)+Ddc.y*(DDF*dtD.x*dtA.z+D2IL.cx);
-
-              vecj.x=Dab.y*(DDF*dtA.x*dtB.x+D2IJ.ax)+Dcb.y*rbc*(DDF*dtC.x*dtB.x+D2JK.ax)+
-                     Dcb.y*rbc*(DDF*dtD.x*dtB.x+D2JL.ax)+Ddc.y*(DDF*dtD.x*dtB.x+D2JL.ax);
-              vecj.y=Dab.y*(DDF*dtA.x*dtB.y+D2IJ.ay)+Dcb.y*rbc*(DDF*dtC.x*dtB.y+D2JK.bx)+
-                     Dcb.y*rbc*(DDF*dtD.x*dtB.y+D2JL.bx)+Ddc.y*(DDF*dtD.x*dtB.y+D2JL.bx)-fa.x-fc.x-fd.x;
-              vecj.z=Dab.y*(DDF*dtA.x*dtB.z+D2IJ.az)+Dcb.y*rbc*(DDF*dtC.x*dtB.z+D2JK.cx)+
-                     Dcb.y*rbc*(DDF*dtD.x*dtB.z+D2JL.cx)+Ddc.y*(DDF*dtD.x*dtB.z+D2JL.cx);
-
-              veck.x=Dab.y*(DDF*dtA.x*dtC.x+D2IK.ax)+Dcb.y*rbc*(DDF*dtC.x*dtC.x+D2K.ax)+
-                     Dcb.y*rbc*(DDF*dtD.x*dtC.x+D2KL.ax)+Ddc.y*(DDF*dtD.x*dtC.x+D2KL.ax);
-              veck.y=Dab.y*(DDF*dtA.x*dtC.y+D2IK.ay)+Dcb.y*rbc*(DDF*dtC.x*dtC.y+D2K.ay)+
-                     Dcb.y*rbc*(DDF*dtD.x*dtC.y+D2KL.bx)+Ddc.y*(DDF*dtD.x*dtC.y+D2KL.bx)+fc.x+fd.x-fd.x;
-              veck.z=Dab.y*(DDF*dtA.x*dtC.z+D2IK.az)+Dcb.y*rbc*(DDF*dtC.x*dtC.z+D2K.az)+
-                     Dcb.y*rbc*(DDF*dtD.x*dtC.z+D2KL.cx)+Ddc.y*(DDF*dtD.x*dtC.z+D2KL.cx);
-
-              vecl.x=Dab.y*(DDF*dtA.x*dtD.x+D2IL.ax)+Dcb.y*rbc*(DDF*dtC.x*dtD.x+D2KL.ax)+
-                     Dcb.y*rbc*(DDF*dtD.x*dtD.x+D2L.ax)+Ddc.y*(DDF*dtD.x*dtD.x+D2L.ax);
-              vecl.y=Dab.y*(DDF*dtA.x*dtD.y+D2IL.ay)+Dcb.y*rbc*(DDF*dtC.x*dtD.y+D2KL.ay)+
-                     Dcb.y*rbc*(DDF*dtD.x*dtD.y+D2L.ay)+Ddc.y*(DDF*dtD.x*dtD.y+D2L.ay)+fd.x;
-              vecl.z=Dab.y*(DDF*dtA.x*dtD.z+D2IL.az)+Dcb.y*rbc*(DDF*dtC.x*dtD.z+D2KL.az)+
-                     Dcb.y*rbc*(DDF*dtD.x*dtD.z+D2L.az)+Ddc.y*(DDF*dtD.x*dtD.z+D2L.az);
-
-              HessianMatrix.element[index_i][n+1]+=veci.x;
-              HessianMatrix.element[index_i+1][n+1]+=veci.y;
-              HessianMatrix.element[index_i+2][n+1]+=veci.z;
-              HessianMatrix.element[index_j][n+1]+=vecj.x;
-              HessianMatrix.element[index_j+1][n+1]+=vecj.y;
-              HessianMatrix.element[index_j+2][n+1]+=vecj.z;
-              HessianMatrix.element[index_k][n+1]+=veck.x;
-              HessianMatrix.element[index_k+1][n+1]+=veck.y;
-              HessianMatrix.element[index_k+2][n+1]+=veck.z;
-              HessianMatrix.element[index_l][n+1]+=vecl.x;
-              HessianMatrix.element[index_l+1][n+1]+=vecl.y;
-              HessianMatrix.element[index_l+2][n+1]+=vecl.z;
-
-              veci.x=Dab.y*(DDF*dtA.y*dtA.x+D2I.ay)+Dcb.y*rbc*(DDF*dtC.y*dtA.x+D2IK.ay)+
-                     Dcb.y*rbc*(DDF*dtD.y*dtA.x+D2IL.ay)+Ddc.y*(DDF*dtD.y*dtA.x+D2IL.ay);
-              veci.y=Dab.y*(DDF*dtA.y*dtA.y+D2I.by)+fa.y+Dcb.y*rbc*(DDF*dtC.y*dtA.y+D2IK.by)+
-                     Dcb.y*rbc*(DDF*dtD.y*dtA.y+D2IL.by)+Ddc.y*(DDF*dtD.y*dtA.y+D2IL.by);
-              veci.z=Dab.y*(DDF*dtA.y*dtA.z+D2I.bz)+Dcb.y*rbc*(DDF*dtC.y*dtA.z+D2IK.cy)+
-                     Dcb.y*rbc*(DDF*dtD.y*dtA.z+D2IL.cy)+Ddc.y*(DDF*dtD.y*dtA.z+D2IL.cy);
-
-              vecj.x=Dab.y*(DDF*dtA.y*dtB.x+D2IJ.bx)+Dcb.y*rbc*(DDF*dtC.y*dtB.x+D2JK.ay)+
-                     Dcb.y*rbc*(DDF*dtD.y*dtB.x+D2JL.ay)+Ddc.y*(DDF*dtD.y*dtB.x+D2JL.ay);
-              vecj.y=Dab.y*(DDF*dtA.y*dtB.y+D2IJ.by)-fa.y+Dcb.y*rbc*(DDF*dtC.y*dtB.y+D2JK.by)-fc.y+
-                     Dcb.y*rbc*(DDF*dtD.y*dtB.y+D2JL.by)-fd.y+Ddc.y*(DDF*dtD.y*dtB.y+D2JL.by);
-              vecj.z=Dab.y*(DDF*dtA.y*dtB.z+D2IJ.bz)+Dcb.y*rbc*(DDF*dtC.y*dtB.z+D2JK.cy)+
-                     Dcb.y*rbc*(DDF*dtD.y*dtB.z+D2JL.cy)+Ddc.y*(DDF*dtD.y*dtB.z+D2JL.cy);
-
-              veck.x=Dab.y*(DDF*dtA.y*dtC.x+D2IK.bx)+Dcb.y*rbc*(DDF*dtC.y*dtC.x+D2K.ay)+
-                     Dcb.y*rbc*(DDF*dtD.y*dtC.x+D2KL.ay)+Ddc.y*(DDF*dtD.y*dtC.x+D2KL.ay);
-              veck.y=Dab.y*(DDF*dtA.y*dtC.y+D2IK.by)+Dcb.y*rbc*(DDF*dtC.y*dtC.y+D2K.by)+fc.y+
-                     Dcb.y*rbc*(DDF*dtD.y*dtC.y+D2KL.by)+fd.y+Ddc.y*(DDF*dtD.y*dtC.y+D2KL.by)-fd.y;
-              veck.z=Dab.y*(DDF*dtA.y*dtC.z+D2IK.bz)+Dcb.y*rbc*(DDF*dtC.y*dtC.z+D2K.bz)+
-                     Dcb.y*rbc*(DDF*dtD.y*dtC.z+D2KL.cy)+Ddc.y*(DDF*dtD.y*dtC.z+D2KL.cy);
-
-              vecl.x=Dab.y*(DDF*dtA.y*dtD.x+D2IL.bx)+Dcb.y*rbc*(DDF*dtC.y*dtD.x+D2KL.bx)+
-                     Dcb.y*rbc*(DDF*dtD.y*dtD.x+D2L.ay)+Ddc.y*(DDF*dtD.y*dtD.x+D2L.ay);
-              vecl.y=Dab.y*(DDF*dtA.y*dtD.y+D2IL.by)+Dcb.y*rbc*(DDF*dtC.y*dtD.y+D2KL.by)+
-                     Dcb.y*rbc*(DDF*dtD.y*dtD.y+D2L.by)+Ddc.y*(DDF*dtD.y*dtD.y+D2L.by)+fd.y;
-              vecl.z=Dab.y*(DDF*dtA.y*dtD.z+D2IL.bz)+Dcb.y*rbc*(DDF*dtC.y*dtD.z+D2KL.bz)+
-                     Dcb.y*rbc*(DDF*dtD.y*dtD.z+D2L.bz)+Ddc.y*(DDF*dtD.y*dtD.z+D2L.bz);
-
-              HessianMatrix.element[index_i][n+2]+=veci.x;
-              HessianMatrix.element[index_i+1][n+2]+=veci.y;
-              HessianMatrix.element[index_i+2][n+2]+=veci.z;
-              HessianMatrix.element[index_j][n+2]+=vecj.x;
-              HessianMatrix.element[index_j+1][n+2]+=vecj.y;
-              HessianMatrix.element[index_j+2][n+2]+=vecj.z;
-              HessianMatrix.element[index_k][n+2]+=veck.x;
-              HessianMatrix.element[index_k+1][n+2]+=veck.y;
-              HessianMatrix.element[index_k+2][n+2]+=veck.z;
-              HessianMatrix.element[index_l][n+2]+=vecl.x;
-              HessianMatrix.element[index_l+1][n+2]+=vecl.y;
-              HessianMatrix.element[index_l+2][n+2]+=vecl.z;
-
-
-              veci.x=Dab.z*(DDF*dtA.z*dtA.x+D2I.az)+Dcb.z*rbc*(DDF*dtC.z*dtA.x+D2IK.az)+
-                     Dcb.z*rbc*(DDF*dtD.z*dtA.x+D2IL.az)+Ddc.z*(DDF*dtD.z*dtA.x+D2IL.az);
-              veci.y=Dab.z*(DDF*dtA.z*dtA.y+D2I.bz)+Dcb.z*rbc*(DDF*dtC.z*dtA.y+D2IK.bz)+
-                     Dcb.z*rbc*(DDF*dtD.z*dtA.y+D2IL.bz)+Ddc.z*(DDF*dtD.z*dtA.y+D2IL.bz);
-              veci.z=Dab.z*(DDF*dtA.z*dtA.z+D2I.cz)+fa.z+Dcb.z*rbc*(DDF*dtC.z*dtA.z+D2IK.cz)+
-                     Dcb.z*rbc*(DDF*dtD.z*dtA.z+D2IL.cz)+Ddc.z*(DDF*dtD.z*dtA.z+D2IL.cz);
-
-              vecj.x=Dab.z*(DDF*dtA.z*dtB.x+D2IJ.cx)+Dcb.z*rbc*(DDF*dtC.z*dtB.x+D2JK.az)+
-                     Dcb.z*rbc*(DDF*dtD.z*dtB.x+D2JL.az)+Ddc.z*(DDF*dtD.z*dtB.x+D2JL.az);
-              vecj.y=Dab.z*(DDF*dtA.z*dtB.y+D2IJ.cy)+Dcb.z*rbc*(DDF*dtC.z*dtB.y+D2JK.bz)+
-                     Dcb.z*rbc*(DDF*dtD.z*dtB.y+D2JL.bz)+Ddc.z*(DDF*dtD.z*dtB.y+D2JL.bz);
-              vecj.z=Dab.z*(DDF*dtA.z*dtB.z+D2IJ.cz)-fa.z+Dcb.z*rbc*(DDF*dtC.z*dtB.z+D2JK.cz)-fc.z+
-                     Dcb.z*rbc*(DDF*dtD.z*dtB.z+D2JL.cz)-fd.z+Ddc.z*(DDF*dtD.z*dtB.z+D2JL.cz);
-
-              veck.x=Dab.z*(DDF*dtA.z*dtC.x+D2IK.cx)+Dcb.z*rbc*(DDF*dtC.z*dtC.x+D2K.az)+
-                     Dcb.z*rbc*(DDF*dtD.z*dtC.x+D2KL.az)+Ddc.z*(DDF*dtD.z*dtC.x+D2KL.az);
-              veck.y=Dab.z*(DDF*dtA.z*dtC.y+D2IK.cy)+Dcb.z*rbc*(DDF*dtC.z*dtC.y+D2K.bz)+
-                     Dcb.z*rbc*(DDF*dtD.z*dtC.y+D2KL.bz)+Ddc.z*(DDF*dtD.z*dtC.y+D2KL.bz);
-              veck.z=Dab.z*(DDF*dtA.z*dtC.z+D2IK.cz)+Dcb.z*rbc*(DDF*dtC.z*dtC.z+D2K.cz)+fc.z+
-                     Dcb.z*rbc*(DDF*dtD.z*dtC.z+D2KL.cz)+fd.z+Ddc.z*(DDF*dtD.z*dtC.z+D2KL.cz)-fd.z;
-
-              vecl.x=Dab.z*(DDF*dtA.z*dtD.x+D2IL.cx)+Dcb.z*rbc*(DDF*dtC.z*dtD.x+D2KL.cx)+
-                     Dcb.z*rbc*(DDF*dtD.z*dtD.x+D2L.az)+Ddc.z*(DDF*dtD.z*dtD.x+D2L.az);
-              vecl.y=Dab.z*(DDF*dtA.z*dtD.y+D2IL.cy)+Dcb.z*rbc*(DDF*dtC.z*dtD.y+D2KL.cy)+
-                     Dcb.z*rbc*(DDF*dtD.z*dtD.y+D2L.bz)+Ddc.z*(DDF*dtD.z*dtD.y+D2L.bz);
-              vecl.z=Dab.z*(DDF*dtA.z*dtD.z+D2IL.cz)+Dcb.z*rbc*(DDF*dtC.z*dtD.z+D2KL.cz)+
-                     Dcb.z*rbc*(DDF*dtD.z*dtD.z+D2L.cz)+Ddc.z*(DDF*dtD.z*dtD.z+D2L.cz)+fd.z;
-
-              HessianMatrix.element[index_i][n+3]+=veci.x;
-              HessianMatrix.element[index_i+1][n+3]+=veci.y;
-              HessianMatrix.element[index_i+2][n+3]+=veci.z;
-              HessianMatrix.element[index_j][n+3]+=vecj.x;
-              HessianMatrix.element[index_j+1][n+3]+=vecj.y;
-              HessianMatrix.element[index_j+2][n+3]+=vecj.z;
-              HessianMatrix.element[index_k][n+3]+=veck.x;
-              HessianMatrix.element[index_k+1][n+3]+=veck.y;
-              HessianMatrix.element[index_k+2][n+3]+=veck.z;
-              HessianMatrix.element[index_l][n+3]+=vecl.x;
-              HessianMatrix.element[index_l+1][n+3]+=vecl.y;
-              HessianMatrix.element[index_l+2][n+3]+=vecl.z;
-              break;
-          }
-          break;
-        default:
-          printf("Unknown NPTPRCellType\n");
-          exit(0);
-          break;
-      }
-      break;
-    case NVT:
-    case NVE:
-      break;
-  }
-}
-
-
-static inline void HessianTorsionStrainStrain(REAL_MATRIX HessianMatrix,VECTOR vec_u,VECTOR vec_v,VECTOR vec_w,REAL u,REAL v,REAL w,REAL DF,REAL DDF,REAL_MATRIX3x3 S,REAL CosPhi)
-{
-  int n;
-  REAL_MATRIX3x3 dme,dne,dmn,T;
-  REAL m2,n2,dot_mn;
-  VECTOR vec_m,vec_n;
-
-  n=NumberOfCoordinatesMinimizationVariables;
-
-  dme.ax=2.0*((SQR(u))*vec_v.x*vec_v.x+(SQR(v))*vec_u.x*vec_u.x-(vec_v.x*vec_u.x+vec_v.y*vec_u.y+vec_v.z*vec_u.z)*(vec_v.x*vec_u.x+vec_u.x*vec_v.x));
-  dme.ay=2.0*((SQR(u))*vec_v.x*vec_v.y+(SQR(v))*vec_u.x*vec_u.y-(vec_v.x*vec_u.x+vec_v.y*vec_u.y+vec_v.z*vec_u.z)*(vec_v.x*vec_u.y+vec_u.x*vec_v.y));
-  dme.az=2.0*((SQR(u))*vec_v.x*vec_v.z+(SQR(v))*vec_u.x*vec_u.z-(vec_v.x*vec_u.x+vec_v.y*vec_u.y+vec_v.z*vec_u.z)*(vec_v.x*vec_u.z+vec_u.x*vec_v.z));
-  dme.bx=2.0*((SQR(u))*vec_v.y*vec_v.x+(SQR(v))*vec_u.y*vec_u.x-(vec_v.x*vec_u.x+vec_v.y*vec_u.y+vec_v.z*vec_u.z)*(vec_v.y*vec_u.x+vec_u.y*vec_v.x));
-  dme.by=2.0*((SQR(u))*vec_v.y*vec_v.y+(SQR(v))*vec_u.y*vec_u.y-(vec_v.x*vec_u.x+vec_v.y*vec_u.y+vec_v.z*vec_u.z)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y));
-  dme.bz=2.0*((SQR(u))*vec_v.y*vec_v.z+(SQR(v))*vec_u.y*vec_u.z-(vec_v.x*vec_u.x+vec_v.y*vec_u.y+vec_v.z*vec_u.z)*(vec_v.y*vec_u.z+vec_u.y*vec_v.z));
-  dme.cx=2.0*((SQR(u))*vec_v.z*vec_v.x+(SQR(v))*vec_u.z*vec_u.x-(vec_v.x*vec_u.x+vec_v.y*vec_u.y+vec_v.z*vec_u.z)*(vec_v.z*vec_u.x+vec_u.z*vec_v.x));
-  dme.cy=2.0*((SQR(u))*vec_v.z*vec_v.y+(SQR(v))*vec_u.z*vec_u.y-(vec_v.x*vec_u.x+vec_v.y*vec_u.y+vec_v.z*vec_u.z)*(vec_v.z*vec_u.y+vec_u.z*vec_v.y));
-  dme.cz=2.0*((SQR(u))*vec_v.z*vec_v.z+(SQR(v))*vec_u.z*vec_u.z-(vec_v.x*vec_u.x+vec_v.y*vec_u.y+vec_v.z*vec_u.z)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z));
-
-  dne.ax=2.0*((SQR(u))*vec_w.x*vec_w.x+(SQR(w))*vec_u.x*vec_u.x-(vec_w.x*vec_u.x+vec_w.y*vec_u.y+vec_w.z*vec_u.z)*(vec_w.x*vec_u.x+vec_u.x*vec_w.x));
-  dne.ay=2.0*((SQR(u))*vec_w.x*vec_w.y+(SQR(w))*vec_u.x*vec_u.y-(vec_w.x*vec_u.x+vec_w.y*vec_u.y+vec_w.z*vec_u.z)*(vec_w.x*vec_u.y+vec_u.x*vec_w.y));
-  dne.az=2.0*((SQR(u))*vec_w.x*vec_w.z+(SQR(w))*vec_u.x*vec_u.z-(vec_w.x*vec_u.x+vec_w.y*vec_u.y+vec_w.z*vec_u.z)*(vec_w.x*vec_u.z+vec_u.x*vec_w.z));
-  dne.bx=2.0*((SQR(u))*vec_w.y*vec_w.x+(SQR(w))*vec_u.y*vec_u.x-(vec_w.x*vec_u.x+vec_w.y*vec_u.y+vec_w.z*vec_u.z)*(vec_w.y*vec_u.x+vec_u.y*vec_w.x));
-  dne.by=2.0*((SQR(u))*vec_w.y*vec_w.y+(SQR(w))*vec_u.y*vec_u.y-(vec_w.x*vec_u.x+vec_w.y*vec_u.y+vec_w.z*vec_u.z)*(vec_w.y*vec_u.y+vec_u.y*vec_w.y));
-  dne.bz=2.0*((SQR(u))*vec_w.y*vec_w.z+(SQR(w))*vec_u.y*vec_u.z-(vec_w.x*vec_u.x+vec_w.y*vec_u.y+vec_w.z*vec_u.z)*(vec_w.y*vec_u.z+vec_u.y*vec_w.z));
-  dne.cx=2.0*((SQR(u))*vec_w.z*vec_w.x+(SQR(w))*vec_u.z*vec_u.x-(vec_w.x*vec_u.x+vec_w.y*vec_u.y+vec_w.z*vec_u.z)*(vec_w.z*vec_u.x+vec_u.z*vec_w.x));
-  dne.cy=2.0*((SQR(u))*vec_w.z*vec_w.y+(SQR(w))*vec_u.z*vec_u.y-(vec_w.x*vec_u.x+vec_w.y*vec_u.y+vec_w.z*vec_u.z)*(vec_w.z*vec_u.y+vec_u.z*vec_w.y));
-  dne.cz=2.0*((SQR(u))*vec_w.z*vec_w.z+(SQR(w))*vec_u.z*vec_u.z-(vec_w.x*vec_u.x+vec_w.y*vec_u.y+vec_w.z*vec_u.z)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z));
-
-  dmn.ax=(vec_v.x*vec_u.x+vec_v.y*vec_u.y+vec_v.z*vec_u.z)*(vec_u.x*vec_w.x+vec_w.x*vec_u.x)
-            +(vec_u.x*vec_w.x+vec_u.y*vec_w.y+vec_u.z*vec_w.z)*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)
-            -(vec_v.x*vec_w.x+vec_v.y*vec_w.y+vec_v.z*vec_w.z)*(vec_u.x*vec_u.x+vec_u.x*vec_u.x)
-            -(vec_u.x*vec_u.x+vec_u.y*vec_u.y+vec_u.z*vec_u.z)*(vec_v.x*vec_w.x+vec_w.x*vec_v.x);
-  dmn.ay=(vec_v.x*vec_u.x+vec_v.y*vec_u.y+vec_v.z*vec_u.z)*(vec_u.x*vec_w.y+vec_w.x*vec_u.y)
-            +(vec_u.x*vec_w.x+vec_u.y*vec_w.y+vec_u.z*vec_w.z)*(vec_v.x*vec_u.y+vec_u.x*vec_v.y)
-            -(vec_v.x*vec_w.x+vec_v.y*vec_w.y+vec_v.z*vec_w.z)*(vec_u.x*vec_u.y+vec_u.x*vec_u.y)
-            -(vec_u.x*vec_u.x+vec_u.y*vec_u.y+vec_u.z*vec_u.z)*(vec_v.x*vec_w.y+vec_w.x*vec_v.y);
-  dmn.az=(vec_v.x*vec_u.x+vec_v.y*vec_u.y+vec_v.z*vec_u.z)*(vec_u.x*vec_w.z+vec_w.x*vec_u.z)
-            +(vec_u.x*vec_w.x+vec_u.y*vec_w.y+vec_u.z*vec_w.z)*(vec_v.x*vec_u.z+vec_u.x*vec_v.z)
-            -(vec_v.x*vec_w.x+vec_v.y*vec_w.y+vec_v.z*vec_w.z)*(vec_u.x*vec_u.z+vec_u.x*vec_u.z)
-            -(vec_u.x*vec_u.x+vec_u.y*vec_u.y+vec_u.z*vec_u.z)*(vec_v.x*vec_w.z+vec_w.x*vec_v.z);
-
-  dmn.bx=(vec_v.x*vec_u.x+vec_v.y*vec_u.y+vec_v.z*vec_u.z)*(vec_u.y*vec_w.x+vec_w.y*vec_u.x)
-            +(vec_u.x*vec_w.x+vec_u.y*vec_w.y+vec_u.z*vec_w.z)*(vec_v.y*vec_u.x+vec_u.y*vec_v.x)
-            -(vec_v.x*vec_w.x+vec_v.y*vec_w.y+vec_v.z*vec_w.z)*(vec_u.y*vec_u.x+vec_u.y*vec_u.x)
-            -(vec_u.x*vec_u.x+vec_u.y*vec_u.y+vec_u.z*vec_u.z)*(vec_v.y*vec_w.x+vec_w.y*vec_v.x);
-  dmn.by=(vec_v.x*vec_u.x+vec_v.y*vec_u.y+vec_v.z*vec_u.z)*(vec_u.y*vec_w.y+vec_w.y*vec_u.y)
-            +(vec_u.x*vec_w.x+vec_u.y*vec_w.y+vec_u.z*vec_w.z)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)
-            -(vec_v.x*vec_w.x+vec_v.y*vec_w.y+vec_v.z*vec_w.z)*(vec_u.y*vec_u.y+vec_u.y*vec_u.y)
-            -(vec_u.x*vec_u.x+vec_u.y*vec_u.y+vec_u.z*vec_u.z)*(vec_v.y*vec_w.y+vec_w.y*vec_v.y);
-  dmn.bz=(vec_v.x*vec_u.x+vec_v.y*vec_u.y+vec_v.z*vec_u.z)*(vec_u.y*vec_w.z+vec_w.y*vec_u.z)
-            +(vec_u.x*vec_w.x+vec_u.y*vec_w.y+vec_u.z*vec_w.z)*(vec_v.y*vec_u.z+vec_u.y*vec_v.z)
-            -(vec_v.x*vec_w.x+vec_v.y*vec_w.y+vec_v.z*vec_w.z)*(vec_u.y*vec_u.z+vec_u.y*vec_u.z)
-            -(vec_u.x*vec_u.x+vec_u.y*vec_u.y+vec_u.z*vec_u.z)*(vec_v.y*vec_w.z+vec_w.y*vec_v.z);
-
-  dmn.cx=(vec_v.x*vec_u.x+vec_v.y*vec_u.y+vec_v.z*vec_u.z)*(vec_u.z*vec_w.x+vec_w.z*vec_u.x)
-            +(vec_u.x*vec_w.x+vec_u.y*vec_w.y+vec_u.z*vec_w.z)*(vec_v.z*vec_u.x+vec_u.z*vec_v.x)
-            -(vec_v.x*vec_w.x+vec_v.y*vec_w.y+vec_v.z*vec_w.z)*(vec_u.z*vec_u.x+vec_u.z*vec_u.x)
-            -(vec_u.x*vec_u.x+vec_u.y*vec_u.y+vec_u.z*vec_u.z)*(vec_v.z*vec_w.x+vec_w.z*vec_v.x);
-  dmn.cy=(vec_v.x*vec_u.x+vec_v.y*vec_u.y+vec_v.z*vec_u.z)*(vec_u.z*vec_w.y+vec_w.z*vec_u.y)
-            +(vec_u.x*vec_w.x+vec_u.y*vec_w.y+vec_u.z*vec_w.z)*(vec_v.z*vec_u.y+vec_u.z*vec_v.y)
-            -(vec_v.x*vec_w.x+vec_v.y*vec_w.y+vec_v.z*vec_w.z)*(vec_u.z*vec_u.y+vec_u.z*vec_u.y)
-            -(vec_u.x*vec_u.x+vec_u.y*vec_u.y+vec_u.z*vec_u.z)*(vec_v.z*vec_w.y+vec_w.z*vec_v.y);
-  dmn.cz=(vec_v.x*vec_u.x+vec_v.y*vec_u.y+vec_v.z*vec_u.z)*(vec_u.z*vec_w.z+vec_w.z*vec_u.z)
-            +(vec_u.x*vec_w.x+vec_u.y*vec_w.y+vec_u.z*vec_w.z)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)
-            -(vec_v.x*vec_w.x+vec_v.y*vec_w.y+vec_v.z*vec_w.z)*(vec_u.z*vec_u.z+vec_u.z*vec_u.z)
-            -(vec_u.x*vec_u.x+vec_u.y*vec_u.y+vec_u.z*vec_u.z)*(vec_v.z*vec_w.z+vec_w.z*vec_v.z);
-
-  vec_m.x=vec_v.y*vec_u.z-vec_v.z*vec_u.y;
-  vec_m.y=vec_v.z*vec_u.x-vec_v.x*vec_u.z;
-  vec_m.z=vec_v.x*vec_u.y-vec_v.y*vec_u.x;
-  m2=SQR(vec_m.x)+SQR(vec_m.y)+SQR(vec_m.z);
-
-  vec_n.x=vec_u.y*vec_w.z-vec_u.z*vec_w.y;
-  vec_n.y=vec_u.z*vec_w.x-vec_u.x*vec_w.z;
-  vec_n.z=vec_u.x*vec_w.y-vec_u.y*vec_w.x;
-  n2=SQR(vec_n.x)+SQR(vec_n.y)+SQR(vec_n.z);
-
-  dot_mn=(vec_m.x*vec_n.x+vec_m.y*vec_n.y+vec_m.z*vec_n.z);
-
-  T.ax=0.5*CosPhi*(2.0*dmn.ax/dot_mn-dme.ax/m2-dne.ax/n2);
-  T.ay=0.5*CosPhi*(2.0*dmn.ay/dot_mn-dme.ay/m2-dne.ay/n2);
-  T.az=0.5*CosPhi*(2.0*dmn.az/dot_mn-dme.az/m2-dne.az/n2);
-
-  T.bx=0.5*CosPhi*(2.0*dmn.bx/dot_mn-dme.bx/m2-dne.bx/n2);
-  T.by=0.5*CosPhi*(2.0*dmn.by/dot_mn-dme.by/m2-dne.by/n2);
-  T.bz=0.5*CosPhi*(2.0*dmn.bz/dot_mn-dme.bz/m2-dne.bz/n2);
-
-  T.cx=0.5*CosPhi*(2.0*dmn.cx/dot_mn-dme.cx/m2-dne.cx/n2);
-  T.cy=0.5*CosPhi*(2.0*dmn.cy/dot_mn-dme.cy/m2-dne.cy/n2);
-  T.cz=0.5*CosPhi*(2.0*dmn.cz/dot_mn-dme.cz/m2-dne.cz/n2);
-
-  switch(Ensemble[CurrentSystem])
-  {
-    case NPT:
-          HessianMatrix.element[n][n]+=
-             DDF*T.ax*T.ax+
-             DF*0.5*CosPhi*(
-             -4.0*dmn.ax*dmn.ax/SQR(dot_mn)
-             +(1.0/SQR(dot_mn))*(2.0*(dmn.ax*dmn.ax)+2.0*dot_mn*
-             ((vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)+(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)
-             -(vec_v.x*vec_w.x+vec_w.x*vec_v.x)*(vec_u.x*vec_u.x+vec_u.x*vec_u.x)-(vec_u.x*vec_u.x+vec_u.x*vec_u.x)*(vec_v.x*vec_w.x+vec_w.x*vec_v.x)))
-             +(dme.ax*dme.ax/SQR(m2)+dne.ax*dne.ax/SQR(n2))
-             -(1.0/m2)*(4.0*(vec_v.x*vec_v.x*vec_u.x*vec_u.x+vec_u.x*vec_u.x*vec_v.x*vec_v.x)-2.0*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.x*vec_u.x+vec_u.x*vec_v.x))
-             -(1.0/n2)*(4.0*(vec_w.x*vec_w.x*vec_u.x*vec_u.x+vec_u.x*vec_u.x*vec_w.x*vec_w.x)-2.0*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)))
-             +DF*(1.0/CosPhi)*T.ax*T.ax+2.0*S.ax;
-          HessianMatrix.element[n][n]+=
-             2.0*(DDF*T.ax*T.by+
-             DF*0.5*CosPhi*(
-             -4.0*dmn.ax*dmn.by/SQR(dot_mn)
-             +(1.0/SQR(dot_mn))*(2.0*(dmn.ax*dmn.by)+2.0*dot_mn*
-             ((vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)+(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)
-             -(vec_v.x*vec_w.x+vec_w.x*vec_v.x)*(vec_u.y*vec_u.y+vec_u.y*vec_u.y)-(vec_u.x*vec_u.x+vec_u.x*vec_u.x)*(vec_v.y*vec_w.y+vec_w.y*vec_v.y)))
-             +(dme.ax*dme.by/SQR(m2)+dne.ax*dne.by/SQR(n2))
-             -(1.0/m2)*(4.0*(vec_v.x*vec_v.x*vec_u.y*vec_u.y+vec_u.x*vec_u.x*vec_v.y*vec_v.y)-2.0*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y))
-             -(1.0/n2)*(4.0*(vec_w.x*vec_w.x*vec_u.y*vec_u.y+vec_u.x*vec_u.x*vec_w.y*vec_w.y)-2.0*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)))
-             +DF*(1.0/CosPhi)*T.ax*T.by);
-          HessianMatrix.element[n][n]+=
-             2.0*(DDF*T.ax*T.cz+
-             DF*0.5*CosPhi*(
-             -4.0*dmn.ax*dmn.cz/SQR(dot_mn)
-             +(1.0/SQR(dot_mn))*(2.0*(dmn.ax*dmn.cz)+2.0*dot_mn*
-             ((vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)+(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)
-             -(vec_v.x*vec_w.x+vec_w.x*vec_v.x)*(vec_u.z*vec_u.z+vec_u.z*vec_u.z)-(vec_u.x*vec_u.x+vec_u.x*vec_u.x)*(vec_v.z*vec_w.z+vec_w.z*vec_v.z)))
-             +(dme.ax*dme.cz/SQR(m2)+dne.ax*dne.cz/SQR(n2))
-             -(1.0/m2)*(4.0*(vec_v.x*vec_v.x*vec_u.z*vec_u.z+vec_u.x*vec_u.x*vec_v.z*vec_v.z)-2.0*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z))
-             -(1.0/n2)*(4.0*(vec_w.x*vec_w.x*vec_u.z*vec_u.z+vec_u.x*vec_u.x*vec_w.z*vec_w.z)-2.0*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)))
-             +DF*(1.0/CosPhi)*T.ax*T.cz);
-          HessianMatrix.element[n][n]+=
-             DDF*T.by*T.by+
-             DF*0.5*CosPhi*(
-             -4.0*dmn.by*dmn.by/SQR(dot_mn)
-             +(1.0/SQR(dot_mn))*(2.0*(dmn.by*dmn.by)+2.0*dot_mn*
-             ((vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)+(vec_w.y*vec_u.y+vec_u.y*vec_w.y)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)
-             -(vec_v.y*vec_w.y+vec_w.y*vec_v.y)*(vec_u.y*vec_u.y+vec_u.y*vec_u.y)-(vec_u.y*vec_u.y+vec_u.y*vec_u.y)*(vec_v.y*vec_w.y+vec_w.y*vec_v.y)))
-             +(dme.by*dme.by/SQR(m2)+dne.by*dne.by/SQR(n2))
-             -(1.0/m2)*(4.0*(vec_v.y*vec_v.y*vec_u.y*vec_u.y+vec_u.y*vec_u.y*vec_v.y*vec_v.y)-2.0*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y))
-             -(1.0/n2)*(4.0*(vec_w.y*vec_w.y*vec_u.y*vec_u.y+vec_u.y*vec_u.y*vec_w.y*vec_w.y)-2.0*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)))
-             +DF*(1.0/CosPhi)*T.by*T.by+2.0*S.by;
-          HessianMatrix.element[n][n]+=
-             2.0*(DDF*T.by*T.cz+
-             DF*0.5*CosPhi*(
-             -4.0*dmn.by*dmn.cz/SQR(dot_mn)
-             +(1.0/SQR(dot_mn))*(2.0*(dmn.by*dmn.cz)+2.0*dot_mn*
-             ((vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)+(vec_w.y*vec_u.y+vec_u.y*vec_w.y)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)
-             -(vec_v.y*vec_w.y+vec_w.y*vec_v.y)*(vec_u.z*vec_u.z+vec_u.z*vec_u.z)-(vec_u.y*vec_u.y+vec_u.y*vec_u.y)*(vec_v.z*vec_w.z+vec_w.z*vec_v.z)))
-             +(dme.by*dme.cz/SQR(m2)+dne.by*dne.cz/SQR(n2))
-             -(1.0/m2)*(4.0*(vec_v.y*vec_v.y*vec_u.z*vec_u.z+vec_u.y*vec_u.y*vec_v.z*vec_v.z)-2.0*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z))
-             -(1.0/n2)*(4.0*(vec_w.y*vec_w.y*vec_u.z*vec_u.z+vec_u.y*vec_u.y*vec_w.z*vec_w.z)-2.0*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)))
-             +DF*(1.0/CosPhi)*T.by*T.cz);
-          HessianMatrix.element[n][n]+=
-             DDF*T.cz*T.cz+
-             DF*0.5*CosPhi*(
-             -4.0*dmn.cz*dmn.cz/SQR(dot_mn)
-             +(1.0/SQR(dot_mn))*(2.0*(dmn.cz*dmn.cz)+2.0*dot_mn*
-             ((vec_v.z*vec_u.z+vec_u.z*vec_v.z)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)+(vec_w.z*vec_u.z+vec_u.z*vec_w.z)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)
-             -(vec_v.z*vec_w.z+vec_w.z*vec_v.z)*(vec_u.z*vec_u.z+vec_u.z*vec_u.z)-(vec_u.z*vec_u.z+vec_u.z*vec_u.z)*(vec_v.z*vec_w.z+vec_w.z*vec_v.z)))
-             +(dme.cz*dme.cz/SQR(m2)+dne.cz*dne.cz/SQR(n2))
-             -(1.0/m2)*(4.0*(vec_v.z*vec_v.z*vec_u.z*vec_u.z+vec_u.z*vec_u.z*vec_v.z*vec_v.z)-2.0*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z))
-             -(1.0/n2)*(4.0*(vec_w.z*vec_w.z*vec_u.z*vec_u.z+vec_u.z*vec_u.z*vec_w.z*vec_w.z)-2.0*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)))
-             +DF*(1.0/CosPhi)*T.cz*T.cz+2.0*S.cz;
-      break;
-    case NPTPR:
-    case NPHPR:
-      switch(NPTPRCellType[CurrentSystem])
-      {
-        case ISOTROPIC:
-        case ANISOTROPIC:
-          HessianMatrix.element[n][n]+=
-             DDF*T.ax*T.ax+
-             DF*0.5*CosPhi*(
-             -4.0*dmn.ax*dmn.ax/SQR(dot_mn)
-             +(1.0/SQR(dot_mn))*(2.0*(dmn.ax*dmn.ax)+2.0*dot_mn*
-             ((vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)+(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)
-             -(vec_v.x*vec_w.x+vec_w.x*vec_v.x)*(vec_u.x*vec_u.x+vec_u.x*vec_u.x)-(vec_u.x*vec_u.x+vec_u.x*vec_u.x)*(vec_v.x*vec_w.x+vec_w.x*vec_v.x)))
-             +(dme.ax*dme.ax/SQR(m2)+dne.ax*dne.ax/SQR(n2))
-             -(1.0/m2)*(4.0*(vec_v.x*vec_v.x*vec_u.x*vec_u.x+vec_u.x*vec_u.x*vec_v.x*vec_v.x)-2.0*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.x*vec_u.x+vec_u.x*vec_v.x))
-             -(1.0/n2)*(4.0*(vec_w.x*vec_w.x*vec_u.x*vec_u.x+vec_u.x*vec_u.x*vec_w.x*vec_w.x)-2.0*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)))
-             +DF*(1.0/CosPhi)*T.ax*T.ax+2.0*S.ax;
-          HessianMatrix.element[n][n+1]+=
-             DDF*T.ax*T.by+
-             DF*0.5*CosPhi*(
-             -4.0*dmn.ax*dmn.by/SQR(dot_mn)
-             +(1.0/SQR(dot_mn))*(2.0*(dmn.ax*dmn.by)+2.0*dot_mn*
-             ((vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)+(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)
-             -(vec_v.x*vec_w.x+vec_w.x*vec_v.x)*(vec_u.y*vec_u.y+vec_u.y*vec_u.y)-(vec_u.x*vec_u.x+vec_u.x*vec_u.x)*(vec_v.y*vec_w.y+vec_w.y*vec_v.y)))
-             +(dme.ax*dme.by/SQR(m2)+dne.ax*dne.by/SQR(n2))
-             -(1.0/m2)*(4.0*(vec_v.x*vec_v.x*vec_u.y*vec_u.y+vec_u.x*vec_u.x*vec_v.y*vec_v.y)-2.0*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y))
-             -(1.0/n2)*(4.0*(vec_w.x*vec_w.x*vec_u.y*vec_u.y+vec_u.x*vec_u.x*vec_w.y*vec_w.y)-2.0*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)))
-             +DF*(1.0/CosPhi)*T.ax*T.by;
-          HessianMatrix.element[n][n+2]+=
-             DDF*T.ax*T.cz+
-             DF*0.5*CosPhi*(
-             -4.0*dmn.ax*dmn.cz/SQR(dot_mn)
-             +(1.0/SQR(dot_mn))*(2.0*(dmn.ax*dmn.cz)+2.0*dot_mn*
-             ((vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)+(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)
-             -(vec_v.x*vec_w.x+vec_w.x*vec_v.x)*(vec_u.z*vec_u.z+vec_u.z*vec_u.z)-(vec_u.x*vec_u.x+vec_u.x*vec_u.x)*(vec_v.z*vec_w.z+vec_w.z*vec_v.z)))
-             +(dme.ax*dme.cz/SQR(m2)+dne.ax*dne.cz/SQR(n2))
-             -(1.0/m2)*(4.0*(vec_v.x*vec_v.x*vec_u.z*vec_u.z+vec_u.x*vec_u.x*vec_v.z*vec_v.z)-2.0*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z))
-             -(1.0/n2)*(4.0*(vec_w.x*vec_w.x*vec_u.z*vec_u.z+vec_u.x*vec_u.x*vec_w.z*vec_w.z)-2.0*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)))
-             +DF*(1.0/CosPhi)*T.ax*T.cz;
-
-          HessianMatrix.element[n+1][n+1]+=
-             DDF*T.by*T.by+
-             DF*0.5*CosPhi*(
-             -4.0*dmn.by*dmn.by/SQR(dot_mn)
-             +(1.0/SQR(dot_mn))*(2.0*(dmn.by*dmn.by)+2.0*dot_mn*
-             ((vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)+(vec_w.y*vec_u.y+vec_u.y*vec_w.y)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)
-             -(vec_v.y*vec_w.y+vec_w.y*vec_v.y)*(vec_u.y*vec_u.y+vec_u.y*vec_u.y)-(vec_u.y*vec_u.y+vec_u.y*vec_u.y)*(vec_v.y*vec_w.y+vec_w.y*vec_v.y)))
-             +(dme.by*dme.by/SQR(m2)+dne.by*dne.by/SQR(n2))
-             -(1.0/m2)*(4.0*(vec_v.y*vec_v.y*vec_u.y*vec_u.y+vec_u.y*vec_u.y*vec_v.y*vec_v.y)-2.0*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y))
-             -(1.0/n2)*(4.0*(vec_w.y*vec_w.y*vec_u.y*vec_u.y+vec_u.y*vec_u.y*vec_w.y*vec_w.y)-2.0*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)))
-             +DF*(1.0/CosPhi)*T.by*T.by+2.0*S.by;
-          HessianMatrix.element[n+1][n+2]+=
-             DDF*T.by*T.cz+
-             DF*0.5*CosPhi*(
-             -4.0*dmn.by*dmn.cz/SQR(dot_mn)
-             +(1.0/SQR(dot_mn))*(2.0*(dmn.by*dmn.cz)+2.0*dot_mn*
-             ((vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)+(vec_w.y*vec_u.y+vec_u.y*vec_w.y)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)
-             -(vec_v.y*vec_w.y+vec_w.y*vec_v.y)*(vec_u.z*vec_u.z+vec_u.z*vec_u.z)-(vec_u.y*vec_u.y+vec_u.y*vec_u.y)*(vec_v.z*vec_w.z+vec_w.z*vec_v.z)))
-             +(dme.by*dme.cz/SQR(m2)+dne.by*dne.cz/SQR(n2))
-             -(1.0/m2)*(4.0*(vec_v.y*vec_v.y*vec_u.z*vec_u.z+vec_u.y*vec_u.y*vec_v.z*vec_v.z)-2.0*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z))
-             -(1.0/n2)*(4.0*(vec_w.y*vec_w.y*vec_u.z*vec_u.z+vec_u.y*vec_u.y*vec_w.z*vec_w.z)-2.0*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)))
-             +DF*(1.0/CosPhi)*T.by*T.cz;
-          HessianMatrix.element[n+2][n+2]+=
-             DDF*T.cz*T.cz+
-             DF*0.5*CosPhi*(
-             -4.0*dmn.cz*dmn.cz/SQR(dot_mn)
-             +(1.0/SQR(dot_mn))*(2.0*(dmn.cz*dmn.cz)+2.0*dot_mn*
-             ((vec_v.z*vec_u.z+vec_u.z*vec_v.z)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)+(vec_w.z*vec_u.z+vec_u.z*vec_w.z)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)
-             -(vec_v.z*vec_w.z+vec_w.z*vec_v.z)*(vec_u.z*vec_u.z+vec_u.z*vec_u.z)-(vec_u.z*vec_u.z+vec_u.z*vec_u.z)*(vec_v.z*vec_w.z+vec_w.z*vec_v.z)))
-             +(dme.cz*dme.cz/SQR(m2)+dne.cz*dne.cz/SQR(n2))
-             -(1.0/m2)*(4.0*(vec_v.z*vec_v.z*vec_u.z*vec_u.z+vec_u.z*vec_u.z*vec_v.z*vec_v.z)-2.0*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z))
-             -(1.0/n2)*(4.0*(vec_w.z*vec_w.z*vec_u.z*vec_u.z+vec_u.z*vec_u.z*vec_w.z*vec_w.z)-2.0*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)))
-             +DF*(1.0/CosPhi)*T.cz*T.cz+2.0*S.cz;
-          break;
-        case REGULAR:
-          HessianMatrix.element[n][n]+=
-             DDF*T.ax*T.ax+
-             DF*0.5*CosPhi*(
-             -4.0*dmn.ax*dmn.ax/SQR(dot_mn)
-             +(1.0/SQR(dot_mn))*(2.0*(dmn.ax*dmn.ax)+2.0*dot_mn*
-             ((vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)+(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)
-             -(vec_v.x*vec_w.x+vec_w.x*vec_v.x)*(vec_u.x*vec_u.x+vec_u.x*vec_u.x)-(vec_u.x*vec_u.x+vec_u.x*vec_u.x)*(vec_v.x*vec_w.x+vec_w.x*vec_v.x)))
-             +(dme.ax*dme.ax/SQR(m2)+dne.ax*dne.ax/SQR(n2))
-             -(1.0/m2)*(4.0*(vec_v.x*vec_v.x*vec_u.x*vec_u.x+vec_u.x*vec_u.x*vec_v.x*vec_v.x)-2.0*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.x*vec_u.x+vec_u.x*vec_v.x))
-             -(1.0/n2)*(4.0*(vec_w.x*vec_w.x*vec_u.x*vec_u.x+vec_u.x*vec_u.x*vec_w.x*vec_w.x)-2.0*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)))
-             +DF*(1.0/CosPhi)*T.ax*T.ax+2.0*S.ax;
-          HessianMatrix.element[n][n+1]+=
-             DDF*T.ax*T.ay+
-             DF*0.5*CosPhi*(
-             -4.0*dmn.ax*dmn.ay/SQR(dot_mn)
-             +(1.0/SQR(dot_mn))*(2.0*(dmn.ax*dmn.ay)+2.0*dot_mn*
-             ((vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_w.x*vec_u.y+vec_u.x*vec_w.y)+(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_v.x*vec_u.y+vec_u.x*vec_v.y)
-             -(vec_v.x*vec_w.x+vec_w.x*vec_v.x)*(vec_u.x*vec_u.y+vec_u.x*vec_u.y)-(vec_u.x*vec_u.x+vec_u.x*vec_u.x)*(vec_v.x*vec_w.y+vec_w.x*vec_v.y)))
-             +(dme.ax*dme.ay/SQR(m2)+dne.ax*dne.ay/SQR(n2))
-             -(1.0/m2)*(4.0*(vec_v.x*vec_v.x*vec_u.x*vec_u.y+vec_u.x*vec_u.x*vec_v.x*vec_v.y)-2.0*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.x*vec_u.y+vec_u.x*vec_v.y))
-             -(1.0/n2)*(4.0*(vec_w.x*vec_w.x*vec_u.x*vec_u.y+vec_u.x*vec_u.x*vec_w.x*vec_w.y)-2.0*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_w.x*vec_u.y+vec_u.x*vec_w.y)))
-             +DF*(1.0/CosPhi)*T.ax*T.ay+S.ay;
-          HessianMatrix.element[n][n+2]+=
-             DDF*T.ax*T.az+
-             DF*0.5*CosPhi*(
-             -4.0*dmn.ax*dmn.az/SQR(dot_mn)
-             +(1.0/SQR(dot_mn))*(2.0*(dmn.ax*dmn.az)+2.0*dot_mn*
-             ((vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_w.x*vec_u.z+vec_u.x*vec_w.z)+(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_v.x*vec_u.z+vec_u.x*vec_v.z)
-             -(vec_v.x*vec_w.x+vec_w.x*vec_v.x)*(vec_u.x*vec_u.z+vec_u.x*vec_u.z)-(vec_u.x*vec_u.x+vec_u.x*vec_u.x)*(vec_v.x*vec_w.z+vec_w.x*vec_v.z)))
-             +(dme.ax*dme.az/SQR(m2)+dne.ax*dne.az/SQR(n2))
-             -(1.0/m2)*(4.0*(vec_v.x*vec_v.x*vec_u.x*vec_u.z+vec_u.x*vec_u.x*vec_v.x*vec_v.z)-2.0*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.x*vec_u.z+vec_u.x*vec_v.z))
-             -(1.0/n2)*(4.0*(vec_w.x*vec_w.x*vec_u.x*vec_u.z+vec_u.x*vec_u.x*vec_w.x*vec_w.z)-2.0*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_w.x*vec_u.z+vec_u.x*vec_w.z)))
-             +DF*(1.0/CosPhi)*T.ax*T.az+S.az;
-          HessianMatrix.element[n][n+3]+=
-             DDF*T.ax*T.by+
-             DF*0.5*CosPhi*(
-             -4.0*dmn.ax*dmn.by/SQR(dot_mn)
-             +(1.0/SQR(dot_mn))*(2.0*(dmn.ax*dmn.by)+2.0*dot_mn*
-             ((vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)+(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)
-             -(vec_v.x*vec_w.x+vec_w.x*vec_v.x)*(vec_u.y*vec_u.y+vec_u.y*vec_u.y)-(vec_u.x*vec_u.x+vec_u.x*vec_u.x)*(vec_v.y*vec_w.y+vec_w.y*vec_v.y)))
-             +(dme.ax*dme.by/SQR(m2)+dne.ax*dne.by/SQR(n2))
-             -(1.0/m2)*(4.0*(vec_v.x*vec_v.x*vec_u.y*vec_u.y+vec_u.x*vec_u.x*vec_v.y*vec_v.y)-2.0*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y))
-             -(1.0/n2)*(4.0*(vec_w.x*vec_w.x*vec_u.y*vec_u.y+vec_u.x*vec_u.x*vec_w.y*vec_w.y)-2.0*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)))
-             +DF*(1.0/CosPhi)*T.ax*T.by;
-          HessianMatrix.element[n][n+4]+=
-             DDF*T.ax*T.bz+
-             DF*0.5*CosPhi*(
-             -4.0*dmn.ax*dmn.bz/SQR(dot_mn)
-             +(1.0/SQR(dot_mn))*(2.0*(dmn.ax*dmn.bz)+2.0*dot_mn*
-             ((vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_w.y*vec_u.z+vec_u.y*vec_w.z)+(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_v.y*vec_u.z+vec_u.y*vec_v.z)
-             -(vec_v.x*vec_w.x+vec_w.x*vec_v.x)*(vec_u.y*vec_u.z+vec_u.y*vec_u.z)-(vec_u.x*vec_u.x+vec_u.x*vec_u.x)*(vec_v.y*vec_w.z+vec_w.y*vec_v.z)))
-             +(dme.ax*dme.bz/SQR(m2)+dne.ax*dne.bz/SQR(n2))
-             -(1.0/m2)*(4.0*(vec_v.x*vec_v.x*vec_u.y*vec_u.z+vec_u.x*vec_u.x*vec_v.y*vec_v.z)-2.0*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.y*vec_u.z+vec_u.y*vec_v.z))
-             -(1.0/n2)*(4.0*(vec_w.x*vec_w.x*vec_u.y*vec_u.z+vec_u.x*vec_u.x*vec_w.y*vec_w.z)-2.0*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_w.y*vec_u.z+vec_u.y*vec_w.z)))
-             +DF*(1.0/CosPhi)*T.ax*T.bz;
-          HessianMatrix.element[n][n+5]+=
-             DDF*T.ax*T.cz+
-             DF*0.5*CosPhi*(
-             -4.0*dmn.ax*dmn.cz/SQR(dot_mn)
-             +(1.0/SQR(dot_mn))*(2.0*(dmn.ax*dmn.cz)+2.0*dot_mn*
-             ((vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)+(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)
-             -(vec_v.x*vec_w.x+vec_w.x*vec_v.x)*(vec_u.z*vec_u.z+vec_u.z*vec_u.z)-(vec_u.x*vec_u.x+vec_u.x*vec_u.x)*(vec_v.z*vec_w.z+vec_w.z*vec_v.z)))
-             +(dme.ax*dme.cz/SQR(m2)+dne.ax*dne.cz/SQR(n2))
-             -(1.0/m2)*(4.0*(vec_v.x*vec_v.x*vec_u.z*vec_u.z+vec_u.x*vec_u.x*vec_v.z*vec_v.z)-2.0*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z))
-             -(1.0/n2)*(4.0*(vec_w.x*vec_w.x*vec_u.z*vec_u.z+vec_u.x*vec_u.x*vec_w.z*vec_w.z)-2.0*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)))
-             +DF*(1.0/CosPhi)*T.ax*T.cz;
-
-          HessianMatrix.element[n+1][n+1]+=
-             DDF*T.ay*T.ay+
-             DF*0.5*CosPhi*(
-             -4.0*dmn.ay*dmn.ay/SQR(dot_mn)
-             +(1.0/SQR(dot_mn))*(2.0*(dmn.ay*dmn.ay)+2.0*dot_mn*
-             ((vec_v.x*vec_u.y+vec_u.x*vec_v.y)*(vec_w.x*vec_u.y+vec_u.x*vec_w.y)+(vec_w.x*vec_u.y+vec_u.x*vec_w.y)*(vec_v.x*vec_u.y+vec_u.x*vec_v.y)
-             -(vec_v.x*vec_w.y+vec_w.x*vec_v.y)*(vec_u.x*vec_u.y+vec_u.x*vec_u.y)-(vec_u.x*vec_u.y+vec_u.x*vec_u.y)*(vec_v.x*vec_w.y+vec_w.x*vec_v.y)))
-             +(dme.ay*dme.ay/SQR(m2)+dne.ay*dne.ay/SQR(n2))
-             -(1.0/m2)*(4.0*(vec_v.x*vec_v.y*vec_u.x*vec_u.y+vec_u.x*vec_u.y*vec_v.x*vec_v.y)-2.0*(vec_v.x*vec_u.y+vec_u.x*vec_v.y)*(vec_v.x*vec_u.y+vec_u.x*vec_v.y))
-             -(1.0/n2)*(4.0*(vec_w.x*vec_w.y*vec_u.x*vec_u.y+vec_u.x*vec_u.y*vec_w.x*vec_w.y)-2.0*(vec_w.x*vec_u.y+vec_u.x*vec_w.y)*(vec_w.x*vec_u.y+vec_u.x*vec_w.y)))
-             +DF*(1.0/CosPhi)*T.ay*T.ay+0.5*(S.ax+S.by);
-          HessianMatrix.element[n+1][n+2]+=
-             DDF*T.ay*T.az+
-             DF*0.5*CosPhi*(
-             -4.0*dmn.ay*dmn.az/SQR(dot_mn)
-             +(1.0/SQR(dot_mn))*(2.0*(dmn.ay*dmn.az)+2.0*dot_mn*
-             ((vec_v.x*vec_u.y+vec_u.x*vec_v.y)*(vec_w.x*vec_u.z+vec_u.x*vec_w.z)+(vec_w.x*vec_u.y+vec_u.x*vec_w.y)*(vec_v.x*vec_u.z+vec_u.x*vec_v.z)
-             -(vec_v.x*vec_w.y+vec_w.x*vec_v.y)*(vec_u.x*vec_u.z+vec_u.x*vec_u.z)-(vec_u.x*vec_u.y+vec_u.x*vec_u.y)*(vec_v.x*vec_w.z+vec_w.x*vec_v.z)))
-             +(dme.ay*dme.az/SQR(m2)+dne.ay*dne.az/SQR(n2))
-             -(1.0/m2)*(4.0*(vec_v.x*vec_v.y*vec_u.x*vec_u.z+vec_u.x*vec_u.y*vec_v.x*vec_v.z)-2.0*(vec_v.x*vec_u.y+vec_u.x*vec_v.y)*(vec_v.x*vec_u.z+vec_u.x*vec_v.z))
-             -(1.0/n2)*(4.0*(vec_w.x*vec_w.y*vec_u.x*vec_u.z+vec_u.x*vec_u.y*vec_w.x*vec_w.z)-2.0*(vec_w.x*vec_u.y+vec_u.x*vec_w.y)*(vec_w.x*vec_u.z+vec_u.x*vec_w.z)))
-             +DF*(1.0/CosPhi)*T.ay*T.az+0.5*S.bz;
-          HessianMatrix.element[n+1][n+3]+=
-             DDF*T.ay*T.by+
-             DF*0.5*CosPhi*(
-             -4.0*dmn.ay*dmn.by/SQR(dot_mn)
-             +(1.0/SQR(dot_mn))*(2.0*(dmn.ay*dmn.by)+2.0*dot_mn*
-             ((vec_v.x*vec_u.y+vec_u.x*vec_v.y)*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)+(vec_w.x*vec_u.y+vec_u.x*vec_w.y)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)
-             -(vec_v.x*vec_w.y+vec_w.x*vec_v.y)*(vec_u.y*vec_u.y+vec_u.y*vec_u.y)-(vec_u.x*vec_u.y+vec_u.x*vec_u.y)*(vec_v.y*vec_w.y+vec_w.y*vec_v.y)))
-             +(dme.ay*dme.by/SQR(m2)+dne.ay*dne.by/SQR(n2))
-             -(1.0/m2)*(4.0*(vec_v.x*vec_v.y*vec_u.y*vec_u.y+vec_u.x*vec_u.y*vec_v.y*vec_v.y)-2.0*(vec_v.x*vec_u.y+vec_u.x*vec_v.y)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y))
-             -(1.0/n2)*(4.0*(vec_w.x*vec_w.y*vec_u.y*vec_u.y+vec_u.x*vec_u.y*vec_w.y*vec_w.y)-2.0*(vec_w.x*vec_u.y+vec_u.x*vec_w.y)*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)))
-             +DF*(1.0/CosPhi)*T.ay*T.by+S.ay;
-          HessianMatrix.element[n+1][n+4]+=
-             DDF*T.ay*T.bz+
-             DF*0.5*CosPhi*(
-             -4.0*dmn.ay*dmn.bz/SQR(dot_mn)
-             +(1.0/SQR(dot_mn))*(2.0*(dmn.ay*dmn.bz)+2.0*dot_mn*
-             ((vec_v.x*vec_u.y+vec_u.x*vec_v.y)*(vec_w.y*vec_u.z+vec_u.y*vec_w.z)+(vec_w.x*vec_u.y+vec_u.x*vec_w.y)*(vec_v.y*vec_u.z+vec_u.y*vec_v.z)
-             -(vec_v.x*vec_w.y+vec_w.x*vec_v.y)*(vec_u.y*vec_u.z+vec_u.y*vec_u.z)-(vec_u.x*vec_u.y+vec_u.x*vec_u.y)*(vec_v.y*vec_w.z+vec_w.y*vec_v.z)))
-             +(dme.ay*dme.bz/SQR(m2)+dne.ay*dne.bz/SQR(n2))
-             -(1.0/m2)*(4.0*(vec_v.x*vec_v.y*vec_u.y*vec_u.z+vec_u.x*vec_u.y*vec_v.y*vec_v.z)-2.0*(vec_v.x*vec_u.y+vec_u.x*vec_v.y)*(vec_v.y*vec_u.z+vec_u.y*vec_v.z))
-             -(1.0/n2)*(4.0*(vec_w.x*vec_w.y*vec_u.y*vec_u.z+vec_u.x*vec_u.y*vec_w.y*vec_w.z)-2.0*(vec_w.x*vec_u.y+vec_u.x*vec_w.y)*(vec_w.y*vec_u.z+vec_u.y*vec_w.z)))
-             +DF*(1.0/CosPhi)*T.ay*T.bz+0.5*S.az;
-          HessianMatrix.element[n+1][n+5]+=
-             DDF*T.ay*T.cz+
-             DF*0.5*CosPhi*(
-             -4.0*dmn.ay*dmn.cz/SQR(dot_mn)
-             +(1.0/SQR(dot_mn))*(2.0*(dmn.ay*dmn.cz)+2.0*dot_mn*
-             ((vec_v.x*vec_u.y+vec_u.x*vec_v.y)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)+(vec_w.x*vec_u.y+vec_u.x*vec_w.y)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)
-             -(vec_v.x*vec_w.y+vec_w.x*vec_v.y)*(vec_u.z*vec_u.z+vec_u.z*vec_u.z)-(vec_u.x*vec_u.y+vec_u.x*vec_u.y)*(vec_v.z*vec_w.z+vec_w.z*vec_v.z)))
-             +(dme.ay*dme.cz/SQR(m2)+dne.ay*dne.cz/SQR(n2))
-             -(1.0/m2)*(4.0*(vec_v.x*vec_v.y*vec_u.z*vec_u.z+vec_u.x*vec_u.y*vec_v.z*vec_v.z)-2.0*(vec_v.x*vec_u.y+vec_u.x*vec_v.y)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z))
-             -(1.0/n2)*(4.0*(vec_w.x*vec_w.y*vec_u.z*vec_u.z+vec_u.x*vec_u.y*vec_w.z*vec_w.z)-2.0*(vec_w.x*vec_u.y+vec_u.x*vec_w.y)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)))
-             +DF*(1.0/CosPhi)*T.ay*T.cz;
-
-          HessianMatrix.element[n+2][n+2]+=DDF*T.az*T.az+
-             DF*0.5*CosPhi*(
-             -4.0*dmn.az*dmn.az/SQR(dot_mn)
-             +(1.0/SQR(dot_mn))*(2.0*(dmn.az*dmn.az)+2.0*dot_mn*
-             ((vec_v.x*vec_u.z+vec_u.x*vec_v.z)*(vec_w.x*vec_u.z+vec_u.x*vec_w.z)+(vec_w.x*vec_u.z+vec_u.x*vec_w.z)*(vec_v.x*vec_u.z+vec_u.x*vec_v.z)
-             -(vec_v.x*vec_w.z+vec_w.x*vec_v.z)*(vec_u.x*vec_u.z+vec_u.x*vec_u.z)-(vec_u.x*vec_u.z+vec_u.x*vec_u.z)*(vec_v.x*vec_w.z+vec_w.x*vec_v.z)))
-             +(dme.az*dme.az/SQR(m2)+dne.az*dne.az/SQR(n2))
-             -(1.0/m2)*(4.0*(vec_v.x*vec_v.z*vec_u.x*vec_u.z+vec_u.x*vec_u.z*vec_v.x*vec_v.z)-2.0*(vec_v.x*vec_u.z+vec_u.x*vec_v.z)*(vec_v.x*vec_u.z+vec_u.x*vec_v.z))
-             -(1.0/n2)*(4.0*(vec_w.x*vec_w.z*vec_u.x*vec_u.z+vec_u.x*vec_u.z*vec_w.x*vec_w.z)-2.0*(vec_w.x*vec_u.z+vec_u.x*vec_w.z)*(vec_w.x*vec_u.z+vec_u.x*vec_w.z)))
-             +DF*(1.0/CosPhi)*T.az*T.az+0.5*(S.ax+S.cz);
-          HessianMatrix.element[n+2][n+3]+=
-             DDF*T.az*T.by+
-             DF*0.5*CosPhi*(
-             -4.0*dmn.az*dmn.by/SQR(dot_mn)
-             +(1.0/SQR(dot_mn))*(2.0*(dmn.az*dmn.by)+2.0*dot_mn*
-             ((vec_v.x*vec_u.z+vec_u.x*vec_v.z)*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)+(vec_w.x*vec_u.z+vec_u.x*vec_w.z)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)
-             -(vec_v.x*vec_w.z+vec_w.x*vec_v.z)*(vec_u.y*vec_u.y+vec_u.y*vec_u.y)-(vec_u.x*vec_u.z+vec_u.x*vec_u.z)*(vec_v.y*vec_w.y+vec_w.y*vec_v.y)))
-             +(dme.az*dme.by/SQR(m2)+dne.az*dne.by/SQR(n2))
-             -(1.0/m2)*(4.0*(vec_v.x*vec_v.z*vec_u.y*vec_u.y+vec_u.x*vec_u.z*vec_v.y*vec_v.y)-2.0*(vec_v.x*vec_u.z+vec_u.x*vec_v.z)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y))
-             -(1.0/n2)*(4.0*(vec_w.x*vec_w.z*vec_u.y*vec_u.y+vec_u.x*vec_u.z*vec_w.y*vec_w.y)-2.0*(vec_w.x*vec_u.z+vec_u.x*vec_w.z)*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)))
-             +DF*(1.0/CosPhi)*T.az*T.by;
-          HessianMatrix.element[n+2][n+4]+=
-             DDF*T.az*T.bz+
-             DF*0.5*CosPhi*(
-             -4.0*dmn.az*dmn.bz/SQR(dot_mn)
-             +(1.0/SQR(dot_mn))*(2.0*(dmn.az*dmn.bz)+2.0*dot_mn*
-             ((vec_v.x*vec_u.z+vec_u.x*vec_v.z)*(vec_w.y*vec_u.z+vec_u.y*vec_w.z)+(vec_w.x*vec_u.z+vec_u.x*vec_w.z)*(vec_v.y*vec_u.z+vec_u.y*vec_v.z)
-             -(vec_v.x*vec_w.z+vec_w.x*vec_v.z)*(vec_u.y*vec_u.z+vec_u.y*vec_u.z)-(vec_u.x*vec_u.z+vec_u.x*vec_u.z)*(vec_v.y*vec_w.z+vec_w.y*vec_v.z)))
-             +(dme.az*dme.bz/SQR(m2)+dne.az*dne.bz/SQR(n2))
-             -(1.0/m2)*(4.0*(vec_v.x*vec_v.z*vec_u.y*vec_u.z+vec_u.x*vec_u.z*vec_v.y*vec_v.z)-2.0*(vec_v.x*vec_u.z+vec_u.x*vec_v.z)*(vec_v.y*vec_u.z+vec_u.y*vec_v.z))
-             -(1.0/n2)*(4.0*(vec_w.x*vec_w.z*vec_u.y*vec_u.z+vec_u.x*vec_u.z*vec_w.y*vec_w.z)-2.0*(vec_w.x*vec_u.z+vec_u.x*vec_w.z)*(vec_w.y*vec_u.z+vec_u.y*vec_w.z)))
-             +DF*(1.0/CosPhi)*T.az*T.bz+0.5*S.ay;
-          HessianMatrix.element[n+2][n+5]+=
-             DDF*T.az*T.cz+
-             DF*0.5*CosPhi*(
-             -4.0*dmn.az*dmn.cz/SQR(dot_mn)
-             +(1.0/SQR(dot_mn))*(2.0*(dmn.az*dmn.cz)+2.0*dot_mn*
-             ((vec_v.x*vec_u.z+vec_u.x*vec_v.z)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)+(vec_w.x*vec_u.z+vec_u.x*vec_w.z)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)
-             -(vec_v.x*vec_w.z+vec_w.x*vec_v.z)*(vec_u.z*vec_u.z+vec_u.z*vec_u.z)-(vec_u.x*vec_u.z+vec_u.x*vec_u.z)*(vec_v.z*vec_w.z+vec_w.z*vec_v.z)))
-             +(dme.az*dme.cz/SQR(m2)+dne.az*dne.cz/SQR(n2))
-             -(1.0/m2)*(4.0*(vec_v.x*vec_v.z*vec_u.z*vec_u.z+vec_u.x*vec_u.z*vec_v.z*vec_v.z)-2.0*(vec_v.x*vec_u.z+vec_u.x*vec_v.z)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z))
-             -(1.0/n2)*(4.0*(vec_w.x*vec_w.z*vec_u.z*vec_u.z+vec_u.x*vec_u.z*vec_w.z*vec_w.z)-2.0*(vec_w.x*vec_u.z+vec_u.x*vec_w.z)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)))
-             +DF*(1.0/CosPhi)*T.az*T.cz+S.az;
-
-          HessianMatrix.element[n+3][n+3]+=
-             DDF*T.by*T.by+
-             DF*0.5*CosPhi*(
-             -4.0*dmn.by*dmn.by/SQR(dot_mn)
-             +(1.0/SQR(dot_mn))*(2.0*(dmn.by*dmn.by)+2.0*dot_mn*
-             ((vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)+(vec_w.y*vec_u.y+vec_u.y*vec_w.y)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)
-             -(vec_v.y*vec_w.y+vec_w.y*vec_v.y)*(vec_u.y*vec_u.y+vec_u.y*vec_u.y)-(vec_u.y*vec_u.y+vec_u.y*vec_u.y)*(vec_v.y*vec_w.y+vec_w.y*vec_v.y)))
-             +(dme.by*dme.by/SQR(m2)+dne.by*dne.by/SQR(n2))
-             -(1.0/m2)*(4.0*(vec_v.y*vec_v.y*vec_u.y*vec_u.y+vec_u.y*vec_u.y*vec_v.y*vec_v.y)-2.0*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y))
-             -(1.0/n2)*(4.0*(vec_w.y*vec_w.y*vec_u.y*vec_u.y+vec_u.y*vec_u.y*vec_w.y*vec_w.y)-2.0*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)))
-             +DF*(1.0/CosPhi)*T.by*T.by+2.0*S.by;
-          HessianMatrix.element[n+3][n+4]+=
-             DDF*T.by*T.bz+
-             DF*0.5*CosPhi*(
-             -4.0*dmn.by*dmn.bz/SQR(dot_mn)
-             +(1.0/SQR(dot_mn))*(2.0*(dmn.by*dmn.bz)+2.0*dot_mn*
-             ((vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_w.y*vec_u.z+vec_u.y*vec_w.z)+(vec_w.y*vec_u.y+vec_u.y*vec_w.y)*(vec_v.y*vec_u.z+vec_u.y*vec_v.z)
-             -(vec_v.y*vec_w.y+vec_w.y*vec_v.y)*(vec_u.y*vec_u.z+vec_u.y*vec_u.z)-(vec_u.y*vec_u.y+vec_u.y*vec_u.y)*(vec_v.y*vec_w.z+vec_w.y*vec_v.z)))
-             +(dme.by*dme.bz/SQR(m2)+dne.by*dne.bz/SQR(n2))
-             -(1.0/m2)*(4.0*(vec_v.y*vec_v.y*vec_u.y*vec_u.z+vec_u.y*vec_u.y*vec_v.y*vec_v.z)-2.0*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_v.y*vec_u.z+vec_u.y*vec_v.z))
-             -(1.0/n2)*(4.0*(vec_w.y*vec_w.y*vec_u.y*vec_u.z+vec_u.y*vec_u.y*vec_w.y*vec_w.z)-2.0*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)*(vec_w.y*vec_u.z+vec_u.y*vec_w.z)))
-             +DF*(1.0/CosPhi)*T.by*T.bz+S.bz;
-          HessianMatrix.element[n+3][n+5]+=
-             DDF*T.by*T.cz+
-             DF*0.5*CosPhi*(
-             -4.0*dmn.by*dmn.cz/SQR(dot_mn)
-             +(1.0/SQR(dot_mn))*(2.0*(dmn.by*dmn.cz)+2.0*dot_mn*
-             ((vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)+(vec_w.y*vec_u.y+vec_u.y*vec_w.y)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)
-             -(vec_v.y*vec_w.y+vec_w.y*vec_v.y)*(vec_u.z*vec_u.z+vec_u.z*vec_u.z)-(vec_u.y*vec_u.y+vec_u.y*vec_u.y)*(vec_v.z*vec_w.z+vec_w.z*vec_v.z)))
-             +(dme.by*dme.cz/SQR(m2)+dne.by*dne.cz/SQR(n2))
-             -(1.0/m2)*(4.0*(vec_v.y*vec_v.y*vec_u.z*vec_u.z+vec_u.y*vec_u.y*vec_v.z*vec_v.z)-2.0*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z))
-             -(1.0/n2)*(4.0*(vec_w.y*vec_w.y*vec_u.z*vec_u.z+vec_u.y*vec_u.y*vec_w.z*vec_w.z)-2.0*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)))
-             +DF*(1.0/CosPhi)*T.by*T.cz;
-
-          HessianMatrix.element[n+4][n+4]+=
-             DDF*T.bz*T.bz+
-             DF*0.5*CosPhi*(
-             -4.0*dmn.bz*dmn.bz/SQR(dot_mn)
-             +(1.0/SQR(dot_mn))*(2.0*(dmn.bz*dmn.bz)+2.0*dot_mn*
-             ((vec_v.y*vec_u.z+vec_u.y*vec_v.z)*(vec_w.y*vec_u.z+vec_u.y*vec_w.z)+(vec_w.y*vec_u.z+vec_u.y*vec_w.z)*(vec_v.y*vec_u.z+vec_u.y*vec_v.z)
-             -(vec_v.y*vec_w.z+vec_w.y*vec_v.z)*(vec_u.y*vec_u.z+vec_u.y*vec_u.z)-(vec_u.y*vec_u.z+vec_u.y*vec_u.z)*(vec_v.y*vec_w.z+vec_w.y*vec_v.z)))
-             +(dme.bz*dme.bz/SQR(m2)+dne.bz*dne.bz/SQR(n2))
-             -(1.0/m2)*(4.0*(vec_v.y*vec_v.z*vec_u.y*vec_u.z+vec_u.y*vec_u.z*vec_v.y*vec_v.z)-2.0*(vec_v.y*vec_u.z+vec_u.y*vec_v.z)*(vec_v.y*vec_u.z+vec_u.y*vec_v.z))
-             -(1.0/n2)*(4.0*(vec_w.y*vec_w.z*vec_u.y*vec_u.z+vec_u.y*vec_u.z*vec_w.y*vec_w.z)-2.0*(vec_w.y*vec_u.z+vec_u.y*vec_w.z)*(vec_w.y*vec_u.z+vec_u.y*vec_w.z)))
-             +DF*(1.0/CosPhi)*T.bz*T.bz+0.5*(S.by+S.cz);
-          HessianMatrix.element[n+4][n+5]+=
-             DDF*T.bz*T.cz+
-             DF*0.5*CosPhi*(
-             -4.0*dmn.bz*dmn.cz/SQR(dot_mn)
-             +(1.0/SQR(dot_mn))*(2.0*(dmn.bz*dmn.cz)+2.0*dot_mn*
-             ((vec_v.y*vec_u.z+vec_u.y*vec_v.z)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)+(vec_w.y*vec_u.z+vec_u.y*vec_w.z)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)
-             -(vec_v.y*vec_w.z+vec_w.y*vec_v.z)*(vec_u.z*vec_u.z+vec_u.z*vec_u.z)-(vec_u.y*vec_u.z+vec_u.y*vec_u.z)*(vec_v.z*vec_w.z+vec_w.z*vec_v.z)))
-             +(dme.bz*dme.cz/SQR(m2)+dne.bz*dne.cz/SQR(n2))
-             -(1.0/m2)*(4.0*(vec_v.y*vec_v.z*vec_u.z*vec_u.z+vec_u.y*vec_u.z*vec_v.z*vec_v.z)-2.0*(vec_v.y*vec_u.z+vec_u.y*vec_v.z)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z))
-             -(1.0/n2)*(4.0*(vec_w.y*vec_w.z*vec_u.z*vec_u.z+vec_u.y*vec_u.z*vec_w.z*vec_w.z)-2.0*(vec_w.y*vec_u.z+vec_u.y*vec_w.z)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)))
-             +DF*(1.0/CosPhi)*T.bz*T.cz+S.bz;
-
-          HessianMatrix.element[n+5][n+5]+=
-             DDF*T.cz*T.cz+
-             DF*0.5*CosPhi*(
-             -4.0*dmn.cz*dmn.cz/SQR(dot_mn)
-             +(1.0/SQR(dot_mn))*(2.0*(dmn.cz*dmn.cz)+2.0*dot_mn*
-             ((vec_v.z*vec_u.z+vec_u.z*vec_v.z)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)+(vec_w.z*vec_u.z+vec_u.z*vec_w.z)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)
-             -(vec_v.z*vec_w.z+vec_w.z*vec_v.z)*(vec_u.z*vec_u.z+vec_u.z*vec_u.z)-(vec_u.z*vec_u.z+vec_u.z*vec_u.z)*(vec_v.z*vec_w.z+vec_w.z*vec_v.z)))
-             +(dme.cz*dme.cz/SQR(m2)+dne.cz*dne.cz/SQR(n2))
-             -(1.0/m2)*(4.0*(vec_v.z*vec_v.z*vec_u.z*vec_u.z+vec_u.z*vec_u.z*vec_v.z*vec_v.z)-2.0*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z))
-             -(1.0/n2)*(4.0*(vec_w.z*vec_w.z*vec_u.z*vec_u.z+vec_u.z*vec_u.z*vec_w.z*vec_w.z)-2.0*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)))
-             +DF*(1.0/CosPhi)*T.cz*T.cz+2.0*S.cz;
-          break;
-        case REGULAR_UPPER_TRIANGLE:
-          HessianMatrix.element[n][n]+=
-             DDF*T.ax*T.ax+
-             DF*0.5*CosPhi*(
-             -4.0*dmn.ax*dmn.ax/SQR(dot_mn)
-             +(1.0/SQR(dot_mn))*(2.0*(dmn.ax*dmn.ax)+2.0*dot_mn*
-             ((vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)+(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)
-             -(vec_v.x*vec_w.x+vec_w.x*vec_v.x)*(vec_u.x*vec_u.x+vec_u.x*vec_u.x)-(vec_u.x*vec_u.x+vec_u.x*vec_u.x)*(vec_v.x*vec_w.x+vec_w.x*vec_v.x)))
-             +(dme.ax*dme.ax/SQR(m2)+dne.ax*dne.ax/SQR(n2))
-             -(1.0/m2)*(4.0*(vec_v.x*vec_v.x*vec_u.x*vec_u.x+vec_u.x*vec_u.x*vec_v.x*vec_v.x)-2.0*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.x*vec_u.x+vec_u.x*vec_v.x))
-             -(1.0/n2)*(4.0*(vec_w.x*vec_w.x*vec_u.x*vec_u.x+vec_u.x*vec_u.x*vec_w.x*vec_w.x)-2.0*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)))
-             +DF*(1.0/CosPhi)*T.ax*T.ax+2.0*S.ax;
-          HessianMatrix.element[n][n+1]+=
-             DDF*T.ax*T.ay+
-             DF*0.5*CosPhi*(
-             -4.0*dmn.ax*dmn.ay/SQR(dot_mn)
-             +(1.0/SQR(dot_mn))*(2.0*(dmn.ax*dmn.ay)+2.0*dot_mn*
-             ((vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_w.x*vec_u.y+vec_u.x*vec_w.y)+(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_v.x*vec_u.y+vec_u.x*vec_v.y)
-             -(vec_v.x*vec_w.x+vec_w.x*vec_v.x)*(vec_u.x*vec_u.y+vec_u.x*vec_u.y)-(vec_u.x*vec_u.x+vec_u.x*vec_u.x)*(vec_v.x*vec_w.y+vec_w.x*vec_v.y)))
-             +(dme.ax*dme.ay/SQR(m2)+dne.ax*dne.ay/SQR(n2))
-             -(1.0/m2)*(4.0*(vec_v.x*vec_v.x*vec_u.x*vec_u.y+vec_u.x*vec_u.x*vec_v.x*vec_v.y)-2.0*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.x*vec_u.y+vec_u.x*vec_v.y))
-             -(1.0/n2)*(4.0*(vec_w.x*vec_w.x*vec_u.x*vec_u.y+vec_u.x*vec_u.x*vec_w.x*vec_w.y)-2.0*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_w.x*vec_u.y+vec_u.x*vec_w.y)))
-             +DF*(1.0/CosPhi)*T.ax*T.ay+S.ay;
-          HessianMatrix.element[n][n+2]+=
-             DDF*T.ax*T.az+
-             DF*0.5*CosPhi*(
-             -4.0*dmn.ax*dmn.az/SQR(dot_mn)
-             +(1.0/SQR(dot_mn))*(2.0*(dmn.ax*dmn.az)+2.0*dot_mn*
-             ((vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_w.x*vec_u.z+vec_u.x*vec_w.z)+(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_v.x*vec_u.z+vec_u.x*vec_v.z)
-             -(vec_v.x*vec_w.x+vec_w.x*vec_v.x)*(vec_u.x*vec_u.z+vec_u.x*vec_u.z)-(vec_u.x*vec_u.x+vec_u.x*vec_u.x)*(vec_v.x*vec_w.z+vec_w.x*vec_v.z)))
-             +(dme.ax*dme.az/SQR(m2)+dne.ax*dne.az/SQR(n2))
-             -(1.0/m2)*(4.0*(vec_v.x*vec_v.x*vec_u.x*vec_u.z+vec_u.x*vec_u.x*vec_v.x*vec_v.z)-2.0*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.x*vec_u.z+vec_u.x*vec_v.z))
-             -(1.0/n2)*(4.0*(vec_w.x*vec_w.x*vec_u.x*vec_u.z+vec_u.x*vec_u.x*vec_w.x*vec_w.z)-2.0*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_w.x*vec_u.z+vec_u.x*vec_w.z)))
-             +DF*(1.0/CosPhi)*T.ax*T.az+S.az;
-          HessianMatrix.element[n][n+3]+=
-             DDF*T.ax*T.by+
-             DF*0.5*CosPhi*(
-             -4.0*dmn.ax*dmn.by/SQR(dot_mn)
-             +(1.0/SQR(dot_mn))*(2.0*(dmn.ax*dmn.by)+2.0*dot_mn*
-             ((vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)+(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)
-             -(vec_v.x*vec_w.x+vec_w.x*vec_v.x)*(vec_u.y*vec_u.y+vec_u.y*vec_u.y)-(vec_u.x*vec_u.x+vec_u.x*vec_u.x)*(vec_v.y*vec_w.y+vec_w.y*vec_v.y)))
-             +(dme.ax*dme.by/SQR(m2)+dne.ax*dne.by/SQR(n2))
-             -(1.0/m2)*(4.0*(vec_v.x*vec_v.x*vec_u.y*vec_u.y+vec_u.x*vec_u.x*vec_v.y*vec_v.y)-2.0*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y))
-             -(1.0/n2)*(4.0*(vec_w.x*vec_w.x*vec_u.y*vec_u.y+vec_u.x*vec_u.x*vec_w.y*vec_w.y)-2.0*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)))
-             +DF*(1.0/CosPhi)*T.ax*T.by;
-          HessianMatrix.element[n][n+4]+=
-             DDF*T.ax*T.bz+
-             DF*0.5*CosPhi*(
-             -4.0*dmn.ax*dmn.bz/SQR(dot_mn)
-             +(1.0/SQR(dot_mn))*(2.0*(dmn.ax*dmn.bz)+2.0*dot_mn*
-             ((vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_w.y*vec_u.z+vec_u.y*vec_w.z)+(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_v.y*vec_u.z+vec_u.y*vec_v.z)
-             -(vec_v.x*vec_w.x+vec_w.x*vec_v.x)*(vec_u.y*vec_u.z+vec_u.y*vec_u.z)-(vec_u.x*vec_u.x+vec_u.x*vec_u.x)*(vec_v.y*vec_w.z+vec_w.y*vec_v.z)))
-             +(dme.ax*dme.bz/SQR(m2)+dne.ax*dne.bz/SQR(n2))
-             -(1.0/m2)*(4.0*(vec_v.x*vec_v.x*vec_u.y*vec_u.z+vec_u.x*vec_u.x*vec_v.y*vec_v.z)-2.0*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.y*vec_u.z+vec_u.y*vec_v.z))
-             -(1.0/n2)*(4.0*(vec_w.x*vec_w.x*vec_u.y*vec_u.z+vec_u.x*vec_u.x*vec_w.y*vec_w.z)-2.0*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_w.y*vec_u.z+vec_u.y*vec_w.z)))
-             +DF*(1.0/CosPhi)*T.ax*T.bz;
-          HessianMatrix.element[n][n+5]+=
-             DDF*T.ax*T.cz+
-             DF*0.5*CosPhi*(
-             -4.0*dmn.ax*dmn.cz/SQR(dot_mn)
-             +(1.0/SQR(dot_mn))*(2.0*(dmn.ax*dmn.cz)+2.0*dot_mn*
-             ((vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)+(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)
-             -(vec_v.x*vec_w.x+vec_w.x*vec_v.x)*(vec_u.z*vec_u.z+vec_u.z*vec_u.z)-(vec_u.x*vec_u.x+vec_u.x*vec_u.x)*(vec_v.z*vec_w.z+vec_w.z*vec_v.z)))
-             +(dme.ax*dme.cz/SQR(m2)+dne.ax*dne.cz/SQR(n2))
-             -(1.0/m2)*(4.0*(vec_v.x*vec_v.x*vec_u.z*vec_u.z+vec_u.x*vec_u.x*vec_v.z*vec_v.z)-2.0*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z))
-             -(1.0/n2)*(4.0*(vec_w.x*vec_w.x*vec_u.z*vec_u.z+vec_u.x*vec_u.x*vec_w.z*vec_w.z)-2.0*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)))
-             +DF*(1.0/CosPhi)*T.ax*T.cz;
-
-          HessianMatrix.element[n+1][n+1]+=
-             DDF*T.ay*T.ay+
-             DF*0.5*CosPhi*(
-             -4.0*dmn.ay*dmn.ay/SQR(dot_mn)
-             +(1.0/SQR(dot_mn))*(2.0*(dmn.ay*dmn.ay)+2.0*dot_mn*
-             ((vec_v.x*vec_u.y+vec_u.x*vec_v.y)*(vec_w.x*vec_u.y+vec_u.x*vec_w.y)+(vec_w.x*vec_u.y+vec_u.x*vec_w.y)*(vec_v.x*vec_u.y+vec_u.x*vec_v.y)
-             -(vec_v.x*vec_w.y+vec_w.x*vec_v.y)*(vec_u.x*vec_u.y+vec_u.x*vec_u.y)-(vec_u.x*vec_u.y+vec_u.x*vec_u.y)*(vec_v.x*vec_w.y+vec_w.x*vec_v.y)))
-             +(dme.ay*dme.ay/SQR(m2)+dne.ay*dne.ay/SQR(n2))
-             -(1.0/m2)*(4.0*(vec_v.x*vec_v.y*vec_u.x*vec_u.y+vec_u.x*vec_u.y*vec_v.x*vec_v.y)-2.0*(vec_v.x*vec_u.y+vec_u.x*vec_v.y)*(vec_v.x*vec_u.y+vec_u.x*vec_v.y))
-             -(1.0/n2)*(4.0*(vec_w.x*vec_w.y*vec_u.x*vec_u.y+vec_u.x*vec_u.y*vec_w.x*vec_w.y)-2.0*(vec_w.x*vec_u.y+vec_u.x*vec_w.y)*(vec_w.x*vec_u.y+vec_u.x*vec_w.y)))
-             +DF*(1.0/CosPhi)*T.ay*T.ay+S.by;
-          HessianMatrix.element[n+1][n+2]+=
-             DDF*T.ay*T.az+
-             DF*0.5*CosPhi*(
-             -4.0*dmn.ay*dmn.az/SQR(dot_mn)
-             +(1.0/SQR(dot_mn))*(2.0*(dmn.ay*dmn.az)+2.0*dot_mn*
-             ((vec_v.x*vec_u.y+vec_u.x*vec_v.y)*(vec_w.x*vec_u.z+vec_u.x*vec_w.z)+(vec_w.x*vec_u.y+vec_u.x*vec_w.y)*(vec_v.x*vec_u.z+vec_u.x*vec_v.z)
-             -(vec_v.x*vec_w.y+vec_w.x*vec_v.y)*(vec_u.x*vec_u.z+vec_u.x*vec_u.z)-(vec_u.x*vec_u.y+vec_u.x*vec_u.y)*(vec_v.x*vec_w.z+vec_w.x*vec_v.z)))
-             +(dme.ay*dme.az/SQR(m2)+dne.ay*dne.az/SQR(n2))
-             -(1.0/m2)*(4.0*(vec_v.x*vec_v.y*vec_u.x*vec_u.z+vec_u.x*vec_u.y*vec_v.x*vec_v.z)-2.0*(vec_v.x*vec_u.y+vec_u.x*vec_v.y)*(vec_v.x*vec_u.z+vec_u.x*vec_v.z))
-             -(1.0/n2)*(4.0*(vec_w.x*vec_w.y*vec_u.x*vec_u.z+vec_u.x*vec_u.y*vec_w.x*vec_w.z)-2.0*(vec_w.x*vec_u.y+vec_u.x*vec_w.y)*(vec_w.x*vec_u.z+vec_u.x*vec_w.z)))
-             +DF*(1.0/CosPhi)*T.ay*T.az+S.bz;
-          HessianMatrix.element[n+1][n+3]+=
-             DDF*T.ay*T.by+
-             DF*0.5*CosPhi*(
-             -4.0*dmn.ay*dmn.by/SQR(dot_mn)
-             +(1.0/SQR(dot_mn))*(2.0*(dmn.ay*dmn.by)+2.0*dot_mn*
-             ((vec_v.x*vec_u.y+vec_u.x*vec_v.y)*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)+(vec_w.x*vec_u.y+vec_u.x*vec_w.y)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)
-             -(vec_v.x*vec_w.y+vec_w.x*vec_v.y)*(vec_u.y*vec_u.y+vec_u.y*vec_u.y)-(vec_u.x*vec_u.y+vec_u.x*vec_u.y)*(vec_v.y*vec_w.y+vec_w.y*vec_v.y)))
-             +(dme.ay*dme.by/SQR(m2)+dne.ay*dne.by/SQR(n2))
-             -(1.0/m2)*(4.0*(vec_v.x*vec_v.y*vec_u.y*vec_u.y+vec_u.x*vec_u.y*vec_v.y*vec_v.y)-2.0*(vec_v.x*vec_u.y+vec_u.x*vec_v.y)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y))
-             -(1.0/n2)*(4.0*(vec_w.x*vec_w.y*vec_u.y*vec_u.y+vec_u.x*vec_u.y*vec_w.y*vec_w.y)-2.0*(vec_w.x*vec_u.y+vec_u.x*vec_w.y)*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)))
-             +DF*(1.0/CosPhi)*T.ay*T.by;
-          HessianMatrix.element[n+1][n+4]+=
-             DDF*T.ay*T.bz+
-             DF*0.5*CosPhi*(
-             -4.0*dmn.ay*dmn.bz/SQR(dot_mn)
-             +(1.0/SQR(dot_mn))*(2.0*(dmn.ay*dmn.bz)+2.0*dot_mn*
-             ((vec_v.x*vec_u.y+vec_u.x*vec_v.y)*(vec_w.y*vec_u.z+vec_u.y*vec_w.z)+(vec_w.x*vec_u.y+vec_u.x*vec_w.y)*(vec_v.y*vec_u.z+vec_u.y*vec_v.z)
-             -(vec_v.x*vec_w.y+vec_w.x*vec_v.y)*(vec_u.y*vec_u.z+vec_u.y*vec_u.z)-(vec_u.x*vec_u.y+vec_u.x*vec_u.y)*(vec_v.y*vec_w.z+vec_w.y*vec_v.z)))
-             +(dme.ay*dme.bz/SQR(m2)+dne.ay*dne.bz/SQR(n2))
-             -(1.0/m2)*(4.0*(vec_v.x*vec_v.y*vec_u.y*vec_u.z+vec_u.x*vec_u.y*vec_v.y*vec_v.z)-2.0*(vec_v.x*vec_u.y+vec_u.x*vec_v.y)*(vec_v.y*vec_u.z+vec_u.y*vec_v.z))
-             -(1.0/n2)*(4.0*(vec_w.x*vec_w.y*vec_u.y*vec_u.z+vec_u.x*vec_u.y*vec_w.y*vec_w.z)-2.0*(vec_w.x*vec_u.y+vec_u.x*vec_w.y)*(vec_w.y*vec_u.z+vec_u.y*vec_w.z)))
-             +DF*(1.0/CosPhi)*T.ay*T.bz;
-          HessianMatrix.element[n+1][n+5]+=
-             DDF*T.ay*T.cz+
-             DF*0.5*CosPhi*(
-             -4.0*dmn.ay*dmn.cz/SQR(dot_mn)
-             +(1.0/SQR(dot_mn))*(2.0*(dmn.ay*dmn.cz)+2.0*dot_mn*
-             ((vec_v.x*vec_u.y+vec_u.x*vec_v.y)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)+(vec_w.x*vec_u.y+vec_u.x*vec_w.y)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)
-             -(vec_v.x*vec_w.y+vec_w.x*vec_v.y)*(vec_u.z*vec_u.z+vec_u.z*vec_u.z)-(vec_u.x*vec_u.y+vec_u.x*vec_u.y)*(vec_v.z*vec_w.z+vec_w.z*vec_v.z)))
-             +(dme.ay*dme.cz/SQR(m2)+dne.ay*dne.cz/SQR(n2))
-             -(1.0/m2)*(4.0*(vec_v.x*vec_v.y*vec_u.z*vec_u.z+vec_u.x*vec_u.y*vec_v.z*vec_v.z)-2.0*(vec_v.x*vec_u.y+vec_u.x*vec_v.y)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z))
-             -(1.0/n2)*(4.0*(vec_w.x*vec_w.y*vec_u.z*vec_u.z+vec_u.x*vec_u.y*vec_w.z*vec_w.z)-2.0*(vec_w.x*vec_u.y+vec_u.x*vec_w.y)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)))
-             +DF*(1.0/CosPhi)*T.ay*T.cz;
-
-          HessianMatrix.element[n+2][n+2]+=DDF*T.az*T.az+
-             DF*0.5*CosPhi*(
-             -4.0*dmn.az*dmn.az/SQR(dot_mn)
-             +(1.0/SQR(dot_mn))*(2.0*(dmn.az*dmn.az)+2.0*dot_mn*
-             ((vec_v.x*vec_u.z+vec_u.x*vec_v.z)*(vec_w.x*vec_u.z+vec_u.x*vec_w.z)+(vec_w.x*vec_u.z+vec_u.x*vec_w.z)*(vec_v.x*vec_u.z+vec_u.x*vec_v.z)
-             -(vec_v.x*vec_w.z+vec_w.x*vec_v.z)*(vec_u.x*vec_u.z+vec_u.x*vec_u.z)-(vec_u.x*vec_u.z+vec_u.x*vec_u.z)*(vec_v.x*vec_w.z+vec_w.x*vec_v.z)))
-             +(dme.az*dme.az/SQR(m2)+dne.az*dne.az/SQR(n2))
-             -(1.0/m2)*(4.0*(vec_v.x*vec_v.z*vec_u.x*vec_u.z+vec_u.x*vec_u.z*vec_v.x*vec_v.z)-2.0*(vec_v.x*vec_u.z+vec_u.x*vec_v.z)*(vec_v.x*vec_u.z+vec_u.x*vec_v.z))
-             -(1.0/n2)*(4.0*(vec_w.x*vec_w.z*vec_u.x*vec_u.z+vec_u.x*vec_u.z*vec_w.x*vec_w.z)-2.0*(vec_w.x*vec_u.z+vec_u.x*vec_w.z)*(vec_w.x*vec_u.z+vec_u.x*vec_w.z)))
-             +DF*(1.0/CosPhi)*T.az*T.az+S.cz;
-          HessianMatrix.element[n+2][n+3]+=
-             DDF*T.az*T.by+
-             DF*0.5*CosPhi*(
-             -4.0*dmn.az*dmn.by/SQR(dot_mn)
-             +(1.0/SQR(dot_mn))*(2.0*(dmn.az*dmn.by)+2.0*dot_mn*
-             ((vec_v.x*vec_u.z+vec_u.x*vec_v.z)*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)+(vec_w.x*vec_u.z+vec_u.x*vec_w.z)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)
-             -(vec_v.x*vec_w.z+vec_w.x*vec_v.z)*(vec_u.y*vec_u.y+vec_u.y*vec_u.y)-(vec_u.x*vec_u.z+vec_u.x*vec_u.z)*(vec_v.y*vec_w.y+vec_w.y*vec_v.y)))
-             +(dme.az*dme.by/SQR(m2)+dne.az*dne.by/SQR(n2))
-             -(1.0/m2)*(4.0*(vec_v.x*vec_v.z*vec_u.y*vec_u.y+vec_u.x*vec_u.z*vec_v.y*vec_v.y)-2.0*(vec_v.x*vec_u.z+vec_u.x*vec_v.z)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y))
-             -(1.0/n2)*(4.0*(vec_w.x*vec_w.z*vec_u.y*vec_u.y+vec_u.x*vec_u.z*vec_w.y*vec_w.y)-2.0*(vec_w.x*vec_u.z+vec_u.x*vec_w.z)*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)))
-             +DF*(1.0/CosPhi)*T.az*T.by;
-          HessianMatrix.element[n+2][n+4]+=
-             DDF*T.az*T.bz+
-             DF*0.5*CosPhi*(
-             -4.0*dmn.az*dmn.bz/SQR(dot_mn)
-             +(1.0/SQR(dot_mn))*(2.0*(dmn.az*dmn.bz)+2.0*dot_mn*
-             ((vec_v.x*vec_u.z+vec_u.x*vec_v.z)*(vec_w.y*vec_u.z+vec_u.y*vec_w.z)+(vec_w.x*vec_u.z+vec_u.x*vec_w.z)*(vec_v.y*vec_u.z+vec_u.y*vec_v.z)
-             -(vec_v.x*vec_w.z+vec_w.x*vec_v.z)*(vec_u.y*vec_u.z+vec_u.y*vec_u.z)-(vec_u.x*vec_u.z+vec_u.x*vec_u.z)*(vec_v.y*vec_w.z+vec_w.y*vec_v.z)))
-             +(dme.az*dme.bz/SQR(m2)+dne.az*dne.bz/SQR(n2))
-             -(1.0/m2)*(4.0*(vec_v.x*vec_v.z*vec_u.y*vec_u.z+vec_u.x*vec_u.z*vec_v.y*vec_v.z)-2.0*(vec_v.x*vec_u.z+vec_u.x*vec_v.z)*(vec_v.y*vec_u.z+vec_u.y*vec_v.z))
-             -(1.0/n2)*(4.0*(vec_w.x*vec_w.z*vec_u.y*vec_u.z+vec_u.x*vec_u.z*vec_w.y*vec_w.z)-2.0*(vec_w.x*vec_u.z+vec_u.x*vec_w.z)*(vec_w.y*vec_u.z+vec_u.y*vec_w.z)))
-             +DF*(1.0/CosPhi)*T.az*T.bz;
-          HessianMatrix.element[n+2][n+5]+=
-             DDF*T.az*T.cz+
-             DF*0.5*CosPhi*(
-             -4.0*dmn.az*dmn.cz/SQR(dot_mn)
-             +(1.0/SQR(dot_mn))*(2.0*(dmn.az*dmn.cz)+2.0*dot_mn*
-             ((vec_v.x*vec_u.z+vec_u.x*vec_v.z)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)+(vec_w.x*vec_u.z+vec_u.x*vec_w.z)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)
-             -(vec_v.x*vec_w.z+vec_w.x*vec_v.z)*(vec_u.z*vec_u.z+vec_u.z*vec_u.z)-(vec_u.x*vec_u.z+vec_u.x*vec_u.z)*(vec_v.z*vec_w.z+vec_w.z*vec_v.z)))
-             +(dme.az*dme.cz/SQR(m2)+dne.az*dne.cz/SQR(n2))
-             -(1.0/m2)*(4.0*(vec_v.x*vec_v.z*vec_u.z*vec_u.z+vec_u.x*vec_u.z*vec_v.z*vec_v.z)-2.0*(vec_v.x*vec_u.z+vec_u.x*vec_v.z)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z))
-             -(1.0/n2)*(4.0*(vec_w.x*vec_w.z*vec_u.z*vec_u.z+vec_u.x*vec_u.z*vec_w.z*vec_w.z)-2.0*(vec_w.x*vec_u.z+vec_u.x*vec_w.z)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)))
-             +DF*(1.0/CosPhi)*T.az*T.cz;
-
-          HessianMatrix.element[n+3][n+3]+=
-             DDF*T.by*T.by+
-             DF*0.5*CosPhi*(
-             -4.0*dmn.by*dmn.by/SQR(dot_mn)
-             +(1.0/SQR(dot_mn))*(2.0*(dmn.by*dmn.by)+2.0*dot_mn*
-             ((vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)+(vec_w.y*vec_u.y+vec_u.y*vec_w.y)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)
-             -(vec_v.y*vec_w.y+vec_w.y*vec_v.y)*(vec_u.y*vec_u.y+vec_u.y*vec_u.y)-(vec_u.y*vec_u.y+vec_u.y*vec_u.y)*(vec_v.y*vec_w.y+vec_w.y*vec_v.y)))
-             +(dme.by*dme.by/SQR(m2)+dne.by*dne.by/SQR(n2))
-             -(1.0/m2)*(4.0*(vec_v.y*vec_v.y*vec_u.y*vec_u.y+vec_u.y*vec_u.y*vec_v.y*vec_v.y)-2.0*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y))
-             -(1.0/n2)*(4.0*(vec_w.y*vec_w.y*vec_u.y*vec_u.y+vec_u.y*vec_u.y*vec_w.y*vec_w.y)-2.0*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)))
-             +DF*(1.0/CosPhi)*T.by*T.by+2.0*S.by;
-          HessianMatrix.element[n+3][n+4]+=
-             DDF*T.by*T.bz+
-             DF*0.5*CosPhi*(
-             -4.0*dmn.by*dmn.bz/SQR(dot_mn)
-             +(1.0/SQR(dot_mn))*(2.0*(dmn.by*dmn.bz)+2.0*dot_mn*
-             ((vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_w.y*vec_u.z+vec_u.y*vec_w.z)+(vec_w.y*vec_u.y+vec_u.y*vec_w.y)*(vec_v.y*vec_u.z+vec_u.y*vec_v.z)
-             -(vec_v.y*vec_w.y+vec_w.y*vec_v.y)*(vec_u.y*vec_u.z+vec_u.y*vec_u.z)-(vec_u.y*vec_u.y+vec_u.y*vec_u.y)*(vec_v.y*vec_w.z+vec_w.y*vec_v.z)))
-             +(dme.by*dme.bz/SQR(m2)+dne.by*dne.bz/SQR(n2))
-             -(1.0/m2)*(4.0*(vec_v.y*vec_v.y*vec_u.y*vec_u.z+vec_u.y*vec_u.y*vec_v.y*vec_v.z)-2.0*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_v.y*vec_u.z+vec_u.y*vec_v.z))
-             -(1.0/n2)*(4.0*(vec_w.y*vec_w.y*vec_u.y*vec_u.z+vec_u.y*vec_u.y*vec_w.y*vec_w.z)-2.0*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)*(vec_w.y*vec_u.z+vec_u.y*vec_w.z)))
-             +DF*(1.0/CosPhi)*T.by*T.bz+S.bz;
-          HessianMatrix.element[n+3][n+5]+=
-             DDF*T.by*T.cz+
-             DF*0.5*CosPhi*(
-             -4.0*dmn.by*dmn.cz/SQR(dot_mn)
-             +(1.0/SQR(dot_mn))*(2.0*(dmn.by*dmn.cz)+2.0*dot_mn*
-             ((vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)+(vec_w.y*vec_u.y+vec_u.y*vec_w.y)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)
-             -(vec_v.y*vec_w.y+vec_w.y*vec_v.y)*(vec_u.z*vec_u.z+vec_u.z*vec_u.z)-(vec_u.y*vec_u.y+vec_u.y*vec_u.y)*(vec_v.z*vec_w.z+vec_w.z*vec_v.z)))
-             +(dme.by*dme.cz/SQR(m2)+dne.by*dne.cz/SQR(n2))
-             -(1.0/m2)*(4.0*(vec_v.y*vec_v.y*vec_u.z*vec_u.z+vec_u.y*vec_u.y*vec_v.z*vec_v.z)-2.0*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z))
-             -(1.0/n2)*(4.0*(vec_w.y*vec_w.y*vec_u.z*vec_u.z+vec_u.y*vec_u.y*vec_w.z*vec_w.z)-2.0*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)))
-             +DF*(1.0/CosPhi)*T.by*T.cz;
-
-          HessianMatrix.element[n+4][n+4]+=
-             DDF*T.bz*T.bz+
-             DF*0.5*CosPhi*(
-             -4.0*dmn.bz*dmn.bz/SQR(dot_mn)
-             +(1.0/SQR(dot_mn))*(2.0*(dmn.bz*dmn.bz)+2.0*dot_mn*
-             ((vec_v.y*vec_u.z+vec_u.y*vec_v.z)*(vec_w.y*vec_u.z+vec_u.y*vec_w.z)+(vec_w.y*vec_u.z+vec_u.y*vec_w.z)*(vec_v.y*vec_u.z+vec_u.y*vec_v.z)
-             -(vec_v.y*vec_w.z+vec_w.y*vec_v.z)*(vec_u.y*vec_u.z+vec_u.y*vec_u.z)-(vec_u.y*vec_u.z+vec_u.y*vec_u.z)*(vec_v.y*vec_w.z+vec_w.y*vec_v.z)))
-             +(dme.bz*dme.bz/SQR(m2)+dne.bz*dne.bz/SQR(n2))
-             -(1.0/m2)*(4.0*(vec_v.y*vec_v.z*vec_u.y*vec_u.z+vec_u.y*vec_u.z*vec_v.y*vec_v.z)-2.0*(vec_v.y*vec_u.z+vec_u.y*vec_v.z)*(vec_v.y*vec_u.z+vec_u.y*vec_v.z))
-             -(1.0/n2)*(4.0*(vec_w.y*vec_w.z*vec_u.y*vec_u.z+vec_u.y*vec_u.z*vec_w.y*vec_w.z)-2.0*(vec_w.y*vec_u.z+vec_u.y*vec_w.z)*(vec_w.y*vec_u.z+vec_u.y*vec_w.z)))
-             +DF*(1.0/CosPhi)*T.bz*T.bz+S.cz;
-          HessianMatrix.element[n+4][n+5]+=
-             DDF*T.bz*T.cz+
-             DF*0.5*CosPhi*(
-             -4.0*dmn.bz*dmn.cz/SQR(dot_mn)
-             +(1.0/SQR(dot_mn))*(2.0*(dmn.bz*dmn.cz)+2.0*dot_mn*
-             ((vec_v.y*vec_u.z+vec_u.y*vec_v.z)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)+(vec_w.y*vec_u.z+vec_u.y*vec_w.z)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)
-             -(vec_v.y*vec_w.z+vec_w.y*vec_v.z)*(vec_u.z*vec_u.z+vec_u.z*vec_u.z)-(vec_u.y*vec_u.z+vec_u.y*vec_u.z)*(vec_v.z*vec_w.z+vec_w.z*vec_v.z)))
-             +(dme.bz*dme.cz/SQR(m2)+dne.bz*dne.cz/SQR(n2))
-             -(1.0/m2)*(4.0*(vec_v.y*vec_v.z*vec_u.z*vec_u.z+vec_u.y*vec_u.z*vec_v.z*vec_v.z)-2.0*(vec_v.y*vec_u.z+vec_u.y*vec_v.z)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z))
-             -(1.0/n2)*(4.0*(vec_w.y*vec_w.z*vec_u.z*vec_u.z+vec_u.y*vec_u.z*vec_w.z*vec_w.z)-2.0*(vec_w.y*vec_u.z+vec_u.y*vec_w.z)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)))
-             +DF*(1.0/CosPhi)*T.bz*T.cz;
-
-          HessianMatrix.element[n+5][n+5]+=
-             DDF*T.cz*T.cz+
-             DF*0.5*CosPhi*(
-             -4.0*dmn.cz*dmn.cz/SQR(dot_mn)
-             +(1.0/SQR(dot_mn))*(2.0*(dmn.cz*dmn.cz)+2.0*dot_mn*
-             ((vec_v.z*vec_u.z+vec_u.z*vec_v.z)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)+(vec_w.z*vec_u.z+vec_u.z*vec_w.z)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)
-             -(vec_v.z*vec_w.z+vec_w.z*vec_v.z)*(vec_u.z*vec_u.z+vec_u.z*vec_u.z)-(vec_u.z*vec_u.z+vec_u.z*vec_u.z)*(vec_v.z*vec_w.z+vec_w.z*vec_v.z)))
-             +(dme.cz*dme.cz/SQR(m2)+dne.cz*dne.cz/SQR(n2))
-             -(1.0/m2)*(4.0*(vec_v.z*vec_v.z*vec_u.z*vec_u.z+vec_u.z*vec_u.z*vec_v.z*vec_v.z)-2.0*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z))
-             -(1.0/n2)*(4.0*(vec_w.z*vec_w.z*vec_u.z*vec_u.z+vec_u.z*vec_u.z*vec_w.z*vec_w.z)-2.0*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)))
-             +DF*(1.0/CosPhi)*T.cz*T.cz+2.0*S.cz;
-          break;
-        case MONOCLINIC:
-          switch(MonoclinicAngleType[CurrentSystem])
-          {
-            case MONOCLINIC_ALPHA_ANGLE:
-              HessianMatrix.element[n][n]+=
-                 DDF*T.ax*T.ax+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.ax*dmn.ax/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.ax*dmn.ax)+2.0*dot_mn*
-                 ((vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)+(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)
-                 -(vec_v.x*vec_w.x+vec_w.x*vec_v.x)*(vec_u.x*vec_u.x+vec_u.x*vec_u.x)-(vec_u.x*vec_u.x+vec_u.x*vec_u.x)*(vec_v.x*vec_w.x+vec_w.x*vec_v.x)))
-                 +(dme.ax*dme.ax/SQR(m2)+dne.ax*dne.ax/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.x*vec_v.x*vec_u.x*vec_u.x+vec_u.x*vec_u.x*vec_v.x*vec_v.x)-2.0*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.x*vec_u.x+vec_u.x*vec_v.x))
-                 -(1.0/n2)*(4.0*(vec_w.x*vec_w.x*vec_u.x*vec_u.x+vec_u.x*vec_u.x*vec_w.x*vec_w.x)-2.0*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)))
-                 +DF*(1.0/CosPhi)*T.ax*T.ax+2.0*S.ax;
-              HessianMatrix.element[n][n+1]+=
-                 DDF*T.ax*T.by+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.ax*dmn.by/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.ax*dmn.by)+2.0*dot_mn*
-                 ((vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)+(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)
-                 -(vec_v.x*vec_w.x+vec_w.x*vec_v.x)*(vec_u.y*vec_u.y+vec_u.y*vec_u.y)-(vec_u.x*vec_u.x+vec_u.x*vec_u.x)*(vec_v.y*vec_w.y+vec_w.y*vec_v.y)))
-                 +(dme.ax*dme.by/SQR(m2)+dne.ax*dne.by/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.x*vec_v.x*vec_u.y*vec_u.y+vec_u.x*vec_u.x*vec_v.y*vec_v.y)-2.0*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y))
-                 -(1.0/n2)*(4.0*(vec_w.x*vec_w.x*vec_u.y*vec_u.y+vec_u.x*vec_u.x*vec_w.y*vec_w.y)-2.0*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)))
-                 +DF*(1.0/CosPhi)*T.ax*T.by;
-              HessianMatrix.element[n][n+2]+=
-                 DDF*T.ax*T.bz+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.ax*dmn.bz/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.ax*dmn.bz)+2.0*dot_mn*
-                 ((vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_w.y*vec_u.z+vec_u.y*vec_w.z)+(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_v.y*vec_u.z+vec_u.y*vec_v.z)
-                 -(vec_v.x*vec_w.x+vec_w.x*vec_v.x)*(vec_u.y*vec_u.z+vec_u.y*vec_u.z)-(vec_u.x*vec_u.x+vec_u.x*vec_u.x)*(vec_v.y*vec_w.z+vec_w.y*vec_v.z)))
-                 +(dme.ax*dme.bz/SQR(m2)+dne.ax*dne.bz/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.x*vec_v.x*vec_u.y*vec_u.z+vec_u.x*vec_u.x*vec_v.y*vec_v.z)-2.0*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.y*vec_u.z+vec_u.y*vec_v.z))
-                 -(1.0/n2)*(4.0*(vec_w.x*vec_w.x*vec_u.y*vec_u.z+vec_u.x*vec_u.x*vec_w.y*vec_w.z)-2.0*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_w.y*vec_u.z+vec_u.y*vec_w.z)))
-                 +DF*(1.0/CosPhi)*T.ax*T.bz;
-              HessianMatrix.element[n][n+3]+=
-                 DDF*T.ax*T.cz+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.ax*dmn.cz/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.ax*dmn.cz)+2.0*dot_mn*
-                 ((vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)+(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)
-                 -(vec_v.x*vec_w.x+vec_w.x*vec_v.x)*(vec_u.z*vec_u.z+vec_u.z*vec_u.z)-(vec_u.x*vec_u.x+vec_u.x*vec_u.x)*(vec_v.z*vec_w.z+vec_w.z*vec_v.z)))
-                 +(dme.ax*dme.cz/SQR(m2)+dne.ax*dne.cz/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.x*vec_v.x*vec_u.z*vec_u.z+vec_u.x*vec_u.x*vec_v.z*vec_v.z)-2.0*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z))
-                 -(1.0/n2)*(4.0*(vec_w.x*vec_w.x*vec_u.z*vec_u.z+vec_u.x*vec_u.x*vec_w.z*vec_w.z)-2.0*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)))
-                 +DF*(1.0/CosPhi)*T.ax*T.cz;
-
-              HessianMatrix.element[n+1][n+1]+=
-                 DDF*T.by*T.by+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.by*dmn.by/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.by*dmn.by)+2.0*dot_mn*
-                 ((vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)+(vec_w.y*vec_u.y+vec_u.y*vec_w.y)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)
-                 -(vec_v.y*vec_w.y+vec_w.y*vec_v.y)*(vec_u.y*vec_u.y+vec_u.y*vec_u.y)-(vec_u.y*vec_u.y+vec_u.y*vec_u.y)*(vec_v.y*vec_w.y+vec_w.y*vec_v.y)))
-                 +(dme.by*dme.by/SQR(m2)+dne.by*dne.by/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.y*vec_v.y*vec_u.y*vec_u.y+vec_u.y*vec_u.y*vec_v.y*vec_v.y)-2.0*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y))
-                 -(1.0/n2)*(4.0*(vec_w.y*vec_w.y*vec_u.y*vec_u.y+vec_u.y*vec_u.y*vec_w.y*vec_w.y)-2.0*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)))
-                 +DF*(1.0/CosPhi)*T.by*T.by+2.0*S.by;
-              HessianMatrix.element[n+1][n+2]+=
-                 DDF*T.by*T.bz+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.by*dmn.bz/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.by*dmn.bz)+2.0*dot_mn*
-                 ((vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_w.y*vec_u.z+vec_u.y*vec_w.z)+(vec_w.y*vec_u.y+vec_u.y*vec_w.y)*(vec_v.y*vec_u.z+vec_u.y*vec_v.z)
-                 -(vec_v.y*vec_w.y+vec_w.y*vec_v.y)*(vec_u.y*vec_u.z+vec_u.y*vec_u.z)-(vec_u.y*vec_u.y+vec_u.y*vec_u.y)*(vec_v.y*vec_w.z+vec_w.y*vec_v.z)))
-                 +(dme.by*dme.bz/SQR(m2)+dne.by*dne.bz/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.y*vec_v.y*vec_u.y*vec_u.z+vec_u.y*vec_u.y*vec_v.y*vec_v.z)-2.0*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_v.y*vec_u.z+vec_u.y*vec_v.z))
-                 -(1.0/n2)*(4.0*(vec_w.y*vec_w.y*vec_u.y*vec_u.z+vec_u.y*vec_u.y*vec_w.y*vec_w.z)-2.0*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)*(vec_w.y*vec_u.z+vec_u.y*vec_w.z)))
-                 +DF*(1.0/CosPhi)*T.by*T.bz+S.bz;
-              HessianMatrix.element[n+1][n+3]+=
-                 DDF*T.by*T.cz+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.by*dmn.cz/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.by*dmn.cz)+2.0*dot_mn*
-                 ((vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)+(vec_w.y*vec_u.y+vec_u.y*vec_w.y)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)
-                 -(vec_v.y*vec_w.y+vec_w.y*vec_v.y)*(vec_u.z*vec_u.z+vec_u.z*vec_u.z)-(vec_u.y*vec_u.y+vec_u.y*vec_u.y)*(vec_v.z*vec_w.z+vec_w.z*vec_v.z)))
-                 +(dme.by*dme.cz/SQR(m2)+dne.by*dne.cz/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.y*vec_v.y*vec_u.z*vec_u.z+vec_u.y*vec_u.y*vec_v.z*vec_v.z)-2.0*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z))
-                 -(1.0/n2)*(4.0*(vec_w.y*vec_w.y*vec_u.z*vec_u.z+vec_u.y*vec_u.y*vec_w.z*vec_w.z)-2.0*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)))
-                 +DF*(1.0/CosPhi)*T.by*T.cz;
-
-              HessianMatrix.element[n+2][n+2]+=
-                 DDF*T.bz*T.bz+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.bz*dmn.bz/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.bz*dmn.bz)+2.0*dot_mn*
-                 ((vec_v.y*vec_u.z+vec_u.y*vec_v.z)*(vec_w.y*vec_u.z+vec_u.y*vec_w.z)+(vec_w.y*vec_u.z+vec_u.y*vec_w.z)*(vec_v.y*vec_u.z+vec_u.y*vec_v.z)
-                 -(vec_v.y*vec_w.z+vec_w.y*vec_v.z)*(vec_u.y*vec_u.z+vec_u.y*vec_u.z)-(vec_u.y*vec_u.z+vec_u.y*vec_u.z)*(vec_v.y*vec_w.z+vec_w.y*vec_v.z)))
-                 +(dme.bz*dme.bz/SQR(m2)+dne.bz*dne.bz/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.y*vec_v.z*vec_u.y*vec_u.z+vec_u.y*vec_u.z*vec_v.y*vec_v.z)-2.0*(vec_v.y*vec_u.z+vec_u.y*vec_v.z)*(vec_v.y*vec_u.z+vec_u.y*vec_v.z))
-                 -(1.0/n2)*(4.0*(vec_w.y*vec_w.z*vec_u.y*vec_u.z+vec_u.y*vec_u.z*vec_w.y*vec_w.z)-2.0*(vec_w.y*vec_u.z+vec_u.y*vec_w.z)*(vec_w.y*vec_u.z+vec_u.y*vec_w.z)))
-                 +DF*(1.0/CosPhi)*T.bz*T.bz+0.5*(S.by+S.cz);
-              HessianMatrix.element[n+2][n+3]+=
-                 DDF*T.bz*T.cz+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.bz*dmn.cz/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.bz*dmn.cz)+2.0*dot_mn*
-                 ((vec_v.y*vec_u.z+vec_u.y*vec_v.z)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)+(vec_w.y*vec_u.z+vec_u.y*vec_w.z)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)
-                 -(vec_v.y*vec_w.z+vec_w.y*vec_v.z)*(vec_u.z*vec_u.z+vec_u.z*vec_u.z)-(vec_u.y*vec_u.z+vec_u.y*vec_u.z)*(vec_v.z*vec_w.z+vec_w.z*vec_v.z)))
-                 +(dme.bz*dme.cz/SQR(m2)+dne.bz*dne.cz/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.y*vec_v.z*vec_u.z*vec_u.z+vec_u.y*vec_u.z*vec_v.z*vec_v.z)-2.0*(vec_v.y*vec_u.z+vec_u.y*vec_v.z)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z))
-                 -(1.0/n2)*(4.0*(vec_w.y*vec_w.z*vec_u.z*vec_u.z+vec_u.y*vec_u.z*vec_w.z*vec_w.z)-2.0*(vec_w.y*vec_u.z+vec_u.y*vec_w.z)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)))
-                 +DF*(1.0/CosPhi)*T.bz*T.cz+S.bz;
-
-              HessianMatrix.element[n+3][n+3]+=
-                 DDF*T.cz*T.cz+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.cz*dmn.cz/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.cz*dmn.cz)+2.0*dot_mn*
-                 ((vec_v.z*vec_u.z+vec_u.z*vec_v.z)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)+(vec_w.z*vec_u.z+vec_u.z*vec_w.z)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)
-                 -(vec_v.z*vec_w.z+vec_w.z*vec_v.z)*(vec_u.z*vec_u.z+vec_u.z*vec_u.z)-(vec_u.z*vec_u.z+vec_u.z*vec_u.z)*(vec_v.z*vec_w.z+vec_w.z*vec_v.z)))
-                 +(dme.cz*dme.cz/SQR(m2)+dne.cz*dne.cz/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.z*vec_v.z*vec_u.z*vec_u.z+vec_u.z*vec_u.z*vec_v.z*vec_v.z)-2.0*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z))
-                 -(1.0/n2)*(4.0*(vec_w.z*vec_w.z*vec_u.z*vec_u.z+vec_u.z*vec_u.z*vec_w.z*vec_w.z)-2.0*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)))
-                 +DF*(1.0/CosPhi)*T.cz*T.cz+2.0*S.cz;
-              break;
-            case MONOCLINIC_BETA_ANGLE:
-              HessianMatrix.element[n][n]+=
-                 DDF*T.ax*T.ax+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.ax*dmn.ax/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.ax*dmn.ax)+2.0*dot_mn*
-                 ((vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)+(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)
-                 -(vec_v.x*vec_w.x+vec_w.x*vec_v.x)*(vec_u.x*vec_u.x+vec_u.x*vec_u.x)-(vec_u.x*vec_u.x+vec_u.x*vec_u.x)*(vec_v.x*vec_w.x+vec_w.x*vec_v.x)))
-                 +(dme.ax*dme.ax/SQR(m2)+dne.ax*dne.ax/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.x*vec_v.x*vec_u.x*vec_u.x+vec_u.x*vec_u.x*vec_v.x*vec_v.x)-2.0*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.x*vec_u.x+vec_u.x*vec_v.x))
-                 -(1.0/n2)*(4.0*(vec_w.x*vec_w.x*vec_u.x*vec_u.x+vec_u.x*vec_u.x*vec_w.x*vec_w.x)-2.0*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)))
-                 +DF*(1.0/CosPhi)*T.ax*T.ax+2.0*S.ax;
-              HessianMatrix.element[n][n+1]+=
-                 DDF*T.ax*T.az+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.ax*dmn.az/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.ax*dmn.az)+2.0*dot_mn*
-                 ((vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_w.x*vec_u.z+vec_u.x*vec_w.z)+(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_v.x*vec_u.z+vec_u.x*vec_v.z)
-                 -(vec_v.x*vec_w.x+vec_w.x*vec_v.x)*(vec_u.x*vec_u.z+vec_u.x*vec_u.z)-(vec_u.x*vec_u.x+vec_u.x*vec_u.x)*(vec_v.x*vec_w.z+vec_w.x*vec_v.z)))
-                 +(dme.ax*dme.az/SQR(m2)+dne.ax*dne.az/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.x*vec_v.x*vec_u.x*vec_u.z+vec_u.x*vec_u.x*vec_v.x*vec_v.z)-2.0*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.x*vec_u.z+vec_u.x*vec_v.z))
-                 -(1.0/n2)*(4.0*(vec_w.x*vec_w.x*vec_u.x*vec_u.z+vec_u.x*vec_u.x*vec_w.x*vec_w.z)-2.0*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_w.x*vec_u.z+vec_u.x*vec_w.z)))
-                 +DF*(1.0/CosPhi)*T.ax*T.az+S.az;
-              HessianMatrix.element[n][n+2]+=
-                 DDF*T.ax*T.by+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.ax*dmn.by/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.ax*dmn.by)+2.0*dot_mn*
-                 ((vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)+(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)
-                 -(vec_v.x*vec_w.x+vec_w.x*vec_v.x)*(vec_u.y*vec_u.y+vec_u.y*vec_u.y)-(vec_u.x*vec_u.x+vec_u.x*vec_u.x)*(vec_v.y*vec_w.y+vec_w.y*vec_v.y)))
-                 +(dme.ax*dme.by/SQR(m2)+dne.ax*dne.by/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.x*vec_v.x*vec_u.y*vec_u.y+vec_u.x*vec_u.x*vec_v.y*vec_v.y)-2.0*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y))
-                 -(1.0/n2)*(4.0*(vec_w.x*vec_w.x*vec_u.y*vec_u.y+vec_u.x*vec_u.x*vec_w.y*vec_w.y)-2.0*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)))
-                 +DF*(1.0/CosPhi)*T.ax*T.by;
-              HessianMatrix.element[n][n+3]+=
-                 DDF*T.ax*T.cz+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.ax*dmn.cz/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.ax*dmn.cz)+2.0*dot_mn*
-                 ((vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)+(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)
-                 -(vec_v.x*vec_w.x+vec_w.x*vec_v.x)*(vec_u.z*vec_u.z+vec_u.z*vec_u.z)-(vec_u.x*vec_u.x+vec_u.x*vec_u.x)*(vec_v.z*vec_w.z+vec_w.z*vec_v.z)))
-                 +(dme.ax*dme.cz/SQR(m2)+dne.ax*dne.cz/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.x*vec_v.x*vec_u.z*vec_u.z+vec_u.x*vec_u.x*vec_v.z*vec_v.z)-2.0*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z))
-                 -(1.0/n2)*(4.0*(vec_w.x*vec_w.x*vec_u.z*vec_u.z+vec_u.x*vec_u.x*vec_w.z*vec_w.z)-2.0*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)))
-                 +DF*(1.0/CosPhi)*T.ax*T.cz;
-
-              HessianMatrix.element[n+1][n+1]+=DDF*T.az*T.az+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.az*dmn.az/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.az*dmn.az)+2.0*dot_mn*
-                 ((vec_v.x*vec_u.z+vec_u.x*vec_v.z)*(vec_w.x*vec_u.z+vec_u.x*vec_w.z)+(vec_w.x*vec_u.z+vec_u.x*vec_w.z)*(vec_v.x*vec_u.z+vec_u.x*vec_v.z)
-                 -(vec_v.x*vec_w.z+vec_w.x*vec_v.z)*(vec_u.x*vec_u.z+vec_u.x*vec_u.z)-(vec_u.x*vec_u.z+vec_u.x*vec_u.z)*(vec_v.x*vec_w.z+vec_w.x*vec_v.z)))
-                 +(dme.az*dme.az/SQR(m2)+dne.az*dne.az/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.x*vec_v.z*vec_u.x*vec_u.z+vec_u.x*vec_u.z*vec_v.x*vec_v.z)-2.0*(vec_v.x*vec_u.z+vec_u.x*vec_v.z)*(vec_v.x*vec_u.z+vec_u.x*vec_v.z))
-                 -(1.0/n2)*(4.0*(vec_w.x*vec_w.z*vec_u.x*vec_u.z+vec_u.x*vec_u.z*vec_w.x*vec_w.z)-2.0*(vec_w.x*vec_u.z+vec_u.x*vec_w.z)*(vec_w.x*vec_u.z+vec_u.x*vec_w.z)))
-                 +DF*(1.0/CosPhi)*T.az*T.az+0.5*(S.ax+S.cz);
-              HessianMatrix.element[n+1][n+2]+=
-                 DDF*T.az*T.by+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.az*dmn.by/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.az*dmn.by)+2.0*dot_mn*
-                 ((vec_v.x*vec_u.z+vec_u.x*vec_v.z)*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)+(vec_w.x*vec_u.z+vec_u.x*vec_w.z)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)
-                 -(vec_v.x*vec_w.z+vec_w.x*vec_v.z)*(vec_u.y*vec_u.y+vec_u.y*vec_u.y)-(vec_u.x*vec_u.z+vec_u.x*vec_u.z)*(vec_v.y*vec_w.y+vec_w.y*vec_v.y)))
-                 +(dme.az*dme.by/SQR(m2)+dne.az*dne.by/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.x*vec_v.z*vec_u.y*vec_u.y+vec_u.x*vec_u.z*vec_v.y*vec_v.y)-2.0*(vec_v.x*vec_u.z+vec_u.x*vec_v.z)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y))
-                 -(1.0/n2)*(4.0*(vec_w.x*vec_w.z*vec_u.y*vec_u.y+vec_u.x*vec_u.z*vec_w.y*vec_w.y)-2.0*(vec_w.x*vec_u.z+vec_u.x*vec_w.z)*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)))
-                 +DF*(1.0/CosPhi)*T.az*T.by;
-              HessianMatrix.element[n+1][n+3]+=
-                 DDF*T.az*T.cz+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.az*dmn.cz/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.az*dmn.cz)+2.0*dot_mn*
-                 ((vec_v.x*vec_u.z+vec_u.x*vec_v.z)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)+(vec_w.x*vec_u.z+vec_u.x*vec_w.z)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)
-                 -(vec_v.x*vec_w.z+vec_w.x*vec_v.z)*(vec_u.z*vec_u.z+vec_u.z*vec_u.z)-(vec_u.x*vec_u.z+vec_u.x*vec_u.z)*(vec_v.z*vec_w.z+vec_w.z*vec_v.z)))
-                 +(dme.az*dme.cz/SQR(m2)+dne.az*dne.cz/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.x*vec_v.z*vec_u.z*vec_u.z+vec_u.x*vec_u.z*vec_v.z*vec_v.z)-2.0*(vec_v.x*vec_u.z+vec_u.x*vec_v.z)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z))
-                 -(1.0/n2)*(4.0*(vec_w.x*vec_w.z*vec_u.z*vec_u.z+vec_u.x*vec_u.z*vec_w.z*vec_w.z)-2.0*(vec_w.x*vec_u.z+vec_u.x*vec_w.z)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)))
-                 +DF*(1.0/CosPhi)*T.az*T.cz+S.az;
-
-              HessianMatrix.element[n+2][n+2]+=
-                 DDF*T.by*T.by+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.by*dmn.by/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.by*dmn.by)+2.0*dot_mn*
-                 ((vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)+(vec_w.y*vec_u.y+vec_u.y*vec_w.y)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)
-                 -(vec_v.y*vec_w.y+vec_w.y*vec_v.y)*(vec_u.y*vec_u.y+vec_u.y*vec_u.y)-(vec_u.y*vec_u.y+vec_u.y*vec_u.y)*(vec_v.y*vec_w.y+vec_w.y*vec_v.y)))
-                 +(dme.by*dme.by/SQR(m2)+dne.by*dne.by/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.y*vec_v.y*vec_u.y*vec_u.y+vec_u.y*vec_u.y*vec_v.y*vec_v.y)-2.0*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y))
-                 -(1.0/n2)*(4.0*(vec_w.y*vec_w.y*vec_u.y*vec_u.y+vec_u.y*vec_u.y*vec_w.y*vec_w.y)-2.0*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)))
-                 +DF*(1.0/CosPhi)*T.by*T.by+2.0*S.by;
-              HessianMatrix.element[n+2][n+3]+=
-                 DDF*T.by*T.cz+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.by*dmn.cz/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.by*dmn.cz)+2.0*dot_mn*
-                 ((vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)+(vec_w.y*vec_u.y+vec_u.y*vec_w.y)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)
-                 -(vec_v.y*vec_w.y+vec_w.y*vec_v.y)*(vec_u.z*vec_u.z+vec_u.z*vec_u.z)-(vec_u.y*vec_u.y+vec_u.y*vec_u.y)*(vec_v.z*vec_w.z+vec_w.z*vec_v.z)))
-                 +(dme.by*dme.cz/SQR(m2)+dne.by*dne.cz/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.y*vec_v.y*vec_u.z*vec_u.z+vec_u.y*vec_u.y*vec_v.z*vec_v.z)-2.0*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z))
-                 -(1.0/n2)*(4.0*(vec_w.y*vec_w.y*vec_u.z*vec_u.z+vec_u.y*vec_u.y*vec_w.z*vec_w.z)-2.0*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)))
-                 +DF*(1.0/CosPhi)*T.by*T.cz;
-
-              HessianMatrix.element[n+3][n+3]+=
-                 DDF*T.cz*T.cz+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.cz*dmn.cz/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.cz*dmn.cz)+2.0*dot_mn*
-                 ((vec_v.z*vec_u.z+vec_u.z*vec_v.z)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)+(vec_w.z*vec_u.z+vec_u.z*vec_w.z)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)
-                 -(vec_v.z*vec_w.z+vec_w.z*vec_v.z)*(vec_u.z*vec_u.z+vec_u.z*vec_u.z)-(vec_u.z*vec_u.z+vec_u.z*vec_u.z)*(vec_v.z*vec_w.z+vec_w.z*vec_v.z)))
-                 +(dme.cz*dme.cz/SQR(m2)+dne.cz*dne.cz/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.z*vec_v.z*vec_u.z*vec_u.z+vec_u.z*vec_u.z*vec_v.z*vec_v.z)-2.0*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z))
-                 -(1.0/n2)*(4.0*(vec_w.z*vec_w.z*vec_u.z*vec_u.z+vec_u.z*vec_u.z*vec_w.z*vec_w.z)-2.0*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)))
-                 +DF*(1.0/CosPhi)*T.cz*T.cz+2.0*S.cz;
-              break;
-            case MONOCLINIC_GAMMA_ANGLE:
-              HessianMatrix.element[n][n]+=
-                 DDF*T.ax*T.ax+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.ax*dmn.ax/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.ax*dmn.ax)+2.0*dot_mn*
-                 ((vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)+(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)
-                 -(vec_v.x*vec_w.x+vec_w.x*vec_v.x)*(vec_u.x*vec_u.x+vec_u.x*vec_u.x)-(vec_u.x*vec_u.x+vec_u.x*vec_u.x)*(vec_v.x*vec_w.x+vec_w.x*vec_v.x)))
-                 +(dme.ax*dme.ax/SQR(m2)+dne.ax*dne.ax/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.x*vec_v.x*vec_u.x*vec_u.x+vec_u.x*vec_u.x*vec_v.x*vec_v.x)-2.0*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.x*vec_u.x+vec_u.x*vec_v.x))
-                 -(1.0/n2)*(4.0*(vec_w.x*vec_w.x*vec_u.x*vec_u.x+vec_u.x*vec_u.x*vec_w.x*vec_w.x)-2.0*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)))
-                 +DF*(1.0/CosPhi)*T.ax*T.ax+2.0*S.ax;
-              HessianMatrix.element[n][n+1]+=
-                 DDF*T.ax*T.ay+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.ax*dmn.ay/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.ax*dmn.ay)+2.0*dot_mn*
-                 ((vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_w.x*vec_u.y+vec_u.x*vec_w.y)+(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_v.x*vec_u.y+vec_u.x*vec_v.y)
-                 -(vec_v.x*vec_w.x+vec_w.x*vec_v.x)*(vec_u.x*vec_u.y+vec_u.x*vec_u.y)-(vec_u.x*vec_u.x+vec_u.x*vec_u.x)*(vec_v.x*vec_w.y+vec_w.x*vec_v.y)))
-                 +(dme.ax*dme.ay/SQR(m2)+dne.ax*dne.ay/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.x*vec_v.x*vec_u.x*vec_u.y+vec_u.x*vec_u.x*vec_v.x*vec_v.y)-2.0*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.x*vec_u.y+vec_u.x*vec_v.y))
-                 -(1.0/n2)*(4.0*(vec_w.x*vec_w.x*vec_u.x*vec_u.y+vec_u.x*vec_u.x*vec_w.x*vec_w.y)-2.0*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_w.x*vec_u.y+vec_u.x*vec_w.y)))
-                 +DF*(1.0/CosPhi)*T.ax*T.ay+S.ay;
-              HessianMatrix.element[n][n+2]+=
-                 DDF*T.ax*T.by+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.ax*dmn.by/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.ax*dmn.by)+2.0*dot_mn*
-                 ((vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)+(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)
-                 -(vec_v.x*vec_w.x+vec_w.x*vec_v.x)*(vec_u.y*vec_u.y+vec_u.y*vec_u.y)-(vec_u.x*vec_u.x+vec_u.x*vec_u.x)*(vec_v.y*vec_w.y+vec_w.y*vec_v.y)))
-                 +(dme.ax*dme.by/SQR(m2)+dne.ax*dne.by/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.x*vec_v.x*vec_u.y*vec_u.y+vec_u.x*vec_u.x*vec_v.y*vec_v.y)-2.0*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y))
-                 -(1.0/n2)*(4.0*(vec_w.x*vec_w.x*vec_u.y*vec_u.y+vec_u.x*vec_u.x*vec_w.y*vec_w.y)-2.0*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)))
-                 +DF*(1.0/CosPhi)*T.ax*T.by;
-              HessianMatrix.element[n][n+3]+=
-                 DDF*T.ax*T.cz+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.ax*dmn.cz/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.ax*dmn.cz)+2.0*dot_mn*
-                 ((vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)+(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)
-                 -(vec_v.x*vec_w.x+vec_w.x*vec_v.x)*(vec_u.z*vec_u.z+vec_u.z*vec_u.z)-(vec_u.x*vec_u.x+vec_u.x*vec_u.x)*(vec_v.z*vec_w.z+vec_w.z*vec_v.z)))
-                 +(dme.ax*dme.cz/SQR(m2)+dne.ax*dne.cz/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.x*vec_v.x*vec_u.z*vec_u.z+vec_u.x*vec_u.x*vec_v.z*vec_v.z)-2.0*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z))
-                 -(1.0/n2)*(4.0*(vec_w.x*vec_w.x*vec_u.z*vec_u.z+vec_u.x*vec_u.x*vec_w.z*vec_w.z)-2.0*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)))
-                 +DF*(1.0/CosPhi)*T.ax*T.cz;
-
-              HessianMatrix.element[n+1][n+1]+=
-                 DDF*T.ay*T.ay+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.ay*dmn.ay/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.ay*dmn.ay)+2.0*dot_mn*
-                 ((vec_v.x*vec_u.y+vec_u.x*vec_v.y)*(vec_w.x*vec_u.y+vec_u.x*vec_w.y)+(vec_w.x*vec_u.y+vec_u.x*vec_w.y)*(vec_v.x*vec_u.y+vec_u.x*vec_v.y)
-                 -(vec_v.x*vec_w.y+vec_w.x*vec_v.y)*(vec_u.x*vec_u.y+vec_u.x*vec_u.y)-(vec_u.x*vec_u.y+vec_u.x*vec_u.y)*(vec_v.x*vec_w.y+vec_w.x*vec_v.y)))
-                 +(dme.ay*dme.ay/SQR(m2)+dne.ay*dne.ay/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.x*vec_v.y*vec_u.x*vec_u.y+vec_u.x*vec_u.y*vec_v.x*vec_v.y)-2.0*(vec_v.x*vec_u.y+vec_u.x*vec_v.y)*(vec_v.x*vec_u.y+vec_u.x*vec_v.y))
-                 -(1.0/n2)*(4.0*(vec_w.x*vec_w.y*vec_u.x*vec_u.y+vec_u.x*vec_u.y*vec_w.x*vec_w.y)-2.0*(vec_w.x*vec_u.y+vec_u.x*vec_w.y)*(vec_w.x*vec_u.y+vec_u.x*vec_w.y)))
-                 +DF*(1.0/CosPhi)*T.ay*T.ay+0.5*(S.ax+S.by);
-              HessianMatrix.element[n+1][n+2]+=
-                 DDF*T.ay*T.by+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.ay*dmn.by/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.ay*dmn.by)+2.0*dot_mn*
-                 ((vec_v.x*vec_u.y+vec_u.x*vec_v.y)*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)+(vec_w.x*vec_u.y+vec_u.x*vec_w.y)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)
-                 -(vec_v.x*vec_w.y+vec_w.x*vec_v.y)*(vec_u.y*vec_u.y+vec_u.y*vec_u.y)-(vec_u.x*vec_u.y+vec_u.x*vec_u.y)*(vec_v.y*vec_w.y+vec_w.y*vec_v.y)))
-                 +(dme.ay*dme.by/SQR(m2)+dne.ay*dne.by/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.x*vec_v.y*vec_u.y*vec_u.y+vec_u.x*vec_u.y*vec_v.y*vec_v.y)-2.0*(vec_v.x*vec_u.y+vec_u.x*vec_v.y)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y))
-                 -(1.0/n2)*(4.0*(vec_w.x*vec_w.y*vec_u.y*vec_u.y+vec_u.x*vec_u.y*vec_w.y*vec_w.y)-2.0*(vec_w.x*vec_u.y+vec_u.x*vec_w.y)*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)))
-                 +DF*(1.0/CosPhi)*T.ay*T.by+S.ay;
-              HessianMatrix.element[n+1][n+3]+=
-                 DDF*T.ay*T.cz+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.ay*dmn.cz/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.ay*dmn.cz)+2.0*dot_mn*
-                 ((vec_v.x*vec_u.y+vec_u.x*vec_v.y)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)+(vec_w.x*vec_u.y+vec_u.x*vec_w.y)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)
-                 -(vec_v.x*vec_w.y+vec_w.x*vec_v.y)*(vec_u.z*vec_u.z+vec_u.z*vec_u.z)-(vec_u.x*vec_u.y+vec_u.x*vec_u.y)*(vec_v.z*vec_w.z+vec_w.z*vec_v.z)))
-                 +(dme.ay*dme.cz/SQR(m2)+dne.ay*dne.cz/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.x*vec_v.y*vec_u.z*vec_u.z+vec_u.x*vec_u.y*vec_v.z*vec_v.z)-2.0*(vec_v.x*vec_u.y+vec_u.x*vec_v.y)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z))
-                 -(1.0/n2)*(4.0*(vec_w.x*vec_w.y*vec_u.z*vec_u.z+vec_u.x*vec_u.y*vec_w.z*vec_w.z)-2.0*(vec_w.x*vec_u.y+vec_u.x*vec_w.y)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)))
-                 +DF*(1.0/CosPhi)*T.ay*T.cz;
-
-              HessianMatrix.element[n+2][n+2]+=
-                 DDF*T.by*T.by+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.by*dmn.by/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.by*dmn.by)+2.0*dot_mn*
-                 ((vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)+(vec_w.y*vec_u.y+vec_u.y*vec_w.y)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)
-                 -(vec_v.y*vec_w.y+vec_w.y*vec_v.y)*(vec_u.y*vec_u.y+vec_u.y*vec_u.y)-(vec_u.y*vec_u.y+vec_u.y*vec_u.y)*(vec_v.y*vec_w.y+vec_w.y*vec_v.y)))
-                 +(dme.by*dme.by/SQR(m2)+dne.by*dne.by/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.y*vec_v.y*vec_u.y*vec_u.y+vec_u.y*vec_u.y*vec_v.y*vec_v.y)-2.0*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y))
-                 -(1.0/n2)*(4.0*(vec_w.y*vec_w.y*vec_u.y*vec_u.y+vec_u.y*vec_u.y*vec_w.y*vec_w.y)-2.0*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)))
-                 +DF*(1.0/CosPhi)*T.by*T.by+2.0*S.by;
-              HessianMatrix.element[n+2][n+3]+=
-                 DDF*T.by*T.cz+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.by*dmn.cz/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.by*dmn.cz)+2.0*dot_mn*
-                 ((vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)+(vec_w.y*vec_u.y+vec_u.y*vec_w.y)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)
-                 -(vec_v.y*vec_w.y+vec_w.y*vec_v.y)*(vec_u.z*vec_u.z+vec_u.z*vec_u.z)-(vec_u.y*vec_u.y+vec_u.y*vec_u.y)*(vec_v.z*vec_w.z+vec_w.z*vec_v.z)))
-                 +(dme.by*dme.cz/SQR(m2)+dne.by*dne.cz/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.y*vec_v.y*vec_u.z*vec_u.z+vec_u.y*vec_u.y*vec_v.z*vec_v.z)-2.0*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z))
-                 -(1.0/n2)*(4.0*(vec_w.y*vec_w.y*vec_u.z*vec_u.z+vec_u.y*vec_u.y*vec_w.z*vec_w.z)-2.0*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)))
-                 +DF*(1.0/CosPhi)*T.by*T.cz;
-
-              HessianMatrix.element[n+3][n+3]+=
-                 DDF*T.cz*T.cz+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.cz*dmn.cz/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.cz*dmn.cz)+2.0*dot_mn*
-                 ((vec_v.z*vec_u.z+vec_u.z*vec_v.z)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)+(vec_w.z*vec_u.z+vec_u.z*vec_w.z)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)
-                 -(vec_v.z*vec_w.z+vec_w.z*vec_v.z)*(vec_u.z*vec_u.z+vec_u.z*vec_u.z)-(vec_u.z*vec_u.z+vec_u.z*vec_u.z)*(vec_v.z*vec_w.z+vec_w.z*vec_v.z)))
-                 +(dme.cz*dme.cz/SQR(m2)+dne.cz*dne.cz/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.z*vec_v.z*vec_u.z*vec_u.z+vec_u.z*vec_u.z*vec_v.z*vec_v.z)-2.0*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z))
-                 -(1.0/n2)*(4.0*(vec_w.z*vec_w.z*vec_u.z*vec_u.z+vec_u.z*vec_u.z*vec_w.z*vec_w.z)-2.0*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)))
-                 +DF*(1.0/CosPhi)*T.cz*T.cz+2.0*S.cz;
-              break;
-          }
-          break;
-        case MONOCLINIC_UPPER_TRIANGLE:
-          switch(MonoclinicAngleType[CurrentSystem])
-          {
-            case MONOCLINIC_ALPHA_ANGLE:
-              HessianMatrix.element[n][n]+=
-                 DDF*T.ax*T.ax+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.ax*dmn.ax/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.ax*dmn.ax)+2.0*dot_mn*
-                 ((vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)+(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)
-                 -(vec_v.x*vec_w.x+vec_w.x*vec_v.x)*(vec_u.x*vec_u.x+vec_u.x*vec_u.x)-(vec_u.x*vec_u.x+vec_u.x*vec_u.x)*(vec_v.x*vec_w.x+vec_w.x*vec_v.x)))
-                 +(dme.ax*dme.ax/SQR(m2)+dne.ax*dne.ax/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.x*vec_v.x*vec_u.x*vec_u.x+vec_u.x*vec_u.x*vec_v.x*vec_v.x)-2.0*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.x*vec_u.x+vec_u.x*vec_v.x))
-                 -(1.0/n2)*(4.0*(vec_w.x*vec_w.x*vec_u.x*vec_u.x+vec_u.x*vec_u.x*vec_w.x*vec_w.x)-2.0*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)))
-                 +DF*(1.0/CosPhi)*T.ax*T.ax+2.0*S.ax;
-              HessianMatrix.element[n][n+1]+=
-                 DDF*T.ax*T.by+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.ax*dmn.by/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.ax*dmn.by)+2.0*dot_mn*
-                 ((vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)+(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)
-                 -(vec_v.x*vec_w.x+vec_w.x*vec_v.x)*(vec_u.y*vec_u.y+vec_u.y*vec_u.y)-(vec_u.x*vec_u.x+vec_u.x*vec_u.x)*(vec_v.y*vec_w.y+vec_w.y*vec_v.y)))
-                 +(dme.ax*dme.by/SQR(m2)+dne.ax*dne.by/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.x*vec_v.x*vec_u.y*vec_u.y+vec_u.x*vec_u.x*vec_v.y*vec_v.y)-2.0*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y))
-                 -(1.0/n2)*(4.0*(vec_w.x*vec_w.x*vec_u.y*vec_u.y+vec_u.x*vec_u.x*vec_w.y*vec_w.y)-2.0*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)))
-                 +DF*(1.0/CosPhi)*T.ax*T.by;
-              HessianMatrix.element[n][n+2]+=
-                 DDF*T.ax*T.bz+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.ax*dmn.bz/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.ax*dmn.bz)+2.0*dot_mn*
-                 ((vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_w.y*vec_u.z+vec_u.y*vec_w.z)+(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_v.y*vec_u.z+vec_u.y*vec_v.z)
-                 -(vec_v.x*vec_w.x+vec_w.x*vec_v.x)*(vec_u.y*vec_u.z+vec_u.y*vec_u.z)-(vec_u.x*vec_u.x+vec_u.x*vec_u.x)*(vec_v.y*vec_w.z+vec_w.y*vec_v.z)))
-                 +(dme.ax*dme.bz/SQR(m2)+dne.ax*dne.bz/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.x*vec_v.x*vec_u.y*vec_u.z+vec_u.x*vec_u.x*vec_v.y*vec_v.z)-2.0*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.y*vec_u.z+vec_u.y*vec_v.z))
-                 -(1.0/n2)*(4.0*(vec_w.x*vec_w.x*vec_u.y*vec_u.z+vec_u.x*vec_u.x*vec_w.y*vec_w.z)-2.0*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_w.y*vec_u.z+vec_u.y*vec_w.z)))
-                 +DF*(1.0/CosPhi)*T.ax*T.bz;
-              HessianMatrix.element[n][n+3]+=
-                 DDF*T.ax*T.cz+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.ax*dmn.cz/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.ax*dmn.cz)+2.0*dot_mn*
-                 ((vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)+(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)
-                 -(vec_v.x*vec_w.x+vec_w.x*vec_v.x)*(vec_u.z*vec_u.z+vec_u.z*vec_u.z)-(vec_u.x*vec_u.x+vec_u.x*vec_u.x)*(vec_v.z*vec_w.z+vec_w.z*vec_v.z)))
-                 +(dme.ax*dme.cz/SQR(m2)+dne.ax*dne.cz/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.x*vec_v.x*vec_u.z*vec_u.z+vec_u.x*vec_u.x*vec_v.z*vec_v.z)-2.0*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z))
-                 -(1.0/n2)*(4.0*(vec_w.x*vec_w.x*vec_u.z*vec_u.z+vec_u.x*vec_u.x*vec_w.z*vec_w.z)-2.0*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)))
-                 +DF*(1.0/CosPhi)*T.ax*T.cz;
-
-              HessianMatrix.element[n+1][n+1]+=
-                 DDF*T.by*T.by+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.by*dmn.by/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.by*dmn.by)+2.0*dot_mn*
-                 ((vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)+(vec_w.y*vec_u.y+vec_u.y*vec_w.y)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)
-                 -(vec_v.y*vec_w.y+vec_w.y*vec_v.y)*(vec_u.y*vec_u.y+vec_u.y*vec_u.y)-(vec_u.y*vec_u.y+vec_u.y*vec_u.y)*(vec_v.y*vec_w.y+vec_w.y*vec_v.y)))
-                 +(dme.by*dme.by/SQR(m2)+dne.by*dne.by/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.y*vec_v.y*vec_u.y*vec_u.y+vec_u.y*vec_u.y*vec_v.y*vec_v.y)-2.0*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y))
-                 -(1.0/n2)*(4.0*(vec_w.y*vec_w.y*vec_u.y*vec_u.y+vec_u.y*vec_u.y*vec_w.y*vec_w.y)-2.0*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)))
-                 +DF*(1.0/CosPhi)*T.by*T.by+2.0*S.by;
-              HessianMatrix.element[n+1][n+2]+=
-                 DDF*T.by*T.bz+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.by*dmn.bz/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.by*dmn.bz)+2.0*dot_mn*
-                 ((vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_w.y*vec_u.z+vec_u.y*vec_w.z)+(vec_w.y*vec_u.y+vec_u.y*vec_w.y)*(vec_v.y*vec_u.z+vec_u.y*vec_v.z)
-                 -(vec_v.y*vec_w.y+vec_w.y*vec_v.y)*(vec_u.y*vec_u.z+vec_u.y*vec_u.z)-(vec_u.y*vec_u.y+vec_u.y*vec_u.y)*(vec_v.y*vec_w.z+vec_w.y*vec_v.z)))
-                 +(dme.by*dme.bz/SQR(m2)+dne.by*dne.bz/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.y*vec_v.y*vec_u.y*vec_u.z+vec_u.y*vec_u.y*vec_v.y*vec_v.z)-2.0*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_v.y*vec_u.z+vec_u.y*vec_v.z))
-                 -(1.0/n2)*(4.0*(vec_w.y*vec_w.y*vec_u.y*vec_u.z+vec_u.y*vec_u.y*vec_w.y*vec_w.z)-2.0*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)*(vec_w.y*vec_u.z+vec_u.y*vec_w.z)))
-                 +DF*(1.0/CosPhi)*T.by*T.bz+S.bz;
-              HessianMatrix.element[n+1][n+3]+=
-                 DDF*T.by*T.cz+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.by*dmn.cz/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.by*dmn.cz)+2.0*dot_mn*
-                 ((vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)+(vec_w.y*vec_u.y+vec_u.y*vec_w.y)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)
-                 -(vec_v.y*vec_w.y+vec_w.y*vec_v.y)*(vec_u.z*vec_u.z+vec_u.z*vec_u.z)-(vec_u.y*vec_u.y+vec_u.y*vec_u.y)*(vec_v.z*vec_w.z+vec_w.z*vec_v.z)))
-                 +(dme.by*dme.cz/SQR(m2)+dne.by*dne.cz/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.y*vec_v.y*vec_u.z*vec_u.z+vec_u.y*vec_u.y*vec_v.z*vec_v.z)-2.0*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z))
-                 -(1.0/n2)*(4.0*(vec_w.y*vec_w.y*vec_u.z*vec_u.z+vec_u.y*vec_u.y*vec_w.z*vec_w.z)-2.0*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)))
-                 +DF*(1.0/CosPhi)*T.by*T.cz;
-
-              HessianMatrix.element[n+2][n+2]+=
-                 DDF*T.bz*T.bz+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.bz*dmn.bz/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.bz*dmn.bz)+2.0*dot_mn*
-                 ((vec_v.y*vec_u.z+vec_u.y*vec_v.z)*(vec_w.y*vec_u.z+vec_u.y*vec_w.z)+(vec_w.y*vec_u.z+vec_u.y*vec_w.z)*(vec_v.y*vec_u.z+vec_u.y*vec_v.z)
-                 -(vec_v.y*vec_w.z+vec_w.y*vec_v.z)*(vec_u.y*vec_u.z+vec_u.y*vec_u.z)-(vec_u.y*vec_u.z+vec_u.y*vec_u.z)*(vec_v.y*vec_w.z+vec_w.y*vec_v.z)))
-                 +(dme.bz*dme.bz/SQR(m2)+dne.bz*dne.bz/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.y*vec_v.z*vec_u.y*vec_u.z+vec_u.y*vec_u.z*vec_v.y*vec_v.z)-2.0*(vec_v.y*vec_u.z+vec_u.y*vec_v.z)*(vec_v.y*vec_u.z+vec_u.y*vec_v.z))
-                 -(1.0/n2)*(4.0*(vec_w.y*vec_w.z*vec_u.y*vec_u.z+vec_u.y*vec_u.z*vec_w.y*vec_w.z)-2.0*(vec_w.y*vec_u.z+vec_u.y*vec_w.z)*(vec_w.y*vec_u.z+vec_u.y*vec_w.z)))
-                 +DF*(1.0/CosPhi)*T.bz*T.bz+S.cz;
-              HessianMatrix.element[n+2][n+3]+=
-                 DDF*T.bz*T.cz+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.bz*dmn.cz/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.bz*dmn.cz)+2.0*dot_mn*
-                 ((vec_v.y*vec_u.z+vec_u.y*vec_v.z)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)+(vec_w.y*vec_u.z+vec_u.y*vec_w.z)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)
-                 -(vec_v.y*vec_w.z+vec_w.y*vec_v.z)*(vec_u.z*vec_u.z+vec_u.z*vec_u.z)-(vec_u.y*vec_u.z+vec_u.y*vec_u.z)*(vec_v.z*vec_w.z+vec_w.z*vec_v.z)))
-                 +(dme.bz*dme.cz/SQR(m2)+dne.bz*dne.cz/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.y*vec_v.z*vec_u.z*vec_u.z+vec_u.y*vec_u.z*vec_v.z*vec_v.z)-2.0*(vec_v.y*vec_u.z+vec_u.y*vec_v.z)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z))
-                 -(1.0/n2)*(4.0*(vec_w.y*vec_w.z*vec_u.z*vec_u.z+vec_u.y*vec_u.z*vec_w.z*vec_w.z)-2.0*(vec_w.y*vec_u.z+vec_u.y*vec_w.z)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)))
-                 +DF*(1.0/CosPhi)*T.bz*T.cz;
-
-              HessianMatrix.element[n+3][n+3]+=
-                 DDF*T.cz*T.cz+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.cz*dmn.cz/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.cz*dmn.cz)+2.0*dot_mn*
-                 ((vec_v.z*vec_u.z+vec_u.z*vec_v.z)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)+(vec_w.z*vec_u.z+vec_u.z*vec_w.z)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)
-                 -(vec_v.z*vec_w.z+vec_w.z*vec_v.z)*(vec_u.z*vec_u.z+vec_u.z*vec_u.z)-(vec_u.z*vec_u.z+vec_u.z*vec_u.z)*(vec_v.z*vec_w.z+vec_w.z*vec_v.z)))
-                 +(dme.cz*dme.cz/SQR(m2)+dne.cz*dne.cz/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.z*vec_v.z*vec_u.z*vec_u.z+vec_u.z*vec_u.z*vec_v.z*vec_v.z)-2.0*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z))
-                 -(1.0/n2)*(4.0*(vec_w.z*vec_w.z*vec_u.z*vec_u.z+vec_u.z*vec_u.z*vec_w.z*vec_w.z)-2.0*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)))
-                 +DF*(1.0/CosPhi)*T.cz*T.cz+2.0*S.cz;
-              break;
-            case MONOCLINIC_BETA_ANGLE:
-              HessianMatrix.element[n][n]+=
-                 DDF*T.ax*T.ax+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.ax*dmn.ax/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.ax*dmn.ax)+2.0*dot_mn*
-                 ((vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)+(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)
-                 -(vec_v.x*vec_w.x+vec_w.x*vec_v.x)*(vec_u.x*vec_u.x+vec_u.x*vec_u.x)-(vec_u.x*vec_u.x+vec_u.x*vec_u.x)*(vec_v.x*vec_w.x+vec_w.x*vec_v.x)))
-                 +(dme.ax*dme.ax/SQR(m2)+dne.ax*dne.ax/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.x*vec_v.x*vec_u.x*vec_u.x+vec_u.x*vec_u.x*vec_v.x*vec_v.x)-2.0*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.x*vec_u.x+vec_u.x*vec_v.x))
-                 -(1.0/n2)*(4.0*(vec_w.x*vec_w.x*vec_u.x*vec_u.x+vec_u.x*vec_u.x*vec_w.x*vec_w.x)-2.0*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)))
-                 +DF*(1.0/CosPhi)*T.ax*T.ax+2.0*S.ax;
-              HessianMatrix.element[n][n+1]+=
-                 DDF*T.ax*T.az+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.ax*dmn.az/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.ax*dmn.az)+2.0*dot_mn*
-                 ((vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_w.x*vec_u.z+vec_u.x*vec_w.z)+(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_v.x*vec_u.z+vec_u.x*vec_v.z)
-                 -(vec_v.x*vec_w.x+vec_w.x*vec_v.x)*(vec_u.x*vec_u.z+vec_u.x*vec_u.z)-(vec_u.x*vec_u.x+vec_u.x*vec_u.x)*(vec_v.x*vec_w.z+vec_w.x*vec_v.z)))
-                 +(dme.ax*dme.az/SQR(m2)+dne.ax*dne.az/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.x*vec_v.x*vec_u.x*vec_u.z+vec_u.x*vec_u.x*vec_v.x*vec_v.z)-2.0*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.x*vec_u.z+vec_u.x*vec_v.z))
-                 -(1.0/n2)*(4.0*(vec_w.x*vec_w.x*vec_u.x*vec_u.z+vec_u.x*vec_u.x*vec_w.x*vec_w.z)-2.0*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_w.x*vec_u.z+vec_u.x*vec_w.z)))
-                 +DF*(1.0/CosPhi)*T.ax*T.az+S.az;
-              HessianMatrix.element[n][n+2]+=
-                 DDF*T.ax*T.by+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.ax*dmn.by/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.ax*dmn.by)+2.0*dot_mn*
-                 ((vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)+(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)
-                 -(vec_v.x*vec_w.x+vec_w.x*vec_v.x)*(vec_u.y*vec_u.y+vec_u.y*vec_u.y)-(vec_u.x*vec_u.x+vec_u.x*vec_u.x)*(vec_v.y*vec_w.y+vec_w.y*vec_v.y)))
-                 +(dme.ax*dme.by/SQR(m2)+dne.ax*dne.by/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.x*vec_v.x*vec_u.y*vec_u.y+vec_u.x*vec_u.x*vec_v.y*vec_v.y)-2.0*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y))
-                 -(1.0/n2)*(4.0*(vec_w.x*vec_w.x*vec_u.y*vec_u.y+vec_u.x*vec_u.x*vec_w.y*vec_w.y)-2.0*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)))
-                 +DF*(1.0/CosPhi)*T.ax*T.by;
-              HessianMatrix.element[n][n+3]+=
-                 DDF*T.ax*T.cz+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.ax*dmn.cz/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.ax*dmn.cz)+2.0*dot_mn*
-                 ((vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)+(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)
-                 -(vec_v.x*vec_w.x+vec_w.x*vec_v.x)*(vec_u.z*vec_u.z+vec_u.z*vec_u.z)-(vec_u.x*vec_u.x+vec_u.x*vec_u.x)*(vec_v.z*vec_w.z+vec_w.z*vec_v.z)))
-                 +(dme.ax*dme.cz/SQR(m2)+dne.ax*dne.cz/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.x*vec_v.x*vec_u.z*vec_u.z+vec_u.x*vec_u.x*vec_v.z*vec_v.z)-2.0*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z))
-                 -(1.0/n2)*(4.0*(vec_w.x*vec_w.x*vec_u.z*vec_u.z+vec_u.x*vec_u.x*vec_w.z*vec_w.z)-2.0*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)))
-                 +DF*(1.0/CosPhi)*T.ax*T.cz;
-
-              HessianMatrix.element[n+1][n+1]+=DDF*T.az*T.az+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.az*dmn.az/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.az*dmn.az)+2.0*dot_mn*
-                 ((vec_v.x*vec_u.z+vec_u.x*vec_v.z)*(vec_w.x*vec_u.z+vec_u.x*vec_w.z)+(vec_w.x*vec_u.z+vec_u.x*vec_w.z)*(vec_v.x*vec_u.z+vec_u.x*vec_v.z)
-                 -(vec_v.x*vec_w.z+vec_w.x*vec_v.z)*(vec_u.x*vec_u.z+vec_u.x*vec_u.z)-(vec_u.x*vec_u.z+vec_u.x*vec_u.z)*(vec_v.x*vec_w.z+vec_w.x*vec_v.z)))
-                 +(dme.az*dme.az/SQR(m2)+dne.az*dne.az/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.x*vec_v.z*vec_u.x*vec_u.z+vec_u.x*vec_u.z*vec_v.x*vec_v.z)-2.0*(vec_v.x*vec_u.z+vec_u.x*vec_v.z)*(vec_v.x*vec_u.z+vec_u.x*vec_v.z))
-                 -(1.0/n2)*(4.0*(vec_w.x*vec_w.z*vec_u.x*vec_u.z+vec_u.x*vec_u.z*vec_w.x*vec_w.z)-2.0*(vec_w.x*vec_u.z+vec_u.x*vec_w.z)*(vec_w.x*vec_u.z+vec_u.x*vec_w.z)))
-                 +DF*(1.0/CosPhi)*T.az*T.az+S.cz;
-              HessianMatrix.element[n+1][n+2]+=
-                 DDF*T.az*T.by+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.az*dmn.by/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.az*dmn.by)+2.0*dot_mn*
-                 ((vec_v.x*vec_u.z+vec_u.x*vec_v.z)*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)+(vec_w.x*vec_u.z+vec_u.x*vec_w.z)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)
-                 -(vec_v.x*vec_w.z+vec_w.x*vec_v.z)*(vec_u.y*vec_u.y+vec_u.y*vec_u.y)-(vec_u.x*vec_u.z+vec_u.x*vec_u.z)*(vec_v.y*vec_w.y+vec_w.y*vec_v.y)))
-                 +(dme.az*dme.by/SQR(m2)+dne.az*dne.by/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.x*vec_v.z*vec_u.y*vec_u.y+vec_u.x*vec_u.z*vec_v.y*vec_v.y)-2.0*(vec_v.x*vec_u.z+vec_u.x*vec_v.z)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y))
-                 -(1.0/n2)*(4.0*(vec_w.x*vec_w.z*vec_u.y*vec_u.y+vec_u.x*vec_u.z*vec_w.y*vec_w.y)-2.0*(vec_w.x*vec_u.z+vec_u.x*vec_w.z)*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)))
-                 +DF*(1.0/CosPhi)*T.az*T.by;
-              HessianMatrix.element[n+1][n+3]+=
-                 DDF*T.az*T.cz+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.az*dmn.cz/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.az*dmn.cz)+2.0*dot_mn*
-                 ((vec_v.x*vec_u.z+vec_u.x*vec_v.z)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)+(vec_w.x*vec_u.z+vec_u.x*vec_w.z)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)
-                 -(vec_v.x*vec_w.z+vec_w.x*vec_v.z)*(vec_u.z*vec_u.z+vec_u.z*vec_u.z)-(vec_u.x*vec_u.z+vec_u.x*vec_u.z)*(vec_v.z*vec_w.z+vec_w.z*vec_v.z)))
-                 +(dme.az*dme.cz/SQR(m2)+dne.az*dne.cz/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.x*vec_v.z*vec_u.z*vec_u.z+vec_u.x*vec_u.z*vec_v.z*vec_v.z)-2.0*(vec_v.x*vec_u.z+vec_u.x*vec_v.z)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z))
-                 -(1.0/n2)*(4.0*(vec_w.x*vec_w.z*vec_u.z*vec_u.z+vec_u.x*vec_u.z*vec_w.z*vec_w.z)-2.0*(vec_w.x*vec_u.z+vec_u.x*vec_w.z)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)))
-                 +DF*(1.0/CosPhi)*T.az*T.cz;
-
-              HessianMatrix.element[n+2][n+2]+=
-                 DDF*T.by*T.by+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.by*dmn.by/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.by*dmn.by)+2.0*dot_mn*
-                 ((vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)+(vec_w.y*vec_u.y+vec_u.y*vec_w.y)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)
-                 -(vec_v.y*vec_w.y+vec_w.y*vec_v.y)*(vec_u.y*vec_u.y+vec_u.y*vec_u.y)-(vec_u.y*vec_u.y+vec_u.y*vec_u.y)*(vec_v.y*vec_w.y+vec_w.y*vec_v.y)))
-                 +(dme.by*dme.by/SQR(m2)+dne.by*dne.by/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.y*vec_v.y*vec_u.y*vec_u.y+vec_u.y*vec_u.y*vec_v.y*vec_v.y)-2.0*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y))
-                 -(1.0/n2)*(4.0*(vec_w.y*vec_w.y*vec_u.y*vec_u.y+vec_u.y*vec_u.y*vec_w.y*vec_w.y)-2.0*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)))
-                 +DF*(1.0/CosPhi)*T.by*T.by+2.0*S.by;
-              HessianMatrix.element[n+2][n+3]+=
-                 DDF*T.by*T.cz+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.by*dmn.cz/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.by*dmn.cz)+2.0*dot_mn*
-                 ((vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)+(vec_w.y*vec_u.y+vec_u.y*vec_w.y)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)
-                 -(vec_v.y*vec_w.y+vec_w.y*vec_v.y)*(vec_u.z*vec_u.z+vec_u.z*vec_u.z)-(vec_u.y*vec_u.y+vec_u.y*vec_u.y)*(vec_v.z*vec_w.z+vec_w.z*vec_v.z)))
-                 +(dme.by*dme.cz/SQR(m2)+dne.by*dne.cz/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.y*vec_v.y*vec_u.z*vec_u.z+vec_u.y*vec_u.y*vec_v.z*vec_v.z)-2.0*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z))
-                 -(1.0/n2)*(4.0*(vec_w.y*vec_w.y*vec_u.z*vec_u.z+vec_u.y*vec_u.y*vec_w.z*vec_w.z)-2.0*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)))
-                 +DF*(1.0/CosPhi)*T.by*T.cz;
-
-              HessianMatrix.element[n+3][n+3]+=
-                 DDF*T.cz*T.cz+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.cz*dmn.cz/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.cz*dmn.cz)+2.0*dot_mn*
-                 ((vec_v.z*vec_u.z+vec_u.z*vec_v.z)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)+(vec_w.z*vec_u.z+vec_u.z*vec_w.z)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)
-                 -(vec_v.z*vec_w.z+vec_w.z*vec_v.z)*(vec_u.z*vec_u.z+vec_u.z*vec_u.z)-(vec_u.z*vec_u.z+vec_u.z*vec_u.z)*(vec_v.z*vec_w.z+vec_w.z*vec_v.z)))
-                 +(dme.cz*dme.cz/SQR(m2)+dne.cz*dne.cz/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.z*vec_v.z*vec_u.z*vec_u.z+vec_u.z*vec_u.z*vec_v.z*vec_v.z)-2.0*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z))
-                 -(1.0/n2)*(4.0*(vec_w.z*vec_w.z*vec_u.z*vec_u.z+vec_u.z*vec_u.z*vec_w.z*vec_w.z)-2.0*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)))
-                 +DF*(1.0/CosPhi)*T.cz*T.cz+2.0*S.cz;
-              break;
-            case MONOCLINIC_GAMMA_ANGLE:
-              HessianMatrix.element[n][n]+=
-                 DDF*T.ax*T.ax+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.ax*dmn.ax/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.ax*dmn.ax)+2.0*dot_mn*
-                 ((vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)+(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)
-                 -(vec_v.x*vec_w.x+vec_w.x*vec_v.x)*(vec_u.x*vec_u.x+vec_u.x*vec_u.x)-(vec_u.x*vec_u.x+vec_u.x*vec_u.x)*(vec_v.x*vec_w.x+vec_w.x*vec_v.x)))
-                 +(dme.ax*dme.ax/SQR(m2)+dne.ax*dne.ax/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.x*vec_v.x*vec_u.x*vec_u.x+vec_u.x*vec_u.x*vec_v.x*vec_v.x)-2.0*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.x*vec_u.x+vec_u.x*vec_v.x))
-                 -(1.0/n2)*(4.0*(vec_w.x*vec_w.x*vec_u.x*vec_u.x+vec_u.x*vec_u.x*vec_w.x*vec_w.x)-2.0*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)))
-                 +DF*(1.0/CosPhi)*T.ax*T.ax+2.0*S.ax;
-              HessianMatrix.element[n][n+1]+=
-                 DDF*T.ax*T.ay+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.ax*dmn.ay/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.ax*dmn.ay)+2.0*dot_mn*
-                 ((vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_w.x*vec_u.y+vec_u.x*vec_w.y)+(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_v.x*vec_u.y+vec_u.x*vec_v.y)
-                 -(vec_v.x*vec_w.x+vec_w.x*vec_v.x)*(vec_u.x*vec_u.y+vec_u.x*vec_u.y)-(vec_u.x*vec_u.x+vec_u.x*vec_u.x)*(vec_v.x*vec_w.y+vec_w.x*vec_v.y)))
-                 +(dme.ax*dme.ay/SQR(m2)+dne.ax*dne.ay/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.x*vec_v.x*vec_u.x*vec_u.y+vec_u.x*vec_u.x*vec_v.x*vec_v.y)-2.0*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.x*vec_u.y+vec_u.x*vec_v.y))
-                 -(1.0/n2)*(4.0*(vec_w.x*vec_w.x*vec_u.x*vec_u.y+vec_u.x*vec_u.x*vec_w.x*vec_w.y)-2.0*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_w.x*vec_u.y+vec_u.x*vec_w.y)))
-                 +DF*(1.0/CosPhi)*T.ax*T.ay+S.ay;
-              HessianMatrix.element[n][n+2]+=
-                 DDF*T.ax*T.by+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.ax*dmn.by/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.ax*dmn.by)+2.0*dot_mn*
-                 ((vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)+(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)
-                 -(vec_v.x*vec_w.x+vec_w.x*vec_v.x)*(vec_u.y*vec_u.y+vec_u.y*vec_u.y)-(vec_u.x*vec_u.x+vec_u.x*vec_u.x)*(vec_v.y*vec_w.y+vec_w.y*vec_v.y)))
-                 +(dme.ax*dme.by/SQR(m2)+dne.ax*dne.by/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.x*vec_v.x*vec_u.y*vec_u.y+vec_u.x*vec_u.x*vec_v.y*vec_v.y)-2.0*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y))
-                 -(1.0/n2)*(4.0*(vec_w.x*vec_w.x*vec_u.y*vec_u.y+vec_u.x*vec_u.x*vec_w.y*vec_w.y)-2.0*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)))
-                 +DF*(1.0/CosPhi)*T.ax*T.by;
-              HessianMatrix.element[n][n+3]+=
-                 DDF*T.ax*T.cz+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.ax*dmn.cz/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.ax*dmn.cz)+2.0*dot_mn*
-                 ((vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)+(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)
-                 -(vec_v.x*vec_w.x+vec_w.x*vec_v.x)*(vec_u.z*vec_u.z+vec_u.z*vec_u.z)-(vec_u.x*vec_u.x+vec_u.x*vec_u.x)*(vec_v.z*vec_w.z+vec_w.z*vec_v.z)))
-                 +(dme.ax*dme.cz/SQR(m2)+dne.ax*dne.cz/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.x*vec_v.x*vec_u.z*vec_u.z+vec_u.x*vec_u.x*vec_v.z*vec_v.z)-2.0*(vec_v.x*vec_u.x+vec_u.x*vec_v.x)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z))
-                 -(1.0/n2)*(4.0*(vec_w.x*vec_w.x*vec_u.z*vec_u.z+vec_u.x*vec_u.x*vec_w.z*vec_w.z)-2.0*(vec_w.x*vec_u.x+vec_u.x*vec_w.x)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)))
-                 +DF*(1.0/CosPhi)*T.ax*T.cz;
-
-              HessianMatrix.element[n+1][n+1]+=
-                 DDF*T.ay*T.ay+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.ay*dmn.ay/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.ay*dmn.ay)+2.0*dot_mn*
-                 ((vec_v.x*vec_u.y+vec_u.x*vec_v.y)*(vec_w.x*vec_u.y+vec_u.x*vec_w.y)+(vec_w.x*vec_u.y+vec_u.x*vec_w.y)*(vec_v.x*vec_u.y+vec_u.x*vec_v.y)
-                 -(vec_v.x*vec_w.y+vec_w.x*vec_v.y)*(vec_u.x*vec_u.y+vec_u.x*vec_u.y)-(vec_u.x*vec_u.y+vec_u.x*vec_u.y)*(vec_v.x*vec_w.y+vec_w.x*vec_v.y)))
-                 +(dme.ay*dme.ay/SQR(m2)+dne.ay*dne.ay/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.x*vec_v.y*vec_u.x*vec_u.y+vec_u.x*vec_u.y*vec_v.x*vec_v.y)-2.0*(vec_v.x*vec_u.y+vec_u.x*vec_v.y)*(vec_v.x*vec_u.y+vec_u.x*vec_v.y))
-                 -(1.0/n2)*(4.0*(vec_w.x*vec_w.y*vec_u.x*vec_u.y+vec_u.x*vec_u.y*vec_w.x*vec_w.y)-2.0*(vec_w.x*vec_u.y+vec_u.x*vec_w.y)*(vec_w.x*vec_u.y+vec_u.x*vec_w.y)))
-                 +DF*(1.0/CosPhi)*T.ay*T.ay+S.by;
-              HessianMatrix.element[n+1][n+2]+=
-                 DDF*T.ay*T.by+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.ay*dmn.by/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.ay*dmn.by)+2.0*dot_mn*
-                 ((vec_v.x*vec_u.y+vec_u.x*vec_v.y)*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)+(vec_w.x*vec_u.y+vec_u.x*vec_w.y)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)
-                 -(vec_v.x*vec_w.y+vec_w.x*vec_v.y)*(vec_u.y*vec_u.y+vec_u.y*vec_u.y)-(vec_u.x*vec_u.y+vec_u.x*vec_u.y)*(vec_v.y*vec_w.y+vec_w.y*vec_v.y)))
-                 +(dme.ay*dme.by/SQR(m2)+dne.ay*dne.by/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.x*vec_v.y*vec_u.y*vec_u.y+vec_u.x*vec_u.y*vec_v.y*vec_v.y)-2.0*(vec_v.x*vec_u.y+vec_u.x*vec_v.y)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y))
-                 -(1.0/n2)*(4.0*(vec_w.x*vec_w.y*vec_u.y*vec_u.y+vec_u.x*vec_u.y*vec_w.y*vec_w.y)-2.0*(vec_w.x*vec_u.y+vec_u.x*vec_w.y)*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)))
-                 +DF*(1.0/CosPhi)*T.ay*T.by;
-              HessianMatrix.element[n+1][n+3]+=
-                 DDF*T.ay*T.cz+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.ay*dmn.cz/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.ay*dmn.cz)+2.0*dot_mn*
-                 ((vec_v.x*vec_u.y+vec_u.x*vec_v.y)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)+(vec_w.x*vec_u.y+vec_u.x*vec_w.y)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)
-                 -(vec_v.x*vec_w.y+vec_w.x*vec_v.y)*(vec_u.z*vec_u.z+vec_u.z*vec_u.z)-(vec_u.x*vec_u.y+vec_u.x*vec_u.y)*(vec_v.z*vec_w.z+vec_w.z*vec_v.z)))
-                 +(dme.ay*dme.cz/SQR(m2)+dne.ay*dne.cz/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.x*vec_v.y*vec_u.z*vec_u.z+vec_u.x*vec_u.y*vec_v.z*vec_v.z)-2.0*(vec_v.x*vec_u.y+vec_u.x*vec_v.y)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z))
-                 -(1.0/n2)*(4.0*(vec_w.x*vec_w.y*vec_u.z*vec_u.z+vec_u.x*vec_u.y*vec_w.z*vec_w.z)-2.0*(vec_w.x*vec_u.y+vec_u.x*vec_w.y)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)))
-                 +DF*(1.0/CosPhi)*T.ay*T.cz;
-
-              HessianMatrix.element[n+2][n+2]+=
-                 DDF*T.by*T.by+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.by*dmn.by/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.by*dmn.by)+2.0*dot_mn*
-                 ((vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)+(vec_w.y*vec_u.y+vec_u.y*vec_w.y)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)
-                 -(vec_v.y*vec_w.y+vec_w.y*vec_v.y)*(vec_u.y*vec_u.y+vec_u.y*vec_u.y)-(vec_u.y*vec_u.y+vec_u.y*vec_u.y)*(vec_v.y*vec_w.y+vec_w.y*vec_v.y)))
-                 +(dme.by*dme.by/SQR(m2)+dne.by*dne.by/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.y*vec_v.y*vec_u.y*vec_u.y+vec_u.y*vec_u.y*vec_v.y*vec_v.y)-2.0*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_v.y*vec_u.y+vec_u.y*vec_v.y))
-                 -(1.0/n2)*(4.0*(vec_w.y*vec_w.y*vec_u.y*vec_u.y+vec_u.y*vec_u.y*vec_w.y*vec_w.y)-2.0*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)))
-                 +DF*(1.0/CosPhi)*T.by*T.by+2.0*S.by;
-              HessianMatrix.element[n+2][n+3]+=
-                 DDF*T.by*T.cz+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.by*dmn.cz/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.by*dmn.cz)+2.0*dot_mn*
-                 ((vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)+(vec_w.y*vec_u.y+vec_u.y*vec_w.y)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)
-                 -(vec_v.y*vec_w.y+vec_w.y*vec_v.y)*(vec_u.z*vec_u.z+vec_u.z*vec_u.z)-(vec_u.y*vec_u.y+vec_u.y*vec_u.y)*(vec_v.z*vec_w.z+vec_w.z*vec_v.z)))
-                 +(dme.by*dme.cz/SQR(m2)+dne.by*dne.cz/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.y*vec_v.y*vec_u.z*vec_u.z+vec_u.y*vec_u.y*vec_v.z*vec_v.z)-2.0*(vec_v.y*vec_u.y+vec_u.y*vec_v.y)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z))
-                 -(1.0/n2)*(4.0*(vec_w.y*vec_w.y*vec_u.z*vec_u.z+vec_u.y*vec_u.y*vec_w.z*vec_w.z)-2.0*(vec_w.y*vec_u.y+vec_u.y*vec_w.y)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)))
-                 +DF*(1.0/CosPhi)*T.by*T.cz;
-
-              HessianMatrix.element[n+3][n+3]+=
-                 DDF*T.cz*T.cz+
-                 DF*0.5*CosPhi*(
-                 -4.0*dmn.cz*dmn.cz/SQR(dot_mn)
-                 +(1.0/SQR(dot_mn))*(2.0*(dmn.cz*dmn.cz)+2.0*dot_mn*
-                 ((vec_v.z*vec_u.z+vec_u.z*vec_v.z)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)+(vec_w.z*vec_u.z+vec_u.z*vec_w.z)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)
-                 -(vec_v.z*vec_w.z+vec_w.z*vec_v.z)*(vec_u.z*vec_u.z+vec_u.z*vec_u.z)-(vec_u.z*vec_u.z+vec_u.z*vec_u.z)*(vec_v.z*vec_w.z+vec_w.z*vec_v.z)))
-                 +(dme.cz*dme.cz/SQR(m2)+dne.cz*dne.cz/SQR(n2))
-                 -(1.0/m2)*(4.0*(vec_v.z*vec_v.z*vec_u.z*vec_u.z+vec_u.z*vec_u.z*vec_v.z*vec_v.z)-2.0*(vec_v.z*vec_u.z+vec_u.z*vec_v.z)*(vec_v.z*vec_u.z+vec_u.z*vec_v.z))
-                 -(1.0/n2)*(4.0*(vec_w.z*vec_w.z*vec_u.z*vec_u.z+vec_u.z*vec_u.z*vec_w.z*vec_w.z)-2.0*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)*(vec_w.z*vec_u.z+vec_u.z*vec_w.z)))
-                 +DF*(1.0/CosPhi)*T.cz*T.cz+2.0*S.cz;
-              break;
-          }
-          break;
-        default:
-          printf("Unknown NPTPRCellType\n");
-          exit(0);
-          break;
-      }
-      break;
-    case NVT:
-    case NVE:
-      break;
-  }
-}
-
 
 static inline void GradientStrainTorsion(REAL *Gradient,REAL_MATRIX3x3 S)
 {
@@ -7488,7 +3950,8 @@ void ComputeFrameworkTorsionHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX Hess
   REAL U,CosPhi,Phi,CosPhi2,SinPhi;
   VECTOR dtA,dtB,dtC,dtD,Pb,Pc;
   REAL *parms;
-  int index_i,index_j,index_k,index_l;
+  INT_VECTOR3 index_i,index_j,index_k,index_l;
+  int index1,index2,index3,index4;
   REAL_MATRIX3x3 D2I,D2L,D2IL,D2IJ,D2IK,D2JL;
   REAL_MATRIX3x3 D2KL,D2J,D2K,D2JK,S;
   VECTOR DIL,DDJ,DDK,DEJ,DEK;
@@ -7516,6 +3979,11 @@ void ComputeFrameworkTorsionHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX Hess
       index_j=Framework[CurrentSystem].Atoms[f1][B].HessianIndex;
       index_k=Framework[CurrentSystem].Atoms[f1][C].HessianIndex;
       index_l=Framework[CurrentSystem].Atoms[f1][D].HessianIndex;
+
+      index1=Framework[CurrentSystem].Atoms[f1][A].HessianAtomIndex;
+      index2=Framework[CurrentSystem].Atoms[f1][B].HessianAtomIndex;
+      index3=Framework[CurrentSystem].Atoms[f1][C].HessianAtomIndex;
+      index4=Framework[CurrentSystem].Atoms[f1][D].HessianAtomIndex;
 
       vec_u.x=posB.x-posC.x;
       vec_u.y=posB.y-posC.y;
@@ -7764,7 +4232,7 @@ void ComputeFrameworkTorsionHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX Hess
 
       *Energy+=U;
 
-      if((index_i<0)&&(index_j<0)&&(index_k<0)&&(index_l<0)) continue;
+      //if((index_i<0)&&(index_j<0)&&(index_k<0)&&(index_l<0)) continue;
 
      // Calculate the first derivative vectors.
       d=dot_ab/rbc;
@@ -7831,33 +4299,21 @@ void ComputeFrameworkTorsionHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX Hess
 
       if(ComputeGradient)
       {
-        if(index_i>=0)
-        {
-          Gradient[index_i]+=fa.x;
-          Gradient[index_i+1]+=fa.y;
-          Gradient[index_i+2]+=fa.z;
-        }
+        if(index_i.x>=0) Gradient[index_i.x]+=fa.x;
+        if(index_i.y>=0) Gradient[index_i.y]+=fa.y;
+        if(index_i.z>=0) Gradient[index_i.z]+=fa.z;
 
-        if(index_j>=0)
-        {
-          Gradient[index_j]+=fb.x;
-          Gradient[index_j+1]+=fb.y;
-          Gradient[index_j+2]+=fb.z;
-        }
+        if(index_j.x>=0) Gradient[index_j.x]+=fb.x;
+        if(index_j.y>=0) Gradient[index_j.y]+=fb.y;
+        if(index_j.z>=0) Gradient[index_j.z]+=fb.z;
 
-        if(index_k>=0)
-        {
-          Gradient[index_k]+=fc.x;
-          Gradient[index_k+1]+=fc.y;
-          Gradient[index_k+2]+=fc.z;
-        }
+        if(index_k.x>=0) Gradient[index_k.x]+=fc.x;
+        if(index_k.y>=0) Gradient[index_k.y]+=fc.y;
+        if(index_k.z>=0) Gradient[index_k.z]+=fc.z;
 
-        if(index_l>=0)
-        {
-          Gradient[index_l]+=fd.x;
-          Gradient[index_l+1]+=fd.y;
-          Gradient[index_l+2]+=fd.z;
-        }
+        if(index_l.x>=0) Gradient[index_l.x]+=fd.x;
+        if(index_l.y>=0) Gradient[index_l.y]+=fd.y;
+        if(index_l.z>=0) Gradient[index_l.z]+=fd.z;
 
         GradientStrainTorsion(Gradient,S);
       }
@@ -7980,212 +4436,182 @@ void ComputeFrameworkTorsionHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX Hess
         D2JK.cz=-D2IJ.cz*d-D2JL.cz*(e+1.0)-DDJ.z*dtA.z-DEJ.z*dtD.z;
 
         // Calculate the diagonal blocks of the hessian.
-        if(index_i>=0)
-        {
-          HessianMatrix.element[index_i][index_i]+=DDF*dtA.x*dtA.x+D2I.ax;
-          HessianMatrix.element[index_i][index_i+1]+=DDF*dtA.x*dtA.y+D2I.ay;
-          HessianMatrix.element[index_i+1][index_i+1]+=DDF*dtA.y*dtA.y+D2I.by;
-          HessianMatrix.element[index_i][index_i+2]+=DDF*dtA.x*dtA.z+D2I.az;
-          HessianMatrix.element[index_i+1][index_i+2]+=DDF*dtA.y*dtA.z+D2I.bz;
-          HessianMatrix.element[index_i+2][index_i+2]+=DDF*dtA.z*dtA.z+D2I.cz;
-        }
+        if((index_i.x>=0)&&(index_i.x>=0)) HessianMatrix.element[index_i.x][index_i.x]+=DDF*dtA.x*dtA.x+D2I.ax;
+        if((index_i.x>=0)&&(index_i.y>=0)) HessianMatrix.element[index_i.x][index_i.y]+=DDF*dtA.x*dtA.y+D2I.ay;
+        if((index_i.y>=0)&&(index_i.y>=0)) HessianMatrix.element[index_i.y][index_i.y]+=DDF*dtA.y*dtA.y+D2I.by;
+        if((index_i.x>=0)&&(index_i.z>=0)) HessianMatrix.element[index_i.x][index_i.z]+=DDF*dtA.x*dtA.z+D2I.az;
+        if((index_i.y>=0)&&(index_i.z>=0)) HessianMatrix.element[index_i.y][index_i.z]+=DDF*dtA.y*dtA.z+D2I.bz;
+        if((index_i.z>=0)&&(index_i.z>=0)) HessianMatrix.element[index_i.z][index_i.z]+=DDF*dtA.z*dtA.z+D2I.cz;
 
-        if(index_j>=0)
-        {
-          HessianMatrix.element[index_j][index_j]+=DDF*dtB.x*dtB.x+D2J.ax;
-          HessianMatrix.element[index_j][index_j+1]+=DDF*dtB.x*dtB.y+D2J.ay;
-          HessianMatrix.element[index_j+1][index_j+1]+=DDF*dtB.y*dtB.y+D2J.by;
-          HessianMatrix.element[index_j][index_j+2]+=DDF*dtB.x*dtB.z+D2J.az;
-          HessianMatrix.element[index_j+1][index_j+2]+=DDF*dtB.y*dtB.z+D2J.bz;
-          HessianMatrix.element[index_j+2][index_j+2]+=DDF*dtB.z*dtB.z+D2J.cz;
-        }
+        if((index_j.x>=0)&&(index_j.x>=0)) HessianMatrix.element[index_j.x][index_j.x]+=DDF*dtB.x*dtB.x+D2J.ax;
+        if((index_j.x>=0)&&(index_j.y>=0)) HessianMatrix.element[index_j.x][index_j.y]+=DDF*dtB.x*dtB.y+D2J.ay;
+        if((index_j.y>=0)&&(index_j.y>=0)) HessianMatrix.element[index_j.y][index_j.y]+=DDF*dtB.y*dtB.y+D2J.by;
+        if((index_j.x>=0)&&(index_j.z>=0)) HessianMatrix.element[index_j.x][index_j.z]+=DDF*dtB.x*dtB.z+D2J.az;
+        if((index_j.y>=0)&&(index_j.z>=0)) HessianMatrix.element[index_j.y][index_j.z]+=DDF*dtB.y*dtB.z+D2J.bz;
+        if((index_j.z>=0)&&(index_j.z>=0)) HessianMatrix.element[index_j.z][index_j.z]+=DDF*dtB.z*dtB.z+D2J.cz;
 
-        if(index_k>=0)
-        {
-          HessianMatrix.element[index_k][index_k]+=DDF*dtC.x*dtC.x+D2K.ax;
-          HessianMatrix.element[index_k][index_k+1]+=DDF*dtC.x*dtC.y+D2K.ay;
-          HessianMatrix.element[index_k+1][index_k+1]+=DDF*dtC.y*dtC.y+D2K.by;
-          HessianMatrix.element[index_k][index_k+2]+=DDF*dtC.x*dtC.z+D2K.az;
-          HessianMatrix.element[index_k+1][index_k+2]+=DDF*dtC.y*dtC.z+D2K.bz;
-          HessianMatrix.element[index_k+2][index_k+2]+=DDF*dtC.z*dtC.z+D2K.cz;
-        }
+        if((index_k.x>=0)&&(index_k.x>=0)) HessianMatrix.element[index_k.x][index_k.x]+=DDF*dtC.x*dtC.x+D2K.ax;
+        if((index_k.x>=0)&&(index_k.y>=0)) HessianMatrix.element[index_k.x][index_k.y]+=DDF*dtC.x*dtC.y+D2K.ay;
+        if((index_k.y>=0)&&(index_k.y>=0)) HessianMatrix.element[index_k.y][index_k.y]+=DDF*dtC.y*dtC.y+D2K.by;
+        if((index_k.x>=0)&&(index_k.z>=0)) HessianMatrix.element[index_k.x][index_k.z]+=DDF*dtC.x*dtC.z+D2K.az;
+        if((index_k.y>=0)&&(index_k.z>=0)) HessianMatrix.element[index_k.y][index_k.z]+=DDF*dtC.y*dtC.z+D2K.bz;
+        if((index_k.z>=0)&&(index_k.z>=0)) HessianMatrix.element[index_k.z][index_k.z]+=DDF*dtC.z*dtC.z+D2K.cz;
 
-        if(index_l>=0)
-        {
-          HessianMatrix.element[index_l][index_l]+=DDF*dtD.x*dtD.x+D2L.ax;
-          HessianMatrix.element[index_l][index_l+1]+=DDF*dtD.x*dtD.y+D2L.ay;
-          HessianMatrix.element[index_l+1][index_l+1]+=DDF*dtD.y*dtD.y+D2L.by;
-          HessianMatrix.element[index_l][index_l+2]+=DDF*dtD.x*dtD.z+D2L.az;
-          HessianMatrix.element[index_l+1][index_l+2]+=DDF*dtD.y*dtD.z+D2L.bz;
-          HessianMatrix.element[index_l+2][index_l+2]+=DDF*dtD.z*dtD.z+D2L.cz;
-        }
+        if((index_l.x>=0)&&(index_l.x>=0)) HessianMatrix.element[index_l.x][index_l.x]+=DDF*dtD.x*dtD.x+D2L.ax;
+        if((index_l.x>=0)&&(index_l.y>=0)) HessianMatrix.element[index_l.x][index_l.y]+=DDF*dtD.x*dtD.y+D2L.ay;
+        if((index_l.y>=0)&&(index_l.y>=0)) HessianMatrix.element[index_l.y][index_l.y]+=DDF*dtD.y*dtD.y+D2L.by;
+        if((index_l.x>=0)&&(index_l.z>=0)) HessianMatrix.element[index_l.x][index_l.z]+=DDF*dtD.x*dtD.z+D2L.az;
+        if((index_l.y>=0)&&(index_l.z>=0)) HessianMatrix.element[index_l.y][index_l.z]+=DDF*dtD.y*dtD.z+D2L.bz;
+        if((index_l.z>=0)&&(index_l.z>=0)) HessianMatrix.element[index_l.z][index_l.z]+=DDF*dtD.z*dtD.z+D2L.cz;
 
-        if((index_i>=0)&&(index_j>=0))
+        if(index1<index2)
         {
-          if(index_i<index_j)
-          {
-            HessianMatrix.element[index_i][index_j]+=DDF*dtA.x*dtB.x+D2IJ.ax;
-            HessianMatrix.element[index_i][index_j+1]+=DDF*dtA.x*dtB.y+D2IJ.ay;
-            HessianMatrix.element[index_i][index_j+2]+=DDF*dtA.x*dtB.z+D2IJ.az;
-            HessianMatrix.element[index_i+1][index_j]+=DDF*dtA.y*dtB.x+D2IJ.bx;
-            HessianMatrix.element[index_i+1][index_j+1]+=DDF*dtA.y*dtB.y+D2IJ.by;
-            HessianMatrix.element[index_i+1][index_j+2]+=DDF*dtA.y*dtB.z+D2IJ.bz;
-            HessianMatrix.element[index_i+2][index_j]+=DDF*dtA.z*dtB.x+D2IJ.cx;
-            HessianMatrix.element[index_i+2][index_j+1]+=DDF*dtA.z*dtB.y+D2IJ.cy;
-            HessianMatrix.element[index_i+2][index_j+2]+=DDF*dtA.z*dtB.z+D2IJ.cz;
-          }
-          else
-          {
-            HessianMatrix.element[index_j][index_i]+=DDF*dtA.x*dtB.x+D2IJ.ax;
-            HessianMatrix.element[index_j][index_i+1]+=DDF*dtA.y*dtB.x+D2IJ.bx;
-            HessianMatrix.element[index_j][index_i+2]+=DDF*dtA.z*dtB.x+D2IJ.cx;
-            HessianMatrix.element[index_j+1][index_i]+=DDF*dtA.x*dtB.y+D2IJ.ay;
-            HessianMatrix.element[index_j+1][index_i+1]+=DDF*dtA.y*dtB.y+D2IJ.by;
-            HessianMatrix.element[index_j+1][index_i+2]+=DDF*dtA.z*dtB.y+D2IJ.cy;
-            HessianMatrix.element[index_j+2][index_i]+=DDF*dtA.x*dtB.z+D2IJ.az;
-            HessianMatrix.element[index_j+2][index_i+1]+=DDF*dtA.y*dtB.z+D2IJ.bz;
-            HessianMatrix.element[index_j+2][index_i+2]+=DDF*dtA.z*dtB.z+D2IJ.cz;
-          }
+          if((index_i.x>=0)&&(index_j.x>=0)) HessianMatrix.element[index_i.x][index_j.x]+=DDF*dtA.x*dtB.x+D2IJ.ax;
+          if((index_i.x>=0)&&(index_j.y>=0)) HessianMatrix.element[index_i.x][index_j.y]+=DDF*dtA.x*dtB.y+D2IJ.ay;
+          if((index_i.x>=0)&&(index_j.z>=0)) HessianMatrix.element[index_i.x][index_j.z]+=DDF*dtA.x*dtB.z+D2IJ.az;
+          if((index_i.y>=0)&&(index_j.x>=0)) HessianMatrix.element[index_i.y][index_j.x]+=DDF*dtA.y*dtB.x+D2IJ.bx;
+          if((index_i.y>=0)&&(index_j.y>=0)) HessianMatrix.element[index_i.y][index_j.y]+=DDF*dtA.y*dtB.y+D2IJ.by;
+          if((index_i.y>=0)&&(index_j.z>=0)) HessianMatrix.element[index_i.y][index_j.z]+=DDF*dtA.y*dtB.z+D2IJ.bz;
+          if((index_i.z>=0)&&(index_j.x>=0)) HessianMatrix.element[index_i.z][index_j.x]+=DDF*dtA.z*dtB.x+D2IJ.cx;
+          if((index_i.z>=0)&&(index_j.y>=0)) HessianMatrix.element[index_i.z][index_j.y]+=DDF*dtA.z*dtB.y+D2IJ.cy;
+          if((index_i.z>=0)&&(index_j.z>=0)) HessianMatrix.element[index_i.z][index_j.z]+=DDF*dtA.z*dtB.z+D2IJ.cz;
         }
-
-        if((index_i>=0)&&(index_k>=0))
+        else
         {
-          if(index_i<index_k)
-          {
-            HessianMatrix.element[index_i][index_k]+=DDF*dtA.x*dtC.x+D2IK.ax;
-            HessianMatrix.element[index_i][index_k+1]+=DDF*dtA.x*dtC.y+D2IK.ay;
-            HessianMatrix.element[index_i][index_k+2]+=DDF*dtA.x*dtC.z+D2IK.az;
-            HessianMatrix.element[index_i+1][index_k]+=DDF*dtA.y*dtC.x+D2IK.bx;
-            HessianMatrix.element[index_i+1][index_k+1]+=DDF*dtA.y*dtC.y+D2IK.by;
-            HessianMatrix.element[index_i+1][index_k+2]+=DDF*dtA.y*dtC.z+D2IK.bz;
-            HessianMatrix.element[index_i+2][index_k]+=DDF*dtA.z*dtC.x+D2IK.cx;
-            HessianMatrix.element[index_i+2][index_k+1]+=DDF*dtA.z*dtC.y+D2IK.cy;
-            HessianMatrix.element[index_i+2][index_k+2]+=DDF*dtA.z*dtC.z+D2IK.cz;
-          }
-          else
-          {
-            HessianMatrix.element[index_k][index_i]+=DDF*dtA.x*dtC.x+D2IK.ax;
-            HessianMatrix.element[index_k][index_i+1]+=DDF*dtA.y*dtC.x+D2IK.bx;
-            HessianMatrix.element[index_k][index_i+2]+=DDF*dtA.z*dtC.x+D2IK.cx;
-            HessianMatrix.element[index_k+1][index_i]+=DDF*dtA.x*dtC.y+D2IK.ay;
-            HessianMatrix.element[index_k+1][index_i+1]+=DDF*dtA.y*dtC.y+D2IK.by;
-            HessianMatrix.element[index_k+1][index_i+2]+=DDF*dtA.z*dtC.y+D2IK.cy;
-            HessianMatrix.element[index_k+2][index_i]+=DDF*dtA.x*dtC.z+D2IK.az;
-            HessianMatrix.element[index_k+2][index_i+1]+=DDF*dtA.y*dtC.z+D2IK.bz;
-            HessianMatrix.element[index_k+2][index_i+2]+=DDF*dtA.z*dtC.z+D2IK.cz;
-          }
+          if((index_j.x>=0)&&(index_i.x>=0)) HessianMatrix.element[index_j.x][index_i.x]+=DDF*dtA.x*dtB.x+D2IJ.ax;
+          if((index_j.x>=0)&&(index_i.y>=0)) HessianMatrix.element[index_j.x][index_i.y]+=DDF*dtA.y*dtB.x+D2IJ.bx;
+          if((index_j.x>=0)&&(index_i.z>=0)) HessianMatrix.element[index_j.x][index_i.z]+=DDF*dtA.z*dtB.x+D2IJ.cx;
+          if((index_j.y>=0)&&(index_i.x>=0)) HessianMatrix.element[index_j.y][index_i.x]+=DDF*dtA.x*dtB.y+D2IJ.ay;
+          if((index_j.y>=0)&&(index_i.y>=0)) HessianMatrix.element[index_j.y][index_i.y]+=DDF*dtA.y*dtB.y+D2IJ.by;
+          if((index_j.y>=0)&&(index_i.z>=0)) HessianMatrix.element[index_j.y][index_i.z]+=DDF*dtA.z*dtB.y+D2IJ.cy;
+          if((index_j.z>=0)&&(index_i.x>=0)) HessianMatrix.element[index_j.z][index_i.x]+=DDF*dtA.x*dtB.z+D2IJ.az;
+          if((index_j.z>=0)&&(index_i.y>=0)) HessianMatrix.element[index_j.z][index_i.y]+=DDF*dtA.y*dtB.z+D2IJ.bz;
+          if((index_j.z>=0)&&(index_i.z>=0)) HessianMatrix.element[index_j.z][index_i.z]+=DDF*dtA.z*dtB.z+D2IJ.cz;
         }
-
-        if((index_i>=0)&&(index_l>=0))
+       
+        if(index1<index3)
         {
-          if(index_i<index_l)
-          {
-            HessianMatrix.element[index_i][index_l]+=DDF*dtA.x*dtD.x+D2IL.ax;
-            HessianMatrix.element[index_i][index_l+1]+=DDF*dtA.x*dtD.y+D2IL.ay; 
-            HessianMatrix.element[index_i][index_l+2]+=DDF*dtA.x*dtD.z+D2IL.az; 
-            HessianMatrix.element[index_i+1][index_l]+=DDF*dtA.y*dtD.x+D2IL.bx; 
-            HessianMatrix.element[index_i+1][index_l+1]+=DDF*dtA.y*dtD.y+D2IL.by;
-            HessianMatrix.element[index_i+1][index_l+2]+=DDF*dtA.y*dtD.z+D2IL.bz;
-            HessianMatrix.element[index_i+2][index_l]+=DDF*dtA.z*dtD.x+D2IL.cx;
-            HessianMatrix.element[index_i+2][index_l+1]+=DDF*dtA.z*dtD.y+D2IL.cy;
-            HessianMatrix.element[index_i+2][index_l+2]+=DDF*dtA.z*dtD.z+D2IL.cz;
-          }
-          else
-          {
-            HessianMatrix.element[index_l][index_i]+=DDF*dtA.x*dtD.x+D2IL.ax;
-            HessianMatrix.element[index_l][index_i+1]+=DDF*dtA.y*dtD.x+D2IL.bx;
-            HessianMatrix.element[index_l][index_i+2]+=DDF*dtA.z*dtD.x+D2IL.cx;
-            HessianMatrix.element[index_l+1][index_i]+=DDF*dtA.x*dtD.y+D2IL.ay;
-            HessianMatrix.element[index_l+1][index_i+1]+=DDF*dtA.y*dtD.y+D2IL.by;
-            HessianMatrix.element[index_l+1][index_i+2]+=DDF*dtA.z*dtD.y+D2IL.cy;
-            HessianMatrix.element[index_l+2][index_i]+=DDF*dtA.x*dtD.z+D2IL.az;
-            HessianMatrix.element[index_l+2][index_i+1]+=DDF*dtA.y*dtD.z+D2IL.bz;
-            HessianMatrix.element[index_l+2][index_i+2]+=DDF*dtA.z*dtD.z+D2IL.cz;
-          }
+          if((index_i.x>=0)&&(index_k.x>=0)) HessianMatrix.element[index_i.x][index_k.x]+=DDF*dtA.x*dtC.x+D2IK.ax;
+          if((index_i.x>=0)&&(index_k.y>=0)) HessianMatrix.element[index_i.x][index_k.y]+=DDF*dtA.x*dtC.y+D2IK.ay;
+          if((index_i.x>=0)&&(index_k.z>=0)) HessianMatrix.element[index_i.x][index_k.z]+=DDF*dtA.x*dtC.z+D2IK.az;
+          if((index_i.y>=0)&&(index_k.x>=0)) HessianMatrix.element[index_i.y][index_k.x]+=DDF*dtA.y*dtC.x+D2IK.bx;
+          if((index_i.y>=0)&&(index_k.y>=0)) HessianMatrix.element[index_i.y][index_k.y]+=DDF*dtA.y*dtC.y+D2IK.by;
+          if((index_i.y>=0)&&(index_k.z>=0)) HessianMatrix.element[index_i.y][index_k.z]+=DDF*dtA.y*dtC.z+D2IK.bz;
+          if((index_i.z>=0)&&(index_k.x>=0)) HessianMatrix.element[index_i.z][index_k.x]+=DDF*dtA.z*dtC.x+D2IK.cx;
+          if((index_i.z>=0)&&(index_k.y>=0)) HessianMatrix.element[index_i.z][index_k.y]+=DDF*dtA.z*dtC.y+D2IK.cy;
+          if((index_i.z>=0)&&(index_k.z>=0)) HessianMatrix.element[index_i.z][index_k.z]+=DDF*dtA.z*dtC.z+D2IK.cz;
         }
-
-        if((index_j>=0)&&(index_k>=0))
+        else
         {
-          if(index_j<index_k)
-          {
-            HessianMatrix.element[index_j][index_k]+=DDF*dtB.x*dtC.x+D2JK.ax;
-            HessianMatrix.element[index_j][index_k+1]+=DDF*dtB.x*dtC.y+D2JK.ay; 
-            HessianMatrix.element[index_j][index_k+2]+=DDF*dtB.x*dtC.z+D2JK.az;
-            HessianMatrix.element[index_j+1][index_k]+=DDF*dtB.y*dtC.x+D2JK.bx;
-            HessianMatrix.element[index_j+1][index_k+1]+=DDF*dtB.y*dtC.y+D2JK.by;
-            HessianMatrix.element[index_j+1][index_k+2]+=DDF*dtB.y*dtC.z+D2JK.bz;
-            HessianMatrix.element[index_j+2][index_k]+=DDF*dtB.z*dtC.x+D2JK.cx;
-            HessianMatrix.element[index_j+2][index_k+1]+=DDF*dtB.z*dtC.y+D2JK.cy;
-            HessianMatrix.element[index_j+2][index_k+2]+=DDF*dtB.z*dtC.z+D2JK.cz;
-          }
-          else
-          {
-            HessianMatrix.element[index_k][index_j]+=DDF*dtB.x*dtC.x+D2JK.ax;
-            HessianMatrix.element[index_k][index_j+1]+=DDF*dtB.y*dtC.x+D2JK.bx;
-            HessianMatrix.element[index_k][index_j+2]+=DDF*dtB.z*dtC.x+D2JK.cx;
-            HessianMatrix.element[index_k+1][index_j]+=DDF*dtB.x*dtC.y+D2JK.ay;
-            HessianMatrix.element[index_k+1][index_j+1]+=DDF*dtB.y*dtC.y+D2JK.by;
-            HessianMatrix.element[index_k+1][index_j+2]+=DDF*dtB.z*dtC.y+D2JK.cy;
-            HessianMatrix.element[index_k+2][index_j]+=DDF*dtB.x*dtC.z+D2JK.az;
-            HessianMatrix.element[index_k+2][index_j+1]+=DDF*dtB.y*dtC.z+D2JK.bz;
-            HessianMatrix.element[index_k+2][index_j+2]+=DDF*dtB.z*dtC.z+D2JK.cz;
-          }
+          if((index_k.x>=0)&&(index_i.x>=0)) HessianMatrix.element[index_k.x][index_i.x]+=DDF*dtA.x*dtC.x+D2IK.ax;
+          if((index_k.x>=0)&&(index_i.y>=0)) HessianMatrix.element[index_k.x][index_i.y]+=DDF*dtA.y*dtC.x+D2IK.bx;
+          if((index_k.x>=0)&&(index_i.z>=0)) HessianMatrix.element[index_k.x][index_i.z]+=DDF*dtA.z*dtC.x+D2IK.cx;
+          if((index_k.y>=0)&&(index_i.x>=0)) HessianMatrix.element[index_k.y][index_i.x]+=DDF*dtA.x*dtC.y+D2IK.ay;
+          if((index_k.y>=0)&&(index_i.y>=0)) HessianMatrix.element[index_k.y][index_i.y]+=DDF*dtA.y*dtC.y+D2IK.by;
+          if((index_k.y>=0)&&(index_i.z>=0)) HessianMatrix.element[index_k.y][index_i.z]+=DDF*dtA.z*dtC.y+D2IK.cy;
+          if((index_k.z>=0)&&(index_i.x>=0)) HessianMatrix.element[index_k.z][index_i.x]+=DDF*dtA.x*dtC.z+D2IK.az;
+          if((index_k.z>=0)&&(index_i.y>=0)) HessianMatrix.element[index_k.z][index_i.y]+=DDF*dtA.y*dtC.z+D2IK.bz;
+          if((index_k.z>=0)&&(index_i.z>=0)) HessianMatrix.element[index_k.z][index_i.z]+=DDF*dtA.z*dtC.z+D2IK.cz;
         }
-
-        if((index_j>=0)&&(index_l>=0))
+        
+        if(index1<index2)
         {
-          if(index_j<index_l)
-          {
-            HessianMatrix.element[index_j][index_l]+=DDF*dtB.x*dtD.x+D2JL.ax;
-            HessianMatrix.element[index_j][index_l+1]+=DDF*dtB.x*dtD.y+D2JL.ay;
-            HessianMatrix.element[index_j][index_l+2]+=DDF*dtB.x*dtD.z+D2JL.az;
-            HessianMatrix.element[index_j+1][index_l]+=DDF*dtB.y*dtD.x+D2JL.bx;
-            HessianMatrix.element[index_j+1][index_l+1]+=DDF*dtB.y*dtD.y+D2JL.by;
-            HessianMatrix.element[index_j+1][index_l+2]+=DDF*dtB.y*dtD.z+D2JL.bz;
-            HessianMatrix.element[index_j+2][index_l]+=DDF*dtB.z*dtD.x+D2JL.cx;
-            HessianMatrix.element[index_j+2][index_l+1]+=DDF*dtB.z*dtD.y+D2JL.cy;
-            HessianMatrix.element[index_j+2][index_l+2]+=DDF*dtB.z*dtD.z+D2JL.cz;
-          }
-          else
-          {
-            HessianMatrix.element[index_l][index_j]+=DDF*dtB.x*dtD.x+D2JL.ax;
-            HessianMatrix.element[index_l][index_j+1]+=DDF*dtB.y*dtD.x+D2JL.bx;
-            HessianMatrix.element[index_l][index_j+2]+=DDF*dtB.z*dtD.x+D2JL.cx;
-            HessianMatrix.element[index_l+1][index_j]+=DDF*dtB.x*dtD.y+D2JL.ay;
-            HessianMatrix.element[index_l+1][index_j+1]+=DDF*dtB.y*dtD.y+D2JL.by;
-            HessianMatrix.element[index_l+1][index_j+2]+=DDF*dtB.z*dtD.y+D2JL.cy;
-            HessianMatrix.element[index_l+2][index_j]+=DDF*dtB.x*dtD.z+D2JL.az;
-            HessianMatrix.element[index_l+2][index_j+1]+=DDF*dtB.y*dtD.z+D2JL.bz;
-            HessianMatrix.element[index_l+2][index_j+2]+=DDF*dtB.z*dtD.z+D2JL.cz;
-          }
+          if((index_i.x>=0)&&(index_l.x>=0)) HessianMatrix.element[index_i.x][index_l.x]+=DDF*dtA.x*dtD.x+D2IL.ax;
+          if((index_i.x>=0)&&(index_l.y>=0)) HessianMatrix.element[index_i.x][index_l.y]+=DDF*dtA.x*dtD.y+D2IL.ay; 
+          if((index_i.x>=0)&&(index_l.z>=0)) HessianMatrix.element[index_i.x][index_l.z]+=DDF*dtA.x*dtD.z+D2IL.az; 
+          if((index_i.y>=0)&&(index_l.x>=0)) HessianMatrix.element[index_i.y][index_l.x]+=DDF*dtA.y*dtD.x+D2IL.bx; 
+          if((index_i.y>=0)&&(index_l.y>=0)) HessianMatrix.element[index_i.y][index_l.y]+=DDF*dtA.y*dtD.y+D2IL.by;
+          if((index_i.y>=0)&&(index_l.z>=0)) HessianMatrix.element[index_i.y][index_l.z]+=DDF*dtA.y*dtD.z+D2IL.bz;
+          if((index_i.z>=0)&&(index_l.x>=0)) HessianMatrix.element[index_i.z][index_l.x]+=DDF*dtA.z*dtD.x+D2IL.cx;
+          if((index_i.z>=0)&&(index_l.y>=0)) HessianMatrix.element[index_i.z][index_l.y]+=DDF*dtA.z*dtD.y+D2IL.cy;
+          if((index_i.z>=0)&&(index_l.z>=0)) HessianMatrix.element[index_i.z][index_l.z]+=DDF*dtA.z*dtD.z+D2IL.cz;
         }
-
-        if((index_k>=0)&&(index_l>=0))
+        else
         {
-          if(index_k<index_l)
-          {
-            HessianMatrix.element[index_k][index_l]+=DDF*dtC.x*dtD.x+D2KL.ax;
-            HessianMatrix.element[index_k][index_l+1]+=DDF*dtC.x*dtD.y+D2KL.ay;
-            HessianMatrix.element[index_k][index_l+2]+=DDF*dtC.x*dtD.z+D2KL.az;
-            HessianMatrix.element[index_k+1][index_l]+=DDF*dtC.y*dtD.x+D2KL.bx;
-            HessianMatrix.element[index_k+1][index_l+1]+=DDF*dtC.y*dtD.y+D2KL.by;
-            HessianMatrix.element[index_k+1][index_l+2]+=DDF*dtC.y*dtD.z+D2KL.bz;
-            HessianMatrix.element[index_k+2][index_l]+=DDF*dtC.z*dtD.x+D2KL.cx;
-            HessianMatrix.element[index_k+2][index_l+1]+=DDF*dtC.z*dtD.y+D2KL.cy;
-            HessianMatrix.element[index_k+2][index_l+2]+=DDF*dtC.z*dtD.z+D2KL.cz;
-          }
-          else
-          {
-            HessianMatrix.element[index_l][index_k]+=DDF*dtC.x*dtD.x+D2KL.ax;
-            HessianMatrix.element[index_l][index_k+1]+=DDF*dtC.y*dtD.x+D2KL.bx;
-            HessianMatrix.element[index_l][index_k+2]+=DDF*dtC.z*dtD.x+D2KL.cx;
-            HessianMatrix.element[index_l+1][index_k]+=DDF*dtC.x*dtD.y+D2KL.ay;
-            HessianMatrix.element[index_l+1][index_k+1]+=DDF*dtC.y*dtD.y+D2KL.by;
-            HessianMatrix.element[index_l+1][index_k+2]+=DDF*dtC.z*dtD.y+D2KL.cy;
-            HessianMatrix.element[index_l+2][index_k]+=DDF*dtC.x*dtD.z+D2KL.az;
-            HessianMatrix.element[index_l+2][index_k+1]+=DDF*dtC.y*dtD.z+D2KL.bz;
-            HessianMatrix.element[index_l+2][index_k+2]+=DDF*dtC.z*dtD.z+D2KL.cz;
-          }
+          if((index_l.x>=0)&&(index_i.x>=0)) HessianMatrix.element[index_l.x][index_i.x]+=DDF*dtA.x*dtD.x+D2IL.ax;
+          if((index_l.x>=0)&&(index_i.y>=0)) HessianMatrix.element[index_l.x][index_i.y]+=DDF*dtA.y*dtD.x+D2IL.bx;
+          if((index_l.x>=0)&&(index_i.z>=0)) HessianMatrix.element[index_l.x][index_i.z]+=DDF*dtA.z*dtD.x+D2IL.cx;
+          if((index_l.y>=0)&&(index_i.x>=0)) HessianMatrix.element[index_l.y][index_i.x]+=DDF*dtA.x*dtD.y+D2IL.ay;
+          if((index_l.y>=0)&&(index_i.y>=0)) HessianMatrix.element[index_l.y][index_i.y]+=DDF*dtA.y*dtD.y+D2IL.by;
+          if((index_l.y>=0)&&(index_i.z>=0)) HessianMatrix.element[index_l.y][index_i.z]+=DDF*dtA.z*dtD.y+D2IL.cy;
+          if((index_l.z>=0)&&(index_i.x>=0)) HessianMatrix.element[index_l.z][index_i.x]+=DDF*dtA.x*dtD.z+D2IL.az;
+          if((index_l.z>=0)&&(index_i.y>=0)) HessianMatrix.element[index_l.z][index_i.y]+=DDF*dtA.y*dtD.z+D2IL.bz;
+          if((index_l.z>=0)&&(index_i.z>=0)) HessianMatrix.element[index_l.z][index_i.z]+=DDF*dtA.z*dtD.z+D2IL.cz;
+        }
+        
+        if(index2<index3)
+        {
+          if((index_j.x>=0)&&(index_k.x>=0)) HessianMatrix.element[index_j.x][index_k.x]+=DDF*dtB.x*dtC.x+D2JK.ax;
+          if((index_j.x>=0)&&(index_k.y>=0)) HessianMatrix.element[index_j.x][index_k.y]+=DDF*dtB.x*dtC.y+D2JK.ay; 
+          if((index_j.x>=0)&&(index_k.z>=0)) HessianMatrix.element[index_j.x][index_k.z]+=DDF*dtB.x*dtC.z+D2JK.az;
+          if((index_j.y>=0)&&(index_k.x>=0)) HessianMatrix.element[index_j.y][index_k.x]+=DDF*dtB.y*dtC.x+D2JK.bx;
+          if((index_j.y>=0)&&(index_k.y>=0)) HessianMatrix.element[index_j.y][index_k.y]+=DDF*dtB.y*dtC.y+D2JK.by;
+          if((index_j.y>=0)&&(index_k.z>=0)) HessianMatrix.element[index_j.y][index_k.z]+=DDF*dtB.y*dtC.z+D2JK.bz;
+          if((index_j.z>=0)&&(index_k.x>=0)) HessianMatrix.element[index_j.z][index_k.x]+=DDF*dtB.z*dtC.x+D2JK.cx;
+          if((index_j.z>=0)&&(index_k.y>=0)) HessianMatrix.element[index_j.z][index_k.y]+=DDF*dtB.z*dtC.y+D2JK.cy;
+          if((index_j.z>=0)&&(index_k.z>=0)) HessianMatrix.element[index_j.z][index_k.z]+=DDF*dtB.z*dtC.z+D2JK.cz;
+        }
+        else
+        {
+          if((index_k.x>=0)&&(index_j.x>=0)) HessianMatrix.element[index_k.x][index_j.x]+=DDF*dtB.x*dtC.x+D2JK.ax;
+          if((index_k.x>=0)&&(index_j.y>=0)) HessianMatrix.element[index_k.x][index_j.y]+=DDF*dtB.y*dtC.x+D2JK.bx;
+          if((index_k.x>=0)&&(index_j.z>=0)) HessianMatrix.element[index_k.x][index_j.z]+=DDF*dtB.z*dtC.x+D2JK.cx;
+          if((index_k.y>=0)&&(index_j.x>=0)) HessianMatrix.element[index_k.y][index_j.x]+=DDF*dtB.x*dtC.y+D2JK.ay;
+          if((index_k.y>=0)&&(index_j.y>=0)) HessianMatrix.element[index_k.y][index_j.y]+=DDF*dtB.y*dtC.y+D2JK.by;
+          if((index_k.y>=0)&&(index_j.z>=0)) HessianMatrix.element[index_k.y][index_j.z]+=DDF*dtB.z*dtC.y+D2JK.cy;
+          if((index_k.z>=0)&&(index_j.x>=0)) HessianMatrix.element[index_k.z][index_j.x]+=DDF*dtB.x*dtC.z+D2JK.az;
+          if((index_k.z>=0)&&(index_j.y>=0)) HessianMatrix.element[index_k.z][index_j.y]+=DDF*dtB.y*dtC.z+D2JK.bz;
+          if((index_k.z>=0)&&(index_j.z>=0)) HessianMatrix.element[index_k.z][index_j.z]+=DDF*dtB.z*dtC.z+D2JK.cz;
+        }
+        
+        if(index2<index4)
+        {
+          if((index_j.x>=0)&&(index_l.x>=0)) HessianMatrix.element[index_j.x][index_l.x]+=DDF*dtB.x*dtD.x+D2JL.ax;
+          if((index_j.x>=0)&&(index_l.y>=0)) HessianMatrix.element[index_j.x][index_l.y]+=DDF*dtB.x*dtD.y+D2JL.ay;
+          if((index_j.x>=0)&&(index_l.z>=0)) HessianMatrix.element[index_j.x][index_l.z]+=DDF*dtB.x*dtD.z+D2JL.az;
+          if((index_j.y>=0)&&(index_l.x>=0)) HessianMatrix.element[index_j.y][index_l.x]+=DDF*dtB.y*dtD.x+D2JL.bx;
+          if((index_j.y>=0)&&(index_l.y>=0)) HessianMatrix.element[index_j.y][index_l.y]+=DDF*dtB.y*dtD.y+D2JL.by;
+          if((index_j.y>=0)&&(index_l.z>=0)) HessianMatrix.element[index_j.y][index_l.z]+=DDF*dtB.y*dtD.z+D2JL.bz;
+          if((index_j.z>=0)&&(index_l.x>=0)) HessianMatrix.element[index_j.z][index_l.x]+=DDF*dtB.z*dtD.x+D2JL.cx;
+          if((index_j.z>=0)&&(index_l.y>=0)) HessianMatrix.element[index_j.z][index_l.y]+=DDF*dtB.z*dtD.y+D2JL.cy;
+          if((index_j.z>=0)&&(index_l.z>=0)) HessianMatrix.element[index_j.z][index_l.z]+=DDF*dtB.z*dtD.z+D2JL.cz;
+        }
+        else
+        {
+          if((index_l.x>=0)&&(index_j.x>=0)) HessianMatrix.element[index_l.x][index_j.x]+=DDF*dtB.x*dtD.x+D2JL.ax;
+          if((index_l.x>=0)&&(index_j.y>=0)) HessianMatrix.element[index_l.x][index_j.y]+=DDF*dtB.y*dtD.x+D2JL.bx;
+          if((index_l.x>=0)&&(index_j.z>=0)) HessianMatrix.element[index_l.x][index_j.z]+=DDF*dtB.z*dtD.x+D2JL.cx;
+          if((index_l.y>=0)&&(index_j.x>=0)) HessianMatrix.element[index_l.y][index_j.x]+=DDF*dtB.x*dtD.y+D2JL.ay;
+          if((index_l.y>=0)&&(index_j.y>=0)) HessianMatrix.element[index_l.y][index_j.y]+=DDF*dtB.y*dtD.y+D2JL.by;
+          if((index_l.y>=0)&&(index_j.z>=0)) HessianMatrix.element[index_l.y][index_j.z]+=DDF*dtB.z*dtD.y+D2JL.cy;
+          if((index_l.z>=0)&&(index_j.x>=0)) HessianMatrix.element[index_l.z][index_j.x]+=DDF*dtB.x*dtD.z+D2JL.az;
+          if((index_l.z>=0)&&(index_j.y>=0)) HessianMatrix.element[index_l.z][index_j.y]+=DDF*dtB.y*dtD.z+D2JL.bz;
+          if((index_l.z>=0)&&(index_j.z>=0)) HessianMatrix.element[index_l.z][index_j.z]+=DDF*dtB.z*dtD.z+D2JL.cz;
+        }
+        
+        if(index3<index4)
+        {
+          if((index_k.x>=0)&&(index_l.x>=0)) HessianMatrix.element[index_k.x][index_l.x]+=DDF*dtC.x*dtD.x+D2KL.ax;
+          if((index_k.x>=0)&&(index_l.y>=0)) HessianMatrix.element[index_k.x][index_l.y]+=DDF*dtC.x*dtD.y+D2KL.ay;
+          if((index_k.x>=0)&&(index_l.z>=0)) HessianMatrix.element[index_k.x][index_l.z]+=DDF*dtC.x*dtD.z+D2KL.az;
+          if((index_k.y>=0)&&(index_l.x>=0)) HessianMatrix.element[index_k.y][index_l.x]+=DDF*dtC.y*dtD.x+D2KL.bx;
+          if((index_k.y>=0)&&(index_l.y>=0)) HessianMatrix.element[index_k.y][index_l.y]+=DDF*dtC.y*dtD.y+D2KL.by;
+          if((index_k.y>=0)&&(index_l.z>=0)) HessianMatrix.element[index_k.y][index_l.z]+=DDF*dtC.y*dtD.z+D2KL.bz;
+          if((index_k.z>=0)&&(index_l.x>=0)) HessianMatrix.element[index_k.z][index_l.x]+=DDF*dtC.z*dtD.x+D2KL.cx;
+          if((index_k.z>=0)&&(index_l.y>=0)) HessianMatrix.element[index_k.z][index_l.y]+=DDF*dtC.z*dtD.y+D2KL.cy;
+          if((index_k.z>=0)&&(index_l.z>=0)) HessianMatrix.element[index_k.z][index_l.z]+=DDF*dtC.z*dtD.z+D2KL.cz;
+        }
+        else
+        {
+          if((index_l.x>=0)&&(index_k.x>=0)) HessianMatrix.element[index_l.x][index_k.x]+=DDF*dtC.x*dtD.x+D2KL.ax;
+          if((index_l.x>=0)&&(index_k.y>=0)) HessianMatrix.element[index_l.x][index_k.y]+=DDF*dtC.y*dtD.x+D2KL.bx;
+          if((index_l.x>=0)&&(index_k.z>=0)) HessianMatrix.element[index_l.x][index_k.z]+=DDF*dtC.z*dtD.x+D2KL.cx;
+          if((index_l.y>=0)&&(index_k.x>=0)) HessianMatrix.element[index_l.y][index_k.x]+=DDF*dtC.x*dtD.y+D2KL.ay;
+          if((index_l.y>=0)&&(index_k.y>=0)) HessianMatrix.element[index_l.y][index_k.y]+=DDF*dtC.y*dtD.y+D2KL.by;
+          if((index_l.y>=0)&&(index_k.z>=0)) HessianMatrix.element[index_l.y][index_k.z]+=DDF*dtC.z*dtD.y+D2KL.cy;
+          if((index_l.z>=0)&&(index_k.x>=0)) HessianMatrix.element[index_l.z][index_k.x]+=DDF*dtC.x*dtD.z+D2KL.az;
+          if((index_l.z>=0)&&(index_k.y>=0)) HessianMatrix.element[index_l.z][index_k.y]+=DDF*dtC.y*dtD.z+D2KL.bz;
+          if((index_l.z>=0)&&(index_k.z>=0)) HessianMatrix.element[index_l.z][index_k.z]+=DDF*dtC.z*dtD.z+D2KL.cz;
         }
 
         HessianTorsionStrainPosition(HessianMatrix,index_i,index_j,index_k,index_l,
@@ -8208,7 +4634,8 @@ void ComputeFrameworkImproperTorsionHessian(REAL *Energy,REAL* Gradient,REAL_MAT
   REAL U,CosPhi,Phi,CosPhi2,SinPhi;
   VECTOR dtA,dtB,dtC,dtD,Pb,Pc;
   REAL *parms;
-  int index_i,index_j,index_k,index_l;
+  INT_VECTOR3 index_i,index_j,index_k,index_l;
+  int index1,index2,index3,index4;
   REAL_MATRIX3x3 D2I,D2L,D2IL,D2IJ,D2IK,D2JL;
   REAL_MATRIX3x3 D2KL,D2J,D2K,D2JK,S;
   VECTOR DIL,DDJ,DDK,DEJ,DEK;
@@ -8236,6 +4663,11 @@ void ComputeFrameworkImproperTorsionHessian(REAL *Energy,REAL* Gradient,REAL_MAT
       index_j=Framework[CurrentSystem].Atoms[f1][B].HessianIndex;
       index_k=Framework[CurrentSystem].Atoms[f1][C].HessianIndex;
       index_l=Framework[CurrentSystem].Atoms[f1][D].HessianIndex;
+
+      index1=Framework[CurrentSystem].Atoms[f1][A].HessianAtomIndex;
+      index2=Framework[CurrentSystem].Atoms[f1][B].HessianAtomIndex;
+      index3=Framework[CurrentSystem].Atoms[f1][C].HessianAtomIndex;
+      index4=Framework[CurrentSystem].Atoms[f1][D].HessianAtomIndex;
 
       vec_u.x=posB.x-posC.x;
       vec_u.y=posB.y-posC.y;
@@ -8487,7 +4919,7 @@ void ComputeFrameworkImproperTorsionHessian(REAL *Energy,REAL* Gradient,REAL_MAT
 
       *Energy+=U;
 
-      if((index_i<0)&&(index_j<0)&&(index_k<0)&&(index_l<0)) continue;
+      //if((index_i<0)&&(index_j<0)&&(index_k<0)&&(index_l<0)) continue;
 
      // Calculate the first derivative vectors.
       d=dot_ab/rbc;
@@ -8554,33 +4986,21 @@ void ComputeFrameworkImproperTorsionHessian(REAL *Energy,REAL* Gradient,REAL_MAT
 
       if(ComputeGradient)
       {
-        if(index_i>=0)
-        {
-          Gradient[index_i]+=fa.x;
-          Gradient[index_i+1]+=fa.y;
-          Gradient[index_i+2]+=fa.z;
-        }
+        if(index_i.x>=0) Gradient[index_i.x]+=fa.x;
+        if(index_i.y>=0) Gradient[index_i.y]+=fa.y;
+        if(index_i.z>=0) Gradient[index_i.z]+=fa.z;
 
-        if(index_j>=0)
-        {
-          Gradient[index_j]+=fb.x;
-          Gradient[index_j+1]+=fb.y;
-          Gradient[index_j+2]+=fb.z;
-        }
+        if(index_j.x>=0) Gradient[index_j.x]+=fb.x;
+        if(index_j.y>=0) Gradient[index_j.y]+=fb.y;
+        if(index_j.z>=0) Gradient[index_j.z]+=fb.z;
 
-        if(index_k>=0)
-        {
-          Gradient[index_k]+=fc.x;
-          Gradient[index_k+1]+=fc.y;
-          Gradient[index_k+2]+=fc.z;
-        }
+        if(index_k.x>=0) Gradient[index_k.x]+=fc.x;
+        if(index_k.y>=0) Gradient[index_k.y]+=fc.y;
+        if(index_k.z>=0) Gradient[index_k.z]+=fc.z;
 
-        if(index_l>=0)
-        {
-          Gradient[index_l]+=fd.x;
-          Gradient[index_l+1]+=fd.y;
-          Gradient[index_l+2]+=fd.z;
-        }
+        if(index_l.x>=0) Gradient[index_l.x]+=fd.x;
+        if(index_l.y>=0) Gradient[index_l.y]+=fd.y;
+        if(index_l.z>=0) Gradient[index_l.z]+=fd.z;
 
         GradientStrainTorsion(Gradient,S);
       }
@@ -8703,212 +5123,182 @@ void ComputeFrameworkImproperTorsionHessian(REAL *Energy,REAL* Gradient,REAL_MAT
         D2JK.cz=-D2IJ.cz*d-D2JL.cz*(e+1.0)-DDJ.z*dtA.z-DEJ.z*dtD.z;
 
         // Calculate the diagonal blocks of the hessian.
-        if(index_i>=0)
-        {
-          HessianMatrix.element[index_i][index_i]+=DDF*dtA.x*dtA.x+D2I.ax;
-          HessianMatrix.element[index_i][index_i+1]+=DDF*dtA.x*dtA.y+D2I.ay;
-          HessianMatrix.element[index_i+1][index_i+1]+=DDF*dtA.y*dtA.y+D2I.by;
-          HessianMatrix.element[index_i][index_i+2]+=DDF*dtA.x*dtA.z+D2I.az;
-          HessianMatrix.element[index_i+1][index_i+2]+=DDF*dtA.y*dtA.z+D2I.bz;
-          HessianMatrix.element[index_i+2][index_i+2]+=DDF*dtA.z*dtA.z+D2I.cz;
-        }
+        if((index_i.x>=0)&&(index_i.x>=0)) HessianMatrix.element[index_i.x][index_i.x]+=DDF*dtA.x*dtA.x+D2I.ax;
+        if((index_i.x>=0)&&(index_i.y>=0)) HessianMatrix.element[index_i.x][index_i.y]+=DDF*dtA.x*dtA.y+D2I.ay;
+        if((index_i.y>=0)&&(index_i.y>=0)) HessianMatrix.element[index_i.y][index_i.y]+=DDF*dtA.y*dtA.y+D2I.by;
+        if((index_i.x>=0)&&(index_i.z>=0)) HessianMatrix.element[index_i.x][index_i.z]+=DDF*dtA.x*dtA.z+D2I.az;
+        if((index_i.y>=0)&&(index_i.z>=0)) HessianMatrix.element[index_i.y][index_i.z]+=DDF*dtA.y*dtA.z+D2I.bz;
+        if((index_i.z>=0)&&(index_i.z>=0)) HessianMatrix.element[index_i.z][index_i.z]+=DDF*dtA.z*dtA.z+D2I.cz;
 
-        if(index_j>=0)
-        {
-          HessianMatrix.element[index_j][index_j]+=DDF*dtB.x*dtB.x+D2J.ax;
-          HessianMatrix.element[index_j][index_j+1]+=DDF*dtB.x*dtB.y+D2J.ay;
-          HessianMatrix.element[index_j+1][index_j+1]+=DDF*dtB.y*dtB.y+D2J.by;
-          HessianMatrix.element[index_j][index_j+2]+=DDF*dtB.x*dtB.z+D2J.az;
-          HessianMatrix.element[index_j+1][index_j+2]+=DDF*dtB.y*dtB.z+D2J.bz;
-          HessianMatrix.element[index_j+2][index_j+2]+=DDF*dtB.z*dtB.z+D2J.cz;
-        }
+        if((index_j.x>=0)&&(index_j.x>=0)) HessianMatrix.element[index_j.x][index_j.x]+=DDF*dtB.x*dtB.x+D2J.ax;
+        if((index_j.x>=0)&&(index_j.y>=0)) HessianMatrix.element[index_j.x][index_j.y]+=DDF*dtB.x*dtB.y+D2J.ay;
+        if((index_j.y>=0)&&(index_j.y>=0)) HessianMatrix.element[index_j.y][index_j.y]+=DDF*dtB.y*dtB.y+D2J.by;
+        if((index_j.x>=0)&&(index_j.z>=0)) HessianMatrix.element[index_j.x][index_j.z]+=DDF*dtB.x*dtB.z+D2J.az;
+        if((index_j.y>=0)&&(index_j.z>=0)) HessianMatrix.element[index_j.y][index_j.z]+=DDF*dtB.y*dtB.z+D2J.bz;
+        if((index_j.z>=0)&&(index_j.z>=0)) HessianMatrix.element[index_j.z][index_j.z]+=DDF*dtB.z*dtB.z+D2J.cz;
 
-        if(index_k>=0)
-        {
-          HessianMatrix.element[index_k][index_k]+=DDF*dtC.x*dtC.x+D2K.ax;
-          HessianMatrix.element[index_k][index_k+1]+=DDF*dtC.x*dtC.y+D2K.ay;
-          HessianMatrix.element[index_k+1][index_k+1]+=DDF*dtC.y*dtC.y+D2K.by;
-          HessianMatrix.element[index_k][index_k+2]+=DDF*dtC.x*dtC.z+D2K.az;
-          HessianMatrix.element[index_k+1][index_k+2]+=DDF*dtC.y*dtC.z+D2K.bz;
-          HessianMatrix.element[index_k+2][index_k+2]+=DDF*dtC.z*dtC.z+D2K.cz;
-        }
+        if((index_k.x>=0)&&(index_k.x>=0)) HessianMatrix.element[index_k.x][index_k.x]+=DDF*dtC.x*dtC.x+D2K.ax;
+        if((index_k.x>=0)&&(index_k.y>=0)) HessianMatrix.element[index_k.x][index_k.y]+=DDF*dtC.x*dtC.y+D2K.ay;
+        if((index_k.y>=0)&&(index_k.y>=0)) HessianMatrix.element[index_k.y][index_k.y]+=DDF*dtC.y*dtC.y+D2K.by;
+        if((index_k.x>=0)&&(index_k.z>=0)) HessianMatrix.element[index_k.x][index_k.z]+=DDF*dtC.x*dtC.z+D2K.az;
+        if((index_k.y>=0)&&(index_k.z>=0)) HessianMatrix.element[index_k.y][index_k.z]+=DDF*dtC.y*dtC.z+D2K.bz;
+        if((index_k.z>=0)&&(index_k.z>=0)) HessianMatrix.element[index_k.z][index_k.z]+=DDF*dtC.z*dtC.z+D2K.cz;
 
-        if(index_l>=0)
-        {
-          HessianMatrix.element[index_l][index_l]+=DDF*dtD.x*dtD.x+D2L.ax;
-          HessianMatrix.element[index_l][index_l+1]+=DDF*dtD.x*dtD.y+D2L.ay;
-          HessianMatrix.element[index_l+1][index_l+1]+=DDF*dtD.y*dtD.y+D2L.by;
-          HessianMatrix.element[index_l][index_l+2]+=DDF*dtD.x*dtD.z+D2L.az;
-          HessianMatrix.element[index_l+1][index_l+2]+=DDF*dtD.y*dtD.z+D2L.bz;
-          HessianMatrix.element[index_l+2][index_l+2]+=DDF*dtD.z*dtD.z+D2L.cz;
-        }
+        if((index_l.x>=0)&&(index_l.x>=0)) HessianMatrix.element[index_l.x][index_l.x]+=DDF*dtD.x*dtD.x+D2L.ax;
+        if((index_l.x>=0)&&(index_l.y>=0)) HessianMatrix.element[index_l.x][index_l.y]+=DDF*dtD.x*dtD.y+D2L.ay;
+        if((index_l.y>=0)&&(index_l.y>=0)) HessianMatrix.element[index_l.y][index_l.y]+=DDF*dtD.y*dtD.y+D2L.by;
+        if((index_l.x>=0)&&(index_l.z>=0)) HessianMatrix.element[index_l.x][index_l.z]+=DDF*dtD.x*dtD.z+D2L.az;
+        if((index_l.y>=0)&&(index_l.z>=0)) HessianMatrix.element[index_l.y][index_l.z]+=DDF*dtD.y*dtD.z+D2L.bz;
+        if((index_l.z>=0)&&(index_l.z>=0)) HessianMatrix.element[index_l.z][index_l.z]+=DDF*dtD.z*dtD.z+D2L.cz;
 
-        if((index_i>=0)&&(index_j>=0))
+        if(index1<index2)
         {
-          if(index_i<index_j)
-          {
-            HessianMatrix.element[index_i][index_j]+=DDF*dtA.x*dtB.x+D2IJ.ax;
-            HessianMatrix.element[index_i][index_j+1]+=DDF*dtA.x*dtB.y+D2IJ.ay;
-            HessianMatrix.element[index_i][index_j+2]+=DDF*dtA.x*dtB.z+D2IJ.az;
-            HessianMatrix.element[index_i+1][index_j]+=DDF*dtA.y*dtB.x+D2IJ.bx;
-            HessianMatrix.element[index_i+1][index_j+1]+=DDF*dtA.y*dtB.y+D2IJ.by;
-            HessianMatrix.element[index_i+1][index_j+2]+=DDF*dtA.y*dtB.z+D2IJ.bz;
-            HessianMatrix.element[index_i+2][index_j]+=DDF*dtA.z*dtB.x+D2IJ.cx;
-            HessianMatrix.element[index_i+2][index_j+1]+=DDF*dtA.z*dtB.y+D2IJ.cy;
-            HessianMatrix.element[index_i+2][index_j+2]+=DDF*dtA.z*dtB.z+D2IJ.cz;
-          }
-          else
-          {
-            HessianMatrix.element[index_j][index_i]+=DDF*dtA.x*dtB.x+D2IJ.ax;
-            HessianMatrix.element[index_j][index_i+1]+=DDF*dtA.y*dtB.x+D2IJ.bx;
-            HessianMatrix.element[index_j][index_i+2]+=DDF*dtA.z*dtB.x+D2IJ.cx;
-            HessianMatrix.element[index_j+1][index_i]+=DDF*dtA.x*dtB.y+D2IJ.ay;
-            HessianMatrix.element[index_j+1][index_i+1]+=DDF*dtA.y*dtB.y+D2IJ.by;
-            HessianMatrix.element[index_j+1][index_i+2]+=DDF*dtA.z*dtB.y+D2IJ.cy;
-            HessianMatrix.element[index_j+2][index_i]+=DDF*dtA.x*dtB.z+D2IJ.az;
-            HessianMatrix.element[index_j+2][index_i+1]+=DDF*dtA.y*dtB.z+D2IJ.bz;
-            HessianMatrix.element[index_j+2][index_i+2]+=DDF*dtA.z*dtB.z+D2IJ.cz;
-          }
+          if((index_i.x>=0)&&(index_j.x>=0)) HessianMatrix.element[index_i.x][index_j.x]+=DDF*dtA.x*dtB.x+D2IJ.ax;
+          if((index_i.x>=0)&&(index_j.y>=0)) HessianMatrix.element[index_i.x][index_j.y]+=DDF*dtA.x*dtB.y+D2IJ.ay;
+          if((index_i.x>=0)&&(index_j.z>=0)) HessianMatrix.element[index_i.x][index_j.z]+=DDF*dtA.x*dtB.z+D2IJ.az;
+          if((index_i.y>=0)&&(index_j.x>=0)) HessianMatrix.element[index_i.y][index_j.x]+=DDF*dtA.y*dtB.x+D2IJ.bx;
+          if((index_i.y>=0)&&(index_j.y>=0)) HessianMatrix.element[index_i.y][index_j.y]+=DDF*dtA.y*dtB.y+D2IJ.by;
+          if((index_i.y>=0)&&(index_j.z>=0)) HessianMatrix.element[index_i.y][index_j.z]+=DDF*dtA.y*dtB.z+D2IJ.bz;
+          if((index_i.z>=0)&&(index_j.x>=0)) HessianMatrix.element[index_i.z][index_j.x]+=DDF*dtA.z*dtB.x+D2IJ.cx;
+          if((index_i.z>=0)&&(index_j.y>=0)) HessianMatrix.element[index_i.z][index_j.y]+=DDF*dtA.z*dtB.y+D2IJ.cy;
+          if((index_i.z>=0)&&(index_j.z>=0)) HessianMatrix.element[index_i.z][index_j.z]+=DDF*dtA.z*dtB.z+D2IJ.cz;
         }
-
-        if((index_i>=0)&&(index_k>=0))
+        else
         {
-          if(index_i<index_k)
-          {
-            HessianMatrix.element[index_i][index_k]+=DDF*dtA.x*dtC.x+D2IK.ax;
-            HessianMatrix.element[index_i][index_k+1]+=DDF*dtA.x*dtC.y+D2IK.ay;
-            HessianMatrix.element[index_i][index_k+2]+=DDF*dtA.x*dtC.z+D2IK.az;
-            HessianMatrix.element[index_i+1][index_k]+=DDF*dtA.y*dtC.x+D2IK.bx;
-            HessianMatrix.element[index_i+1][index_k+1]+=DDF*dtA.y*dtC.y+D2IK.by;
-            HessianMatrix.element[index_i+1][index_k+2]+=DDF*dtA.y*dtC.z+D2IK.bz;
-            HessianMatrix.element[index_i+2][index_k]+=DDF*dtA.z*dtC.x+D2IK.cx;
-            HessianMatrix.element[index_i+2][index_k+1]+=DDF*dtA.z*dtC.y+D2IK.cy;
-            HessianMatrix.element[index_i+2][index_k+2]+=DDF*dtA.z*dtC.z+D2IK.cz;
-          }
-          else
-          {
-            HessianMatrix.element[index_k][index_i]+=DDF*dtA.x*dtC.x+D2IK.ax;
-            HessianMatrix.element[index_k][index_i+1]+=DDF*dtA.y*dtC.x+D2IK.bx;
-            HessianMatrix.element[index_k][index_i+2]+=DDF*dtA.z*dtC.x+D2IK.cx;
-            HessianMatrix.element[index_k+1][index_i]+=DDF*dtA.x*dtC.y+D2IK.ay;
-            HessianMatrix.element[index_k+1][index_i+1]+=DDF*dtA.y*dtC.y+D2IK.by;
-            HessianMatrix.element[index_k+1][index_i+2]+=DDF*dtA.z*dtC.y+D2IK.cy;
-            HessianMatrix.element[index_k+2][index_i]+=DDF*dtA.x*dtC.z+D2IK.az;
-            HessianMatrix.element[index_k+2][index_i+1]+=DDF*dtA.y*dtC.z+D2IK.bz;
-            HessianMatrix.element[index_k+2][index_i+2]+=DDF*dtA.z*dtC.z+D2IK.cz;
-          }
+          if((index_j.x>=0)&&(index_i.x>=0)) HessianMatrix.element[index_j.x][index_i.x]+=DDF*dtA.x*dtB.x+D2IJ.ax;
+          if((index_j.x>=0)&&(index_i.y>=0)) HessianMatrix.element[index_j.x][index_i.y]+=DDF*dtA.y*dtB.x+D2IJ.bx;
+          if((index_j.x>=0)&&(index_i.z>=0)) HessianMatrix.element[index_j.x][index_i.z]+=DDF*dtA.z*dtB.x+D2IJ.cx;
+          if((index_j.y>=0)&&(index_i.x>=0)) HessianMatrix.element[index_j.y][index_i.x]+=DDF*dtA.x*dtB.y+D2IJ.ay;
+          if((index_j.y>=0)&&(index_i.y>=0)) HessianMatrix.element[index_j.y][index_i.y]+=DDF*dtA.y*dtB.y+D2IJ.by;
+          if((index_j.y>=0)&&(index_i.z>=0)) HessianMatrix.element[index_j.y][index_i.z]+=DDF*dtA.z*dtB.y+D2IJ.cy;
+          if((index_j.z>=0)&&(index_i.x>=0)) HessianMatrix.element[index_j.z][index_i.x]+=DDF*dtA.x*dtB.z+D2IJ.az;
+          if((index_j.z>=0)&&(index_i.y>=0)) HessianMatrix.element[index_j.z][index_i.y]+=DDF*dtA.y*dtB.z+D2IJ.bz;
+          if((index_j.z>=0)&&(index_i.z>=0)) HessianMatrix.element[index_j.z][index_i.z]+=DDF*dtA.z*dtB.z+D2IJ.cz;
         }
-
-        if((index_i>=0)&&(index_l>=0))
+       
+        if(index1<index3)
         {
-          if(index_i<index_l)
-          {
-            HessianMatrix.element[index_i][index_l]+=DDF*dtA.x*dtD.x+D2IL.ax;
-            HessianMatrix.element[index_i][index_l+1]+=DDF*dtA.x*dtD.y+D2IL.ay; 
-            HessianMatrix.element[index_i][index_l+2]+=DDF*dtA.x*dtD.z+D2IL.az; 
-            HessianMatrix.element[index_i+1][index_l]+=DDF*dtA.y*dtD.x+D2IL.bx; 
-            HessianMatrix.element[index_i+1][index_l+1]+=DDF*dtA.y*dtD.y+D2IL.by;
-            HessianMatrix.element[index_i+1][index_l+2]+=DDF*dtA.y*dtD.z+D2IL.bz;
-            HessianMatrix.element[index_i+2][index_l]+=DDF*dtA.z*dtD.x+D2IL.cx;
-            HessianMatrix.element[index_i+2][index_l+1]+=DDF*dtA.z*dtD.y+D2IL.cy;
-            HessianMatrix.element[index_i+2][index_l+2]+=DDF*dtA.z*dtD.z+D2IL.cz;
-          }
-          else
-          {
-            HessianMatrix.element[index_l][index_i]+=DDF*dtA.x*dtD.x+D2IL.ax;
-            HessianMatrix.element[index_l][index_i+1]+=DDF*dtA.y*dtD.x+D2IL.bx;
-            HessianMatrix.element[index_l][index_i+2]+=DDF*dtA.z*dtD.x+D2IL.cx;
-            HessianMatrix.element[index_l+1][index_i]+=DDF*dtA.x*dtD.y+D2IL.ay;
-            HessianMatrix.element[index_l+1][index_i+1]+=DDF*dtA.y*dtD.y+D2IL.by;
-            HessianMatrix.element[index_l+1][index_i+2]+=DDF*dtA.z*dtD.y+D2IL.cy;
-            HessianMatrix.element[index_l+2][index_i]+=DDF*dtA.x*dtD.z+D2IL.az;
-            HessianMatrix.element[index_l+2][index_i+1]+=DDF*dtA.y*dtD.z+D2IL.bz;
-            HessianMatrix.element[index_l+2][index_i+2]+=DDF*dtA.z*dtD.z+D2IL.cz;
-          }
+          if((index_i.x>=0)&&(index_k.x>=0)) HessianMatrix.element[index_i.x][index_k.x]+=DDF*dtA.x*dtC.x+D2IK.ax;
+          if((index_i.x>=0)&&(index_k.y>=0)) HessianMatrix.element[index_i.x][index_k.y]+=DDF*dtA.x*dtC.y+D2IK.ay;
+          if((index_i.x>=0)&&(index_k.z>=0)) HessianMatrix.element[index_i.x][index_k.z]+=DDF*dtA.x*dtC.z+D2IK.az;
+          if((index_i.y>=0)&&(index_k.x>=0)) HessianMatrix.element[index_i.y][index_k.x]+=DDF*dtA.y*dtC.x+D2IK.bx;
+          if((index_i.y>=0)&&(index_k.y>=0)) HessianMatrix.element[index_i.y][index_k.y]+=DDF*dtA.y*dtC.y+D2IK.by;
+          if((index_i.y>=0)&&(index_k.z>=0)) HessianMatrix.element[index_i.y][index_k.z]+=DDF*dtA.y*dtC.z+D2IK.bz;
+          if((index_i.z>=0)&&(index_k.x>=0)) HessianMatrix.element[index_i.z][index_k.x]+=DDF*dtA.z*dtC.x+D2IK.cx;
+          if((index_i.z>=0)&&(index_k.y>=0)) HessianMatrix.element[index_i.z][index_k.y]+=DDF*dtA.z*dtC.y+D2IK.cy;
+          if((index_i.z>=0)&&(index_k.z>=0)) HessianMatrix.element[index_i.z][index_k.z]+=DDF*dtA.z*dtC.z+D2IK.cz;
         }
-
-        if((index_j>=0)&&(index_k>=0))
+        else
         {
-          if(index_j<index_k)
-          {
-            HessianMatrix.element[index_j][index_k]+=DDF*dtB.x*dtC.x+D2JK.ax;
-            HessianMatrix.element[index_j][index_k+1]+=DDF*dtB.x*dtC.y+D2JK.ay; 
-            HessianMatrix.element[index_j][index_k+2]+=DDF*dtB.x*dtC.z+D2JK.az;
-            HessianMatrix.element[index_j+1][index_k]+=DDF*dtB.y*dtC.x+D2JK.bx;
-            HessianMatrix.element[index_j+1][index_k+1]+=DDF*dtB.y*dtC.y+D2JK.by;
-            HessianMatrix.element[index_j+1][index_k+2]+=DDF*dtB.y*dtC.z+D2JK.bz;
-            HessianMatrix.element[index_j+2][index_k]+=DDF*dtB.z*dtC.x+D2JK.cx;
-            HessianMatrix.element[index_j+2][index_k+1]+=DDF*dtB.z*dtC.y+D2JK.cy;
-            HessianMatrix.element[index_j+2][index_k+2]+=DDF*dtB.z*dtC.z+D2JK.cz;
-          }
-          else
-          {
-            HessianMatrix.element[index_k][index_j]+=DDF*dtB.x*dtC.x+D2JK.ax;
-            HessianMatrix.element[index_k][index_j+1]+=DDF*dtB.y*dtC.x+D2JK.bx;
-            HessianMatrix.element[index_k][index_j+2]+=DDF*dtB.z*dtC.x+D2JK.cx;
-            HessianMatrix.element[index_k+1][index_j]+=DDF*dtB.x*dtC.y+D2JK.ay;
-            HessianMatrix.element[index_k+1][index_j+1]+=DDF*dtB.y*dtC.y+D2JK.by;
-            HessianMatrix.element[index_k+1][index_j+2]+=DDF*dtB.z*dtC.y+D2JK.cy;
-            HessianMatrix.element[index_k+2][index_j]+=DDF*dtB.x*dtC.z+D2JK.az;
-            HessianMatrix.element[index_k+2][index_j+1]+=DDF*dtB.y*dtC.z+D2JK.bz;
-            HessianMatrix.element[index_k+2][index_j+2]+=DDF*dtB.z*dtC.z+D2JK.cz;
-          }
+          if((index_k.x>=0)&&(index_i.x>=0)) HessianMatrix.element[index_k.x][index_i.x]+=DDF*dtA.x*dtC.x+D2IK.ax;
+          if((index_k.x>=0)&&(index_i.y>=0)) HessianMatrix.element[index_k.x][index_i.y]+=DDF*dtA.y*dtC.x+D2IK.bx;
+          if((index_k.x>=0)&&(index_i.z>=0)) HessianMatrix.element[index_k.x][index_i.z]+=DDF*dtA.z*dtC.x+D2IK.cx;
+          if((index_k.y>=0)&&(index_i.x>=0)) HessianMatrix.element[index_k.y][index_i.x]+=DDF*dtA.x*dtC.y+D2IK.ay;
+          if((index_k.y>=0)&&(index_i.y>=0)) HessianMatrix.element[index_k.y][index_i.y]+=DDF*dtA.y*dtC.y+D2IK.by;
+          if((index_k.y>=0)&&(index_i.z>=0)) HessianMatrix.element[index_k.y][index_i.z]+=DDF*dtA.z*dtC.y+D2IK.cy;
+          if((index_k.z>=0)&&(index_i.x>=0)) HessianMatrix.element[index_k.z][index_i.x]+=DDF*dtA.x*dtC.z+D2IK.az;
+          if((index_k.z>=0)&&(index_i.y>=0)) HessianMatrix.element[index_k.z][index_i.y]+=DDF*dtA.y*dtC.z+D2IK.bz;
+          if((index_k.z>=0)&&(index_i.z>=0)) HessianMatrix.element[index_k.z][index_i.z]+=DDF*dtA.z*dtC.z+D2IK.cz;
         }
-
-        if((index_j>=0)&&(index_l>=0))
+        
+        if(index1<index2)
         {
-          if(index_j<index_l)
-          {
-            HessianMatrix.element[index_j][index_l]+=DDF*dtB.x*dtD.x+D2JL.ax;
-            HessianMatrix.element[index_j][index_l+1]+=DDF*dtB.x*dtD.y+D2JL.ay;
-            HessianMatrix.element[index_j][index_l+2]+=DDF*dtB.x*dtD.z+D2JL.az;
-            HessianMatrix.element[index_j+1][index_l]+=DDF*dtB.y*dtD.x+D2JL.bx;
-            HessianMatrix.element[index_j+1][index_l+1]+=DDF*dtB.y*dtD.y+D2JL.by;
-            HessianMatrix.element[index_j+1][index_l+2]+=DDF*dtB.y*dtD.z+D2JL.bz;
-            HessianMatrix.element[index_j+2][index_l]+=DDF*dtB.z*dtD.x+D2JL.cx;
-            HessianMatrix.element[index_j+2][index_l+1]+=DDF*dtB.z*dtD.y+D2JL.cy;
-            HessianMatrix.element[index_j+2][index_l+2]+=DDF*dtB.z*dtD.z+D2JL.cz;
-          }
-          else
-          {
-            HessianMatrix.element[index_l][index_j]+=DDF*dtB.x*dtD.x+D2JL.ax;
-            HessianMatrix.element[index_l][index_j+1]+=DDF*dtB.y*dtD.x+D2JL.bx;
-            HessianMatrix.element[index_l][index_j+2]+=DDF*dtB.z*dtD.x+D2JL.cx;
-            HessianMatrix.element[index_l+1][index_j]+=DDF*dtB.x*dtD.y+D2JL.ay;
-            HessianMatrix.element[index_l+1][index_j+1]+=DDF*dtB.y*dtD.y+D2JL.by;
-            HessianMatrix.element[index_l+1][index_j+2]+=DDF*dtB.z*dtD.y+D2JL.cy;
-            HessianMatrix.element[index_l+2][index_j]+=DDF*dtB.x*dtD.z+D2JL.az;
-            HessianMatrix.element[index_l+2][index_j+1]+=DDF*dtB.y*dtD.z+D2JL.bz;
-            HessianMatrix.element[index_l+2][index_j+2]+=DDF*dtB.z*dtD.z+D2JL.cz;
-          }
+          if((index_i.x>=0)&&(index_l.x>=0)) HessianMatrix.element[index_i.x][index_l.x]+=DDF*dtA.x*dtD.x+D2IL.ax;
+          if((index_i.x>=0)&&(index_l.y>=0)) HessianMatrix.element[index_i.x][index_l.y]+=DDF*dtA.x*dtD.y+D2IL.ay; 
+          if((index_i.x>=0)&&(index_l.z>=0)) HessianMatrix.element[index_i.x][index_l.z]+=DDF*dtA.x*dtD.z+D2IL.az; 
+          if((index_i.y>=0)&&(index_l.x>=0)) HessianMatrix.element[index_i.y][index_l.x]+=DDF*dtA.y*dtD.x+D2IL.bx; 
+          if((index_i.y>=0)&&(index_l.y>=0)) HessianMatrix.element[index_i.y][index_l.y]+=DDF*dtA.y*dtD.y+D2IL.by;
+          if((index_i.y>=0)&&(index_l.z>=0)) HessianMatrix.element[index_i.y][index_l.z]+=DDF*dtA.y*dtD.z+D2IL.bz;
+          if((index_i.z>=0)&&(index_l.x>=0)) HessianMatrix.element[index_i.z][index_l.x]+=DDF*dtA.z*dtD.x+D2IL.cx;
+          if((index_i.z>=0)&&(index_l.y>=0)) HessianMatrix.element[index_i.z][index_l.y]+=DDF*dtA.z*dtD.y+D2IL.cy;
+          if((index_i.z>=0)&&(index_l.z>=0)) HessianMatrix.element[index_i.z][index_l.z]+=DDF*dtA.z*dtD.z+D2IL.cz;
         }
-
-        if((index_k>=0)&&(index_l>=0))
+        else
         {
-          if(index_k<index_l)
-          {
-            HessianMatrix.element[index_k][index_l]+=DDF*dtC.x*dtD.x+D2KL.ax;
-            HessianMatrix.element[index_k][index_l+1]+=DDF*dtC.x*dtD.y+D2KL.ay;
-            HessianMatrix.element[index_k][index_l+2]+=DDF*dtC.x*dtD.z+D2KL.az;
-            HessianMatrix.element[index_k+1][index_l]+=DDF*dtC.y*dtD.x+D2KL.bx;
-            HessianMatrix.element[index_k+1][index_l+1]+=DDF*dtC.y*dtD.y+D2KL.by;
-            HessianMatrix.element[index_k+1][index_l+2]+=DDF*dtC.y*dtD.z+D2KL.bz;
-            HessianMatrix.element[index_k+2][index_l]+=DDF*dtC.z*dtD.x+D2KL.cx;
-            HessianMatrix.element[index_k+2][index_l+1]+=DDF*dtC.z*dtD.y+D2KL.cy;
-            HessianMatrix.element[index_k+2][index_l+2]+=DDF*dtC.z*dtD.z+D2KL.cz;
-          }
-          else
-          {
-            HessianMatrix.element[index_l][index_k]+=DDF*dtC.x*dtD.x+D2KL.ax;
-            HessianMatrix.element[index_l][index_k+1]+=DDF*dtC.y*dtD.x+D2KL.bx;
-            HessianMatrix.element[index_l][index_k+2]+=DDF*dtC.z*dtD.x+D2KL.cx;
-            HessianMatrix.element[index_l+1][index_k]+=DDF*dtC.x*dtD.y+D2KL.ay;
-            HessianMatrix.element[index_l+1][index_k+1]+=DDF*dtC.y*dtD.y+D2KL.by;
-            HessianMatrix.element[index_l+1][index_k+2]+=DDF*dtC.z*dtD.y+D2KL.cy;
-            HessianMatrix.element[index_l+2][index_k]+=DDF*dtC.x*dtD.z+D2KL.az;
-            HessianMatrix.element[index_l+2][index_k+1]+=DDF*dtC.y*dtD.z+D2KL.bz;
-            HessianMatrix.element[index_l+2][index_k+2]+=DDF*dtC.z*dtD.z+D2KL.cz;
-          }
+          if((index_l.x>=0)&&(index_i.x>=0)) HessianMatrix.element[index_l.x][index_i.x]+=DDF*dtA.x*dtD.x+D2IL.ax;
+          if((index_l.x>=0)&&(index_i.y>=0)) HessianMatrix.element[index_l.x][index_i.y]+=DDF*dtA.y*dtD.x+D2IL.bx;
+          if((index_l.x>=0)&&(index_i.z>=0)) HessianMatrix.element[index_l.x][index_i.z]+=DDF*dtA.z*dtD.x+D2IL.cx;
+          if((index_l.y>=0)&&(index_i.x>=0)) HessianMatrix.element[index_l.y][index_i.x]+=DDF*dtA.x*dtD.y+D2IL.ay;
+          if((index_l.y>=0)&&(index_i.y>=0)) HessianMatrix.element[index_l.y][index_i.y]+=DDF*dtA.y*dtD.y+D2IL.by;
+          if((index_l.y>=0)&&(index_i.z>=0)) HessianMatrix.element[index_l.y][index_i.z]+=DDF*dtA.z*dtD.y+D2IL.cy;
+          if((index_l.z>=0)&&(index_i.x>=0)) HessianMatrix.element[index_l.z][index_i.x]+=DDF*dtA.x*dtD.z+D2IL.az;
+          if((index_l.z>=0)&&(index_i.y>=0)) HessianMatrix.element[index_l.z][index_i.y]+=DDF*dtA.y*dtD.z+D2IL.bz;
+          if((index_l.z>=0)&&(index_i.z>=0)) HessianMatrix.element[index_l.z][index_i.z]+=DDF*dtA.z*dtD.z+D2IL.cz;
+        }
+        
+        if(index2<index3)
+        {
+          if((index_j.x>=0)&&(index_k.x>=0)) HessianMatrix.element[index_j.x][index_k.x]+=DDF*dtB.x*dtC.x+D2JK.ax;
+          if((index_j.x>=0)&&(index_k.y>=0)) HessianMatrix.element[index_j.x][index_k.y]+=DDF*dtB.x*dtC.y+D2JK.ay; 
+          if((index_j.x>=0)&&(index_k.z>=0)) HessianMatrix.element[index_j.x][index_k.z]+=DDF*dtB.x*dtC.z+D2JK.az;
+          if((index_j.y>=0)&&(index_k.x>=0)) HessianMatrix.element[index_j.y][index_k.x]+=DDF*dtB.y*dtC.x+D2JK.bx;
+          if((index_j.y>=0)&&(index_k.y>=0)) HessianMatrix.element[index_j.y][index_k.y]+=DDF*dtB.y*dtC.y+D2JK.by;
+          if((index_j.y>=0)&&(index_k.z>=0)) HessianMatrix.element[index_j.y][index_k.z]+=DDF*dtB.y*dtC.z+D2JK.bz;
+          if((index_j.z>=0)&&(index_k.x>=0)) HessianMatrix.element[index_j.z][index_k.x]+=DDF*dtB.z*dtC.x+D2JK.cx;
+          if((index_j.z>=0)&&(index_k.y>=0)) HessianMatrix.element[index_j.z][index_k.y]+=DDF*dtB.z*dtC.y+D2JK.cy;
+          if((index_j.z>=0)&&(index_k.z>=0)) HessianMatrix.element[index_j.z][index_k.z]+=DDF*dtB.z*dtC.z+D2JK.cz;
+        }
+        else
+        {
+          if((index_k.x>=0)&&(index_j.x>=0)) HessianMatrix.element[index_k.x][index_j.x]+=DDF*dtB.x*dtC.x+D2JK.ax;
+          if((index_k.x>=0)&&(index_j.y>=0)) HessianMatrix.element[index_k.x][index_j.y]+=DDF*dtB.y*dtC.x+D2JK.bx;
+          if((index_k.x>=0)&&(index_j.z>=0)) HessianMatrix.element[index_k.x][index_j.z]+=DDF*dtB.z*dtC.x+D2JK.cx;
+          if((index_k.y>=0)&&(index_j.x>=0)) HessianMatrix.element[index_k.y][index_j.x]+=DDF*dtB.x*dtC.y+D2JK.ay;
+          if((index_k.y>=0)&&(index_j.y>=0)) HessianMatrix.element[index_k.y][index_j.y]+=DDF*dtB.y*dtC.y+D2JK.by;
+          if((index_k.y>=0)&&(index_j.z>=0)) HessianMatrix.element[index_k.y][index_j.z]+=DDF*dtB.z*dtC.y+D2JK.cy;
+          if((index_k.z>=0)&&(index_j.x>=0)) HessianMatrix.element[index_k.z][index_j.x]+=DDF*dtB.x*dtC.z+D2JK.az;
+          if((index_k.z>=0)&&(index_j.y>=0)) HessianMatrix.element[index_k.z][index_j.y]+=DDF*dtB.y*dtC.z+D2JK.bz;
+          if((index_k.z>=0)&&(index_j.z>=0)) HessianMatrix.element[index_k.z][index_j.z]+=DDF*dtB.z*dtC.z+D2JK.cz;
+        }
+        
+        if(index2<index4)
+        {
+          if((index_j.x>=0)&&(index_l.x>=0)) HessianMatrix.element[index_j.x][index_l.x]+=DDF*dtB.x*dtD.x+D2JL.ax;
+          if((index_j.x>=0)&&(index_l.y>=0)) HessianMatrix.element[index_j.x][index_l.y]+=DDF*dtB.x*dtD.y+D2JL.ay;
+          if((index_j.x>=0)&&(index_l.z>=0)) HessianMatrix.element[index_j.x][index_l.z]+=DDF*dtB.x*dtD.z+D2JL.az;
+          if((index_j.y>=0)&&(index_l.x>=0)) HessianMatrix.element[index_j.y][index_l.x]+=DDF*dtB.y*dtD.x+D2JL.bx;
+          if((index_j.y>=0)&&(index_l.y>=0)) HessianMatrix.element[index_j.y][index_l.y]+=DDF*dtB.y*dtD.y+D2JL.by;
+          if((index_j.y>=0)&&(index_l.z>=0)) HessianMatrix.element[index_j.y][index_l.z]+=DDF*dtB.y*dtD.z+D2JL.bz;
+          if((index_j.z>=0)&&(index_l.x>=0)) HessianMatrix.element[index_j.z][index_l.x]+=DDF*dtB.z*dtD.x+D2JL.cx;
+          if((index_j.z>=0)&&(index_l.y>=0)) HessianMatrix.element[index_j.z][index_l.y]+=DDF*dtB.z*dtD.y+D2JL.cy;
+          if((index_j.z>=0)&&(index_l.z>=0)) HessianMatrix.element[index_j.z][index_l.z]+=DDF*dtB.z*dtD.z+D2JL.cz;
+        }
+        else
+        {
+          if((index_l.x>=0)&&(index_j.x>=0)) HessianMatrix.element[index_l.x][index_j.x]+=DDF*dtB.x*dtD.x+D2JL.ax;
+          if((index_l.x>=0)&&(index_j.y>=0)) HessianMatrix.element[index_l.x][index_j.y]+=DDF*dtB.y*dtD.x+D2JL.bx;
+          if((index_l.x>=0)&&(index_j.z>=0)) HessianMatrix.element[index_l.x][index_j.z]+=DDF*dtB.z*dtD.x+D2JL.cx;
+          if((index_l.y>=0)&&(index_j.x>=0)) HessianMatrix.element[index_l.y][index_j.x]+=DDF*dtB.x*dtD.y+D2JL.ay;
+          if((index_l.y>=0)&&(index_j.y>=0)) HessianMatrix.element[index_l.y][index_j.y]+=DDF*dtB.y*dtD.y+D2JL.by;
+          if((index_l.y>=0)&&(index_j.z>=0)) HessianMatrix.element[index_l.y][index_j.z]+=DDF*dtB.z*dtD.y+D2JL.cy;
+          if((index_l.z>=0)&&(index_j.x>=0)) HessianMatrix.element[index_l.z][index_j.x]+=DDF*dtB.x*dtD.z+D2JL.az;
+          if((index_l.z>=0)&&(index_j.y>=0)) HessianMatrix.element[index_l.z][index_j.y]+=DDF*dtB.y*dtD.z+D2JL.bz;
+          if((index_l.z>=0)&&(index_j.z>=0)) HessianMatrix.element[index_l.z][index_j.z]+=DDF*dtB.z*dtD.z+D2JL.cz;
+        }
+        
+        if(index3<index4)
+        {
+          if((index_k.x>=0)&&(index_l.x>=0)) HessianMatrix.element[index_k.x][index_l.x]+=DDF*dtC.x*dtD.x+D2KL.ax;
+          if((index_k.x>=0)&&(index_l.y>=0)) HessianMatrix.element[index_k.x][index_l.y]+=DDF*dtC.x*dtD.y+D2KL.ay;
+          if((index_k.x>=0)&&(index_l.z>=0)) HessianMatrix.element[index_k.x][index_l.z]+=DDF*dtC.x*dtD.z+D2KL.az;
+          if((index_k.y>=0)&&(index_l.x>=0)) HessianMatrix.element[index_k.y][index_l.x]+=DDF*dtC.y*dtD.x+D2KL.bx;
+          if((index_k.y>=0)&&(index_l.y>=0)) HessianMatrix.element[index_k.y][index_l.y]+=DDF*dtC.y*dtD.y+D2KL.by;
+          if((index_k.y>=0)&&(index_l.z>=0)) HessianMatrix.element[index_k.y][index_l.z]+=DDF*dtC.y*dtD.z+D2KL.bz;
+          if((index_k.z>=0)&&(index_l.x>=0)) HessianMatrix.element[index_k.z][index_l.x]+=DDF*dtC.z*dtD.x+D2KL.cx;
+          if((index_k.z>=0)&&(index_l.y>=0)) HessianMatrix.element[index_k.z][index_l.y]+=DDF*dtC.z*dtD.y+D2KL.cy;
+          if((index_k.z>=0)&&(index_l.z>=0)) HessianMatrix.element[index_k.z][index_l.z]+=DDF*dtC.z*dtD.z+D2KL.cz;
+        }
+        else
+        {
+          if((index_l.x>=0)&&(index_k.x>=0)) HessianMatrix.element[index_l.x][index_k.x]+=DDF*dtC.x*dtD.x+D2KL.ax;
+          if((index_l.x>=0)&&(index_k.y>=0)) HessianMatrix.element[index_l.x][index_k.y]+=DDF*dtC.y*dtD.x+D2KL.bx;
+          if((index_l.x>=0)&&(index_k.z>=0)) HessianMatrix.element[index_l.x][index_k.z]+=DDF*dtC.z*dtD.x+D2KL.cx;
+          if((index_l.y>=0)&&(index_k.x>=0)) HessianMatrix.element[index_l.y][index_k.x]+=DDF*dtC.x*dtD.y+D2KL.ay;
+          if((index_l.y>=0)&&(index_k.y>=0)) HessianMatrix.element[index_l.y][index_k.y]+=DDF*dtC.y*dtD.y+D2KL.by;
+          if((index_l.y>=0)&&(index_k.z>=0)) HessianMatrix.element[index_l.y][index_k.z]+=DDF*dtC.z*dtD.y+D2KL.cy;
+          if((index_l.z>=0)&&(index_k.x>=0)) HessianMatrix.element[index_l.z][index_k.x]+=DDF*dtC.x*dtD.z+D2KL.az;
+          if((index_l.z>=0)&&(index_k.y>=0)) HessianMatrix.element[index_l.z][index_k.y]+=DDF*dtC.y*dtD.z+D2KL.bz;
+          if((index_l.z>=0)&&(index_k.z>=0)) HessianMatrix.element[index_l.z][index_k.z]+=DDF*dtC.z*dtD.z+D2KL.cz;
         }
 
         HessianTorsionStrainPosition(HessianMatrix,index_i,index_j,index_k,index_l,
@@ -9145,7 +5535,7 @@ void ComputeFrameworkInversionBendHessian(REAL *Energy,REAL* Gradient,REAL_MATRI
   VECTOR posA0,posB0,posC0,posD0;
   VECTOR posA,posB,posC,posD;
   VECTOR fa0,fb0,fc0,fd0,fa[4],fb[4],fc[4],fd[4];
-  int index_i,index_j,index_k,index_l;
+  INT_VECTOR3 index_i,index_j,index_k,index_l;
   REAL U;
   REAL_MATRIX3x3 strain_derivative;
 
@@ -9172,7 +5562,7 @@ void ComputeFrameworkInversionBendHessian(REAL *Energy,REAL* Gradient,REAL_MATRI
 
       *Energy+=U;
 
-      if((index_i<0)&&(index_j<0)&&(index_k<0)&&(index_l<0)) continue;
+      //if((index_i<0)&&(index_j<0)&&(index_k<0)&&(index_l<0)) continue;
 
       StrainDerivativeTensor->ax+=strain_derivative.ax;
       StrainDerivativeTensor->ay+=strain_derivative.ay;
@@ -9189,572 +5579,452 @@ void ComputeFrameworkInversionBendHessian(REAL *Energy,REAL* Gradient,REAL_MATRI
       // add contribution to the first derivatives
       if(ComputeGradient)
       {
-        if(index_i>=0)
-        {
-          Gradient[index_i]-=fa0.x;
-          Gradient[index_i+1]-=fa0.y;
-          Gradient[index_i+2]-=fa0.z;
-        }
+        if(index_i.x>=0) Gradient[index_i.x]-=fa0.x;
+        if(index_i.y>=0) Gradient[index_i.y]-=fa0.y;
+        if(index_i.z>=0) Gradient[index_i.z]-=fa0.z;
 
-        if(index_j>=0)
-        {
-          Gradient[index_j]-=fb0.x;
-          Gradient[index_j+1]-=fb0.y;
-          Gradient[index_j+2]-=fb0.z;
-        }
+        if(index_j.x>=0) Gradient[index_j.x]-=fb0.x;
+        if(index_j.y>=0) Gradient[index_j.y]-=fb0.y;
+        if(index_j.z>=0) Gradient[index_j.z]-=fb0.z;
 
-        if(index_k>=0)
-        {
-          Gradient[index_k]-=fc0.x;
-          Gradient[index_k+1]-=fc0.y;
-          Gradient[index_k+2]-=fc0.z;
-        }
+        if(index_k.x>=0) Gradient[index_k.x]-=fc0.x;
+        if(index_k.y>=0) Gradient[index_k.y]-=fc0.y;
+        if(index_k.z>=0) Gradient[index_k.z]-=fc0.z;
 
-        if(index_l>=0)
-        {
-          Gradient[index_l]-=fd0.x;
-          Gradient[index_l+1]-=fd0.y;
-          Gradient[index_l+2]-=fd0.z;
-        }
+        if(index_l.x>=0) Gradient[index_l.x]-=fd0.x;
+        if(index_l.y>=0) Gradient[index_l.y]-=fd0.y;
+        if(index_l.z>=0) Gradient[index_l.z]-=fd0.z;
       }
 
       if(ComputeHessian)
       {
-      // Atom A
-
-      posA=posA0; posB=posB0; posC=posC0; posD=posD0;
-      posA.x+=Delta;
-      CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[0],&fb[0],&fc[0],&fd[0],&strain_derivative);
-
-      posA=posA0; posB=posB0; posC=posC0; posD=posD0;
-      posA.x+=0.5*Delta;
-      CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[1],&fb[1],&fc[1],&fd[1],&strain_derivative);
-
-      posA=posA0; posB=posB0; posC=posC0; posD=posD0;
-      posA.x-=0.5*Delta;
-      CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[2],&fb[2],&fc[2],&fd[2],&strain_derivative);
-
-      posA=posA0; posB=posB0; posC=posC0; posD=posD0;
-      posA.x-=Delta;
-      CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[3],&fb[3],&fc[3],&fd[3],&strain_derivative);
-
-      if((index_i>=0)&&(index_i>=0))
-      {
-        HessianMatrix.element[index_i][index_i]-=(-fa[0].x+8.0*fa[1].x-8.0*fa[2].x+fa[3].x)/(6.0*Delta);
-        HessianMatrix.element[index_i][index_i+1]-=(-fa[0].y+8.0*fa[1].y-8.0*fa[2].y+fa[3].y)/(6.0*Delta);
-        HessianMatrix.element[index_i][index_i+2]-=(-fa[0].z+8.0*fa[1].z-8.0*fa[2].z+fa[3].z)/(6.0*Delta);
-      }
-
-      if((index_i>=0)&&(index_j>=0))
-      {
-        HessianMatrix.element[index_i][index_j]-=(-fb[0].x+8.0*fb[1].x-8.0*fb[2].x+fb[3].x)/(6.0*Delta);
-        HessianMatrix.element[index_i][index_j+1]-=(-fb[0].y+8.0*fb[1].y-8.0*fb[2].y+fb[3].y)/(6.0*Delta);
-        HessianMatrix.element[index_i][index_j+2]-=(-fb[0].z+8.0*fb[1].z-8.0*fb[2].z+fb[3].z)/(6.0*Delta);
-      }
-
-      if((index_i>=0)&&(index_k>=0))
-      {
-        HessianMatrix.element[index_i][index_k]-=(-fc[0].x+8.0*fc[1].x-8.0*fc[2].x+fc[3].x)/(6.0*Delta);
-        HessianMatrix.element[index_i][index_k+1]-=(-fc[0].y+8.0*fc[1].y-8.0*fc[2].y+fc[3].y)/(6.0*Delta);
-        HessianMatrix.element[index_i][index_k+2]-=(-fc[0].z+8.0*fc[1].z-8.0*fc[2].z+fc[3].z)/(6.0*Delta);
-      }
-
-      if((index_i>=0)&&(index_l>=0))
-      {
-        HessianMatrix.element[index_i][index_l]-=(-fd[0].x+8.0*fd[1].x-8.0*fd[2].x+fd[3].x)/(6.0*Delta);
-        HessianMatrix.element[index_i][index_l+1]-=(-fd[0].y+8.0*fd[1].y-8.0*fd[2].y+fd[3].y)/(6.0*Delta);
-        HessianMatrix.element[index_i][index_l+2]-=(-fd[0].z+8.0*fd[1].z-8.0*fd[2].z+fd[3].z)/(6.0*Delta);
-      }
-
-      posA=posA0; posB=posB0; posC=posC0; posD=posD0;
-      posA.y+=Delta;
-      CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[0],&fb[0],&fc[0],&fd[0],&strain_derivative);
-
-      posA=posA0; posB=posB0; posC=posC0; posD=posD0;
-      posA.y+=0.5*Delta;
-      CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[1],&fb[1],&fc[1],&fd[1],&strain_derivative);
-
-      posA=posA0; posB=posB0; posC=posC0; posD=posD0;
-      posA.y-=0.5*Delta;
-      CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[2],&fb[2],&fc[2],&fd[2],&strain_derivative);
-
-      posA=posA0; posB=posB0; posC=posC0; posD=posD0;
-      posA.y-=Delta;
-      CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[3],&fb[3],&fc[3],&fd[3],&strain_derivative);
-
-      if((index_i>=0)&&(index_i>=0))
-      {
-        HessianMatrix.element[index_i+1][index_i]-=(-fa[0].x+8.0*fa[1].x-8.0*fa[2].x+fa[3].x)/(6.0*Delta);
-        HessianMatrix.element[index_i+1][index_i+1]-=(-fa[0].y+8.0*fa[1].y-8.0*fa[2].y+fa[3].y)/(6.0*Delta);
-        HessianMatrix.element[index_i+1][index_i+2]-=(-fa[0].z+8.0*fa[1].z-8.0*fa[2].z+fa[3].z)/(6.0*Delta);
-      }
-
-      if((index_i>=0)&&(index_j>=0))
-      {
-        HessianMatrix.element[index_i+1][index_j]-=(-fb[0].x+8.0*fb[1].x-8.0*fb[2].x+fb[3].x)/(6.0*Delta);
-        HessianMatrix.element[index_i+1][index_j+1]-=(-fb[0].y+8.0*fb[1].y-8.0*fb[2].y+fb[3].y)/(6.0*Delta);
-        HessianMatrix.element[index_i+1][index_j+2]-=(-fb[0].z+8.0*fb[1].z-8.0*fb[2].z+fb[3].z)/(6.0*Delta);
-      }
-
-      if((index_i>=0)&&(index_k>=0))
-      {
-        HessianMatrix.element[index_i+1][index_k]-=(-fc[0].x+8.0*fc[1].x-8.0*fc[2].x+fc[3].x)/(6.0*Delta);
-        HessianMatrix.element[index_i+1][index_k+1]-=(-fc[0].y+8.0*fc[1].y-8.0*fc[2].y+fc[3].y)/(6.0*Delta);
-        HessianMatrix.element[index_i+1][index_k+2]-=(-fc[0].z+8.0*fc[1].z-8.0*fc[2].z+fc[3].z)/(6.0*Delta);
-      }
-
-      if((index_i>=0)&&(index_l>=0))
-      {
-        HessianMatrix.element[index_i+1][index_l]-=(-fd[0].x+8.0*fd[1].x-8.0*fd[2].x+fd[3].x)/(6.0*Delta);
-        HessianMatrix.element[index_i+1][index_l+1]-=(-fd[0].y+8.0*fd[1].y-8.0*fd[2].y+fd[3].y)/(6.0*Delta);
-        HessianMatrix.element[index_i+1][index_l+2]-=(-fd[0].z+8.0*fd[1].z-8.0*fd[2].z+fd[3].z)/(6.0*Delta);
-      }
-
-      posA=posA0; posB=posB0; posC=posC0; posD=posD0;
-      posA.z+=Delta;
-      CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[0],&fb[0],&fc[0],&fd[0],&strain_derivative);
-
-      posA=posA0; posB=posB0; posC=posC0; posD=posD0;
-      posA.z+=0.5*Delta;
-      CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[1],&fb[1],&fc[1],&fd[1],&strain_derivative);
-
-      posA=posA0; posB=posB0; posC=posC0; posD=posD0;
-      posA.z-=0.5*Delta;
-      CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[2],&fb[2],&fc[2],&fd[2],&strain_derivative);
-
-      posA=posA0; posB=posB0; posC=posC0; posD=posD0;
-      posA.z-=Delta;
-      CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[3],&fb[3],&fc[3],&fd[3],&strain_derivative);
-
-      if((index_i>=0)&&(index_i>=0))
-      {
-        HessianMatrix.element[index_i+2][index_i]-=(-fa[0].x+8.0*fa[1].x-8.0*fa[2].x+fa[3].x)/(6.0*Delta);
-        HessianMatrix.element[index_i+2][index_i+1]-=(-fa[0].y+8.0*fa[1].y-8.0*fa[2].y+fa[3].y)/(6.0*Delta);
-        HessianMatrix.element[index_i+2][index_i+2]-=(-fa[0].z+8.0*fa[1].z-8.0*fa[2].z+fa[3].z)/(6.0*Delta);
-      }
-
-      if((index_i>=0)&&(index_j>=0))
-      {
-        HessianMatrix.element[index_i+2][index_j]-=(-fb[0].x+8.0*fb[1].x-8.0*fb[2].x+fb[3].x)/(6.0*Delta);
-        HessianMatrix.element[index_i+2][index_j+1]-=(-fb[0].y+8.0*fb[1].y-8.0*fb[2].y+fb[3].y)/(6.0*Delta);
-        HessianMatrix.element[index_i+2][index_j+2]-=(-fb[0].z+8.0*fb[1].z-8.0*fb[2].z+fb[3].z)/(6.0*Delta);
-      }
-
-      if((index_i>=0)&&(index_k>=0))
-      {
-        HessianMatrix.element[index_i+2][index_k]-=(-fc[0].x+8.0*fc[1].x-8.0*fc[2].x+fc[3].x)/(6.0*Delta);
-        HessianMatrix.element[index_i+2][index_k+1]-=(-fc[0].y+8.0*fc[1].y-8.0*fc[2].y+fc[3].y)/(6.0*Delta);
-        HessianMatrix.element[index_i+2][index_k+2]-=(-fc[0].z+8.0*fc[1].z-8.0*fc[2].z+fc[3].z)/(6.0*Delta);
-      }
-
-      if((index_i>=0)&&(index_l>=0))
-      {
-        HessianMatrix.element[index_i+2][index_l]-=(-fd[0].x+8.0*fd[1].x-8.0*fd[2].x+fd[3].x)/(6.0*Delta);
-        HessianMatrix.element[index_i+2][index_l+1]-=(-fd[0].y+8.0*fd[1].y-8.0*fd[2].y+fd[3].y)/(6.0*Delta);
-        HessianMatrix.element[index_i+2][index_l+2]-=(-fd[0].z+8.0*fd[1].z-8.0*fd[2].z+fd[3].z)/(6.0*Delta);
-      }
-
-      // Atom B
-
-      posA=posA0; posB=posB0; posC=posC0; posD=posD0;
-      posB.x+=Delta;
-      CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[0],&fb[0],&fc[0],&fd[0],&strain_derivative);
-
-      posA=posA0; posB=posB0; posC=posC0; posD=posD0;
-      posB.x+=0.5*Delta;
-      CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[1],&fb[1],&fc[1],&fd[1],&strain_derivative);
-
-      posA=posA0; posB=posB0; posC=posC0; posD=posD0;
-      posB.x-=0.5*Delta;
-      CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[2],&fb[2],&fc[2],&fd[2],&strain_derivative);
-
-      posA=posA0; posB=posB0; posC=posC0; posD=posD0;
-      posB.x-=Delta;
-      CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[3],&fb[3],&fc[3],&fd[3],&strain_derivative);
-
-      if((index_j>=0)&&(index_i>=0))
-      {
-        HessianMatrix.element[index_j][index_i]-=(-fa[0].x+8.0*fa[1].x-8.0*fa[2].x+fa[3].x)/(6.0*Delta);
-        HessianMatrix.element[index_j][index_i+1]-=(-fa[0].y+8.0*fa[1].y-8.0*fa[2].y+fa[3].y)/(6.0*Delta);
-        HessianMatrix.element[index_j][index_i+2]-=(-fa[0].z+8.0*fa[1].z-8.0*fa[2].z+fa[3].z)/(6.0*Delta);
-      }
-
-      if((index_j>=0)&&(index_j>=0))
-      {
-        HessianMatrix.element[index_j][index_j]-=(-fb[0].x+8.0*fb[1].x-8.0*fb[2].x+fb[3].x)/(6.0*Delta);
-        HessianMatrix.element[index_j][index_j+1]-=(-fb[0].y+8.0*fb[1].y-8.0*fb[2].y+fb[3].y)/(6.0*Delta);
-        HessianMatrix.element[index_j][index_j+2]-=(-fb[0].z+8.0*fb[1].z-8.0*fb[2].z+fb[3].z)/(6.0*Delta);
-      }
-
-      if((index_j>=0)&&(index_k>=0))
-      {
-        HessianMatrix.element[index_j][index_k]-=(-fc[0].x+8.0*fc[1].x-8.0*fc[2].x+fc[3].x)/(6.0*Delta);
-        HessianMatrix.element[index_j][index_k+1]-=(-fc[0].y+8.0*fc[1].y-8.0*fc[2].y+fc[3].y)/(6.0*Delta);
-        HessianMatrix.element[index_j][index_k+2]-=(-fc[0].z+8.0*fc[1].z-8.0*fc[2].z+fc[3].z)/(6.0*Delta);
-      }
-
-      if((index_j>=0)&&(index_l>=0))
-      {
-        HessianMatrix.element[index_j][index_l]-=(-fd[0].x+8.0*fd[1].x-8.0*fd[2].x+fd[3].x)/(6.0*Delta);
-        HessianMatrix.element[index_j][index_l+1]-=(-fd[0].y+8.0*fd[1].y-8.0*fd[2].y+fd[3].y)/(6.0*Delta);
-        HessianMatrix.element[index_j][index_l+2]-=(-fd[0].z+8.0*fd[1].z-8.0*fd[2].z+fd[3].z)/(6.0*Delta);
-      }
-
-      posA=posA0; posB=posB0; posC=posC0; posD=posD0;
-      posB.y+=Delta;
-      CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[0],&fb[0],&fc[0],&fd[0],&strain_derivative);
-
-      posA=posA0; posB=posB0; posC=posC0; posD=posD0;
-      posB.y+=0.5*Delta;
-      CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[1],&fb[1],&fc[1],&fd[1],&strain_derivative);
-
-      posA=posA0; posB=posB0; posC=posC0; posD=posD0;
-      posB.y-=0.5*Delta;
-      CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[2],&fb[2],&fc[2],&fd[2],&strain_derivative);
-
-      posA=posA0; posB=posB0; posC=posC0; posD=posD0;
-      posB.y-=Delta;
-      CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[3],&fb[3],&fc[3],&fd[3],&strain_derivative);
-
-      if((index_j>=0)&&(index_i>=0))
-      {
-        HessianMatrix.element[index_j+1][index_i]-=(-fa[0].x+8.0*fa[1].x-8.0*fa[2].x+fa[3].x)/(6.0*Delta);
-        HessianMatrix.element[index_j+1][index_i+1]-=(-fa[0].y+8.0*fa[1].y-8.0*fa[2].y+fa[3].y)/(6.0*Delta);
-        HessianMatrix.element[index_j+1][index_i+2]-=(-fa[0].z+8.0*fa[1].z-8.0*fa[2].z+fa[3].z)/(6.0*Delta);
-      }
-
-      if((index_j>=0)&&(index_j>=0))
-      {
-        HessianMatrix.element[index_j+1][index_j]-=(-fb[0].x+8.0*fb[1].x-8.0*fb[2].x+fb[3].x)/(6.0*Delta);
-        HessianMatrix.element[index_j+1][index_j+1]-=(-fb[0].y+8.0*fb[1].y-8.0*fb[2].y+fb[3].y)/(6.0*Delta);
-        HessianMatrix.element[index_j+1][index_j+2]-=(-fb[0].z+8.0*fb[1].z-8.0*fb[2].z+fb[3].z)/(6.0*Delta);
-      }
-
-      if((index_j>=0)&&(index_k>=0))
-      {
-        HessianMatrix.element[index_j+1][index_k]-=(-fc[0].x+8.0*fc[1].x-8.0*fc[2].x+fc[3].x)/(6.0*Delta);
-        HessianMatrix.element[index_j+1][index_k+1]-=(-fc[0].y+8.0*fc[1].y-8.0*fc[2].y+fc[3].y)/(6.0*Delta);
-        HessianMatrix.element[index_j+1][index_k+2]-=(-fc[0].z+8.0*fc[1].z-8.0*fc[2].z+fc[3].z)/(6.0*Delta);
-      }
-
-      if((index_j>=0)&&(index_l>=0))
-      {
-        HessianMatrix.element[index_j+1][index_l]-=(-fd[0].x+8.0*fd[1].x-8.0*fd[2].x+fd[3].x)/(6.0*Delta);
-        HessianMatrix.element[index_j+1][index_l+1]-=(-fd[0].y+8.0*fd[1].y-8.0*fd[2].y+fd[3].y)/(6.0*Delta);
-        HessianMatrix.element[index_j+1][index_l+2]-=(-fd[0].z+8.0*fd[1].z-8.0*fd[2].z+fd[3].z)/(6.0*Delta);
-      }
-
-      posA=posA0; posB=posB0; posC=posC0; posD=posD0;
-      posB.z+=Delta;
-      CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[0],&fb[0],&fc[0],&fd[0],&strain_derivative);
-
-      posA=posA0; posB=posB0; posC=posC0; posD=posD0;
-      posB.z+=0.5*Delta;
-      CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[1],&fb[1],&fc[1],&fd[1],&strain_derivative);
-
-      posA=posA0; posB=posB0; posC=posC0; posD=posD0;
-      posB.z-=0.5*Delta;
-      CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[2],&fb[2],&fc[2],&fd[2],&strain_derivative);
-
-      posA=posA0; posB=posB0; posC=posC0; posD=posD0;
-      posB.z-=Delta;
-      CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[3],&fb[3],&fc[3],&fd[3],&strain_derivative);
-
-      if((index_j>=0)&&(index_i>=0))
-      {
-        HessianMatrix.element[index_j+2][index_i]-=(-fa[0].x+8.0*fa[1].x-8.0*fa[2].x+fa[3].x)/(6.0*Delta);
-        HessianMatrix.element[index_j+2][index_i+1]-=(-fa[0].y+8.0*fa[1].y-8.0*fa[2].y+fa[3].y)/(6.0*Delta);
-        HessianMatrix.element[index_j+2][index_i+2]-=(-fa[0].z+8.0*fa[1].z-8.0*fa[2].z+fa[3].z)/(6.0*Delta);
-      }
-
-      if((index_j>=0)&&(index_j>=0))
-      {
-        HessianMatrix.element[index_j+2][index_j]-=(-fb[0].x+8.0*fb[1].x-8.0*fb[2].x+fb[3].x)/(6.0*Delta);
-        HessianMatrix.element[index_j+2][index_j+1]-=(-fb[0].y+8.0*fb[1].y-8.0*fb[2].y+fb[3].y)/(6.0*Delta);
-        HessianMatrix.element[index_j+2][index_j+2]-=(-fb[0].z+8.0*fb[1].z-8.0*fb[2].z+fb[3].z)/(6.0*Delta);
-      }
-
-      if((index_j>=0)&&(index_k>=0))
-      {
-        HessianMatrix.element[index_j+2][index_k]-=(-fc[0].x+8.0*fc[1].x-8.0*fc[2].x+fc[3].x)/(6.0*Delta);
-        HessianMatrix.element[index_j+2][index_k+1]-=(-fc[0].y+8.0*fc[1].y-8.0*fc[2].y+fc[3].y)/(6.0*Delta);
-        HessianMatrix.element[index_j+2][index_k+2]-=(-fc[0].z+8.0*fc[1].z-8.0*fc[2].z+fc[3].z)/(6.0*Delta);
-      }
-
-      if((index_j>=0)&&(index_l>=0))
-      {
-        HessianMatrix.element[index_j+2][index_l]-=(-fd[0].x+8.0*fd[1].x-8.0*fd[2].x+fd[3].x)/(6.0*Delta);
-        HessianMatrix.element[index_j+2][index_l+1]-=(-fd[0].y+8.0*fd[1].y-8.0*fd[2].y+fd[3].y)/(6.0*Delta);
-        HessianMatrix.element[index_j+2][index_l+2]-=(-fd[0].z+8.0*fd[1].z-8.0*fd[2].z+fd[3].z)/(6.0*Delta);
-      }
-
-      // Atom C
-
-      posA=posA0; posB=posB0; posC=posC0; posD=posD0;
-      posC.x+=Delta;
-      CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[0],&fb[0],&fc[0],&fd[0],&strain_derivative);
-
-      posA=posA0; posB=posB0; posC=posC0; posD=posD0;
-      posC.x+=0.5*Delta;
-      CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[1],&fb[1],&fc[1],&fd[1],&strain_derivative);
-
-      posA=posA0; posB=posB0; posC=posC0; posD=posD0;
-      posC.x-=0.5*Delta;
-      CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[2],&fb[2],&fc[2],&fd[2],&strain_derivative);
-
-      posA=posA0; posB=posB0; posC=posC0; posD=posD0;
-      posC.x-=Delta;
-      CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[3],&fb[3],&fc[3],&fd[3],&strain_derivative);
-
-      if((index_k>=0)&&(index_i>=0))
-      {
-        HessianMatrix.element[index_k][index_i]-=(-fa[0].x+8.0*fa[1].x-8.0*fa[2].x+fa[3].x)/(6.0*Delta);
-        HessianMatrix.element[index_k][index_i+1]-=(-fa[0].y+8.0*fa[1].y-8.0*fa[2].y+fa[3].y)/(6.0*Delta);
-        HessianMatrix.element[index_k][index_i+2]-=(-fa[0].z+8.0*fa[1].z-8.0*fa[2].z+fa[3].z)/(6.0*Delta);
-      }
-
-      if((index_k>=0)&&(index_j>=0))
-      {
-        HessianMatrix.element[index_k][index_j]-=(-fb[0].x+8.0*fb[1].x-8.0*fb[2].x+fb[3].x)/(6.0*Delta);
-        HessianMatrix.element[index_k][index_j+1]-=(-fb[0].y+8.0*fb[1].y-8.0*fb[2].y+fb[3].y)/(6.0*Delta);
-        HessianMatrix.element[index_k][index_j+2]-=(-fb[0].z+8.0*fb[1].z-8.0*fb[2].z+fb[3].z)/(6.0*Delta);
-      }
-
-      if((index_k>=0)&&(index_k>=0))
-      {
-        HessianMatrix.element[index_k][index_k]-=(-fc[0].x+8.0*fc[1].x-8.0*fc[2].x+fc[3].x)/(6.0*Delta);
-        HessianMatrix.element[index_k][index_k+1]-=(-fc[0].y+8.0*fc[1].y-8.0*fc[2].y+fc[3].y)/(6.0*Delta);
-        HessianMatrix.element[index_k][index_k+2]-=(-fc[0].z+8.0*fc[1].z-8.0*fc[2].z+fc[3].z)/(6.0*Delta);
-      }
-
-      if((index_k>=0)&&(index_l>=0))
-      {
-        HessianMatrix.element[index_k][index_l]-=(-fd[0].x+8.0*fd[1].x-8.0*fd[2].x+fd[3].x)/(6.0*Delta);
-        HessianMatrix.element[index_k][index_l+1]-=(-fd[0].y+8.0*fd[1].y-8.0*fd[2].y+fd[3].y)/(6.0*Delta);
-        HessianMatrix.element[index_k][index_l+2]-=(-fd[0].z+8.0*fd[1].z-8.0*fd[2].z+fd[3].z)/(6.0*Delta);
-      }
-
-      posA=posA0; posB=posB0; posC=posC0; posD=posD0;
-      posC.y+=Delta;
-      CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[0],&fb[0],&fc[0],&fd[0],&strain_derivative);
-
-      posA=posA0; posB=posB0; posC=posC0; posD=posD0;
-      posC.y+=0.5*Delta;
-      CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[1],&fb[1],&fc[1],&fd[1],&strain_derivative);
-
-      posA=posA0; posB=posB0; posC=posC0; posD=posD0;
-      posC.y-=0.5*Delta;
-      CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[2],&fb[2],&fc[2],&fd[2],&strain_derivative);
-
-      posA=posA0; posB=posB0; posC=posC0; posD=posD0;
-      posC.y-=Delta;
-      CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[3],&fb[3],&fc[3],&fd[3],&strain_derivative);
-
-      if((index_k>=0)&&(index_i>=0))
-      {
-        HessianMatrix.element[index_k+1][index_i]-=(-fa[0].x+8.0*fa[1].x-8.0*fa[2].x+fa[3].x)/(6.0*Delta);
-        HessianMatrix.element[index_k+1][index_i+1]-=(-fa[0].y+8.0*fa[1].y-8.0*fa[2].y+fa[3].y)/(6.0*Delta);
-        HessianMatrix.element[index_k+1][index_i+2]-=(-fa[0].z+8.0*fa[1].z-8.0*fa[2].z+fa[3].z)/(6.0*Delta);
-      }
-
-      if((index_k>=0)&&(index_j>=0))
-      {
-        HessianMatrix.element[index_k+1][index_j]-=(-fb[0].x+8.0*fb[1].x-8.0*fb[2].x+fb[3].x)/(6.0*Delta);
-        HessianMatrix.element[index_k+1][index_j+1]-=(-fb[0].y+8.0*fb[1].y-8.0*fb[2].y+fb[3].y)/(6.0*Delta);
-        HessianMatrix.element[index_k+1][index_j+2]-=(-fb[0].z+8.0*fb[1].z-8.0*fb[2].z+fb[3].z)/(6.0*Delta);
-      }
-
-      if((index_k>=0)&&(index_k>=0))
-      {
-        HessianMatrix.element[index_k+1][index_k]-=(-fc[0].x+8.0*fc[1].x-8.0*fc[2].x+fc[3].x)/(6.0*Delta);
-        HessianMatrix.element[index_k+1][index_k+1]-=(-fc[0].y+8.0*fc[1].y-8.0*fc[2].y+fc[3].y)/(6.0*Delta);
-        HessianMatrix.element[index_k+1][index_k+2]-=(-fc[0].z+8.0*fc[1].z-8.0*fc[2].z+fc[3].z)/(6.0*Delta);
-      }
-
-      if((index_k>=0)&&(index_l>=0))
-      {
-        HessianMatrix.element[index_k+1][index_l]-=(-fd[0].x+8.0*fd[1].x-8.0*fd[2].x+fd[3].x)/(6.0*Delta);
-        HessianMatrix.element[index_k+1][index_l+1]-=(-fd[0].y+8.0*fd[1].y-8.0*fd[2].y+fd[3].y)/(6.0*Delta);
-        HessianMatrix.element[index_k+1][index_l+2]-=(-fd[0].z+8.0*fd[1].z-8.0*fd[2].z+fd[3].z)/(6.0*Delta);
-      }
-
-      posA=posA0; posB=posB0; posC=posC0; posD=posD0;
-      posC.z+=Delta;
-      CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[0],&fb[0],&fc[0],&fd[0],&strain_derivative);
-
-      posA=posA0; posB=posB0; posC=posC0; posD=posD0;
-      posC.z+=0.5*Delta;
-      CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[1],&fb[1],&fc[1],&fd[1],&strain_derivative);
-
-      posA=posA0; posB=posB0; posC=posC0; posD=posD0;
-      posC.z-=0.5*Delta;
-      CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[2],&fb[2],&fc[2],&fd[2],&strain_derivative);
-
-      posA=posA0; posB=posB0; posC=posC0; posD=posD0;
-      posC.z-=Delta;
-      CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[3],&fb[3],&fc[3],&fd[3],&strain_derivative);
-
-      if((index_k>=0)&&(index_i>=0))
-      {
-        HessianMatrix.element[index_k+2][index_i]-=(-fa[0].x+8.0*fa[1].x-8.0*fa[2].x+fa[3].x)/(6.0*Delta);
-        HessianMatrix.element[index_k+2][index_i+1]-=(-fa[0].y+8.0*fa[1].y-8.0*fa[2].y+fa[3].y)/(6.0*Delta);
-        HessianMatrix.element[index_k+2][index_i+2]-=(-fa[0].z+8.0*fa[1].z-8.0*fa[2].z+fa[3].z)/(6.0*Delta);
-      }
-
-      if((index_k>=0)&&(index_j>=0))
-      {
-        HessianMatrix.element[index_k+2][index_j]-=(-fb[0].x+8.0*fb[1].x-8.0*fb[2].x+fb[3].x)/(6.0*Delta);
-        HessianMatrix.element[index_k+2][index_j+1]-=(-fb[0].y+8.0*fb[1].y-8.0*fb[2].y+fb[3].y)/(6.0*Delta);
-        HessianMatrix.element[index_k+2][index_j+2]-=(-fb[0].z+8.0*fb[1].z-8.0*fb[2].z+fb[3].z)/(6.0*Delta);
-      }
-
-      if((index_k>=0)&&(index_k>=0))
-      {
-        HessianMatrix.element[index_k+2][index_k]-=(-fc[0].x+8.0*fc[1].x-8.0*fc[2].x+fc[3].x)/(6.0*Delta);
-        HessianMatrix.element[index_k+2][index_k+1]-=(-fc[0].y+8.0*fc[1].y-8.0*fc[2].y+fc[3].y)/(6.0*Delta);
-        HessianMatrix.element[index_k+2][index_k+2]-=(-fc[0].z+8.0*fc[1].z-8.0*fc[2].z+fc[3].z)/(6.0*Delta);
-      }
-
-      if((index_k>=0)&&(index_l>=0))
-      {
-        HessianMatrix.element[index_k+2][index_l]-=(-fd[0].x+8.0*fd[1].x-8.0*fd[2].x+fd[3].x)/(6.0*Delta);
-        HessianMatrix.element[index_k+2][index_l+1]-=(-fd[0].y+8.0*fd[1].y-8.0*fd[2].y+fd[3].y)/(6.0*Delta);
-        HessianMatrix.element[index_k+2][index_l+2]-=(-fd[0].z+8.0*fd[1].z-8.0*fd[2].z+fd[3].z)/(6.0*Delta);
-      }
-
-      // Atom D
-
-      posA=posA0; posB=posB0; posC=posC0; posD=posD0;
-      posD.x+=Delta;
-      CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[0],&fb[0],&fc[0],&fd[0],&strain_derivative);
-
-      posA=posA0; posB=posB0; posC=posC0; posD=posD0;
-      posD.x+=0.5*Delta;
-      CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[1],&fb[1],&fc[1],&fd[1],&strain_derivative);
-
-      posA=posA0; posB=posB0; posC=posC0; posD=posD0;
-      posD.x-=0.5*Delta;
-      CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[2],&fb[2],&fc[2],&fd[2],&strain_derivative);
-
-      posA=posA0; posB=posB0; posC=posC0; posD=posD0;
-      posD.x-=Delta;
-      CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[3],&fb[3],&fc[3],&fd[3],&strain_derivative);
-
-      if((index_l>=0)&&(index_i>=0))
-      {
-        HessianMatrix.element[index_l][index_i]-=(-fa[0].x+8.0*fa[1].x-8.0*fa[2].x+fa[3].x)/(6.0*Delta);
-        HessianMatrix.element[index_l][index_i+1]-=(-fa[0].y+8.0*fa[1].y-8.0*fa[2].y+fa[3].y)/(6.0*Delta);
-        HessianMatrix.element[index_l][index_i+2]-=(-fa[0].z+8.0*fa[1].z-8.0*fa[2].z+fa[3].z)/(6.0*Delta);
-      }
-
-      if((index_l>=0)&&(index_j>=0))
-      {
-        HessianMatrix.element[index_l][index_j]-=(-fb[0].x+8.0*fb[1].x-8.0*fb[2].x+fb[3].x)/(6.0*Delta);
-        HessianMatrix.element[index_l][index_j+1]-=(-fb[0].y+8.0*fb[1].y-8.0*fb[2].y+fb[3].y)/(6.0*Delta);
-        HessianMatrix.element[index_l][index_j+2]-=(-fb[0].z+8.0*fb[1].z-8.0*fb[2].z+fb[3].z)/(6.0*Delta);
-      }
-
-      if((index_l>=0)&&(index_k>=0))
-      {
-        HessianMatrix.element[index_l][index_k]-=(-fc[0].x+8.0*fc[1].x-8.0*fc[2].x+fc[3].x)/(6.0*Delta);
-        HessianMatrix.element[index_l][index_k+1]-=(-fc[0].y+8.0*fc[1].y-8.0*fc[2].y+fc[3].y)/(6.0*Delta);
-        HessianMatrix.element[index_l][index_k+2]-=(-fc[0].z+8.0*fc[1].z-8.0*fc[2].z+fc[3].z)/(6.0*Delta);
-      }
-
-      if((index_l>=0)&&(index_l>=0))
-      {
-        HessianMatrix.element[index_l][index_l]-=(-fd[0].x+8.0*fd[1].x-8.0*fd[2].x+fd[3].x)/(6.0*Delta);
-        HessianMatrix.element[index_l][index_l+1]-=(-fd[0].y+8.0*fd[1].y-8.0*fd[2].y+fd[3].y)/(6.0*Delta);
-        HessianMatrix.element[index_l][index_l+2]-=(-fd[0].z+8.0*fd[1].z-8.0*fd[2].z+fd[3].z)/(6.0*Delta);
-      }
-
-      posA=posA0; posB=posB0; posC=posC0; posD=posD0;
-      posD.y+=Delta;
-      CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[0],&fb[0],&fc[0],&fd[0],&strain_derivative);
-
-      posA=posA0; posB=posB0; posC=posC0; posD=posD0;
-      posD.y+=0.5*Delta;
-      CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[1],&fb[1],&fc[1],&fd[1],&strain_derivative);
-
-      posA=posA0; posB=posB0; posC=posC0; posD=posD0;
-      posD.y-=0.5*Delta;
-      CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[2],&fb[2],&fc[2],&fd[2],&strain_derivative);
-
-      posA=posA0; posB=posB0; posC=posC0; posD=posD0;
-      posD.y-=Delta;
-      CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[3],&fb[3],&fc[3],&fd[3],&strain_derivative);
-
-      if((index_l>=0)&&(index_i>=0))
-      {
-        HessianMatrix.element[index_l+1][index_i]-=(-fa[0].x+8.0*fa[1].x-8.0*fa[2].x+fa[3].x)/(6.0*Delta);
-        HessianMatrix.element[index_l+1][index_i+1]-=(-fa[0].y+8.0*fa[1].y-8.0*fa[2].y+fa[3].y)/(6.0*Delta);
-        HessianMatrix.element[index_l+1][index_i+2]-=(-fa[0].z+8.0*fa[1].z-8.0*fa[2].z+fa[3].z)/(6.0*Delta);
-      }
-
-      if((index_l>=0)&&(index_j>=0))
-      {
-        HessianMatrix.element[index_l+1][index_j]-=(-fb[0].x+8.0*fb[1].x-8.0*fb[2].x+fb[3].x)/(6.0*Delta);
-        HessianMatrix.element[index_l+1][index_j+1]-=(-fb[0].y+8.0*fb[1].y-8.0*fb[2].y+fb[3].y)/(6.0*Delta);
-        HessianMatrix.element[index_l+1][index_j+2]-=(-fb[0].z+8.0*fb[1].z-8.0*fb[2].z+fb[3].z)/(6.0*Delta);
-      }
-
-      if((index_l>=0)&&(index_k>=0))
-      {
-        HessianMatrix.element[index_l+1][index_k]-=(-fc[0].x+8.0*fc[1].x-8.0*fc[2].x+fc[3].x)/(6.0*Delta);
-        HessianMatrix.element[index_l+1][index_k+1]-=(-fc[0].y+8.0*fc[1].y-8.0*fc[2].y+fc[3].y)/(6.0*Delta);
-        HessianMatrix.element[index_l+1][index_k+2]-=(-fc[0].z+8.0*fc[1].z-8.0*fc[2].z+fc[3].z)/(6.0*Delta);
-      }
-
-      if((index_l>=0)&&(index_l>=0))
-      {
-        HessianMatrix.element[index_l+1][index_l]-=(-fd[0].x+8.0*fd[1].x-8.0*fd[2].x+fd[3].x)/(6.0*Delta);
-        HessianMatrix.element[index_l+1][index_l+1]-=(-fd[0].y+8.0*fd[1].y-8.0*fd[2].y+fd[3].y)/(6.0*Delta);
-        HessianMatrix.element[index_l+1][index_l+2]-=(-fd[0].z+8.0*fd[1].z-8.0*fd[2].z+fd[3].z)/(6.0*Delta);
-      }
-
-      posA=posA0; posB=posB0; posC=posC0; posD=posD0;
-      posD.z+=Delta;
-      CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[0],&fb[0],&fc[0],&fd[0],&strain_derivative);
-
-      posA=posA0; posB=posB0; posC=posC0; posD=posD0;
-      posD.z+=0.5*Delta;
-      CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[1],&fb[1],&fc[1],&fd[1],&strain_derivative);
-
-      posA=posA0; posB=posB0; posC=posC0; posD=posD0;
-      posD.z-=0.5*Delta;
-      CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[2],&fb[2],&fc[2],&fd[2],&strain_derivative);
-
-      posA=posA0; posB=posB0; posC=posC0; posD=posD0;
-      posD.z-=Delta;
-      CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[3],&fb[3],&fc[3],&fd[3],&strain_derivative);
-
-      if((index_l>=0)&&(index_i>=0))
-      {
-        HessianMatrix.element[index_l+2][index_i]-=(-fa[0].x+8.0*fa[1].x-8.0*fa[2].x+fa[3].x)/(6.0*Delta);
-        HessianMatrix.element[index_l+2][index_i+1]-=(-fa[0].y+8.0*fa[1].y-8.0*fa[2].y+fa[3].y)/(6.0*Delta);
-        HessianMatrix.element[index_l+2][index_i+2]-=(-fa[0].z+8.0*fa[1].z-8.0*fa[2].z+fa[3].z)/(6.0*Delta);
-      }
-
-      if((index_l>=0)&&(index_j>=0))
-      {
-        HessianMatrix.element[index_l+2][index_j]-=(-fb[0].x+8.0*fb[1].x-8.0*fb[2].x+fb[3].x)/(6.0*Delta);
-        HessianMatrix.element[index_l+2][index_j+1]-=(-fb[0].y+8.0*fb[1].y-8.0*fb[2].y+fb[3].y)/(6.0*Delta);
-        HessianMatrix.element[index_l+2][index_j+2]-=(-fb[0].z+8.0*fb[1].z-8.0*fb[2].z+fb[3].z)/(6.0*Delta);
-      }
-
-      if((index_l>=0)&&(index_k>=0))
-      {
-        HessianMatrix.element[index_l+2][index_k]-=(-fc[0].x+8.0*fc[1].x-8.0*fc[2].x+fc[3].x)/(6.0*Delta);
-        HessianMatrix.element[index_l+2][index_k+1]-=(-fc[0].y+8.0*fc[1].y-8.0*fc[2].y+fc[3].y)/(6.0*Delta);
-        HessianMatrix.element[index_l+2][index_k+2]-=(-fc[0].z+8.0*fc[1].z-8.0*fc[2].z+fc[3].z)/(6.0*Delta);
-      }
-
-      if((index_l>=0)&&(index_l>=0))
-      {
-        HessianMatrix.element[index_l+2][index_l]-=(-fd[0].x+8.0*fd[1].x-8.0*fd[2].x+fd[3].x)/(6.0*Delta);
-        HessianMatrix.element[index_l+2][index_l+1]-=(-fd[0].y+8.0*fd[1].y-8.0*fd[2].y+fd[3].y)/(6.0*Delta);
-        HessianMatrix.element[index_l+2][index_l+2]-=(-fd[0].z+8.0*fd[1].z-8.0*fd[2].z+fd[3].z)/(6.0*Delta);
-      }
+        // Atom A
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posA.x+=Delta;
+        CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[0],&fb[0],&fc[0],&fd[0],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posA.x+=0.5*Delta;
+        CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[1],&fb[1],&fc[1],&fd[1],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posA.x-=0.5*Delta;
+        CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[2],&fb[2],&fc[2],&fd[2],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posA.x-=Delta;
+        CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[3],&fb[3],&fc[3],&fd[3],&strain_derivative);
+
+        if(index_i.x>=0)
+        {
+          if(index_i.x>=0) HessianMatrix.element[index_i.x][index_i.x]-=(-fa[0].x+8.0*fa[1].x-8.0*fa[2].x+fa[3].x)/(6.0*Delta);
+          if(index_i.y>=0) HessianMatrix.element[index_i.x][index_i.y]-=(-fa[0].y+8.0*fa[1].y-8.0*fa[2].y+fa[3].y)/(6.0*Delta);
+          if(index_i.z>=0) HessianMatrix.element[index_i.x][index_i.z]-=(-fa[0].z+8.0*fa[1].z-8.0*fa[2].z+fa[3].z)/(6.0*Delta);
+
+          if(index_j.x>=0) HessianMatrix.element[index_i.x][index_j.x]-=(-fb[0].x+8.0*fb[1].x-8.0*fb[2].x+fb[3].x)/(6.0*Delta);
+          if(index_j.y>=0) HessianMatrix.element[index_i.x][index_j.y]-=(-fb[0].y+8.0*fb[1].y-8.0*fb[2].y+fb[3].y)/(6.0*Delta);
+          if(index_j.z>=0) HessianMatrix.element[index_i.x][index_j.z]-=(-fb[0].z+8.0*fb[1].z-8.0*fb[2].z+fb[3].z)/(6.0*Delta);
+
+          if(index_k.x>=0) HessianMatrix.element[index_i.x][index_k.x]-=(-fc[0].x+8.0*fc[1].x-8.0*fc[2].x+fc[3].x)/(6.0*Delta);
+          if(index_k.y>=0) HessianMatrix.element[index_i.x][index_k.y]-=(-fc[0].y+8.0*fc[1].y-8.0*fc[2].y+fc[3].y)/(6.0*Delta);
+          if(index_k.z>=0) HessianMatrix.element[index_i.x][index_k.z]-=(-fc[0].z+8.0*fc[1].z-8.0*fc[2].z+fc[3].z)/(6.0*Delta);
+
+          if(index_l.x>=0) HessianMatrix.element[index_i.x][index_l.x]-=(-fd[0].x+8.0*fd[1].x-8.0*fd[2].x+fd[3].x)/(6.0*Delta);
+          if(index_l.y>=0) HessianMatrix.element[index_i.x][index_l.y]-=(-fd[0].y+8.0*fd[1].y-8.0*fd[2].y+fd[3].y)/(6.0*Delta);
+          if(index_l.z>=0) HessianMatrix.element[index_i.x][index_l.z]-=(-fd[0].z+8.0*fd[1].z-8.0*fd[2].z+fd[3].z)/(6.0*Delta);
+        }
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posA.y+=Delta;
+        CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[0],&fb[0],&fc[0],&fd[0],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posA.y+=0.5*Delta;
+        CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[1],&fb[1],&fc[1],&fd[1],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posA.y-=0.5*Delta;
+        CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[2],&fb[2],&fc[2],&fd[2],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posA.y-=Delta;
+        CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[3],&fb[3],&fc[3],&fd[3],&strain_derivative);
+
+        if(index_i.y>=0)
+        {
+          if(index_i.x>=0) HessianMatrix.element[index_i.y][index_i.x]-=(-fa[0].x+8.0*fa[1].x-8.0*fa[2].x+fa[3].x)/(6.0*Delta);
+          if(index_i.y>=0) HessianMatrix.element[index_i.y][index_i.y]-=(-fa[0].y+8.0*fa[1].y-8.0*fa[2].y+fa[3].y)/(6.0*Delta);
+          if(index_i.z>=0) HessianMatrix.element[index_i.y][index_i.z]-=(-fa[0].z+8.0*fa[1].z-8.0*fa[2].z+fa[3].z)/(6.0*Delta);
+
+          if(index_j.x>=0) HessianMatrix.element[index_i.y][index_j.x]-=(-fb[0].x+8.0*fb[1].x-8.0*fb[2].x+fb[3].x)/(6.0*Delta);
+          if(index_j.y>=0) HessianMatrix.element[index_i.y][index_j.y]-=(-fb[0].y+8.0*fb[1].y-8.0*fb[2].y+fb[3].y)/(6.0*Delta);
+          if(index_j.z>=0) HessianMatrix.element[index_i.y][index_j.z]-=(-fb[0].z+8.0*fb[1].z-8.0*fb[2].z+fb[3].z)/(6.0*Delta);
+
+          if(index_k.x>=0) HessianMatrix.element[index_i.y][index_k.x]-=(-fc[0].x+8.0*fc[1].x-8.0*fc[2].x+fc[3].x)/(6.0*Delta);
+          if(index_k.y>=0) HessianMatrix.element[index_i.y][index_k.y]-=(-fc[0].y+8.0*fc[1].y-8.0*fc[2].y+fc[3].y)/(6.0*Delta);
+          if(index_k.z>=0) HessianMatrix.element[index_i.y][index_k.z]-=(-fc[0].z+8.0*fc[1].z-8.0*fc[2].z+fc[3].z)/(6.0*Delta);
+
+          if(index_l.x>=0) HessianMatrix.element[index_i.y][index_l.x]-=(-fd[0].x+8.0*fd[1].x-8.0*fd[2].x+fd[3].x)/(6.0*Delta);
+          if(index_l.y>=0) HessianMatrix.element[index_i.y][index_l.y]-=(-fd[0].y+8.0*fd[1].y-8.0*fd[2].y+fd[3].y)/(6.0*Delta);
+          if(index_l.z>=0) HessianMatrix.element[index_i.y][index_l.z]-=(-fd[0].z+8.0*fd[1].z-8.0*fd[2].z+fd[3].z)/(6.0*Delta);
+        }
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posA.z+=Delta;
+        CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[0],&fb[0],&fc[0],&fd[0],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posA.z+=0.5*Delta;
+        CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[1],&fb[1],&fc[1],&fd[1],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posA.z-=0.5*Delta;
+        CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[2],&fb[2],&fc[2],&fd[2],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posA.z-=Delta;
+        CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[3],&fb[3],&fc[3],&fd[3],&strain_derivative);
+
+        if(index_i.z>=0)
+        {
+          if(index_i.x>=0) HessianMatrix.element[index_i.z][index_i.x]-=(-fa[0].x+8.0*fa[1].x-8.0*fa[2].x+fa[3].x)/(6.0*Delta);
+          if(index_i.y>=0) HessianMatrix.element[index_i.z][index_i.y]-=(-fa[0].y+8.0*fa[1].y-8.0*fa[2].y+fa[3].y)/(6.0*Delta);
+          if(index_i.z>=0) HessianMatrix.element[index_i.z][index_i.z]-=(-fa[0].z+8.0*fa[1].z-8.0*fa[2].z+fa[3].z)/(6.0*Delta);
+
+          if(index_j.x>=0) HessianMatrix.element[index_i.z][index_j.x]-=(-fb[0].x+8.0*fb[1].x-8.0*fb[2].x+fb[3].x)/(6.0*Delta);
+          if(index_j.y>=0) HessianMatrix.element[index_i.z][index_j.y]-=(-fb[0].y+8.0*fb[1].y-8.0*fb[2].y+fb[3].y)/(6.0*Delta);
+          if(index_j.z>=0) HessianMatrix.element[index_i.z][index_j.z]-=(-fb[0].z+8.0*fb[1].z-8.0*fb[2].z+fb[3].z)/(6.0*Delta);
+
+          if(index_k.x>=0) HessianMatrix.element[index_i.z][index_k.x]-=(-fc[0].x+8.0*fc[1].x-8.0*fc[2].x+fc[3].x)/(6.0*Delta);
+          if(index_k.y>=0) HessianMatrix.element[index_i.z][index_k.y]-=(-fc[0].y+8.0*fc[1].y-8.0*fc[2].y+fc[3].y)/(6.0*Delta);
+          if(index_k.z>=0) HessianMatrix.element[index_i.z][index_k.z]-=(-fc[0].z+8.0*fc[1].z-8.0*fc[2].z+fc[3].z)/(6.0*Delta);
+
+          if(index_l.x>=0) HessianMatrix.element[index_i.z][index_l.x]-=(-fd[0].x+8.0*fd[1].x-8.0*fd[2].x+fd[3].x)/(6.0*Delta);
+          if(index_l.y>=0) HessianMatrix.element[index_i.z][index_l.y]-=(-fd[0].y+8.0*fd[1].y-8.0*fd[2].y+fd[3].y)/(6.0*Delta);
+          if(index_l.z>=0) HessianMatrix.element[index_i.z][index_l.z]-=(-fd[0].z+8.0*fd[1].z-8.0*fd[2].z+fd[3].z)/(6.0*Delta);
+        }
+
+        // Atom B
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posB.x+=Delta;
+        CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[0],&fb[0],&fc[0],&fd[0],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posB.x+=0.5*Delta;
+        CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[1],&fb[1],&fc[1],&fd[1],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posB.x-=0.5*Delta;
+        CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[2],&fb[2],&fc[2],&fd[2],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posB.x-=Delta;
+        CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[3],&fb[3],&fc[3],&fd[3],&strain_derivative);
+
+        if(index_j.x>=0)
+        {
+          if(index_i.x>=0) HessianMatrix.element[index_j.x][index_i.x]-=(-fa[0].x+8.0*fa[1].x-8.0*fa[2].x+fa[3].x)/(6.0*Delta);
+          if(index_i.y>=0) HessianMatrix.element[index_j.x][index_i.y]-=(-fa[0].y+8.0*fa[1].y-8.0*fa[2].y+fa[3].y)/(6.0*Delta);
+          if(index_i.z>=0) HessianMatrix.element[index_j.x][index_i.z]-=(-fa[0].z+8.0*fa[1].z-8.0*fa[2].z+fa[3].z)/(6.0*Delta);
+
+          if(index_j.x>=0) HessianMatrix.element[index_j.x][index_j.x]-=(-fb[0].x+8.0*fb[1].x-8.0*fb[2].x+fb[3].x)/(6.0*Delta);
+          if(index_j.y>=0) HessianMatrix.element[index_j.x][index_j.y]-=(-fb[0].y+8.0*fb[1].y-8.0*fb[2].y+fb[3].y)/(6.0*Delta);
+          if(index_j.z>=0) HessianMatrix.element[index_j.x][index_j.z]-=(-fb[0].z+8.0*fb[1].z-8.0*fb[2].z+fb[3].z)/(6.0*Delta);
+
+          if(index_k.x>=0) HessianMatrix.element[index_j.x][index_k.x]-=(-fc[0].x+8.0*fc[1].x-8.0*fc[2].x+fc[3].x)/(6.0*Delta);
+          if(index_k.y>=0) HessianMatrix.element[index_j.x][index_k.y]-=(-fc[0].y+8.0*fc[1].y-8.0*fc[2].y+fc[3].y)/(6.0*Delta);
+          if(index_k.z>=0) HessianMatrix.element[index_j.x][index_k.z]-=(-fc[0].z+8.0*fc[1].z-8.0*fc[2].z+fc[3].z)/(6.0*Delta);
+
+          if(index_l.x>=0) HessianMatrix.element[index_j.x][index_l.x]-=(-fd[0].x+8.0*fd[1].x-8.0*fd[2].x+fd[3].x)/(6.0*Delta);
+          if(index_l.y>=0) HessianMatrix.element[index_j.x][index_l.y]-=(-fd[0].y+8.0*fd[1].y-8.0*fd[2].y+fd[3].y)/(6.0*Delta);
+          if(index_l.z>=0) HessianMatrix.element[index_j.x][index_l.z]-=(-fd[0].z+8.0*fd[1].z-8.0*fd[2].z+fd[3].z)/(6.0*Delta);
+        }
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posB.y+=Delta;
+        CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[0],&fb[0],&fc[0],&fd[0],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posB.y+=0.5*Delta;
+        CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[1],&fb[1],&fc[1],&fd[1],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posB.y-=0.5*Delta;
+        CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[2],&fb[2],&fc[2],&fd[2],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posB.y-=Delta;
+        CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[3],&fb[3],&fc[3],&fd[3],&strain_derivative);
+
+        if(index_j.y>=0)
+        {
+          if(index_i.x>=0) HessianMatrix.element[index_j.y][index_i.x]-=(-fa[0].x+8.0*fa[1].x-8.0*fa[2].x+fa[3].x)/(6.0*Delta);
+          if(index_i.y>=0) HessianMatrix.element[index_j.y][index_i.y]-=(-fa[0].y+8.0*fa[1].y-8.0*fa[2].y+fa[3].y)/(6.0*Delta);
+          if(index_i.z>=0) HessianMatrix.element[index_j.y][index_i.z]-=(-fa[0].z+8.0*fa[1].z-8.0*fa[2].z+fa[3].z)/(6.0*Delta);
+
+          if(index_j.x>=0) HessianMatrix.element[index_j.y][index_j.x]-=(-fb[0].x+8.0*fb[1].x-8.0*fb[2].x+fb[3].x)/(6.0*Delta);
+          if(index_j.y>=0) HessianMatrix.element[index_j.y][index_j.y]-=(-fb[0].y+8.0*fb[1].y-8.0*fb[2].y+fb[3].y)/(6.0*Delta);
+          if(index_j.z>=0) HessianMatrix.element[index_j.y][index_j.z]-=(-fb[0].z+8.0*fb[1].z-8.0*fb[2].z+fb[3].z)/(6.0*Delta);
+
+          if(index_k.x>=0) HessianMatrix.element[index_j.y][index_k.x]-=(-fc[0].x+8.0*fc[1].x-8.0*fc[2].x+fc[3].x)/(6.0*Delta);
+          if(index_k.y>=0) HessianMatrix.element[index_j.y][index_k.y]-=(-fc[0].y+8.0*fc[1].y-8.0*fc[2].y+fc[3].y)/(6.0*Delta);
+          if(index_k.z>=0) HessianMatrix.element[index_j.y][index_k.z]-=(-fc[0].z+8.0*fc[1].z-8.0*fc[2].z+fc[3].z)/(6.0*Delta);
+
+          if(index_l.x>=0) HessianMatrix.element[index_j.y][index_l.x]-=(-fd[0].x+8.0*fd[1].x-8.0*fd[2].x+fd[3].x)/(6.0*Delta);
+          if(index_l.y>=0) HessianMatrix.element[index_j.y][index_l.y]-=(-fd[0].y+8.0*fd[1].y-8.0*fd[2].y+fd[3].y)/(6.0*Delta);
+          if(index_l.z>=0) HessianMatrix.element[index_j.y][index_l.z]-=(-fd[0].z+8.0*fd[1].z-8.0*fd[2].z+fd[3].z)/(6.0*Delta);
+        }
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posB.z+=Delta;
+        CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[0],&fb[0],&fc[0],&fd[0],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posB.z+=0.5*Delta;
+        CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[1],&fb[1],&fc[1],&fd[1],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posB.z-=0.5*Delta;
+        CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[2],&fb[2],&fc[2],&fd[2],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posB.z-=Delta;
+        CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[3],&fb[3],&fc[3],&fd[3],&strain_derivative);
+
+        if(index_j.z>=0)
+        {
+          if(index_i.x>=0) HessianMatrix.element[index_j.z][index_i.x]-=(-fa[0].x+8.0*fa[1].x-8.0*fa[2].x+fa[3].x)/(6.0*Delta);
+          if(index_i.y>=0) HessianMatrix.element[index_j.z][index_i.y]-=(-fa[0].y+8.0*fa[1].y-8.0*fa[2].y+fa[3].y)/(6.0*Delta);
+          if(index_i.z>=0) HessianMatrix.element[index_j.z][index_i.z]-=(-fa[0].z+8.0*fa[1].z-8.0*fa[2].z+fa[3].z)/(6.0*Delta);
+
+          if(index_j.x>=0) HessianMatrix.element[index_j.z][index_j.x]-=(-fb[0].x+8.0*fb[1].x-8.0*fb[2].x+fb[3].x)/(6.0*Delta);
+          if(index_j.y>=0) HessianMatrix.element[index_j.z][index_j.y]-=(-fb[0].y+8.0*fb[1].y-8.0*fb[2].y+fb[3].y)/(6.0*Delta);
+          if(index_j.z>=0) HessianMatrix.element[index_j.z][index_j.z]-=(-fb[0].z+8.0*fb[1].z-8.0*fb[2].z+fb[3].z)/(6.0*Delta);
+
+          if(index_k.x>=0) HessianMatrix.element[index_j.z][index_k.x]-=(-fc[0].x+8.0*fc[1].x-8.0*fc[2].x+fc[3].x)/(6.0*Delta);
+          if(index_k.y>=0) HessianMatrix.element[index_j.z][index_k.y]-=(-fc[0].y+8.0*fc[1].y-8.0*fc[2].y+fc[3].y)/(6.0*Delta);
+          if(index_k.z>=0) HessianMatrix.element[index_j.z][index_k.z]-=(-fc[0].z+8.0*fc[1].z-8.0*fc[2].z+fc[3].z)/(6.0*Delta);
+
+          if(index_l.x>=0) HessianMatrix.element[index_j.z][index_l.x]-=(-fd[0].x+8.0*fd[1].x-8.0*fd[2].x+fd[3].x)/(6.0*Delta);
+          if(index_l.y>=0) HessianMatrix.element[index_j.z][index_l.y]-=(-fd[0].y+8.0*fd[1].y-8.0*fd[2].y+fd[3].y)/(6.0*Delta);
+          if(index_l.z>=0) HessianMatrix.element[index_j.z][index_l.z]-=(-fd[0].z+8.0*fd[1].z-8.0*fd[2].z+fd[3].z)/(6.0*Delta);
+        }
+
+        // Atom C
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posC.x+=Delta;
+        CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[0],&fb[0],&fc[0],&fd[0],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posC.x+=0.5*Delta;
+        CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[1],&fb[1],&fc[1],&fd[1],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posC.x-=0.5*Delta;
+        CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[2],&fb[2],&fc[2],&fd[2],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posC.x-=Delta;
+        CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[3],&fb[3],&fc[3],&fd[3],&strain_derivative);
+
+        if(index_k.x>=0)
+        {
+          if(index_i.x>=0) HessianMatrix.element[index_k.x][index_i.x]-=(-fa[0].x+8.0*fa[1].x-8.0*fa[2].x+fa[3].x)/(6.0*Delta);
+          if(index_i.y>=0) HessianMatrix.element[index_k.x][index_i.y]-=(-fa[0].y+8.0*fa[1].y-8.0*fa[2].y+fa[3].y)/(6.0*Delta);
+          if(index_i.z>=0) HessianMatrix.element[index_k.x][index_i.z]-=(-fa[0].z+8.0*fa[1].z-8.0*fa[2].z+fa[3].z)/(6.0*Delta);
+
+          if(index_j.x>=0) HessianMatrix.element[index_k.x][index_j.x]-=(-fb[0].x+8.0*fb[1].x-8.0*fb[2].x+fb[3].x)/(6.0*Delta);
+          if(index_j.y>=0) HessianMatrix.element[index_k.x][index_j.y]-=(-fb[0].y+8.0*fb[1].y-8.0*fb[2].y+fb[3].y)/(6.0*Delta);
+          if(index_j.z>=0) HessianMatrix.element[index_k.x][index_j.z]-=(-fb[0].z+8.0*fb[1].z-8.0*fb[2].z+fb[3].z)/(6.0*Delta);
+
+          if(index_k.x>=0) HessianMatrix.element[index_k.x][index_k.x]-=(-fc[0].x+8.0*fc[1].x-8.0*fc[2].x+fc[3].x)/(6.0*Delta);
+          if(index_k.y>=0) HessianMatrix.element[index_k.x][index_k.y]-=(-fc[0].y+8.0*fc[1].y-8.0*fc[2].y+fc[3].y)/(6.0*Delta);
+          if(index_k.z>=0) HessianMatrix.element[index_k.x][index_k.z]-=(-fc[0].z+8.0*fc[1].z-8.0*fc[2].z+fc[3].z)/(6.0*Delta);
+
+          if(index_l.x>=0) HessianMatrix.element[index_k.x][index_l.x]-=(-fd[0].x+8.0*fd[1].x-8.0*fd[2].x+fd[3].x)/(6.0*Delta);
+          if(index_l.y>=0) HessianMatrix.element[index_k.x][index_l.y]-=(-fd[0].y+8.0*fd[1].y-8.0*fd[2].y+fd[3].y)/(6.0*Delta);
+          if(index_l.z>=0) HessianMatrix.element[index_k.x][index_l.z]-=(-fd[0].z+8.0*fd[1].z-8.0*fd[2].z+fd[3].z)/(6.0*Delta);
+        }
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posC.y+=Delta;
+        CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[0],&fb[0],&fc[0],&fd[0],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posC.y+=0.5*Delta;
+        CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[1],&fb[1],&fc[1],&fd[1],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posC.y-=0.5*Delta;
+        CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[2],&fb[2],&fc[2],&fd[2],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posC.y-=Delta;
+        CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[3],&fb[3],&fc[3],&fd[3],&strain_derivative);
+
+        if(index_k.y>=0)
+        {
+          if(index_i.x>=0) HessianMatrix.element[index_k.y][index_i.x]-=(-fa[0].x+8.0*fa[1].x-8.0*fa[2].x+fa[3].x)/(6.0*Delta);
+          if(index_i.y>=0) HessianMatrix.element[index_k.y][index_i.y]-=(-fa[0].y+8.0*fa[1].y-8.0*fa[2].y+fa[3].y)/(6.0*Delta);
+          if(index_i.z>=0) HessianMatrix.element[index_k.y][index_i.z]-=(-fa[0].z+8.0*fa[1].z-8.0*fa[2].z+fa[3].z)/(6.0*Delta);
+
+          if(index_j.x>=0) HessianMatrix.element[index_k.y][index_j.x]-=(-fb[0].x+8.0*fb[1].x-8.0*fb[2].x+fb[3].x)/(6.0*Delta);
+          if(index_j.y>=0) HessianMatrix.element[index_k.y][index_j.y]-=(-fb[0].y+8.0*fb[1].y-8.0*fb[2].y+fb[3].y)/(6.0*Delta);
+          if(index_j.z>=0) HessianMatrix.element[index_k.y][index_j.z]-=(-fb[0].z+8.0*fb[1].z-8.0*fb[2].z+fb[3].z)/(6.0*Delta);
+
+          if(index_k.x>=0) HessianMatrix.element[index_k.y][index_k.x]-=(-fc[0].x+8.0*fc[1].x-8.0*fc[2].x+fc[3].x)/(6.0*Delta);
+          if(index_k.y>=0) HessianMatrix.element[index_k.y][index_k.y]-=(-fc[0].y+8.0*fc[1].y-8.0*fc[2].y+fc[3].y)/(6.0*Delta);
+          if(index_k.z>=0) HessianMatrix.element[index_k.y][index_k.z]-=(-fc[0].z+8.0*fc[1].z-8.0*fc[2].z+fc[3].z)/(6.0*Delta);
+
+          if(index_l.x>=0) HessianMatrix.element[index_k.y][index_l.x]-=(-fd[0].x+8.0*fd[1].x-8.0*fd[2].x+fd[3].x)/(6.0*Delta);
+          if(index_l.y>=0) HessianMatrix.element[index_k.y][index_l.y]-=(-fd[0].y+8.0*fd[1].y-8.0*fd[2].y+fd[3].y)/(6.0*Delta);
+          if(index_l.z>=0) HessianMatrix.element[index_k.y][index_l.z]-=(-fd[0].z+8.0*fd[1].z-8.0*fd[2].z+fd[3].z)/(6.0*Delta);
+        }
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posC.z+=Delta;
+        CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[0],&fb[0],&fc[0],&fd[0],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posC.z+=0.5*Delta;
+        CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[1],&fb[1],&fc[1],&fd[1],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posC.z-=0.5*Delta;
+        CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[2],&fb[2],&fc[2],&fd[2],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posC.z-=Delta;
+        CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[3],&fb[3],&fc[3],&fd[3],&strain_derivative);
+
+        if(index_k.z>=0)
+        {
+          if(index_i.x>=0) HessianMatrix.element[index_k.z][index_i.x]-=(-fa[0].x+8.0*fa[1].x-8.0*fa[2].x+fa[3].x)/(6.0*Delta);
+          if(index_i.y>=0) HessianMatrix.element[index_k.z][index_i.y]-=(-fa[0].y+8.0*fa[1].y-8.0*fa[2].y+fa[3].y)/(6.0*Delta);
+          if(index_i.z>=0) HessianMatrix.element[index_k.z][index_i.z]-=(-fa[0].z+8.0*fa[1].z-8.0*fa[2].z+fa[3].z)/(6.0*Delta);
+
+          if(index_j.x>=0) HessianMatrix.element[index_k.z][index_j.x]-=(-fb[0].x+8.0*fb[1].x-8.0*fb[2].x+fb[3].x)/(6.0*Delta);
+          if(index_j.y>=0) HessianMatrix.element[index_k.z][index_j.y]-=(-fb[0].y+8.0*fb[1].y-8.0*fb[2].y+fb[3].y)/(6.0*Delta);
+          if(index_j.z>=0) HessianMatrix.element[index_k.z][index_j.z]-=(-fb[0].z+8.0*fb[1].z-8.0*fb[2].z+fb[3].z)/(6.0*Delta);
+
+          if(index_k.x>=0) HessianMatrix.element[index_k.z][index_k.x]-=(-fc[0].x+8.0*fc[1].x-8.0*fc[2].x+fc[3].x)/(6.0*Delta);
+          if(index_k.y>=0) HessianMatrix.element[index_k.z][index_k.y]-=(-fc[0].y+8.0*fc[1].y-8.0*fc[2].y+fc[3].y)/(6.0*Delta);
+          if(index_k.z>=0) HessianMatrix.element[index_k.z][index_k.z]-=(-fc[0].z+8.0*fc[1].z-8.0*fc[2].z+fc[3].z)/(6.0*Delta);
+
+          if(index_l.x>=0) HessianMatrix.element[index_k.z][index_l.x]-=(-fd[0].x+8.0*fd[1].x-8.0*fd[2].x+fd[3].x)/(6.0*Delta);
+          if(index_l.y>=0) HessianMatrix.element[index_k.z][index_l.y]-=(-fd[0].y+8.0*fd[1].y-8.0*fd[2].y+fd[3].y)/(6.0*Delta);
+          if(index_l.z>=0) HessianMatrix.element[index_k.z][index_l.z]-=(-fd[0].z+8.0*fd[1].z-8.0*fd[2].z+fd[3].z)/(6.0*Delta);
+        }
+
+        // Atom D
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posD.x+=Delta;
+        CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[0],&fb[0],&fc[0],&fd[0],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posD.x+=0.5*Delta;
+        CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[1],&fb[1],&fc[1],&fd[1],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posD.x-=0.5*Delta;
+        CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[2],&fb[2],&fc[2],&fd[2],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posD.x-=Delta;
+        CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[3],&fb[3],&fc[3],&fd[3],&strain_derivative);
+
+        if(index_l.x>=0)
+        {
+          if(index_i.x>=0) HessianMatrix.element[index_l.x][index_i.x]-=(-fa[0].x+8.0*fa[1].x-8.0*fa[2].x+fa[3].x)/(6.0*Delta);
+          if(index_i.y>=0) HessianMatrix.element[index_l.x][index_i.y]-=(-fa[0].y+8.0*fa[1].y-8.0*fa[2].y+fa[3].y)/(6.0*Delta);
+          if(index_i.z>=0) HessianMatrix.element[index_l.x][index_i.z]-=(-fa[0].z+8.0*fa[1].z-8.0*fa[2].z+fa[3].z)/(6.0*Delta);
+
+          if(index_j.x>=0) HessianMatrix.element[index_l.x][index_j.x]-=(-fb[0].x+8.0*fb[1].x-8.0*fb[2].x+fb[3].x)/(6.0*Delta);
+          if(index_j.y>=0) HessianMatrix.element[index_l.x][index_j.y]-=(-fb[0].y+8.0*fb[1].y-8.0*fb[2].y+fb[3].y)/(6.0*Delta);
+          if(index_j.z>=0) HessianMatrix.element[index_l.x][index_j.z]-=(-fb[0].z+8.0*fb[1].z-8.0*fb[2].z+fb[3].z)/(6.0*Delta);
+
+          if(index_k.x>=0) HessianMatrix.element[index_l.x][index_k.x]-=(-fc[0].x+8.0*fc[1].x-8.0*fc[2].x+fc[3].x)/(6.0*Delta);
+          if(index_k.y>=0) HessianMatrix.element[index_l.x][index_k.y]-=(-fc[0].y+8.0*fc[1].y-8.0*fc[2].y+fc[3].y)/(6.0*Delta);
+          if(index_k.z>=0) HessianMatrix.element[index_l.x][index_k.z]-=(-fc[0].z+8.0*fc[1].z-8.0*fc[2].z+fc[3].z)/(6.0*Delta);
+
+          if(index_l.x>=0) HessianMatrix.element[index_l.x][index_l.x]-=(-fd[0].x+8.0*fd[1].x-8.0*fd[2].x+fd[3].x)/(6.0*Delta);
+          if(index_l.y>=0) HessianMatrix.element[index_l.x][index_l.y]-=(-fd[0].y+8.0*fd[1].y-8.0*fd[2].y+fd[3].y)/(6.0*Delta);
+          if(index_l.z>=0) HessianMatrix.element[index_l.x][index_l.z]-=(-fd[0].z+8.0*fd[1].z-8.0*fd[2].z+fd[3].z)/(6.0*Delta);
+        }
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posD.y+=Delta;
+        CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[0],&fb[0],&fc[0],&fd[0],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posD.y+=0.5*Delta;
+        CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[1],&fb[1],&fc[1],&fd[1],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posD.y-=0.5*Delta;
+        CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[2],&fb[2],&fc[2],&fd[2],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posD.y-=Delta;
+        CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[3],&fb[3],&fc[3],&fd[3],&strain_derivative);
+
+        if(index_l.y>=0)
+        {
+          if(index_i.x>=0) HessianMatrix.element[index_l.y][index_i.x]-=(-fa[0].x+8.0*fa[1].x-8.0*fa[2].x+fa[3].x)/(6.0*Delta);
+          if(index_i.y>=0) HessianMatrix.element[index_l.y][index_i.y]-=(-fa[0].y+8.0*fa[1].y-8.0*fa[2].y+fa[3].y)/(6.0*Delta);
+          if(index_i.z>=0) HessianMatrix.element[index_l.y][index_i.z]-=(-fa[0].z+8.0*fa[1].z-8.0*fa[2].z+fa[3].z)/(6.0*Delta);
+
+          if(index_j.x>=0) HessianMatrix.element[index_l.y][index_j.x]-=(-fb[0].x+8.0*fb[1].x-8.0*fb[2].x+fb[3].x)/(6.0*Delta);
+          if(index_j.y>=0) HessianMatrix.element[index_l.y][index_j.y]-=(-fb[0].y+8.0*fb[1].y-8.0*fb[2].y+fb[3].y)/(6.0*Delta);
+          if(index_j.z>=0) HessianMatrix.element[index_l.y][index_j.z]-=(-fb[0].z+8.0*fb[1].z-8.0*fb[2].z+fb[3].z)/(6.0*Delta);
+
+          if(index_k.x>=0) HessianMatrix.element[index_l.y][index_k.x]-=(-fc[0].x+8.0*fc[1].x-8.0*fc[2].x+fc[3].x)/(6.0*Delta);
+          if(index_k.y>=0) HessianMatrix.element[index_l.y][index_k.y]-=(-fc[0].y+8.0*fc[1].y-8.0*fc[2].y+fc[3].y)/(6.0*Delta);
+          if(index_k.z>=0) HessianMatrix.element[index_l.y][index_k.z]-=(-fc[0].z+8.0*fc[1].z-8.0*fc[2].z+fc[3].z)/(6.0*Delta);
+
+          if(index_l.x>=0) HessianMatrix.element[index_l.y][index_l.x]-=(-fd[0].x+8.0*fd[1].x-8.0*fd[2].x+fd[3].x)/(6.0*Delta);
+          if(index_l.y>=0) HessianMatrix.element[index_l.y][index_l.y]-=(-fd[0].y+8.0*fd[1].y-8.0*fd[2].y+fd[3].y)/(6.0*Delta);
+          if(index_l.z>=0) HessianMatrix.element[index_l.y][index_l.z]-=(-fd[0].z+8.0*fd[1].z-8.0*fd[2].z+fd[3].z)/(6.0*Delta);
+        }
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posD.z+=Delta;
+        CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[0],&fb[0],&fc[0],&fd[0],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posD.z+=0.5*Delta;
+        CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[1],&fb[1],&fc[1],&fd[1],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posD.z-=0.5*Delta;
+        CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[2],&fb[2],&fc[2],&fd[2],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posD.z-=Delta;
+        CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[3],&fb[3],&fc[3],&fd[3],&strain_derivative);
+
+        if(index_l.z>=0)
+        {
+          if(index_i.x>=0) HessianMatrix.element[index_l.z][index_i.x]-=(-fa[0].x+8.0*fa[1].x-8.0*fa[2].x+fa[3].x)/(6.0*Delta);
+          if(index_i.y>=0) HessianMatrix.element[index_l.z][index_i.y]-=(-fa[0].y+8.0*fa[1].y-8.0*fa[2].y+fa[3].y)/(6.0*Delta);
+          if(index_i.z>=0) HessianMatrix.element[index_l.z][index_i.z]-=(-fa[0].z+8.0*fa[1].z-8.0*fa[2].z+fa[3].z)/(6.0*Delta);
+
+          if(index_j.x>=0) HessianMatrix.element[index_l.z][index_j.x]-=(-fb[0].x+8.0*fb[1].x-8.0*fb[2].x+fb[3].x)/(6.0*Delta);
+          if(index_j.y>=0) HessianMatrix.element[index_l.z][index_j.y]-=(-fb[0].y+8.0*fb[1].y-8.0*fb[2].y+fb[3].y)/(6.0*Delta);
+          if(index_j.z>=0) HessianMatrix.element[index_l.z][index_j.z]-=(-fb[0].z+8.0*fb[1].z-8.0*fb[2].z+fb[3].z)/(6.0*Delta);
+
+          if(index_k.x>=0) HessianMatrix.element[index_l.z][index_k.x]-=(-fc[0].x+8.0*fc[1].x-8.0*fc[2].x+fc[3].x)/(6.0*Delta);
+          if(index_k.y>=0) HessianMatrix.element[index_l.z][index_k.y]-=(-fc[0].y+8.0*fc[1].y-8.0*fc[2].y+fc[3].y)/(6.0*Delta);
+          if(index_k.z>=0) HessianMatrix.element[index_l.z][index_k.z]-=(-fc[0].z+8.0*fc[1].z-8.0*fc[2].z+fc[3].z)/(6.0*Delta);
+
+          if(index_l.x>=0) HessianMatrix.element[index_l.z][index_l.x]-=(-fd[0].x+8.0*fd[1].x-8.0*fd[2].x+fd[3].x)/(6.0*Delta);
+          if(index_l.y>=0) HessianMatrix.element[index_l.z][index_l.y]-=(-fd[0].y+8.0*fd[1].y-8.0*fd[2].y+fd[3].y)/(6.0*Delta);
+          if(index_l.z>=0) HessianMatrix.element[index_l.z][index_l.z]-=(-fd[0].z+8.0*fd[1].z-8.0*fd[2].z+fd[3].z)/(6.0*Delta);
+        }
       }
     }
   }

@@ -1,27 +1,16 @@
-/*****************************************************************************************************
+/*************************************************************************************************************
     RASPA: a molecular-dynamics, monte-carlo and optimization code for nanoporous materials
-    Copyright (C) 2006-2012 David Dubbeldam, Sofia Calero, Donald E. Ellis, and Randall Q. Snurr.
+    Copyright (C) 2006-2013 David Dubbeldam, Sofia Calero, Thijs Vlugt, Donald E. Ellis, and Randall Q. Snurr.
 
     D.Dubbeldam@uva.nl            http://molsim.science.uva.nl/
     scaldia@upo.es                http://www.upo.es/raspa/
+    t.j.h.vlugt@tudelft.nl        http://homepage.tudelft.nl/v9k6y
     don-ellis@northwestern.edu    http://dvworld.northwestern.edu/
     snurr@northwestern.edu        http://zeolites.cqe.northwestern.edu/
 
-    This file 'integration.c' is part of RASPA.
+    This file 'integration.c' is part of RASPA-2.0
 
-    RASPA is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    RASPA is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *****************************************************************************************************/
+ *************************************************************************************************************/
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -59,6 +48,7 @@ void ComputeKineticEnergySystem(void)
   REAL Mass;
   VECTOR I,Velocity;
   QUATERNION p,q;
+  INT_VECTOR3 Fixed;
 
   UHostKinetic[CurrentSystem]=0.0;
   if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
@@ -69,13 +59,13 @@ void ComputeKineticEnergySystem(void)
       {
         for(i=0;i<Framework[CurrentSystem].NumberOfAtoms[f1];i++)
         {
-          if(!Framework[CurrentSystem].Atoms[f1][i].Fixed)
-          {
-            Mass=PseudoAtoms[Framework[CurrentSystem].Atoms[f1][i].Type].Mass;
-            UHostKinetic[CurrentSystem]+=0.5*Mass*(SQR(Framework[CurrentSystem].Atoms[f1][i].Velocity.x)+
-                                                   SQR(Framework[CurrentSystem].Atoms[f1][i].Velocity.y)+
-                                                   SQR(Framework[CurrentSystem].Atoms[f1][i].Velocity.z));
-          }
+          Mass=PseudoAtoms[Framework[CurrentSystem].Atoms[f1][i].Type].Mass;
+          if(!Framework[CurrentSystem].Atoms[f1][i].Fixed.x)
+            UHostKinetic[CurrentSystem]+=0.5*Mass*SQR(Framework[CurrentSystem].Atoms[f1][i].Velocity.x);
+          if(!Framework[CurrentSystem].Atoms[f1][i].Fixed.y)
+            UHostKinetic[CurrentSystem]+=0.5*Mass*SQR(Framework[CurrentSystem].Atoms[f1][i].Velocity.y);
+          if(!Framework[CurrentSystem].Atoms[f1][i].Fixed.z)
+            UHostKinetic[CurrentSystem]+=0.5*Mass*SQR(Framework[CurrentSystem].Atoms[f1][i].Velocity.z);
         }
       }
     }
@@ -91,14 +81,15 @@ void ComputeKineticEnergySystem(void)
       if(Components[Type].Groups[l].Rigid)
       {
         I=Components[Type].Groups[l].InverseInertiaVector;
-        if(!Adsorbates[CurrentSystem][i].Groups[l].FixedCenterOfMass)
-        {
-          Velocity=Adsorbates[CurrentSystem][i].Groups[l].CenterOfMassVelocity;
-          Mass=Components[Type].Groups[l].Mass;
-          UAdsorbateTranslationalKinetic[CurrentSystem]+=0.5*Mass*(SQR(Velocity.x)+SQR(Velocity.y)+SQR(Velocity.z));
-        }
+        Velocity=Adsorbates[CurrentSystem][i].Groups[l].CenterOfMassVelocity;
+        Mass=Components[Type].Groups[l].Mass;
+        Fixed=Adsorbates[CurrentSystem][i].Groups[l].FixedCenterOfMass;
+        if(!Fixed.x) UAdsorbateTranslationalKinetic[CurrentSystem]+=0.5*Mass*SQR(Velocity.x);
+        if(!Fixed.y) UAdsorbateTranslationalKinetic[CurrentSystem]+=0.5*Mass*SQR(Velocity.y);
+        if(!Fixed.z) UAdsorbateTranslationalKinetic[CurrentSystem]+=0.5*Mass*SQR(Velocity.z);
 
-        if(!Adsorbates[CurrentSystem][i].Groups[l].FixedOrientation)
+        Fixed=Adsorbates[CurrentSystem][i].Groups[l].FixedOrientation;
+        if((!Fixed.x)||(!Fixed.y)||(!Fixed.z))
         {
           p=Adsorbates[CurrentSystem][i].Groups[l].QuaternionMomentum;
           q=Adsorbates[CurrentSystem][i].Groups[l].Quaternion;
@@ -113,15 +104,12 @@ void ComputeKineticEnergySystem(void)
         for(j=0;j<Components[Type].Groups[l].NumberOfGroupAtoms;j++)
         {
           A=Components[Type].Groups[l].Atoms[j];
+          Mass=PseudoAtoms[Adsorbates[CurrentSystem][i].Atoms[A].Type].Mass;
 
-          if(!Adsorbates[CurrentSystem][i].Atoms[A].Fixed)
-          {
-            Mass=PseudoAtoms[Adsorbates[CurrentSystem][i].Atoms[A].Type].Mass;
-            UAdsorbateTranslationalKinetic[CurrentSystem]+=
-              0.5*Mass*(SQR(Adsorbates[CurrentSystem][i].Atoms[A].Velocity.x)+
-                        SQR(Adsorbates[CurrentSystem][i].Atoms[A].Velocity.y)+
-                        SQR(Adsorbates[CurrentSystem][i].Atoms[A].Velocity.z));
-          }
+          Fixed=Adsorbates[CurrentSystem][i].Atoms[A].Fixed;
+          if(!Fixed.x) UAdsorbateTranslationalKinetic[CurrentSystem]+=0.5*Mass*SQR(Adsorbates[CurrentSystem][i].Atoms[A].Velocity.x);
+          if(!Fixed.y) UAdsorbateTranslationalKinetic[CurrentSystem]+=0.5*Mass*SQR(Adsorbates[CurrentSystem][i].Atoms[A].Velocity.y);
+          if(!Fixed.z) UAdsorbateTranslationalKinetic[CurrentSystem]+=0.5*Mass*SQR(Adsorbates[CurrentSystem][i].Atoms[A].Velocity.z);
         }
       }
     }
@@ -137,14 +125,15 @@ void ComputeKineticEnergySystem(void)
       if(Components[Type].Groups[l].Rigid)
       {
         I=Components[Cations[CurrentSystem][i].Type].Groups[l].InverseInertiaVector;
-        if(!Cations[CurrentSystem][i].Groups[l].FixedCenterOfMass)
-        {
-          Velocity=Cations[CurrentSystem][i].Groups[l].CenterOfMassVelocity;
-          Mass=Components[Type].Groups[l].Mass;
-          UCationTranslationalKinetic[CurrentSystem]+=0.5*Mass*(SQR(Velocity.x)+SQR(Velocity.y)+SQR(Velocity.z));
-        }
+        Velocity=Cations[CurrentSystem][i].Groups[l].CenterOfMassVelocity;
+        Mass=Components[Type].Groups[l].Mass;
+        Fixed=Cations[CurrentSystem][i].Groups[l].FixedCenterOfMass;
+        if(!Fixed.x) UCationTranslationalKinetic[CurrentSystem]+=0.5*Mass*SQR(Velocity.x);
+        if(!Fixed.y) UCationTranslationalKinetic[CurrentSystem]+=0.5*Mass*SQR(Velocity.y);
+        if(!Fixed.z) UCationTranslationalKinetic[CurrentSystem]+=0.5*Mass*SQR(Velocity.z);
 
-        if(!Cations[CurrentSystem][i].Groups[l].FixedOrientation)
+        Fixed=Cations[CurrentSystem][i].Groups[l].FixedOrientation;
+        if((!Fixed.x)||(!Fixed.y)||(!Fixed.z))
         {
           p=Cations[CurrentSystem][i].Groups[l].QuaternionMomentum;
           q=Cations[CurrentSystem][i].Groups[l].Quaternion;
@@ -159,15 +148,12 @@ void ComputeKineticEnergySystem(void)
         for(j=0;j<Components[Type].Groups[l].NumberOfGroupAtoms;j++)
         {
           A=Components[Type].Groups[l].Atoms[j];
+          Mass=PseudoAtoms[Cations[CurrentSystem][i].Atoms[A].Type].Mass;
 
-          if(!Cations[CurrentSystem][i].Atoms[A].Fixed)
-          {
-            Mass=PseudoAtoms[Cations[CurrentSystem][i].Atoms[A].Type].Mass;
-            UCationTranslationalKinetic[CurrentSystem]+=
-              0.5*Mass*(SQR(Cations[CurrentSystem][i].Atoms[A].Velocity.x)+
-                        SQR(Cations[CurrentSystem][i].Atoms[A].Velocity.y)+
-                        SQR(Cations[CurrentSystem][i].Atoms[A].Velocity.z));
-          }
+          Fixed=Cations[CurrentSystem][i].Atoms[A].Fixed;
+          if(!Fixed.x) UCationTranslationalKinetic[CurrentSystem]+=0.5*Mass*SQR(Cations[CurrentSystem][i].Atoms[A].Velocity.x);
+          if(!Fixed.y) UCationTranslationalKinetic[CurrentSystem]+=0.5*Mass*SQR(Cations[CurrentSystem][i].Atoms[A].Velocity.y);
+          if(!Fixed.z) UCationTranslationalKinetic[CurrentSystem]+=0.5*Mass*SQR(Cations[CurrentSystem][i].Atoms[A].Velocity.z);
         }
       }
     }

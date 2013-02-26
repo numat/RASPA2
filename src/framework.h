@@ -1,27 +1,16 @@
-/*****************************************************************************************************
+/*************************************************************************************************************
     RASPA: a molecular-dynamics, monte-carlo and optimization code for nanoporous materials
-    Copyright (C) 2006-2012 David Dubbeldam, Sofia Calero, Donald E. Ellis, and Randall Q. Snurr.
+    Copyright (C) 2006-2013 David Dubbeldam, Sofia Calero, Thijs Vlugt, Donald E. Ellis, and Randall Q. Snurr.
 
     D.Dubbeldam@uva.nl            http://molsim.science.uva.nl/
     scaldia@upo.es                http://www.upo.es/raspa/
+    t.j.h.vlugt@tudelft.nl        http://homepage.tudelft.nl/v9k6y
     don-ellis@northwestern.edu    http://dvworld.northwestern.edu/
     snurr@northwestern.edu        http://zeolites.cqe.northwestern.edu/
 
-    This file 'framework.h' is part of RASPA.
+    This file 'framework.h' is part of RASPA-2.0
 
-    RASPA is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    RASPA is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *****************************************************************************************************/
+ *************************************************************************************************************/
 
 #ifndef FRAMEWORK_H
 #define FRAMEWORK_H
@@ -32,6 +21,8 @@
 
 #include <molecule.h>
 #include "vector.h"
+
+enum {FLEXIBLE_FILE_TYPE_RASPA,FLEXIBLE_FILE_TYPE_DLPOLY};
 
 extern int CorrectNetChargeOnPseudoAtom;
 extern REAL CorrectNetChargeOnPseudoAtomValue;
@@ -104,11 +95,11 @@ extern int (*SubstitutionFrameworkAtomTypes)[3];
 extern int NumberOfSubstitutions;
 extern int (*ListOfAtomSubstitutions)[3];
 
-enum {MODIFY_FRAMEWORKATOM_CONNECTED_TO,MODIFY_FRAMEWORKATOM_DIMER,MODIFY_FRAMEWORKATOM_TRIPLE};
+enum {MODIFY_FRAMEWORKATOM_CONNECTED_TO,MODIFY_FRAMEWORKATOM_DIMER,MODIFY_FRAMEWORKATOM_TRIPLE,MODIFY_FRAMEWORKATOM_PLANAR};
 extern int NumberOfModificationRules;
 extern int *ModificationRuleType;
-extern char (*ModifyFrameworkAtoms)[6][256];
-extern int (*ModifyFrameworkAtomTypes)[6];
+extern char (*ModifyFrameworkAtoms)[10][256];
+extern int (*ModifyFrameworkAtomTypes)[10];
 
 extern int NumberOfForbiddenConnectivityRules;
 extern char (*ForbiddenConnectivityAtoms)[3][256];
@@ -117,6 +108,7 @@ extern int (*ForbiddenConnectivityTypes)[3];
 void CheckFrameworkCharges(void);
 void AddAsymmetricAtom(FRAMEWORK_ASYMMETRIC_ATOM atom);
 void ReadFrameworkDefinitionCSSR(void);
+void ReadFrameworkDefinitionDLPOLY(void);
 void CreateAsymetricFrameworkAtoms(void);
 void WriteSymmetricFrameworkCssr(void);
 void WriteFrameworkCssr(void);
@@ -142,6 +134,10 @@ void ReadBlockingPockets(void);
 extern int RemoveBondNeighboursFromLongRangeInteraction;
 extern int RemoveBendNeighboursFromLongRangeInteraction;
 extern int RemoveTorsionNeighboursFromLongRangeInteraction;
+
+extern int Remove12NeighboursFromVDWInteraction;
+extern int Remove13NeighboursFromVDWInteraction;
+extern int Remove14NeighboursFromVDWInteraction;
 
 extern int Remove12NeighboursFromChargeChargeInteraction;
 extern int Remove13NeighboursFromChargeChargeInteraction;
@@ -202,6 +198,7 @@ typedef struct FrameworkComponent
   int ForceSpaceGroupDetection;
 
   char FrameworkDefinitions[256];
+  int FlexibleModelInputType;
 
   int AnisotropicType;
 
@@ -244,6 +241,15 @@ typedef struct FrameworkComponent
   int NumberOfCoreShellDefinitions;
   PAIR *CoreShellDefinitions;
   int *NumberOfCoreShellsPerType;
+
+  REAL Intra14VDWScalingValue;
+  REAL Intra14ChargeChargeScalingValue;
+
+  int NumberOfIntra12Interactions;
+  int NumberOfIntra13Interactions;
+  int NumberOfIntra14Interactions;
+  int NumberOfIntra123Interactions;
+  int NumberOfIntra1234Interactions;
 
   int NumberOfBondsDefinitions;                                  // the number of bond definitions 
   int *BondDefinitionType;                                       // the type of the bonds (i.e. HARMONIC_BOND)
@@ -401,6 +407,10 @@ typedef struct FrameworkComponent
   int *MaxNumberOfExcludedIntraChargeCharge;
   PAIR **ExcludedIntraChargeCharge;
 
+  int *NumberOfExcludedIntra14ScalingChargeCharge;
+  int *MaxNumberOfExcludedIntra14ScalingChargeCharge;
+  PAIR **ExcludedIntra14ScalingChargeCharge;
+
   int *NumberOfExcludedIntraChargeBondDipole;
   int *MaxNumberOfExcludedIntraChargeBondDipole;
   PAIR **ExcludedIntraChargeBondDipole;
@@ -420,7 +430,11 @@ void MakeFrameworkCellList(void);
 void AllocateAnisotropicNeighbors(void);
 
 void ReadFrameworkDefinitionMOL(void);
+
+int ReadFrameworkSpecificDefinition(void);
 int ReadFrameworkDefinition(void);
+void WriteFrameworkDefinition(void);
+
 void CellProperties(REAL_MATRIX3x3 *in,REAL_MATRIX3x3 *out,REAL *Volume);
 
 void ReadIonSitingDefinition(void);

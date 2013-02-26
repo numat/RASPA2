@@ -1,27 +1,16 @@
-/*****************************************************************************************************
+/*************************************************************************************************************
     RASPA: a molecular-dynamics, monte-carlo and optimization code for nanoporous materials
-    Copyright (C) 2006-2012 David Dubbeldam, Sofia Calero, Donald E. Ellis, and Randall Q. Snurr.
+    Copyright (C) 2006-2013 David Dubbeldam, Sofia Calero, Thijs Vlugt, Donald E. Ellis, and Randall Q. Snurr.
 
     D.Dubbeldam@uva.nl            http://molsim.science.uva.nl/
     scaldia@upo.es                http://www.upo.es/raspa/
+    t.j.h.vlugt@tudelft.nl        http://homepage.tudelft.nl/v9k6y
     don-ellis@northwestern.edu    http://dvworld.northwestern.edu/
     snurr@northwestern.edu        http://zeolites.cqe.northwestern.edu/
 
-    This file 'molecule.h' is part of RASPA.
+    This file 'molecule.c' is part of RASPA-2.0
 
-    RASPA is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    RASPA is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *****************************************************************************************************/
+ *************************************************************************************************************/
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -82,6 +71,8 @@ int CurrentCationMolecule;
 CATION_MOLECULE **Cations;
 
 int NumberOfComponents;
+int NumberOfAdsorbateComponents;
+int NumberOfCationComponents;
 COMPONENT *Components;
 
 REAL Derivatives[5];
@@ -181,6 +172,99 @@ int AddPseudoAtom(PSEUDO_ATOM atom)
 }
 
 
+int SelectRandomMoleculeOfType(int comp)
+{
+  int d,count;
+  int CurrentAdsorbateMolecule;
+  int CurrentCationMolecule;
+
+  // choose a random molecule of this component
+  d=(int)(RandomNumber()*(REAL)Components[comp].NumberOfMolecules[CurrentSystem]);
+
+  if(Components[comp].ExtraFrameworkMolecule)
+  {
+    count=-1;
+    CurrentAdsorbateMolecule=-1;
+    CurrentCationMolecule=-1;
+    do   // search for d-th molecule of the right type
+      if(Cations[CurrentSystem][++CurrentCationMolecule].Type==CurrentComponent) count++;
+    while(d!=count);
+  }
+  else
+  {
+    count=-1;
+    CurrentAdsorbateMolecule=-1;
+    CurrentCationMolecule=-1;
+    do   // search for d-th molecule of the right type
+      if(Adsorbates[CurrentSystem][++CurrentAdsorbateMolecule].Type==CurrentComponent) count++;
+    while(d!=count);
+    return CurrentAdsorbateMolecule;
+  }
+  return -1;
+}
+
+int IsFractionalAdsorbateMolecule(int m)
+{
+  int i;
+
+  for(i=0;i<NumberOfComponents;i++)
+    if((!Components[i].ExtraFrameworkMolecule)&&(Components[i].FractionalMolecule[CurrentSystem]==m)) return TRUE;
+
+  return FALSE;
+}
+
+int IsFractionalCationMolecule(int m)
+{
+  int i;
+
+  for(i=0;i<NumberOfComponents;i++)
+    if((Components[i].ExtraFrameworkMolecule)&&(Components[i].FractionalMolecule[CurrentSystem]==m)) return TRUE;
+
+  return FALSE;
+}
+
+int SelectRandomAdsorbateOfTypeExcludingFractionalMolecules(int comp)
+{
+  int d,count;
+  int CurrentMolecule;
+
+  // choose a random molecule of this component
+  d=(int)(RandomNumber()*(REAL)(Components[comp].NumberOfMolecules[CurrentSystem]-NumberOfAdsorbateComponents));
+
+  count=-1;
+  CurrentMolecule=-1;
+  do   // search for d-th molecule of the right type
+  {
+    CurrentMolecule++;
+    if((Adsorbates[CurrentSystem][CurrentMolecule].Type==comp)&&(!IsFractionalAdsorbateMolecule(CurrentMolecule))) count++;
+  }
+  while(d!=count);
+
+  return CurrentMolecule;
+}
+
+
+int SelectRandomCationOfTypeExcludingFractionalMolecules(int comp)
+{
+  int d,count;
+  int CurrentMolecule;
+
+  // choose a random molecule of this component
+  d=(int)(RandomNumber()*(REAL)(Components[comp].NumberOfMolecules[CurrentSystem]-NumberOfCationComponents));
+
+  count=-1;
+  CurrentMolecule=-1;
+  do   // search for d-th molecule of the right type
+  {
+    CurrentMolecule++;
+    if((Cations[CurrentSystem][CurrentMolecule].Type==comp)&&(!IsFractionalCationMolecule(CurrentMolecule))) count++;
+  }
+  while(d!=count);
+
+  return CurrentMolecule;
+}
+
+
 // Read the definitions of the pseudo Atoms
 void ReadPseudoAtomsDefinitions(void)
 {
@@ -241,15 +325,18 @@ void ReadPseudoAtomsDefinitions(void)
     ReadLine(line,1024,FilePtr);
     arg_pointer=line;
 
-    sscanf(arg_pointer,"%s %s %s %s %s %lf %lf%n",
+    sscanf(arg_pointer,"%s %s %s %s %d %lf %lf%n",
        (char*)&PseudoAtoms[i].Name,
        buffer,
        (char*)&PseudoAtoms[i].PrintToPDBName,
        (char*)&PseudoAtoms[i].ChemicalElement,
-       (char*)&PseudoAtoms[i].OxidationStateString,
+       &PseudoAtoms[i].OxidationState,
        &temp1,
        &temp2,
        &n);
+
+    sprintf(PseudoAtoms[i].OxidationStateString,"%+d",PseudoAtoms[i].OxidationState);
+
     PseudoAtoms[i].Mass=(REAL)temp1;
     PseudoAtoms[i].Charge1=(REAL)temp2;
     arg_pointer+=n;
@@ -314,7 +401,7 @@ void ReadPseudoAtomsDefinitions(void)
     else
       PseudoAtoms[i].PrintToPDB=FALSE;
 
-    PseudoAtoms[i].ChargeDefinitionType=CHARGE_PER_ATOM_TYPE;
+    PseudoAtoms[i].ChargeDefinitionType=CHARGE_ATOM_FROM_PSEUDO_ATOM_DEFINITION;
   }
 }
 
@@ -675,6 +762,11 @@ void ReadComponentDefinition(int comp)
   Components[comp].NumberOfRigidAtoms=0;
   Components[comp].NumberOfFlexibleAtoms=0;
 
+  if(Components[comp].ExtraFrameworkMolecule)
+    NumberOfCationComponents++;
+  else
+    NumberOfAdsorbateComponents++;
+
   sprintf(buffer,"%s.def",Components[comp].Name);
   if(!(FilePtr=fopen(buffer,"r")))
   {
@@ -737,8 +829,18 @@ void ReadComponentDefinition(int comp)
 
   Components[comp].Fixed=(int*)calloc(Components[comp].NumberOfAtoms,sizeof(int));
   Components[comp].Type=(int*)calloc(Components[comp].NumberOfAtoms,sizeof(int));
+  //Components[comp].CFVDWScalingParameter=(REAL*)calloc(Components[comp].NumberOfAtoms,sizeof(REAL));
+  //Components[comp].CFChargeScalingParameter=(REAL*)calloc(Components[comp].NumberOfAtoms,sizeof(REAL));
   Components[comp].Charge=(REAL*)calloc(Components[comp].NumberOfAtoms,sizeof(REAL));
   Components[comp].Connectivity=(int*)calloc(Components[comp].NumberOfAtoms,sizeof(int));
+
+/*
+  for(i=0;i<Components[comp].NumberOfAtoms;i++)
+  {
+    Components[comp].CFVDWScalingParameter[i]=1.0;
+    Components[comp].CFChargeScalingParameter[i]=1.0;
+  }
+*/
 
   // allocate bond-connectivity matrix
   Components[comp].ConnectivityMatrix=(int**)calloc(Components[comp].NumberOfAtoms,sizeof(int*));
@@ -2594,9 +2696,15 @@ void InsertAdsorbateMolecule(void)
     Adsorbates[CurrentSystem][NewMolecule].Atoms[i].Velocity=NewVelocity[CurrentSystem][i];
     Adsorbates[CurrentSystem][NewMolecule].Atoms[i].Force=NewForce[CurrentSystem][i];
 
+    // new Continuous-Fraction scaling factors are taken from the component-information
+    Adsorbates[CurrentSystem][NewMolecule].Atoms[i].CFVDWScalingParameter=CFVDWScaling[i];
+    Adsorbates[CurrentSystem][NewMolecule].Atoms[i].CFChargeScalingParameter=CFChargeScaling[i];
+
     type=Components[CurrentComponent].Type[i];
     Adsorbates[CurrentSystem][NewMolecule].Atoms[i].Type=type;
-    Adsorbates[CurrentSystem][NewMolecule].Atoms[i].Fixed=Components[CurrentComponent].Fixed[i];
+    Adsorbates[CurrentSystem][NewMolecule].Atoms[i].Fixed.x=Components[CurrentComponent].Fixed[i];
+    Adsorbates[CurrentSystem][NewMolecule].Atoms[i].Fixed.y=Components[CurrentComponent].Fixed[i];
+    Adsorbates[CurrentSystem][NewMolecule].Atoms[i].Fixed.z=Components[CurrentComponent].Fixed[i];
     Adsorbates[CurrentSystem][NewMolecule].Atoms[i].Charge=Components[CurrentComponent].Charge[i];
     NumberOfPseudoAtomsType[CurrentSystem][type]++;
   }
@@ -2611,28 +2719,17 @@ void InsertAdsorbateMolecule(void)
   InitializeVelocityAdsorbate(NewMolecule);
 
   // modify the degrees of freedom
-  for(i=0;i<Components[CurrentComponent].NumberOfGroups;i++)
-  {
-    if(Components[CurrentComponent].Groups[i].Rigid)
-    {
-      DegreesOfFreedomAdsorbates[CurrentSystem]+=3;
-      DegreesOfFreedomTranslation[CurrentSystem]+=3;
-      DegreesOfFreedomTranslationalAdsorbates[CurrentSystem]+=3;
-      DegreesOfFreedom[CurrentSystem]+=3;
+  DegreesOfFreedom[CurrentSystem]+=Components[CurrentComponent].DegreesOfFreedom;
+  DegreesOfFreedomRotation[CurrentSystem]+=Components[CurrentComponent].RotationalDegreesOfFreedom;
+  DegreesOfFreedomTranslation[CurrentSystem]+=Components[CurrentComponent].TranslationalDegreesOfFreedom;
+  DegreesOfFreedomVibration[CurrentSystem]+=Components[CurrentComponent].VibrationalDegreesOfFreedom;
+  DegreesOfFreedomConstraint[CurrentSystem]+=Components[CurrentComponent].ConstraintDegreesOfFreedom;
 
-      DegreesOfFreedomRotation[CurrentSystem]+=Components[CurrentComponent].Groups[i].RotationalDegreesOfFreedom;
-      DegreesOfFreedomAdsorbates[CurrentSystem]+=Components[CurrentComponent].Groups[i].RotationalDegreesOfFreedom;
-      DegreesOfFreedomRotationalAdsorbates[CurrentSystem]+=Components[CurrentComponent].Groups[i].RotationalDegreesOfFreedom;
-      DegreesOfFreedom[CurrentSystem]+=Components[CurrentComponent].Groups[i].RotationalDegreesOfFreedom;
-    }
-    else
-    {
-      DegreesOfFreedomTranslation[CurrentSystem]+=3*Components[CurrentComponent].Groups[i].NumberOfGroupAtoms;
-      DegreesOfFreedomAdsorbates[CurrentSystem]+=3*Components[CurrentComponent].Groups[i].NumberOfGroupAtoms;
-      DegreesOfFreedomTranslationalAdsorbates[CurrentSystem]+=3*Components[CurrentComponent].Groups[i].NumberOfGroupAtoms;
-      DegreesOfFreedom[CurrentSystem]+=3*Components[CurrentComponent].Groups[i].NumberOfGroupAtoms;
-    }
-  }
+  DegreesOfFreedomAdsorbates[CurrentSystem]+=Components[CurrentComponent].DegreesOfFreedom;
+  DegreesOfFreedomRotationalAdsorbates[CurrentSystem]+=Components[CurrentComponent].RotationalDegreesOfFreedom;
+  DegreesOfFreedomTranslationalAdsorbates[CurrentSystem]+=Components[CurrentComponent].TranslationalDegreesOfFreedom;
+  DegreesOfFreedomVibrationalAdsorbates[CurrentSystem]+=Components[CurrentComponent].VibrationalDegreesOfFreedom;
+  DegreesOfFreedomConstraintAdsorbates[CurrentSystem]+=Components[CurrentComponent].ConstraintDegreesOfFreedom;
   //InitializeNoseHooverCurrentSystem();
 }
 
@@ -2672,29 +2769,27 @@ void RemoveAdsorbateMolecule(void)
     NumberOfPseudoAtomsType[CurrentSystem][type]--;
   }
 
-  // modify the degrees of freedom
-  for(i=0;i<Components[CurrentComponent].NumberOfGroups;i++)
+  // shift the fraction-molecule references if needed (they are molecule-'numbers' which have to
+  // be changed when you delete a molecule with a lower index).
+  for(i=0;i<NumberOfComponents;i++)
   {
-    if(Components[CurrentComponent].Groups[i].Rigid)
-    {
-      DegreesOfFreedomAdsorbates[CurrentSystem]-=3;
-      DegreesOfFreedomTranslation[CurrentSystem]-=3;
-      DegreesOfFreedomTranslationalAdsorbates[CurrentSystem]-=3;
-      DegreesOfFreedom[CurrentSystem]-=3;
-
-      DegreesOfFreedomRotation[CurrentSystem]-=Components[CurrentComponent].Groups[i].RotationalDegreesOfFreedom;
-      DegreesOfFreedomAdsorbates[CurrentSystem]-=Components[CurrentComponent].Groups[i].RotationalDegreesOfFreedom;
-      DegreesOfFreedomRotationalAdsorbates[CurrentSystem]-=Components[CurrentComponent].Groups[i].RotationalDegreesOfFreedom;
-      DegreesOfFreedom[CurrentSystem]-=Components[CurrentComponent].Groups[i].RotationalDegreesOfFreedom;
-    }
-    else
-    {
-      DegreesOfFreedomTranslation[CurrentSystem]-=3*Components[CurrentComponent].Groups[i].NumberOfGroupAtoms;
-      DegreesOfFreedomAdsorbates[CurrentSystem]-=3*Components[CurrentComponent].Groups[i].NumberOfGroupAtoms;
-      DegreesOfFreedomTranslationalAdsorbates[CurrentSystem]-=3*Components[CurrentComponent].Groups[i].NumberOfGroupAtoms;
-      DegreesOfFreedom[CurrentSystem]-=3*Components[CurrentComponent].Groups[i].NumberOfGroupAtoms;
-    }
+    if((Components[i].FractionalMolecule[CurrentSystem]==LastMolecule)&&(!Components[i].ExtraFrameworkMolecule))
+      Components[i].FractionalMolecule[CurrentSystem]=CurrentAdsorbateMolecule;
   }
+
+
+  // modify the degrees of freedom
+  DegreesOfFreedom[CurrentSystem]-=Components[CurrentComponent].DegreesOfFreedom;
+  DegreesOfFreedomRotation[CurrentSystem]-=Components[CurrentComponent].RotationalDegreesOfFreedom;
+  DegreesOfFreedomTranslation[CurrentSystem]-=Components[CurrentComponent].TranslationalDegreesOfFreedom;
+  DegreesOfFreedomVibration[CurrentSystem]-=Components[CurrentComponent].VibrationalDegreesOfFreedom;
+  DegreesOfFreedomConstraint[CurrentSystem]-=Components[CurrentComponent].ConstraintDegreesOfFreedom;
+
+  DegreesOfFreedomAdsorbates[CurrentSystem]-=Components[CurrentComponent].DegreesOfFreedom;
+  DegreesOfFreedomRotationalAdsorbates[CurrentSystem]-=Components[CurrentComponent].RotationalDegreesOfFreedom;
+  DegreesOfFreedomTranslationalAdsorbates[CurrentSystem]-=Components[CurrentComponent].TranslationalDegreesOfFreedom;
+  DegreesOfFreedomVibrationalAdsorbates[CurrentSystem]-=Components[CurrentComponent].VibrationalDegreesOfFreedom;
+  DegreesOfFreedomConstraintAdsorbates[CurrentSystem]-=Components[CurrentComponent].ConstraintDegreesOfFreedom;
   //InitializeNoseHooverCurrentSystem();
 }
 
@@ -2783,9 +2878,15 @@ void InsertCationMolecule(void)
     Cations[CurrentSystem][NewMolecule].Atoms[i].Velocity=NewVelocity[CurrentSystem][i];
     Cations[CurrentSystem][NewMolecule].Atoms[i].Force=NewForce[CurrentSystem][i];
 
+    // new Continuous-Fraction scaling factors are taken from the component-information
+    Cations[CurrentSystem][NewMolecule].Atoms[i].CFVDWScalingParameter=CFVDWScaling[i];
+    Cations[CurrentSystem][NewMolecule].Atoms[i].CFChargeScalingParameter=CFChargeScaling[i];
+
     type=Components[CurrentComponent].Type[i];
     Cations[CurrentSystem][NewMolecule].Atoms[i].Type=type;
-    Cations[CurrentSystem][NewMolecule].Atoms[i].Fixed=Components[CurrentComponent].Fixed[i];
+    Cations[CurrentSystem][NewMolecule].Atoms[i].Fixed.x=Components[CurrentComponent].Fixed[i];
+    Cations[CurrentSystem][NewMolecule].Atoms[i].Fixed.y=Components[CurrentComponent].Fixed[i];
+    Cations[CurrentSystem][NewMolecule].Atoms[i].Fixed.z=Components[CurrentComponent].Fixed[i];
     Cations[CurrentSystem][NewMolecule].Atoms[i].Charge=Components[CurrentComponent].Charge[i];
     NumberOfPseudoAtomsType[CurrentSystem][type]++;
   }
@@ -2800,28 +2901,18 @@ void InsertCationMolecule(void)
   InitializeVelocityCation(NewMolecule);
 
   // modify the degrees of freedom
-  for(i=0;i<Components[CurrentComponent].NumberOfGroups;i++)
-  {
-    if(Components[CurrentComponent].Groups[i].Rigid)
-    {
-      DegreesOfFreedomCations[CurrentSystem]+=3;
-      DegreesOfFreedomTranslation[CurrentSystem]+=3;
-      DegreesOfFreedomTranslationalCations[CurrentSystem]+=3;
-      DegreesOfFreedom[CurrentSystem]+=3;
+  DegreesOfFreedom[CurrentSystem]+=Components[CurrentComponent].DegreesOfFreedom;
+  DegreesOfFreedomRotation[CurrentSystem]+=Components[CurrentComponent].RotationalDegreesOfFreedom;
+  DegreesOfFreedomTranslation[CurrentSystem]+=Components[CurrentComponent].TranslationalDegreesOfFreedom;
+  DegreesOfFreedomVibration[CurrentSystem]+=Components[CurrentComponent].VibrationalDegreesOfFreedom;
+  DegreesOfFreedomConstraint[CurrentSystem]+=Components[CurrentComponent].ConstraintDegreesOfFreedom;
 
-      DegreesOfFreedomRotation[CurrentSystem]+=Components[CurrentComponent].Groups[i].RotationalDegreesOfFreedom;
-      DegreesOfFreedomCations[CurrentSystem]+=Components[CurrentComponent].Groups[i].RotationalDegreesOfFreedom;
-      DegreesOfFreedomRotationalCations[CurrentSystem]+=Components[CurrentComponent].Groups[i].RotationalDegreesOfFreedom;
-      DegreesOfFreedom[CurrentSystem]+=Components[CurrentComponent].Groups[i].RotationalDegreesOfFreedom;
-    }
-    else
-    {
-      DegreesOfFreedomTranslation[CurrentSystem]+=3*Components[CurrentComponent].Groups[i].NumberOfGroupAtoms;
-      DegreesOfFreedomCations[CurrentSystem]+=3*Components[CurrentComponent].Groups[i].NumberOfGroupAtoms;
-      DegreesOfFreedomTranslationalCations[CurrentSystem]+=3*Components[CurrentComponent].Groups[i].NumberOfGroupAtoms;
-      DegreesOfFreedom[CurrentSystem]+=3*Components[CurrentComponent].Groups[i].NumberOfGroupAtoms;
-    }
-  }
+  DegreesOfFreedomCations[CurrentSystem]+=Components[CurrentComponent].DegreesOfFreedom;
+  DegreesOfFreedomRotationalCations[CurrentSystem]+=Components[CurrentComponent].RotationalDegreesOfFreedom;
+  DegreesOfFreedomTranslationalCations[CurrentSystem]+=Components[CurrentComponent].TranslationalDegreesOfFreedom;
+  DegreesOfFreedomVibrationalCations[CurrentSystem]+=Components[CurrentComponent].VibrationalDegreesOfFreedom;
+  DegreesOfFreedomConstraintCations[CurrentSystem]+=Components[CurrentComponent].ConstraintDegreesOfFreedom;
+
   //InitializeNoseHooverCurrentSystem();
 }
 
@@ -2861,29 +2952,26 @@ void RemoveCationMolecule(void)
     NumberOfPseudoAtomsType[CurrentSystem][type]--;
   }
 
-  // modify the degrees of freedom
-  for(i=0;i<Components[CurrentComponent].NumberOfGroups;i++)
+  // shift the fraction-molecule references if needed (they are molecule-'numbers' which have to
+  // be changed when you delete a molecule with a lower index).
+  for(i=0;i<NumberOfComponents;i++)
   {
-    if(Components[CurrentComponent].Groups[i].Rigid)
-    {
-      DegreesOfFreedomCations[CurrentSystem]-=3;
-      DegreesOfFreedomTranslation[CurrentSystem]-=3;
-      DegreesOfFreedomTranslationalCations[CurrentSystem]-=3;
-      DegreesOfFreedom[CurrentSystem]-=3;
-
-      DegreesOfFreedomRotation[CurrentSystem]-=Components[CurrentComponent].Groups[i].RotationalDegreesOfFreedom;
-      DegreesOfFreedomCations[CurrentSystem]-=Components[CurrentComponent].Groups[i].RotationalDegreesOfFreedom;
-      DegreesOfFreedomRotationalCations[CurrentSystem]-=Components[CurrentComponent].Groups[i].RotationalDegreesOfFreedom;
-      DegreesOfFreedom[CurrentSystem]-=Components[CurrentComponent].Groups[i].RotationalDegreesOfFreedom;
-    }
-    else
-    {
-      DegreesOfFreedomTranslation[CurrentSystem]-=3*Components[CurrentComponent].Groups[i].NumberOfGroupAtoms;
-      DegreesOfFreedomCations[CurrentSystem]-=3*Components[CurrentComponent].Groups[i].NumberOfGroupAtoms;
-      DegreesOfFreedomTranslationalCations[CurrentSystem]-=3*Components[CurrentComponent].Groups[i].NumberOfGroupAtoms;
-      DegreesOfFreedom[CurrentSystem]-=3*Components[CurrentComponent].Groups[i].NumberOfGroupAtoms;
-    }
+    if((CurrentCationMolecule<Components[i].FractionalMolecule[CurrentSystem])&&(Components[i].ExtraFrameworkMolecule))
+      Components[i].FractionalMolecule[CurrentSystem]--;
   }
+
+  // modify the degrees of freedom
+  DegreesOfFreedom[CurrentSystem]-=Components[CurrentComponent].DegreesOfFreedom;
+  DegreesOfFreedomRotation[CurrentSystem]-=Components[CurrentComponent].RotationalDegreesOfFreedom;
+  DegreesOfFreedomTranslation[CurrentSystem]-=Components[CurrentComponent].TranslationalDegreesOfFreedom;
+  DegreesOfFreedomVibration[CurrentSystem]-=Components[CurrentComponent].VibrationalDegreesOfFreedom;
+  DegreesOfFreedomConstraint[CurrentSystem]-=Components[CurrentComponent].ConstraintDegreesOfFreedom;
+
+  DegreesOfFreedomCations[CurrentSystem]-=Components[CurrentComponent].DegreesOfFreedom;
+  DegreesOfFreedomRotationalCations[CurrentSystem]-=Components[CurrentComponent].RotationalDegreesOfFreedom;
+  DegreesOfFreedomTranslationalCations[CurrentSystem]-=Components[CurrentComponent].TranslationalDegreesOfFreedom;
+  DegreesOfFreedomVibrationalCations[CurrentSystem]-=Components[CurrentComponent].VibrationalDegreesOfFreedom;
+  DegreesOfFreedomConstraintCations[CurrentSystem]-=Components[CurrentComponent].ConstraintDegreesOfFreedom;
   //InitializeNoseHooverCurrentSystem();
 }
 
@@ -2922,6 +3010,8 @@ void RescaleComponentProbabilities(void)
             Components[i].ProbabilityReinsertionInPlaneMove+
             Components[i].ProbabilityIdentityChangeMove+
             Components[i].ProbabilitySwapMove+
+            Components[i].ProbabilityCFSwapLambdaMove+
+            Components[i].ProbabilityCFCBSwapLambdaMove+
             Components[i].ProbabilityWidomMove+
             Components[i].ProbabilitySurfaceAreaMove+
             Components[i].ProbabilityGibbsSwapChangeMove+
@@ -2935,7 +3025,9 @@ void RescaleComponentProbabilities(void)
     Components[i].ProbabilityReinsertionInPlaneMove+=Components[i].ProbabilityReinsertionInPlaceMove;
     Components[i].ProbabilityIdentityChangeMove+=Components[i].ProbabilityReinsertionInPlaneMove;
     Components[i].ProbabilitySwapMove+=Components[i].ProbabilityIdentityChangeMove;
-    Components[i].ProbabilityWidomMove+=Components[i].ProbabilitySwapMove;
+    Components[i].ProbabilityCFSwapLambdaMove+=Components[i].ProbabilitySwapMove;
+    Components[i].ProbabilityCFCBSwapLambdaMove+=Components[i].ProbabilityCFSwapLambdaMove;
+    Components[i].ProbabilityWidomMove+=Components[i].ProbabilityCFCBSwapLambdaMove;
     Components[i].ProbabilitySurfaceAreaMove+=Components[i].ProbabilityWidomMove;
     Components[i].ProbabilityGibbsSwapChangeMove+=Components[i].ProbabilitySurfaceAreaMove;
     Components[i].ProbabilityGibbsIdentityChangeMove+=Components[i].ProbabilityGibbsSwapChangeMove;
@@ -2951,6 +3043,8 @@ void RescaleComponentProbabilities(void)
       Components[i].ProbabilityReinsertionInPlaneMove/=TotProb;
       Components[i].ProbabilityIdentityChangeMove/=TotProb;
       Components[i].ProbabilitySwapMove/=TotProb;
+      Components[i].ProbabilityCFSwapLambdaMove/=TotProb;
+      Components[i].ProbabilityCFCBSwapLambdaMove/=TotProb;
       Components[i].ProbabilityWidomMove/=TotProb;
       Components[i].ProbabilitySurfaceAreaMove/=TotProb;
       Components[i].ProbabilityGibbsSwapChangeMove/=TotProb;
@@ -2966,7 +3060,9 @@ void RescaleComponentProbabilities(void)
     Components[i].FractionOfReinsertionInPlaneMove=Components[i].ProbabilityReinsertionInPlaneMove-Components[i].ProbabilityReinsertionInPlaceMove;
     Components[i].FractionOfIdentityChangeMove=Components[i].ProbabilityIdentityChangeMove-Components[i].ProbabilityReinsertionInPlaneMove;
     Components[i].FractionOfSwapMove=Components[i].ProbabilitySwapMove-Components[i].ProbabilityIdentityChangeMove;
-    Components[i].FractionOfWidomMove=Components[i].ProbabilityWidomMove-Components[i].ProbabilitySwapMove;
+    Components[i].FractionOfCFSwapLambdaMove=Components[i].ProbabilityCFSwapLambdaMove-Components[i].ProbabilitySwapMove;
+    Components[i].FractionOfCFCBSwapLambdaMove=Components[i].ProbabilityCFCBSwapLambdaMove-Components[i].ProbabilityCFSwapLambdaMove;
+    Components[i].FractionOfWidomMove=Components[i].ProbabilityWidomMove-Components[i].ProbabilityCFCBSwapLambdaMove;
     Components[i].FractionOfSurfaceAreaMove=Components[i].ProbabilitySurfaceAreaMove-Components[i].ProbabilityWidomMove;
     Components[i].FractionOfGibbsSwapChangeMove=Components[i].ProbabilityGibbsSwapChangeMove-Components[i].ProbabilitySurfaceAreaMove;
     Components[i].FractionOfGibbsIdentityChangeMove=Components[i].ProbabilityGibbsIdentityChangeMove-Components[i].ProbabilityGibbsSwapChangeMove;
@@ -4536,33 +4632,36 @@ void RemoveVelocityDrift(void)
     }
   }
 
-  switch(Framework[CurrentSystem].FrameworkModel)
+  if(SimulationType==MOLECULAR_DYNAMICS)
   {
-    case NONE:
-      if(NumberOfAdsorbateMolecules[CurrentSystem]+NumberOfAdsorbateMolecules[CurrentSystem]>1)
-      {
+    switch(Framework[CurrentSystem].FrameworkModel)
+    {
+      case NONE:
+        if(NumberOfAdsorbateMolecules[CurrentSystem]+NumberOfAdsorbateMolecules[CurrentSystem]>1)
+        {
+          DegreesOfFreedom[CurrentSystem]-=3;
+          DegreesOfFreedomTranslation[CurrentSystem]-=3;
+          if(!NumberOfAdsorbateMolecules[CurrentSystem]) 
+          {
+            DegreesOfFreedomCations[CurrentSystem]-=3;
+            DegreesOfFreedomTranslationalCations[CurrentSystem]-=3;
+          }
+          if(!NumberOfCationMolecules[CurrentSystem]) 
+          {
+            DegreesOfFreedomAdsorbates[CurrentSystem]-=3;
+            DegreesOfFreedomTranslationalAdsorbates[CurrentSystem]-=3;
+          }
+        }
+        break;
+      case FLEXIBLE:
         DegreesOfFreedom[CurrentSystem]-=3;
         DegreesOfFreedomTranslation[CurrentSystem]-=3;
-        if(!NumberOfAdsorbateMolecules[CurrentSystem]) 
-        {
-          DegreesOfFreedomCations[CurrentSystem]-=3;
-          DegreesOfFreedomTranslationalCations[CurrentSystem]-=3;
-        }
-        if(!NumberOfCationMolecules[CurrentSystem]) 
-        {
-          DegreesOfFreedomAdsorbates[CurrentSystem]-=3;
-          DegreesOfFreedomTranslationalAdsorbates[CurrentSystem]-=3;
-        }
-      }
-      break;
-    case FLEXIBLE:
-      DegreesOfFreedom[CurrentSystem]-=3;
-      DegreesOfFreedomTranslation[CurrentSystem]-=3;
-      if(NumberOfAdsorbateMolecules[CurrentSystem]+NumberOfAdsorbateMolecules[CurrentSystem]==0)
-        DegreesOfFreedomFramework[CurrentSystem]-=3;
-      break;
-    default:
-      break;
+        if(NumberOfAdsorbateMolecules[CurrentSystem]+NumberOfAdsorbateMolecules[CurrentSystem]==0)
+          DegreesOfFreedomFramework[CurrentSystem]-=3;
+        break;
+      default:
+        break;
+    }
   }
 }
 
@@ -5648,6 +5747,8 @@ void WriteRestartComponent(FILE *FilePtr)
 
   fwrite(&NumberOfSystems,sizeof(int),1,FilePtr);
   fwrite(&NumberOfComponents,sizeof(int),1,FilePtr);
+  fwrite(&NumberOfAdsorbateComponents,sizeof(int),1,FilePtr);
+  fwrite(&NumberOfCationComponents,sizeof(int),1,FilePtr);
   fwrite(Components,sizeof(COMPONENT),NumberOfComponents,FilePtr);
 
   for(i=0;i<NumberOfComponents;i++)
@@ -5693,6 +5794,8 @@ void WriteRestartComponent(FILE *FilePtr)
 
     fwrite(Components[i].Fixed,sizeof(int),Components[i].NumberOfAtoms,FilePtr);
     fwrite(Components[i].Type,sizeof(int),Components[i].NumberOfAtoms,FilePtr);
+    //fwrite(Components[i].CFVDWScalingParameter,sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
+    //fwrite(Components[i].CFChargeScalingParameter,sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
     fwrite(Components[i].Charge,sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
     fwrite(Components[i].Connectivity,sizeof(int),Components[i].NumberOfAtoms,FilePtr);
     for(j=0;j<Components[i].NumberOfAtoms;j++)
@@ -5870,6 +5973,8 @@ void ReadRestartComponent(FILE *FilePtr)
 
   fread(&NumberOfSystems,sizeof(int),1,FilePtr);
   fread(&NumberOfComponents,sizeof(int),1,FilePtr);
+  fread(&NumberOfAdsorbateComponents,sizeof(int),1,FilePtr);
+  fread(&NumberOfCationComponents,sizeof(int),1,FilePtr);
 
   // allocate memory for the components
   Components=(COMPONENT*)calloc(NumberOfComponents,sizeof(COMPONENT));
@@ -5920,6 +6025,8 @@ void ReadRestartComponent(FILE *FilePtr)
 
     Components[i].Fixed=(int*)calloc(Components[i].NumberOfAtoms,sizeof(int));
     Components[i].Type=(int*)calloc(Components[i].NumberOfAtoms,sizeof(int));
+    //Components[i].CFVDWScalingParameter=(REAL*)calloc(Components[i].NumberOfAtoms,sizeof(REAL));
+    //Components[i].CFChargeScalingParameter=(REAL*)calloc(Components[i].NumberOfAtoms,sizeof(REAL));
     Components[i].Charge=(REAL*)calloc(Components[i].NumberOfAtoms,sizeof(REAL));
     Components[i].Connectivity=(int*)calloc(Components[i].NumberOfAtoms,sizeof(int));
     Components[i].ConnectivityMatrix=(int**)calloc(Components[i].NumberOfAtoms,sizeof(int*));
@@ -5973,6 +6080,8 @@ void ReadRestartComponent(FILE *FilePtr)
 
     fread(Components[i].Fixed,sizeof(int),Components[i].NumberOfAtoms,FilePtr);
     fread(Components[i].Type,sizeof(int),Components[i].NumberOfAtoms,FilePtr);
+    //fread(Components[i].CFVDWScalingParameter,sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
+    //fread(Components[i].CFChargeScalingParameter,sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
     fread(Components[i].Charge,sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
 
     fread(Components[i].Connectivity,sizeof(int),Components[i].NumberOfAtoms,FilePtr);

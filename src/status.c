@@ -1,27 +1,16 @@
-/*****************************************************************************************************
+/*************************************************************************************************************
     RASPA: a molecular-dynamics, monte-carlo and optimization code for nanoporous materials
-    Copyright (C) 2006-2012 David Dubbeldam, Sofia Calero, Donald E. Ellis, and Randall Q. Snurr.
+    Copyright (C) 2006-2013 David Dubbeldam, Sofia Calero, Thijs Vlugt, Donald E. Ellis, and Randall Q. Snurr.
 
     D.Dubbeldam@uva.nl            http://molsim.science.uva.nl/
     scaldia@upo.es                http://www.upo.es/raspa/
+    t.j.h.vlugt@tudelft.nl        http://homepage.tudelft.nl/v9k6y
     don-ellis@northwestern.edu    http://dvworld.northwestern.edu/
     snurr@northwestern.edu        http://zeolites.cqe.northwestern.edu/
 
-    This file 'status.c' is part of RASPA.
+    This file 'status.c' is part of RASPA-2.0
 
-    RASPA is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    RASPA is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *****************************************************************************************************/
+ *************************************************************************************************************/
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -4458,7 +4447,7 @@ int PrintFrameworkIntraVDWEnergyStatus(void)
 
             if(rr<CutOffVDWSquared)
             {
-              energy=PotentialValue(typeA,typeB,rr);
+              energy=PotentialValue(typeA,typeB,rr,1.0);
               UHostHostVDW+=energy;
 
               sprintf(string,"(F%1d,%-4d)-(F%1d,%-4d) (%-6s,%-6s)",f1,i,f2,j,PseudoAtoms[typeA].Name,PseudoAtoms[typeB].Name);
@@ -5755,7 +5744,7 @@ void PrintAdsorbateIntraVDWEnergyStatus(void)
       if(rr<CutOffVDWSquared)
       {
         TypeB=Adsorbates[CurrentSystem][m].Atoms[B].Type;
-        energy=Scaling*PotentialValue(TypeA,TypeB,rr);
+        energy=Scaling*PotentialValue(TypeA,TypeB,rr,1.0);
 
         sprintf(string,"(Scaling: %8.5f) (A%-4d,[%-4d,%-4d]) (%-6s,%-6s)",Scaling,m,A,B,PseudoAtoms[TypeA].Name,PseudoAtoms[TypeB].Name);
         PrintVDWEnergyStatus(nr,string,TypeA,TypeB,sqrt(rr),energy);
@@ -6990,7 +6979,7 @@ void PrintCationIntraVDWEnergyStatus(void)
       if(rr<CutOffVDWSquared)
       {
         TypeB=Cations[CurrentSystem][m].Atoms[B].Type;
-        energy=Scaling*PotentialValue(TypeA,TypeB,rr);
+        energy=Scaling*PotentialValue(TypeA,TypeB,rr,1.0);
 
         sprintf(string,"(Scaling: %8.5f) (A%-4d,[%-4d,%-4d]) (%-6s,%-6s)",Scaling,m,A,B,PseudoAtoms[TypeA].Name,PseudoAtoms[TypeB].Name);
         PrintVDWEnergyStatus(nr,string,TypeA,TypeB,sqrt(rr),energy);
@@ -7290,7 +7279,7 @@ void PrintInterVDWEnergyStatus(void)
 
             if(rr<CutOffVDWSquared)
             {
-              energy=PotentialValue(typeA,typeB,rr);
+              energy=PotentialValue(typeA,typeB,rr,1.0);
               UAdsorbateAdsorbateVDW+=energy;
 
               sprintf(string,"(A%-4d,%-4d)-(C%-4d,%-4d) (%-6s,%-6s)",i,k,j,l,PseudoAtoms[typeA].Name,PseudoAtoms[typeB].Name);
@@ -7314,7 +7303,7 @@ void PrintInterVDWEnergyStatus(void)
           rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
           if(rr<CutOffVDWSquared)
           {
-            energy=PotentialValue(typeA,typeB,rr);
+            energy=PotentialValue(typeA,typeB,rr,1.0);
             UAdsorbateCationVDW+=energy;
             sprintf(string,"(A%-4d,%-4d)-(A%-4d,%-4d) (%-6s,%-6s)",i,k,j,l,PseudoAtoms[typeA].Name,PseudoAtoms[typeB].Name);
             PrintVDWEnergyStatus(nr++,string,typeA,typeB,sqrt(rr),energy);
@@ -7350,7 +7339,7 @@ void PrintInterVDWEnergyStatus(void)
             rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
             if(rr<CutOffVDWSquared)
             {
-              energy=PotentialValue(typeA,typeB,rr);
+              energy=PotentialValue(typeA,typeB,rr,1.0);
               UCationCationVDW+=energy;
               sprintf(string,"(C%-4d,%-4d)-(C%-4d,%-4d) (%-6s,%-6s)",i,k,j,l,PseudoAtoms[typeA].Name,PseudoAtoms[typeB].Name);
               PrintVDWEnergyStatus(nr++,string,typeA,typeB,sqrt(rr),energy);
@@ -8081,7 +8070,7 @@ void PrintFrameworkAdsorbateVDWEnergyStatus(void)
 
           if(rr<CutOffVDWSquared)
           {
-            energy=PotentialValue(typeA,typeB,rr);
+            energy=PotentialValue(typeA,typeB,rr,1.0);
             UHostAdsorbateVDW+=energy;
             sprintf(string,"(A%-4d,%-4d)-(F%1d,%-4d) (%-6s,%-6s)",i,j,f1,k,PseudoAtoms[typeA].Name,PseudoAtoms[typeB].Name);
             PrintVDWEnergyStatus(nr++,string,typeA,typeB,sqrt(rr),energy);
@@ -8437,7 +8426,7 @@ void PrintFrameworkCationVDWEnergyStatus(void)
 
           if(rr<CutOffVDWSquared)
           {
-            energy=PotentialValue(typeA,typeB,rr);
+            energy=PotentialValue(typeA,typeB,rr,1.0);
             UHostCationVDW+=energy;
             sprintf(string,"(A%-4d,%-4d)-(F%1d,%-4d) (%-6s,%-6s)",i,j,f1,k,PseudoAtoms[typeA].Name,PseudoAtoms[typeB].Name);
             PrintVDWEnergyStatus(nr++,string,typeA,typeB,sqrt(rr),energy);

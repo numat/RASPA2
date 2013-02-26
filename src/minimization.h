@@ -1,27 +1,16 @@
-/*****************************************************************************************************
+/*************************************************************************************************************
     RASPA: a molecular-dynamics, monte-carlo and optimization code for nanoporous materials
-    Copyright (C) 2006-2012 David Dubbeldam, Sofia Calero, Donald E. Ellis, and Randall Q. Snurr.
+    Copyright (C) 2006-2013 David Dubbeldam, Sofia Calero, Thijs Vlugt, Donald E. Ellis, and Randall Q. Snurr.
 
     D.Dubbeldam@uva.nl            http://molsim.science.uva.nl/
     scaldia@upo.es                http://www.upo.es/raspa/
+    t.j.h.vlugt@tudelft.nl        http://homepage.tudelft.nl/v9k6y
     don-ellis@northwestern.edu    http://dvworld.northwestern.edu/
     snurr@northwestern.edu        http://zeolites.cqe.northwestern.edu/
 
-    This file 'minimization.h' is part of RASPA.
+    This file 'minimization.h' is part of RASPA-2.0
 
-    RASPA is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    RASPA is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *****************************************************************************************************/
+ *************************************************************************************************************/
 
 #ifndef MINIMIZATION_H
 #define MINIMIZATION_H
@@ -36,8 +25,21 @@ extern int *CationFixedInitialization;
 
 extern int **NumberOfFixedFrameworkAtoms;
 extern int ***FixedFrameworkAtoms;
+extern int **NumberOfFixedFrameworkAtomsX;
+extern int ***FixedFrameworkAtomsX;
+extern int **NumberOfFixedFrameworkAtomsY;
+extern int ***FixedFrameworkAtomsY;
+extern int **NumberOfFixedFrameworkAtomsZ;
+extern int ***FixedFrameworkAtomsZ;
+
 extern int **NumberOfActiveFrameworkAtoms;
 extern int ***ActiveFrameworkAtoms;
+extern int **NumberOfActiveFrameworkAtomsX;
+extern int ***ActiveFrameworkAtomsX;
+extern int **NumberOfActiveFrameworkAtomsY;
+extern int ***ActiveFrameworkAtomsY;
+extern int **NumberOfActiveFrameworkAtomsZ;
+extern int ***ActiveFrameworkAtomsZ;
 
 extern int *NumberOfFixedAdsorbateMolecules;
 extern int **FixedAdsorbateMolecules;
@@ -46,8 +48,22 @@ extern int **ActiveAdsorbateMolecules;
 
 extern int *NumberOfFixedAdsorbateAtoms;
 extern PAIR **FixedAdsorbateAtoms;
+extern int *NumberOfFixedAdsorbateAtomsX;
+extern PAIR **FixedAdsorbateAtomsX;
+extern int *NumberOfFixedAdsorbateAtomsY;
+extern PAIR **FixedAdsorbateAtomsY;
+extern int *NumberOfFixedAdsorbateAtomsZ;
+extern PAIR **FixedAdsorbateAtomsZ;
 extern int *NumberOfActiveAdsorbateAtoms;
 extern PAIR **ActiveAdsorbateAtoms;
+extern int *NumberOfActiveAdsorbateAtomsX;
+extern PAIR **ActiveAdsorbateAtomsX;
+extern int *NumberOfActiveAdsorbateAtomsX;
+extern PAIR **ActiveAdsorbateAtomsX;
+extern int *NumberOfActiveAdsorbateAtomsY;
+extern PAIR **ActiveAdsorbateAtomsY;
+extern int *NumberOfActiveAdsorbateAtomsZ;
+extern PAIR **ActiveAdsorbateAtomsZ;
 
 extern int *NumberOfFixedAdsorbateGroups;
 extern PAIR **FixedAdsorbateGroups;
@@ -56,11 +72,23 @@ extern PAIR **ActiveAdsorbateGroups;
 
 extern int *NumberOfFixedAdsorbateGroupsCenterOfMass;
 extern PAIR **FixedAdsorbateGroupsCenterOfMass;
+extern int *NumberOfFixedAdsorbateGroupsCenterOfMassX;
+extern PAIR **FixedAdsorbateGroupsCenterOfMassX;
+extern int *NumberOfFixedAdsorbateGroupsCenterOfMassY;
+extern PAIR **FixedAdsorbateGroupsCenterOfMassY;
+extern int *NumberOfFixedAdsorbateGroupsCenterOfMassZ;
+extern PAIR **FixedAdsorbateGroupsCenterOfMassZ;
 extern int *NumberOfActiveAdsorbateGroupsCenterOfMass;
 extern PAIR **ActiveAdsorbateGroupsCenterOfMass;
 
 extern int *NumberOfFixedAdsorbateGroupsOrientation;
 extern PAIR **FixedAdsorbateGroupsOrientation;
+extern int *NumberOfFixedAdsorbateGroupsOrientationX;
+extern PAIR **FixedAdsorbateGroupsOrientationX;
+extern int *NumberOfFixedAdsorbateGroupsOrientationY;
+extern PAIR **FixedAdsorbateGroupsOrientationY;
+extern int *NumberOfFixedAdsorbateGroupsOrientationZ;
+extern PAIR **FixedAdsorbateGroupsOrientationZ;
 extern int *NumberOfActiveAdsorbateGroupsOrientation;
 extern PAIR **ActiveAdsorbateGroupsOrientation;
 
@@ -71,8 +99,20 @@ extern int **ActiveCationMolecules;
 
 extern int *NumberOfFixedCationAtoms;
 extern PAIR **FixedCationAtoms;
+extern int *NumberOfFixedCationAtomsX;
+extern PAIR **FixedCationAtomsX;
+extern int *NumberOfFixedCationAtomsY;
+extern PAIR **FixedCationAtomsY;
+extern int *NumberOfFixedCationAtomsZ;
+extern PAIR **FixedCationAtomsZ;
 extern int *NumberOfActiveCationAtoms;
 extern PAIR **ActiveCationAtoms;
+extern int *NumberOfActiveCationAtomsX;
+extern PAIR **ActiveCationAtomsX;
+extern int *NumberOfActiveCationAtomsY;
+extern PAIR **ActiveCationAtomsY;
+extern int *NumberOfActiveCationAtomsZ;
+extern PAIR **ActiveCationAtomsZ;
 
 extern int *NumberOfFixedCationGroups;
 extern PAIR **FixedCationGroups;
@@ -81,13 +121,39 @@ extern PAIR **ActiveCationGroups;
 
 extern int *NumberOfFixedCationGroupsCenterOfMass;
 extern PAIR **FixedCationGroupsCenterOfMass;
+extern int *NumberOfFixedCationGroupsCenterOfMassX;
+extern PAIR **FixedCationGroupsCenterOfMassX;
+extern int *NumberOfFixedCationGroupsCenterOfMassY;
+extern PAIR **FixedCationGroupsCenterOfMassY;
+extern int *NumberOfFixedCationGroupsCenterOfMassZ;
+extern PAIR **FixedCationGroupsCenterOfMassZ;
+
 extern int *NumberOfActiveCationGroupsCenterOfMass;
 extern PAIR **ActiveCationGroupsCenterOfMass;
+extern int *NumberOfActiveCationGroupsCenterOfMassX;
+extern PAIR **ActiveCationGroupsCenterOfMassX;
+extern int *NumberOfActiveCationGroupsCenterOfMassY;
+extern PAIR **ActiveCationGroupsCenterOfMassY;
+extern int *NumberOfActiveCationGroupsCenterOfMassZ;
+extern PAIR **ActiveCationGroupsCenterOfMassZ;
 
 extern int *NumberOfFixedCationGroupsOrientation;
 extern PAIR **FixedCationGroupsOrientation;
+extern int *NumberOfFixedCationGroupsOrientationX;
+extern PAIR **FixedCationGroupsOrientationX;
+extern int *NumberOfFixedCationGroupsOrientationY;
+extern PAIR **FixedCationGroupsOrientationY;
+extern int *NumberOfFixedCationGroupsOrientationZ;
+extern PAIR **FixedCationGroupsOrientationZ;
+
 extern int *NumberOfActiveCationGroupsOrientation;
 extern PAIR **ActiveCationGroupsOrientation;
+extern int *NumberOfActiveCationGroupsOrientationX;
+extern PAIR **ActiveCationGroupsOrientationX;
+extern int *NumberOfActiveCationGroupsOrientationY;
+extern PAIR **ActiveCationGroupsOrientationY;
+extern int *NumberOfActiveCationGroupsOrientationZ;
+extern PAIR **ActiveCationGroupsOrientationZ;
 
 
 extern int NumberOfFixedAtomTypes;

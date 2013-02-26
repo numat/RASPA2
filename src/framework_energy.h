@@ -1,27 +1,16 @@
-/*****************************************************************************************************
+/*************************************************************************************************************
     RASPA: a molecular-dynamics, monte-carlo and optimization code for nanoporous materials
-    Copyright (C) 2006-2012 David Dubbeldam, Sofia Calero, Donald E. Ellis, and Randall Q. Snurr.
+    Copyright (C) 2006-2013 David Dubbeldam, Sofia Calero, Thijs Vlugt, Donald E. Ellis, and Randall Q. Snurr.
 
     D.Dubbeldam@uva.nl            http://molsim.science.uva.nl/
     scaldia@upo.es                http://www.upo.es/raspa/
+    t.j.h.vlugt@tudelft.nl        http://homepage.tudelft.nl/v9k6y
     don-ellis@northwestern.edu    http://dvworld.northwestern.edu/
     snurr@northwestern.edu        http://zeolites.cqe.northwestern.edu/
 
-    This file 'framework_energy.h' is part of RASPA.
+    This file 'framework_energy.h' is part of RASPA-2.0
 
-    RASPA is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    RASPA is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *****************************************************************************************************/
+ *************************************************************************************************************/
 
 #ifndef FRAMEWORK_ENERGY_H
 #define FRAMEWORK_ENERGY_H
@@ -32,10 +21,10 @@
 
 #include <molecule.h>
 
-REAL CalculateFrameworkVDWEnergyAtPosition(POINT posA,int typeA);
-REAL CalculateFrameworkChargeChargeEnergyAtPosition(POINT pos,int typeA);
+REAL CalculateFrameworkVDWEnergyAtPosition(POINT posA,int typeA,REAL scaling);
+REAL CalculateFrameworkChargeChargeEnergyAtPosition(POINT pos,int typeA,REAL scaling);
 
-void CalculateFrameworkChargeEnergyAtPosition(POINT posA,int typeA,REAL *UChargeCharge,REAL *UChargeBondDipole);
+void CalculateFrameworkChargeEnergyAtPosition(POINT posA,int typeA,REAL *UChargeCharge,REAL *UChargeBondDipole,REAL scaling);
 void CalculateFrameworkBondDipoleEnergyAtPosition(VECTOR posA1,VECTOR posA2,REAL DipoleMagnitudeA,REAL *UChargeBondDipole,REAL *UBondDipoleBondDipole);
 
 REAL CalculateFrameworkBondEnergy(int flag,int f1,int atom_id);
@@ -79,23 +68,24 @@ void CalculateFrameworkShiftEnergyDifferenceCationVDW(void);
 void CalculateFrameworkShiftEnergyDifferenceCationCharge(void);
 
 REAL CalculateEnergyDifferenceFrameworkMoveVDW(int atom_id,VECTOR posA,int typeA);
+
 void CalculateEnergyDifferenceFrameworkMoveCharge(int index);
 void CalculateFrameworkEnergyDifferenceShiftedFramework(void);
 
-int CalculateFrameworkAdsorbateVDWEnergyDifference(int m);
-int CalculateFrameworkCationVDWEnergyDifference(int m);
+int CalculateFrameworkAdsorbateVDWEnergyDifference(int m,int comp,int New,int Old);
+int CalculateFrameworkCationVDWEnergyDifference(int m,int comp,int New,int Old);
 
-void CalculateFrameworkAdsorbateChargeChargeEnergyDifference(int m);
-void CalculateFrameworkCationChargeChargeEnergyDifference(int m);
+void CalculateFrameworkAdsorbateChargeChargeEnergyDifference(int m,int comp,int New,int Old);
+void CalculateFrameworkCationChargeChargeEnergyDifference(int m,int comp,int New,int Old);
 
-int CalculateFrameworkAdsorbateChargeBondDipoleEnergyDifference(int m);
-int CalculateFrameworkCationChargeBondDipoleEnergyDifference(int m);
+int CalculateFrameworkAdsorbateChargeBondDipoleEnergyDifference(int m,int comp,int New,int Old);
+int CalculateFrameworkCationChargeBondDipoleEnergyDifference(int m,int comp,int New,int Old);
 
-int CalculateFrameworkAdsorbateBondDipoleBondDipoleEnergyDifference(int m);
-int CalculateFrameworkCationBondDipoleBondDipoleEnergyDifference(int m);
+int CalculateFrameworkAdsorbateBondDipoleBondDipoleEnergyDifference(int m,int comp,int New,int Old);
+int CalculateFrameworkCationBondDipoleBondDipoleEnergyDifference(int m,int comp,int New,int Old);
 
 REAL CalculateFrameworkElectrostaticPotential(POINT posA);
 
-REAL CalculateFrameworkVDWEnergyCorrection(VECTOR* Positions,VECTOR *AnisotropicPositions);
+REAL CalculateFrameworkVDWEnergyCorrection(VECTOR* Positions,VECTOR *AnisotropicPositions,REAL *scaling);
 
 #endif

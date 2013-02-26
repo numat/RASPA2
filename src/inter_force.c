@@ -1,27 +1,16 @@
-/*****************************************************************************************************
+/*************************************************************************************************************
     RASPA: a molecular-dynamics, monte-carlo and optimization code for nanoporous materials
-    Copyright (C) 2006-2012 David Dubbeldam, Sofia Calero, Donald E. Ellis, and Randall Q. Snurr.
+    Copyright (C) 2006-2013 David Dubbeldam, Sofia Calero, Thijs Vlugt, Donald E. Ellis, and Randall Q. Snurr.
 
     D.Dubbeldam@uva.nl            http://molsim.science.uva.nl/
     scaldia@upo.es                http://www.upo.es/raspa/
+    t.j.h.vlugt@tudelft.nl        http://homepage.tudelft.nl/v9k6y
     don-ellis@northwestern.edu    http://dvworld.northwestern.edu/
     snurr@northwestern.edu        http://zeolites.cqe.northwestern.edu/
 
-    This file 'Inter_force.c' is part of RASPA.
+    This file 'inter_force.c' is part of RASPA-2.0
 
-    RASPA is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    RASPA is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *****************************************************************************************************/
+ *************************************************************************************************************/
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -61,6 +50,7 @@ void CalculateTotalInterVDWForce(void)
   VECTOR drA,drB,fa,fb;
   VECTOR posA1,posA2,posB1,posB2;
   REAL ra,rb;
+  REAL scalingA,scalingB;
 
   int ConnectedAtomA1,ConnectedAtomA2;
   int ConnectedAtomB1,ConnectedAtomB2;
@@ -82,6 +72,7 @@ void CalculateTotalInterVDWForce(void)
     {
       typeA=Adsorbates[CurrentSystem][i].Atoms[k].Type;
       posA=Adsorbates[CurrentSystem][i].Atoms[k].AnisotropicPosition;
+      scalingA=Adsorbates[CurrentSystem][i].Atoms[k].CFVDWScalingParameter;
 
       ReductionA=0.0;
       ConnectedAtomA1=ConnectedAtomA2=-1;
@@ -149,6 +140,7 @@ void CalculateTotalInterVDWForce(void)
           {
             typeB=Adsorbates[CurrentSystem][j].Atoms[l].Type;
             posB=Adsorbates[CurrentSystem][j].Atoms[l].AnisotropicPosition;
+            scalingB=Adsorbates[CurrentSystem][j].Atoms[l].CFVDWScalingParameter;
 
             ReductionB=0.0;
             ConnectedAtomB1=ConnectedAtomB2=-1;
@@ -210,7 +202,7 @@ void CalculateTotalInterVDWForce(void)
 
             if(rr<CutOffVDWSquared)
             {
-              PotentialGradient(typeA,typeB,rr,&energy,&force_factor);
+              PotentialGradient(typeA,typeB,rr,&energy,&force_factor,scalingA*scalingB);
 
               UAdsorbateAdsorbateVDW[CurrentSystem]+=energy;
 
@@ -392,6 +384,7 @@ void CalculateTotalInterVDWForce(void)
           {
             posB=Cations[CurrentSystem][j].Atoms[l].AnisotropicPosition;
             typeB=Cations[CurrentSystem][j].Atoms[l].Type;
+            scalingB=Cations[CurrentSystem][j].Atoms[l].CFVDWScalingParameter;
 
             ReductionB=0.0;
             ConnectedAtomB1=ConnectedAtomB2=-1;
@@ -453,7 +446,7 @@ void CalculateTotalInterVDWForce(void)
 
             if(rr<CutOffVDWSquared)
             {
-              PotentialGradient(typeA,typeB,rr,&energy,&force_factor);
+              PotentialGradient(typeA,typeB,rr,&energy,&force_factor,scalingA*scalingB);
 
               // energy
               UAdsorbateCationVDW[CurrentSystem]+=energy;
@@ -639,6 +632,7 @@ void CalculateTotalInterVDWForce(void)
       {
         typeA=Cations[CurrentSystem][i].Atoms[k].Type;
         posA=Cations[CurrentSystem][i].Atoms[k].AnisotropicPosition;
+        scalingA=Cations[CurrentSystem][i].Atoms[k].CFVDWScalingParameter;
 
         ReductionA=0.0;
         ConnectedAtomA1=ConnectedAtomA2=-1;
@@ -704,6 +698,7 @@ void CalculateTotalInterVDWForce(void)
           {
             posB=Cations[CurrentSystem][j].Atoms[l].AnisotropicPosition;
             typeB=Cations[CurrentSystem][j].Atoms[l].Type;
+            scalingB=Cations[CurrentSystem][j].Atoms[l].CFVDWScalingParameter;
 
             ReductionB=0.0;
             ConnectedAtomB1=ConnectedAtomB2=-1;
@@ -765,7 +760,7 @@ void CalculateTotalInterVDWForce(void)
 
             if(rr<CutOffVDWSquared)
             {
-              PotentialGradient(typeA,typeB,rr,&energy,&force_factor);
+              PotentialGradient(typeA,typeB,rr,&energy,&force_factor,scalingA*scalingB);
 
               // energy
               UCationCationVDW[CurrentSystem]+=energy;
@@ -954,6 +949,7 @@ int CalculateTotalInterChargeChargeCoulombForce(void)
   REAL SwitchingValueDerivative,SwitchingValue;
   REAL TranslationValue,TranslationValueDerivative;
   REAL UWolfCorrection,NetChargeB;
+  REAL scalingA,scalingB;
 
   UAdsorbateAdsorbateChargeChargeReal[CurrentSystem]=0.0;
   UAdsorbateCationChargeChargeReal[CurrentSystem]=0.0;
@@ -968,7 +964,8 @@ int CalculateTotalInterChargeChargeCoulombForce(void)
     {
       typeA=Adsorbates[CurrentSystem][i].Atoms[k].Type;
       posA=Adsorbates[CurrentSystem][i].Atoms[k].Position;
-      chargeA=Adsorbates[CurrentSystem][i].Atoms[k].Charge;
+      scalingA=Adsorbates[CurrentSystem][i].Atoms[k].CFChargeScalingParameter;
+      chargeA=scalingA*Adsorbates[CurrentSystem][i].Atoms[k].Charge;
 
       // loop over adsorbant molecules
       if(!OmitAdsorbateAdsorbateCoulombInteractions)
@@ -989,7 +986,8 @@ int CalculateTotalInterChargeChargeCoulombForce(void)
             {
               r=sqrt(rr);
               typeB=Adsorbates[CurrentSystem][j].Atoms[l].Type;
-              chargeB=Adsorbates[CurrentSystem][j].Atoms[l].Charge;
+              scalingB=Adsorbates[CurrentSystem][j].Atoms[l].CFChargeScalingParameter;
+              chargeB=scalingB*Adsorbates[CurrentSystem][j].Atoms[l].Charge;
 
               switch(ChargeMethod)
               {
@@ -1098,7 +1096,8 @@ int CalculateTotalInterChargeChargeCoulombForce(void)
             if(rr<CutOffChargeChargeSquared)
             {
               typeB=Cations[CurrentSystem][j].Atoms[l].Type;
-              chargeB=Cations[CurrentSystem][j].Atoms[l].Charge;
+              scalingB=Cations[CurrentSystem][j].Atoms[l].CFChargeScalingParameter;
+              chargeB=scalingB*Cations[CurrentSystem][j].Atoms[l].Charge;
 
               r=sqrt(rr);
 
@@ -1203,7 +1202,8 @@ int CalculateTotalInterChargeChargeCoulombForce(void)
       {
         typeA=Cations[CurrentSystem][i].Atoms[k].Type;
         posA=Cations[CurrentSystem][i].Atoms[k].Position;
-        chargeA=Cations[CurrentSystem][i].Atoms[k].Charge;
+        scalingA=Cations[CurrentSystem][i].Atoms[k].CFChargeScalingParameter;
+        chargeA=scalingA*Cations[CurrentSystem][i].Atoms[k].Charge;
 
         // loop over cation molecules
         for(j=i+1;j<NumberOfCationMolecules[CurrentSystem];j++)
@@ -1220,7 +1220,8 @@ int CalculateTotalInterChargeChargeCoulombForce(void)
             if(rr<CutOffChargeChargeSquared)
             {
               typeB=Cations[CurrentSystem][j].Atoms[l].Type;
-              chargeB=Cations[CurrentSystem][j].Atoms[l].Charge;
+              scalingB=Cations[CurrentSystem][j].Atoms[l].CFChargeScalingParameter;
+              chargeB=scalingB*Cations[CurrentSystem][j].Atoms[l].Charge;
 
               r=sqrt(rr);
 
@@ -4413,6 +4414,7 @@ int CalculateTotalInterReplicaVDWForce(void)
   REAL energy,force_factor;
   VECTOR posA,posB,dr,f;
   REAL ReductionA,ReductionB;
+  REAL scalingA,scalingB;
   int ConnectedAtomA,ConnectedAtomB;
   int ncell,k1,k2,k3,start;
 
@@ -4427,6 +4429,7 @@ int CalculateTotalInterReplicaVDWForce(void)
     {
       typeA=Adsorbates[CurrentSystem][i].Atoms[k].Type;
       posA=Adsorbates[CurrentSystem][i].Atoms[k].AnisotropicPosition;
+      scalingA=Adsorbates[CurrentSystem][i].Atoms[k].CFVDWScalingParameter;
 
       ReductionA=1.0;
       ConnectedAtomA=-1;
@@ -4448,6 +4451,7 @@ int CalculateTotalInterReplicaVDWForce(void)
                 {
                   typeB=Adsorbates[CurrentSystem][j].Atoms[l].Type;
                   posB=Adsorbates[CurrentSystem][j].Atoms[l].AnisotropicPosition;
+                  scalingB=Adsorbates[CurrentSystem][j].Atoms[l].CFVDWScalingParameter;
 
                   posB.x+=ReplicaShift[ncell].x;
                   posB.y+=ReplicaShift[ncell].y;
@@ -4464,7 +4468,7 @@ int CalculateTotalInterReplicaVDWForce(void)
 
                   if(rr<CutOffVDWSquared)
                   {
-                    PotentialGradient(typeA,typeB,rr,&energy,&force_factor);
+                    PotentialGradient(typeA,typeB,rr,&energy,&force_factor,scalingA*scalingB);
 
                     // energy
                     if(ncell==0)
@@ -4546,6 +4550,7 @@ int CalculateTotalInterReplicaVDWForce(void)
               {
                 posB=Cations[CurrentSystem][j].Atoms[l].AnisotropicPosition;
                 typeB=Cations[CurrentSystem][j].Atoms[l].Type;
+                scalingB=Cations[CurrentSystem][j].Atoms[l].CFVDWScalingParameter;
 
                 posB.x+=ReplicaShift[ncell].x;
                 posB.y+=ReplicaShift[ncell].y;
@@ -4561,7 +4566,7 @@ int CalculateTotalInterReplicaVDWForce(void)
                 rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
                 if(rr<CutOffVDWSquared)
                 {
-                  PotentialGradient(typeA,typeB,rr,&energy,&force_factor);
+                  PotentialGradient(typeA,typeB,rr,&energy,&force_factor,scalingA*scalingB);
 
                   // energy
                   UAdsorbateCationVDW[CurrentSystem]+=energy;
@@ -4620,6 +4625,7 @@ int CalculateTotalInterReplicaVDWForce(void)
     {
       typeA=Cations[CurrentSystem][i].Atoms[k].Type;
       posA=Cations[CurrentSystem][i].Atoms[k].AnisotropicPosition;
+      scalingA=Cations[CurrentSystem][i].Atoms[k].CFVDWScalingParameter;
 
       ReductionA=1.0;
       ConnectedAtomA=-1;
@@ -4639,6 +4645,7 @@ int CalculateTotalInterReplicaVDWForce(void)
               {
                 posB=Cations[CurrentSystem][j].Atoms[l].AnisotropicPosition;
                 typeB=Cations[CurrentSystem][j].Atoms[l].Type;
+                scalingB=Cations[CurrentSystem][j].Atoms[l].CFVDWScalingParameter;
 
                 posB.x+=ReplicaShift[ncell].x;
                 posB.y+=ReplicaShift[ncell].y;
@@ -4655,7 +4662,7 @@ int CalculateTotalInterReplicaVDWForce(void)
                 if(rr<CutOffVDWSquared)
                 {
                   typeB=Cations[CurrentSystem][j].Atoms[l].Type;
-                  PotentialGradient(typeA,typeB,rr,&energy,&force_factor);
+                  PotentialGradient(typeA,typeB,rr,&energy,&force_factor,scalingA*scalingB);
 
                   // energy
                   if(ncell==0)
@@ -4736,6 +4743,7 @@ int CalculateTotalInterReplicaChargeChargeCoulombForce(void)
   int typeA,typeB;
   REAL r,rr;
   REAL chargeA,chargeB;
+  REAL scalingA,scalingB;
   REAL force_factor,energy;
   VECTOR posA,posB,dr,f;
   int ncell,k1,k2,k3,start;
@@ -4752,7 +4760,8 @@ int CalculateTotalInterReplicaChargeChargeCoulombForce(void)
     {
       typeA=Adsorbates[CurrentSystem][i].Atoms[k].Type;
       posA=Adsorbates[CurrentSystem][i].Atoms[k].Position;
-      chargeA=Adsorbates[CurrentSystem][i].Atoms[k].Charge;
+      scalingA=Adsorbates[CurrentSystem][i].Atoms[k].CFChargeScalingParameter;
+      chargeA=scalingA*Adsorbates[CurrentSystem][i].Atoms[k].Charge;
 
       // loop over adsorbant molecules
       if(!OmitAdsorbateAdsorbateCoulombInteractions)
@@ -4784,7 +4793,8 @@ int CalculateTotalInterReplicaChargeChargeCoulombForce(void)
                   {
                     r=sqrt(rr);
                     typeB=Adsorbates[CurrentSystem][j].Atoms[l].Type;
-                    chargeB=Adsorbates[CurrentSystem][j].Atoms[l].Charge;
+                    scalingB=Adsorbates[CurrentSystem][j].Atoms[l].CFChargeScalingParameter;
+                    chargeB=scalingB*Adsorbates[CurrentSystem][j].Atoms[l].Charge;
 
                     switch(ChargeMethod)
                     {
@@ -4899,10 +4909,11 @@ int CalculateTotalInterReplicaChargeChargeCoulombForce(void)
                 dr.z=posA.z-posB.z;
                 dr=ApplyReplicaBoundaryCondition(dr);
                 rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-                if(rr<CutOffVDWSquared)
+                if(rr<CutOffChargeChargeSquared)
                 {
                   typeB=Cations[CurrentSystem][j].Atoms[l].Type;
-                  chargeB=Cations[CurrentSystem][j].Atoms[l].Charge;
+                  scalingB=Cations[CurrentSystem][j].Atoms[l].CFChargeScalingParameter;
+                  chargeB=scalingB*Cations[CurrentSystem][j].Atoms[l].Charge;
 
                   r=sqrt(rr);
 
@@ -4985,7 +4996,8 @@ int CalculateTotalInterReplicaChargeChargeCoulombForce(void)
     {
       typeA=Cations[CurrentSystem][i].Atoms[k].Type;
       posA=Cations[CurrentSystem][i].Atoms[k].Position;
-      chargeA=Cations[CurrentSystem][i].Atoms[k].Charge;
+      scalingA=Cations[CurrentSystem][i].Atoms[k].CFChargeScalingParameter;
+      chargeA=scalingA*Cations[CurrentSystem][i].Atoms[k].Charge;
 
       // loop over cation molecules
       ncell=0;
@@ -5010,10 +5022,11 @@ int CalculateTotalInterReplicaChargeChargeCoulombForce(void)
                 dr.z=posA.z-posB.z;
                 dr=ApplyReplicaBoundaryCondition(dr);
                 rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-                if(rr<CutOffVDWSquared)
+                if(rr<CutOffChargeChargeSquared)
                 {
                   typeB=Cations[CurrentSystem][j].Atoms[l].Type;
-                  chargeB=Cations[CurrentSystem][j].Atoms[l].Charge;
+                  scalingB=Cations[CurrentSystem][j].Atoms[l].CFChargeScalingParameter;
+                  chargeB=scalingB*Cations[CurrentSystem][j].Atoms[l].Charge;
  
                   r=sqrt(rr);
 

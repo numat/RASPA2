@@ -1,0 +1,8 @@
+#number of pseudo atoms
+5
+#type      print   as    chem  oxidation   mass        charge   polarization B-factor radii  connectivity anisotropic anisotropic-type   tinker-type
+UNIT       yes     H     H     0           1.0         1.0      0.0          1.0      1.0    0            0           absolute           0
+DUMMY      no      H     H     0           1.0         0.0      0.0          1.0      1.0    0            0           absolute           0
+H2UA       yes     H     H     0           1.00794     0.0      0.0          1.0      0.7    0            0           absolute           0
+H_h2       yes     H     H     0           1.00794     0.468    0.0          1.0      0.7    0            0           absolute           0
+H_com      no      H     -     0           0.0        -0.936    0.0          1.0      0.7    0            0           absolute           0

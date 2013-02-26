@@ -73,12 +73,22 @@ static int **BranchAtoms; // a list of atom-ids per branch
 
 VECTOR FirstBeadPosition;
 VECTOR **NewPosition;
+VECTOR *OldPosition;
+VECTOR *StoredPosition;
 VECTOR **NewVelocity;
 VECTOR **NewForce;
 VECTOR **TrialPositions;
+REAL *CFVDWScaling;
+REAL *CFChargeScaling;
+REAL *CFVDWScalingStored;
+REAL *CFChargeScalingStored;
+REAL *CFVDWScalingStored2;
+REAL *CFChargeScalingStored2;
+REAL *CFVDWScalingNew;
+REAL *CFChargeScalingNew;
 
 int OVERLAP;
-static REAL *Bfac;
+static REAL *BoltzmannFactors;
 static int *Overlap;
 
 int NumberOfTrialPositions;
@@ -345,8 +355,8 @@ static REAL *eoinversionbend;
 static REAL *enimpropertorsion;
 static REAL *eoimpropertorsion;
 
-static int *lplace;
-static int *lchose;
+static int *BoolToBePlaced;
+static int *BoolAlreadyPlacedOrToBePlaced;
 static int *beadn;
 static int *PossibleCurrentBeads;
 static int **MoleculeTodoConnectivity;
@@ -567,23 +577,28 @@ int SelectTrialPosition(REAL *BoltzmannFactors,int *Overlap,int NumberOfTrialPos
   return selected;
 }
 
+/****************************************************************************************************************
+ * Name       | HandleFirstBead                                                                                 *
+ * ------------------------------------------------------------------------------------------------------------ *
+ * Function   | Implements the multiple-first-bead CBMC scheme of Esselink et al.                               *
+ * Parameters | Switch can be CBMC_INSERTION, CBMC_PARTIAL_INSERTION, CBMC_DELETION or CBMC_RETRACE_REINSERTION *
+ * Ref.       | K. Esselink, L.D.J.C. Loyens, and B. Smit, Phys. Rev. E., Vol. 51(2), 1560-1568, 1995           *
+ * ------------------------------------------------------------------------------------------------------------ *
+ *            | CBMC_INSERTION:                                                                                 *
+ *            |    Generate 'NumberOfTrialPositionsForTheFirstBead' random positions,                           *
+ *            |    one is chosen according to its Boltzmann weight;                                             *
+ *            | CBMC_DELETION:                                                                                  *
+ *            |    Generate 'NumberOfTrialPositionsForTheFirstBead-1' random positions;                         *
+ *            |    the first position is (FirstBeadPosition);                                                   *
+ *            | CBMC_PARTIAL_INSERTION:                                                                         *
+ *            |    Calculating Boltzmann weight of the given first bead-position                                *
+ *            | CBMC_RETRACE_REINSERTION:                                                                       *
+ *            |    Use the 'NumberOfTrialPositionsForTheFirstBead' beads that were generated during growth,     *
+ *            |    w_1(n) is the sum of the Boltzmann weights of the trial positions during growth. The w_1(o)  *
+ *            |    is w_1(n) with the Boltzmann weight of the selected trial position replaced by               *
+ *            |    exp(-Beta u_1(o))                                                                            *
+ ****************************************************************************************************************/
 
-
-//     1. New Configuration
-//        Generate NUMBER_OF_TRIAL_POSITIONS_FOR_THE_FIRST_BEAD random positions, 
-//        one is chosen according to its Boltzmann weight;
-//        used by Swap()/SwapAdd()/Regrow()/Initia()
-//     2. Conventional Stuff: calculating weight for molecule with chosen firstbead-position
-//        Calculate the Boltzmann factor in (FirstBeadPosition); used by PartialReinsertion()/IdentityChangeMove()/GibbsIdentityChangeMove()
-//     3. Old Configuration
-//        Generate NUMBER_OF_TRIAL_POSITIONS_FOR_THE_FIRST_BEAD-1 random positions; 
-//        the first position is (FirstBeadPosition);
-//        used by Swap() and Swaprem()
-//     4. Old Configuration
-//        Use the (NUMBER_OF_TRIAL_POSITIONS_FOR_THE_FIRST_BEAD-1) beads that were generated 
-//        using the growth of a trial chain.
-//        The first trial position is the old configuration. This is only used in the subroutine Reinsertion();
-//        See Esselink/Loyens/Smit, Phys.Rev.E.,1995,51,2.
 int HandleFirstBead(int Switch)
 {
   int i,type,start;
@@ -592,12 +607,16 @@ int HandleFirstBead(int Switch)
   REAL EnergyHostChargeCharge,EnergyAdsorbateChargeCharge,EnergyCationChargeCharge;
   REAL EnergyHostChargeBondDipole,EnergyAdsorbateChargeBondDipole,EnergyCationChargeBondDipole;
   POINT posA,s;
-  static double ERR;
+  static REAL StoredR;
 
   OVERLAP=TRUE;
   RosenBluthFactorFirstBead=0.0;
 
-  // determine the number of trial positions for the first bead
+  // CBMC_INSERTION: new trial positions 'Trail[i]' for i=1,..,NumberOfTrialPositionsForTheFirstBead
+  // CBMC_DELETION: new trial positions 'Trial[i]' for i=2,..,NumberOfTrialPositionsForTheFirstBead ('Trial[0]=FirstBeadPosition')
+  // CBMC_PARTIAL_INSERTION: 'Trial[0]=FirstBeadPosition'
+  // CBMC_RETRACE_REINSERTION: 'Trial[0]=FirstBeadPosition'
+
   if((Switch==CBMC_PARTIAL_INSERTION)||(Switch==CBMC_RETRACE_REINSERTION)) NumberOfFirstPositions=1;
   else NumberOfFirstPositions=NumberOfTrialPositionsForTheFirstBead;
 
@@ -637,24 +656,24 @@ int HandleFirstBead(int Switch)
     EnergyHostChargeBondDipole=EnergyAdsorbateChargeBondDipole=EnergyCationChargeBondDipole=0.0;
 
     // calculate energies
-    EnergyHostVDW=CalculateFrameworkVDWEnergyAtPosition(posA,type);
-    CalculateFrameworkChargeEnergyAtPosition(posA,type,&EnergyHostChargeCharge,&EnergyHostChargeBondDipole);
+    EnergyHostVDW=CalculateFrameworkVDWEnergyAtPosition(posA,type,CFVDWScaling[start]);
+    CalculateFrameworkChargeEnergyAtPosition(posA,type,&EnergyHostChargeCharge,&EnergyHostChargeBondDipole,CFChargeScaling[start]);
 
     // compute VDW energy with adsorbates if no omit of adsorbate-adsorbate or the current molecule is a cation
     if(Components[CurrentComponent].ExtraFrameworkMolecule||(!OmitAdsorbateAdsorbateVDWInteractions))
-      EnergyAdsorbateVDW=CalculateInterVDWEnergyAdsorbateAtPosition(posA,type,CurrentAdsorbateMolecule);
+      EnergyAdsorbateVDW=CalculateInterVDWEnergyAdsorbateAtPosition(posA,type,CurrentAdsorbateMolecule,CFVDWScaling[start]);
 
     // compute Coulomb energy with adsorbates if no omit of adsorbate-adsorbate or the current molecule is a cation
     if(Components[CurrentComponent].ExtraFrameworkMolecule||(!OmitAdsorbateAdsorbateCoulombInteractions))
-      CalculateInterChargeEnergyAdsorbateAtPosition(posA,type,&EnergyAdsorbateChargeCharge,&EnergyAdsorbateChargeBondDipole,CurrentAdsorbateMolecule);
+      CalculateInterChargeEnergyAdsorbateAtPosition(posA,type,&EnergyAdsorbateChargeCharge,&EnergyAdsorbateChargeBondDipole,CurrentAdsorbateMolecule,CFChargeScaling[start]);
 
     // compute VDW energy with cations if no omit of cation-cation or the current molecule is an adsorbate
     if((!Components[CurrentComponent].ExtraFrameworkMolecule)||(!OmitCationCationVDWInteractions))
-      EnergyCationVDW=CalculateInterVDWEnergyCationAtPosition(posA,type,CurrentCationMolecule);
+      EnergyCationVDW=CalculateInterVDWEnergyCationAtPosition(posA,type,CurrentCationMolecule,CFVDWScaling[start]);
 
     // compute Coulomb energy with cations if no omit of cation-cation or the current molecule is an adsorbate
     if((!Components[CurrentComponent].ExtraFrameworkMolecule)||(!OmitCationCationCoulombInteractions))
-      CalculateInterChargeEnergyCationAtPosition(posA,type,&EnergyCationChargeCharge,&EnergyCationChargeBondDipole,CurrentCationMolecule);
+      CalculateInterChargeEnergyCationAtPosition(posA,type,&EnergyCationChargeCharge,&EnergyCationChargeBondDipole,CurrentCationMolecule,CFChargeScaling[start]);
 
     if((EnergyHostVDW>=EnergyOverlapCriteria)||(EnergyHostChargeCharge>=EnergyOverlapCriteria)||
        (EnergyAdsorbateVDW>=EnergyOverlapCriteria)||(EnergyAdsorbateChargeCharge>=EnergyOverlapCriteria)||
@@ -692,29 +711,39 @@ int HandleFirstBead(int Switch)
 
       // set the Boltzmann factor for trial position 'i'
       if(BiasingMethod==LJ_BIASING)
-        Bfac[i]=-Beta[CurrentSystem]*(EnergyHostVDW+EnergyAdsorbateVDW+EnergyCationVDW);
+        BoltzmannFactors[i]=-Beta[CurrentSystem]*(EnergyHostVDW+EnergyAdsorbateVDW+EnergyCationVDW);
       else
       {
-        Bfac[i]=-Beta[CurrentSystem]*(EnergyHostVDW+EnergyCationVDW+EnergyAdsorbateVDW+
+        BoltzmannFactors[i]=-Beta[CurrentSystem]*(EnergyHostVDW+EnergyCationVDW+EnergyAdsorbateVDW+
                        EnergyHostChargeCharge+EnergyAdsorbateChargeCharge+EnergyCationChargeCharge+
                        EnergyHostChargeBondDipole+EnergyAdsorbateChargeBondDipole+EnergyCationChargeBondDipole);
       }
     }
   }
-  if (OVERLAP) return 0;  // return when all trial-positions overlap
 
-  i=0;
-  RosenBluthFactorFirstBead=ComputeSumRosenbluthWeight(Bfac,Overlap,NumberOfFirstPositions);
+  // return when all trial-positions overlap
+  if (OVERLAP) return 0;
+
+  // compute w_1=sum_m_i exp(-Beta u_1(m_i) i=1...f  Eq. 9 from Esselink et al.
+  RosenBluthFactorFirstBead=ComputeSumRosenbluthWeight(BoltzmannFactors,Overlap,NumberOfFirstPositions);
   if(Switch==CBMC_INSERTION)
   {
-    i=SelectTrialPosition(Bfac,Overlap,NumberOfFirstPositions);
-    ERR=RosenBluthFactorFirstBead-exp(Bfac[i]);
+    // select the trial position with the appropriate probability
+    i=SelectTrialPosition(BoltzmannFactors,Overlap,NumberOfFirstPositions);
+
+    // r=w_1(n)-exp(-beta U_1[h_n]) Eq.16 from Esselink et al.
+    StoredR=RosenBluthFactorFirstBead-exp(BoltzmannFactors[i]);
   }
   else if(Switch==CBMC_RETRACE_REINSERTION)
   {
+    // for retrace the first trial position is always "chosen"
     i=0;
-    RosenBluthFactorFirstBead+=ERR;
+
+    // w_1(o)=exp(-beta u_1(0)+r  Eq. 18 from Esselink et al.
+    RosenBluthFactorFirstBead+=StoredR;
   }
+  else
+    i=0;
 
   // update positions and energies
   FirstBeadPosition=Trial[i];
@@ -735,6 +764,7 @@ int HandleFirstBead(int Switch)
   EnergyAdsorbateBondDipoleBondDipoleFirstBead=0.0;
   EnergyCationBondDipoleBondDipoleFirstBead=0.0;
 
+  // normalize the Rosenbluth factor
   if (Switch!=CBMC_PARTIAL_INSERTION) RosenBluthFactorFirstBead/=(REAL)NumberOfTrialPositionsForTheFirstBead;
 
   // check if the Rosenbluth factor is reasonable; only for a new configuration
@@ -839,26 +869,37 @@ REAL GetReferenceBondLength(int A,int B)
   }
 }
 
-// Calculates which interactions are needed for the next bead
+
+/****************************************************************************************************************
+ * Name       | Interactions                                                                                    *
+ * ------------------------------------------------------------------------------------------------------------ *
+ * Function   | Calculates all the interactions that need to be considered when placing the 'ToBePlaced'-beads  *
+ * Parameters | -                                                                                               *
+ ****************************************************************************************************************/
+
 void Interactions(void)
 {
   int i,j,k;
   int A,B,C,D;
   int index;
 
+  // initialize 'BoolToBePlaced' and 'BoolAlreadyPlacedOrToBePlaced' arrays to FALSE
   for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
   {
-    lplace[i]=FALSE;
-    lchose[i]=FALSE;
+    BoolToBePlaced[i]=FALSE;
+    BoolAlreadyPlacedOrToBePlaced[i]=FALSE;
   }
 
+  // set 'BoolAlreadyPlacedOrToBePlaced'-indices to TRUE if in 'BeadsAlreadyPlaced'-array
   for(i=0;i<NumberOfBeadsAlreadyPlaced;i++)
-    lchose[BeadsAlreadyPlaced[i]]=TRUE;
+    BoolAlreadyPlacedOrToBePlaced[BeadsAlreadyPlaced[i]]=TRUE;
 
+  // set 'BoolAlreadyPlacedOrToBePlaced'-indices to TRUE if in 'BeadsToBePlaced'-array
+  // set 'BoolToBePlaced'-indices to TRUE if in 'BeadsToBePlaced'-array
   for(i=0;i<NumberOfBeadsToBePlaced;i++)
   {
-    lplace[BeadsToBePlaced[i]]=TRUE;
-    lchose[BeadsToBePlaced[i]]=TRUE;
+    BoolToBePlaced[BeadsToBePlaced[i]]=TRUE;
+    BoolAlreadyPlacedOrToBePlaced[BeadsToBePlaced[i]]=TRUE;
   }
 
   // find all bonds from CurrentBead to a bead-to-place
@@ -906,121 +947,122 @@ void Interactions(void)
     }
   }
 
+  // add bend if all 3 involved atoms are already-placed or going to be placed, and at least on of the 3 atoms has to be placed
   NumberOfBends=0;
   for(j=0;j<Components[CurrentComponent].NumberOfBends;j++)
   {
-    if(lchose[Components[CurrentComponent].Bends[j].A]&&
-       lchose[Components[CurrentComponent].Bends[j].B]&&
-       lchose[Components[CurrentComponent].Bends[j].C]&&
-      (lplace[Components[CurrentComponent].Bends[j].A]||
-       lplace[Components[CurrentComponent].Bends[j].B]||
-       lplace[Components[CurrentComponent].Bends[j].C]))
+    if(BoolAlreadyPlacedOrToBePlaced[Components[CurrentComponent].Bends[j].A]&&
+       BoolAlreadyPlacedOrToBePlaced[Components[CurrentComponent].Bends[j].B]&&
+       BoolAlreadyPlacedOrToBePlaced[Components[CurrentComponent].Bends[j].C]&&
+      (BoolToBePlaced[Components[CurrentComponent].Bends[j].A]||
+       BoolToBePlaced[Components[CurrentComponent].Bends[j].B]||
+       BoolToBePlaced[Components[CurrentComponent].Bends[j].C]))
       Bends[NumberOfBends++]=j;
   }
 
   NumberOfBendBends=0;
   for(j=0;j<Components[CurrentComponent].NumberOfBendBends;j++)
   {
-    if(lchose[Components[CurrentComponent].BendBends[j].A]&&
-       lchose[Components[CurrentComponent].BendBends[j].B]&&
-       lchose[Components[CurrentComponent].BendBends[j].C]&&
-       lchose[Components[CurrentComponent].BendBends[j].D]&&
-      (lplace[Components[CurrentComponent].BendBends[j].A]||
-       lplace[Components[CurrentComponent].BendBends[j].B]||
-       lplace[Components[CurrentComponent].BendBends[j].C]||
-       lplace[Components[CurrentComponent].BendBends[j].D]))
+    if(BoolAlreadyPlacedOrToBePlaced[Components[CurrentComponent].BendBends[j].A]&&
+       BoolAlreadyPlacedOrToBePlaced[Components[CurrentComponent].BendBends[j].B]&&
+       BoolAlreadyPlacedOrToBePlaced[Components[CurrentComponent].BendBends[j].C]&&
+       BoolAlreadyPlacedOrToBePlaced[Components[CurrentComponent].BendBends[j].D]&&
+      (BoolToBePlaced[Components[CurrentComponent].BendBends[j].A]||
+       BoolToBePlaced[Components[CurrentComponent].BendBends[j].B]||
+       BoolToBePlaced[Components[CurrentComponent].BendBends[j].C]||
+       BoolToBePlaced[Components[CurrentComponent].BendBends[j].D]))
       BendBends[NumberOfBendBends++]=j;
   }
 
   NumberOfUreyBradleys=0;
   for(j=0;j<Components[CurrentComponent].NumberOfUreyBradleys;j++)
   {
-    if(lchose[Components[CurrentComponent].UreyBradleys[j].A]&&
-       lchose[Components[CurrentComponent].UreyBradleys[j].B]&&
-       lchose[Components[CurrentComponent].UreyBradleys[j].C]&&
-      (lplace[Components[CurrentComponent].UreyBradleys[j].A]||
-       lplace[Components[CurrentComponent].UreyBradleys[j].B]||
-       lplace[Components[CurrentComponent].UreyBradleys[j].C]))
+    if(BoolAlreadyPlacedOrToBePlaced[Components[CurrentComponent].UreyBradleys[j].A]&&
+       BoolAlreadyPlacedOrToBePlaced[Components[CurrentComponent].UreyBradleys[j].B]&&
+       BoolAlreadyPlacedOrToBePlaced[Components[CurrentComponent].UreyBradleys[j].C]&&
+      (BoolToBePlaced[Components[CurrentComponent].UreyBradleys[j].A]||
+       BoolToBePlaced[Components[CurrentComponent].UreyBradleys[j].B]||
+       BoolToBePlaced[Components[CurrentComponent].UreyBradleys[j].C]))
       UreyBradleys[NumberOfUreyBradleys++]=j;
   }
 
   NumberOfInversionBends=0;
   for(j=0;j<Components[CurrentComponent].NumberOfInversionBends;j++)
   {
-    if(lchose[Components[CurrentComponent].InversionBends[j].A]&&
-       lchose[Components[CurrentComponent].InversionBends[j].B]&&
-       lchose[Components[CurrentComponent].InversionBends[j].C]&&
-       lchose[Components[CurrentComponent].InversionBends[j].D]&&
-      (lplace[Components[CurrentComponent].InversionBends[j].A]||
-       lplace[Components[CurrentComponent].InversionBends[j].B]||
-       lplace[Components[CurrentComponent].InversionBends[j].C]||
-       lplace[Components[CurrentComponent].InversionBends[j].D]))
+    if(BoolAlreadyPlacedOrToBePlaced[Components[CurrentComponent].InversionBends[j].A]&&
+       BoolAlreadyPlacedOrToBePlaced[Components[CurrentComponent].InversionBends[j].B]&&
+       BoolAlreadyPlacedOrToBePlaced[Components[CurrentComponent].InversionBends[j].C]&&
+       BoolAlreadyPlacedOrToBePlaced[Components[CurrentComponent].InversionBends[j].D]&&
+      (BoolToBePlaced[Components[CurrentComponent].InversionBends[j].A]||
+       BoolToBePlaced[Components[CurrentComponent].InversionBends[j].B]||
+       BoolToBePlaced[Components[CurrentComponent].InversionBends[j].C]||
+       BoolToBePlaced[Components[CurrentComponent].InversionBends[j].D]))
       InversionBends[NumberOfInversionBends++]=j;
   }
 
   NumberOfTorsions=0;
   for(j=0;j<Components[CurrentComponent].NumberOfTorsions;j++)
   {
-    if(lchose[Components[CurrentComponent].Torsions[j].A]&&
-       lchose[Components[CurrentComponent].Torsions[j].B]&&
-       lchose[Components[CurrentComponent].Torsions[j].C]&&
-       lchose[Components[CurrentComponent].Torsions[j].D]&&
-      (lplace[Components[CurrentComponent].Torsions[j].A]||
-       lplace[Components[CurrentComponent].Torsions[j].B]||
-       lplace[Components[CurrentComponent].Torsions[j].C]||
-       lplace[Components[CurrentComponent].Torsions[j].D]))
+    if(BoolAlreadyPlacedOrToBePlaced[Components[CurrentComponent].Torsions[j].A]&&
+       BoolAlreadyPlacedOrToBePlaced[Components[CurrentComponent].Torsions[j].B]&&
+       BoolAlreadyPlacedOrToBePlaced[Components[CurrentComponent].Torsions[j].C]&&
+       BoolAlreadyPlacedOrToBePlaced[Components[CurrentComponent].Torsions[j].D]&&
+      (BoolToBePlaced[Components[CurrentComponent].Torsions[j].A]||
+       BoolToBePlaced[Components[CurrentComponent].Torsions[j].B]||
+       BoolToBePlaced[Components[CurrentComponent].Torsions[j].C]||
+       BoolToBePlaced[Components[CurrentComponent].Torsions[j].D]))
       Torsions[NumberOfTorsions++]=j;
   }
 
   NumberOfImproperTorsions=0;
   for(j=0;j<Components[CurrentComponent].NumberOfImproperTorsions;j++)
   {
-    if(lchose[Components[CurrentComponent].ImproperTorsions[j].A]&&
-       lchose[Components[CurrentComponent].ImproperTorsions[j].B]&&
-       lchose[Components[CurrentComponent].ImproperTorsions[j].C]&&
-       lchose[Components[CurrentComponent].ImproperTorsions[j].D]&&
-      (lplace[Components[CurrentComponent].ImproperTorsions[j].A]||
-       lplace[Components[CurrentComponent].ImproperTorsions[j].B]||
-       lplace[Components[CurrentComponent].ImproperTorsions[j].C]||
-       lplace[Components[CurrentComponent].ImproperTorsions[j].D]))
+    if(BoolAlreadyPlacedOrToBePlaced[Components[CurrentComponent].ImproperTorsions[j].A]&&
+       BoolAlreadyPlacedOrToBePlaced[Components[CurrentComponent].ImproperTorsions[j].B]&&
+       BoolAlreadyPlacedOrToBePlaced[Components[CurrentComponent].ImproperTorsions[j].C]&&
+       BoolAlreadyPlacedOrToBePlaced[Components[CurrentComponent].ImproperTorsions[j].D]&&
+      (BoolToBePlaced[Components[CurrentComponent].ImproperTorsions[j].A]||
+       BoolToBePlaced[Components[CurrentComponent].ImproperTorsions[j].B]||
+       BoolToBePlaced[Components[CurrentComponent].ImproperTorsions[j].C]||
+       BoolToBePlaced[Components[CurrentComponent].ImproperTorsions[j].D]))
       ImproperTorsions[NumberOfImproperTorsions++]=j;
   }
 
   NumberOfBondBonds=0;
   for(j=0;j<Components[CurrentComponent].NumberOfBondBonds;j++)
   {
-    if(lchose[Components[CurrentComponent].BondBonds[j].A]&&
-       lchose[Components[CurrentComponent].BondBonds[j].B]&&
-       lchose[Components[CurrentComponent].BondBonds[j].C]&&
-      (lplace[Components[CurrentComponent].BondBonds[j].A]||
-       lplace[Components[CurrentComponent].BondBonds[j].B]||
-       lplace[Components[CurrentComponent].BondBonds[j].C]))
+    if(BoolAlreadyPlacedOrToBePlaced[Components[CurrentComponent].BondBonds[j].A]&&
+       BoolAlreadyPlacedOrToBePlaced[Components[CurrentComponent].BondBonds[j].B]&&
+       BoolAlreadyPlacedOrToBePlaced[Components[CurrentComponent].BondBonds[j].C]&&
+      (BoolToBePlaced[Components[CurrentComponent].BondBonds[j].A]||
+       BoolToBePlaced[Components[CurrentComponent].BondBonds[j].B]||
+       BoolToBePlaced[Components[CurrentComponent].BondBonds[j].C]))
       BondBonds[NumberOfBondBonds++]=j;
   }
 
   NumberOfBondBends=0;
   for(j=0;j<Components[CurrentComponent].NumberOfBondBends;j++)
   {
-    if(lchose[Components[CurrentComponent].BondBends[j].A]&&
-       lchose[Components[CurrentComponent].BondBends[j].B]&&
-       lchose[Components[CurrentComponent].BondBends[j].C]&&
-      (lplace[Components[CurrentComponent].BondBends[j].A]||
-       lplace[Components[CurrentComponent].BondBends[j].B]||
-       lplace[Components[CurrentComponent].BondBends[j].C]))
+    if(BoolAlreadyPlacedOrToBePlaced[Components[CurrentComponent].BondBends[j].A]&&
+       BoolAlreadyPlacedOrToBePlaced[Components[CurrentComponent].BondBends[j].B]&&
+       BoolAlreadyPlacedOrToBePlaced[Components[CurrentComponent].BondBends[j].C]&&
+      (BoolToBePlaced[Components[CurrentComponent].BondBends[j].A]||
+       BoolToBePlaced[Components[CurrentComponent].BondBends[j].B]||
+       BoolToBePlaced[Components[CurrentComponent].BondBends[j].C]))
       BondBends[NumberOfBondBends++]=j;
   }
 
   NumberOfBondTorsions=0;
   for(j=0;j<Components[CurrentComponent].NumberOfBondTorsions;j++)
   {
-    if(lchose[Components[CurrentComponent].BondTorsions[j].A]&&
-       lchose[Components[CurrentComponent].BondTorsions[j].B]&&
-       lchose[Components[CurrentComponent].BondTorsions[j].C]&&
-       lchose[Components[CurrentComponent].BondTorsions[j].D]&&
-      (lplace[Components[CurrentComponent].BondTorsions[j].A]||
-       lplace[Components[CurrentComponent].BondTorsions[j].B]||
-       lplace[Components[CurrentComponent].BondTorsions[j].C]||
-       lplace[Components[CurrentComponent].BondTorsions[j].D]))
+    if(BoolAlreadyPlacedOrToBePlaced[Components[CurrentComponent].BondTorsions[j].A]&&
+       BoolAlreadyPlacedOrToBePlaced[Components[CurrentComponent].BondTorsions[j].B]&&
+       BoolAlreadyPlacedOrToBePlaced[Components[CurrentComponent].BondTorsions[j].C]&&
+       BoolAlreadyPlacedOrToBePlaced[Components[CurrentComponent].BondTorsions[j].D]&&
+      (BoolToBePlaced[Components[CurrentComponent].BondTorsions[j].A]||
+       BoolToBePlaced[Components[CurrentComponent].BondTorsions[j].B]||
+       BoolToBePlaced[Components[CurrentComponent].BondTorsions[j].C]||
+       BoolToBePlaced[Components[CurrentComponent].BondTorsions[j].D]))
       BondTorsions[NumberOfBondTorsions++]=j;
   }
 
@@ -1028,34 +1070,34 @@ void Interactions(void)
   NumberOfBendTorsions=0;
   for(j=0;j<Components[CurrentComponent].NumberOfBendTorsions;j++)
   {
-    if(lchose[Components[CurrentComponent].BendTorsions[j].A]&&
-       lchose[Components[CurrentComponent].BendTorsions[j].B]&&
-       lchose[Components[CurrentComponent].BendTorsions[j].C]&&
-       lchose[Components[CurrentComponent].BendTorsions[j].D]&&
-      (lplace[Components[CurrentComponent].BendTorsions[j].A]||
-       lplace[Components[CurrentComponent].BendTorsions[j].B]||
-       lplace[Components[CurrentComponent].BendTorsions[j].C]||
-       lplace[Components[CurrentComponent].BendTorsions[j].D]))
+    if(BoolAlreadyPlacedOrToBePlaced[Components[CurrentComponent].BendTorsions[j].A]&&
+       BoolAlreadyPlacedOrToBePlaced[Components[CurrentComponent].BendTorsions[j].B]&&
+       BoolAlreadyPlacedOrToBePlaced[Components[CurrentComponent].BendTorsions[j].C]&&
+       BoolAlreadyPlacedOrToBePlaced[Components[CurrentComponent].BendTorsions[j].D]&&
+      (BoolToBePlaced[Components[CurrentComponent].BendTorsions[j].A]||
+       BoolToBePlaced[Components[CurrentComponent].BendTorsions[j].B]||
+       BoolToBePlaced[Components[CurrentComponent].BendTorsions[j].C]||
+       BoolToBePlaced[Components[CurrentComponent].BendTorsions[j].D]))
       BendTorsions[NumberOfBendTorsions++]=j;
   }
 
   NumberOfIntraVDW=0;
   for(j=0;j<Components[CurrentComponent].NumberOfIntraVDW;j++)
   {
-    if (lchose[Components[CurrentComponent].IntraVDW[j].A]&&
-        lchose[Components[CurrentComponent].IntraVDW[j].B]&&
-       (lplace[Components[CurrentComponent].IntraVDW[j].A]||
-        lplace[Components[CurrentComponent].IntraVDW[j].B]))
+    if (BoolAlreadyPlacedOrToBePlaced[Components[CurrentComponent].IntraVDW[j].A]&&
+        BoolAlreadyPlacedOrToBePlaced[Components[CurrentComponent].IntraVDW[j].B]&&
+       (BoolToBePlaced[Components[CurrentComponent].IntraVDW[j].A]||
+        BoolToBePlaced[Components[CurrentComponent].IntraVDW[j].B]))
       VDW[NumberOfIntraVDW++]=j;
   }
 
   NumberOfIntraChargeCharge=0;
   for(j=0;j<Components[CurrentComponent].NumberOfIntraChargeCharge;j++)
   {
-    if (lchose[Components[CurrentComponent].IntraChargeCharge[j].A]&&
-        lchose[Components[CurrentComponent].IntraChargeCharge[j].B]&&
-       (lplace[Components[CurrentComponent].IntraChargeCharge[j].A]||
-        lplace[Components[CurrentComponent].IntraChargeCharge[j].B]))
+    if (BoolAlreadyPlacedOrToBePlaced[Components[CurrentComponent].IntraChargeCharge[j].A]&&
+        BoolAlreadyPlacedOrToBePlaced[Components[CurrentComponent].IntraChargeCharge[j].B]&&
+       (BoolToBePlaced[Components[CurrentComponent].IntraChargeCharge[j].A]||
+        BoolToBePlaced[Components[CurrentComponent].IntraChargeCharge[j].B]))
       IntraChargeCharge[NumberOfIntraChargeCharge++]=j;
   }
 
@@ -1067,8 +1109,8 @@ void Interactions(void)
     B=Components[CurrentComponent].BondDipoles[index].A;
     C=Components[CurrentComponent].BondDipoles[index].B;
 
-    if (lchose[A]&&lchose[B]&&lchose[C]&&
-       (lplace[A]||lplace[B]||lplace[C]))
+    if (BoolAlreadyPlacedOrToBePlaced[A]&&BoolAlreadyPlacedOrToBePlaced[B]&&BoolAlreadyPlacedOrToBePlaced[C]&&
+       (BoolToBePlaced[A]||BoolToBePlaced[B]||BoolToBePlaced[C]))
       IntraChargeBondDipole[NumberOfIntraChargeBondDipole++]=j;
   }
 
@@ -1082,8 +1124,8 @@ void Interactions(void)
     C=Components[CurrentComponent].BondDipoles[index].A;
     D=Components[CurrentComponent].BondDipoles[index].B;
 
-    if (lchose[A]&&lchose[B]&&lchose[C]&&lchose[D]&&
-       (lplace[A]||lplace[B]||lplace[C]||lplace[D]))
+    if (BoolAlreadyPlacedOrToBePlaced[A]&&BoolAlreadyPlacedOrToBePlaced[B]&&BoolAlreadyPlacedOrToBePlaced[C]&&BoolAlreadyPlacedOrToBePlaced[D]&&
+       (BoolToBePlaced[A]||BoolToBePlaced[B]||BoolToBePlaced[C]||BoolToBePlaced[D]))
       IntraBondDipoleBondDipole[NumberOfIntraBondDipoleBondDipole++]=j;
   }
 }
@@ -1103,7 +1145,7 @@ int ComputeExternalEnergies(void)
   REAL EnergiesHostBondDipoleBondDipole,EnergiesAdsorbateBondDipoleBondDipole,EnergiesCationBondDipoleBondDipole;
   REAL DipoleMagnitudeA,DipoleMagnitudeB,cosA,cosB,cosAB;
   REAL Bt1,Bt2,temp,ChargeA,ChargeB;
-  REAL Scaling,Magnitude;
+  REAL scaling,Magnitude;
   int index,A1,A2,B1,B2;
   VECTOR posA1,posA2,posB1,posB2,dipoleA,dipoleB,dr;
 
@@ -1144,13 +1186,13 @@ int ComputeExternalEnergies(void)
         EnergyCationVDW=EnergyCationChargeCharge=EnergyCationChargeBondDipole=EnergyCationBondDipoleBondDipole=0.0;
 
         // Calculate External energy
-        EnergyHostVDW=CalculateFrameworkVDWEnergyAtPosition(posAVDW,type);
+        EnergyHostVDW=CalculateFrameworkVDWEnergyAtPosition(posAVDW,type,CFVDWScaling[BeadsToBePlaced[j]]);
         if(EnergyHostVDW>=EnergyOverlapCriteria)
         {
           TRIAL_OVERLAP=TRUE;
           break;
         }
-        CalculateFrameworkChargeEnergyAtPosition(posA,type,&EnergyHostChargeCharge,&EnergyHostChargeBondDipole);
+        CalculateFrameworkChargeEnergyAtPosition(posA,type,&EnergyHostChargeCharge,&EnergyHostChargeBondDipole,CFChargeScaling[BeadsToBePlaced[j]]);
 
         EnergiesHostVDW+=EnergyHostVDW;
         EnergiesHostChargeCharge+=EnergyHostChargeCharge;
@@ -1159,19 +1201,19 @@ int ComputeExternalEnergies(void)
 
         // compute VDW energy with adsorbates if no omit of adsorbate-adsorbate or the current molecule is a cation
         if(Components[CurrentComponent].ExtraFrameworkMolecule||(!OmitAdsorbateAdsorbateVDWInteractions))
-          EnergyAdsorbateVDW=CalculateInterVDWEnergyAdsorbateAtPosition(posAVDW,type,CurrentAdsorbateMolecule);
+          EnergyAdsorbateVDW=CalculateInterVDWEnergyAdsorbateAtPosition(posAVDW,type,CurrentAdsorbateMolecule,CFVDWScaling[BeadsToBePlaced[j]]);
 
         // compute Coulomb energy with adsorbates if no omit of adsorbate-adsorbate or the current molecule is a cation
         if(Components[CurrentComponent].ExtraFrameworkMolecule||(!OmitAdsorbateAdsorbateCoulombInteractions))
-          CalculateInterChargeEnergyAdsorbateAtPosition(posA,type,&EnergyAdsorbateChargeCharge,&EnergyAdsorbateChargeBondDipole,CurrentAdsorbateMolecule);
+          CalculateInterChargeEnergyAdsorbateAtPosition(posA,type,&EnergyAdsorbateChargeCharge,&EnergyAdsorbateChargeBondDipole,CurrentAdsorbateMolecule,CFChargeScaling[BeadsToBePlaced[j]]);
 
         // compute VDW energy with cations if no omit of cation-cation or the current molecule is an adsorbate
         if((!Components[CurrentComponent].ExtraFrameworkMolecule)||(!OmitCationCationVDWInteractions))
-          EnergyCationVDW=CalculateInterVDWEnergyCationAtPosition(posAVDW,type,CurrentCationMolecule);
+          EnergyCationVDW=CalculateInterVDWEnergyCationAtPosition(posAVDW,type,CurrentCationMolecule,CFVDWScaling[BeadsToBePlaced[j]]);
 
         // compute Coulomb energy with cations if no omit of cation-cation or the current molecule is an adsorbate
         if((!Components[CurrentComponent].ExtraFrameworkMolecule)||(!OmitCationCationCoulombInteractions))
-          CalculateInterChargeEnergyCationAtPosition(posA,type,&EnergyCationChargeCharge,&EnergyCationChargeBondDipole,CurrentCationMolecule);
+          CalculateInterChargeEnergyCationAtPosition(posA,type,&EnergyCationChargeCharge,&EnergyCationChargeBondDipole,CurrentCationMolecule,CFChargeScaling[BeadsToBePlaced[j]]);
 
         EnergiesAdsorbateVDW+=EnergyAdsorbateVDW;
         EnergiesAdsorbateChargeCharge+=EnergyAdsorbateChargeCharge;
@@ -1235,7 +1277,7 @@ int ComputeExternalEnergies(void)
       {
         A=Components[CurrentComponent].IntraVDW[VDW[i]].A;
         B=Components[CurrentComponent].IntraVDW[VDW[i]].B;
-        Scaling=Components[CurrentComponent].IntraVDWScaling[VDW[i]];
+        scaling=Components[CurrentComponent].IntraVDWScaling[VDW[i]];
         rr=SQR(TrialPositions[Itrial][A].x-TrialPositions[Itrial][B].x)+
            SQR(TrialPositions[Itrial][A].y-TrialPositions[Itrial][B].y)+
            SQR(TrialPositions[Itrial][A].z-TrialPositions[Itrial][B].z);
@@ -1243,7 +1285,7 @@ int ComputeExternalEnergies(void)
         {
           typeA=Components[CurrentComponent].Type[A];
           typeB=Components[CurrentComponent].Type[B];
-          EnergiesIntra+=Scaling*PotentialValue(typeA,typeB,rr);
+          EnergiesIntra+=scaling*PotentialValue(typeA,typeB,rr,1.0);
         }
       }
 
@@ -1253,7 +1295,7 @@ int ComputeExternalEnergies(void)
         {
           A=Components[CurrentComponent].IntraChargeCharge[IntraChargeCharge[i]].A;
           B=Components[CurrentComponent].IntraChargeCharge[IntraChargeCharge[i]].B;
-          Scaling=Components[CurrentComponent].IntraChargeChargeScaling[IntraChargeCharge[i]];
+          scaling=Components[CurrentComponent].IntraChargeChargeScaling[IntraChargeCharge[i]];
           r=sqrt(SQR(TrialPositions[Itrial][A].x-TrialPositions[Itrial][B].x)+
                  SQR(TrialPositions[Itrial][A].y-TrialPositions[Itrial][B].y)+
                  SQR(TrialPositions[Itrial][A].z-TrialPositions[Itrial][B].z));
@@ -1266,12 +1308,12 @@ int ComputeExternalEnergies(void)
             case NONE:
               break;
             case SHIFTED_COULOMB:
-              EnergiesIntraChargeCharge+=Scaling*COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB/r;
+              EnergiesIntraChargeCharge+=scaling*COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB/r;
               break;
             case TRUNCATED_COULOMB:
             case EWALD:
             default:
-              EnergiesIntraChargeCharge+=Scaling*COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB/r;
+              EnergiesIntraChargeCharge+=scaling*COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB/r;
               break;
           }
         }
@@ -1389,12 +1431,12 @@ int ComputeExternalEnergies(void)
       if(BiasingMethod==LJ_BIASING)
       {
          // the biasing is done using only the VDW energies
-         Bfac[Itrial]=-Beta[CurrentSystem]*(EnergiesHostVDW+EnergiesAdsorbateVDW+EnergiesCationVDW+EnergiesIntra);
+         BoltzmannFactors[Itrial]=-Beta[CurrentSystem]*(EnergiesHostVDW+EnergiesAdsorbateVDW+EnergiesCationVDW+EnergiesIntra);
       }
       else
       {
          // the biasing is done using all external energies
-         Bfac[Itrial]=-Beta[CurrentSystem]*
+         BoltzmannFactors[Itrial]=-Beta[CurrentSystem]*
                          (EnergiesHostVDW+EnergiesCationVDW+EnergiesAdsorbateVDW+
                           EnergiesHostChargeCharge+EnergiesHostChargeBondDipole+EnergiesHostBondDipoleBondDipole+
                           EnergiesAdsorbateChargeCharge+EnergiesAdsorbateChargeBondDipole+EnergiesAdsorbateBondDipoleBondDipole+
@@ -1407,7 +1449,7 @@ int ComputeExternalEnergies(void)
     }
     else
     {
-      Bfac[Itrial]=0.0;
+      BoltzmannFactors[Itrial]=0.0;
       Overlap[Itrial]=TRUE;
     } 
   } 
@@ -1454,10 +1496,7 @@ int GenerateTrialOrientationsSimpleSphere(int Old)
       for(j=0;j<Components[CurrentComponent].Groups[CurrentGroup].NumberOfGroupAtoms;j++)
       {
         atom_nr=Components[CurrentComponent].Groups[CurrentGroup].Atoms[j];
-        if(Components[CurrentComponent].ExtraFrameworkMolecule)
-          TrialPositions[0][atom_nr]=Cations[CurrentSystem][CurrentCationMolecule].Atoms[atom_nr].Position;
-        else
-          TrialPositions[0][atom_nr]=Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[atom_nr].Position;
+        TrialPositions[0][atom_nr]=OldPosition[atom_nr];
       }
     }
   }
@@ -2333,18 +2372,18 @@ int GenerateTrialOrientationsMCScheme(int Old)
         for(j=0;j<NumberOfBendTorsions;j++)
           newtrs+=CalculateBendTorsionEnergy(BendTorsions[j],iu);
 
-        Bfac[k]=-Beta[CurrentSystem]*newtrs;
+        BoltzmannFactors[k]=-Beta[CurrentSystem]*newtrs;
         Overlap[k]=FALSE;
       }
 
-      RosenbluthTorsion[iu]=ComputeNormalizedRosenbluthWeight(Bfac,Overlap,NumberOfTrialPositionsTorsion);
+      RosenbluthTorsion[iu]=ComputeNormalizedRosenbluthWeight(BoltzmannFactors,Overlap,NumberOfTrialPositionsTorsion);
 
       if((iu==0)&&Old)
         sel=0;
       else
       {
         if(NumberOfTorsions>0)
-          sel=SelectTrialPosition(Bfac,Overlap,NumberOfTrialPositionsTorsion);
+          sel=SelectTrialPosition(BoltzmannFactors,Overlap,NumberOfTrialPositionsTorsion);
         else
           sel=(int)(RandomNumber()*(REAL)NumberOfTrialPositionsTorsion);
       }
@@ -2508,9 +2547,16 @@ void CheckConfigMoves(void)
   }
 }
 
-// determines wich atoms are bonded to eachother for
-// a) the whole molecule: 'MoleculeConnectivity'-matrix
-// b) the part of the molecule that needs to be regrown: 'MoleculeTodoConnectivity'-matrix
+/****************************************************************************************************************
+ * Name       | SetConnectivityMatrix                                                                           *
+ * ------------------------------------------------------------------------------------------------------------ *
+ * Function   | Computes two matrices:                                                                          *
+ *            | 1) 'MoleculeConnectivity' which defines the connectivity of the molecule                        *
+ *            | 2) 'MoleculeTodoConnectivity' which defines the connectivity of the part of the molecule that   *
+ *            |    needs to be grown (indices corresponding to 'BeadsAlreadyPlaced[i]' are set to FALSE)        *
+ *            | Matrix[i][j] is TRUE means i and j are connected, FALSE means not connected                     *
+ ****************************************************************************************************************/
+
 void SetConnectivityMatrix(void)
 {
   int i,j;
@@ -2527,7 +2573,7 @@ void SetConnectivityMatrix(void)
     MoleculeConnectivity[Components[CurrentComponent].Bonds[j].B][Components[CurrentComponent].Bonds[j].A]=TRUE;
   }
 
-  // copy 'MoleculeTodoConnectivity' to 'MoleculeConnectivity'
+  // copy 'MoleculeConnectivity' to 'MoleculeTodoConnectivity'
   for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
     for(j=0;j<Components[CurrentComponent].NumberOfAtoms;j++)
       MoleculeTodoConnectivity[i][j]=MoleculeConnectivity[i][j];
@@ -2545,13 +2591,13 @@ void SetGrowingStatus(void)
   int atom_nr,nchoice;
   int IsGroupAttached[1000];
 
-  // set 'lplace' all FALSE
+  // set 'BoolToBePlaced' all FALSE
   for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
-    lplace[i]=FALSE;
+    BoolToBePlaced[i]=FALSE;
 
-  // set element 'lplace' to TRUE i already placed
+  // set element 'BoolToBePlaced' to TRUE i already placed
   for(i=0;i<NumberOfBeadsAlreadyPlaced;i++)
-    lplace[BeadsAlreadyPlaced[i]]=TRUE;
+    BoolToBePlaced[BeadsAlreadyPlaced[i]]=TRUE;
 
   nchoice=0;
   for(i=0;i<NumberOfBeadsAlreadyPlaced;i++)
@@ -2684,6 +2730,13 @@ void SetGrowingStatus(void)
     PreviousGroup=-1;
 }
 
+/****************************************************************************************************************
+ * Name       | HandleChain                                                                                     *
+ * ------------------------------------------------------------------------------------------------------------ *
+ * Function   | Implements the growing/retracing of chain after the first-bead has been placed                  *
+ * Parameters | boolean Old: old chain (TRUE) or new chain (FALSE)                                              *
+ ****************************************************************************************************************/
+
 int Rosen(void)
 {
   int iu,ip,iwalk,j;
@@ -2714,8 +2767,8 @@ int Rosen(void)
     ComputeExternalEnergies();
 
     if(OVERLAP) return 2;
-    weight=ComputeNormalizedRosenbluthWeight(Bfac,Overlap,NumberOfTrialPositions);
-    iwalk=SelectTrialPosition(Bfac,Overlap,NumberOfTrialPositions);
+    weight=ComputeNormalizedRosenbluthWeight(BoltzmannFactors,Overlap,NumberOfTrialPositions);
+    iwalk=SelectTrialPosition(BoltzmannFactors,Overlap,NumberOfTrialPositions);
 
     RosenbluthNew*=weight*RosenbluthTorsion[iwalk];
 
@@ -2788,18 +2841,9 @@ int RosenOld(void)
     Interactions();
 
     // fill trialpositions of the beads that are already grown
-    if(Components[CurrentComponent].ExtraFrameworkMolecule)
-    {
-      for(iu=0;iu<NumberOfTrialPositions;iu++)
-        for(k=0;k<Components[CurrentComponent].NumberOfAtoms;k++)
-          TrialPositions[iu][k]=Cations[CurrentSystem][CurrentCationMolecule].Atoms[k].Position;
-    }
-    else
-    {
-      for(iu=0;iu<NumberOfTrialPositions;iu++)
-        for(k=0;k<Components[CurrentComponent].NumberOfAtoms;k++)
-          TrialPositions[iu][k]=Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[k].Position;
-    }
+    for(iu=0;iu<NumberOfTrialPositions;iu++)
+      for(k=0;k<Components[CurrentComponent].NumberOfAtoms;k++)
+        TrialPositions[iu][k]=OldPosition[k];
 
     for(j=0;j<NumberOfTrialPositionsTorsion;j++)
       RosenbluthTorsion[j]=1.0;
@@ -2813,7 +2857,7 @@ int RosenOld(void)
 
     if (OVERLAP) return 2;
 
-    weight=ComputeNormalizedRosenbluthWeight(Bfac,Overlap,NumberOfTrialPositions);
+    weight=ComputeNormalizedRosenbluthWeight(BoltzmannFactors,Overlap,NumberOfTrialPositions);
     RosenbluthOld*=weight*RosenbluthTorsion[0];
 
     UBondOld[CurrentSystem]+=UBondTrial[0];
@@ -2863,7 +2907,8 @@ REAL RetraceMolecule(int Iicode)
 {
   int start,k,j;
   REAL UVDWCorrectionAdsorbate,UVDWCorrectionCation;
-  REAL UVDWCorrectionFramework;
+  REAL UVDWCorrectionFramework,UVDWCorrectionReplicasOld;
+  REAL UChargeChargeCorrectionReplicasOld;
 
   UBondOld[CurrentSystem]=0.0;
   UBendOld[CurrentSystem]=0.0;
@@ -2911,10 +2956,7 @@ REAL RetraceMolecule(int Iicode)
   start=Components[CurrentComponent].StartingBead;
   if (NumberOfBeadsAlreadyPlaced==0)
   {
-    if(Components[CurrentComponent].ExtraFrameworkMolecule)
-      FirstBeadPosition=Cations[CurrentSystem][CurrentCationMolecule].Atoms[start].Position;
-    else
-      FirstBeadPosition=Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[start].Position;
+    FirstBeadPosition=OldPosition[start];
     HandleFirstBead(Iicode);
 
     RosenbluthOld=RosenBluthFactorFirstBead;
@@ -2944,13 +2986,33 @@ REAL RetraceMolecule(int Iicode)
 
   // calculate anisotropic sites
   CalculateAnisotropicTrialPositions(CurrentComponent,TrialPositions[0],TrialAnisotropicPositionRetrace);
-  UVDWCorrectionFramework=CalculateFrameworkVDWEnergyCorrection(TrialPositions[0],TrialAnisotropicPositionRetrace);
+  UVDWCorrectionFramework=CalculateFrameworkVDWEnergyCorrection(TrialPositions[0],TrialAnisotropicPositionRetrace,CFVDWScaling);
   UVDWCorrectionAdsorbate=CalculateInterVDWEnergyCorrectionAdsorbate(TrialPositions[0],TrialAnisotropicPositionRetrace,CurrentAdsorbateMolecule);
   UVDWCorrectionCation=CalculateInterVDWEnergyCorrectionCation(TrialPositions[0],TrialAnisotropicPositionRetrace,CurrentCationMolecule);
+
   RosenbluthOld*=exp(-Beta[CurrentSystem]*(UVDWCorrectionFramework+UVDWCorrectionAdsorbate+UVDWCorrectionCation));
   UHostVDWOld[CurrentSystem]+=UVDWCorrectionFramework;
   UAdsorbateVDWOld[CurrentSystem]+=UVDWCorrectionAdsorbate;
   UCationVDWOld[CurrentSystem]+=UVDWCorrectionCation;
+
+  // correct for self-energy when using replica unit cells
+  UVDWCorrectionReplicasOld=0.0;
+  UChargeChargeCorrectionReplicasOld=0.0;
+  if(Components[CurrentComponent].ExtraFrameworkMolecule)
+  {
+    UVDWCorrectionReplicasOld=CalculateInterVDWSelfEnergyCorrectionCationOld(CurrentCationMolecule);
+    UChargeChargeCorrectionReplicasOld=CalculateInterChargeChargeSelfEnergyCorrectionCationOld(CurrentCationMolecule);
+    UCationVDWOld[CurrentSystem]+=UVDWCorrectionReplicasOld;
+    UCationChargeChargeOld[CurrentSystem]+=UChargeChargeCorrectionReplicasOld;
+  }
+  else
+  {
+    UVDWCorrectionReplicasOld=CalculateInterVDWSelfEnergyCorrectionAdsorbateOld(CurrentAdsorbateMolecule);
+    UChargeChargeCorrectionReplicasOld=CalculateInterChargeChargeSelfEnergyCorrectionAdsorbateOld(CurrentAdsorbateMolecule);
+    UAdsorbateVDWOld[CurrentSystem]+=UVDWCorrectionReplicasOld;
+    UAdsorbateChargeChargeOld[CurrentSystem]+=UChargeChargeCorrectionReplicasOld;
+  }
+  RosenbluthOld*=exp(-Beta[CurrentSystem]*(UVDWCorrectionReplicasOld+UChargeChargeCorrectionReplicasOld));
 
   // correction for certain cross-terms that can not be handled during the growth
   RosenbluthOld*=exp(-Beta[CurrentSystem]*(UBondBondOld[CurrentSystem]+UBondBendOld[CurrentSystem]));
@@ -2973,7 +3035,8 @@ REAL GrowMolecule(int Iicode)
 {
   int j,start;
   REAL UVDWCorrectionAdsorbate,UVDWCorrectionCation;
-  REAL UVDWCorrectionFramework;
+  REAL UVDWCorrectionFramework,UVDWCorrectionReplicasNew;
+  REAL UChargeChargeCorrectionReplicasNew;
 
   UBondNew[CurrentSystem]=0.0;
   UBendNew[CurrentSystem]=0.0;
@@ -3010,7 +3073,7 @@ REAL GrowMolecule(int Iicode)
   if(NumberOfBeadsAlreadyPlaced==0)
   {
     start=Components[CurrentComponent].StartingBead;
-    if(Iicode==2)
+    if(Iicode==CBMC_PARTIAL_INSERTION)
       FirstBeadPosition=NewPosition[CurrentSystem][start];
     HandleFirstBead(Iicode);
     RosenbluthNew=RosenBluthFactorFirstBead;
@@ -3052,13 +3115,29 @@ REAL GrowMolecule(int Iicode)
 
   // calculate anisotropic sites
   CalculateAnisotropicTrialPositions(CurrentComponent,TrialPosition[CurrentSystem],TrialAnisotropicPosition[CurrentSystem]);
-  UVDWCorrectionFramework=CalculateFrameworkVDWEnergyCorrection(TrialPosition[CurrentSystem],TrialAnisotropicPosition[CurrentSystem]);
+  UVDWCorrectionFramework=CalculateFrameworkVDWEnergyCorrection(TrialPosition[CurrentSystem],TrialAnisotropicPosition[CurrentSystem],CFVDWScaling);
   UVDWCorrectionAdsorbate=CalculateInterVDWEnergyCorrectionAdsorbate(TrialPosition[CurrentSystem],TrialAnisotropicPosition[CurrentSystem],CurrentAdsorbateMolecule);
   UVDWCorrectionCation=CalculateInterVDWEnergyCorrectionCation(TrialPosition[CurrentSystem],TrialAnisotropicPosition[CurrentSystem],CurrentCationMolecule);
   RosenbluthNew*=exp(-Beta[CurrentSystem]*(UVDWCorrectionFramework+UVDWCorrectionAdsorbate+UVDWCorrectionCation));
+
   UHostVDWNew[CurrentSystem]+=UVDWCorrectionFramework;
   UAdsorbateVDWNew[CurrentSystem]+=UVDWCorrectionAdsorbate;
   UCationVDWNew[CurrentSystem]+=UVDWCorrectionCation;
+
+  // correct for self-energy when using replica unit cells
+  UVDWCorrectionReplicasNew=CalculateInterVDWSelfEnergyCorrectionNew();
+  UChargeChargeCorrectionReplicasNew=CalculateInterChargeChargeSelfEnergyCorrectionNew();
+  RosenbluthNew*=exp(-Beta[CurrentSystem]*(UVDWCorrectionReplicasNew+UChargeChargeCorrectionReplicasNew));
+  if(Components[CurrentComponent].ExtraFrameworkMolecule)
+  {
+    UCationVDWNew[CurrentSystem]+=UVDWCorrectionReplicasNew;
+    UCationChargeChargeNew[CurrentSystem]+=UChargeChargeCorrectionReplicasNew;
+  }
+  else
+  {
+    UAdsorbateVDWNew[CurrentSystem]+=UVDWCorrectionReplicasNew;
+    UAdsorbateChargeChargeNew[CurrentSystem]+=UChargeChargeCorrectionReplicasNew;
+  }
 
   // the old config can be used as a starting point
   Components[CurrentComponent].LMCMOL=TRUE;
@@ -3079,11 +3158,123 @@ REAL GrowMolecule(int Iicode)
   return RosenbluthNew;
 }
 
+// Create reservoir ideal-gas particle of type 'CurrentComponent' with only intra-interactions
+// Final positions for atoms 'i' are in 'NewPosition[CurrentSystem][i]'
+void GrowReservoirMolecule(void)
+{
+  int j,k;
+  REAL PreFactor;
+  REAL accepted,rejected;
+  int StartingBead;
+  int FrameworkModel;
+  int OmitInterMolecularInteractionsStored;
+  int OmitInterMolecularVDWInteractionsStored;
+  int OmitInterMolecularCoulombInteractionsStored;
+  int OmitAdsorbateAdsorbateVDWInteractionsStored;
+  int OmitAdsorbateAdsorbateCoulombInteractionsStored;
+  int OmitAdsorbateCationVDWInteractionsStored;
+  int OmitAdsorbateCationCoulombInteractionsStored;
+  int OmitCationCationVDWInteractionsStored;
+  int OmitCationCationCoulombInteractionsStored;
+
+  FrameworkModel=Framework[CurrentSystem].FrameworkModel;
+  OmitInterMolecularInteractionsStored=OmitInterMolecularInteractions;
+  OmitInterMolecularVDWInteractionsStored=OmitInterMolecularVDWInteractions;
+  OmitInterMolecularCoulombInteractionsStored=OmitInterMolecularCoulombInteractions;
+  OmitAdsorbateAdsorbateVDWInteractionsStored=OmitAdsorbateAdsorbateVDWInteractions;
+  OmitAdsorbateAdsorbateCoulombInteractionsStored=OmitAdsorbateAdsorbateCoulombInteractions;
+  OmitAdsorbateCationVDWInteractionsStored=OmitAdsorbateCationVDWInteractions;
+  OmitAdsorbateCationCoulombInteractionsStored=OmitAdsorbateCationCoulombInteractions;
+  OmitCationCationVDWInteractionsStored=OmitCationCationVDWInteractions;
+  OmitCationCationCoulombInteractionsStored=OmitCationCationCoulombInteractions;
+
+  Framework[CurrentSystem].FrameworkModel=NONE;
+  OmitInterMolecularInteractions=TRUE;
+  OmitInterMolecularVDWInteractions=TRUE;
+  OmitInterMolecularCoulombInteractions=TRUE;
+  OmitAdsorbateAdsorbateVDWInteractions=TRUE;
+  OmitAdsorbateAdsorbateCoulombInteractions=TRUE;
+  OmitAdsorbateCationVDWInteractions=TRUE;
+  OmitAdsorbateCationCoulombInteractions=TRUE;
+  OmitCationCationVDWInteractions=TRUE;
+  OmitCationCationCoulombInteractions=TRUE;
+
+  accepted=0.0;
+  rejected=0.0;
+
+  // grow an initial adsorbate with no external interactions
+  for(j=0;j<MaxNumberOfBeads;j++)
+  {
+    CFVDWScaling[j]=0.0;
+    CFChargeScaling[j]=0.0;
+  }
+
+  // generate initial NewPosition
+  do
+  {
+    CurrentAdsorbateMolecule=NumberOfAdsorbateMolecules[CurrentSystem];
+    CurrentCationMolecule=NumberOfCationMolecules[CurrentSystem];
+
+    NumberOfBeadsAlreadyPlaced=0;
+    RosenbluthNew=GrowMolecule(CBMC_INSERTION);
+  }
+  while(OVERLAP==TRUE);
+
+
+  for(accepted=0;accepted<200;accepted+=1.0)
+  {
+    for(k=0;k<Components[CurrentComponent].NumberOfAtoms;k++)
+      StoredPosition[k]=NewPosition[CurrentSystem][k];
+
+    NumberOfBeadsAlreadyPlaced=0;
+    RosenbluthNew=GrowMolecule(CBMC_INSERTION);
+
+
+    for(k=0;k<Components[CurrentComponent].NumberOfAtoms;k++)
+      OldPosition[k]=StoredPosition[k];
+
+    NumberOfBeadsAlreadyPlaced=0;
+    RosenbluthOld=RetraceMolecule(CBMC_RETRACE_REINSERTION);
+
+    if(RandomNumber()<RosenbluthNew/RosenbluthOld)
+    {
+      accepted+=1.0;
+      //printf("IG: accepted\n");
+    }
+    else
+    {
+      rejected-=1.0;
+      for(k=0;k<Components[CurrentComponent].NumberOfAtoms;k++)
+        NewPosition[CurrentSystem][k]=StoredPosition[k];
+      //printf("IG: rejected\n");
+    }
+  }
+
+  Framework[CurrentSystem].FrameworkModel=FrameworkModel;;
+  OmitInterMolecularInteractions=OmitInterMolecularInteractionsStored;
+  OmitInterMolecularVDWInteractions=OmitInterMolecularVDWInteractionsStored;
+  OmitInterMolecularCoulombInteractions=OmitInterMolecularCoulombInteractionsStored;
+  OmitAdsorbateAdsorbateVDWInteractions=OmitAdsorbateAdsorbateVDWInteractionsStored;
+  OmitAdsorbateAdsorbateCoulombInteractions=OmitAdsorbateAdsorbateCoulombInteractionsStored;
+  OmitAdsorbateCationVDWInteractions=OmitAdsorbateCationVDWInteractionsStored;
+  OmitAdsorbateCationCoulombInteractions=OmitAdsorbateCationCoulombInteractionsStored;
+  OmitCationCationVDWInteractions=OmitCationCationVDWInteractionsStored;
+  OmitCationCationCoulombInteractions=OmitCationCationCoulombInteractionsStored;
+}
+
+
 void MakeInitialAdsorbate(void)
 {
   int j,k;
   int StartingBead;
   POINT s;
+
+  // grow an initial adsorbate with full interactions
+  for(j=0;j<MaxNumberOfBeads;j++)
+  {
+    CFVDWScaling[j]=1.0;
+    CFChargeScaling[j]=1.0;
+  }
 
   do
   {
@@ -3142,6 +3333,13 @@ void MakeInitialCation(void)
   int j,k;
   int StartingBead;
   POINT s;
+
+  // grow an initial cations with full interactions
+  for(j=0;j<MaxNumberOfBeads;j++)
+  {
+    CFVDWScaling[j]=1.0;
+    CFChargeScaling[j]=1.0;
+  }
 
   do
   {
@@ -3382,6 +3580,9 @@ void AllocateCBMCMemory(void)
   for(i=0;i<MaxNumberOfBeads;i++)
     BranchAtoms[i]=(int*)calloc(MaxNumberOfBeads,sizeof(int));
 
+  StoredPosition=(VECTOR*)calloc(MaxNumberOfBeads,sizeof(VECTOR));
+  OldPosition=(VECTOR*)calloc(MaxNumberOfBeads,sizeof(VECTOR));
+
   NewPosition=(VECTOR**)calloc(NumberOfSystems,sizeof(VECTOR*));
   NewVelocity=(VECTOR**)calloc(NumberOfSystems,sizeof(VECTOR*));
   NewForce=(VECTOR**)calloc(NumberOfSystems,sizeof(VECTOR*));
@@ -3394,12 +3595,20 @@ void AllocateCBMCMemory(void)
   }
 
   TrialAnisotropicPositionRetrace=(VECTOR*)calloc(MaxNumberOfBeads,sizeof(VECTOR));
+  CFVDWScaling=(REAL*)calloc(MaxNumberOfBeads,sizeof(REAL));
+  CFChargeScaling=(REAL*)calloc(MaxNumberOfBeads,sizeof(REAL));
+  CFVDWScalingStored=(REAL*)calloc(MaxNumberOfBeads,sizeof(REAL));
+  CFChargeScalingStored=(REAL*)calloc(MaxNumberOfBeads,sizeof(REAL));
+  CFVDWScalingStored2=(REAL*)calloc(MaxNumberOfBeads,sizeof(REAL));
+  CFChargeScalingStored2=(REAL*)calloc(MaxNumberOfBeads,sizeof(REAL));
+  CFVDWScalingNew=(REAL*)calloc(MaxNumberOfBeads,sizeof(REAL));
+  CFChargeScalingNew=(REAL*)calloc(MaxNumberOfBeads,sizeof(REAL));
 
   TrialPositions=(VECTOR**)calloc(NumberOfTrialPositions,sizeof(VECTOR*));
   for(i=0;i<NumberOfTrialPositions;i++)
     TrialPositions[i]=(VECTOR*)calloc(MaxNumberOfBeads,sizeof(VECTOR));
 
-  Bfac=(REAL*)calloc(MaxTrial,sizeof(REAL));
+  BoltzmannFactors=(REAL*)calloc(MaxTrial,sizeof(REAL));
   Overlap=(int*)calloc(MaxTrial,sizeof(REAL));
   ShiftedBoltzmannFactors=(REAL*)calloc(MaxTrial,sizeof(REAL));
 
@@ -3427,8 +3636,8 @@ void AllocateCBMCMemory(void)
   EnergiesAdsorbatePermanentDipolePermanentDipole=(REAL*)calloc(MaxTrial,sizeof(REAL));
   EnergiesCationPermanentDipolePermanentDipole=(REAL*)calloc(MaxTrial,sizeof(REAL));
 
-  lplace=(int*)calloc(MaxNumberOfBeads,sizeof(int));
-  lchose=(int*)calloc(MaxNumberOfBeads,sizeof(int));
+  BoolToBePlaced=(int*)calloc(MaxNumberOfBeads,sizeof(int));
+  BoolAlreadyPlacedOrToBePlaced=(int*)calloc(MaxNumberOfBeads,sizeof(int));
 
   bond_length=(REAL*)calloc(MaxNumberOfBeads,sizeof(REAL));
   cord=(VECTOR*)calloc(MaxNumberOfBeads,sizeof(VECTOR));

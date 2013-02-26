@@ -1,27 +1,16 @@
-/*****************************************************************************************************
+/*************************************************************************************************************
     RASPA: a molecular-dynamics, monte-carlo and optimization code for nanoporous materials
-    Copyright (C) 2006-2012 David Dubbeldam, Sofia Calero, Donald E. Ellis, and Randall Q. Snurr.
+    Copyright (C) 2006-2013 David Dubbeldam, Sofia Calero, Thijs Vlugt, Donald E. Ellis, and Randall Q. Snurr.
 
     D.Dubbeldam@uva.nl            http://molsim.science.uva.nl/
     scaldia@upo.es                http://www.upo.es/raspa/
+    t.j.h.vlugt@tudelft.nl        http://homepage.tudelft.nl/v9k6y
     don-ellis@northwestern.edu    http://dvworld.northwestern.edu/
     snurr@northwestern.edu        http://zeolites.cqe.northwestern.edu/
 
-    This file 'internal_phonon.c' is part of RASPA.
+    This file 'internal_phonon.c' is part of RASPA-2.0
 
-    RASPA is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    RASPA is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *****************************************************************************************************/
+ *************************************************************************************************************/
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -255,6 +244,7 @@ void CalculateAdsorbateBondPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX_M
   REAL dot_product;
   COMPLEX phase_factor;
 
+/*
   for(m=0;m<NumberOfAdsorbateMolecules[CurrentSystem];m++)
   {
     Type=Adsorbates[CurrentSystem][m].Type;
@@ -521,6 +511,7 @@ void CalculateAdsorbateBondPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX_M
       }
     }
   }
+*/
 }
 
 void CalculateCationBondPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX_MATRIX HessianMatrix,REAL_MATRIX3x3 *StrainDerivative,int ComputeGradient,int ComputeHessian)
@@ -534,7 +525,7 @@ void CalculateCationBondPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX_MATR
   int index_i,index_j;
   REAL dot_product;
   COMPLEX phase_factor;
-
+/*
   for(m=0;m<NumberOfCationMolecules[CurrentSystem];m++)
   {
     Type=Cations[CurrentSystem][m].Type;
@@ -802,6 +793,7 @@ void CalculateCationBondPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX_MATR
       }
     }
   }
+*/
 }
 
 
@@ -811,6 +803,7 @@ void CalculateCationBondPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX_MATR
 
 void CalculateAdsorbateBendPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX_MATRIX HessianMatrix,REAL_MATRIX3x3 *StrainDerivative,int ComputeGradient,int ComputeHessian)
 {
+/*
   int i,m,Type,NumberOfBends,A,B,C;
   REAL *parms,U;
   REAL CosTheta,Theta,SinTheta,temp,temp2;
@@ -1272,10 +1265,12 @@ void CalculateAdsorbateBendPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX_M
       }
     }
   }
+*/
 }
 
 void CalculateCationBendPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX_MATRIX HessianMatrix,REAL_MATRIX3x3 *StrainDerivative,int ComputeGradient,int ComputeHessian)
 {
+/*
   int i,A,B,C,m,Type,NumberOfBends;
   REAL *parms,U;
   REAL CosTheta,Theta,SinTheta,temp,temp2;
@@ -1661,10 +1656,12 @@ void CalculateCationBendPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX_MATR
       }
     }
   }
+*/
 }
 
 void CalculateAdsorbateTorsionPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX_MATRIX HessianMatrix,REAL_MATRIX3x3 *StrainDerivative,int ComputeGradient,int ComputeHessian)
 {
+/*
   int i,m,A,B,C,D,Type;
   POINT posA,posB,posC,posD;
   REAL d,e,rbc;
@@ -2374,10 +2371,12 @@ void CalculateAdsorbateTorsionPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLE
       }
     }
   }
+*/
 }
 
 void CalculateCationTorsionPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX_MATRIX HessianMatrix,REAL_MATRIX3x3 *StrainDerivative,int ComputeGradient,int ComputeHessian)
 {
+/*
   int i,m,A,B,C,D,Type;
   POINT posA,posB,posC,posD;
   REAL d,e,rbc;
@@ -3084,10 +3083,12 @@ void CalculateCationTorsionPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX_M
       }
     }
   }
+*/
 }
 
 void CalculateAdsorbateImproperTorsionPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX_MATRIX HessianMatrix,REAL_MATRIX3x3 *StrainDerivative,int ComputeGradient,int ComputeHessian)
 {
+/*
   int i,m,A,B,C,D,Type;
   POINT posA,posB,posC,posD;
   REAL d,e,rbc;
@@ -3797,10 +3798,12 @@ void CalculateAdsorbateImproperTorsionPhonon(VECTOR k,REAL *Energy,REAL* Gradien
       }
     }
   }
+*/
 }
 
 void CalculateCationImproperTorsionPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX_MATRIX HessianMatrix,REAL_MATRIX3x3 *StrainDerivative,int ComputeGradient,int ComputeHessian)
 {
+/*
   int i,m,A,B,C,D,Type;
   POINT posA,posB,posC,posD;
   REAL d,e,rbc;
@@ -4510,11 +4513,13 @@ void CalculateCationImproperTorsionPhonon(VECTOR k,REAL *Energy,REAL* Gradient,C
       }
     }
   }
+*/
 }
 
 
 void CalculateAdsorbateIntraVDWPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX_MATRIX HessianMatrix,REAL_MATRIX3x3 *StrainDerivative,int ComputeGradient,int ComputeHessian)
 {
+/*
   int i,m,NumberOfIntraVDW,Type,typeA,typeB,A,B;
   REAL rr,energy,DF,DDF,Scaling;
   VECTOR dr;
@@ -4634,10 +4639,12 @@ void CalculateAdsorbateIntraVDWPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPL
       }
     }
   }
+*/
 }
 
 void CalculateCationIntraVDWPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX_MATRIX HessianMatrix,REAL_MATRIX3x3 *StrainDerivative,int ComputeGradient,int ComputeHessian)
 {
+/*
   int i,m,NumberOfIntraVDW,Type,typeA,typeB,A,B;
   REAL rr,energy,DF,DDF,Scaling;
   VECTOR dr;
@@ -4756,10 +4763,12 @@ void CalculateCationIntraVDWPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX_
       }
     }
   }
+*/
 }
 
 void CalculateAdsorbateIntraCoulombPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX_MATRIX HessianMatrix,REAL_MATRIX3x3 *StrainDerivative,int ComputeGradient,int ComputeHessian)
 {
+/*
   int i,m,NumberOfIntraCoulomb,Type,typeA,typeB,A,B;
   REAL r,rr;
   VECTOR dr;
@@ -4893,10 +4902,12 @@ void CalculateAdsorbateIntraCoulombPhonon(VECTOR k,REAL *Energy,REAL* Gradient,C
       }
     }
   }
+*/
 }
 
 void CalculateCationIntraCoulombPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX_MATRIX HessianMatrix,REAL_MATRIX3x3 *StrainDerivative,int ComputeGradient,int ComputeHessian)
 {
+/*
   int i,m,NumberOfIntraCoulomb,Type,typeA,typeB,A,B;
   REAL r,rr;
   VECTOR dr;
@@ -5029,5 +5040,6 @@ void CalculateCationIntraCoulombPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMP
       }
     }
   }
+*/
 }
 

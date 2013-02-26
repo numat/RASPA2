@@ -1,0 +1,11 @@
+#!/bin/csh
+# Serial sample script for Grid Engine
+# Replace items enclosed by {}
+#$ -S /bin/csh
+#$ -N rdf
+#$ -q all.q
+#$ -V
+#$ -cwd
+setenv RASPA_DIR ${HOME}/RASPA/simulations/
+$RASPA_DIR/bin/simulate
+

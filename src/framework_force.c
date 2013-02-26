@@ -78,7 +78,7 @@ void CalculateFrameworkFullForce(int m)
         if(rr<CutOffVDWSquared)
         {
           typeB=Framework[CurrentSystem].Atoms[f1][j].Type;
-          PotentialGradient(typeA,typeB,rr,&energy,&force_factor);
+          PotentialGradient(typeA,typeB,rr,&energy,&force_factor,1.0);
 
           // energy
           UAdsorbateAdsorbateVDW[CurrentSystem]+=energy;
@@ -138,7 +138,7 @@ void CalculateFrameworkForceAtPosition(POINT pos,int typeA,REAL *UVDW,VECTOR *Fo
         rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
         if(rr<CutOffVDWSquared)
         {
-          PotentialGradient(typeA,typeB,rr,&energy,&force_factor);
+          PotentialGradient(typeA,typeB,rr,&energy,&force_factor,1.0);
           (*UVDW)+=energy;
           Force->x-=force_factor*dr.x;
           Force->y-=force_factor*dr.y;
@@ -2777,7 +2777,8 @@ int CalculateFrameworkIntraVDWForce(void)
   int ConnectedAtomA1,ConnectedAtomA2;
   int ConnectedAtomB1,ConnectedAtomB2;
   REAL ra,rb,length_v,length_w,dot_product;
-  int f1,f2;
+  int f1,f2,A,B;
+  REAL *parms;
 
   // Framework-Framework energy
   UHostHostVDW[CurrentSystem]=0.0;
@@ -2923,7 +2924,7 @@ int CalculateFrameworkIntraVDWForce(void)
    
             if(rr<CutOffVDWSquared)
             {
-              PotentialGradient(typeA,typeB,rr,&energy,&force_factor);
+              PotentialGradient(typeA,typeB,rr,&energy,&force_factor,1.0);
    
               UHostHostVDW[CurrentSystem]+=energy;
    
@@ -3235,7 +3236,7 @@ int CalculateFrameworkIntraVDWForce(void)
 
           if(rr<CutOffVDWSquared)
           {
-            PotentialGradient(typeA,typeB,rr,&energy,&force_factor);
+            PotentialGradient(typeA,typeB,rr,&energy,&force_factor,1.0);
 
             UHostHostVDW[CurrentSystem]+=energy;
 
@@ -3407,6 +3408,69 @@ int CalculateFrameworkIntraVDWForce(void)
       }
     }
   }
+
+  // contributions from interactions 1-4 torsions
+  // TODO: fix to handle anisotropic sites
+  for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
+  {
+    if(Framework[CurrentSystem].FrameworkModels[f1]==FLEXIBLE)
+    {
+      for(i=0;i<Framework[CurrentSystem].NumberOfTorsions[f1];i++)
+      {
+        parms=Framework[CurrentSystem].TorsionArguments[f1][i];
+        if(fabs(parms[6])>1e-8)
+        {
+          A=Framework[CurrentSystem].Torsions[f1][i].A;
+          typeA=Framework[CurrentSystem].Atoms[f1][A].Type;
+          posA=Framework[CurrentSystem].Atoms[f1][A].Position;
+
+          B=Framework[CurrentSystem].Torsions[f1][i].D;
+          typeB=Framework[CurrentSystem].Atoms[f1][B].Type;
+          posB=Framework[CurrentSystem].Atoms[f1][B].Position;
+
+
+          dr.x=posA.x-posB.x;
+          dr.y=posA.y-posB.y;
+          dr.z=posA.z-posB.z;
+          dr=ApplyBoundaryCondition(dr);
+
+          rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
+
+          PotentialGradient(typeA,typeB,rr,&energy,&force_factor,1.0);
+
+          UHostHostVDW[CurrentSystem]+=parms[6]*energy;
+
+          force_factor=parms[6]*force_factor;
+
+          StrainDerivativeTensor[CurrentSystem].ax+=force_factor*dr.x*dr.x;
+          StrainDerivativeTensor[CurrentSystem].bx+=force_factor*dr.y*dr.x;
+          StrainDerivativeTensor[CurrentSystem].cx+=force_factor*dr.z*dr.x;
+
+          StrainDerivativeTensor[CurrentSystem].ay+=force_factor*dr.x*dr.y;
+          StrainDerivativeTensor[CurrentSystem].by+=force_factor*dr.y*dr.y;
+          StrainDerivativeTensor[CurrentSystem].cy+=force_factor*dr.z*dr.y;
+
+          StrainDerivativeTensor[CurrentSystem].az+=force_factor*dr.x*dr.z;
+          StrainDerivativeTensor[CurrentSystem].bz+=force_factor*dr.y*dr.z;
+          StrainDerivativeTensor[CurrentSystem].cz+=force_factor*dr.z*dr.z;
+
+          // forces
+          f.x=force_factor*dr.x;
+          f.y=force_factor*dr.y;
+          f.z=force_factor*dr.z;
+
+          Framework[CurrentSystem].Atoms[f1][A].Force.x-=f.x;
+          Framework[CurrentSystem].Atoms[f1][A].Force.y-=f.y;
+          Framework[CurrentSystem].Atoms[f1][A].Force.z-=f.z;
+
+          Framework[CurrentSystem].Atoms[f1][B].Force.x+=f.x;
+          Framework[CurrentSystem].Atoms[f1][B].Force.y+=f.y;
+          Framework[CurrentSystem].Atoms[f1][B].Force.z+=f.z;
+        }
+      }
+    }
+  }
+
   return 0;
 }
 
@@ -3418,7 +3482,9 @@ int CalculateFrameworkIntraChargeChargeForce(void)
   VECTOR posA,posB,dr,f;
   REAL SwitchingValue,TranslationValue;
   REAL SwitchingValueDerivative,TranslationValueDerivative;
-  int f1,f2;
+  int f1,f2,A,B;
+  REAL *parms;
+  REAL alpha;
 
   // Framework-Framework energy
   UHostHostChargeChargeReal[CurrentSystem]=0.0;
@@ -3661,6 +3727,75 @@ int CalculateFrameworkIntraChargeChargeForce(void)
       }
     }
   }
+
+  // contributions from interactions 1-4 torsions
+  // TODO: fix to handle anisotropic sites
+  alpha=Alpha[CurrentSystem];
+  for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
+  {
+    if(Framework[CurrentSystem].FrameworkModels[f1]==FLEXIBLE)
+    {
+      for(i=0;i<Framework[CurrentSystem].NumberOfTorsions[f1];i++)
+      {
+        parms=Framework[CurrentSystem].TorsionArguments[f1][i];
+
+        if(fabs(parms[7])>1e-8)
+        {
+          A=Framework[CurrentSystem].Torsions[f1][i].A;
+          chargeA=Framework[CurrentSystem].Atoms[f1][A].Charge;
+          posA=Framework[CurrentSystem].Atoms[f1][A].Position;
+
+          B=Framework[CurrentSystem].Torsions[f1][i].D;
+          chargeB=Framework[CurrentSystem].Atoms[f1][B].Charge;
+          posB=Framework[CurrentSystem].Atoms[f1][B].Position;
+
+
+          dr.x=posA.x-posB.x;
+          dr.y=posA.y-posB.y;
+          dr.z=posA.z-posB.z;
+          dr=ApplyBoundaryCondition(dr);
+          rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
+          r=sqrt(rr);
+
+          // note: no cutoff used here
+          switch(ChargeMethod)
+          {
+            case NONE:
+              DF=0.0;
+              break;
+            case SHIFTED_COULOMB:
+            case TRUNCATED_COULOMB:
+            case EWALD:
+            default:
+              UHostHostChargeChargeReal[CurrentSystem]+=parms[7]*COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB/r;
+              DF=parms[7]*COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB/(rr*r);
+              break;
+          }
+
+          StrainDerivativeTensor[CurrentSystem].ax-=DF*dr.x*dr.x;
+          StrainDerivativeTensor[CurrentSystem].bx-=DF*dr.y*dr.x;
+          StrainDerivativeTensor[CurrentSystem].cx-=DF*dr.z*dr.x;
+
+          StrainDerivativeTensor[CurrentSystem].ay-=DF*dr.x*dr.y;
+          StrainDerivativeTensor[CurrentSystem].by-=DF*dr.y*dr.y;
+          StrainDerivativeTensor[CurrentSystem].cy-=DF*dr.z*dr.y;
+
+          StrainDerivativeTensor[CurrentSystem].az-=DF*dr.x*dr.z;
+          StrainDerivativeTensor[CurrentSystem].bz-=DF*dr.y*dr.z;
+          StrainDerivativeTensor[CurrentSystem].cz-=DF*dr.z*dr.z;
+
+          Framework[CurrentSystem].Atoms[f1][A].Force.x+=DF*dr.x;
+          Framework[CurrentSystem].Atoms[f1][A].Force.y+=DF*dr.y;
+          Framework[CurrentSystem].Atoms[f1][A].Force.z+=DF*dr.z;
+
+          Framework[CurrentSystem].Atoms[f1][B].Force.x-=DF*dr.x;
+          Framework[CurrentSystem].Atoms[f1][B].Force.y-=DF*dr.y;
+          Framework[CurrentSystem].Atoms[f1][B].Force.z-=DF*dr.z;
+        }
+      }
+    }
+  }
+
   return 0;
 }
 
@@ -4563,7 +4698,7 @@ void CalculateFrameworkAdsorbateVDWForce(void)
 {
   int i,j,k,f1;
   int typeA,typeB,TypeMolA;
-  REAL rr;
+  REAL rr,scalingA;
   REAL energy,force_factor;
   VECTOR posA,posB,dr,f;
   REAL ReductionA,ReductionB;
@@ -4585,6 +4720,7 @@ void CalculateFrameworkAdsorbateVDWForce(void)
     {
       typeA=Adsorbates[CurrentSystem][i].Atoms[j].Type;
       posA=Adsorbates[CurrentSystem][i].Atoms[j].AnisotropicPosition;
+      scalingA=Adsorbates[CurrentSystem][i].Atoms[j].CFVDWScalingParameter;
 
       ReductionA=0.0;
       ConnectedAtomA1=ConnectedAtomA2=-1;
@@ -4725,7 +4861,7 @@ void CalculateFrameworkAdsorbateVDWForce(void)
               typeB=Framework[CurrentSystem].Atoms[f1][k].Type;
 
               // compute the energy and force-factor
-              PotentialGradient(typeA,typeB,rr,&energy,&force_factor);
+              PotentialGradient(typeA,typeB,rr,&energy,&force_factor,scalingA);
 
               // energy
               UHostAdsorbateVDW[CurrentSystem]+=energy;
@@ -4910,7 +5046,7 @@ void CalculateFrameworkCationVDWForce(void)
 {
   int i,j,k,f1;
   int typeA,typeB,TypeMolA;
-  REAL rr;
+  REAL rr,scalingA;
   REAL energy,force_factor;
   VECTOR posA,posB,dr,f;
   REAL ReductionA,ReductionB;
@@ -4932,6 +5068,7 @@ void CalculateFrameworkCationVDWForce(void)
     {
       typeA=Cations[CurrentSystem][i].Atoms[j].Type;
       posA=Cations[CurrentSystem][i].Atoms[j].AnisotropicPosition;
+      scalingA=Cations[CurrentSystem][i].Atoms[j].CFVDWScalingParameter;
 
       ReductionA=0.0;
       ConnectedAtomA1=ConnectedAtomA2=-1;
@@ -5072,7 +5209,7 @@ void CalculateFrameworkCationVDWForce(void)
               typeB=Framework[CurrentSystem].Atoms[f1][k].Type;
 
               // compute the energy and force-factor
-              PotentialGradient(typeA,typeB,rr,&energy,&force_factor);
+              PotentialGradient(typeA,typeB,rr,&energy,&force_factor,scalingA);
 
               // energy
               UHostCationVDW[CurrentSystem]+=energy;
@@ -5263,6 +5400,7 @@ int CalculateFrameworkAdsorbateChargeChargeForce(void)
   VECTOR posA,posB,dr,f;
   REAL SwitchingValue,TranslationValue;
   REAL SwitchingValueDerivative,TranslationValueDerivative;
+  REAL scalingA;
 
   UHostAdsorbateChargeChargeReal[CurrentSystem]=0.0;
   if(ChargeMethod==NONE) return 0;
@@ -5272,7 +5410,8 @@ int CalculateFrameworkAdsorbateChargeChargeForce(void)
     for(j=0;j<Adsorbates[CurrentSystem][i].NumberOfAtoms;j++)
     {
       typeA=Adsorbates[CurrentSystem][i].Atoms[j].Type;
-      chargeA=Adsorbates[CurrentSystem][i].Atoms[j].Charge;
+      scalingA=Adsorbates[CurrentSystem][i].Atoms[j].CFChargeScalingParameter;
+      chargeA=scalingA*Adsorbates[CurrentSystem][i].Atoms[j].Charge;
       posA=Adsorbates[CurrentSystem][i].Atoms[j].Position;
 
       if((Framework[CurrentSystem].FrameworkModel==GRID)&&(CoulombGrid))
@@ -5409,6 +5548,7 @@ int CalculateFrameworkCationChargeChargeForce(void)
   VECTOR posA,posB,dr,f;
   REAL SwitchingValue,TranslationValue;
   REAL SwitchingValueDerivative,TranslationValueDerivative;
+  REAL scalingA;
 
   UHostCationChargeChargeReal[CurrentSystem]=0.0;
   if(ChargeMethod==NONE) return 0;
@@ -5418,7 +5558,8 @@ int CalculateFrameworkCationChargeChargeForce(void)
     for(j=0;j<Cations[CurrentSystem][i].NumberOfAtoms;j++)
     {
       typeA=Cations[CurrentSystem][i].Atoms[j].Type;
-      chargeA=Cations[CurrentSystem][i].Atoms[j].Charge;
+      scalingA=Cations[CurrentSystem][i].Atoms[j].CFChargeScalingParameter;
+      chargeA=scalingA*Cations[CurrentSystem][i].Atoms[j].Charge;
       posA=Cations[CurrentSystem][i].Atoms[j].Position;
 
       if((Framework[CurrentSystem].FrameworkModel==GRID)&&(CoulombGrid))
@@ -7897,7 +8038,7 @@ int CalculateFrameworkIntraReplicaVDWForce(void)
 
                   if(rr<CutOffVDWSquared)
                   {
-                    PotentialGradient(typeA,typeB,rr,&energy,&force_factor);
+                    PotentialGradient(typeA,typeB,rr,&energy,&force_factor,1.0);
 
                     if(ncell==0)
                       UHostHostVDW[CurrentSystem]+=energy;
@@ -8143,7 +8284,7 @@ void CalculateFrameworkAdsorbateReplicaVDWForce(void)
 {
   int i,j,k,f1;
   int typeA,typeB,type;
-  REAL rr;
+  REAL rr,scaling;
   REAL energy,force_factor;
   VECTOR posA,posB,dr,f;
   int ConnectedAtomA,ConnectedAtomB;
@@ -8158,6 +8299,7 @@ void CalculateFrameworkAdsorbateReplicaVDWForce(void)
     {
       typeA=Adsorbates[CurrentSystem][i].Atoms[j].Type;
       posA=Adsorbates[CurrentSystem][i].Atoms[j].AnisotropicPosition;
+      scaling=Adsorbates[CurrentSystem][i].Atoms[j].CFVDWScalingParameter;
 
       ReductionA=1.0;
       ConnectedAtomA=-1;
@@ -8201,7 +8343,7 @@ void CalculateFrameworkAdsorbateReplicaVDWForce(void)
                     typeB=Framework[CurrentSystem].Atoms[f1][k].Type;
 
                     // compute the energy and force-factor
-                    PotentialGradient(typeA,typeB,rr,&energy,&force_factor);
+                    PotentialGradient(typeA,typeB,rr,&energy,&force_factor,scaling);
 
                     // energy
                     UHostAdsorbateVDW[CurrentSystem]+=energy;
@@ -8261,7 +8403,7 @@ void CalculateFrameworkCationReplicaVDWForce(void)
 {
   int i,j,k,f1;
   int typeA,typeB,type;
-  REAL rr;
+  REAL rr,scaling;
   REAL energy,force_factor;
   VECTOR posA,posB,dr,f;
   int ConnectedAtomA,ConnectedAtomB;
@@ -8276,6 +8418,7 @@ void CalculateFrameworkCationReplicaVDWForce(void)
     {
       typeA=Cations[CurrentSystem][i].Atoms[j].Type;
       posA=Cations[CurrentSystem][i].Atoms[j].AnisotropicPosition;
+      scaling=Cations[CurrentSystem][i].Atoms[j].CFVDWScalingParameter;
 
       ReductionA=1.0;
       ConnectedAtomA=-1;
@@ -8319,7 +8462,7 @@ void CalculateFrameworkCationReplicaVDWForce(void)
                     typeB=Framework[CurrentSystem].Atoms[f1][k].Type;
 
                     // compute the energy and force-factor
-                    PotentialGradient(typeA,typeB,rr,&energy,&force_factor);
+                    PotentialGradient(typeA,typeB,rr,&energy,&force_factor,scaling);
 
                     // energy
                     UHostCationVDW[CurrentSystem]+=energy;
@@ -8380,7 +8523,7 @@ int CalculateFrameworkAdsorbateReplicaChargeChargeForce(void)
   int i,j,k,f1;
   int typeA,typeB,type;
   REAL rr,r,chargeA,chargeB;
-  REAL energy,DF;
+  REAL energy,DF,scaling;
   VECTOR posA,posB,dr,f;
   int ConnectedAtomA,ConnectedAtomB;
   REAL ReductionA,ReductionB;
@@ -8399,7 +8542,8 @@ int CalculateFrameworkAdsorbateReplicaChargeChargeForce(void)
     {
       typeA=Adsorbates[CurrentSystem][i].Atoms[j].Type;
       posA=Adsorbates[CurrentSystem][i].Atoms[j].AnisotropicPosition;
-      chargeA=Adsorbates[CurrentSystem][i].Atoms[j].Charge;
+      scaling=Adsorbates[CurrentSystem][i].Atoms[j].CFChargeScalingParameter;
+      chargeA=scaling*Adsorbates[CurrentSystem][i].Atoms[j].Charge;
 
       ReductionA=1.0;
       ConnectedAtomA=-1;
@@ -8562,7 +8706,7 @@ int CalculateFrameworkCationReplicaChargeChargeForce(void)
   int i,j,k,f1;
   int typeA,typeB,type;
   REAL rr,r,chargeA,chargeB;
-  REAL energy,DF;
+  REAL energy,DF,scaling;
   VECTOR posA,posB,dr,f;
   int ConnectedAtomA,ConnectedAtomB;
   REAL ReductionA,ReductionB;
@@ -8581,7 +8725,8 @@ int CalculateFrameworkCationReplicaChargeChargeForce(void)
     {
       typeA=Cations[CurrentSystem][i].Atoms[j].Type;
       posA=Cations[CurrentSystem][i].Atoms[j].AnisotropicPosition;
-      chargeA=Cations[CurrentSystem][i].Atoms[j].Charge;
+      scaling=Cations[CurrentSystem][i].Atoms[j].CFChargeScalingParameter;
+      chargeA=scaling*Cations[CurrentSystem][i].Atoms[j].Charge;
 
       ReductionA=1.0;
       ConnectedAtomA=-1;

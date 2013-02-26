@@ -1,27 +1,16 @@
-/*****************************************************************************************************
+/*************************************************************************************************************
     RASPA: a molecular-dynamics, monte-carlo and optimization code for nanoporous materials
-    Copyright (C) 2006-2012 David Dubbeldam, Sofia Calero, Donald E. Ellis, and Randall Q. Snurr.
+    Copyright (C) 2006-2013 David Dubbeldam, Sofia Calero, Thijs Vlugt, Donald E. Ellis, and Randall Q. Snurr.
 
     D.Dubbeldam@uva.nl            http://molsim.science.uva.nl/
     scaldia@upo.es                http://www.upo.es/raspa/
+    t.j.h.vlugt@tudelft.nl        http://homepage.tudelft.nl/v9k6y
     don-ellis@northwestern.edu    http://dvworld.northwestern.edu/
     snurr@northwestern.edu        http://zeolites.cqe.northwestern.edu/
 
-    This file 'thermo_baro_stats.c' is part of RASPA.
+    This file 'thermo_baro_stats.c' is part of RASPA-2.0
 
-    RASPA is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    RASPA is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *****************************************************************************************************/
+ *************************************************************************************************************/
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -155,6 +144,7 @@ REAL_MATRIX3x3 GetKineticStressTensor(void)
   REAL Mass;
   REAL_MATRIX3x3 KineticPressureTensor;
   VECTOR Velocity;
+  INT_VECTOR3 Fixed;
 
   KineticPressureTensor.ax=KineticPressureTensor.bx=KineticPressureTensor.cx=0.0;
   KineticPressureTensor.ay=KineticPressureTensor.by=KineticPressureTensor.cy=0.0;
@@ -168,19 +158,18 @@ REAL_MATRIX3x3 GetKineticStressTensor(void)
       {
         for(k=0;k<Framework[CurrentSystem].NumberOfAtoms[f1];k++)
         {
-          if(!Framework[CurrentSystem].Atoms[f1][k].Fixed)
-          {
-            Mass=PseudoAtoms[Framework[CurrentSystem].Atoms[f1][k].Type].Mass;
-            KineticPressureTensor.ax+=Mass*Framework[CurrentSystem].Atoms[f1][k].Velocity.x*Framework[CurrentSystem].Atoms[f1][k].Velocity.x;
-            KineticPressureTensor.ay+=Mass*Framework[CurrentSystem].Atoms[f1][k].Velocity.x*Framework[CurrentSystem].Atoms[f1][k].Velocity.y;
-            KineticPressureTensor.az+=Mass*Framework[CurrentSystem].Atoms[f1][k].Velocity.x*Framework[CurrentSystem].Atoms[f1][k].Velocity.z;
-            KineticPressureTensor.bx+=Mass*Framework[CurrentSystem].Atoms[f1][k].Velocity.y*Framework[CurrentSystem].Atoms[f1][k].Velocity.x;
-            KineticPressureTensor.by+=Mass*Framework[CurrentSystem].Atoms[f1][k].Velocity.y*Framework[CurrentSystem].Atoms[f1][k].Velocity.y;
-            KineticPressureTensor.bz+=Mass*Framework[CurrentSystem].Atoms[f1][k].Velocity.y*Framework[CurrentSystem].Atoms[f1][k].Velocity.z;
-            KineticPressureTensor.cx+=Mass*Framework[CurrentSystem].Atoms[f1][k].Velocity.z*Framework[CurrentSystem].Atoms[f1][k].Velocity.x;
-            KineticPressureTensor.cy+=Mass*Framework[CurrentSystem].Atoms[f1][k].Velocity.z*Framework[CurrentSystem].Atoms[f1][k].Velocity.y;
-            KineticPressureTensor.cz+=Mass*Framework[CurrentSystem].Atoms[f1][k].Velocity.z*Framework[CurrentSystem].Atoms[f1][k].Velocity.z;
-          }
+          Mass=PseudoAtoms[Framework[CurrentSystem].Atoms[f1][k].Type].Mass;
+          Fixed=Framework[CurrentSystem].Atoms[f1][k].Fixed;
+
+          if(!Fixed.x)               KineticPressureTensor.ax+=Mass*Framework[CurrentSystem].Atoms[f1][k].Velocity.x*Framework[CurrentSystem].Atoms[f1][k].Velocity.x;
+          if((!Fixed.x)&&(!Fixed.y)) KineticPressureTensor.ay+=Mass*Framework[CurrentSystem].Atoms[f1][k].Velocity.x*Framework[CurrentSystem].Atoms[f1][k].Velocity.y;
+          if((!Fixed.x)&&(!Fixed.z)) KineticPressureTensor.az+=Mass*Framework[CurrentSystem].Atoms[f1][k].Velocity.x*Framework[CurrentSystem].Atoms[f1][k].Velocity.z;
+          if((!Fixed.y)&&(!Fixed.x)) KineticPressureTensor.bx+=Mass*Framework[CurrentSystem].Atoms[f1][k].Velocity.y*Framework[CurrentSystem].Atoms[f1][k].Velocity.x;
+          if(!Fixed.y)               KineticPressureTensor.by+=Mass*Framework[CurrentSystem].Atoms[f1][k].Velocity.y*Framework[CurrentSystem].Atoms[f1][k].Velocity.y;
+          if((!Fixed.y)&&(!Fixed.z)) KineticPressureTensor.bz+=Mass*Framework[CurrentSystem].Atoms[f1][k].Velocity.y*Framework[CurrentSystem].Atoms[f1][k].Velocity.z;
+          if((!Fixed.z)&&(!Fixed.x)) KineticPressureTensor.cx+=Mass*Framework[CurrentSystem].Atoms[f1][k].Velocity.z*Framework[CurrentSystem].Atoms[f1][k].Velocity.x;
+          if((!Fixed.z)&&(!Fixed.y)) KineticPressureTensor.cy+=Mass*Framework[CurrentSystem].Atoms[f1][k].Velocity.z*Framework[CurrentSystem].Atoms[f1][k].Velocity.y;
+          if(!Fixed.z)               KineticPressureTensor.cz+=Mass*Framework[CurrentSystem].Atoms[f1][k].Velocity.z*Framework[CurrentSystem].Atoms[f1][k].Velocity.z;
         }
       }
     }
@@ -195,15 +184,17 @@ REAL_MATRIX3x3 GetKineticStressTensor(void)
       {
         Velocity=Adsorbates[CurrentSystem][i].Groups[l].CenterOfMassVelocity;
         Mass=Components[Type].Groups[l].Mass;
-        KineticPressureTensor.ax+=Mass*Velocity.x*Velocity.x;
-        KineticPressureTensor.ay+=Mass*Velocity.x*Velocity.y;
-        KineticPressureTensor.az+=Mass*Velocity.x*Velocity.z;
-        KineticPressureTensor.bx+=Mass*Velocity.y*Velocity.x;
-        KineticPressureTensor.by+=Mass*Velocity.y*Velocity.y;
-        KineticPressureTensor.bz+=Mass*Velocity.y*Velocity.z;
-        KineticPressureTensor.cx+=Mass*Velocity.z*Velocity.x;
-        KineticPressureTensor.cy+=Mass*Velocity.z*Velocity.y;
-        KineticPressureTensor.cz+=Mass*Velocity.z*Velocity.z;
+
+        Fixed=Adsorbates[CurrentSystem][i].Groups[l].FixedCenterOfMass;
+        if(!Fixed.x)               KineticPressureTensor.ax+=Mass*Velocity.x*Velocity.x;
+        if((!Fixed.x)&&(!Fixed.y)) KineticPressureTensor.ay+=Mass*Velocity.x*Velocity.y;
+        if((!Fixed.x)&&(!Fixed.z)) KineticPressureTensor.az+=Mass*Velocity.x*Velocity.z;
+        if((!Fixed.y)&&(!Fixed.x)) KineticPressureTensor.bx+=Mass*Velocity.y*Velocity.x;
+        if(!Fixed.y)               KineticPressureTensor.by+=Mass*Velocity.y*Velocity.y;
+        if((!Fixed.y)&&(!Fixed.z)) KineticPressureTensor.bz+=Mass*Velocity.y*Velocity.z;
+        if((!Fixed.z)&&(!Fixed.x)) KineticPressureTensor.cx+=Mass*Velocity.z*Velocity.x;
+        if((!Fixed.z)&&(!Fixed.y)) KineticPressureTensor.cy+=Mass*Velocity.z*Velocity.y;
+        if(!Fixed.z)               KineticPressureTensor.cz+=Mass*Velocity.z*Velocity.z;
       }
       else
       {
@@ -211,19 +202,18 @@ REAL_MATRIX3x3 GetKineticStressTensor(void)
         {
           A=Components[Type].Groups[l].Atoms[j];
 
-          if(!Adsorbates[CurrentSystem][i].Atoms[A].Fixed)
-          {
-            Mass=PseudoAtoms[Adsorbates[CurrentSystem][i].Atoms[A].Type].Mass;
-            KineticPressureTensor.ax+=Mass*Adsorbates[CurrentSystem][i].Atoms[A].Velocity.x*Adsorbates[CurrentSystem][i].Atoms[A].Velocity.x;
-            KineticPressureTensor.ay+=Mass*Adsorbates[CurrentSystem][i].Atoms[A].Velocity.x*Adsorbates[CurrentSystem][i].Atoms[A].Velocity.y;
-            KineticPressureTensor.az+=Mass*Adsorbates[CurrentSystem][i].Atoms[A].Velocity.x*Adsorbates[CurrentSystem][i].Atoms[A].Velocity.z;
-            KineticPressureTensor.bx+=Mass*Adsorbates[CurrentSystem][i].Atoms[A].Velocity.y*Adsorbates[CurrentSystem][i].Atoms[A].Velocity.x;
-            KineticPressureTensor.by+=Mass*Adsorbates[CurrentSystem][i].Atoms[A].Velocity.y*Adsorbates[CurrentSystem][i].Atoms[A].Velocity.y;
-            KineticPressureTensor.bz+=Mass*Adsorbates[CurrentSystem][i].Atoms[A].Velocity.y*Adsorbates[CurrentSystem][i].Atoms[A].Velocity.z;
-            KineticPressureTensor.cx+=Mass*Adsorbates[CurrentSystem][i].Atoms[A].Velocity.z*Adsorbates[CurrentSystem][i].Atoms[A].Velocity.x;
-            KineticPressureTensor.cy+=Mass*Adsorbates[CurrentSystem][i].Atoms[A].Velocity.z*Adsorbates[CurrentSystem][i].Atoms[A].Velocity.y;
-            KineticPressureTensor.cz+=Mass*Adsorbates[CurrentSystem][i].Atoms[A].Velocity.z*Adsorbates[CurrentSystem][i].Atoms[A].Velocity.z;
-          }
+          Mass=PseudoAtoms[Adsorbates[CurrentSystem][i].Atoms[A].Type].Mass;
+          Fixed=Adsorbates[CurrentSystem][i].Atoms[A].Fixed;
+
+          if(!Fixed.x)               KineticPressureTensor.ax+=Mass*Adsorbates[CurrentSystem][i].Atoms[A].Velocity.x*Adsorbates[CurrentSystem][i].Atoms[A].Velocity.x;
+          if((!Fixed.x)&&(!Fixed.y)) KineticPressureTensor.ay+=Mass*Adsorbates[CurrentSystem][i].Atoms[A].Velocity.x*Adsorbates[CurrentSystem][i].Atoms[A].Velocity.y;
+          if((!Fixed.x)&&(!Fixed.z)) KineticPressureTensor.az+=Mass*Adsorbates[CurrentSystem][i].Atoms[A].Velocity.x*Adsorbates[CurrentSystem][i].Atoms[A].Velocity.z;
+          if((!Fixed.y)&&(!Fixed.x)) KineticPressureTensor.bx+=Mass*Adsorbates[CurrentSystem][i].Atoms[A].Velocity.y*Adsorbates[CurrentSystem][i].Atoms[A].Velocity.x;
+          if(!Fixed.y)               KineticPressureTensor.by+=Mass*Adsorbates[CurrentSystem][i].Atoms[A].Velocity.y*Adsorbates[CurrentSystem][i].Atoms[A].Velocity.y;
+          if((!Fixed.y)&&(!Fixed.z)) KineticPressureTensor.bz+=Mass*Adsorbates[CurrentSystem][i].Atoms[A].Velocity.y*Adsorbates[CurrentSystem][i].Atoms[A].Velocity.z;
+          if((!Fixed.z)&&(!Fixed.x)) KineticPressureTensor.cx+=Mass*Adsorbates[CurrentSystem][i].Atoms[A].Velocity.z*Adsorbates[CurrentSystem][i].Atoms[A].Velocity.x;
+          if((!Fixed.z)&&(!Fixed.y)) KineticPressureTensor.cy+=Mass*Adsorbates[CurrentSystem][i].Atoms[A].Velocity.z*Adsorbates[CurrentSystem][i].Atoms[A].Velocity.y;
+          if(!Fixed.z)               KineticPressureTensor.cz+=Mass*Adsorbates[CurrentSystem][i].Atoms[A].Velocity.z*Adsorbates[CurrentSystem][i].Atoms[A].Velocity.z;
         }
       }
     }
@@ -238,15 +228,17 @@ REAL_MATRIX3x3 GetKineticStressTensor(void)
       {
         Velocity=Cations[CurrentSystem][i].Groups[l].CenterOfMassVelocity;
         Mass=Components[Type].Groups[l].Mass;
-        KineticPressureTensor.ax+=Mass*Velocity.x*Velocity.x;
-        KineticPressureTensor.ay+=Mass*Velocity.x*Velocity.y;
-        KineticPressureTensor.az+=Mass*Velocity.x*Velocity.z;
-        KineticPressureTensor.bx+=Mass*Velocity.y*Velocity.x;
-        KineticPressureTensor.by+=Mass*Velocity.y*Velocity.y;
-        KineticPressureTensor.bz+=Mass*Velocity.y*Velocity.z;
-        KineticPressureTensor.cx+=Mass*Velocity.z*Velocity.x;
-        KineticPressureTensor.cy+=Mass*Velocity.z*Velocity.y;
-        KineticPressureTensor.cz+=Mass*Velocity.z*Velocity.z;
+
+        Fixed=Cations[CurrentSystem][i].Groups[l].FixedCenterOfMass;
+        if(!Fixed.x)               KineticPressureTensor.ax+=Mass*Velocity.x*Velocity.x;
+        if((!Fixed.x)&&(!Fixed.y)) KineticPressureTensor.ay+=Mass*Velocity.x*Velocity.y;
+        if((!Fixed.x)&&(!Fixed.z)) KineticPressureTensor.az+=Mass*Velocity.x*Velocity.z;
+        if((!Fixed.y)&&(!Fixed.x)) KineticPressureTensor.bx+=Mass*Velocity.y*Velocity.x;
+        if(!Fixed.y)               KineticPressureTensor.by+=Mass*Velocity.y*Velocity.y;
+        if((!Fixed.y)&&(!Fixed.z)) KineticPressureTensor.bz+=Mass*Velocity.y*Velocity.z;
+        if((!Fixed.z)&&(!Fixed.x)) KineticPressureTensor.cx+=Mass*Velocity.z*Velocity.x;
+        if((!Fixed.z)&&(!Fixed.y)) KineticPressureTensor.cy+=Mass*Velocity.z*Velocity.y;
+        if(!Fixed.z)               KineticPressureTensor.cz+=Mass*Velocity.z*Velocity.z;
       }
       else
       {
@@ -254,19 +246,18 @@ REAL_MATRIX3x3 GetKineticStressTensor(void)
         {
           A=Components[Type].Groups[l].Atoms[j];
 
-          if(!Cations[CurrentSystem][i].Atoms[A].Fixed)
-          {
-            Mass=PseudoAtoms[Cations[CurrentSystem][i].Atoms[A].Type].Mass;
-            KineticPressureTensor.ax+=Mass*Cations[CurrentSystem][i].Atoms[A].Velocity.x*Cations[CurrentSystem][i].Atoms[A].Velocity.x;
-            KineticPressureTensor.ay+=Mass*Cations[CurrentSystem][i].Atoms[A].Velocity.x*Cations[CurrentSystem][i].Atoms[A].Velocity.y;
-            KineticPressureTensor.az+=Mass*Cations[CurrentSystem][i].Atoms[A].Velocity.x*Cations[CurrentSystem][i].Atoms[A].Velocity.z;
-            KineticPressureTensor.bx+=Mass*Cations[CurrentSystem][i].Atoms[A].Velocity.y*Cations[CurrentSystem][i].Atoms[A].Velocity.x;
-            KineticPressureTensor.by+=Mass*Cations[CurrentSystem][i].Atoms[A].Velocity.y*Cations[CurrentSystem][i].Atoms[A].Velocity.y;
-            KineticPressureTensor.bz+=Mass*Cations[CurrentSystem][i].Atoms[A].Velocity.y*Cations[CurrentSystem][i].Atoms[A].Velocity.z;
-            KineticPressureTensor.cx+=Mass*Cations[CurrentSystem][i].Atoms[A].Velocity.z*Cations[CurrentSystem][i].Atoms[A].Velocity.x;
-            KineticPressureTensor.cy+=Mass*Cations[CurrentSystem][i].Atoms[A].Velocity.z*Cations[CurrentSystem][i].Atoms[A].Velocity.y;
-            KineticPressureTensor.cz+=Mass*Cations[CurrentSystem][i].Atoms[A].Velocity.z*Cations[CurrentSystem][i].Atoms[A].Velocity.z;
-          }
+          Mass=PseudoAtoms[Cations[CurrentSystem][i].Atoms[A].Type].Mass;
+          Fixed=Cations[CurrentSystem][i].Atoms[A].Fixed;
+
+          if(!Fixed.x)               KineticPressureTensor.ax+=Mass*Cations[CurrentSystem][i].Atoms[A].Velocity.x*Cations[CurrentSystem][i].Atoms[A].Velocity.x;
+          if((!Fixed.x)&&(!Fixed.y)) KineticPressureTensor.ay+=Mass*Cations[CurrentSystem][i].Atoms[A].Velocity.x*Cations[CurrentSystem][i].Atoms[A].Velocity.y;
+          if((!Fixed.x)&&(!Fixed.z)) KineticPressureTensor.az+=Mass*Cations[CurrentSystem][i].Atoms[A].Velocity.x*Cations[CurrentSystem][i].Atoms[A].Velocity.z;
+          if((!Fixed.y)&&(!Fixed.x)) KineticPressureTensor.bx+=Mass*Cations[CurrentSystem][i].Atoms[A].Velocity.y*Cations[CurrentSystem][i].Atoms[A].Velocity.x;
+          if(!Fixed.y)               KineticPressureTensor.by+=Mass*Cations[CurrentSystem][i].Atoms[A].Velocity.y*Cations[CurrentSystem][i].Atoms[A].Velocity.y;
+          if((!Fixed.y)&&(!Fixed.z)) KineticPressureTensor.bz+=Mass*Cations[CurrentSystem][i].Atoms[A].Velocity.y*Cations[CurrentSystem][i].Atoms[A].Velocity.z;
+          if((!Fixed.z)&&(!Fixed.x)) KineticPressureTensor.cx+=Mass*Cations[CurrentSystem][i].Atoms[A].Velocity.z*Cations[CurrentSystem][i].Atoms[A].Velocity.x;
+          if((!Fixed.z)&&(!Fixed.y)) KineticPressureTensor.cy+=Mass*Cations[CurrentSystem][i].Atoms[A].Velocity.z*Cations[CurrentSystem][i].Atoms[A].Velocity.y;
+          if(!Fixed.z)               KineticPressureTensor.cz+=Mass*Cations[CurrentSystem][i].Atoms[A].Velocity.z*Cations[CurrentSystem][i].Atoms[A].Velocity.z;
         }
       }
     }
@@ -1005,6 +996,7 @@ void UpdateVelocities(void)
   int i,k,l,A,Type,f1;
   REAL E2,E4,E6,E8,aa,bb,aa2,arg2,mass,alpha;
   VECTOR vel,force;
+  INT_VECTOR3 Fixed;
 
   // Taylor-expansion coefficients of sinh(x)/x
   E2=1.0/6.0;
@@ -1038,16 +1030,14 @@ void UpdateVelocities(void)
   {
     for(i=0;i<Framework[CurrentSystem].NumberOfAtoms[f1];i++)
     {
-      if(!Framework[CurrentSystem].Atoms[f1][i].Fixed)
-      {
-        vel=Framework[CurrentSystem].Atoms[f1][i].Velocity;
-        force=Framework[CurrentSystem].Atoms[f1][i].Force;
-        mass=PseudoAtoms[Framework[CurrentSystem].Atoms[f1][i].Type].Mass;
-        vel.x=vel.x*aa2+0.5*bb*force.x/mass;
-        vel.y=vel.y*aa2+0.5*bb*force.y/mass;
-        vel.z=vel.z*aa2+0.5*bb*force.z/mass;
-        Framework[CurrentSystem].Atoms[f1][i].Velocity=vel;
-      }
+      vel=Framework[CurrentSystem].Atoms[f1][i].Velocity;
+      force=Framework[CurrentSystem].Atoms[f1][i].Force;
+      mass=PseudoAtoms[Framework[CurrentSystem].Atoms[f1][i].Type].Mass;
+      Fixed=Framework[CurrentSystem].Atoms[f1][i].Fixed;
+      if(!Fixed.x) vel.x=vel.x*aa2+0.5*bb*force.x/mass;
+      if(!Fixed.y) vel.y=vel.y*aa2+0.5*bb*force.y/mass;
+      if(!Fixed.z) vel.z=vel.z*aa2+0.5*bb*force.z/mass;
+      Framework[CurrentSystem].Atoms[f1][i].Velocity=vel;
     }
   }
 
@@ -1058,30 +1048,22 @@ void UpdateVelocities(void)
     {
       if(Components[Type].Groups[l].Rigid)
       {
-        if(!Adsorbates[CurrentSystem][i].Groups[l].FixedCenterOfMass)
-        {
-          mass=Components[Type].Groups[l].Mass;
-          vel=Adsorbates[CurrentSystem][i].Groups[l].CenterOfMassVelocity;
-          force=Adsorbates[CurrentSystem][i].Groups[l].CenterOfMassForce;
-          vel.x=vel.x*aa2+0.5*bb*force.x/mass;
-          vel.y=vel.y*aa2+0.5*bb*force.y/mass;
-          vel.z=vel.z*aa2+0.5*bb*force.z/mass;
-          Adsorbates[CurrentSystem][i].Groups[l].CenterOfMassVelocity=vel;
-        }
+        mass=Components[Type].Groups[l].Mass;
+        vel=Adsorbates[CurrentSystem][i].Groups[l].CenterOfMassVelocity;
+        force=Adsorbates[CurrentSystem][i].Groups[l].CenterOfMassForce;
+        Fixed=Adsorbates[CurrentSystem][i].Groups[l].FixedCenterOfMass;
+        if(!Fixed.x) vel.x=vel.x*aa2+0.5*bb*force.x/mass;
+        if(!Fixed.y) vel.y=vel.y*aa2+0.5*bb*force.y/mass;
+        if(!Fixed.z) vel.z=vel.z*aa2+0.5*bb*force.z/mass;
+        Adsorbates[CurrentSystem][i].Groups[l].CenterOfMassVelocity=vel;
 
-        if(!Adsorbates[CurrentSystem][i].Groups[l].FixedOrientation)
+        Fixed=Adsorbates[CurrentSystem][i].Groups[l].FixedOrientation;
+        if((!Fixed.x)||(!Fixed.y)||(!Fixed.z))
         {
           Adsorbates[CurrentSystem][i].Groups[l].QuaternionMomentum.r+=0.5*DeltaT*Adsorbates[CurrentSystem][i].Groups[l].QuaternionForce.r;
           Adsorbates[CurrentSystem][i].Groups[l].QuaternionMomentum.i+=0.5*DeltaT*Adsorbates[CurrentSystem][i].Groups[l].QuaternionForce.i;
           Adsorbates[CurrentSystem][i].Groups[l].QuaternionMomentum.j+=0.5*DeltaT*Adsorbates[CurrentSystem][i].Groups[l].QuaternionForce.j;
           Adsorbates[CurrentSystem][i].Groups[l].QuaternionMomentum.k+=0.5*DeltaT*Adsorbates[CurrentSystem][i].Groups[l].QuaternionForce.k;
-        }
-        else
-        {
-          Adsorbates[CurrentSystem][i].Groups[l].QuaternionMomentum.r=0.0;
-          Adsorbates[CurrentSystem][i].Groups[l].QuaternionMomentum.i=0.0;
-          Adsorbates[CurrentSystem][i].Groups[l].QuaternionMomentum.j=0.0;
-          Adsorbates[CurrentSystem][i].Groups[l].QuaternionMomentum.k=0.0;
         }
       }
       else
@@ -1090,16 +1072,14 @@ void UpdateVelocities(void)
         {
           A=Components[Type].Groups[l].Atoms[k];
 
-          if(!Adsorbates[CurrentSystem][i].Atoms[A].Fixed)
-          {
-            vel=Adsorbates[CurrentSystem][i].Atoms[A].Velocity;
-            force=Adsorbates[CurrentSystem][i].Atoms[A].Force;
-            mass=PseudoAtoms[Adsorbates[CurrentSystem][i].Atoms[A].Type].Mass;
-            vel.x=vel.x*aa2+0.5*bb*force.x/mass;
-            vel.y=vel.y*aa2+0.5*bb*force.y/mass;
-            vel.z=vel.z*aa2+0.5*bb*force.z/mass;
-            Adsorbates[CurrentSystem][i].Atoms[A].Velocity=vel;
-          }
+          vel=Adsorbates[CurrentSystem][i].Atoms[A].Velocity;
+          force=Adsorbates[CurrentSystem][i].Atoms[A].Force;
+          mass=PseudoAtoms[Adsorbates[CurrentSystem][i].Atoms[A].Type].Mass;
+          Fixed=Adsorbates[CurrentSystem][i].Atoms[A].Fixed;
+          if(!Fixed.x) vel.x=vel.x*aa2+0.5*bb*force.x/mass;
+          if(!Fixed.y) vel.y=vel.y*aa2+0.5*bb*force.y/mass;
+          if(!Fixed.z) vel.z=vel.z*aa2+0.5*bb*force.z/mass;
+          Adsorbates[CurrentSystem][i].Atoms[A].Velocity=vel;
         }
       }
     }
@@ -1112,18 +1092,18 @@ void UpdateVelocities(void)
     {
       if(Components[Type].Groups[l].Rigid)
       {
-        if(!Cations[CurrentSystem][i].Groups[l].FixedCenterOfMass)
-        {
-          mass=Components[Type].Groups[l].Mass;
-          vel=Cations[CurrentSystem][i].Groups[l].CenterOfMassVelocity;
-          force=Cations[CurrentSystem][i].Groups[l].CenterOfMassForce;
-          vel.x=vel.x*aa2+0.5*bb*force.x/mass;
-          vel.y=vel.y*aa2+0.5*bb*force.y/mass;
-          vel.z=vel.z*aa2+0.5*bb*force.z/mass;
-          Cations[CurrentSystem][i].Groups[l].CenterOfMassVelocity=vel;
-        }
+        mass=Components[Type].Groups[l].Mass;
+        vel=Cations[CurrentSystem][i].Groups[l].CenterOfMassVelocity;
+        force=Cations[CurrentSystem][i].Groups[l].CenterOfMassForce;
+        Fixed=Cations[CurrentSystem][i].Groups[l].FixedCenterOfMass;
+        if(!Fixed.x) vel.x=vel.x*aa2+0.5*bb*force.x/mass;
+        if(!Fixed.y) vel.y=vel.y*aa2+0.5*bb*force.y/mass;
+        if(!Fixed.z) vel.z=vel.z*aa2+0.5*bb*force.z/mass;
+        Cations[CurrentSystem][i].Groups[l].CenterOfMassVelocity=vel;
 
-        if(!Cations[CurrentSystem][i].Groups[l].FixedOrientation)
+        // FIX
+        Fixed=Cations[CurrentSystem][i].Groups[l].FixedOrientation;
+        if((!Fixed.x)||(!Fixed.y)||(!Fixed.z))
         {
           Cations[CurrentSystem][i].Groups[l].QuaternionMomentum.r+=0.5*DeltaT*Cations[CurrentSystem][i].Groups[l].QuaternionForce.r;
           Cations[CurrentSystem][i].Groups[l].QuaternionMomentum.i+=0.5*DeltaT*Cations[CurrentSystem][i].Groups[l].QuaternionForce.i;
@@ -1137,21 +1117,18 @@ void UpdateVelocities(void)
         {
           A=Components[Type].Groups[l].Atoms[k];
 
-          if(!Cations[CurrentSystem][i].Atoms[A].Fixed)
-          {
-            vel=Cations[CurrentSystem][i].Atoms[A].Velocity;
-            force=Cations[CurrentSystem][i].Atoms[A].Force;
-            mass=PseudoAtoms[Cations[CurrentSystem][i].Atoms[A].Type].Mass;
-            vel.x=vel.x*aa2+0.5*bb*force.x/mass;
-            vel.y=vel.y*aa2+0.5*bb*force.y/mass;
-            vel.z=vel.z*aa2+0.5*bb*force.z/mass;
-            Cations[CurrentSystem][i].Atoms[A].Velocity=vel;
-          }
+          vel=Cations[CurrentSystem][i].Atoms[A].Velocity;
+          force=Cations[CurrentSystem][i].Atoms[A].Force;
+          mass=PseudoAtoms[Cations[CurrentSystem][i].Atoms[A].Type].Mass;
+          Fixed=Cations[CurrentSystem][i].Atoms[A].Fixed;
+          if(!Fixed.x) vel.x=vel.x*aa2+0.5*bb*force.x/mass;
+          if(!Fixed.y) vel.y=vel.y*aa2+0.5*bb*force.y/mass;
+          if(!Fixed.z) vel.z=vel.z*aa2+0.5*bb*force.z/mass;
+          Cations[CurrentSystem][i].Atoms[A].Velocity=vel;
         }
       }
     }
   }
-
 }
 
 
@@ -1160,6 +1137,7 @@ void UpdatePositions(void)
   int i,k,l,A,Type,f1;
   REAL E2,E4,E6,E8,aa,bb,aa2,arg2,det;
   VECTOR pos,vel;
+  INT_VECTOR3 Fixed;
 
   E2=1.0/6.0;
   E4=E2/20.0;
@@ -1189,16 +1167,14 @@ void UpdatePositions(void)
   {
     for(i=0;i<Framework[CurrentSystem].NumberOfAtoms[f1];i++)
     {
-      if(!Framework[CurrentSystem].Atoms[f1][i].Fixed)
-      {
-        pos=Framework[CurrentSystem].Atoms[f1][i].Position;
-        Framework[CurrentSystem].Atoms[f1][i].RattleReferencePosition=pos;
-        vel=Framework[CurrentSystem].Atoms[f1][i].Velocity;
-        pos.x=pos.x*aa2+vel.x*bb;
-        pos.y=pos.y*aa2+vel.y*bb;
-        pos.z=pos.z*aa2+vel.z*bb;
-        Framework[CurrentSystem].Atoms[f1][i].Position=pos;
-      }
+      pos=Framework[CurrentSystem].Atoms[f1][i].Position;
+      Framework[CurrentSystem].Atoms[f1][i].RattleReferencePosition=pos;
+      vel=Framework[CurrentSystem].Atoms[f1][i].Velocity;
+      Fixed=Framework[CurrentSystem].Atoms[f1][i].Fixed;
+      if(!Fixed.x) pos.x=pos.x*aa2+vel.x*bb;
+      if(!Fixed.y) pos.y=pos.y*aa2+vel.y*bb;
+      if(!Fixed.z) pos.z=pos.z*aa2+vel.z*bb;
+      Framework[CurrentSystem].Atoms[f1][i].Position=pos;
     }
   }
 
@@ -1209,15 +1185,13 @@ void UpdatePositions(void)
     {
       if(Components[Type].Groups[l].Rigid)
       {
-        if(!Adsorbates[CurrentSystem][i].Groups[l].FixedCenterOfMass) 
-        {
-          pos=Adsorbates[CurrentSystem][i].Groups[l].CenterOfMassPosition;
-          vel=Adsorbates[CurrentSystem][i].Groups[l].CenterOfMassVelocity;
-          pos.x=pos.x*aa2+vel.x*bb;
-          pos.y=pos.y*aa2+vel.y*bb;
-          pos.z=pos.z*aa2+vel.z*bb;
-          Adsorbates[CurrentSystem][i].Groups[l].CenterOfMassPosition=pos;
-        }
+        pos=Adsorbates[CurrentSystem][i].Groups[l].CenterOfMassPosition;
+        vel=Adsorbates[CurrentSystem][i].Groups[l].CenterOfMassVelocity;
+        Fixed=Adsorbates[CurrentSystem][i].Groups[l].FixedCenterOfMass;
+        if(!Fixed.x) pos.x=pos.x*aa2+vel.x*bb;
+        if(!Fixed.y) pos.y=pos.y*aa2+vel.y*bb;
+        if(!Fixed.z) pos.z=pos.z*aa2+vel.z*bb;
+        Adsorbates[CurrentSystem][i].Groups[l].CenterOfMassPosition=pos;
       }
       else
       {
@@ -1225,16 +1199,14 @@ void UpdatePositions(void)
         {
           A=Components[Type].Groups[l].Atoms[k];
 
-          if(!Adsorbates[CurrentSystem][i].Atoms[A].Fixed)
-          {
-            pos=Adsorbates[CurrentSystem][i].Atoms[A].Position;
-            Adsorbates[CurrentSystem][i].Atoms[A].RattleReferencePosition=pos;
-            vel=Adsorbates[CurrentSystem][i].Atoms[A].Velocity;
-            pos.x=pos.x*aa2+vel.x*bb;
-            pos.y=pos.y*aa2+vel.y*bb;
-            pos.z=pos.z*aa2+vel.z*bb;
-            Adsorbates[CurrentSystem][i].Atoms[A].Position=pos;
-          }
+          pos=Adsorbates[CurrentSystem][i].Atoms[A].Position;
+          Adsorbates[CurrentSystem][i].Atoms[A].RattleReferencePosition=pos;
+          vel=Adsorbates[CurrentSystem][i].Atoms[A].Velocity;
+          Fixed=Adsorbates[CurrentSystem][i].Atoms[A].Fixed;
+          if(!Fixed.x) pos.x=pos.x*aa2+vel.x*bb;
+          if(!Fixed.y) pos.y=pos.y*aa2+vel.y*bb;
+          if(!Fixed.z) pos.z=pos.z*aa2+vel.z*bb;
+          Adsorbates[CurrentSystem][i].Atoms[A].Position=pos;
         }
       }
     }
@@ -1247,15 +1219,13 @@ void UpdatePositions(void)
     {
       if(Components[Type].Groups[l].Rigid)
       {
-        if(!Cations[CurrentSystem][i].Groups[l].FixedCenterOfMass) 
-        {
-          pos=Cations[CurrentSystem][i].Groups[l].CenterOfMassPosition;
-          vel=Cations[CurrentSystem][i].Groups[l].CenterOfMassVelocity;
-          pos.x=pos.x*aa2+vel.x*bb;
-          pos.y=pos.y*aa2+vel.y*bb;
-          pos.z=pos.z*aa2+vel.z*bb;
-          Cations[CurrentSystem][i].Groups[l].CenterOfMassPosition=pos;
-        }
+        pos=Cations[CurrentSystem][i].Groups[l].CenterOfMassPosition;
+        vel=Cations[CurrentSystem][i].Groups[l].CenterOfMassVelocity;
+        Fixed=Cations[CurrentSystem][i].Groups[l].FixedCenterOfMass;
+        if(!Fixed.x) pos.x=pos.x*aa2+vel.x*bb;
+        if(!Fixed.y) pos.y=pos.y*aa2+vel.y*bb;
+        if(!Fixed.z) pos.z=pos.z*aa2+vel.z*bb;
+        Cations[CurrentSystem][i].Groups[l].CenterOfMassPosition=pos;
       }
       else
       {
@@ -1263,16 +1233,14 @@ void UpdatePositions(void)
         {
           A=Components[Type].Groups[l].Atoms[k];
 
-          if(!Cations[CurrentSystem][i].Atoms[A].Fixed)
-          {
-            pos=Cations[CurrentSystem][i].Atoms[A].Position;
-            Cations[CurrentSystem][i].Atoms[A].RattleReferencePosition=pos;
-            vel=Cations[CurrentSystem][i].Atoms[A].Velocity;
-            pos.x=pos.x*aa2+vel.x*bb;
-            pos.y=pos.y*aa2+vel.y*bb;
-            pos.z=pos.z*aa2+vel.z*bb;
-            Cations[CurrentSystem][i].Atoms[A].Position=pos;
-          }
+          pos=Cations[CurrentSystem][i].Atoms[A].Position;
+          Cations[CurrentSystem][i].Atoms[A].RattleReferencePosition=pos;
+          vel=Cations[CurrentSystem][i].Atoms[A].Velocity;
+          Fixed=Cations[CurrentSystem][i].Atoms[A].Fixed;
+          if(!Fixed.x) pos.x=pos.x*aa2+vel.x*bb;
+          if(!Fixed.y) pos.y=pos.y*aa2+vel.y*bb;
+          if(!Fixed.z) pos.z=pos.z*aa2+vel.z*bb;
+          Cations[CurrentSystem][i].Atoms[A].Position=pos;
         }
       }
     }
@@ -1388,36 +1356,19 @@ REAL GetTranslationKineticEnergyFramework(void)
 {
   int i,f1;
   REAL Mass,TranslationEnergy;
+  INT_VECTOR3 Fixed;
 
   TranslationEnergy=0.0;
   for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
   {
     for(i=0;i<Framework[CurrentSystem].NumberOfAtoms[f1];i++)
     {
-      if(!Framework[CurrentSystem].Atoms[f1][i].Fixed)
-      {
-        Mass=PseudoAtoms[Framework[CurrentSystem].Atoms[f1][i].Type].Mass;
-        TranslationEnergy+=0.5*Mass*(SQR(Framework[CurrentSystem].Atoms[f1][i].Velocity.x)+
-                                     SQR(Framework[CurrentSystem].Atoms[f1][i].Velocity.y)+
-                                     SQR(Framework[CurrentSystem].Atoms[f1][i].Velocity.z));
-      }
+      Mass=PseudoAtoms[Framework[CurrentSystem].Atoms[f1][i].Type].Mass;
+      Fixed=Framework[CurrentSystem].Atoms[f1][i].Fixed;
+      if(!Fixed.x) TranslationEnergy+=0.5*Mass*SQR(Framework[CurrentSystem].Atoms[f1][i].Velocity.x);
+      if(!Fixed.y) TranslationEnergy+=0.5*Mass*SQR(Framework[CurrentSystem].Atoms[f1][i].Velocity.y);
+      if(!Fixed.z) TranslationEnergy+=0.5*Mass*SQR(Framework[CurrentSystem].Atoms[f1][i].Velocity.z);
     }
-  }
-  return TranslationEnergy;
-}
-
-REAL GetTranslationKineticEnergyAdsorbates2(void)
-{
-  int i;
-  REAL Mass,TranslationEnergy;
-  VECTOR vel;
-
-  TranslationEnergy=0.0;
-  for(i=0;i<NumberOfAdsorbateMolecules[CurrentSystem];i++)
-  {
-    vel=GetAdsorbateCenterOfMassVelocity(i);
-    Mass=Components[Adsorbates[CurrentSystem][i].Type].Mass;
-    TranslationEnergy+=0.5*Mass*(SQR(vel.x)+SQR(vel.y)+SQR(vel.z));
   }
   return TranslationEnergy;
 }
@@ -1427,6 +1378,7 @@ REAL GetTranslationKineticEnergyAdsorbates(void)
   int i,j,l;
   int Type,A;
   REAL Mass,TranslationEnergy;
+  INT_VECTOR3 Fixed;
 
   TranslationEnergy=0.0;
   for(i=0;i<NumberOfAdsorbateMolecules[CurrentSystem];i++)
@@ -1437,9 +1389,10 @@ REAL GetTranslationKineticEnergyAdsorbates(void)
       if(Components[Type].Groups[l].Rigid)
       {
         Mass=Components[Type].Groups[l].Mass;
-        TranslationEnergy+=0.5*Mass*(SQR(Adsorbates[CurrentSystem][i].Groups[l].CenterOfMassVelocity.x)+
-                                     SQR(Adsorbates[CurrentSystem][i].Groups[l].CenterOfMassVelocity.y)+
-                                     SQR(Adsorbates[CurrentSystem][i].Groups[l].CenterOfMassVelocity.z));
+        Fixed=Adsorbates[CurrentSystem][i].Groups[l].FixedCenterOfMass;
+        if(!Fixed.x) TranslationEnergy+=0.5*Mass*SQR(Adsorbates[CurrentSystem][i].Groups[l].CenterOfMassVelocity.x);
+        if(!Fixed.y) TranslationEnergy+=0.5*Mass*SQR(Adsorbates[CurrentSystem][i].Groups[l].CenterOfMassVelocity.y);
+        if(!Fixed.z) TranslationEnergy+=0.5*Mass*SQR(Adsorbates[CurrentSystem][i].Groups[l].CenterOfMassVelocity.z);
       }
       else
       {
@@ -1447,13 +1400,11 @@ REAL GetTranslationKineticEnergyAdsorbates(void)
         {
           A=Components[Type].Groups[l].Atoms[j];
 
-          if(!Adsorbates[CurrentSystem][i].Atoms[A].Fixed)
-          {
-            Mass=PseudoAtoms[Adsorbates[CurrentSystem][i].Atoms[A].Type].Mass;
-            TranslationEnergy+=0.5*Mass*(SQR(Adsorbates[CurrentSystem][i].Atoms[A].Velocity.x)+
-                                         SQR(Adsorbates[CurrentSystem][i].Atoms[A].Velocity.y)+
-                                         SQR(Adsorbates[CurrentSystem][i].Atoms[A].Velocity.z));
-          }
+          Mass=PseudoAtoms[Adsorbates[CurrentSystem][i].Atoms[A].Type].Mass;
+          Fixed=Adsorbates[CurrentSystem][i].Atoms[A].Fixed;
+          if(!Fixed.x) TranslationEnergy+=0.5*Mass*SQR(Adsorbates[CurrentSystem][i].Atoms[A].Velocity.x);
+          if(!Fixed.y) TranslationEnergy+=0.5*Mass*SQR(Adsorbates[CurrentSystem][i].Atoms[A].Velocity.y);
+          if(!Fixed.z) TranslationEnergy+=0.5*Mass*SQR(Adsorbates[CurrentSystem][i].Atoms[A].Velocity.z);
         }
       }
     }
@@ -1467,6 +1418,7 @@ REAL GetTranslationKineticEnergyCations(void)
   int i,j,l;
   int Type,A;
   REAL Mass,TranslationEnergy;
+  INT_VECTOR3 Fixed;
 
   TranslationEnergy=0.0;
   for(i=0;i<NumberOfCationMolecules[CurrentSystem];i++)
@@ -1477,9 +1429,10 @@ REAL GetTranslationKineticEnergyCations(void)
       if(Components[Type].Groups[l].Rigid)
       {
         Mass=Components[Type].Groups[l].Mass;
-        TranslationEnergy+=0.5*Mass*(SQR(Cations[CurrentSystem][i].Groups[l].CenterOfMassVelocity.x)+
-                                     SQR(Cations[CurrentSystem][i].Groups[l].CenterOfMassVelocity.y)+
-                                     SQR(Cations[CurrentSystem][i].Groups[l].CenterOfMassVelocity.z));
+        Fixed=Cations[CurrentSystem][i].Groups[l].FixedCenterOfMass;
+        if(!Fixed.x) TranslationEnergy+=0.5*Mass*SQR(Cations[CurrentSystem][i].Groups[l].CenterOfMassVelocity.x);
+        if(!Fixed.y) TranslationEnergy+=0.5*Mass*SQR(Cations[CurrentSystem][i].Groups[l].CenterOfMassVelocity.y);
+        if(!Fixed.z) TranslationEnergy+=0.5*Mass*SQR(Cations[CurrentSystem][i].Groups[l].CenterOfMassVelocity.z);
       }
       else
       {
@@ -1487,13 +1440,11 @@ REAL GetTranslationKineticEnergyCations(void)
         {
           A=Components[Type].Groups[l].Atoms[j];
 
-          if(!Cations[CurrentSystem][i].Atoms[A].Fixed)
-          {
-            Mass=PseudoAtoms[Cations[CurrentSystem][i].Atoms[A].Type].Mass;
-            TranslationEnergy+=0.5*Mass*(SQR(Cations[CurrentSystem][i].Atoms[A].Velocity.x)+
-                                         SQR(Cations[CurrentSystem][i].Atoms[A].Velocity.y)+
-                                         SQR(Cations[CurrentSystem][i].Atoms[A].Velocity.z));
-          }
+          Mass=PseudoAtoms[Cations[CurrentSystem][i].Atoms[A].Type].Mass;
+          Fixed=Cations[CurrentSystem][i].Atoms[A].Fixed;
+          if(!Fixed.x) TranslationEnergy+=0.5*Mass*SQR(Cations[CurrentSystem][i].Atoms[A].Velocity.x);
+          if(!Fixed.y) TranslationEnergy+=0.5*Mass*SQR(Cations[CurrentSystem][i].Atoms[A].Velocity.y);
+          if(!Fixed.z) TranslationEnergy+=0.5*Mass*SQR(Cations[CurrentSystem][i].Atoms[A].Velocity.z);
         }
       }
     }
@@ -1507,6 +1458,7 @@ REAL GetTranslationKineticEnergy(void)
   int i,j,l;
   int Type,A,f1;
   REAL Mass,TranslationEnergy;
+  INT_VECTOR3 Fixed;
 
   TranslationEnergy=0.0;
 
@@ -1516,13 +1468,12 @@ REAL GetTranslationKineticEnergy(void)
     {
       for(i=0;i<Framework[CurrentSystem].NumberOfAtoms[f1];i++)
       {
-        if(!Framework[CurrentSystem].Atoms[f1][i].Fixed)
-        {
-          Mass=PseudoAtoms[Framework[CurrentSystem].Atoms[f1][i].Type].Mass;
-          TranslationEnergy+=0.5*Mass*(SQR(Framework[CurrentSystem].Atoms[f1][i].Velocity.x)+
-                                       SQR(Framework[CurrentSystem].Atoms[f1][i].Velocity.y)+
-                                       SQR(Framework[CurrentSystem].Atoms[f1][i].Velocity.z));
-        }
+        Mass=PseudoAtoms[Framework[CurrentSystem].Atoms[f1][i].Type].Mass;
+        Fixed=Framework[CurrentSystem].Atoms[f1][i].Fixed;
+
+        if(!Fixed.x) TranslationEnergy+=0.5*Mass*SQR(Framework[CurrentSystem].Atoms[f1][i].Velocity.x);
+        if(!Fixed.y) TranslationEnergy+=0.5*Mass*SQR(Framework[CurrentSystem].Atoms[f1][i].Velocity.y);
+        if(!Fixed.z) TranslationEnergy+=0.5*Mass*SQR(Framework[CurrentSystem].Atoms[f1][i].Velocity.z);
       }
     }
   }
@@ -1535,9 +1486,10 @@ REAL GetTranslationKineticEnergy(void)
       if(Components[Type].Groups[l].Rigid)
       {
         Mass=Components[Type].Groups[l].Mass;
-        TranslationEnergy+=0.5*Mass*(SQR(Adsorbates[CurrentSystem][i].Groups[l].CenterOfMassVelocity.x)+
-                                     SQR(Adsorbates[CurrentSystem][i].Groups[l].CenterOfMassVelocity.y)+
-                                     SQR(Adsorbates[CurrentSystem][i].Groups[l].CenterOfMassVelocity.z));
+        Fixed=Adsorbates[CurrentSystem][i].Groups[l].FixedCenterOfMass;
+        if(!Fixed.x) TranslationEnergy+=0.5*Mass*SQR(Adsorbates[CurrentSystem][i].Groups[l].CenterOfMassVelocity.x);
+        if(!Fixed.y) TranslationEnergy+=0.5*Mass*SQR(Adsorbates[CurrentSystem][i].Groups[l].CenterOfMassVelocity.x);
+        if(!Fixed.z) TranslationEnergy+=0.5*Mass*SQR(Adsorbates[CurrentSystem][i].Groups[l].CenterOfMassVelocity.x);
       }
       else
       {
@@ -1545,13 +1497,11 @@ REAL GetTranslationKineticEnergy(void)
         {
           A=Components[Type].Groups[l].Atoms[j];
 
-          if(!Adsorbates[CurrentSystem][i].Atoms[A].Fixed)
-          {
-            Mass=PseudoAtoms[Adsorbates[CurrentSystem][i].Atoms[A].Type].Mass;
-            TranslationEnergy+=0.5*Mass*(SQR(Adsorbates[CurrentSystem][i].Atoms[A].Velocity.x)+
-                                         SQR(Adsorbates[CurrentSystem][i].Atoms[A].Velocity.y)+
-                                         SQR(Adsorbates[CurrentSystem][i].Atoms[A].Velocity.z));
-          }
+          Mass=PseudoAtoms[Adsorbates[CurrentSystem][i].Atoms[A].Type].Mass;
+          Fixed=Adsorbates[CurrentSystem][i].Atoms[A].Fixed;
+          if(!Fixed.x) TranslationEnergy+=0.5*Mass*SQR(Adsorbates[CurrentSystem][i].Atoms[A].Velocity.x);
+          if(!Fixed.y) TranslationEnergy+=0.5*Mass*SQR(Adsorbates[CurrentSystem][i].Atoms[A].Velocity.y);
+          if(!Fixed.z) TranslationEnergy+=0.5*Mass*SQR(Adsorbates[CurrentSystem][i].Atoms[A].Velocity.z);
         }
       }
     }
@@ -1564,9 +1514,10 @@ REAL GetTranslationKineticEnergy(void)
       if(Components[Type].Groups[l].Rigid)
       {
         Mass=Components[Type].Groups[l].Mass;
-        TranslationEnergy+=0.5*Mass*(SQR(Cations[CurrentSystem][i].Groups[l].CenterOfMassVelocity.x)+
-                                     SQR(Cations[CurrentSystem][i].Groups[l].CenterOfMassVelocity.y)+
-                                     SQR(Cations[CurrentSystem][i].Groups[l].CenterOfMassVelocity.z));
+        Fixed=Cations[CurrentSystem][i].Groups[l].FixedCenterOfMass;
+        if(!Fixed.x) TranslationEnergy+=0.5*Mass*SQR(Cations[CurrentSystem][i].Groups[l].CenterOfMassVelocity.x);
+        if(!Fixed.y) TranslationEnergy+=0.5*Mass*SQR(Cations[CurrentSystem][i].Groups[l].CenterOfMassVelocity.y);
+        if(!Fixed.z) TranslationEnergy+=0.5*Mass*SQR(Cations[CurrentSystem][i].Groups[l].CenterOfMassVelocity.z);
       }
       else
       {
@@ -1574,13 +1525,11 @@ REAL GetTranslationKineticEnergy(void)
         {
           A=Components[Type].Groups[l].Atoms[j];
 
-          if(!Cations[CurrentSystem][i].Atoms[A].Fixed)
-          {
-            Mass=PseudoAtoms[Cations[CurrentSystem][i].Atoms[A].Type].Mass;
-            TranslationEnergy+=0.5*Mass*(SQR(Cations[CurrentSystem][i].Atoms[A].Velocity.x)+
-                                         SQR(Cations[CurrentSystem][i].Atoms[A].Velocity.y)+
-                                         SQR(Cations[CurrentSystem][i].Atoms[A].Velocity.z));
-          }
+          Mass=PseudoAtoms[Cations[CurrentSystem][i].Atoms[A].Type].Mass;
+          Fixed=Cations[CurrentSystem][i].Atoms[A].Fixed;
+          if(!Fixed.x) TranslationEnergy+=0.5*Mass*SQR(Cations[CurrentSystem][i].Atoms[A].Velocity.x);
+          if(!Fixed.y) TranslationEnergy+=0.5*Mass*SQR(Cations[CurrentSystem][i].Atoms[A].Velocity.y);
+          if(!Fixed.z) TranslationEnergy+=0.5*Mass*SQR(Cations[CurrentSystem][i].Atoms[A].Velocity.z);
         }
       }
     }
@@ -1699,6 +1648,7 @@ void NoseHooverNVTFramework(void)
   REAL AA;
   REAL ScaleTranslationFramework;
   REAL UKineticTranslationFramework;
+  INT_VECTOR3 Fixed;
 
   M=therm_baro_stats.ThermostatChainLength;
   nc=therm_baro_stats.NumberOfRespaSteps;
@@ -1750,12 +1700,11 @@ void NoseHooverNVTFramework(void)
   {
     for(i=0;i<Framework[CurrentSystem].NumberOfAtoms[f1];i++)
     {
-      if(!Framework[CurrentSystem].Atoms[f1][i].Fixed)
-      {
-        Framework[CurrentSystem].Atoms[f1][i].Velocity.x*=ScaleTranslationFramework;
-        Framework[CurrentSystem].Atoms[f1][i].Velocity.y*=ScaleTranslationFramework;
-        Framework[CurrentSystem].Atoms[f1][i].Velocity.z*=ScaleTranslationFramework;
-      }
+      Fixed=Framework[CurrentSystem].Atoms[f1][i].Fixed;
+
+      if(!Fixed.x) Framework[CurrentSystem].Atoms[f1][i].Velocity.x*=ScaleTranslationFramework;
+      if(!Fixed.y) Framework[CurrentSystem].Atoms[f1][i].Velocity.y*=ScaleTranslationFramework;
+      if(!Fixed.z) Framework[CurrentSystem].Atoms[f1][i].Velocity.z*=ScaleTranslationFramework;
     }
   }
 
@@ -2055,6 +2004,7 @@ void NoseHooverNPTPR(void)
   REAL UKineticTranslationFramework;
   REAL UKineticTranslationAdsorbates;
   REAL UKineticTranslationCations;
+  INT_VECTOR3 Fixed;
 
 
   M=therm_baro_stats.ThermostatChainLength;
@@ -2204,12 +2154,10 @@ void NoseHooverNPTPR(void)
       {
         for(k=0;k<Framework[CurrentSystem].NumberOfAtoms[f1];k++)
         {
-          if(!Framework[CurrentSystem].Atoms[f1][k].Fixed)
-          {
-            Framework[CurrentSystem].Atoms[f1][k].Velocity.x*=AA;
-            Framework[CurrentSystem].Atoms[f1][k].Velocity.y*=AA;
-            Framework[CurrentSystem].Atoms[f1][k].Velocity.z*=AA;
-          }
+          Fixed=Framework[CurrentSystem].Atoms[f1][k].Fixed;
+          if(!Fixed.x) Framework[CurrentSystem].Atoms[f1][k].Velocity.x*=AA;
+          if(!Fixed.y) Framework[CurrentSystem].Atoms[f1][k].Velocity.y*=AA;
+          if(!Fixed.z) Framework[CurrentSystem].Atoms[f1][k].Velocity.z*=AA;
         }
       }
 

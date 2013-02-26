@@ -1,27 +1,16 @@
-/*****************************************************************************************************
+/*************************************************************************************************************
     RASPA: a molecular-dynamics, monte-carlo and optimization code for nanoporous materials
-    Copyright (C) 2006-2012 David Dubbeldam, Sofia Calero, Donald E. Ellis, and Randall Q. Snurr.
+    Copyright (C) 2006-2013 David Dubbeldam, Sofia Calero, Thijs Vlugt, Donald E. Ellis, and Randall Q. Snurr.
 
     D.Dubbeldam@uva.nl            http://molsim.science.uva.nl/
     scaldia@upo.es                http://www.upo.es/raspa/
+    t.j.h.vlugt@tudelft.nl        http://homepage.tudelft.nl/v9k6y
     don-ellis@northwestern.edu    http://dvworld.northwestern.edu/
     snurr@northwestern.edu        http://zeolites.cqe.northwestern.edu/
 
-    This file 'cbmc.h' is part of RASPA.
+    This file 'cbmc.h' is part of RASPA-2.0
 
-    RASPA is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    RASPA is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *****************************************************************************************************/
+ *************************************************************************************************************/
 
 #ifndef CBMC_H
 #define CBMC_H
@@ -124,16 +113,27 @@ extern REAL *UCationBondDipoleBondDipoleOld;
 extern int NumberOfBeadsAlreadyPlaced;                         // number of atoms that are already placed
 extern int *BeadsAlreadyPlaced;
 extern VECTOR **NewPosition;
+extern VECTOR *OldPosition;
 extern VECTOR **NewVelocity;
 extern VECTOR **NewForce;
 extern VECTOR FirstBeadPosition;
 extern VECTOR **TrialPositions;
+extern REAL *CFVDWScaling;
+extern REAL *CFChargeScaling;
+extern REAL *CFVDWScalingStored;
+extern REAL *CFChargeScalingStored;
+extern REAL *CFVDWScalingStored2;
+extern REAL *CFChargeScalingStored2;
+extern REAL *CFVDWScalingNew;
+extern REAL *CFChargeScalingNew;
 extern int OVERLAP;           
 
 void CalculateAnisotropicTrialPositions(int TypeMolA,VECTOR *TrialPosition,VECTOR *TrialAnisotropicPosition);
 
 REAL GrowMolecule(int Iicode);
 REAL RetraceMolecule(int Iicode);
+
+void GrowReservoirMolecule(void);
 
 void MakeInitialAdsorbate(void);
 void MakeInitialAdsorbates(int n,int type);

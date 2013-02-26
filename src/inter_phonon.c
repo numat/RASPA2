@@ -1,27 +1,16 @@
-/*****************************************************************************************************
+/*************************************************************************************************************
     RASPA: a molecular-dynamics, monte-carlo and optimization code for nanoporous materials
-    Copyright (C) 2006-2012 David Dubbeldam, Sofia Calero, Donald E. Ellis, and Randall Q. Snurr.
+    Copyright (C) 2006-2013 David Dubbeldam, Sofia Calero, Thijs Vlugt, Donald E. Ellis, and Randall Q. Snurr.
 
     D.Dubbeldam@uva.nl            http://molsim.science.uva.nl/
     scaldia@upo.es                http://www.upo.es/raspa/
+    t.j.h.vlugt@tudelft.nl        http://homepage.tudelft.nl/v9k6y
     don-ellis@northwestern.edu    http://dvworld.northwestern.edu/
     snurr@northwestern.edu        http://zeolites.cqe.northwestern.edu/
 
-    This file 'inter_hessian.c' is part of RASPA.
+    This file 'inter_phonon.c' is part of RASPA-2.0
 
-    RASPA is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    RASPA is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *****************************************************************************************************/
+ *************************************************************************************************************/
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -351,6 +340,7 @@ static inline void HessianOrientationOrientation(COMPLEX phase_factor,COMPLEX_MA
   // I!=J: -f_2 (r_ij . R^I_alpha r_i^0) (r_ij . R^J_beta r_j^0)-
   //       f_1 (R^I_alpha r_i^0).(R^J_beta r_j^0)
 
+/*
   // case [I,I]: Orientation I - Orientation I
   if(index_i2>=0)
   {
@@ -517,6 +507,7 @@ static inline void HessianOrientationOrientation(COMPLEX phase_factor,COMPLEX_MA
         break;
     }
   }
+*/
 }
 
 
@@ -912,6 +903,8 @@ void ComputeInterVDWMolecularPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX
   REAL dot_product;
   COMPLEX phase_factor;
   VECTOR dr12,pos1,pos2;
+
+/*
 
   f1=f2=0.0;
   index1=index2=0;
@@ -1545,6 +1538,7 @@ void ComputeInterVDWMolecularPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX
       }
     }
   }
+*/
 }
 
 void ComputeInterChargeChargeMolecularPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX_MATRIX HessianMatrix,
@@ -1570,6 +1564,7 @@ void ComputeInterChargeChargeMolecularPhonon(VECTOR k,REAL *Energy,REAL* Gradien
   REAL dot_product;
   VECTOR dr12,pos1,pos2;
 
+/*
   f1=f2=0.0;
   index1=index2=0;
   // first loop over adsorbate molecules
@@ -2289,4 +2284,5 @@ void ComputeInterChargeChargeMolecularPhonon(VECTOR k,REAL *Energy,REAL* Gradien
       }
     }
   }
+*/
 }

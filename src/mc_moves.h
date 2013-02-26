@@ -1,27 +1,16 @@
-/*****************************************************************************************************
+/*************************************************************************************************************
     RASPA: a molecular-dynamics, monte-carlo and optimization code for nanoporous materials
-    Copyright (C) 2006-2012 David Dubbeldam, Sofia Calero, Donald E. Ellis, and Randall Q. Snurr.
+    Copyright (C) 2006-2013 David Dubbeldam, Sofia Calero, Thijs Vlugt, Donald E. Ellis, and Randall Q. Snurr.
 
     D.Dubbeldam@uva.nl            http://molsim.science.uva.nl/
     scaldia@upo.es                http://www.upo.es/raspa/
+    t.j.h.vlugt@tudelft.nl        http://homepage.tudelft.nl/v9k6y
     don-ellis@northwestern.edu    http://dvworld.northwestern.edu/
     snurr@northwestern.edu        http://zeolites.cqe.northwestern.edu/
 
-    This file 'mc_moves.h' is part of RASPA.
+    This file 'mc_moves.h' is part of RASPA-2.0
 
-    RASPA is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    RASPA is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *****************************************************************************************************/
+ *************************************************************************************************************/
 
 #ifndef MC_MOVES_H
 #define MC_MOVES_H
@@ -81,6 +70,15 @@ extern int ParallelMolFractionComponentB;
 extern int NumberOfHybridNVESteps;
 extern int NumberOfHybridNPHSteps;
 extern int NumberOfHybridNPHPRSteps;
+
+//----------------------------------------------------------------------------------------
+// CFC-RXMC Parameters
+//----------------------------------------------------------------------------------------
+
+extern REAL *MaximumCFCRXMCLambdaChange;
+extern REAL TargetAccRatioCFCRXMCLambdaChange;
+
+//----------------------------------------------------------------------------------------
 
 void InitializeMCMovesStatisticsAllSystems(void);
 
@@ -160,6 +158,8 @@ void PrintGibbsVolumeChangeStatistics(FILE *FilePtr);
 void PrintFrameworkStatistics(FILE *FilePtr);
 void PrintFrameworkShiftStatistics(FILE *FilePtr);
 void PrintGibbsIdentityChangeStatistics(FILE *FilePtr);
+void PrintCFSwapLambdaStatistics(FILE *FilePtr);
+void PrintCFCBSwapLambdaStatistics(FILE *FilePtr);
 
 REAL WidomAdsorbateMove(void);
 REAL WidomCationMove(void);
@@ -174,6 +174,9 @@ void HybridNPHPRMove(void);
 void PrintHybridNPHPRStatistics(FILE *FilePtr);
 
 void SurfaceAreaMove(void);
+
+int CFSwapLambaMove(void);
+int CFCBSwapLambaMove(void);
 
 void WriteRestartMcMoves(FILE *FilePtr);
 void AllocateMCMovesMemory(void);

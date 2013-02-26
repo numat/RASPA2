@@ -1,27 +1,16 @@
-/*****************************************************************************************************
+/*************************************************************************************************************
     RASPA: a molecular-dynamics, monte-carlo and optimization code for nanoporous materials
-    Copyright (C) 2006-2012 David Dubbeldam, Sofia Calero, Donald E. Ellis, and Randall Q. Snurr.
+    Copyright (C) 2006-2013 David Dubbeldam, Sofia Calero, Thijs Vlugt, Donald E. Ellis, and Randall Q. Snurr.
 
     D.Dubbeldam@uva.nl            http://molsim.science.uva.nl/
     scaldia@upo.es                http://www.upo.es/raspa/
+    t.j.h.vlugt@tudelft.nl        http://homepage.tudelft.nl/v9k6y
     don-ellis@northwestern.edu    http://dvworld.northwestern.edu/
     snurr@northwestern.edu        http://zeolites.cqe.northwestern.edu/
 
-    This file 'molecule.h' is part of RASPA.
+    This file 'molecule.h' is part of RASPA-2.0
 
-    RASPA is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    RASPA is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *****************************************************************************************************/
+ *************************************************************************************************************/
 
 #ifndef MOLECULE_H
 #define MOLECULE_H
@@ -205,22 +194,24 @@ typedef struct group
   VECTOR ReferenceEulerAxis;
 
 
-  int HessianIndex;
-  int HessianIndexOrientation;
+  INT_VECTOR3 HessianIndex;
+  INT_VECTOR3 HessianIndexOrientation;
 
-  int FixedCenterOfMass;
-  int FixedOrientation;
+  INT_VECTOR3 FixedCenterOfMass;
+  INT_VECTOR3 FixedOrientation;
 } GROUP;
 
 // Adsorbate
 typedef struct atom
 {
-  int Type;                      // the pseudo-atom type of the atom
+  int Type;                       // the pseudo-atom type of the atom
   REAL Charge;
-  int Modified;                  // not used (yet)
-  int OriginalType;              // not used (yet)
+  REAL CFVDWScalingParameter;    // the Van der Waals scaling parameter for the Continuous Fraction method
+  REAL CFChargeScalingParameter; // the electrostatics scaling parameter for the Continuous Fraction method
+  int Modified;                   // not used (yet)
+  int OriginalType;               // not used (yet)
   int CreationState;
-  int AssymetricType;            // the 'asymmetric' type
+  int AssymetricType;             // the 'asymmetric' type
 
   // MC/MD properties
   POINT Position;                 // the position of the atom
@@ -241,17 +232,17 @@ typedef struct atom
   VECTOR InducedElectricField;    // the induced electric field
   VECTOR InducedDipole;           // the induced dipole moment on this atom
 
-  int HessianIndex;               // the index in the Hessian matrix for this atom
+  INT_VECTOR3 HessianIndex;       // the index in the Hessian matrix for this atom
   int HessianAtomIndex;           // the index in a hypothetical atomic Hessian matrix
 
-  int Fixed;
+  INT_VECTOR3 Fixed;
 } ATOM;
 
 typedef struct adsorbate
 {
   int Type;               // the component type of the molecule
-  int Fractional;         // whether the adsorbate is fractional or not
   int NumberOfAtoms;      // the number of atoms in the molecule
+  REAL Pi;                // the Pi for the fractional molecule, Pi=lambda/no. of atoms
   GROUP *Groups;          // data of the rigid groups
   ATOM *Atoms;            // list of atoms
 } ADSORBATE_MOLECULE;
@@ -275,7 +266,7 @@ typedef struct cation
 {
   int Type;               // the compount-Type of the molecule
   int NumberOfAtoms;      // the number of atoms in the molecule
-  int Fractional;         // whether the adsorbate is fractional or not
+  REAL Pi;                // the Pi for the fractional molecule, Pi=lambda/no. of atoms
   GROUP *Groups;          // rigid groups
   ATOM  *Atoms;
 } CATION_MOLECULE;
@@ -304,9 +295,12 @@ typedef struct Component
   int ExtraFrameworkMolecule;     // TRUE: Cation, FALSE: Adsorbate
   int Swapable;                   // whether or not the number of molecules is fluctuating (i.e. GCMC)
   int Widom;                      // whether this component is used for Widom insertions
+  int *RXMCFractionalMolecule;    // the index of the fractional molecule for the particular reaction
+  REAL PartitionFunction;         // the partition function of the component
 
   REAL Lambda;                    // the Lambda of the component
   int *FractionalMolecule;
+  int *CFMoleculePresent;
 
   REAL *IdealGasRosenbluthWeight; // the Rosenbluth weight of an ideal-chain per system
   REAL *IdealGasTotalEnergy;      // the total energy of an ideal-chain per system
@@ -330,6 +324,12 @@ typedef struct Component
   int NumberOfHessianIndices;     // the amount of indices of the Hessian matrix
 
   int AnisotropicType;
+
+  int DegreesOfFreedom;
+  int TranslationalDegreesOfFreedom;
+  int RotationalDegreesOfFreedom;
+  int VibrationalDegreesOfFreedom;
+  int ConstraintDegreesOfFreedom;
 
   char MoleculeDefinition[256];
   REAL *MOLEC_PER_UC_TO_MOL_PER_KG;
@@ -486,7 +486,16 @@ typedef struct Component
   REAL ProbabilityPartialReinsertionMove;
   REAL ProbabilityReinsertionMove;
   REAL ProbabilityReinsertionInPlaceMove;
-
+  REAL ProbabilityReinsertionInPlaneMove;
+  REAL ProbabilityIdentityChangeMove;
+  REAL ProbabilitySwapMove;
+  REAL ProbabilityCFSwapLambdaMove;
+  REAL ProbabilityCFCBSwapLambdaMove;
+  int  SwapEvery;
+  REAL ProbabilityWidomMove;
+  REAL ProbabilityGibbsSwapChangeMove;
+  REAL ProbabilityGibbsIdentityChangeMove;
+  REAL ProbabilitySurfaceAreaMove;
   int RestrictMovesToBox;
   VECTOR BoxAxisABC_Min,BoxAxisABC_Min2,BoxAxisABC_Min3,BoxAxisABC_Min4;
   VECTOR BoxAxisABC_Max,BoxAxisABC_Max2,BoxAxisABC_Max3,BoxAxisABC_Max4;
@@ -511,14 +520,6 @@ typedef struct Component
   VECTOR RestrictSphereCenter[MAX_NUMBER_OF_SPHERES];
   REAL RestrictSphereRadius[MAX_NUMBER_OF_SPHERES];
 
-  REAL ProbabilityReinsertionInPlaneMove;
-  REAL ProbabilityIdentityChangeMove;
-  REAL ProbabilitySwapMove;
-  int  SwapEvery;
-  REAL ProbabilityWidomMove;
-  REAL ProbabilityGibbsSwapChangeMove;
-  REAL ProbabilityGibbsIdentityChangeMove;
-  REAL ProbabilitySurfaceAreaMove;
 
   REAL FractionOfTranslationMove;
   REAL FractionOfRandomTranslationMove;
@@ -529,6 +530,8 @@ typedef struct Component
   REAL FractionOfReinsertionInPlaneMove;
   REAL FractionOfIdentityChangeMove;
   REAL FractionOfSwapMove;
+  REAL FractionOfCFSwapLambdaMove;
+  REAL FractionOfCFCBSwapLambdaMove;
   REAL FractionOfWidomMove;
   REAL FractionOfGibbsSwapChangeMove;
   REAL FractionOfGibbsIdentityChangeMove;
@@ -572,7 +575,13 @@ typedef struct Component
 } COMPONENT;
 
 extern int NumberOfComponents;
+extern int NumberOfAdsorbateComponents;
+extern int NumberOfCationComponents;
 extern COMPONENT *Components;
+
+int SelectRandomMoleculeOfType(int comp);
+int SelectRandomAdsorbateOfTypeExcludingFractionalMolecules(int comp);
+int SelectRandomCationOfTypeExcludingFractionalMolecules(int comp);
 
 int ReturnPseudoAtomNumber(char *buffer);
 int ReturnPossiblePseudoAtomNumber(char *buffer);

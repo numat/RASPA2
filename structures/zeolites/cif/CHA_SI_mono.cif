@@ -11,9 +11,9 @@ _citation_page_first         1881
 _citation_page_last          1882
 _citation_year               1998
 
-_cell_length_a    13.5292
-_cell_length_b    13.5292
-_cell_length_c    14.7483
+_cell_length_a    13.52923
+_cell_length_b    13.52923
+_cell_length_c    14.74828
 _cell_angle_alpha 90
 _cell_angle_beta  90
 _cell_angle_gamma 120
@@ -70,14 +70,10 @@ _atom_site_fract_x
 _atom_site_fract_y
 _atom_site_fract_z
 _atom_site_charge
-_atom_site_polarization
-_atom_site_anisotropic_displacement
-_atom_site_anisotropic_type
-_atom_site_print_to_pdb
-Si1      Si4+   0.22862   2e-05     0.10389   2.05    0       0    absolute yes
-O1       O2-    0.11978  -0.11978   0.12991  -1.025   0       0    absolute yes
-O2       O2-    0.33333  -0.01978   0.16667  -1.025   0       0    absolute yes
-O3       O2-    0.19744   0.09872   0.12173  -1.025   0       0    absolute yes
-O4       O2-    0.26344   0         0        -1.025   0       0    absolute yes
+Si1      Si4+   0.22862   2e-05     0.10389   2.05  
+O1       O2-    0.11978  -0.11978   0.12991  -1.025 
+O2       O2-    0.33333  -0.01978   0.16667  -1.025 
+O3       O2-    0.19744   0.09872   0.12173  -1.025 
+O4       O2-    0.26344   0         0        -1.025 
 
 

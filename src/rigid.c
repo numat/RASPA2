@@ -1,27 +1,16 @@
-/*****************************************************************************************************
+/*************************************************************************************************************
     RASPA: a molecular-dynamics, monte-carlo and optimization code for nanoporous materials
-    Copyright (C) 2006-2012 David Dubbeldam, Sofia Calero, Donald E. Ellis, and Randall Q. Snurr.
+    Copyright (C) 2006-2013 David Dubbeldam, Sofia Calero, Thijs Vlugt, Donald E. Ellis, and Randall Q. Snurr.
 
     D.Dubbeldam@uva.nl            http://molsim.science.uva.nl/
     scaldia@upo.es                http://www.upo.es/raspa/
+    t.j.h.vlugt@tudelft.nl        http://homepage.tudelft.nl/v9k6y
     don-ellis@northwestern.edu    http://dvworld.northwestern.edu/
     snurr@northwestern.edu        http://zeolites.cqe.northwestern.edu/
 
-    This file 'rigid.c' is part of RASPA.
+    This file 'rigid.c' is part of RASPA-2.0
 
-    RASPA is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    RASPA is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *****************************************************************************************************/
+ *************************************************************************************************************/
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -1606,108 +1595,89 @@ void ComputeDegreesOfFreedom(void)
   int i,j,l,f1;
   int Type;
 
+  for(i=0;i<NumberOfComponents;i++)
+  {
+    Components[i].DegreesOfFreedom=0;
+    Components[i].TranslationalDegreesOfFreedom=0;
+    Components[i].RotationalDegreesOfFreedom=0;
+    Components[i].VibrationalDegreesOfFreedom=0;
+
+    for(l=0;l<Components[i].NumberOfGroups;l++)
+    {
+      if(Components[i].Groups[l].Rigid)
+        Components[i].DegreesOfFreedom+=3+Components[i].Groups[l].RotationalDegreesOfFreedom;
+      else
+        Components[i].DegreesOfFreedom+=3*Components[i].Groups[l].NumberOfGroupAtoms;
+    }
+
+    Components[i].TranslationalDegreesOfFreedom=3;
+    if((Components[i].NumberOfGroups==1)&&(Components[i].Groups[0].NumberOfGroupAtoms>=1)&&(Components[i].Groups[0].Rigid))
+      Components[i].RotationalDegreesOfFreedom=Components[i].Groups[0].RotationalDegreesOfFreedom;
+
+    Components[i].ConstraintDegreesOfFreedom=Components[i].NumberOfConstraintBonds+Components[i].NumberOfConstraintBends+
+                   Components[i].NumberOfConstraintInversionBends+Components[i].NumberOfConstraintTorsions+Components[i].NumberOfConstraintImproperTorsions;
+
+    Components[i].VibrationalDegreesOfFreedom=Components[i].DegreesOfFreedom-Components[i].RotationalDegreesOfFreedom
+                     -Components[i].TranslationalDegreesOfFreedom-Components[i].ConstraintDegreesOfFreedom;
+
+    Components[i].DegreesOfFreedom=Components[i].TranslationalDegreesOfFreedom+
+                                   Components[i].RotationalDegreesOfFreedom+
+                                   Components[i].VibrationalDegreesOfFreedom;
+  }
+
   for(j=0;j<NumberOfSystems;j++)
   {
+    DegreesOfFreedom[j]=0; 
     DegreesOfFreedomTranslation[j]=0; 
     DegreesOfFreedomRotation[j]=0; 
+    DegreesOfFreedomVibration[j]=0; 
+    DegreesOfFreedomConstraint[j]=0; 
 
     DegreesOfFreedomAdsorbates[j]=0; 
     DegreesOfFreedomTranslationalAdsorbates[j]=0;
     DegreesOfFreedomRotationalAdsorbates[j]=0;
+    DegreesOfFreedomVibrationalAdsorbates[j]=0;
+    DegreesOfFreedomConstraintAdsorbates[j]=0;
 
     DegreesOfFreedomCations[j]=0; 
     DegreesOfFreedomTranslationalCations[j]=0;
     DegreesOfFreedomRotationalCations[j]=0;
+    DegreesOfFreedomVibrationalCations[j]=0;
+    DegreesOfFreedomConstraintCations[j]=0;
 
     for(i=0;i<NumberOfAdsorbateMolecules[j];i++)
     {
       Type=Adsorbates[j][i].Type;
-      for(l=0;l<Components[Type].NumberOfGroups;l++)
-      {
-        if(Components[Type].Groups[l].Rigid)
-        {
-          DegreesOfFreedomAdsorbates[j]+=3;
-          DegreesOfFreedomTranslation[j]+=3;
-          DegreesOfFreedomTranslationalAdsorbates[j]+=3;
 
-          DegreesOfFreedomRotation[j]+=Components[Type].Groups[l].RotationalDegreesOfFreedom;
-          DegreesOfFreedomAdsorbates[j]+=Components[Type].Groups[l].RotationalDegreesOfFreedom;
-          DegreesOfFreedomRotationalAdsorbates[j]+=Components[Type].Groups[l].RotationalDegreesOfFreedom;
+      DegreesOfFreedom[j]+=Components[Type].DegreesOfFreedom;
+      DegreesOfFreedomTranslation[j]+=Components[Type].TranslationalDegreesOfFreedom;
+      DegreesOfFreedomRotation[j]+=Components[Type].RotationalDegreesOfFreedom;
+      DegreesOfFreedomVibration[j]+=Components[Type].VibrationalDegreesOfFreedom;
+      DegreesOfFreedomConstraint[j]+=Components[Type].ConstraintDegreesOfFreedom;
+
+      DegreesOfFreedomAdsorbates[j]+=Components[Type].DegreesOfFreedom;
+      DegreesOfFreedomTranslationalAdsorbates[j]+=Components[Type].TranslationalDegreesOfFreedom;
+      DegreesOfFreedomRotationalAdsorbates[j]+=Components[Type].RotationalDegreesOfFreedom;
+      DegreesOfFreedomVibrationalAdsorbates[j]+=Components[Type].VibrationalDegreesOfFreedom;
+      DegreesOfFreedomConstraintAdsorbates[j]+=Components[Type].ConstraintDegreesOfFreedom;
           
-        }
-        else
-        {
-          DegreesOfFreedomTranslation[j]+=3*Components[Type].Groups[l].NumberOfGroupAtoms;
-          DegreesOfFreedomAdsorbates[j]+=3*Components[Type].Groups[l].NumberOfGroupAtoms;
-          DegreesOfFreedomTranslationalAdsorbates[j]+=3*Components[Type].Groups[l].NumberOfGroupAtoms;
-        }
-      }
-
-      DegreesOfFreedomAdsorbates[j]-=Components[Type].NumberOfConstraintBonds;
-      DegreesOfFreedomTranslation[j]-=Components[Type].NumberOfConstraintBonds;
-      DegreesOfFreedomTranslationalAdsorbates[j]-=Components[Type].NumberOfConstraintBonds;
-
-      DegreesOfFreedomAdsorbates[j]-=Components[Type].NumberOfConstraintBends;
-      DegreesOfFreedomTranslation[j]-=Components[Type].NumberOfConstraintBends;
-      DegreesOfFreedomTranslationalAdsorbates[j]-=Components[Type].NumberOfConstraintBends;
-
-      DegreesOfFreedomAdsorbates[j]-=Components[Type].NumberOfConstraintInversionBends;
-      DegreesOfFreedomTranslation[j]-=Components[Type].NumberOfConstraintInversionBends;
-      DegreesOfFreedomTranslationalAdsorbates[j]-=Components[Type].NumberOfConstraintInversionBends;
-
-      DegreesOfFreedomAdsorbates[j]-=Components[Type].NumberOfConstraintTorsions;
-      DegreesOfFreedomTranslation[j]-=Components[Type].NumberOfConstraintTorsions;
-      DegreesOfFreedomTranslationalAdsorbates[j]-=Components[Type].NumberOfConstraintTorsions;
-
-      DegreesOfFreedomAdsorbates[j]-=Components[Type].NumberOfConstraintImproperTorsions;
-      DegreesOfFreedomTranslation[j]-=Components[Type].NumberOfConstraintImproperTorsions;
-      DegreesOfFreedomTranslationalAdsorbates[j]-=Components[Type].NumberOfConstraintImproperTorsions;
     }
 
-    DegreesOfFreedomCations[j]=0;
     for(i=0;i<NumberOfCationMolecules[j];i++)
     {
       Type=Cations[j][i].Type;
-      for(l=0;l<Components[Type].NumberOfGroups;l++)
-      {
-        if(Components[Type].Groups[l].Rigid)
-        {
-          DegreesOfFreedomCations[j]+=3;
-          DegreesOfFreedomTranslation[j]+=3;
-          DegreesOfFreedomTranslationalCations[j]+=3;
 
-          DegreesOfFreedomRotation[j]+=Components[Type].Groups[l].RotationalDegreesOfFreedom;
-          DegreesOfFreedomCations[j]+=Components[Type].Groups[l].RotationalDegreesOfFreedom;
-          DegreesOfFreedomRotationalCations[j]+=Components[Type].Groups[l].RotationalDegreesOfFreedom;
-        }
-        else
-        {
-          DegreesOfFreedomTranslation[j]+=3*Components[Type].Groups[l].NumberOfGroupAtoms;
-          DegreesOfFreedomCations[j]+=3*Components[Type].Groups[l].NumberOfGroupAtoms;
-          DegreesOfFreedomTranslationalCations[j]+=3*Components[Type].Groups[l].NumberOfGroupAtoms;
-        }
-      }
+      DegreesOfFreedom[j]+=Components[Type].DegreesOfFreedom;
+      DegreesOfFreedomTranslation[j]+=Components[Type].TranslationalDegreesOfFreedom;
+      DegreesOfFreedomRotation[j]+=Components[Type].RotationalDegreesOfFreedom;
+      DegreesOfFreedomVibration[j]+=Components[Type].VibrationalDegreesOfFreedom;
+      DegreesOfFreedomConstraint[j]+=Components[Type].ConstraintDegreesOfFreedom;
 
-      DegreesOfFreedomCations[j]-=Components[Type].NumberOfConstraintBonds;
-      DegreesOfFreedomTranslation[j]-=Components[Type].NumberOfConstraintBonds;
-      DegreesOfFreedomTranslationalCations[j]-=Components[Type].NumberOfConstraintBonds;
-
-      DegreesOfFreedomCations[j]-=Components[Type].NumberOfConstraintBends;
-      DegreesOfFreedomTranslation[j]-=Components[Type].NumberOfConstraintBends;
-      DegreesOfFreedomTranslationalCations[j]-=Components[Type].NumberOfConstraintBends;
-
-      DegreesOfFreedomCations[j]-=Components[Type].NumberOfConstraintInversionBends;
-      DegreesOfFreedomTranslation[j]-=Components[Type].NumberOfConstraintInversionBends;
-      DegreesOfFreedomTranslationalCations[j]-=Components[Type].NumberOfConstraintInversionBends;
-
-      DegreesOfFreedomCations[j]-=Components[Type].NumberOfConstraintTorsions;
-      DegreesOfFreedomTranslation[j]-=Components[Type].NumberOfConstraintTorsions;
-      DegreesOfFreedomTranslationalCations[j]-=Components[Type].NumberOfConstraintTorsions;
-
-      DegreesOfFreedomCations[j]-=Components[Type].NumberOfConstraintImproperTorsions;
-      DegreesOfFreedomTranslation[j]-=Components[Type].NumberOfConstraintImproperTorsions;
-      DegreesOfFreedomTranslationalCations[j]-=Components[Type].NumberOfConstraintImproperTorsions;
-
+      DegreesOfFreedomCations[j]+=Components[Type].DegreesOfFreedom;
+      DegreesOfFreedomTranslationalCations[j]+=Components[Type].TranslationalDegreesOfFreedom;
+      DegreesOfFreedomRotationalCations[j]+=Components[Type].RotationalDegreesOfFreedom;
+      DegreesOfFreedomVibrationalCations[j]+=Components[Type].VibrationalDegreesOfFreedom;
+      DegreesOfFreedomConstraintCations[j]+=Components[Type].ConstraintDegreesOfFreedom;
     }
 
     if(Framework[j].FrameworkModel==FLEXIBLE)
@@ -1716,12 +1686,12 @@ void ComputeDegreesOfFreedom(void)
       {
         DegreesOfFreedomFramework[j]+=3*(Framework[j].NumberOfFreeAtoms[f1]-Framework[j].NumberOfCoreShells[f1]);
         DegreesOfFreedomTranslation[j]+=3*(Framework[j].NumberOfFreeAtoms[f1]-Framework[j].NumberOfCoreShells[f1]);
+        DegreesOfFreedom[j]+=3*(Framework[j].NumberOfFreeAtoms[f1]-Framework[j].NumberOfCoreShells[f1]);
       }
     }
     else
       DegreesOfFreedomFramework[j]=0;
 
-    DegreesOfFreedom[j]=DegreesOfFreedomTranslation[j]+DegreesOfFreedomRotation[j];
   }
 }
 
@@ -6005,7 +5975,7 @@ void CalculateConstraintsExclusionEnergy(void)
 
     if(rr<CutOffVDWSquared)
     {
-      PotentialGradient(typeA,typeB,rr,&energy,&force_factor);
+      PotentialGradient(typeA,typeB,rr,&energy,&force_factor,1.0);
 
       UExclusionConstraints[CurrentSystem]-=energy;
 
@@ -6091,7 +6061,7 @@ void CalculateConstraintsExclusionForce(void)
 
     if(rr<CutOffVDWSquared)
     {
-      PotentialGradient(typeA,typeB,rr,&energy,&force_factor);
+      PotentialGradient(typeA,typeB,rr,&energy,&force_factor,1.0);
 
       UExclusionConstraints[CurrentSystem]-=energy;
 

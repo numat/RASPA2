@@ -1,27 +1,16 @@
-/*****************************************************************************************************
+/*************************************************************************************************************
     RASPA: a molecular-dynamics, monte-carlo and optimization code for nanoporous materials
-    Copyright (C) 2006-2012 David Dubbeldam, Sofia Calero, Donald E. Ellis, and Randall Q. Snurr.
+    Copyright (C) 2006-2013 David Dubbeldam, Sofia Calero, Thijs Vlugt, Donald E. Ellis, and Randall Q. Snurr.
 
     D.Dubbeldam@uva.nl            http://molsim.science.uva.nl/
     scaldia@upo.es                http://www.upo.es/raspa/
+    t.j.h.vlugt@tudelft.nl        http://homepage.tudelft.nl/v9k6y
     don-ellis@northwestern.edu    http://dvworld.northwestern.edu/
     snurr@northwestern.edu        http://zeolites.cqe.northwestern.edu/
 
-    This file 'simulation.c' is part of RASPA.
+    This file 'simulation.c' is part of RASPA-2.0
 
-    RASPA is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    RASPA is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *****************************************************************************************************/
+ *************************************************************************************************************/
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -50,11 +39,23 @@ char ForceField[256];
 
 int SimulationType;
 
-int UseContinuousFraction;
-
 int NumberOfSystems;                 // the number of systems
 int CurrentSystem;                   // the current system
-REAL CurrentLambda;                  // the current continuous fraction
+
+//----------------------------------------------------------------------------------------
+// CFC-RXMC Parameters
+//----------------------------------------------------------------------------------------
+
+int NumberOfReactions;                       // Total number of Reactions
+int CurrentReaction;                         // The Current Reaction
+REAL CurrentReactionLambda;                  // Current Reaction Lambda
+REAL **CFCRXMCLambda;                        // Reaction Lambda for all reactions
+REAL ProbabilityCFCRXMCLambdaChangeMove;
+int **ReactionStoichiometry;                 // Reaction Stoichiometry
+int **ReactantsStoichiometry;                // Reactants Stoichiometry
+int **ProductsStoichiometry;                 // Products Stoichiometry
+
+//----------------------------------------------------------------------------------------
 
 int NumberOfPartialPressures;
 int CurrentPartialPressure;
@@ -310,16 +311,22 @@ int *MonoclinicAngleType;
 int *DegreesOfFreedom;
 int *DegreesOfFreedomTranslation;
 int *DegreesOfFreedomRotation;
+int *DegreesOfFreedomVibration;
+int *DegreesOfFreedomConstraint;
 
 int *DegreesOfFreedomFramework;
 
 int *DegreesOfFreedomAdsorbates;
 int *DegreesOfFreedomTranslationalAdsorbates;
 int *DegreesOfFreedomRotationalAdsorbates;
+int *DegreesOfFreedomVibrationalAdsorbates;
+int *DegreesOfFreedomConstraintAdsorbates;
 
 int *DegreesOfFreedomCations;
 int *DegreesOfFreedomTranslationalCations;
 int *DegreesOfFreedomRotationalCations;
+int *DegreesOfFreedomVibrationalCations;
+int *DegreesOfFreedomConstraintCations;
 
 REAL *UKinetic;
 REAL *UHostKinetic;
@@ -362,6 +369,7 @@ REAL ProbabilityHybridNPHMove;
 REAL ProbabilityHybridNPHPRMove;
 REAL ProbabilityFrameworkChangeMove;
 REAL ProbabilityFrameworkShiftMove;
+REAL ProbabilityCFLambdaMove;
 
 void ScaleBornTerm(REAL r)
 {
@@ -1010,16 +1018,21 @@ void WriteRestartSimulation(FILE *FilePtr)
   fwrite(DegreesOfFreedom,sizeof(int),NumberOfSystems,FilePtr);
   fwrite(DegreesOfFreedomTranslation,sizeof(int),NumberOfSystems,FilePtr);
   fwrite(DegreesOfFreedomRotation,sizeof(int),NumberOfSystems,FilePtr);
+  fwrite(DegreesOfFreedomVibration,sizeof(int),NumberOfSystems,FilePtr);
 
   fwrite(DegreesOfFreedomFramework,sizeof(int),NumberOfSystems,FilePtr);
 
   fwrite(DegreesOfFreedomAdsorbates,sizeof(int),NumberOfSystems,FilePtr);
   fwrite(DegreesOfFreedomTranslationalAdsorbates,sizeof(int),NumberOfSystems,FilePtr);
   fwrite(DegreesOfFreedomRotationalAdsorbates,sizeof(int),NumberOfSystems,FilePtr);
+  fwrite(DegreesOfFreedomVibrationalAdsorbates,sizeof(int),NumberOfSystems,FilePtr);
+  fwrite(DegreesOfFreedomConstraintAdsorbates,sizeof(int),NumberOfSystems,FilePtr);
 
   fwrite(DegreesOfFreedomCations,sizeof(int),NumberOfSystems,FilePtr);
   fwrite(DegreesOfFreedomTranslationalCations,sizeof(int),NumberOfSystems,FilePtr);
   fwrite(DegreesOfFreedomRotationalCations,sizeof(int),NumberOfSystems,FilePtr);
+  fwrite(DegreesOfFreedomVibrationalCations,sizeof(int),NumberOfSystems,FilePtr);
+  fwrite(DegreesOfFreedomConstraintCations,sizeof(int),NumberOfSystems,FilePtr);
 
   fwrite(UKinetic,sizeof(REAL),NumberOfSystems,FilePtr);
   fwrite(UHostKinetic,sizeof(REAL),NumberOfSystems,FilePtr);
@@ -1060,6 +1073,7 @@ void WriteRestartSimulation(FILE *FilePtr)
   fwrite(&ProbabilityHybridNPHPRMove,sizeof(REAL),1,FilePtr);
   fwrite(&ProbabilityFrameworkChangeMove,sizeof(REAL),1,FilePtr);
   fwrite(&ProbabilityFrameworkShiftMove,sizeof(REAL),1,FilePtr);
+  fwrite(&ProbabilityCFLambdaMove,sizeof(REAL),1,FilePtr);
 }
 
 void AllocateSimulationMemory(void)
@@ -1084,6 +1098,25 @@ void AllocateSimulationMemory(void)
   Beta=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
   StrainDerivativeTailCorrection=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
   StrainDerivativeRigidCorrection=(REAL_MATRIX3x3*)calloc(NumberOfSystems,sizeof(REAL_MATRIX3x3));
+
+  //----------------------------------------------------------------------------------------
+  // CFC-RXMC Parameters
+  //----------------------------------------------------------------------------------------
+
+  CFCRXMCLambda=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
+  for(i=0;i<NumberOfSystems;i++)
+     CFCRXMCLambda[i]=(REAL*)calloc(NumberOfReactions,sizeof(REAL));
+  ReactionStoichiometry=(int**)calloc(NumberOfReactions,sizeof(int*));
+  ReactantsStoichiometry=(int**)calloc(NumberOfReactions,sizeof(int*));
+  ProductsStoichiometry=(int**)calloc(NumberOfReactions,sizeof(int*));
+  for(i=0;i<NumberOfReactions;i++)
+  {
+    ReactionStoichiometry[i]=(int*)calloc(NumberOfComponents,sizeof(int));
+    ReactantsStoichiometry[i]=(int*)calloc(NumberOfComponents,sizeof(int));
+    ProductsStoichiometry[i]=(int*)calloc(NumberOfComponents,sizeof(int));
+  }
+
+  //----------------------------------------------------------------------------------------
 
   NumberOfCellListCells=(INT_VECTOR3*)calloc(NumberOfSystems,sizeof(INT_VECTOR3));
   UseCellLists=(int*)calloc(NumberOfSystems,sizeof(int));
@@ -1233,16 +1266,22 @@ void AllocateSimulationMemory(void)
   DegreesOfFreedom=(int*)calloc(NumberOfSystems,sizeof(int));
   DegreesOfFreedomTranslation=(int*)calloc(NumberOfSystems,sizeof(int));
   DegreesOfFreedomRotation=(int*)calloc(NumberOfSystems,sizeof(int));
+  DegreesOfFreedomVibration=(int*)calloc(NumberOfSystems,sizeof(int));
+  DegreesOfFreedomConstraint=(int*)calloc(NumberOfSystems,sizeof(int));
 
   DegreesOfFreedomFramework=(int*)calloc(NumberOfSystems,sizeof(int));
 
   DegreesOfFreedomAdsorbates=(int*)calloc(NumberOfSystems,sizeof(int));
   DegreesOfFreedomTranslationalAdsorbates=(int*)calloc(NumberOfSystems,sizeof(int));
   DegreesOfFreedomRotationalAdsorbates=(int*)calloc(NumberOfSystems,sizeof(int));
+  DegreesOfFreedomVibrationalAdsorbates=(int*)calloc(NumberOfSystems,sizeof(int));
+  DegreesOfFreedomConstraintAdsorbates=(int*)calloc(NumberOfSystems,sizeof(int));
 
   DegreesOfFreedomCations=(int*)calloc(NumberOfSystems,sizeof(int));
   DegreesOfFreedomTranslationalCations=(int*)calloc(NumberOfSystems,sizeof(int));
   DegreesOfFreedomRotationalCations=(int*)calloc(NumberOfSystems,sizeof(int));
+  DegreesOfFreedomVibrationalCations=(int*)calloc(NumberOfSystems,sizeof(int));
+  DegreesOfFreedomConstraintCations=(int*)calloc(NumberOfSystems,sizeof(int));
 
   UKinetic=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
   UHostKinetic=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
@@ -1554,16 +1593,22 @@ void ReadRestartSimulation(FILE *FilePtr)
   fread(DegreesOfFreedom,sizeof(int),NumberOfSystems,FilePtr);
   fread(DegreesOfFreedomTranslation,sizeof(int),NumberOfSystems,FilePtr);
   fread(DegreesOfFreedomRotation,sizeof(int),NumberOfSystems,FilePtr);
+  fread(DegreesOfFreedomVibration,sizeof(int),NumberOfSystems,FilePtr);
+  fread(DegreesOfFreedomConstraint,sizeof(int),NumberOfSystems,FilePtr);
 
   fread(DegreesOfFreedomFramework,sizeof(int),NumberOfSystems,FilePtr);
 
   fread(DegreesOfFreedomAdsorbates,sizeof(int),NumberOfSystems,FilePtr);
   fread(DegreesOfFreedomTranslationalAdsorbates,sizeof(int),NumberOfSystems,FilePtr);
   fread(DegreesOfFreedomRotationalAdsorbates,sizeof(int),NumberOfSystems,FilePtr);
+  fread(DegreesOfFreedomVibrationalAdsorbates,sizeof(int),NumberOfSystems,FilePtr);
+  fread(DegreesOfFreedomConstraintAdsorbates,sizeof(int),NumberOfSystems,FilePtr);
 
   fread(DegreesOfFreedomCations,sizeof(int),NumberOfSystems,FilePtr);
   fread(DegreesOfFreedomTranslationalCations,sizeof(int),NumberOfSystems,FilePtr);
   fread(DegreesOfFreedomRotationalCations,sizeof(int),NumberOfSystems,FilePtr);
+  fread(DegreesOfFreedomVibrationalCations,sizeof(int),NumberOfSystems,FilePtr);
+  fread(DegreesOfFreedomConstraintCations,sizeof(int),NumberOfSystems,FilePtr);
 
   fread(UKinetic,sizeof(REAL),NumberOfSystems,FilePtr);
   fread(UHostKinetic,sizeof(REAL),NumberOfSystems,FilePtr);
@@ -1604,5 +1649,6 @@ void ReadRestartSimulation(FILE *FilePtr)
   fread(&ProbabilityHybridNPHPRMove,sizeof(REAL),1,FilePtr);
   fread(&ProbabilityFrameworkChangeMove,sizeof(REAL),1,FilePtr);
   fread(&ProbabilityFrameworkShiftMove,sizeof(REAL),1,FilePtr);
+  fread(&ProbabilityCFLambdaMove,sizeof(REAL),1,FilePtr);
 
 }

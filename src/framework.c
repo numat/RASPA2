@@ -1,27 +1,16 @@
-/*****************************************************************************************************
+/*************************************************************************************************************
     RASPA: a molecular-dynamics, monte-carlo and optimization code for nanoporous materials
-    Copyright (C) 2006-2012 David Dubbeldam, Sofia Calero, Donald E. Ellis, and Randall Q. Snurr.
+    Copyright (C) 2006-2013 David Dubbeldam, Sofia Calero, Thijs Vlugt, Donald E. Ellis, and Randall Q. Snurr.
 
     D.Dubbeldam@uva.nl            http://molsim.science.uva.nl/
     scaldia@upo.es                http://www.upo.es/raspa/
+    t.j.h.vlugt@tudelft.nl        http://homepage.tudelft.nl/v9k6y
     don-ellis@northwestern.edu    http://dvworld.northwestern.edu/
     snurr@northwestern.edu        http://zeolites.cqe.northwestern.edu/
 
-    This file 'framework.c' is part of RASPA.
+    This file 'framework.c' is part of RASPA-2.0
 
-    RASPA is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    RASPA is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *****************************************************************************************************/
+ *************************************************************************************************************/
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -54,6 +43,7 @@
 #include "scattering_factors.h"
 #include "internal_force.h"
 #include "minimization.h"
+#include "rigid.h"
 
 CRYSTALLOGRAPHIC_STATISTICS *crystallographic_stats;
 
@@ -76,6 +66,10 @@ int CurrentFramework;                                      // global variable: t
 int RemoveBondNeighboursFromLongRangeInteraction;          // remove 1-2 interactions only between atoms in a defined bond
 int RemoveBendNeighboursFromLongRangeInteraction;          // remove 1-2 interactions only between atoms in a defined bend
 int RemoveTorsionNeighboursFromLongRangeInteraction;       // remove 1-3 interactions only between atoms in a defined torsion
+
+int Remove12NeighboursFromVDWInteraction;                  // remove 1-2 neighbor interaction from VDW interaction
+int Remove13NeighboursFromVDWInteraction;                  // remove 1-3 neighbor interaction from VDW interaction         
+int Remove14NeighboursFromVDWInteraction;                  // remove 1-4 neighbor interaction from VDW interaction
 
 int Remove12NeighboursFromChargeChargeInteraction;         // remove 1-2 neighbor interaction from charge-charge interaction
 int Remove13NeighboursFromChargeChargeInteraction;         // remove 1-3 neighbor interaction from charge-charge interaction         
@@ -106,8 +100,8 @@ int (*ListOfAtomSubstitutions)[3];
 
 int NumberOfModificationRules;
 int *ModificationRuleType;
-char (*ModifyFrameworkAtoms)[6][256];
-int (*ModifyFrameworkAtomTypes)[6];
+char (*ModifyFrameworkAtoms)[10][256];
+int (*ModifyFrameworkAtomTypes)[10];
 
 int NumberOfForbiddenConnectivityRules;
 char (*ForbiddenConnectivityAtoms)[3][256];
@@ -198,33 +192,47 @@ int GetReplicaNeighbour(int system,int f1,int A,int k)
 
 void CheckFrameworkCharges(void)
 {
-  int i,f1;
+  int i,j,f1;
   int type;
-  REAL charge,total_charge;
+  REAL charge,total_charge,total_count;
 
-  for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
+  for(i=0;i<NumberOfPseudoAtoms;i++)
   {
-    for(i=0;i<Framework[CurrentSystem].NumberOfAtoms[f1];i++)
+    if(PseudoAtoms[i].IsPolarizable)
+      PseudoAtoms[i].HasCharges=TRUE;
+    else
+      PseudoAtoms[i].HasCharges=FALSE;
+
+    // if using charges from CIF-files, then average the pseudo-atom charge over all types
+    // for computation, the charge per atom is always used (not the charge of the type)
+    if(PseudoAtoms[i].FrameworkAtom)
     {
-      type=Framework[CurrentSystem].Atoms[f1][i].Type;
-      charge=Framework[CurrentSystem].Atoms[f1][i].Charge;
-
-      if((fabs(charge)<1e-10)&&(!PseudoAtoms[type].IsPolarizable))
-        PseudoAtoms[type].HasCharges=FALSE;
-      else
-        PseudoAtoms[type].HasCharges=TRUE;
-
-      total_charge+=charge;
-      if(fabs(PseudoAtoms[type].Charge1-charge)>1e-5)
+      total_count=0.0;
+      total_charge=0.0;
+      for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
       {
-        // charges for this type can be different for each atom of this type
-        // i.e. the charges are set in the CIF-file
-        PseudoAtoms[type].ChargeDefinitionType=CHARGE_PER_ATOM; 
+        for(j=0;j<Framework[CurrentSystem].NumberOfAtoms[f1];j++)
+        {
+          charge=Framework[CurrentSystem].Atoms[f1][j].Charge;
 
-        // other space-group than P1 not possible due to different charges
-        if(PseudoAtoms[type].FrameworkAtom)
-          Framework[CurrentSystem].SpaceGroupIdentifier[f1]=1;
+          // if one atom of that type has a charge then the pseudo-atom type has charge
+          if(fabs(charge)>1e-10)
+            PseudoAtoms[i].HasCharges=TRUE;
+
+          type=Framework[CurrentSystem].Atoms[f1][j].Type;
+          if(type==i)
+          {
+            total_charge+=charge;
+            total_count+=1.0; 
+          }
+        }
       }
+      PseudoAtoms[i].Charge1=total_charge/total_count;
+    }
+    else
+    {
+      if(fabs(PseudoAtoms[i].Charge1)>1e-10)
+         PseudoAtoms[i].HasCharges=TRUE;
     }
   }
 }
@@ -362,6 +370,10 @@ void ReadFrameworkDefinitionCIF(void)
   int DefinedInLoop,PositionDefined;
   int OriginalNumberOfPseudoAtoms;
   VECTOR pos;
+  int BoolChargeDefinedInCIFFile;
+
+  // unless later '_atom_site_charge' is used, the charges are assumed not present in the CIF-file
+  BoolChargeDefinedInCIFFile=FALSE;
 
   // set the number of pseudo-atoms before reading in the CIF-file
   OriginalNumberOfPseudoAtoms=NumberOfPseudoAtoms;
@@ -1127,7 +1139,11 @@ void ReadFrameworkDefinitionCIF(void)
         else if(strncasecmp(keyword,"_atom_site_aniso_U_23",strlen("_atom_site_aniso_U_23"))==0) CifBlockData[ATOM_SITE_ANISO_U_23]=NumberOfAtomSiteElementsInBlock;
         else if(strncasecmp(keyword,"_atom_site_aniso_U_13",strlen("_atom_site_aniso_U_13"))==0) CifBlockData[ATOM_SITE_ANISO_U_13]=NumberOfAtomSiteElementsInBlock;
         else if(strncasecmp(keyword,"_atom_site_aniso_U_12",strlen("_atom_site_aniso_U_12"))==0) CifBlockData[ATOM_SITE_ANISO_U_12]=NumberOfAtomSiteElementsInBlock;
-        else if(strncasecmp(keyword,"_atom_site_charge",strlen("_atom_site_charge"))==0) CifBlockData[ATOM_SITE_CHARGE]=NumberOfAtomSiteElementsInBlock;
+        else if(strncasecmp(keyword,"_atom_site_charge",strlen("_atom_site_charge"))==0) 
+        {
+          BoolChargeDefinedInCIFFile=TRUE;
+          CifBlockData[ATOM_SITE_CHARGE]=NumberOfAtomSiteElementsInBlock;
+        }
         else if(strncasecmp(keyword,"_atom_site_polarization",strlen("_atom_site_polarization"))==0) CifBlockData[ATOM_SITE_POLARIZATION]=NumberOfAtomSiteElementsInBlock;
         else if(strncasecmp(keyword,"_atom_site_anisotropic_type",strlen("_atom_site_anisotropic_type"))==0) CifBlockData[ATOM_SITE_ANISOTROPIC_TYPE]=NumberOfAtomSiteElementsInBlock;
         else if(strncasecmp(keyword,"_atom_site_anisotropic_displacement",strlen("_atom_site_anisotropic_displacement"))==0) CifBlockData[ATOM_SITE_ANISOTROPIC_DISPLACEMENT]=NumberOfAtomSiteElementsInBlock;
@@ -1197,6 +1213,7 @@ void ReadFrameworkDefinitionCIF(void)
           CurrentPseudoAtom.ScatteringDispersionImaginary=0.0;
           CurrentPseudoAtom.Mass=0.0;
           CurrentPseudoAtom.Charge1=0.0;
+          CurrentPseudoAtom.ChargeDefinitionType=CHARGE_NOT_DEFINED;   // charge not yet known
           CurrentPseudoAtom.Polarization.ax=CurrentPseudoAtom.Polarization.ay=CurrentPseudoAtom.Polarization.az=0.0;
           CurrentPseudoAtom.Polarization.bx=CurrentPseudoAtom.Polarization.by=CurrentPseudoAtom.Polarization.bz=0.0;
           CurrentPseudoAtom.Polarization.cx=CurrentPseudoAtom.Polarization.cy=CurrentPseudoAtom.Polarization.cz=0.0;
@@ -1215,6 +1232,8 @@ void ReadFrameworkDefinitionCIF(void)
           CurrentAsymmetricAtom.Position.x=0.0;
           CurrentAsymmetricAtom.Position.y=0.0;
           CurrentAsymmetricAtom.Position.z=0.0;
+          CurrentAsymmetricAtom.Charge=0.0;
+
           PositionDefined=TRUE;
           
           for(i=0;i<NumberOfAtomSiteElementsInBlock;i++)
@@ -1401,9 +1420,14 @@ void ReadFrameworkDefinitionCIF(void)
             }
             else if(i==CifBlockData[ATOM_SITE_CHARGE])
             {
-              // set the charge to the asymmetric atom and to the pseudo-atom
-              sscanf(keyword,"%lf",&CurrentAsymmetricAtom.Charge);
-              CurrentPseudoAtom.Charge1=CurrentAsymmetricAtom.Charge;
+              if(UseChargesFromCIFFile)
+              {
+                // set the charge to the asymmetric atom and to the pseudo-atom
+                sscanf(keyword,"%lf",&CurrentAsymmetricAtom.Charge);
+
+		CurrentPseudoAtom.Charge1=CurrentAsymmetricAtom.Charge;
+                CurrentPseudoAtom.ChargeDefinitionType=CHARGE_ATOM_FROM_STRUCTURE_FILE;
+              }
             }
             else if(i==CifBlockData[ATOM_SITE_POLARIZATION])
             {
@@ -1511,7 +1535,7 @@ void ReadFrameworkDefinitionCIF(void)
             CurrentPseudoAtom.IsPolarizable=FALSE;
           else
             CurrentPseudoAtom.IsPolarizable=TRUE;
-          
+
           // for polarizable atoms which have zero charge, the inclusion is still needed to
           // compute the electric-field at that position
           if((fabs(CurrentPseudoAtom.Charge1)<1e-10)&&(!CurrentPseudoAtom.IsPolarizable))
@@ -1531,9 +1555,35 @@ void ReadFrameworkDefinitionCIF(void)
           // 1) pseudo-atom already exists -> charge from the pseudo-atom to the asymmetric atom
           // 2) pseudo-atom from CIF is new -> the new pseudo-atom has been filled in with the charge from the cif-file
           // 3) if e.g. 'O2' is new, and then another 'O2' is read, then the charge is taken from CIF-file
-          if((CurrentAsymmetricAtom.Type<OriginalNumberOfPseudoAtoms)||(!UseChargesFromCIFFile))
-            CurrentAsymmetricAtom.Charge=PseudoAtoms[CurrentAsymmetricAtom.Type].Charge1;
-          
+
+          // MODIFIED !!
+          //if((CurrentAsymmetricAtom.Type<OriginalNumberOfPseudoAtoms)||(!UseChargesFromCIFFile))
+          //if((CurrentAsymmetricAtom.Type<OriginalNumberOfPseudoAtoms)&&(!UseChargesFromCIFFile)&&BoolChargeDefinedInCIFFile)
+          //  CurrentAsymmetricAtom.Charge=PseudoAtoms[CurrentAsymmetricAtom.Type].Charge1;
+
+          if(CurrentAsymmetricAtom.Type<OriginalNumberOfPseudoAtoms) // pseudo-atom already defined
+          {
+            // modify the existing pseudo-atom type as being a 'framework-atom'
+            PseudoAtoms[CurrentAsymmetricAtom.Type].FrameworkAtom=TRUE;
+
+            if(UseChargesFromCIFFile)  // if 'UseChargesFromCIFFile' then use the charges from the CIF-file
+            {
+              PseudoAtoms[CurrentAsymmetricAtom.Type].ChargeDefinitionType=CurrentPseudoAtom.ChargeDefinitionType;
+              if(CurrentPseudoAtom.ChargeDefinitionType!=CHARGE_NOT_DEFINED)
+                PseudoAtoms[CurrentAsymmetricAtom.Type].ChargeDefinitionType=CHARGE_ATOM_FROM_STRUCTURE_FILE;
+              else
+              {
+                PseudoAtoms[CurrentAsymmetricAtom.Type].ChargeDefinitionType=CHARGE_ATOM_FROM_PSEUDO_ATOM_DEFINITION;
+                CurrentAsymmetricAtom.Charge=PseudoAtoms[CurrentAsymmetricAtom.Type].Charge1;
+              }
+            }
+            else
+            {
+              CurrentAsymmetricAtom.Charge=PseudoAtoms[CurrentAsymmetricAtom.Type].Charge1;
+              PseudoAtoms[CurrentAsymmetricAtom.Type].ChargeDefinitionType=CHARGE_ATOM_FROM_PSEUDO_ATOM_DEFINITION;
+            }
+          }
+
           if(PositionDefined)
             AddAsymmetricAtom(CurrentAsymmetricAtom);
         }
@@ -1940,6 +1990,10 @@ void ReadFrameworkDefinitionCIF(void)
   CellProperties(&InverseBox[CurrentSystem],&InverseBoxProperties[CurrentSystem],&det);
   CellProperties(&Box[CurrentSystem],&BoxProperties[CurrentSystem],&Volume[CurrentSystem]);
 
+  // no charge definition found in the CIF-file, so UseChargesFromCIFFile must be set to false
+  if(!BoolChargeDefinedInCIFFile)
+    UseChargesFromCIFFile=FALSE;
+
   // expand asymmetric to full framework
   ExpandAsymmetricFrameworkToFullFramework();
   
@@ -2183,7 +2237,10 @@ void WriteFrameworkDefinitionCIF(char * string)
               sprintf(name,"%s",PseudoAtoms[i].Name);
 
             strcpy(symbol,PseudoAtoms[i].ChemicalElement);
-            strcat(symbol,PseudoAtoms[i].OxidationStateString);
+            if(PseudoAtoms[i].OxidationState!=0)
+              strcat(symbol,PseudoAtoms[i].OxidationStateString);
+
+            // HERE
 
             if(fabs(pos.x)<1e-10) pos.x=fabs(pos.x);
             if(fabs(pos.y)<1e-10) pos.y=fabs(pos.y);
@@ -2395,7 +2452,8 @@ void WriteFrameworkDefinitionCIF(char * string)
           sprintf(name,"%s",PseudoAtoms[Type].Name);
 
         strcpy(symbol,PseudoAtoms[Type].ChemicalElement);
-        strcat(symbol,PseudoAtoms[Type].OxidationStateString);
+        if(PseudoAtoms[Type].OxidationState!=0)
+          strcat(symbol,PseudoAtoms[Type].OxidationStateString);
 
         fprintf(FilePtr,"%-8s %-5s % -12g % -12g % -12g % -12g\n",
                 name,
@@ -2615,7 +2673,8 @@ void WriteFrameworkDefinitionCIF(char * string)
                   fabs(pos.x)<1e-12?0.0:pos.x,
                   fabs(pos.y)<1e-12?0.0:pos.y,
                   fabs(pos.z)<1e-12?0.0:pos.z,
-                  PseudoAtoms[Type].Charge1);
+                  Framework[CurrentSystem].Atoms[CurrentFramework][i].Charge);
+                  //PseudoAtoms[Type].Charge1);
                   //ComputePolarization?PseudoAtoms[Type].Polarization*COULOMBIC_CONVERSION_FACTOR:0);
         }
         
@@ -2945,6 +3004,122 @@ void WriteFrameworkDefinitionMOL(char *string)
   free(AtomId);
 }
 
+
+/*********************************************************************************************************
+ * Name       | ReadFrameworkDefinitionDLPOLY                                                            *
+ * ----------------------------------------------------------------------------------------------------- *
+ * Function   | reads a dlpoly CONFIG-file (no symmetry)                                                 *
+ * Parameters | -                                                                                        *
+ *********************************************************************************************************/
+
+void ReadFrameworkDefinitionDLPOLY(void)
+{
+  int i;
+  FILE* FilePtr;
+  char buffer[256],AtomType[10];
+  REAL det;
+  int Type=0;
+  int int_temp1,int_temp2,int_temp3,int_temp4;
+  REAL real_temp1,real_temp2,real_temp3;
+  REAL_MATRIX3x3 UnitCellBoxProperties;
+  VECTOR pos;
+
+  printf("CurrentSystem: %d CurrentFramework: %d\n",CurrentSystem,CurrentFramework);
+  Framework[CurrentSystem].SpaceGroupIdentifier[CurrentFramework]=1;
+
+  // first try to open the framework-file in the current directory,
+  // and next from the repository
+  sprintf(buffer,"./%s.%s",
+        Framework[CurrentSystem].Name[CurrentFramework],
+        "dlpoly");
+  if(!(FilePtr=fopen(buffer,"r")))
+  {
+    printf("Error:  file %s does not exists.\n",buffer);
+    exit(1);
+  }
+
+  fscanf(FilePtr,"%*[^\n]"); // skip first line
+  fscanf(FilePtr,"%d %d %d %d %lf %lf\n",&int_temp1,&int_temp2,&int_temp3,&int_temp4,&real_temp1,&real_temp2);
+
+  // NOTE: transposed for DLPOLY input (vectors in DLPOLY are given at line 1,2,3. 
+  fscanf(FilePtr,"%lf %lf %lf\n",&UnitCellBox[CurrentSystem].ax,&UnitCellBox[CurrentSystem].ay,&UnitCellBox[CurrentSystem].az);
+  fscanf(FilePtr,"%lf %lf %lf\n",&UnitCellBox[CurrentSystem].bx,&UnitCellBox[CurrentSystem].by,&UnitCellBox[CurrentSystem].bz);
+  fscanf(FilePtr,"%lf %lf %lf\n",&UnitCellBox[CurrentSystem].cx,&UnitCellBox[CurrentSystem].cy,&UnitCellBox[CurrentSystem].cz);
+
+  Invert3x3Matrix(&UnitCellBox[CurrentSystem],&InverseUnitCellBox[CurrentSystem],&det);
+
+  // calculate box-properties
+  CellProperties(&UnitCellBox[CurrentSystem],&UnitCellBoxProperties,&det);
+
+  UnitCellSize[CurrentSystem].x=UnitCellBoxProperties.ax;
+  UnitCellSize[CurrentSystem].y=UnitCellBoxProperties.ay;
+  UnitCellSize[CurrentSystem].z=UnitCellBoxProperties.az;
+
+  Box[CurrentSystem].ax=NumberOfUnitCells[CurrentSystem].x*UnitCellBox[CurrentSystem].ax;
+  Box[CurrentSystem].ay=NumberOfUnitCells[CurrentSystem].x*UnitCellBox[CurrentSystem].ay;
+  Box[CurrentSystem].az=NumberOfUnitCells[CurrentSystem].x*UnitCellBox[CurrentSystem].az;
+
+  Box[CurrentSystem].bx=NumberOfUnitCells[CurrentSystem].y*UnitCellBox[CurrentSystem].bx;
+  Box[CurrentSystem].by=NumberOfUnitCells[CurrentSystem].y*UnitCellBox[CurrentSystem].by;
+  Box[CurrentSystem].bz=NumberOfUnitCells[CurrentSystem].y*UnitCellBox[CurrentSystem].bz;
+
+  Box[CurrentSystem].cx=NumberOfUnitCells[CurrentSystem].z*UnitCellBox[CurrentSystem].cx;
+  Box[CurrentSystem].cy=NumberOfUnitCells[CurrentSystem].z*UnitCellBox[CurrentSystem].cy;
+  Box[CurrentSystem].cz=NumberOfUnitCells[CurrentSystem].z*UnitCellBox[CurrentSystem].cz;
+
+  Invert3x3Matrix(&Box[CurrentSystem],&InverseBox[CurrentSystem],&det);
+
+  // calculate box-properties
+  CellProperties(&InverseBox[CurrentSystem],&InverseBoxProperties[CurrentSystem],&det);
+  CellProperties(&Box[CurrentSystem],&BoxProperties[CurrentSystem],&Volume[CurrentSystem]);
+
+  AlphaAngle[CurrentSystem]=acos(BoxProperties[CurrentSystem].bx);
+  BetaAngle[CurrentSystem]=acos(BoxProperties[CurrentSystem].by);
+  GammaAngle[CurrentSystem]=acos(BoxProperties[CurrentSystem].bz);
+
+  // determine boundary conditions from angles
+  if((fabs(AlphaAngle[CurrentSystem]-90.0*DEG2RAD)>0.001)||
+     (fabs(BetaAngle[CurrentSystem]-90.0*DEG2RAD)>0.001)||
+     (fabs(GammaAngle[CurrentSystem]-90.0*DEG2RAD)>0.001))
+    BoundaryCondition[CurrentSystem]=TRICLINIC;
+  else BoundaryCondition[CurrentSystem]=RECTANGULAR;
+
+  BoundaryCondition[CurrentSystem]=TRICLINIC;
+
+  Framework[CurrentSystem].NumberOfAsymmetricAtoms[CurrentFramework]=int_temp3;
+  Framework[CurrentSystem].AtomsAsymmetric[CurrentFramework]=(FRAMEWORK_ASYMMETRIC_ATOM*)calloc(int_temp3,sizeof(FRAMEWORK_ASYMMETRIC_ATOM));
+
+  printf("int_temp3: %d\n",int_temp3);
+  
+  for(i=0;i<int_temp3;i++)
+  {
+    fscanf(FilePtr,"%s%*[^\n]\n",AtomType);
+
+    if(Framework[CurrentSystem].RemoveAtomNumberCodeFromLabel[CurrentFramework])
+      sscanf(AtomType,"%[a-zA-Z]",AtomType);
+
+    // set type of the atom
+    Type=ReturnPseudoAtomNumber(AtomType);
+    if(Type<0)
+    {
+      printf("Unknown PseudoAtom-type %s !! (in'ReadFrameworkDefinitionDLPOLY')\n",AtomType);
+      exit(0);
+    }
+
+    Framework[CurrentSystem].AtomsAsymmetric[CurrentFramework][i].Type=Type;
+    Framework[CurrentSystem].AtomsAsymmetric[CurrentFramework][i].Charge=PseudoAtoms[Type].Charge1;
+    PseudoAtoms[Type].FrameworkAtom=TRUE;
+    fscanf(FilePtr,"%lf %lf %lf\n",&pos.x,&pos.y,&pos.z);
+    Framework[CurrentSystem].AtomsAsymmetric[CurrentFramework][i].Position=ConvertFromXYZtoABC(pos);
+
+    fscanf(FilePtr,"%lf %lf %lf\n",&real_temp1,&real_temp2,&real_temp3);
+    fscanf(FilePtr,"%lf %lf %lf\n",&real_temp1,&real_temp2,&real_temp3);
+  }
+  fclose(FilePtr);
+
+  // create the full framework from the asymmetric definition
+  ExpandAsymmetricFrameworkToFullFramework();
+}
 
 
 
@@ -3657,20 +3832,23 @@ void ExpandAsymmetricFrameworkToFullFramework(void)
             Type=Framework[CurrentSystem].AtomsAsymmetric[CurrentFramework][i].Type;
             pos=Framework[CurrentSystem].AtomsAsymmetric[CurrentFramework][i].Position;
             charge=Framework[CurrentSystem].AtomsAsymmetric[CurrentFramework][i].Charge;
-            
+
             // get all the symmetric positions for the current asymmetric atom position
             SpaceGroupSymmetry(Framework[CurrentSystem].SpaceGroupIdentifier[CurrentFramework],pos);
 
             if(!Framework[CurrentSystem].ReadCIFAsCartesian)
             {
-              // apply boundary condition
-              SpaceGroupElement[j].x-=NINT(SpaceGroupElement[j].x);
-              SpaceGroupElement[j].y-=NINT(SpaceGroupElement[j].y);
-              SpaceGroupElement[j].z-=NINT(SpaceGroupElement[j].z);
+              if(Framework[CurrentSystem].RestrictFrameworkAtomsToBox)
+              {
+                // apply boundary condition
+                SpaceGroupElement[j].x-=NINT(SpaceGroupElement[j].x);
+                SpaceGroupElement[j].y-=NINT(SpaceGroupElement[j].y);
+                SpaceGroupElement[j].z-=NINT(SpaceGroupElement[j].z);
 
-              if(SpaceGroupElement[j].x<0.0) SpaceGroupElement[j].x+=1.0;
-              if(SpaceGroupElement[j].y<0.0) SpaceGroupElement[j].y+=1.0;
-              if(SpaceGroupElement[j].z<0.0) SpaceGroupElement[j].z+=1.0;
+                if(SpaceGroupElement[j].x<0.0) SpaceGroupElement[j].x+=1.0;
+                if(SpaceGroupElement[j].y<0.0) SpaceGroupElement[j].y+=1.0;
+                if(SpaceGroupElement[j].z<0.0) SpaceGroupElement[j].z+=1.0;
+              }
             }
 
             // adjust position taking the number of unit cells into account
@@ -5186,6 +5364,10 @@ void ModifyAtomsConnectedToDefinedNeighbours(void)
 {
   int i,j,k,l,f1;
   int A,B,C,D,E,F;
+  int found[12];
+  int nr_found;
+  REAL temp_real;
+  REAL Angle1,Angle2;
 
   Lowenstein[CurrentSystem]=TRUE;
 
@@ -5211,27 +5393,112 @@ void ModifyAtomsConnectedToDefinedNeighbours(void)
                    (Framework[CurrentSystem].Atoms[f1][C].Type==ModifyFrameworkAtomTypes[l][2]))
                 {
                   Framework[CurrentSystem].Atoms[f1][A].Type=ModifyFrameworkAtomTypes[l][3];
-                  Framework[CurrentSystem].Atoms[f1][A].Charge=PseudoAtoms[ModifyFrameworkAtomTypes[l][3]].Charge1;
+                  if(!UseChargesFromCIFFile)
+                    Framework[CurrentSystem].Atoms[f1][A].Charge=PseudoAtoms[ModifyFrameworkAtomTypes[l][3]].Charge1;
                   NumberOfPseudoAtomsCount[CurrentSystem][ModifyFrameworkAtomTypes[l][3]]++;
                   NumberOfPseudoAtomsType[CurrentSystem][ModifyFrameworkAtomTypes[l][3]]++;
                   NumberOfPseudoAtomsCount[CurrentSystem][ModifyFrameworkAtomTypes[l][0]]--;
                   NumberOfPseudoAtomsType[CurrentSystem][ModifyFrameworkAtomTypes[l][0]]--;
 
                   Framework[CurrentSystem].Atoms[f1][B].Type=ModifyFrameworkAtomTypes[l][4];
-                  Framework[CurrentSystem].Atoms[f1][B].Charge=PseudoAtoms[ModifyFrameworkAtomTypes[l][4]].Charge1;
+                  if(!UseChargesFromCIFFile)
+                    Framework[CurrentSystem].Atoms[f1][B].Charge=PseudoAtoms[ModifyFrameworkAtomTypes[l][4]].Charge1;
                   NumberOfPseudoAtomsCount[CurrentSystem][ModifyFrameworkAtomTypes[l][4]]++;
                   NumberOfPseudoAtomsType[CurrentSystem][ModifyFrameworkAtomTypes[l][4]]++;
                   NumberOfPseudoAtomsCount[CurrentSystem][ModifyFrameworkAtomTypes[l][1]]--;
                   NumberOfPseudoAtomsType[CurrentSystem][ModifyFrameworkAtomTypes[l][1]]--;
 
                   Framework[CurrentSystem].Atoms[f1][C].Type=ModifyFrameworkAtomTypes[l][5];
-                  Framework[CurrentSystem].Atoms[f1][C].Charge=PseudoAtoms[ModifyFrameworkAtomTypes[l][5]].Charge1;
+                  if(!UseChargesFromCIFFile)
+                    Framework[CurrentSystem].Atoms[f1][C].Charge=PseudoAtoms[ModifyFrameworkAtomTypes[l][5]].Charge1;
                   NumberOfPseudoAtomsCount[CurrentSystem][ModifyFrameworkAtomTypes[l][5]]++;
                   NumberOfPseudoAtomsType[CurrentSystem][ModifyFrameworkAtomTypes[l][5]]++;
-                  NumberOfPseudoAtomsCount[CurrentSystem][ModifyFrameworkAtomTypes[l][1]]--;
-                  NumberOfPseudoAtomsType[CurrentSystem][ModifyFrameworkAtomTypes[l][1]]--;
+                  NumberOfPseudoAtomsCount[CurrentSystem][ModifyFrameworkAtomTypes[l][2]]--;
+                  NumberOfPseudoAtomsType[CurrentSystem][ModifyFrameworkAtomTypes[l][2]]--;
                 }
               }
+            }
+          }
+        }
+        break;
+      case MODIFY_FRAMEWORKATOM_PLANAR:
+        for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
+        {
+          for(A=0;A<Framework[CurrentSystem].NumberOfAtoms[f1];A++)
+          {
+            if((Framework[CurrentSystem].Connectivity[f1][A]>=4)&&(Framework[CurrentSystem].Atoms[f1][A].Type==ModifyFrameworkAtomTypes[l][0]))
+            {
+              nr_found=0;
+              for(j=0;j<Framework[CurrentSystem].Connectivity[f1][A];j++)
+              {
+                for(k=nr_found;k<4;k++)
+                {
+                  found[k]=-1;
+                  B=GetNeighbour(CurrentSystem,f1,A,j);
+                  if(Framework[CurrentSystem].Atoms[f1][B].Type==ModifyFrameworkAtomTypes[l][k+1])
+                  {
+                    found[k]=B;
+                    nr_found++;
+                    break;
+                  }
+                }
+              }
+              printf("found: %d\n",nr_found);
+                
+              Angle1=ReturnConstraintBendAngle(Framework[CurrentSystem].Atoms[f1][found[0]].Position,Framework[CurrentSystem].Atoms[f1][A].Position,
+                     Framework[CurrentSystem].Atoms[f1][found[1]].Position);
+              Angle2=ReturnConstraintBendAngle(Framework[CurrentSystem].Atoms[f1][found[0]].Position,Framework[CurrentSystem].Atoms[f1][A].Position,
+                     Framework[CurrentSystem].Atoms[f1][found[2]].Position);
+              if(Angle1>Angle2)
+                SWAP(found[1],found[2],temp_real);
+
+
+              Angle1=ReturnConstraintBendAngle(Framework[CurrentSystem].Atoms[f1][found[0]].Position,Framework[CurrentSystem].Atoms[f1][A].Position,
+                     Framework[CurrentSystem].Atoms[f1][found[3]].Position);
+              Angle2=ReturnConstraintBendAngle(Framework[CurrentSystem].Atoms[f1][found[0]].Position,Framework[CurrentSystem].Atoms[f1][A].Position,
+                     Framework[CurrentSystem].Atoms[f1][found[2]].Position);
+              if(Angle1>Angle2)
+                SWAP(found[2],found[3],temp_real);
+
+              Framework[CurrentSystem].Atoms[f1][A].Type=ModifyFrameworkAtomTypes[l][5];
+              if(!UseChargesFromCIFFile)
+                Framework[CurrentSystem].Atoms[f1][A].Charge=PseudoAtoms[ModifyFrameworkAtomTypes[l][5]].Charge1;
+              NumberOfPseudoAtomsCount[CurrentSystem][ModifyFrameworkAtomTypes[l][0]]--;
+              NumberOfPseudoAtomsType[CurrentSystem][ModifyFrameworkAtomTypes[l][0]]--;
+              NumberOfPseudoAtomsCount[CurrentSystem][ModifyFrameworkAtomTypes[l][5]]++;
+              NumberOfPseudoAtomsType[CurrentSystem][ModifyFrameworkAtomTypes[l][5]]++;
+
+              Framework[CurrentSystem].Atoms[f1][found[0]].Type=ModifyFrameworkAtomTypes[l][6];
+              if(!UseChargesFromCIFFile)
+                Framework[CurrentSystem].Atoms[f1][found[0]].Charge=PseudoAtoms[ModifyFrameworkAtomTypes[l][6]].Charge1;
+              NumberOfPseudoAtomsCount[CurrentSystem][ModifyFrameworkAtomTypes[l][1]]--;
+              NumberOfPseudoAtomsType[CurrentSystem][ModifyFrameworkAtomTypes[l][1]]--;
+              NumberOfPseudoAtomsCount[CurrentSystem][ModifyFrameworkAtomTypes[l][6]]++;
+              NumberOfPseudoAtomsType[CurrentSystem][ModifyFrameworkAtomTypes[l][6]]++;
+
+              Framework[CurrentSystem].Atoms[f1][found[1]].Type=ModifyFrameworkAtomTypes[l][7];
+              if(!UseChargesFromCIFFile)
+                Framework[CurrentSystem].Atoms[f1][found[1]].Charge=PseudoAtoms[ModifyFrameworkAtomTypes[l][7]].Charge1;
+              NumberOfPseudoAtomsCount[CurrentSystem][ModifyFrameworkAtomTypes[l][2]]--;
+              NumberOfPseudoAtomsType[CurrentSystem][ModifyFrameworkAtomTypes[l][2]]--;
+              NumberOfPseudoAtomsCount[CurrentSystem][ModifyFrameworkAtomTypes[l][7]]++;
+              NumberOfPseudoAtomsType[CurrentSystem][ModifyFrameworkAtomTypes[l][7]]++;
+
+              Framework[CurrentSystem].Atoms[f1][found[2]].Type=ModifyFrameworkAtomTypes[l][8];
+              if(!UseChargesFromCIFFile)
+                Framework[CurrentSystem].Atoms[f1][found[2]].Charge=PseudoAtoms[ModifyFrameworkAtomTypes[l][8]].Charge1;
+              NumberOfPseudoAtomsCount[CurrentSystem][ModifyFrameworkAtomTypes[l][3]]--;
+              NumberOfPseudoAtomsType[CurrentSystem][ModifyFrameworkAtomTypes[l][3]]--;
+              NumberOfPseudoAtomsCount[CurrentSystem][ModifyFrameworkAtomTypes[l][8]]++;
+              NumberOfPseudoAtomsType[CurrentSystem][ModifyFrameworkAtomTypes[l][8]]++;
+
+              Framework[CurrentSystem].Atoms[f1][found[3]].Type=ModifyFrameworkAtomTypes[l][9];
+              if(!UseChargesFromCIFFile)
+                Framework[CurrentSystem].Atoms[f1][found[3]].Charge=PseudoAtoms[ModifyFrameworkAtomTypes[l][9]].Charge1;
+              NumberOfPseudoAtomsCount[CurrentSystem][ModifyFrameworkAtomTypes[l][4]]--;
+              NumberOfPseudoAtomsType[CurrentSystem][ModifyFrameworkAtomTypes[l][4]]--;
+              NumberOfPseudoAtomsCount[CurrentSystem][ModifyFrameworkAtomTypes[l][9]]++;
+              NumberOfPseudoAtomsType[CurrentSystem][ModifyFrameworkAtomTypes[l][9]]++;
             }
           }
         }
@@ -5249,14 +5516,16 @@ void ModifyAtomsConnectedToDefinedNeighbours(void)
                  (Framework[CurrentSystem].Atoms[f1][B].Type==ModifyFrameworkAtomTypes[l][1]))
               {
                 Framework[CurrentSystem].Atoms[f1][A].Type=ModifyFrameworkAtomTypes[l][2];
-                Framework[CurrentSystem].Atoms[f1][A].Charge=PseudoAtoms[ModifyFrameworkAtomTypes[l][2]].Charge1;
+                if(!UseChargesFromCIFFile)
+                  Framework[CurrentSystem].Atoms[f1][A].Charge=PseudoAtoms[ModifyFrameworkAtomTypes[l][2]].Charge1;
                 NumberOfPseudoAtomsCount[CurrentSystem][ModifyFrameworkAtomTypes[l][2]]++;
                 NumberOfPseudoAtomsType[CurrentSystem][ModifyFrameworkAtomTypes[l][2]]++;
                 NumberOfPseudoAtomsCount[CurrentSystem][ModifyFrameworkAtomTypes[l][0]]--;
                 NumberOfPseudoAtomsType[CurrentSystem][ModifyFrameworkAtomTypes[l][0]]--;
 
                 Framework[CurrentSystem].Atoms[f1][B].Type=ModifyFrameworkAtomTypes[l][3];
-                Framework[CurrentSystem].Atoms[f1][B].Charge=PseudoAtoms[ModifyFrameworkAtomTypes[l][3]].Charge1;
+                if(!UseChargesFromCIFFile)
+                  Framework[CurrentSystem].Atoms[f1][B].Charge=PseudoAtoms[ModifyFrameworkAtomTypes[l][3]].Charge1;
                 NumberOfPseudoAtomsCount[CurrentSystem][ModifyFrameworkAtomTypes[l][3]]++;
                 NumberOfPseudoAtomsType[CurrentSystem][ModifyFrameworkAtomTypes[l][3]]++;
                 NumberOfPseudoAtomsCount[CurrentSystem][ModifyFrameworkAtomTypes[l][1]]--;
@@ -5279,7 +5548,8 @@ void ModifyAtomsConnectedToDefinedNeighbours(void)
                 if(Framework[CurrentSystem].Atoms[f1][i].Type==ModifyFrameworkAtomTypes[l][0])
                 {
                   Framework[CurrentSystem].Atoms[f1][i].Type=ModifyFrameworkAtomTypes[l][1];
-                  Framework[CurrentSystem].Atoms[f1][i].Charge=PseudoAtoms[ModifyFrameworkAtomTypes[l][1]].Charge1;
+                  if(!UseChargesFromCIFFile)
+                    Framework[CurrentSystem].Atoms[f1][i].Charge=PseudoAtoms[ModifyFrameworkAtomTypes[l][1]].Charge1;
 
                   NumberOfPseudoAtomsCount[CurrentSystem][ModifyFrameworkAtomTypes[l][1]]++;
                   NumberOfPseudoAtomsType[CurrentSystem][ModifyFrameworkAtomTypes[l][1]]++;
@@ -5303,7 +5573,8 @@ void ModifyAtomsConnectedToDefinedNeighbours(void)
                    (Framework[CurrentSystem].Atoms[f1][GetNeighbour(CurrentSystem,f1,i,j)].Type==ModifyFrameworkAtomTypes[l][2]))
                 {
                   Framework[CurrentSystem].Atoms[f1][i].Type=ModifyFrameworkAtomTypes[l][1];
-                  Framework[CurrentSystem].Atoms[f1][i].Charge=PseudoAtoms[ModifyFrameworkAtomTypes[l][1]].Charge1;
+                  if(!UseChargesFromCIFFile)
+                    Framework[CurrentSystem].Atoms[f1][i].Charge=PseudoAtoms[ModifyFrameworkAtomTypes[l][1]].Charge1;
 
                   NumberOfPseudoAtomsCount[CurrentSystem][ModifyFrameworkAtomTypes[l][1]]++;
                   NumberOfPseudoAtomsType[CurrentSystem][ModifyFrameworkAtomTypes[l][1]]++;
@@ -5336,7 +5607,8 @@ void ModifyAtomsConnectedToDefinedNeighbours(void)
                       (Framework[CurrentSystem].Atoms[f1][A].Type==ModifyFrameworkAtomTypes[l][3]))))
                   {
                     Framework[CurrentSystem].Atoms[f1][i].Type=ModifyFrameworkAtomTypes[l][1];
-                    Framework[CurrentSystem].Atoms[f1][i].Charge=PseudoAtoms[ModifyFrameworkAtomTypes[l][1]].Charge1;
+                    if(!UseChargesFromCIFFile)
+                      Framework[CurrentSystem].Atoms[f1][i].Charge=PseudoAtoms[ModifyFrameworkAtomTypes[l][1]].Charge1;
 
                     NumberOfPseudoAtomsCount[CurrentSystem][ModifyFrameworkAtomTypes[l][1]]++;
                     NumberOfPseudoAtomsType[CurrentSystem][ModifyFrameworkAtomTypes[l][1]]++;
@@ -5363,7 +5635,8 @@ void ModifyAtomsConnectedToDefinedNeighbours(void)
                        (Framework[CurrentSystem].Atoms[f1][B].Type==ModifyFrameworkAtomTypes[l][3])))))
                   {
                     Framework[CurrentSystem].Atoms[f1][i].Type=ModifyFrameworkAtomTypes[l][1];
-                    Framework[CurrentSystem].Atoms[f1][i].Charge=PseudoAtoms[ModifyFrameworkAtomTypes[l][1]].Charge1;
+                    if(!UseChargesFromCIFFile)
+                      Framework[CurrentSystem].Atoms[f1][i].Charge=PseudoAtoms[ModifyFrameworkAtomTypes[l][1]].Charge1;
 
                     NumberOfPseudoAtomsCount[CurrentSystem][ModifyFrameworkAtomTypes[l][1]]++;
                     NumberOfPseudoAtomsType[CurrentSystem][ModifyFrameworkAtomTypes[l][1]]++;
@@ -5403,7 +5676,8 @@ void ModifyAtomsConnectedToDefinedNeighbours(void)
                        (Framework[CurrentSystem].Atoms[f1][C].Type==ModifyFrameworkAtomTypes[l][3])))))
                   {
                     Framework[CurrentSystem].Atoms[f1][i].Type=ModifyFrameworkAtomTypes[l][1];
-                    Framework[CurrentSystem].Atoms[f1][i].Charge=PseudoAtoms[ModifyFrameworkAtomTypes[l][1]].Charge1;
+                    if(!UseChargesFromCIFFile)
+                      Framework[CurrentSystem].Atoms[f1][i].Charge=PseudoAtoms[ModifyFrameworkAtomTypes[l][1]].Charge1;
 
                     NumberOfPseudoAtomsCount[CurrentSystem][ModifyFrameworkAtomTypes[l][1]]++;
                     NumberOfPseudoAtomsType[CurrentSystem][ModifyFrameworkAtomTypes[l][1]]++;
@@ -5460,7 +5734,8 @@ void ModifyAtomsConnectedToDefinedNeighbours(void)
                        (Framework[CurrentSystem].Atoms[f1][D].Type==ModifyFrameworkAtomTypes[l][3])))))
                   {
                     Framework[CurrentSystem].Atoms[f1][i].Type=ModifyFrameworkAtomTypes[l][1];
-                    Framework[CurrentSystem].Atoms[f1][i].Charge=PseudoAtoms[ModifyFrameworkAtomTypes[l][1]].Charge1;
+                    if(!UseChargesFromCIFFile)
+                      Framework[CurrentSystem].Atoms[f1][i].Charge=PseudoAtoms[ModifyFrameworkAtomTypes[l][1]].Charge1;
 
                     NumberOfPseudoAtomsCount[CurrentSystem][ModifyFrameworkAtomTypes[l][1]]++;
                     NumberOfPseudoAtomsType[CurrentSystem][ModifyFrameworkAtomTypes[l][1]]++;
@@ -5539,7 +5814,8 @@ void ModifyAtomsConnectedToDefinedNeighbours(void)
                        (Framework[CurrentSystem].Atoms[f1][E].Type==ModifyFrameworkAtomTypes[l][3])))))
                   {
                     Framework[CurrentSystem].Atoms[f1][i].Type=ModifyFrameworkAtomTypes[l][1];
-                    Framework[CurrentSystem].Atoms[f1][i].Charge=PseudoAtoms[ModifyFrameworkAtomTypes[l][1]].Charge1;
+                    if(!UseChargesFromCIFFile)
+                      Framework[CurrentSystem].Atoms[f1][i].Charge=PseudoAtoms[ModifyFrameworkAtomTypes[l][1]].Charge1;
 
                     NumberOfPseudoAtomsCount[CurrentSystem][ModifyFrameworkAtomTypes[l][1]]++;
                     NumberOfPseudoAtomsType[CurrentSystem][ModifyFrameworkAtomTypes[l][1]]++;
@@ -5916,16 +6192,19 @@ void InitializeFrameworkVelocities(void)
 
     for(i=0;i<nr_atoms-nr_core_shells;i++)
     {
-      if(!Framework[CurrentSystem].Atoms[f1][i].Fixed)
-      {
-        Mass=PseudoAtoms[Framework[CurrentSystem].Atoms[f1][i].Type].Mass;
+      Mass=PseudoAtoms[Framework[CurrentSystem].Atoms[f1][i].Type].Mass;
+      Framework[CurrentSystem].Atoms[f1][i].Velocity.x=0.0;
+      Framework[CurrentSystem].Atoms[f1][i].Velocity.y=0.0;
+      Framework[CurrentSystem].Atoms[f1][i].Velocity.z=0.0;
+      if(!Framework[CurrentSystem].Atoms[f1][i].Fixed.x)
         Framework[CurrentSystem].Atoms[f1][i].Velocity.x=RandomGaussianNumber()*
           sqrt(K_B*therm_baro_stats.ExternalTemperature[CurrentSystem]/Mass);
+      if(!Framework[CurrentSystem].Atoms[f1][i].Fixed.y)
         Framework[CurrentSystem].Atoms[f1][i].Velocity.y=RandomGaussianNumber()*
           sqrt(K_B*therm_baro_stats.ExternalTemperature[CurrentSystem]/Mass);
+      if(!Framework[CurrentSystem].Atoms[f1][i].Fixed.z)
         Framework[CurrentSystem].Atoms[f1][i].Velocity.z=RandomGaussianNumber()*
           sqrt(K_B*therm_baro_stats.ExternalTemperature[CurrentSystem]/Mass);
-      }
     }
     if(Framework[CurrentSystem].NumberOfCoreShells[f1]>0)
     {
@@ -5953,7 +6232,7 @@ VECTOR MeasureFrameworkVelocityDrift(void)
   {
     for(i=0;i<Framework[CurrentSystem].NumberOfAtoms[f1];i++)
     {
-      if(!Framework[CurrentSystem].Atoms[f1][i].Fixed)
+      if(!Framework[CurrentSystem].Atoms[f1][i].Fixed.x)
       {
         TotalMass+=(Mass=PseudoAtoms[Framework[CurrentSystem].Atoms[f1][i].Type].Mass);
         com.x=com.x+Mass*Framework[CurrentSystem].Atoms[f1][i].Velocity.x;
@@ -5978,7 +6257,7 @@ void RemoveFrameworkVelocityDrift(void)
   {
     for(i=0;i<Framework[CurrentSystem].NumberOfAtoms[f1];i++)
     {
-      if(!Framework[CurrentSystem].Atoms[f1][i].Fixed)
+      if(!Framework[CurrentSystem].Atoms[f1][i].Fixed.x)
       {
         Framework[CurrentSystem].Atoms[f1][i].Velocity.x-=com.x;
         Framework[CurrentSystem].Atoms[f1][i].Velocity.y-=com.y;
@@ -6002,7 +6281,7 @@ REAL GetFrameworkKineticEnergy(void)
   {
     for(i=0;i<Framework[CurrentSystem].NumberOfAtoms[f1];i++)
     {
-      if(!Framework[CurrentSystem].Atoms[f1][i].Fixed)
+      if(!Framework[CurrentSystem].Atoms[f1][i].Fixed.x)
       {
         Mass=PseudoAtoms[Framework[CurrentSystem].Atoms[f1][i].Type].Mass;
         Ukin+=0.5*Mass*(SQR(Framework[CurrentSystem].Atoms[f1][i].Velocity.x)+
@@ -6103,6 +6382,1153 @@ int ReturnDipoleIndex(int f1,int A,int B)
   return -1;
 }
 
+void AddBondTypeToDefinitions(int TypeA,int TypeB,int BondType,REAL *parms)
+{
+  int i,j,index;
+  int AlreadyPresent;
+  int NumberOfArguments;
+  REAL parameters[10];
+
+  if(strcasecmp(BondTypes[BondType].Name,"MORSE_BOND")==0)
+  {
+    NumberOfArguments=3;
+    parameters[0]=parms[0]*ENERGY_TO_KELVIN;
+    parameters[1]=parms[1];
+    parameters[2]=parms[2];
+  }
+  else if(strcasecmp(BondTypes[BondType].Name,"HARMONIC_BOND")==0)
+  {
+    NumberOfArguments=2;
+    parameters[0]=parms[0]*ENERGY_TO_KELVIN;
+    parameters[1]=parms[1];
+  }
+
+  if(Framework[CurrentSystem].NumberOfBondsDefinitions==0)
+  {
+    index=0;
+    Framework[CurrentSystem].NumberOfBondsDefinitions=1;
+    Framework[CurrentSystem].BondDefinitionType=(int*)calloc(Framework[CurrentSystem].NumberOfBondsDefinitions,sizeof(int));
+    Framework[CurrentSystem].BondDefinitions=(PAIR*)calloc(Framework[CurrentSystem].NumberOfBondsDefinitions,sizeof(PAIR));
+    Framework[CurrentSystem].NumberOfBondsPerType=(int*)calloc(Framework[CurrentSystem].NumberOfBondsDefinitions,sizeof(int));
+    Framework[CurrentSystem].BondArgumentDefinitions=(REAL(*)[MAX_BOND_POTENTIAL_ARGUMENTS])
+       calloc(Framework[CurrentSystem].NumberOfBondsDefinitions,sizeof(REAL[MAX_BOND_POTENTIAL_ARGUMENTS]));
+
+    Framework[CurrentSystem].BondDefinitionType[index]=BondType;
+    Framework[CurrentSystem].BondDefinitions[index].A=MIN2(TypeA,TypeB);
+    Framework[CurrentSystem].BondDefinitions[index].B=MAX2(TypeA,TypeB);
+    Framework[CurrentSystem].NumberOfBondsPerType[index]++;
+    BondTypes[Framework[CurrentFramework].BondDefinitionType[index]].nr_args=NumberOfArguments;
+    for(j=0;j<NumberOfArguments;j++)
+      Framework[CurrentSystem].BondArgumentDefinitions[index][j]=parameters[j];
+  }
+  else
+  {
+    AlreadyPresent=FALSE;
+    for(i=0;i<Framework[CurrentSystem].NumberOfBondsDefinitions;i++)
+    {
+      if(((Framework[CurrentSystem].BondDefinitions[i].A==TypeA)&&(Framework[CurrentSystem].BondDefinitions[i].B==TypeB))||
+         ((Framework[CurrentSystem].BondDefinitions[i].A==TypeB)&&(Framework[CurrentSystem].BondDefinitions[i].B==TypeA)))
+      {
+        AlreadyPresent=TRUE;
+        for(j=0;j<NumberOfArguments;j++)
+          AlreadyPresent=AlreadyPresent&&(fabs(parameters[j]-Framework[CurrentSystem].BondArgumentDefinitions[i][j])<1e-5);
+
+        if(AlreadyPresent)
+        {
+          Framework[CurrentSystem].NumberOfBondsPerType[i]++;
+          break;
+        }
+      }
+    }
+    if(!AlreadyPresent)
+    {
+      index=Framework[CurrentSystem].NumberOfBondsDefinitions;
+      Framework[CurrentSystem].NumberOfBondsDefinitions++;
+      Framework[CurrentSystem].BondDefinitionType=(int*)realloc(Framework[CurrentSystem].BondDefinitionType,
+          Framework[CurrentSystem].NumberOfBondsDefinitions*sizeof(int));
+      Framework[CurrentSystem].BondDefinitions=(PAIR*)realloc(Framework[CurrentSystem].BondDefinitions,
+          Framework[CurrentSystem].NumberOfBondsDefinitions*sizeof(PAIR));
+      Framework[CurrentSystem].NumberOfBondsPerType=(int*)realloc(Framework[CurrentSystem].NumberOfBondsPerType,
+          Framework[CurrentSystem].NumberOfBondsDefinitions*sizeof(int));
+      Framework[CurrentSystem].BondArgumentDefinitions=(REAL(*)[MAX_BOND_POTENTIAL_ARGUMENTS])
+          realloc(Framework[CurrentSystem].BondArgumentDefinitions,
+          Framework[CurrentSystem].NumberOfBondsDefinitions*sizeof(REAL[MAX_BOND_POTENTIAL_ARGUMENTS]));
+
+      Framework[CurrentSystem].BondDefinitionType[index]=BondType;
+      Framework[CurrentSystem].BondDefinitions[index].A=MIN2(TypeA,TypeB);
+      Framework[CurrentSystem].BondDefinitions[index].B=MAX2(TypeA,TypeB);
+      Framework[CurrentSystem].NumberOfBondsPerType[index]=1;
+      BondTypes[Framework[CurrentFramework].BondDefinitionType[index]].nr_args=NumberOfArguments;
+      for(j=0;j<NumberOfArguments;j++)
+        Framework[CurrentSystem].BondArgumentDefinitions[index][j]=parameters[j];
+    }
+    
+  }
+}
+
+void AddBendTypeToDefinitions(int TypeA,int TypeB,int TypeC,int BendType,REAL *parms)
+{
+  int i,j,index;
+  int AlreadyPresent;
+  int NumberOfArguments;
+  REAL parameters[10];
+
+  if(strcasecmp(BendTypes[BendType].Name,"HARMONIC_BEND")==0)
+  {
+    NumberOfArguments=2;
+    parameters[0]=parms[0]*ENERGY_TO_KELVIN;
+    parameters[1]=parms[1]*RAD2DEG;
+  }
+
+  if(Framework[CurrentSystem].NumberOfBendDefinitions==0)
+  {
+    index=0;
+    Framework[CurrentSystem].NumberOfBendDefinitions=1;
+    Framework[CurrentSystem].BendDefinitionType=(int*)calloc(Framework[CurrentSystem].NumberOfBendDefinitions,sizeof(int));
+    Framework[CurrentSystem].BendDefinitions=(QUAD*)calloc(Framework[CurrentSystem].NumberOfBendDefinitions,sizeof(QUAD));
+    Framework[CurrentSystem].NumberOfBendsPerType=(int*)calloc(Framework[CurrentSystem].NumberOfBendDefinitions,sizeof(int));
+    Framework[CurrentSystem].BendArgumentDefinitions=(REAL(*)[MAX_BEND_POTENTIAL_ARGUMENTS])
+       calloc(Framework[CurrentSystem].NumberOfBendDefinitions,sizeof(REAL[MAX_BEND_POTENTIAL_ARGUMENTS]));
+
+
+    Framework[CurrentSystem].BendDefinitionType[index]=BendType;
+    Framework[CurrentSystem].BendDefinitions[index].A=TypeA;
+    Framework[CurrentSystem].BendDefinitions[index].B=TypeB;
+    Framework[CurrentSystem].BendDefinitions[index].C=TypeC;
+    Framework[CurrentSystem].NumberOfBendsPerType[index]++;
+    BendTypes[Framework[CurrentFramework].BendDefinitionType[index]].nr_args=NumberOfArguments;
+    for(j=0;j<NumberOfArguments;j++)
+      Framework[CurrentSystem].BendArgumentDefinitions[index][j]=parameters[j];
+  }
+  else
+  {
+    AlreadyPresent=FALSE;
+    for(i=0;i<Framework[CurrentSystem].NumberOfBendDefinitions;i++)
+    {
+      if(((Framework[CurrentSystem].BendDefinitions[i].A==TypeA)&&(Framework[CurrentSystem].BendDefinitions[i].B==TypeB)&&
+         (Framework[CurrentSystem].BendDefinitions[i].C==TypeC))||
+         ((Framework[CurrentSystem].BendDefinitions[i].A==TypeC)&&(Framework[CurrentSystem].BendDefinitions[i].B==TypeB)&&
+         (Framework[CurrentSystem].BendDefinitions[i].C==TypeA)))
+      {
+        AlreadyPresent=TRUE;
+        for(j=0;j<NumberOfArguments;j++)
+          AlreadyPresent=AlreadyPresent&&(fabs(parameters[j]-Framework[CurrentSystem].BendArgumentDefinitions[i][j])<1e-5);;
+
+        if(AlreadyPresent)
+        {
+          Framework[CurrentSystem].NumberOfBendsPerType[i]++;
+          break;
+        }
+      }
+    }
+    if(!AlreadyPresent)
+    {
+      index=Framework[CurrentSystem].NumberOfBendDefinitions;
+      Framework[CurrentSystem].NumberOfBendDefinitions++;
+      Framework[CurrentSystem].BendDefinitionType=(int*)realloc(Framework[CurrentSystem].BendDefinitionType,
+          Framework[CurrentSystem].NumberOfBendDefinitions*sizeof(int));
+      Framework[CurrentSystem].BendDefinitions=(QUAD*)realloc(Framework[CurrentSystem].BendDefinitions,
+          Framework[CurrentSystem].NumberOfBendDefinitions*sizeof(QUAD));
+      Framework[CurrentSystem].NumberOfBendsPerType=(int*)realloc(Framework[CurrentSystem].NumberOfBendsPerType,
+          Framework[CurrentSystem].NumberOfBendDefinitions*sizeof(int));
+      Framework[CurrentSystem].BendArgumentDefinitions=(REAL(*)[MAX_BEND_POTENTIAL_ARGUMENTS])
+          realloc(Framework[CurrentSystem].BendArgumentDefinitions,
+          Framework[CurrentSystem].NumberOfBendDefinitions*sizeof(REAL[MAX_BEND_POTENTIAL_ARGUMENTS]));
+
+      Framework[CurrentSystem].BendDefinitionType[index]=BendType;
+      Framework[CurrentSystem].BendDefinitions[index].A=TypeA;
+      Framework[CurrentSystem].BendDefinitions[index].B=TypeB;
+      Framework[CurrentSystem].BendDefinitions[index].C=TypeC;
+      Framework[CurrentSystem].NumberOfBendsPerType[index]=1;
+      BendTypes[Framework[CurrentFramework].BendDefinitionType[index]].nr_args=NumberOfArguments;
+      for(j=0;j<NumberOfArguments;j++)
+        Framework[CurrentSystem].BendArgumentDefinitions[index][j]=parameters[j];
+    }
+    
+  }
+}
+
+void AddTorsionTypeToDefinitions(int TypeA,int TypeB,int TypeC,int TypeD,int TorsionType,REAL *parms)
+{
+  int i,j,index;
+  int AlreadyPresent;
+  int CompareParameters;
+  int NumberOfArguments;
+  REAL parameters[10];
+
+  if(strcasecmp(TorsionTypes[TorsionType].Name,"TRAPPE_DIHEDRAL")==0)
+  {
+    NumberOfArguments=8;
+    parameters[0]=parms[0]*ENERGY_TO_KELVIN;
+    parameters[1]=parms[1]*ENERGY_TO_KELVIN;
+    parameters[2]=parms[2]*ENERGY_TO_KELVIN;
+    parameters[3]=parms[3]*ENERGY_TO_KELVIN;
+    parameters[4]=parms[4];
+    parameters[5]=parms[5];
+    parameters[6]=parms[6];
+    parameters[7]=parms[7];
+  }
+
+  if(Framework[CurrentSystem].NumberOfTorsionDefinitions==0)
+  {
+    index=0;
+    Framework[CurrentSystem].NumberOfTorsionDefinitions=1;
+    Framework[CurrentSystem].TorsionDefinitionType=(int*)calloc(Framework[CurrentSystem].NumberOfTorsionDefinitions,sizeof(int));
+    Framework[CurrentSystem].TorsionDefinitions=(QUAD*)calloc(Framework[CurrentSystem].NumberOfTorsionDefinitions,sizeof(QUAD));
+    Framework[CurrentSystem].NumberOfTorsionsPerType=(int*)calloc(Framework[CurrentSystem].NumberOfTorsionDefinitions,sizeof(int));
+    Framework[CurrentSystem].TorsionArgumentDefinitions=(REAL(*)[MAX_TORSION_POTENTIAL_ARGUMENTS])
+       calloc(Framework[CurrentSystem].NumberOfTorsionDefinitions,sizeof(REAL[MAX_TORSION_POTENTIAL_ARGUMENTS]));
+
+
+    Framework[CurrentSystem].TorsionDefinitionType[index]=TorsionType;
+    Framework[CurrentSystem].TorsionDefinitions[index].A=TypeA;
+    Framework[CurrentSystem].TorsionDefinitions[index].B=TypeB;
+    Framework[CurrentSystem].TorsionDefinitions[index].C=TypeC;
+    Framework[CurrentSystem].TorsionDefinitions[index].D=TypeD;
+    Framework[CurrentSystem].NumberOfTorsionsPerType[index]++;
+    TorsionTypes[Framework[CurrentFramework].TorsionDefinitionType[index]].nr_args=NumberOfArguments;
+    for(j=0;j<NumberOfArguments;j++)
+      Framework[CurrentSystem].TorsionArgumentDefinitions[index][j]=parameters[j];
+  }
+  else
+  {
+    AlreadyPresent=FALSE;
+    for(i=0;i<Framework[CurrentSystem].NumberOfTorsionDefinitions;i++)
+    {
+      if(((Framework[CurrentSystem].TorsionDefinitions[i].A==TypeA)&&(Framework[CurrentSystem].TorsionDefinitions[i].B==TypeB)&&
+         (Framework[CurrentSystem].TorsionDefinitions[i].C==TypeC)&&(Framework[CurrentSystem].TorsionDefinitions[i].D==TypeD))||
+         ((Framework[CurrentSystem].TorsionDefinitions[i].A==TypeD)&&(Framework[CurrentSystem].TorsionDefinitions[i].B==TypeC)&&
+         (Framework[CurrentSystem].TorsionDefinitions[i].C==TypeB)&&(Framework[CurrentSystem].TorsionDefinitions[i].D==TypeA)))
+      {
+        AlreadyPresent=TRUE;
+        for(j=0;j<NumberOfArguments;j++)
+          AlreadyPresent=AlreadyPresent&&(fabs(parameters[j]-Framework[CurrentSystem].TorsionArgumentDefinitions[i][j])<1e-5);;
+
+        if(AlreadyPresent)
+        {
+          Framework[CurrentSystem].NumberOfTorsionsPerType[i]++;
+          break;
+        }
+      }
+    }
+    if(!AlreadyPresent)
+    {
+      index=Framework[CurrentSystem].NumberOfTorsionDefinitions;
+      Framework[CurrentSystem].NumberOfTorsionDefinitions++;
+      Framework[CurrentSystem].TorsionDefinitionType=(int*)realloc(Framework[CurrentSystem].TorsionDefinitionType,
+          Framework[CurrentSystem].NumberOfTorsionDefinitions*sizeof(int));
+      Framework[CurrentSystem].TorsionDefinitions=(QUAD*)realloc(Framework[CurrentSystem].TorsionDefinitions,
+          Framework[CurrentSystem].NumberOfTorsionDefinitions*sizeof(QUAD));
+      Framework[CurrentSystem].NumberOfTorsionsPerType=(int*)realloc(Framework[CurrentSystem].NumberOfTorsionsPerType,
+          Framework[CurrentSystem].NumberOfTorsionDefinitions*sizeof(int));
+      Framework[CurrentSystem].TorsionArgumentDefinitions=(REAL(*)[MAX_TORSION_POTENTIAL_ARGUMENTS])
+          realloc(Framework[CurrentSystem].TorsionArgumentDefinitions,
+          Framework[CurrentSystem].NumberOfTorsionDefinitions*sizeof(REAL[MAX_TORSION_POTENTIAL_ARGUMENTS]));
+
+      Framework[CurrentSystem].TorsionDefinitionType[index]=TorsionType;
+      Framework[CurrentSystem].TorsionDefinitions[index].A=TypeA;
+      Framework[CurrentSystem].TorsionDefinitions[index].B=TypeB;
+      Framework[CurrentSystem].TorsionDefinitions[index].C=TypeC;
+      Framework[CurrentSystem].TorsionDefinitions[index].D=TypeD;
+      Framework[CurrentSystem].NumberOfTorsionsPerType[index]=1;
+      TorsionTypes[Framework[CurrentFramework].TorsionDefinitionType[index]].nr_args=NumberOfArguments;
+      for(j=0;j<NumberOfArguments;j++)
+        Framework[CurrentSystem].TorsionArgumentDefinitions[index][j]=parameters[j];
+    }
+    
+  }
+}
+
+void AddImproperTorsionTypeToDefinitions(int TypeA,int TypeB,int TypeC,int TypeD,int ImproperTorsionType,REAL *parms)
+{
+  int i,j,index;
+  int AlreadyPresent;
+  int CompareParameters;
+  int NumberOfArguments;
+  REAL parameters[10];
+
+  if(strcasecmp(ImproperTorsionTypes[ImproperTorsionType].Name,"TRAPPE_IMPROPER_DIHEDRAL")==0)
+  {
+    NumberOfArguments=8;
+    parameters[0]=parms[0]*ENERGY_TO_KELVIN;
+    parameters[1]=parms[1]*ENERGY_TO_KELVIN;
+    parameters[2]=parms[2]*ENERGY_TO_KELVIN;
+    parameters[3]=parms[3]*ENERGY_TO_KELVIN;
+    parameters[4]=parms[4];
+    parameters[5]=parms[5];
+    parameters[6]=parms[6];
+    parameters[7]=parms[7];
+  }
+
+  if(Framework[CurrentSystem].NumberOfImproperTorsionDefinitions==0)
+  {
+    index=0;
+    Framework[CurrentSystem].NumberOfImproperTorsionDefinitions=1;
+    Framework[CurrentSystem].ImproperTorsionDefinitionType=(int*)calloc(Framework[CurrentSystem].NumberOfImproperTorsionDefinitions,sizeof(int));
+    Framework[CurrentSystem].ImproperTorsionDefinitions=(QUAD*)calloc(Framework[CurrentSystem].NumberOfImproperTorsionDefinitions,sizeof(QUAD));
+    Framework[CurrentSystem].NumberOfImproperTorsionsPerType=(int*)calloc(Framework[CurrentSystem].NumberOfImproperTorsionDefinitions,sizeof(int));
+    Framework[CurrentSystem].ImproperTorsionArgumentDefinitions=(REAL(*)[MAX_IMPROPER_TORSION_POTENTIAL_ARGUMENTS])
+       calloc(Framework[CurrentSystem].NumberOfImproperTorsionDefinitions,sizeof(REAL[MAX_IMPROPER_TORSION_POTENTIAL_ARGUMENTS]));
+
+
+    Framework[CurrentSystem].ImproperTorsionDefinitionType[index]=ImproperTorsionType;
+    Framework[CurrentSystem].ImproperTorsionDefinitions[index].A=TypeA;
+    Framework[CurrentSystem].ImproperTorsionDefinitions[index].B=TypeB;
+    Framework[CurrentSystem].ImproperTorsionDefinitions[index].C=TypeC;
+    Framework[CurrentSystem].ImproperTorsionDefinitions[index].D=TypeD;
+    Framework[CurrentSystem].NumberOfImproperTorsionsPerType[index]++;
+    ImproperTorsionTypes[Framework[CurrentFramework].ImproperTorsionDefinitionType[index]].nr_args=NumberOfArguments;
+    for(j=0;j<NumberOfArguments;j++)
+      Framework[CurrentSystem].ImproperTorsionArgumentDefinitions[index][j]=parameters[j];
+  }
+  else
+  {
+    AlreadyPresent=FALSE;
+    for(i=0;i<Framework[CurrentSystem].NumberOfImproperTorsionDefinitions;i++)
+    {
+      if(((Framework[CurrentSystem].ImproperTorsionDefinitions[i].A==TypeA)&&(Framework[CurrentSystem].ImproperTorsionDefinitions[i].B==TypeB)&&
+         (Framework[CurrentSystem].ImproperTorsionDefinitions[i].C==TypeC)&&(Framework[CurrentSystem].ImproperTorsionDefinitions[i].D==TypeD))||
+         ((Framework[CurrentSystem].ImproperTorsionDefinitions[i].A==TypeD)&&(Framework[CurrentSystem].ImproperTorsionDefinitions[i].B==TypeC)&&
+         (Framework[CurrentSystem].ImproperTorsionDefinitions[i].C==TypeB)&&(Framework[CurrentSystem].ImproperTorsionDefinitions[i].D==TypeA)))
+      {
+        AlreadyPresent=TRUE;
+        for(j=0;j<NumberOfArguments;j++)
+          AlreadyPresent=AlreadyPresent&&(fabs(parameters[j]-Framework[CurrentSystem].ImproperTorsionArgumentDefinitions[i][j])<1e-5);;
+
+        if(AlreadyPresent)
+        {
+          Framework[CurrentSystem].NumberOfImproperTorsionsPerType[i]++;
+          break;
+        }
+      }
+    }
+    if(!AlreadyPresent)
+    {
+      index=Framework[CurrentSystem].NumberOfImproperTorsionDefinitions;
+      Framework[CurrentSystem].NumberOfImproperTorsionDefinitions++;
+      Framework[CurrentSystem].ImproperTorsionDefinitionType=(int*)realloc(Framework[CurrentSystem].ImproperTorsionDefinitionType,
+          Framework[CurrentSystem].NumberOfImproperTorsionDefinitions*sizeof(int));
+      Framework[CurrentSystem].ImproperTorsionDefinitions=(QUAD*)realloc(Framework[CurrentSystem].ImproperTorsionDefinitions,
+          Framework[CurrentSystem].NumberOfImproperTorsionDefinitions*sizeof(QUAD));
+      Framework[CurrentSystem].NumberOfImproperTorsionsPerType=(int*)realloc(Framework[CurrentSystem].NumberOfImproperTorsionsPerType,
+          Framework[CurrentSystem].NumberOfImproperTorsionDefinitions*sizeof(int));
+      Framework[CurrentSystem].ImproperTorsionArgumentDefinitions=(REAL(*)[MAX_IMPROPER_TORSION_POTENTIAL_ARGUMENTS])
+          realloc(Framework[CurrentSystem].ImproperTorsionArgumentDefinitions,
+          Framework[CurrentSystem].NumberOfImproperTorsionDefinitions*sizeof(REAL[MAX_IMPROPER_TORSION_POTENTIAL_ARGUMENTS]));
+
+      Framework[CurrentSystem].ImproperTorsionDefinitionType[index]=ImproperTorsionType;
+      Framework[CurrentSystem].ImproperTorsionDefinitions[index].A=TypeA;
+      Framework[CurrentSystem].ImproperTorsionDefinitions[index].B=TypeB;
+      Framework[CurrentSystem].ImproperTorsionDefinitions[index].C=TypeC;
+      Framework[CurrentSystem].ImproperTorsionDefinitions[index].D=TypeD;
+      Framework[CurrentSystem].NumberOfImproperTorsionsPerType[index]=1;
+      ImproperTorsionTypes[Framework[CurrentFramework].ImproperTorsionDefinitionType[index]].nr_args=NumberOfArguments;
+      for(j=0;j<NumberOfArguments;j++)
+        Framework[CurrentSystem].ImproperTorsionArgumentDefinitions[index][j]=parameters[j];
+    }
+  }
+}
+
+/*********************************************************************************************************
+ * Name       | ReadFrameworkSpecificDefinitions                                                         *
+ * ----------------------------------------------------------------------------------------------------- *
+ * Function   | Read the definition (bond, bend, torsion, etc) of a framework component.                 *
+ * Note       | The excluded Van der Waals and Coulombic interactions are automatically computed from    *
+ *            | framework exclusion rules (1-2, 1-3, 1-4 omission, bond/bend/torsion omission).          *
+ *********************************************************************************************************/
+
+int ReadFrameworkSpecificDefinition(void)
+{
+  int i,j,k,l,m,n,f1,index_excluded,present,nr_atoms;
+  char line[16384],string[1024],buffer[256];
+  char keyword[1024],arguments[16384],firstargument[1024],*arg_pointer;
+  int A,B,C,D,A1,B1,C1,TypeA,TypeB,TypeC,TypeD,CurrentTypeA,CurrentTypeB,CurrentTypeC,CurrentTypeD,index,index2,ListTypeC,ListTypeD;
+  char TypeNameA[256],TypeNameB[256],TypeNameC[256],TypeNameD[256];
+  REAL potential_arguments[10];
+  int NumberOfAtoms,NumberOfBonds,NumberOfBends,NumberOfTorsions,NumberOfVDW;
+  int NumberOfArguments;
+  int BondType=0,BendType=0,TorsionType=0,InversionBendType=0,ImproperTorsionType=0;
+  int BondBondType=0,BondBendType=0,BendBendType=0,BondTorsionType=0,BendTorsionType=0;
+  REAL r,rab,rbc,theta;
+  double temp;
+  VECTOR Rab,Rbc,dr;
+  FILE *FilePtr;
+  int int_temp1,int_temp2;
+  REAL UnitConverter;
+
+  UnitConverter=KELVIN_TO_ENERGY;
+
+  CurrentFramework=0;
+
+  if(strlen(Framework[CurrentSystem].FrameworkDefinitions)<1) return 0;
+
+  switch(Framework[CurrentSystem].FlexibleModelInputType)
+  {
+    case FLEXIBLE_FILE_TYPE_RASPA:
+      break;
+    case FLEXIBLE_FILE_TYPE_DLPOLY:
+
+      // try "framework.dlpoly", then "Framework.dlpoly"
+      sprintf(buffer,"%s.%s","framework","dlpoly");
+      if(!(FilePtr=fopen(buffer,"r")))
+      {
+        sprintf(buffer,"%s.%s","Framework","dlpoly");
+        if(!(FilePtr=fopen(buffer,"r")))
+        {
+          printf("Error:  file %s does not exists.\n",buffer);
+          return 0;
+          exit(1);
+        }
+      }
+
+      while(ReadLine(line,16384,FilePtr))
+      {
+        // extract first word
+        strcpy(keyword,"keyword");
+        sscanf(line,"%s%[^\n]",keyword,arguments);
+        sscanf(arguments,"%s",firstargument);
+
+        if(strcasecmp("UNITS",keyword)==0)
+        {
+          if(strcasecmp("kcal",firstargument)==0) UnitConverter=KCAL_PER_MOL_TO_KELVIN*KELVIN_TO_ENERGY;
+          if(strcasecmp("eV",firstargument)==0) UnitConverter=EV_TO_KELVIN*KELVIN_TO_ENERGY;
+          if(strcasecmp("kJ",firstargument)==0) UnitConverter=KJ_PER_MOL_TO_KELVIN*KELVIN_TO_ENERGY;
+          if(strcasecmp("Kelvin",firstargument)==0) UnitConverter=KELVIN_TO_ENERGY;
+          if(strcasecmp("internal",firstargument)==0) UnitConverter=1.0;
+        }
+        if(strcasecmp("ATOMS",keyword)==0) 
+        {
+          sscanf(arguments,"%d",&NumberOfAtoms); 
+          printf("Reading atoms: %d\n",NumberOfAtoms);
+
+          for(i=0;i<NumberOfAtoms;i++)
+          {
+            ReadLine(line,16384,FilePtr);
+            sscanf(line,"%*s %*f %lf %*d",&temp);
+            if(UseChargesFromCIFFile)
+              Framework[CurrentSystem].Atoms[CurrentFramework][i].Charge=temp;
+          }
+        }
+        if(strcasecmp("BONDS",keyword)==0) 
+        {
+          sscanf(arguments,"%d",&NumberOfBonds); 
+          printf("Reading bonds: %d\n",NumberOfBonds);
+
+          // realloc memory
+
+          if(Framework[CurrentSystem].MaxNumberOfBonds[CurrentFramework]>0)
+          {
+            Framework[CurrentSystem].MaxNumberOfBonds[CurrentFramework]+=NumberOfBonds;
+            Framework[CurrentSystem].Bonds[CurrentFramework]=(PAIR*)realloc(Framework[CurrentSystem].Bonds[CurrentFramework],
+                     Framework[CurrentSystem].MaxNumberOfBonds[CurrentFramework]*sizeof(PAIR));
+            Framework[CurrentSystem].BondType[CurrentFramework]=(int*)realloc(Framework[CurrentSystem].BondType[CurrentFramework],
+                     Framework[CurrentSystem].MaxNumberOfBonds[CurrentFramework]*sizeof(int));
+            Framework[CurrentSystem].BondArguments[CurrentFramework]=(REAL(*)[MAX_BOND_POTENTIAL_ARGUMENTS])
+                    realloc(Framework[CurrentSystem].BondArguments[CurrentFramework],
+                            Framework[CurrentSystem].MaxNumberOfBonds[CurrentFramework]*sizeof(REAL[MAX_BOND_POTENTIAL_ARGUMENTS]));
+          }
+          else
+          {
+            Framework[CurrentSystem].MaxNumberOfBonds[CurrentFramework]=NumberOfBonds;
+            Framework[CurrentSystem].Bonds[CurrentFramework]=(PAIR*)calloc(Framework[CurrentSystem].MaxNumberOfBonds[CurrentFramework],sizeof(PAIR));
+            Framework[CurrentSystem].BondType[CurrentFramework]=(int*)calloc(Framework[CurrentSystem].MaxNumberOfBonds[CurrentFramework],sizeof(int));
+            Framework[CurrentSystem].BondArguments[CurrentFramework]=(REAL(*)[MAX_BOND_POTENTIAL_ARGUMENTS])
+                    calloc(Framework[CurrentSystem].MaxNumberOfBonds[CurrentFramework],sizeof(REAL[MAX_BOND_POTENTIAL_ARGUMENTS]));
+          }
+
+       
+          index=Framework[CurrentSystem].NumberOfBonds[CurrentFramework];
+          for(i=index;i<index+NumberOfBonds;i++)
+          {
+            ReadLine(line,16384,FilePtr);
+            sscanf(line,"%s %d %d %[^\n]",buffer,&A,&B,arguments);
+            Framework[CurrentSystem].Bonds[CurrentFramework][i].A=A-1;
+            Framework[CurrentSystem].Bonds[CurrentFramework][i].B=B-1;
+            if(strcasecmp(buffer,"mors")==0)
+            {
+              for(j=0;j<NR_BOND_TYPES;j++)
+                if(strcasecmp(BondTypes[j].Name,"MORSE_BOND")==0)
+                  BondType=j;
+              Framework[CurrentSystem].BondType[CurrentFramework][i]=BondType;
+              sscanf(arguments,"%lf %lf %lf\n",&potential_arguments[0],&potential_arguments[1],&potential_arguments[2]);
+              Framework[CurrentSystem].BondArguments[CurrentFramework][i][0]=potential_arguments[0]*UnitConverter;
+              Framework[CurrentSystem].BondArguments[CurrentFramework][i][1]=potential_arguments[2];
+              Framework[CurrentSystem].BondArguments[CurrentFramework][i][2]=potential_arguments[1];
+              NumberOfArguments=3;
+            }
+            else if(strcasecmp(buffer,"harm")==0)
+            {
+              for(j=0;j<NR_BOND_TYPES;j++)
+                if(strcasecmp(BondTypes[j].Name,"HARMONIC_BOND")==0)
+                  BondType=j;
+              Framework[CurrentSystem].BondType[CurrentFramework][i]=BondType;
+              sscanf(arguments,"%lf %lf %lf\n",&potential_arguments[0],&potential_arguments[1],&potential_arguments[2]);
+              Framework[CurrentSystem].BondArguments[CurrentFramework][i][0]=potential_arguments[0]*UnitConverter;
+              Framework[CurrentSystem].BondArguments[CurrentFramework][i][1]=potential_arguments[1];
+              NumberOfArguments=2;
+            }
+
+            A=Framework[CurrentSystem].Bonds[CurrentFramework][i].A;
+            B=Framework[CurrentSystem].Bonds[CurrentFramework][i].B;
+            TypeA=Framework[CurrentSystem].Atoms[CurrentFramework][A].Type; 
+            TypeB=Framework[CurrentSystem].Atoms[CurrentFramework][B].Type; 
+            AddBondTypeToDefinitions(TypeA,TypeB,BondType,Framework[CurrentSystem].BondArguments[CurrentFramework][i]);
+          }
+
+          Framework[CurrentSystem].NumberOfBonds[CurrentFramework]+=NumberOfBonds;
+        }
+
+        if(strcasecmp("ANGLES",keyword)==0) 
+        {
+          sscanf(arguments,"%d",&NumberOfBends); 
+          printf("Reading bends: %d\n",NumberOfBends);
+
+          if(Framework[CurrentSystem].MaxNumberOfBonds[CurrentFramework]>0)
+          {
+            Framework[CurrentSystem].MaxNumberOfBends[CurrentFramework]+=NumberOfBends;
+            Framework[CurrentSystem].Bends[CurrentFramework]=(QUAD*)realloc(Framework[CurrentSystem].Bends[CurrentFramework],
+                             Framework[CurrentSystem].MaxNumberOfBends[CurrentFramework]*sizeof(QUAD));
+            Framework[CurrentSystem].BendType[CurrentFramework]=(int*)realloc(Framework[CurrentSystem].BendType[CurrentFramework],
+                             Framework[CurrentSystem].MaxNumberOfBends[CurrentFramework]*sizeof(int));
+            Framework[CurrentSystem].BendArguments[CurrentFramework]=(REAL(*)[MAX_BEND_POTENTIAL_ARGUMENTS])
+                    realloc(Framework[CurrentSystem].BendArguments[CurrentFramework],
+                            Framework[CurrentSystem].MaxNumberOfBends[CurrentFramework]*sizeof(REAL[MAX_BEND_POTENTIAL_ARGUMENTS]));
+          }
+          else
+          {
+            Framework[CurrentSystem].MaxNumberOfBends[CurrentFramework]=NumberOfBends;
+            Framework[CurrentSystem].Bends[CurrentFramework]=(QUAD*)calloc(Framework[CurrentSystem].MaxNumberOfBends[CurrentFramework],sizeof(QUAD));
+            Framework[CurrentSystem].BendType[CurrentFramework]=(int*)calloc(Framework[CurrentSystem].MaxNumberOfBends[CurrentFramework],sizeof(int));
+            Framework[CurrentSystem].BendArguments[CurrentFramework]=(REAL(*)[MAX_BEND_POTENTIAL_ARGUMENTS])
+                    calloc(Framework[CurrentSystem].MaxNumberOfBends[CurrentFramework],sizeof(REAL[MAX_BEND_POTENTIAL_ARGUMENTS]));
+          }
+
+          index=Framework[CurrentSystem].NumberOfBends[CurrentFramework];
+
+          for(i=index;i<index+NumberOfBends;i++)
+          {
+            ReadLine(line,16384,FilePtr);
+            sscanf(line,"%s %d %d %d %[^\n]",buffer,&A,&B,&C,arguments);
+            Framework[CurrentSystem].Bends[CurrentFramework][i].A=A-1;
+            Framework[CurrentSystem].Bends[CurrentFramework][i].B=B-1;
+            Framework[CurrentSystem].Bends[CurrentFramework][i].C=C-1;
+            Framework[CurrentSystem].Bends[CurrentFramework][i].D=0;
+            if(strcasecmp(buffer,"harm")==0)
+            {
+              for(j=0;j<NR_BEND_TYPES;j++)
+                if(strcasecmp(BendTypes[j].Name,"HARMONIC_BEND")==0)
+                  BendType=j;
+              Framework[CurrentSystem].BendType[CurrentFramework][i]=BendType;
+              sscanf(arguments,"%lf %lf %lf\n",&potential_arguments[0],&potential_arguments[1],&potential_arguments[2]);
+              Framework[CurrentSystem].BendArguments[CurrentFramework][i][0]=potential_arguments[0]*UnitConverter;
+              Framework[CurrentSystem].BendArguments[CurrentFramework][i][1]=potential_arguments[1]*DEG2RAD;
+            }
+            A=Framework[CurrentSystem].Bends[CurrentFramework][i].A;
+            B=Framework[CurrentSystem].Bends[CurrentFramework][i].B;
+            C=Framework[CurrentSystem].Bends[CurrentFramework][i].C;
+            TypeA=Framework[CurrentSystem].Atoms[CurrentFramework][A].Type; 
+            TypeB=Framework[CurrentSystem].Atoms[CurrentFramework][B].Type; 
+            TypeC=Framework[CurrentSystem].Atoms[CurrentFramework][C].Type; 
+            AddBendTypeToDefinitions(TypeA,TypeB,TypeC,BendType,Framework[CurrentSystem].BendArguments[CurrentFramework][i]);
+          }
+
+          Framework[CurrentSystem].NumberOfBends[CurrentFramework]+=NumberOfBends;
+        }
+
+        if(strcasecmp("DIHEDRALS",keyword)==0) 
+        {
+          sscanf(arguments,"%d",&NumberOfTorsions); 
+          printf("Reading torsions: %d\n",NumberOfTorsions);
+
+          if(Framework[CurrentSystem].MaxNumberOfTorsions[CurrentFramework]>0)
+          {
+            Framework[CurrentSystem].MaxNumberOfTorsions[CurrentFramework]+=NumberOfTorsions;
+            Framework[CurrentSystem].Torsions[CurrentFramework]=(QUAD*)realloc(Framework[CurrentSystem].Torsions[CurrentFramework],
+                   Framework[CurrentSystem].MaxNumberOfTorsions[CurrentFramework]*sizeof(QUAD));
+            Framework[CurrentSystem].TorsionType[CurrentFramework]=(int*)realloc(Framework[CurrentSystem].TorsionType[CurrentFramework],
+                   Framework[CurrentSystem].MaxNumberOfTorsions[CurrentFramework]*sizeof(int));
+            Framework[CurrentSystem].TorsionArguments[CurrentFramework]=(REAL(*)[MAX_TORSION_POTENTIAL_ARGUMENTS])
+                    realloc(Framework[CurrentSystem].TorsionArguments[CurrentFramework],
+                    Framework[CurrentSystem].MaxNumberOfTorsions[CurrentFramework]*sizeof(REAL[MAX_TORSION_POTENTIAL_ARGUMENTS]));
+          }
+          else
+          {
+            Framework[CurrentSystem].MaxNumberOfTorsions[CurrentFramework]=NumberOfTorsions;
+            Framework[CurrentSystem].Torsions[CurrentFramework]=(QUAD*)calloc(Framework[CurrentSystem].MaxNumberOfTorsions[CurrentFramework],sizeof(QUAD));
+            Framework[CurrentSystem].TorsionType[CurrentFramework]=(int*)calloc(Framework[CurrentSystem].MaxNumberOfTorsions[CurrentFramework],sizeof(int));
+            Framework[CurrentSystem].TorsionArguments[CurrentFramework]=(REAL(*)[MAX_TORSION_POTENTIAL_ARGUMENTS])
+                    calloc(Framework[CurrentSystem].MaxNumberOfTorsions[CurrentFramework],sizeof(REAL[MAX_TORSION_POTENTIAL_ARGUMENTS]));
+          }
+
+          if(Framework[CurrentSystem].MaxNumberOfImproperTorsions[CurrentFramework]>0)
+          {
+            Framework[CurrentSystem].MaxNumberOfImproperTorsions[CurrentFramework]+=NumberOfTorsions;
+            Framework[CurrentSystem].ImproperTorsions[CurrentFramework]=(QUAD*)realloc(Framework[CurrentSystem].ImproperTorsions[CurrentFramework],
+                   Framework[CurrentSystem].MaxNumberOfImproperTorsions[CurrentFramework]*sizeof(QUAD));
+            Framework[CurrentSystem].ImproperTorsionType[CurrentFramework]=(int*)realloc(Framework[CurrentSystem].ImproperTorsionType[CurrentFramework],
+                   Framework[CurrentSystem].MaxNumberOfImproperTorsions[CurrentFramework]*sizeof(int));
+            Framework[CurrentSystem].ImproperTorsionArguments[CurrentFramework]=(REAL(*)[MAX_TORSION_POTENTIAL_ARGUMENTS])
+                    realloc(Framework[CurrentSystem].ImproperTorsionArguments[CurrentFramework],
+                    Framework[CurrentSystem].MaxNumberOfImproperTorsions[CurrentFramework]*sizeof(REAL[MAX_TORSION_POTENTIAL_ARGUMENTS]));
+          }
+          else
+          {
+            Framework[CurrentSystem].MaxNumberOfImproperTorsions[CurrentFramework]=NumberOfTorsions;
+            Framework[CurrentSystem].ImproperTorsions[CurrentFramework]=(QUAD*)calloc(Framework[CurrentSystem].MaxNumberOfImproperTorsions[CurrentFramework],sizeof(QUAD));
+            Framework[CurrentSystem].ImproperTorsionType[CurrentFramework]=(int*)calloc(Framework[CurrentSystem].MaxNumberOfImproperTorsions[CurrentFramework],sizeof(int));
+            Framework[CurrentSystem].ImproperTorsionArguments[CurrentFramework]=(REAL(*)[MAX_TORSION_POTENTIAL_ARGUMENTS])
+                    calloc(Framework[CurrentSystem].MaxNumberOfImproperTorsions[CurrentFramework],sizeof(REAL[MAX_TORSION_POTENTIAL_ARGUMENTS]));
+          }
+
+          index=Framework[CurrentSystem].NumberOfTorsions[CurrentFramework];
+          index2=Framework[CurrentSystem].NumberOfImproperTorsions[CurrentFramework];
+         
+          for(i=0;i<NumberOfTorsions;i++)
+          {
+            ReadLine(line,16384,FilePtr);
+            sscanf(line,"%s %d %d %d %d %[^\n]",buffer,&A,&B,&C,&D,arguments);
+
+            if(((BondNeighbours(A-1,B-1)&&BondNeighbours(B-1,C-1)&&BondNeighbours(C-1,D-1)&&(!BondNeighbours(A-1,D-1)))))
+            {
+              Framework[CurrentSystem].Torsions[CurrentFramework][index].A=A-1;
+              Framework[CurrentSystem].Torsions[CurrentFramework][index].B=B-1;
+              Framework[CurrentSystem].Torsions[CurrentFramework][index].C=C-1;
+              Framework[CurrentSystem].Torsions[CurrentFramework][index].D=D-1;
+
+              if(strcasecmp(buffer,"cos")==0)
+              {
+                for(j=0;j<NR_TORSION_TYPES;j++)
+                  if(strcasecmp(TorsionTypes[j].Name,"TRAPPE_DIHEDRAL")==0)
+                    TorsionType=j;
+                Framework[CurrentSystem].TorsionType[CurrentFramework][index]=TorsionType;
+                sscanf(arguments,"%lf %lf %d %lf %lf\n",&potential_arguments[0],&potential_arguments[1],&int_temp2,&potential_arguments[2],&potential_arguments[3]);
+                Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][0]=0.0;
+                Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][1]=0.0;
+                Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][2]=0.0;
+                Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][3]=0.0;
+
+                // settings scaling parameters for VDW (second parameter in DLPOLY)
+                Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][6]=potential_arguments[3];
+
+                // settings scaling parameters for electrostatics (first parameter in DLPOLY)
+                Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][7]=potential_arguments[2];
+
+                switch(int_temp2)
+                {
+                  case 2:
+                    Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][2]=potential_arguments[0]*UnitConverter;
+                    break;
+                  case 3:
+                    Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][3]=potential_arguments[0]*UnitConverter;
+                    break;
+                }
+              }
+              A=Framework[CurrentSystem].Torsions[CurrentFramework][index].A;
+              B=Framework[CurrentSystem].Torsions[CurrentFramework][index].B;
+              C=Framework[CurrentSystem].Torsions[CurrentFramework][index].C;
+              D=Framework[CurrentSystem].Torsions[CurrentFramework][index].D;
+              TypeA=Framework[CurrentSystem].Atoms[CurrentFramework][A].Type; 
+              TypeB=Framework[CurrentSystem].Atoms[CurrentFramework][B].Type; 
+              TypeC=Framework[CurrentSystem].Atoms[CurrentFramework][C].Type; 
+              TypeD=Framework[CurrentSystem].Atoms[CurrentFramework][D].Type; 
+              AddTorsionTypeToDefinitions(TypeA,TypeB,TypeC,TypeD,TorsionType,Framework[CurrentSystem].TorsionArguments[CurrentFramework][index]);
+              index++;
+            }
+            else if(((BondNeighbours(A-1,C-1)&&BondNeighbours(B-1,C-1)&&BondNeighbours(D-1,C-1))))
+            {
+              Framework[CurrentSystem].ImproperTorsions[CurrentFramework][index2].A=A-1;
+              Framework[CurrentSystem].ImproperTorsions[CurrentFramework][index2].B=B-1;
+              Framework[CurrentSystem].ImproperTorsions[CurrentFramework][index2].C=C-1;
+              Framework[CurrentSystem].ImproperTorsions[CurrentFramework][index2].D=D-1;
+
+              if(strcasecmp(buffer,"cos")==0)
+              {
+                for(j=0;j<NR_IMPROPER_TORSION_TYPES;j++)
+                  if(strcasecmp(ImproperTorsionTypes[j].Name,"TRAPPE_IMPROPER_DIHEDRAL")==0)
+                    ImproperTorsionType=j;
+                Framework[CurrentSystem].ImproperTorsionType[CurrentFramework][index2]=ImproperTorsionType;
+                sscanf(arguments,"%lf %lf %d %lf %lf\n",&potential_arguments[0],&potential_arguments[1],&int_temp2,&potential_arguments[2],&potential_arguments[3]);
+                Framework[CurrentSystem].ImproperTorsionArguments[CurrentFramework][index2][0]=0.0;
+                Framework[CurrentSystem].ImproperTorsionArguments[CurrentFramework][index2][1]=0.0;
+                Framework[CurrentSystem].ImproperTorsionArguments[CurrentFramework][index2][2]=0.0;
+                Framework[CurrentSystem].ImproperTorsionArguments[CurrentFramework][index2][3]=0.0;
+
+                // settings scaling parameters for VDW (second parameter in DLPOLY)
+                Framework[CurrentSystem].ImproperTorsionArguments[CurrentFramework][index2][6]=potential_arguments[3];
+
+                // settings scaling parameters for electrostatics (first parameter in DLPOLY)
+                Framework[CurrentSystem].ImproperTorsionArguments[CurrentFramework][index2][7]=potential_arguments[2];
+
+                switch(int_temp2)
+                {
+                  case 2:
+                    Framework[CurrentSystem].ImproperTorsionArguments[CurrentFramework][index2][2]=potential_arguments[0]*UnitConverter;
+                    break;
+                  case 3:
+                    Framework[CurrentSystem].ImproperTorsionArguments[CurrentFramework][index2][3]=potential_arguments[0]*UnitConverter;
+                    break;
+                }
+              }
+              A=Framework[CurrentSystem].ImproperTorsions[CurrentFramework][index2].A;
+              B=Framework[CurrentSystem].ImproperTorsions[CurrentFramework][index2].B;
+              C=Framework[CurrentSystem].ImproperTorsions[CurrentFramework][index2].C;
+              D=Framework[CurrentSystem].ImproperTorsions[CurrentFramework][index2].D;
+              TypeA=Framework[CurrentSystem].Atoms[CurrentFramework][A].Type; 
+              TypeB=Framework[CurrentSystem].Atoms[CurrentFramework][B].Type; 
+              TypeC=Framework[CurrentSystem].Atoms[CurrentFramework][C].Type; 
+              TypeD=Framework[CurrentSystem].Atoms[CurrentFramework][D].Type; 
+              AddImproperTorsionTypeToDefinitions(TypeA,TypeB,TypeC,TypeD,ImproperTorsionType,Framework[CurrentSystem].ImproperTorsionArguments[CurrentFramework][index2]);
+              index2++;
+            }
+          }
+          Framework[CurrentSystem].NumberOfTorsions[CurrentFramework]=index;
+          Framework[CurrentSystem].NumberOfImproperTorsions[CurrentFramework]=index2;
+        }
+
+        if(strcasecmp("VDW",keyword)==0) 
+        {
+          sscanf(arguments,"%d",&NumberOfVDW); 
+          printf("Reading VDW: %d\n",NumberOfVDW);
+          for(i=0;i<NumberOfVDW;i++)
+          {
+            ReadLine(line,16384,FilePtr);
+            sscanf(line,"%s %s %s %lf %lf %[^\n]",TypeNameA,TypeNameB,buffer,&potential_arguments[0],&potential_arguments[1],arguments);
+            if(strcasecmp(buffer,"lj")==0)
+            {
+            } 
+          }
+        }
+      }
+
+      break;
+  }
+}
+
+/*********************************************************************************************************
+ * Name       | WriteFrameworkDefinition                                                                 *
+ * ----------------------------------------------------------------------------------------------------- *
+ * Function   | Write the definition (bond, bend, torsion, etc) of a framework component.                *
+ * Note       | The excluded Van der Waals and Coulombic interactions are automatically computed from    *
+ *            | framework exclusion rules (1-2, 1-3, 1-4 omission, bond/bend/torsion omission).          *
+ *********************************************************************************************************/
+
+void WriteFrameworkDefinition(void)
+{
+  int i,j,f1;
+  FILE *FilePtr;
+  int A,B,C,D;
+  int typeA,typeB,typeC,typeD;
+  int total;
+  REAL charge,mass;
+  REAL *parms;
+  VECTOR pos,vel,force;
+  int index;
+  INT_VECTOR3 fixed;
+  int m,k,l,Type;
+
+  mkdir("DLPOLY",S_IRWXU);
+
+  FilePtr=fopen("DLPOLY/CONTROL","w");
+  fprintf(FilePtr,"%s\n",Framework[CurrentSystem].Name[0]);
+  fprintf(FilePtr,"\n");
+
+  fprintf(FilePtr,"temperature %12.6lf\n",(double)therm_baro_stats.ExternalTemperature[CurrentSystem]);
+  fprintf(FilePtr,"pressure    %12.6lf\n",(double)therm_baro_stats.ExternalPressure[CurrentSystem][0]*PRESSURE_CONVERSION_FACTOR*PA_TO_ATM*0.001);  // k atm
+  fprintf(FilePtr,"\n");
+
+  switch(Ensemble[CurrentSystem])
+  {
+    case NPT:
+      // contribution is zero (i.e. cancels out)
+      break;
+    case NPTPR:
+    case NPHPR:
+      fprintf(FilePtr,"ensemble nst lang    1.0  5.0\n");
+      break;
+  }
+  
+  fprintf(FilePtr,"vdw direct\n");
+  fprintf(FilePtr,"spme precision  1.0E-20\n");
+  fprintf(FilePtr,"\n");
+
+  fprintf(FilePtr,"steps       %12lld\n",NumberOfCycles);
+  fprintf(FilePtr,"timestep    %12.6f ps\n",DeltaT);
+  fprintf(FilePtr,"multiple    1 steps\n");
+  fprintf(FilePtr,"\n");
+
+  fprintf(FilePtr,"cutoff   %12.6lf  angstrom\n",CutOffVDW);
+  fprintf(FilePtr,"rvdw     %12.6lf  angstrom\n",CutOffVDW);
+  fprintf(FilePtr,"\n");
+
+  fprintf(FilePtr,"job time     7200000000 seconds\n");
+  fprintf(FilePtr,"close time   100000 seconds\n");
+  fprintf(FilePtr,"\n");
+
+  fprintf(FilePtr,"finish\n");
+  fprintf(FilePtr,"\n");
+
+  fclose(FilePtr);
+
+  FilePtr=fopen("DLPOLY/CONFIG","w");
+  fprintf(FilePtr,"Raspa-1.0: input files for dlpoly\n");
+  fprintf(FilePtr,"%10d%10d\n",2,3);
+  fprintf(FilePtr,"%20.10f%20.10f%20.10f\n",Box[0].ax,Box[0].ay,Box[0].az);
+  fprintf(FilePtr,"%20.10f%20.10f%20.10f\n",Box[0].bx,Box[0].by,Box[0].bz);
+  fprintf(FilePtr,"%20.10f%20.10f%20.10f\n",Box[0].cx,Box[0].cy,Box[0].cz);
+
+  index=1;
+  for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
+  {
+     for(i=0;i<Framework[CurrentSystem].NumberOfAtoms[f1];i++)
+     {
+       typeA=Framework[CurrentSystem].Atoms[f1][i].Type;
+       pos=Framework[CurrentSystem].Atoms[f1][i].Position;
+       vel=Framework[CurrentSystem].Atoms[f1][i].Velocity;
+       force=Framework[CurrentSystem].Atoms[f1][i].Force;
+       fprintf(FilePtr,"%-8s%10d\n",PseudoAtoms[typeA].Name,index);
+       fprintf(FilePtr,"%20.10f%20.10f%20.10f\n",pos.x,pos.y,pos.z);
+       fprintf(FilePtr,"%20.10f%20.10f%20.10f\n",vel.x,vel.y,vel.z);
+       fprintf(FilePtr,"%20.10f%20.10f%20.10f\n",force.x,force.y,force.z);
+       index++;
+     }
+  }
+  for(m=0;m<NumberOfAdsorbateMolecules[CurrentSystem];m++)
+  {
+    Type=Adsorbates[CurrentSystem][m].Type;
+    for(l=0;l<Components[Type].NumberOfGroups;l++)
+    {
+      if(Components[Type].Groups[l].Rigid) // rigid unit
+      {
+        for(k=0;k<Components[Type].Groups[l].NumberOfGroupAtoms;k++)
+        {
+          A=Components[Type].Groups[l].Atoms[k];
+          typeA=Adsorbates[CurrentSystem][m].Atoms[A].Type;
+          pos=Adsorbates[CurrentSystem][m].Atoms[A].Position;
+          vel=Adsorbates[CurrentSystem][m].Atoms[A].Velocity;
+          force=Adsorbates[CurrentSystem][m].Atoms[A].Force;
+          fprintf(FilePtr,"%8s%10d\n",PseudoAtoms[typeA].Name,index);
+          fprintf(FilePtr,"%20.10lf%20.10lf%20.10lf\n",pos.x,pos.y,pos.z);
+          fprintf(FilePtr,"%20.10lf%20.10lf%20.10lf\n",vel.x,vel.y,vel.z);
+          fprintf(FilePtr,"%20.10lf%20.10lf%20.10lf\n",force.x,force.y,force.z);
+          index++;
+        }
+      }
+    }
+  }
+  for(m=0;m<NumberOfCationMolecules[CurrentSystem];m++)
+  {
+    Type=Cations[CurrentSystem][m].Type;
+    for(l=0;l<Components[Type].NumberOfGroups;l++)
+    {
+      if(Components[Type].Groups[l].Rigid) // rigid unit
+      {
+        for(k=0;k<Components[Type].Groups[l].NumberOfGroupAtoms;k++)
+        {
+          A=Components[Type].Groups[l].Atoms[k];
+          typeA=Cations[CurrentSystem][m].Atoms[A].Type;
+          pos=Cations[CurrentSystem][m].Atoms[A].Position;
+          vel=Cations[CurrentSystem][m].Atoms[A].Velocity;
+          force=Cations[CurrentSystem][m].Atoms[A].Force;
+          fprintf(FilePtr,"%8s%10d\n",PseudoAtoms[typeA].Name,index);
+          fprintf(FilePtr,"%20.10lf%20.10lf%20.10lf\n",pos.x,pos.y,pos.z);
+          fprintf(FilePtr,"%20.10lf%20.10lf%20.10lf\n",vel.x,vel.y,vel.z);
+          fprintf(FilePtr,"%20.10lf%20.10lf%20.10lf\n",force.x,force.y,force.z);
+          index++;
+        }
+      }
+    }
+  }
+  fclose(FilePtr);
+
+
+
+  FilePtr=fopen("DLPOLY/FIELD","w");
+  fprintf(FilePtr,"%s\n",Framework[CurrentSystem].Name[0]);
+  fprintf(FilePtr,"UNITS Kelvin\n");
+  fprintf(FilePtr,"MOLECULES %d\n",1+NumberOfComponents);
+  fprintf(FilePtr,"%s\n",Framework[CurrentSystem].Name[0]);
+  fprintf(FilePtr,"NUMMOL 1\n");
+
+
+  fprintf(FilePtr,"ATOMS %d\n",Framework[CurrentSystem].TotalNumberOfAtoms);
+  for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
+  {
+     for(i=0;i<Framework[CurrentSystem].NumberOfAtoms[f1];i++)
+     {
+       typeA=Framework[CurrentSystem].Atoms[f1][i].Type;
+       mass=PseudoAtoms[typeA].Mass;
+       charge=Framework[CurrentSystem].Atoms[f1][i].Charge;
+       fixed=Framework[CurrentSystem].Atoms[f1][i].Fixed;
+       fprintf(FilePtr,"%-6s %12.6f %12.6f   1    %5d\n",PseudoAtoms[typeA].Name,mass,charge,(fixed.x&&fixed.y&&fixed.z)?1:0);
+     }
+  }
+
+  total=0;
+  for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
+    total+=Framework[CurrentSystem].NumberOfBonds[f1];
+
+  fprintf(FilePtr,"BONDS %d\n",total);
+  for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
+  {
+    for(i=0;i<Framework[CurrentSystem].NumberOfBonds[f1];i++)
+    {
+      A=Framework[CurrentSystem].Bonds[f1][i].A;
+      B=Framework[CurrentSystem].Bonds[f1][i].B;
+      typeA=Framework[CurrentSystem].Atoms[f1][A].Type;
+      typeB=Framework[CurrentSystem].Atoms[f1][B].Type;
+
+      parms=(REAL*)&Framework[CurrentSystem].BondArguments[f1][i];
+
+      switch(Framework[CurrentSystem].BondType[f1][i])
+      {
+        case HARMONIC_BOND:
+          // 0.5*p0*SQR(r-p1);
+          // ===============================================
+          // p_0/k_B [K/A^2]   force constant
+          // p_1     [A]       reference bond distance
+          fprintf(FilePtr,"harm        %5d %5d  %12.6f %12.6f\n",
+            A+1,B+1,parms[0]*ENERGY_TO_KELVIN,parms[1]);
+          break;
+        case MORSE_BOND:
+          // p_0*[(1.0-{exp(-p_1*(r-p_2))})^2-1.0]
+          // ===============================================
+          // p_0/k_B [K]       force constant
+          // p_1     [A^-1]    parameter
+          // p_2     [A]       reference bond distance
+          fprintf(FilePtr,"morse       %5d %5d  %12.6f %12.6f %12.6f\n",
+             A+1,B+1,parms[0]*ENERGY_TO_KELVIN,parms[2],parms[1]);
+          break;
+      }
+    }
+  }
+
+  total=0;
+  for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
+    total+=Framework[CurrentSystem].NumberOfBends[f1];
+
+  fprintf(FilePtr,"ANGLES %d\n",total);
+  for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
+  {
+    for(i=0;i<Framework[CurrentSystem].NumberOfBends[f1];i++)
+    {
+      A=Framework[CurrentSystem].Bends[f1][i].A;
+      B=Framework[CurrentSystem].Bends[f1][i].B;
+      C=Framework[CurrentSystem].Bends[f1][i].C;
+      typeA=Framework[CurrentSystem].Atoms[f1][A].Type;
+      typeB=Framework[CurrentSystem].Atoms[f1][B].Type;
+      typeC=Framework[CurrentSystem].Atoms[f1][C].Type;
+
+      parms=(REAL*)&Framework[CurrentSystem].BendArguments[f1][i];
+
+      switch(Framework[CurrentSystem].BendType[f1][i])
+      {
+         case HARMONIC_BEND:
+            // (1/2)p_0*(theta-p_1)^2
+            // ===============================================
+            // p_0/k_B [K/rad^2]
+            // p_1     [degrees]
+          fprintf(FilePtr,"harm        %5d %5d %5d  %12.6f %12.6f\n",
+            A+1,B+1,C+1,parms[0]*ENERGY_TO_KELVIN,parms[1]*RAD2DEG);
+          break;
+
+      }
+    }
+  }
+
+  total=0;
+  for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
+  {
+    total+=Framework[CurrentSystem].NumberOfTorsions[f1];
+    total+=Framework[CurrentSystem].NumberOfImproperTorsions[f1];
+  }
+
+  fprintf(FilePtr,"DIHEDRALS %d\n",total);
+  for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
+  {
+    for(i=0;i<Framework[CurrentSystem].NumberOfTorsions[f1];i++)
+    {
+      A=Framework[CurrentSystem].Torsions[f1][i].A;
+      B=Framework[CurrentSystem].Torsions[f1][i].B;
+      C=Framework[CurrentSystem].Torsions[f1][i].C;
+      D=Framework[CurrentSystem].Torsions[f1][i].D;
+      typeA=Framework[CurrentSystem].Atoms[f1][A].Type;
+      typeB=Framework[CurrentSystem].Atoms[f1][B].Type;
+      typeC=Framework[CurrentSystem].Atoms[f1][C].Type;
+      typeD=Framework[CurrentSystem].Atoms[f1][D].Type;
+
+      parms=(REAL*)&Framework[CurrentSystem].TorsionArguments[f1][i];
+
+      switch(Framework[CurrentSystem].TorsionType[f1][i])
+      {
+        case TRAPPE_DIHEDRAL:
+          // p_0[0]+p_1*(1+cos(phi))+p_2*(1-cos(2*phi))+p_3*(1+cos(3*phi))
+          // =============================================================
+          // p_0/k_B [K]
+          // p_1/k_B [K]
+          // p_2/k_B [K]
+          // p_3/k_B [K]
+          fprintf(FilePtr,"cos3        %5d %5d %5d %5d  %12.6f %12.6f %12.6f %12.6f %12.6f\n",
+            A+1,B+1,C+1,D+1,
+            2.0*parms[1]*ENERGY_TO_KELVIN,
+            2.0*parms[2]*ENERGY_TO_KELVIN,
+            2.0*parms[3]*ENERGY_TO_KELVIN,
+            parms[7],
+            parms[6]);
+          break;
+
+      }
+    }
+  }
+  for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
+  {
+    for(i=0;i<Framework[CurrentSystem].NumberOfImproperTorsions[f1];i++)
+    {
+      A=Framework[CurrentSystem].ImproperTorsions[f1][i].A;
+      B=Framework[CurrentSystem].ImproperTorsions[f1][i].B;
+      C=Framework[CurrentSystem].ImproperTorsions[f1][i].C;
+      D=Framework[CurrentSystem].ImproperTorsions[f1][i].D;
+      typeA=Framework[CurrentSystem].Atoms[f1][A].Type;
+      typeB=Framework[CurrentSystem].Atoms[f1][B].Type;
+      typeC=Framework[CurrentSystem].Atoms[f1][C].Type;
+      typeD=Framework[CurrentSystem].Atoms[f1][D].Type;
+
+      parms=(REAL*)&Framework[CurrentSystem].ImproperTorsionArguments[f1][i];
+
+      switch(Framework[CurrentSystem].ImproperTorsionType[f1][i])
+      {
+        case TRAPPE_IMPROPER_DIHEDRAL:
+          // p_0[0]+p_1*(1+cos(phi))+p_2*(1-cos(2*phi))+p_3*(1+cos(3*phi))
+          // =============================================================
+          // p_0/k_B [K]
+          // p_1/k_B [K]
+          // p_2/k_B [K]
+          // p_3/k_B [K]
+          fprintf(FilePtr,"cos3        %5d %5d %5d %5d  %12.6f %12.6f %12.6f %12.6f %12.6f\n",
+            A+1,B+1,C+1,D+1,
+            2.0*parms[1]*ENERGY_TO_KELVIN,
+            2.0*parms[2]*ENERGY_TO_KELVIN,
+            2.0*parms[3]*ENERGY_TO_KELVIN,
+            parms[7],
+            parms[6]);
+          break;
+
+      }
+    }
+  }
+  fprintf(FilePtr,"FINISH\n");
+
+  for(i=0;i<NumberOfComponents;i++)
+  {
+    if(Components[i].NumberOfMolecules[CurrentSystem]>0)
+    {
+
+      total=0;
+      for(m=0;m<NumberOfAdsorbateMolecules[CurrentSystem];m++)
+      {
+        Type=Adsorbates[CurrentSystem][m].Type;
+        if(Type==i)
+        {
+          for(l=0;l<Components[Type].NumberOfGroups;l++)
+          {
+            if(Components[Type].Groups[l].Rigid) // rigid unit
+            {
+              total+=Components[Type].Groups[l].NumberOfGroupAtoms;
+            }
+          }
+        }
+      }
+
+      fprintf(FilePtr,"%s\n",Components[i].Name);
+      fprintf(FilePtr,"NUMMOL %d\n",Components[i].NumberOfMolecules[CurrentSystem]);
+      fprintf(FilePtr,"ATOMS %d\n",Components[i].NumberOfAtoms);
+      for(l=0;l<Components[i].NumberOfGroups;l++)
+      {
+        for(k=0;k<Components[i].Groups[l].NumberOfGroupAtoms;k++)
+        {
+          A=Components[i].Groups[l].Atoms[k];
+          typeA=Components[i].Type[A];
+          mass=PseudoAtoms[typeA].Mass;
+          charge=PseudoAtoms[typeA].Charge1;
+          fprintf(FilePtr,"%-6s %12.6f %12.6f 1   0\n",PseudoAtoms[typeA].Name,mass,charge);
+        }
+      }
+
+      total=0;
+      for(l=0;l<Components[i].NumberOfGroups;l++)
+        if(Components[i].Groups[l].Rigid) total++;
+
+      if(total>0)
+      {
+        fprintf(FilePtr,"RIGID %d\n",total);
+        for(l=0;l<Components[i].NumberOfGroups;l++)
+        {
+          if(Components[i].Groups[l].Rigid) // rigid unit
+          {
+            fprintf(FilePtr,"%5d ",Components[i].Groups[l].NumberOfGroupAtoms);
+            for(k=0;k<Components[i].Groups[l].NumberOfGroupAtoms;k++)
+            {
+              A=Components[i].Groups[l].Atoms[k];
+              fprintf(FilePtr,"%5d",A+1);
+            }
+          }
+        }
+        fprintf(FilePtr,"\n");
+      }
+      fprintf(FilePtr,"FINISH\n");
+    }
+  }
+
+  total=0;
+  for(i=0;i<NumberOfPseudoAtoms;i++)
+  {
+    if(NumberOfPseudoAtomsType[CurrentSystem][i]>0)
+    {
+      for(j=i;j<NumberOfPseudoAtoms;j++)
+      {
+        if(NumberOfPseudoAtomsType[CurrentSystem][j]>0)
+        {
+          if(PotentialType[i][j]==LENNARD_JONES) total++;
+        }
+      }
+    }
+  }
+
+  fprintf(FilePtr,"VDW %d\n",total);
+  for(i=0;i<NumberOfPseudoAtoms;i++)
+  {
+    if(NumberOfPseudoAtomsType[CurrentSystem][i]>0)
+    {
+      for(j=i;j<NumberOfPseudoAtoms;j++)
+      {
+        if(NumberOfPseudoAtomsType[CurrentSystem][j]>0)
+        {
+          switch(PotentialType[i][j])
+          {
+            case ZERO_POTENTIAL:
+              break;
+            case LENNARD_JONES:
+              // 4*p_0*((p_1/r)^12-(p_1/r)^6)
+              // ======================================================================================
+              // p_0/k_B [K]    strength parameter epsilon
+              // p_1     [A]    size parameter sigma
+              // p_2/k_B [K]    (non-zero for a shifted potential)
+              fprintf(FilePtr,"%6s %6s lj %12.6lf %12.6lf\n",
+                PseudoAtoms[i].Name,
+                PseudoAtoms[j].Name,
+                (double)PotentialParms[i][j][0]*ENERGY_TO_KELVIN,
+                (double)PotentialParms[i][j][1]);
+              break;
+
+          }
+        }
+      }
+    }
+  }
+
+  fprintf(FilePtr,"CLOSE\n");
+  fclose(FilePtr);
+}
+
 
 /*********************************************************************************************************
  * Name       | ReadFrameworkDefinition                                                                  *
@@ -6126,6 +7552,8 @@ int ReadFrameworkDefinition(void)
   double temp;
   VECTOR Rab,Rbc,dr;
   FILE *FilePtr;
+  int int_temp1,int_temp2;
+  char string[256];
 
   // Create an initial connectivity list
   // Based on the connectivity and defined rules the type of an atom can be modified (e.g. oxygen connected to an aluminum)
@@ -6146,7 +7574,7 @@ int ReadFrameworkDefinition(void)
     {
       sprintf(buffer,"%s/share/raspa/framework/%s/%s.%s",RASPA_DIRECTORY,
               Framework[CurrentSystem].FrameworkDefinitions,"Framework","def");
-
+  
       if(!(FilePtr=fopen(buffer,"r")))
       {
         printf("Error:  file %s does not exists.\n",buffer);
@@ -6154,9 +7582,9 @@ int ReadFrameworkDefinition(void)
       }
     }
   }
-
+  
   ReadLine(line,1024,FilePtr); // skip line
-
+  
   ReadLine(line,1024,FilePtr);
   sscanf(line,"%d%d%d%d%d%d%d%d%d%d%d%d%d",
        &Framework[CurrentSystem].NumberOfCoreShellDefinitions,
@@ -6173,17 +7601,17 @@ int ReadFrameworkDefinition(void)
        &Framework[CurrentSystem].NumberOfBendBendDefinitions,
        &Framework[CurrentSystem].NumberOfBondTorsionDefinitions,
        &Framework[CurrentSystem].NumberOfBendTorsionDefinitions);
-
-
+  
+  
   // read the core and the shells
   index_excluded=0;
   if(Framework[CurrentSystem].NumberOfCoreShellDefinitions>0)
   {
     Framework[CurrentSystem].CoreShellConnectivity=(int**)calloc(Framework[CurrentSystem].NumberOfFrameworks,sizeof(int*));
-
+  
     for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
       Framework[CurrentSystem].NumberOfCoreShells[f1]=0;
-
+  
     Framework[CurrentSystem].CoreShellDefinitions=(PAIR*)calloc(Framework[CurrentSystem].NumberOfCoreShellDefinitions,sizeof(PAIR));
     Framework[CurrentSystem].NumberOfCoreShellsPerType=(int*)calloc(Framework[CurrentSystem].NumberOfCoreShellDefinitions,sizeof(int));
   
@@ -6196,10 +7624,10 @@ int ReadFrameworkDefinition(void)
       TypeB=ReturnPseudoAtomNumber(TypeNameB);
       PseudoAtoms[TypeA].CoreShell=CORE;
       PseudoAtoms[TypeB].CoreShell=SHELL;
-
+  
       Framework[CurrentSystem].CoreShellDefinitions[i].A=TypeA;
       Framework[CurrentSystem].CoreShellDefinitions[i].B=TypeB;
-
+  
       // count shells 
       for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
       {
@@ -6209,7 +7637,7 @@ int ReadFrameworkDefinition(void)
       }
     }
   }
-
+  
   if(Framework[CurrentSystem].NumberOfCoreShellDefinitions>0)
   {
     // allocate the shells
@@ -6218,20 +7646,20 @@ int ReadFrameworkDefinition(void)
       if(Framework[CurrentSystem].NumberOfCoreShells[f1]>0)
       {
         nr_atoms=Framework[CurrentSystem].NumberOfAtoms[f1]+Framework[CurrentSystem].NumberOfCoreShells[f1];
-
+  
         // create memory for the core-shell connectivity array
         Framework[CurrentSystem].CoreShellConnectivity[f1]=(int*)calloc(nr_atoms,sizeof(int));
         for(i=0;i<nr_atoms;i++)
           Framework[CurrentSystem].CoreShellConnectivity[f1][i]=-1;
-
+  
         // create additional memory for the shells 
         Framework[CurrentSystem].Atoms[f1]=(ATOM*)realloc(Framework[CurrentSystem].Atoms[f1],
               nr_atoms*sizeof(ATOM));
       }
     }
   }
-
-
+  
+  
   // create shells around the cores
   for(i=0;i<Framework[CurrentSystem].NumberOfCoreShellDefinitions;i++)
   {
@@ -6244,12 +7672,12 @@ int ReadFrameworkDefinition(void)
         if(Framework[CurrentSystem].Atoms[f1][A].Type==TypeA)
         {
           Framework[CurrentSystem].Atoms[f1][index].Type=TypeB;
-
+  
           NumberOfPseudoAtomsCount[CurrentSystem][TypeB]++;
           NumberOfPseudoAtomsType[CurrentSystem][TypeB]++;
           Framework[CurrentSystem].FrameworkMass+=PseudoAtoms[TypeB].Mass;
           Framework[CurrentSystem].Atoms[f1][index].Charge+=PseudoAtoms[TypeB].Charge1;
-
+  
           // set position of the shell close to the core
           Framework[CurrentSystem].Atoms[f1][index].Position.x=Framework[CurrentSystem].Atoms[f1][A].Position.x+(RandomNumber()*0.1);
           Framework[CurrentSystem].Atoms[f1][index].Position.y=Framework[CurrentSystem].Atoms[f1][A].Position.y+(RandomNumber()*0.1);
@@ -6257,24 +7685,24 @@ int ReadFrameworkDefinition(void)
           //Framework[CurrentSystem].Atoms[f1][index].Position.x=Framework[CurrentSystem].Atoms[f1][A].Position.x+0.02;
           //Framework[CurrentSystem].Atoms[f1][index].Position.y=Framework[CurrentSystem].Atoms[f1][A].Position.y+0.03;
           //Framework[CurrentSystem].Atoms[f1][index].Position.z=Framework[CurrentSystem].Atoms[f1][A].Position.z+0.04;
-
+  
           Framework[CurrentSystem].CoreShellConnectivity[f1][index]=A;
           Framework[CurrentSystem].CoreShellConnectivity[f1][A]=index;
-
+  
           index++;
           Framework[CurrentSystem].TotalNumberOfAtoms++;
         }
       Framework[CurrentSystem].NumberOfAtoms[f1]=index;
     }
   }
-
+  
   // Now that shells have been created the list has to be recreated including the shells around the cores
   FreeAllocateConnectivityList();
   AllocateConnectivityList();
   MakeConnectivityList();
   //PrintConnectivityList();
   ModifyAtomsConnectedToDefinedNeighbours();
-
+  
   // reading Bond-data
   if(Framework[CurrentSystem].NumberOfBondsDefinitions>0)
   {
@@ -6284,7 +7712,7 @@ int ReadFrameworkDefinition(void)
     Framework[CurrentSystem].BondArgumentDefinitions=(REAL(*)[MAX_BOND_POTENTIAL_ARGUMENTS])
       calloc(Framework[CurrentSystem].NumberOfBondsDefinitions,sizeof(REAL[MAX_BOND_POTENTIAL_ARGUMENTS]));
     Framework[CurrentSystem].NumberOfBondsPerType=(int*)calloc(Framework[CurrentSystem].NumberOfBondsDefinitions,sizeof(int));
-
+  
     for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
     {
       Framework[CurrentSystem].MaxNumberOfBonds[CurrentFramework]=4096;
@@ -6293,10 +7721,10 @@ int ReadFrameworkDefinition(void)
       Framework[CurrentSystem].BondType[CurrentFramework]=(int*)calloc(Framework[CurrentSystem].MaxNumberOfBonds[CurrentFramework],sizeof(int));
       Framework[CurrentSystem].BondArguments[CurrentFramework]=(REAL(*)[MAX_BOND_POTENTIAL_ARGUMENTS])
               calloc(Framework[CurrentSystem].MaxNumberOfBonds[CurrentFramework],sizeof(REAL[MAX_BOND_POTENTIAL_ARGUMENTS]));
-
+  
       Framework[CurrentSystem].NumberOfBonds[CurrentFramework]=0;
     }
-
+  
     ReadLine(line,1024,FilePtr); // skip line
     for(i=0;i<Framework[CurrentSystem].NumberOfBondsDefinitions;i++)
     {
@@ -6305,12 +7733,12 @@ int ReadFrameworkDefinition(void)
       sscanf(line,"%s%s%s%n",TypeNameA,TypeNameB,buffer,&n);
       TypeA=ReturnPseudoAtomNumber(TypeNameA);
       TypeB=ReturnPseudoAtomNumber(TypeNameB);
-
+  
       // determine bond-type
       for(j=0;j<NR_BOND_TYPES;j++)
         if(strcasecmp(BondTypes[j].Name,buffer)==0)
           BondType=j;
-
+  
       // read arguments
       for(j=0;j<BondTypes[BondType].nr_args;j++)
       {
@@ -6318,13 +7746,13 @@ int ReadFrameworkDefinition(void)
         sscanf(arg_pointer,"%lf%n",&temp,&n);
         arguments[j]=(REAL)temp;
       }
-
+  
       Framework[CurrentSystem].BondDefinitionType[i]=BondType;
       Framework[CurrentSystem].BondDefinitions[i].A=TypeA;
       Framework[CurrentSystem].BondDefinitions[i].B=TypeB;
       for(j=0;j<BondTypes[BondType].nr_args;j++)
         Framework[CurrentSystem].BondArgumentDefinitions[i][j]=arguments[j]; 
-
+  
       // fill the appropriate bond-data
       for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
       {
@@ -6341,14 +7769,14 @@ int ReadFrameworkDefinition(void)
             {
               Framework[CurrentSystem].Bonds[CurrentFramework][index].A=A;
               Framework[CurrentSystem].Bonds[CurrentFramework][index].B=B;
-
+  
               Framework[CurrentSystem].BondType[CurrentFramework][index]=BondType;
-
+  
               Framework[CurrentSystem].NumberOfBondsPerType[i]++;
-
+  
               for(j=0;j<BondTypes[BondType].nr_args;j++)
                 Framework[CurrentSystem].BondArguments[CurrentFramework][index][j]=arguments[j];
-
+  
               // set to appropriate bond-distance
               switch(BondType)
               {
@@ -6511,9 +7939,7 @@ int ReadFrameworkDefinition(void)
       }
     }
   }
-
-
-
+  
   // reading Bond-Dipole-data
   index=0;
   if(Framework[CurrentSystem].NumberOfBondDipoleDefinitions>0)
@@ -6521,16 +7947,16 @@ int ReadFrameworkDefinition(void)
     Framework[CurrentSystem].BondDipoleDefinitions=(PAIR*)calloc(Framework[CurrentSystem].NumberOfBondDipoleDefinitions,sizeof(PAIR));
     Framework[CurrentSystem].BondDipoleArgumentDefinition=(REAL*)calloc(Framework[CurrentSystem].NumberOfBondDipoleDefinitions,sizeof(REAL));
     Framework[CurrentSystem].NumberOfBondDipolesPerType=(int*)calloc(Framework[CurrentSystem].NumberOfBondDipoleDefinitions,sizeof(int));
-
+  
       // allocate first dimension of bond-dipoles
     for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
     {
       Framework[CurrentSystem].MaxNumberOfBondDipoles[CurrentFramework]=4096;
-
+  
       Framework[CurrentSystem].BondDipoles[CurrentFramework]=(PAIR*)calloc(Framework[CurrentSystem].MaxNumberOfBondDipoles[CurrentFramework],sizeof(PAIR));
       Framework[CurrentSystem].BondDipoleMagnitude[CurrentFramework]=(REAL*)calloc(Framework[CurrentSystem].MaxNumberOfBondDipoles[CurrentFramework],sizeof(REAL));
     }
-
+  
     ReadLine(line,1024,FilePtr); // skip line
     for(i=0;i<Framework[CurrentSystem].NumberOfBondDipoleDefinitions;i++)
     {
@@ -6538,11 +7964,11 @@ int ReadFrameworkDefinition(void)
       sscanf(line,"%s%s%lf",TypeNameA,TypeNameB,&arguments[0]);
       TypeA=ReturnPseudoAtomNumber(TypeNameA);
       TypeB=ReturnPseudoAtomNumber(TypeNameB);
-
+  
       Framework[CurrentSystem].BondDipoleDefinitions[i].A=TypeA;
       Framework[CurrentSystem].BondDipoleDefinitions[i].B=TypeB;
       Framework[CurrentSystem].BondDipoleArgumentDefinition[i]=arguments[0]/DEBYE_CONVERSION_FACTOR; 
-
+  
       // fill the appropriate bonddipole-data
       for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
       {
@@ -6559,17 +7985,17 @@ int ReadFrameworkDefinition(void)
             {
               Framework[CurrentSystem].BondDipoles[CurrentFramework][index].A=A;
               Framework[CurrentSystem].BondDipoles[CurrentFramework][index].B=B;
-
+  
               Framework[CurrentSystem].NumberOfBondDipolesPerType[i]++;
-
+  
               Framework[CurrentSystem].BondDipoleMagnitude[CurrentFramework][index]=arguments[0]/DEBYE_CONVERSION_FACTOR;
-
+  
               Framework[CurrentSystem].NumberOfBondDipoles[CurrentFramework]++;
               index=Framework[CurrentSystem].NumberOfBondDipoles[CurrentFramework];
               if(index>=Framework[CurrentSystem].MaxNumberOfBondDipoles[CurrentFramework])
               {
                  Framework[CurrentSystem].MaxNumberOfBondDipoles[CurrentFramework]+=4096;
-
+  
                  Framework[CurrentSystem].BondDipoles[CurrentFramework]=(PAIR*)realloc(Framework[CurrentSystem].BondDipoles[CurrentFramework],
                    Framework[CurrentSystem].MaxNumberOfBondDipoles[CurrentFramework]*sizeof(PAIR));
                  Framework[CurrentSystem].BondDipoleMagnitude[CurrentFramework]=(REAL*)realloc(Framework[CurrentSystem].BondDipoleMagnitude[CurrentFramework],
@@ -6581,7 +8007,7 @@ int ReadFrameworkDefinition(void)
       }
     }
   }
-
+  
   // reading Urey-Bradley-data
   if(Framework[CurrentSystem].NumberOfUreyBradleyDefinitions>0)
   {
@@ -6591,7 +8017,7 @@ int ReadFrameworkDefinition(void)
     Framework[CurrentSystem].UreyBradleyArgumentDefinitions=(REAL(*)[MAX_UREYBRADLEY_POTENTIAL_ARGUMENTS])
       calloc(Framework[CurrentSystem].NumberOfUreyBradleyDefinitions,sizeof(REAL[MAX_UREYBRADLEY_POTENTIAL_ARGUMENTS]));
     Framework[CurrentSystem].NumberOfUreyBradleysPerType=(int*)calloc(Framework[CurrentSystem].NumberOfUreyBradleyDefinitions,sizeof(int));
-
+  
     for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
     {
       Framework[CurrentSystem].MaxNumberOfUreyBradleys[CurrentFramework]=4096;
@@ -6601,7 +8027,7 @@ int ReadFrameworkDefinition(void)
       Framework[CurrentSystem].UreyBradleyArguments[CurrentFramework]=(REAL(*)[MAX_UREYBRADLEY_POTENTIAL_ARGUMENTS])
               calloc(Framework[CurrentSystem].MaxNumberOfUreyBradleys[CurrentFramework],sizeof(REAL[MAX_UREYBRADLEY_POTENTIAL_ARGUMENTS]));
     }
-
+  
     ReadLine(line,1024,FilePtr); // skip line
     for(i=0;i<Framework[CurrentSystem].NumberOfUreyBradleyDefinitions;i++)
     {
@@ -6611,12 +8037,12 @@ int ReadFrameworkDefinition(void)
       TypeA=ReturnPseudoAtomNumber(TypeNameA);
       TypeB=ReturnPseudoAtomNumber(TypeNameB);
       TypeC=ReturnPseudoAtomNumber(TypeNameC);
-
+  
       // determine bond-type
       for(j=0;j<NR_BOND_TYPES;j++)
         if(strcasecmp(BondTypes[j].Name,buffer)==0)
           BondType=j;
-
+  
       // read arguments
       for(j=0;j<BondTypes[BondType].nr_args;j++)
       {
@@ -6624,14 +8050,14 @@ int ReadFrameworkDefinition(void)
         sscanf(arg_pointer,"%lf%n",&temp,&n);
         arguments[j]=(REAL)temp;
       }
-
+  
       Framework[CurrentSystem].UreyBradleyDefinitionType[i]=BondType;
       Framework[CurrentSystem].UreyBradleyDefinitions[i].A=TypeA;
       Framework[CurrentSystem].UreyBradleyDefinitions[i].B=TypeB;
       Framework[CurrentSystem].UreyBradleyDefinitions[i].C=TypeC;
       for(j=0;j<UreyBradleyTypes[BondType].nr_args;j++)
         Framework[CurrentSystem].UreyBradleyArgumentDefinitions[i][j]=arguments[j]; 
-
+  
       // fill the appropriate bond-data
       for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
       {
@@ -6643,26 +8069,26 @@ int ReadFrameworkDefinition(void)
           {
             B=GetNeighbour(CurrentSystem,CurrentFramework,A,k);
             CurrentTypeB=Framework[CurrentSystem].Atoms[CurrentFramework][B].Type;
-
+  
             if(CurrentTypeB==TypeB)
             {
               for(l=0;l<Framework[CurrentSystem].Connectivity[CurrentFramework][B];l++)
               {
                 C=GetNeighbour(CurrentSystem,CurrentFramework,B,l);
                 CurrentTypeC=Framework[CurrentSystem].Atoms[CurrentFramework][C].Type;
- 
+  
                 if((A<C)&&((CurrentTypeA==TypeA&&CurrentTypeC==TypeC)||(CurrentTypeA==TypeC&&CurrentTypeC==TypeA)))
                 {
                   Framework[CurrentSystem].UreyBradleys[CurrentFramework][index].A=A;
                   Framework[CurrentSystem].UreyBradleys[CurrentFramework][index].B=B;
                   Framework[CurrentSystem].UreyBradleys[CurrentFramework][index].C=C;
-
+  
                   Framework[CurrentSystem].UreyBradleyType[CurrentFramework][index]=BondType;
                   Framework[CurrentSystem].NumberOfUreyBradleysPerType[i]++;
-
+  
                   for(j=0;j<BondTypes[BondType].nr_args;j++)
                     Framework[CurrentSystem].UreyBradleyArguments[CurrentFramework][index][j]=arguments[j];
-
+  
                   // set to appropriate bond-distance
                   switch(BondType)
                   {
@@ -6800,7 +8226,7 @@ int ReadFrameworkDefinition(void)
                   }
                   Framework[CurrentSystem].NumberOfUreyBradleys[CurrentFramework]++;
                   index=Framework[CurrentSystem].NumberOfUreyBradleys[CurrentFramework];
-
+  
                   if(index>=Framework[CurrentSystem].MaxNumberOfUreyBradleys[CurrentFramework])
                   {
                     Framework[CurrentSystem].MaxNumberOfUreyBradleys[CurrentFramework]+=4096;
@@ -6820,7 +8246,7 @@ int ReadFrameworkDefinition(void)
       }
     }
   }
-
+  
   // reading Bend-data
   if(Framework[CurrentSystem].NumberOfBendDefinitions>0)
   {
@@ -6830,7 +8256,7 @@ int ReadFrameworkDefinition(void)
     Framework[CurrentSystem].BendArgumentDefinitions=(REAL(*)[MAX_BEND_POTENTIAL_ARGUMENTS])
       calloc(Framework[CurrentSystem].NumberOfBendDefinitions,sizeof(REAL[MAX_BEND_POTENTIAL_ARGUMENTS]));
     Framework[CurrentSystem].NumberOfBendsPerType=(int*)calloc(Framework[CurrentSystem].NumberOfBendDefinitions,sizeof(int));
-
+  
     for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
     {
       Framework[CurrentSystem].MaxNumberOfBends[CurrentFramework]=4096;
@@ -6840,7 +8266,7 @@ int ReadFrameworkDefinition(void)
       Framework[CurrentSystem].BendArguments[CurrentFramework]=(REAL(*)[MAX_BEND_POTENTIAL_ARGUMENTS])
               calloc(Framework[CurrentSystem].MaxNumberOfBends[CurrentFramework],sizeof(REAL[MAX_BEND_POTENTIAL_ARGUMENTS]));
     }
-
+  
     ReadLine(line,1024,FilePtr); // skip line
     for(i=0;i<Framework[CurrentSystem].NumberOfBendDefinitions;i++)
     {
@@ -6850,12 +8276,12 @@ int ReadFrameworkDefinition(void)
       TypeA=ReturnPseudoAtomNumber(TypeNameA);
       TypeB=ReturnPseudoAtomNumber(TypeNameB);
       TypeC=ReturnPseudoAtomNumber(TypeNameC);
-
+  
       // determine bend-type
       for(j=0;j<NR_BEND_TYPES;j++)
         if(strncasecmp(BendTypes[j].Name,buffer,MAX2(strlen(BendTypes[j].Name),strlen(buffer)))==0)
-                   BendType=j;
-
+          BendType=j;
+  
       // read arguments
       for(j=0;j<BendTypes[BendType].nr_args;j++)
       {
@@ -6863,14 +8289,14 @@ int ReadFrameworkDefinition(void)
         sscanf(arg_pointer,"%lf%n",&temp,&n);
         arguments[j]=(REAL)temp;
       }
-
+  
       Framework[CurrentSystem].BendDefinitionType[i]=BendType;
       Framework[CurrentSystem].BendDefinitions[i].A=TypeA;
       Framework[CurrentSystem].BendDefinitions[i].B=TypeB;
       Framework[CurrentSystem].BendDefinitions[i].C=TypeC;
       for(j=0;j<BendTypes[BendType].nr_args;j++)
         Framework[CurrentSystem].BendArgumentDefinitions[i][j]=arguments[j]; 
-
+  
       // fill the appropriate bend-data
       for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
       {
@@ -6891,7 +8317,7 @@ int ReadFrameworkDefinition(void)
                   // loop not over the core, but its shell
                   A=Framework[CurrentSystem].CoreShellConnectivity[CurrentFramework][A];
                   CurrentTypeA=Framework[CurrentSystem].Atoms[CurrentFramework][A].Type;
-
+  
                   for(l=0;l<Framework[CurrentSystem].Connectivity[CurrentFramework][B];l++)
                   {
                     C=GetNeighbour(CurrentSystem,CurrentFramework,B,l);
@@ -6900,29 +8326,34 @@ int ReadFrameworkDefinition(void)
                       // loop not over the core, but its shell
                       C=Framework[CurrentSystem].CoreShellConnectivity[CurrentFramework][C];
                       CurrentTypeC=Framework[CurrentSystem].Atoms[CurrentFramework][C].Type;
-
+  
                       // A<C removes duplicates
                       if((A!=C)&&((CurrentTypeA==TypeA&&CurrentTypeC==TypeC)||(CurrentTypeA==TypeC&&CurrentTypeC==TypeA)))
                       {
                         present=FALSE;
                         for(n=0;n<index;n++)
-                        if(((Framework[CurrentSystem].Bends[CurrentFramework][n].A==A)&&(Framework[CurrentSystem].Bends[CurrentFramework][n].B==B)&&
-                           (Framework[CurrentSystem].Bends[CurrentFramework][n].C==C))||((Framework[CurrentSystem].Bends[CurrentFramework][n].A==C)&&
-                           (Framework[CurrentSystem].Bends[CurrentFramework][n].B==B)&&(Framework[CurrentSystem].Bends[CurrentFramework][n].C==A)))
+                        {
+                          if(((Framework[CurrentSystem].Bends[CurrentFramework][n].A==A)&&(Framework[CurrentSystem].Bends[CurrentFramework][n].B==B)&&
+                             (Framework[CurrentSystem].Bends[CurrentFramework][n].C==C))||((Framework[CurrentSystem].Bends[CurrentFramework][n].A==C)&&
+                             (Framework[CurrentSystem].Bends[CurrentFramework][n].B==B)&&(Framework[CurrentSystem].Bends[CurrentFramework][n].C==A)))
+                          {
                             present=TRUE;
+                            if(present) break;
+                          }
+                        }
                         if(!present)
                         {
                           Framework[CurrentSystem].Bends[CurrentFramework][index].A=A;
                           Framework[CurrentSystem].Bends[CurrentFramework][index].B=B;
                           Framework[CurrentSystem].Bends[CurrentFramework][index].C=C;
                           Framework[CurrentSystem].Bends[CurrentFramework][index].D=-1;
-
+  
                           Framework[CurrentSystem].BendType[CurrentFramework][index]=BendType;
                           Framework[CurrentSystem].NumberOfBendsPerType[i]++;
- 
+  
                           for(j=0;j<BendTypes[BendType].nr_args;j++)
                             Framework[CurrentSystem].BendArguments[CurrentFramework][index][j]=arguments[j];
-
+  
                           // set to appropriate bend-angle
                           switch(BendType)
                           {
@@ -6938,7 +8369,7 @@ int ReadFrameworkDefinition(void)
                           }
                           Framework[CurrentSystem].NumberOfBends[CurrentFramework]++;
                           index=Framework[CurrentSystem].NumberOfBends[CurrentFramework];
-
+  
                           if(index>=Framework[CurrentSystem].MaxNumberOfBends[CurrentFramework])
                           {
                             Framework[CurrentSystem].MaxNumberOfBends[CurrentFramework]+=4096;
@@ -6957,8 +8388,8 @@ int ReadFrameworkDefinition(void)
                 }
               }
             }
-
-
+  
+  
             for(k=0;k<Framework[CurrentSystem].Connectivity[CurrentFramework][B];k++)
             {
               A=GetNeighbour(CurrentSystem,CurrentFramework,B,k);
@@ -6968,29 +8399,35 @@ int ReadFrameworkDefinition(void)
               {
                 C=GetNeighbour(CurrentSystem,CurrentFramework,B,l);
                 CurrentTypeC=Framework[CurrentSystem].Atoms[CurrentFramework][C].Type;
-
+  
                 // A<C removes duplicates
                 if((A!=C)&&((CurrentTypeA==TypeA&&CurrentTypeC==TypeC)||(CurrentTypeA==TypeC&&CurrentTypeC==TypeA)))
                 {
                   present=FALSE;
                   for(n=0;n<index;n++)
-                  if(((Framework[CurrentSystem].Bends[CurrentFramework][n].A==A)&&(Framework[CurrentSystem].Bends[CurrentFramework][n].B==B)&&
-                     (Framework[CurrentSystem].Bends[CurrentFramework][n].C==C))||((Framework[CurrentSystem].Bends[CurrentFramework][n].A==C)&&
-                     (Framework[CurrentSystem].Bends[CurrentFramework][n].B==B)&&(Framework[CurrentSystem].Bends[CurrentFramework][n].C==A)))
-                       present=TRUE;
+                  {
+                    if(((Framework[CurrentSystem].Bends[CurrentFramework][n].A==A)&&(Framework[CurrentSystem].Bends[CurrentFramework][n].B==B)&&
+                       (Framework[CurrentSystem].Bends[CurrentFramework][n].C==C))||((Framework[CurrentSystem].Bends[CurrentFramework][n].A==C)&&
+                       (Framework[CurrentSystem].Bends[CurrentFramework][n].B==B)&&(Framework[CurrentSystem].Bends[CurrentFramework][n].C==A)))
+                    {
+                      present=TRUE;
+                      if(present) break;
+                    }
+                  }
+
                   if(!present)
                   {
                     Framework[CurrentSystem].Bends[CurrentFramework][index].A=A;
                     Framework[CurrentSystem].Bends[CurrentFramework][index].B=B;
                     Framework[CurrentSystem].Bends[CurrentFramework][index].C=C;
                     Framework[CurrentSystem].Bends[CurrentFramework][index].D=-1;
-
+  
                     Framework[CurrentSystem].BendType[CurrentFramework][index]=BendType;
                     Framework[CurrentSystem].NumberOfBendsPerType[i]++;
-
+  
                     for(j=0;j<BendTypes[BendType].nr_args;j++)
                       Framework[CurrentSystem].BendArguments[CurrentFramework][index][j]=arguments[j];
-
+  
                     // set to appropriate bend-angle
                     switch(BendType)
                     {
@@ -7013,7 +8450,7 @@ int ReadFrameworkDefinition(void)
                           Rab.x/=rab;
                           Rab.y/=rab;
                           Rab.z/=rab;
-
+  
                           Rbc.x=Framework[CurrentSystem].Atoms[CurrentFramework][C].Position.x-
                                 Framework[CurrentSystem].Atoms[CurrentFramework][B].Position.x;
                           Rbc.y=Framework[CurrentSystem].Atoms[CurrentFramework][C].Position.y-
@@ -7025,7 +8462,7 @@ int ReadFrameworkDefinition(void)
                           Rbc.x/=rbc;
                           Rbc.y/=rbc;
                           Rbc.z/=rbc;
-
+  
                           theta=acos(Rab.x*Rbc.x+Rab.y*Rbc.y+Rab.z*Rbc.z);
                         }
                         Framework[CurrentSystem].BendArguments[CurrentFramework][index][0]*=KELVIN_TO_ENERGY;
@@ -7059,7 +8496,7 @@ int ReadFrameworkDefinition(void)
                           Rab.x/=rab;
                           Rab.y/=rab;
                           Rab.z/=rab;
-
+  
                           Rbc.x=Framework[CurrentSystem].Atoms[CurrentFramework][C].Position.x-
                                 Framework[CurrentSystem].Atoms[CurrentFramework][B].Position.x;
                           Rbc.y=Framework[CurrentSystem].Atoms[CurrentFramework][C].Position.y-
@@ -7071,7 +8508,7 @@ int ReadFrameworkDefinition(void)
                           Rbc.x=Rbc.x/rbc;
                           Rbc.y=Rbc.y/rbc;
                           Rbc.z=Rbc.z/rbc;
-
+  
                           theta=acos(Rab.x*Rbc.x+Rab.y*Rbc.y+Rab.z*Rbc.z);
                         }
                         Framework[CurrentSystem].BendArguments[CurrentFramework][index][0]*=KELVIN_TO_ENERGY;
@@ -7098,7 +8535,7 @@ int ReadFrameworkDefinition(void)
                           Rab.x/=rab;
                           Rab.y/=rab;
                           Rab.z/=rab;
-
+  
                           Rbc.x=Framework[CurrentSystem].Atoms[CurrentFramework][C].Position.x-
                                 Framework[CurrentSystem].Atoms[CurrentFramework][B].Position.x;
                           Rbc.y=Framework[CurrentSystem].Atoms[CurrentFramework][C].Position.y-
@@ -7110,7 +8547,7 @@ int ReadFrameworkDefinition(void)
                           Rbc.x/=rbc;
                           Rbc.y/=rbc;
                           Rbc.z/=rbc;
-
+  
                           theta=Rab.x*Rbc.x+Rab.y*Rbc.y+Rab.z*Rbc.z;
                         }
                         Framework[CurrentSystem].BendArguments[CurrentFramework][index][0]*=KELVIN_TO_ENERGY;
@@ -7136,7 +8573,7 @@ int ReadFrameworkDefinition(void)
                           Rab.x/=rab;
                           Rab.y/=rab;
                           Rab.z/=rab;
-
+  
                           Rbc.x=Framework[CurrentSystem].Atoms[CurrentFramework][C].Position.x-
                                 Framework[CurrentSystem].Atoms[CurrentFramework][B].Position.x;
                           Rbc.y=Framework[CurrentSystem].Atoms[CurrentFramework][C].Position.y-
@@ -7148,7 +8585,7 @@ int ReadFrameworkDefinition(void)
                           Rbc.x/=rbc;
                           Rbc.y/=rbc;
                           Rbc.z/=rbc;
-
+  
                           theta=Rab.x*Rbc.x+Rab.y*Rbc.y+Rab.z*Rbc.z;
                         }
                         Framework[CurrentSystem].BendArguments[CurrentFramework][index][0]*=KELVIN_TO_ENERGY;
@@ -7186,7 +8623,7 @@ int ReadFrameworkDefinition(void)
                           Rbc.x=Rbc.x/rbc;
                           Rbc.y=Rbc.y/rbc;
                           Rbc.z=Rbc.z/rbc;
-
+  
                           theta=acos(Rab.x*Rbc.x+Rab.y*Rbc.y+Rab.z*Rbc.z);
                         }
                         // MM3 input is in mdyne A/rad^2
@@ -7203,7 +8640,7 @@ int ReadFrameworkDefinition(void)
                     }
                     Framework[CurrentSystem].NumberOfBends[CurrentFramework]++;
                     index=Framework[CurrentSystem].NumberOfBends[CurrentFramework];
-
+  
                     if(index>=Framework[CurrentSystem].MaxNumberOfBends[CurrentFramework])
                     {
                       Framework[CurrentSystem].MaxNumberOfBends[CurrentFramework]+=4096;
@@ -7224,7 +8661,7 @@ int ReadFrameworkDefinition(void)
       }
     }
   }
-
+  
   // reading InversionBend-data
   index=0;
   if(Framework[CurrentSystem].NumberOfInversionBendDefinitions>0)
@@ -7235,7 +8672,7 @@ int ReadFrameworkDefinition(void)
     Framework[CurrentSystem].InversionBendArgumentDefinitions=(REAL(*)[MAX_INVERSION_BEND_POTENTIAL_ARGUMENTS])
       calloc(Framework[CurrentSystem].NumberOfInversionBendDefinitions,sizeof(REAL[MAX_INVERSION_BEND_POTENTIAL_ARGUMENTS]));
     Framework[CurrentSystem].NumberOfInversionBendsPerType=(int*)calloc(Framework[CurrentSystem].NumberOfInversionBendDefinitions,sizeof(int));
-
+  
     for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
     {
       Framework[CurrentSystem].MaxNumberOfInversionBends[CurrentFramework]=4096;
@@ -7245,7 +8682,7 @@ int ReadFrameworkDefinition(void)
       Framework[CurrentSystem].InversionBendArguments[CurrentFramework]=(REAL(*)[MAX_INVERSION_BEND_POTENTIAL_ARGUMENTS])
               calloc(Framework[CurrentSystem].MaxNumberOfInversionBends[CurrentFramework],sizeof(REAL[MAX_INVERSION_BEND_POTENTIAL_ARGUMENTS]));
     }
-
+  
     ReadLine(line,1024,FilePtr); // skip line
     for(i=0;i<Framework[CurrentSystem].NumberOfInversionBendDefinitions;i++)
     {
@@ -7256,12 +8693,12 @@ int ReadFrameworkDefinition(void)
       TypeB=ReturnPseudoAtomNumber(TypeNameB);
       TypeC=ReturnPseudoAtomNumber(TypeNameC);
       TypeD=ReturnPseudoAtomNumber(TypeNameD);
-
+  
       // determine inversionbend-type
       for(j=0;j<NR_INVERSION_BEND_TYPES;j++)
         if(strcasecmp(InversionBendTypes[j].Name,buffer)==0)
           InversionBendType=j;
-
+  
       // read arguments
       for(j=0;j<InversionBendTypes[InversionBendType].nr_args;j++)
       {
@@ -7269,16 +8706,16 @@ int ReadFrameworkDefinition(void)
         sscanf(arg_pointer,"%lf%n",&temp,&n);
         arguments[j]=(REAL)temp;
       }
-
+  
       Framework[CurrentSystem].InversionBendDefinitionType[i]=InversionBendType;
       Framework[CurrentSystem].InversionBendDefinitions[i].A=TypeA;
       Framework[CurrentSystem].InversionBendDefinitions[i].B=TypeB;
       Framework[CurrentSystem].InversionBendDefinitions[i].C=TypeC;
       Framework[CurrentSystem].InversionBendDefinitions[i].D=TypeD;
-
+  
       for(j=0;j<InversionBendTypes[InversionBendType].nr_args;j++)
         Framework[CurrentSystem].InversionBendArgumentDefinitions[i][j]=arguments[j];
-
+  
       // fill the appropriate inversion bend-data
       for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
       {
@@ -7286,7 +8723,7 @@ int ReadFrameworkDefinition(void)
         for(A=0;A<Framework[CurrentSystem].NumberOfAtoms[CurrentFramework];A++)
         {
           CurrentTypeA=Framework[CurrentSystem].Atoms[CurrentFramework][A].Type;
-
+  
           if(CurrentTypeA==TypeA)
           {
             // atom A is of type 'TypeA'
@@ -7294,7 +8731,7 @@ int ReadFrameworkDefinition(void)
             {
               B=GetNeighbour(CurrentSystem,CurrentFramework,A,k);
               CurrentTypeB=Framework[CurrentSystem].Atoms[CurrentFramework][B].Type;
-
+  
               if(CurrentTypeB==TypeB)
               {
                 // atom B is of type 'TypeB'
@@ -7319,19 +8756,22 @@ int ReadFrameworkDefinition(void)
                           ListTypeD=Framework[CurrentSystem].Atoms[CurrentFramework][Framework[CurrentSystem].InversionBends[CurrentFramework][n].D].Type;
                           if((Framework[CurrentSystem].InversionBends[CurrentFramework][n].A==A)&&(Framework[CurrentSystem].InversionBends[CurrentFramework][n].B==B)&&
                              (((ListTypeC==CurrentTypeC)&&(ListTypeD==CurrentTypeD))||((ListTypeC==CurrentTypeD)&&(ListTypeD==CurrentTypeC))))
-                              present=TRUE;
+                          {
+                            present=TRUE;
+                            if(present) break;
+                          }
                         }
-
+  
                         if(!present)
                         {
                           Framework[CurrentSystem].InversionBends[CurrentFramework][index].A=A;
                           Framework[CurrentSystem].InversionBends[CurrentFramework][index].B=B;
                           Framework[CurrentSystem].InversionBends[CurrentFramework][index].C=C;
                           Framework[CurrentSystem].InversionBends[CurrentFramework][index].D=D;
-
+  
                           Framework[CurrentSystem].InversionBendType[CurrentFramework][index]=InversionBendType;
                           Framework[CurrentSystem].NumberOfInversionBendsPerType[i]++;
-
+  
                           for(j=0;j<InversionBendTypes[InversionBendType].nr_args;j++)
                             Framework[CurrentSystem].InversionBendArguments[CurrentFramework][index][j]=arguments[j];
                           switch(InversionBendType)
@@ -7376,7 +8816,7 @@ int ReadFrameworkDefinition(void)
                           }
                           Framework[CurrentSystem].NumberOfInversionBends[CurrentFramework]++;
                           index=Framework[CurrentSystem].NumberOfInversionBends[CurrentFramework];
-
+  
                           if(index>=Framework[CurrentSystem].MaxNumberOfInversionBends[CurrentFramework])
                           {
                             Framework[CurrentSystem].MaxNumberOfInversionBends[CurrentFramework]+=4096;
@@ -7400,8 +8840,8 @@ int ReadFrameworkDefinition(void)
       }
     }
   }
-
-
+  
+  
   // determine the fourth atom for in-plane bends by searching the bends in the list of inversion-bends
   for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
   {
@@ -7411,7 +8851,7 @@ int ReadFrameworkDefinition(void)
       B=Framework[CurrentSystem].InversionBends[CurrentFramework][i].B;
       C=Framework[CurrentSystem].InversionBends[CurrentFramework][i].C;
       D=Framework[CurrentSystem].InversionBends[CurrentFramework][i].D;
-
+  
       for(j=0;j<Framework[CurrentSystem].NumberOfBends[CurrentFramework];j++)
       {
         if(Framework[CurrentSystem].BendType[CurrentFramework][j]==MM3_IN_PLANE_BEND)
@@ -7419,7 +8859,7 @@ int ReadFrameworkDefinition(void)
           A1=Framework[CurrentSystem].Bends[CurrentFramework][j].A;
           B1=Framework[CurrentSystem].Bends[CurrentFramework][j].B;
           C1=Framework[CurrentSystem].Bends[CurrentFramework][j].C;
-
+  
           if(B1==B)
           {
             if(((A1==A)&&(C1==C))||((A1==C)&&(C1==A))) Framework[CurrentSystem].Bends[CurrentFramework][j].D=D;
@@ -7430,9 +8870,10 @@ int ReadFrameworkDefinition(void)
       }
     }
   }
-
-
+  
+  
   // reading Torsion-data
+  // Note: Torsions on the same four atoms but different potential and/or arguments are consider different
   if(Framework[CurrentSystem].NumberOfTorsionDefinitions>0)
   {
     // alloc memory
@@ -7441,7 +8882,7 @@ int ReadFrameworkDefinition(void)
     Framework[CurrentSystem].TorsionArgumentDefinitions=(REAL(*)[MAX_TORSION_POTENTIAL_ARGUMENTS])
       calloc(Framework[CurrentSystem].NumberOfTorsionDefinitions,sizeof(REAL[MAX_TORSION_POTENTIAL_ARGUMENTS]));
     Framework[CurrentSystem].NumberOfTorsionsPerType=(int*)calloc(Framework[CurrentSystem].NumberOfTorsionDefinitions,sizeof(int));
-
+  
     for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
     {
       Framework[CurrentSystem].MaxNumberOfTorsions[CurrentFramework]=4096;
@@ -7451,7 +8892,7 @@ int ReadFrameworkDefinition(void)
       Framework[CurrentSystem].TorsionArguments[CurrentFramework]=(REAL(*)[MAX_TORSION_POTENTIAL_ARGUMENTS])
               calloc(Framework[CurrentSystem].MaxNumberOfTorsions[CurrentFramework],sizeof(REAL[MAX_TORSION_POTENTIAL_ARGUMENTS]));
     }
-
+  
     ReadLine(line,1024,FilePtr); // skip line
     for(i=0;i<Framework[CurrentSystem].NumberOfTorsionDefinitions;i++)
     {
@@ -7462,31 +8903,34 @@ int ReadFrameworkDefinition(void)
       TypeB=ReturnPseudoAtomNumber(TypeNameB);
       TypeC=ReturnPseudoAtomNumber(TypeNameC);
       TypeD=ReturnPseudoAtomNumber(TypeNameD);
-
+  
       // determine torsion-type
       for(j=0;j<NR_TORSION_TYPES;j++)
       {
         if(strcasecmp(TorsionTypes[j].Name,buffer)==0)
           TorsionType=j;
       }
-
+  
       // read arguments
-      for(j=0;j<TorsionTypes[TorsionType].nr_args;j++)
+      for(j=0;j<TorsionTypes[TorsionType].nr_args+2;j++)
       {
         arg_pointer+=n;
+        temp=0.0;
         sscanf(arg_pointer,"%lf%n",&temp,&n);
         arguments[j]=(REAL)temp;
       }
-
+  
       Framework[CurrentSystem].TorsionDefinitionType[i]=TorsionType;
       Framework[CurrentSystem].TorsionDefinitions[i].A=TypeA;
       Framework[CurrentSystem].TorsionDefinitions[i].B=TypeB;
       Framework[CurrentSystem].TorsionDefinitions[i].C=TypeC;
       Framework[CurrentSystem].TorsionDefinitions[i].D=TypeD;
-
+  
       for(j=0;j<TorsionTypes[TorsionType].nr_args;j++)
         Framework[CurrentSystem].TorsionArgumentDefinitions[i][j]=arguments[j]; 
-
+      Framework[CurrentSystem].TorsionArgumentDefinitions[i][6]=arguments[TorsionTypes[TorsionType].nr_args];
+      Framework[CurrentSystem].TorsionArgumentDefinitions[i][7]=arguments[TorsionTypes[TorsionType].nr_args+1];
+  
       // fill the appropriate torsion-data
       for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
       {
@@ -7494,14 +8938,14 @@ int ReadFrameworkDefinition(void)
         for(B=0;B<Framework[CurrentSystem].NumberOfAtoms[CurrentFramework];B++)
         {
           CurrentTypeB=Framework[CurrentSystem].Atoms[CurrentFramework][B].Type;
-
+  
           if(CurrentTypeB==TypeB)
           {
             for(k=0;k<Framework[CurrentSystem].Connectivity[CurrentFramework][B];k++)
             {
               C=GetNeighbour(CurrentSystem,CurrentFramework,B,k);
               CurrentTypeC=Framework[CurrentSystem].Atoms[CurrentFramework][C].Type;
-
+  
               if(CurrentTypeC==TypeC)
               {
                 for(l=0;l<Framework[CurrentSystem].Connectivity[CurrentFramework][B];l++)
@@ -7516,178 +8960,192 @@ int ReadFrameworkDefinition(void)
                       CurrentTypeD=Framework[CurrentSystem].Atoms[CurrentFramework][D].Type;
                       if((B!=D)&&(CurrentTypeD==TypeD))
                       {
+                        switch(TorsionType)
+                        {
+                          case HARMONIC_DIHEDRAL:
+                            // (1/2)*p_0*(phi-p_1)^2
+                            // ===============================================
+                            // p_0/k_B [K/rad^2]
+                            // p_1     [degrees]
+                            arguments[0]=Framework[CurrentSystem].TorsionArgumentDefinitions[i][0]*KELVIN_TO_ENERGY;
+                            arguments[1]=Framework[CurrentSystem].TorsionArgumentDefinitions[i][1];
+                            break;
+                          case HARMONIC_COSINE_DIHEDRAL:
+                            // (1/2)*p_0*(cos(phi)-cos(p_1))^2
+                            // ===============================================
+                            // p_0/k_B [K]
+                            // p_1     [degrees]
+                            arguments[0]=Framework[CurrentSystem].TorsionArgumentDefinitions[i][0]*KELVIN_TO_ENERGY;
+                            arguments[1]=cos(RAD2DEG*Framework[CurrentSystem].TorsionArgumentDefinitions[i][1]);
+                            break;
+                          case THREE_COSINE_DIHEDRAL:
+                            // (1/2)*p_0*(1+cos(phi))+(1/2)*p_1*(1-cos(2*phi))+(1/2)*p_2*(1+cos(3*phi))
+                            // ========================================================================
+                            // p_0/k_B [K]
+                            // p_1/k_B [K]
+                            // p_2/k_B [K]
+                            arguments[0]=Framework[CurrentSystem].TorsionArgumentDefinitions[i][0]*KELVIN_TO_ENERGY;
+                            arguments[1]=Framework[CurrentSystem].TorsionArgumentDefinitions[i][1]*KELVIN_TO_ENERGY;
+                            arguments[2]=Framework[CurrentSystem].TorsionArgumentDefinitions[i][2]*KELVIN_TO_ENERGY;
+                            break;
+                          case MM3_DIHEDRAL:
+                            // (1/2)*p_0*(1+cos(phi))+(1/2)*p_1*(1-cos(2*phi))+(1/2)*p_2*(1+cos(3*phi))
+                            // ========================================================================
+                            // p_0     [kcal/mol]
+                            // p_1     [kcal/mol]
+                            // p_2     [kcal/mol]
+                            arguments[0]=Framework[CurrentSystem].TorsionArgumentDefinitions[i][0]*KCAL_PER_MOL_TO_ENERGY;
+                            arguments[1]=Framework[CurrentSystem].TorsionArgumentDefinitions[i][1]*KCAL_PER_MOL_TO_ENERGY;
+                            arguments[2]=Framework[CurrentSystem].TorsionArgumentDefinitions[i][2]*KCAL_PER_MOL_TO_ENERGY;
+                            break;
+                          case CFF_DIHEDRAL:
+                            // p_0*(1-cos(phi))+p_1*(1-cos(2*phi))+p_2*(1-cos(3*phi))
+                            // ======================================================
+                            // p_0/k_B [K]
+                            // p_1/k_B [K]
+                            // p_2/k_B [K]
+                            arguments[0]=Framework[CurrentSystem].TorsionArgumentDefinitions[i][0]*KELVIN_TO_ENERGY;
+                            arguments[1]=Framework[CurrentSystem].TorsionArgumentDefinitions[i][1]*KELVIN_TO_ENERGY;
+                            arguments[2]=Framework[CurrentSystem].TorsionArgumentDefinitions[i][2]*KELVIN_TO_ENERGY;
+                            break;
+                          case CFF_DIHEDRAL2:
+                            // p_0*(1+cos(phi))+p_1*(1+cos(2*phi))+p_2*(1+cos(3*phi))
+                            // ======================================================
+                            // p_0/k_B [K]
+                            // p_1/k_B [K]
+                            // p_2/k_B [K]
+                            arguments[0]=Framework[CurrentSystem].TorsionArgumentDefinitions[i][0]*KELVIN_TO_ENERGY;
+                            arguments[1]=Framework[CurrentSystem].TorsionArgumentDefinitions[i][1]*KELVIN_TO_ENERGY;
+                            arguments[2]=Framework[CurrentSystem].TorsionArgumentDefinitions[i][2]*KELVIN_TO_ENERGY;
+                            break;
+                         case SIX_COSINE_DIHEDRAL:
+                            // Prod_i=0^5 p_i*cos(phi)^i
+                            // =========================
+                            // p_0/k_B [K]
+                            // p_1/k_B [K]
+                            // p_2/k_B [K]
+                            // p_3/k_B [K]
+                            // p_4/k_B [K]
+                            // p_5/k_B [K]
+                            arguments[0]=Framework[CurrentSystem].TorsionArgumentDefinitions[i][0]*KELVIN_TO_ENERGY;
+                            arguments[1]=Framework[CurrentSystem].TorsionArgumentDefinitions[i][1]*KELVIN_TO_ENERGY;
+                            arguments[2]=Framework[CurrentSystem].TorsionArgumentDefinitions[i][2]*KELVIN_TO_ENERGY;
+                            arguments[3]=Framework[CurrentSystem].TorsionArgumentDefinitions[i][3]*KELVIN_TO_ENERGY;
+                            arguments[4]=Framework[CurrentSystem].TorsionArgumentDefinitions[i][4]*KELVIN_TO_ENERGY;
+                            arguments[5]=Framework[CurrentSystem].TorsionArgumentDefinitions[i][5]*KELVIN_TO_ENERGY;
+                            break;
+                          case TRAPPE_DIHEDRAL:
+                            // p_0[0]+p_1*(1+cos(phi))+p_2*(1-cos(2*phi))+p_3*(1+cos(3*phi))
+                            // =============================================================
+                            // p_0/k_B [K]
+                            // p_1/k_B [K]
+                            // p_2/k_B [K]
+                            // p_3/k_B [K]
+                            arguments[0]=Framework[CurrentSystem].TorsionArgumentDefinitions[i][0]*KELVIN_TO_ENERGY;
+                            arguments[1]=Framework[CurrentSystem].TorsionArgumentDefinitions[i][1]*KELVIN_TO_ENERGY;
+                            arguments[2]=Framework[CurrentSystem].TorsionArgumentDefinitions[i][2]*KELVIN_TO_ENERGY;
+                            arguments[3]=Framework[CurrentSystem].TorsionArgumentDefinitions[i][3]*KELVIN_TO_ENERGY;
+                            break;
+                          case CVFF_DIHEDRAL:
+                            // p_0*(1+cos(p_1*phi-p_2))
+                            // ========================
+                            // p_0/k_B [K]
+                            // p_1     [-]
+                            // p_2     [degrees]
+                            arguments[0]=Framework[CurrentSystem].TorsionArgumentDefinitions[i][0]*KELVIN_TO_ENERGY;
+                            arguments[1]=Framework[CurrentSystem].TorsionArgumentDefinitions[i][1];
+                            arguments[2]=Framework[CurrentSystem].TorsionArgumentDefinitions[i][2]*DEG2RAD;
+                            break;
+                          case OPLS_DIHEDRAL:
+                            // (1/2)p_0[0]+(1/2)p_1*(1+cos(phi))+(1/2)p_2*(1-cos(2*phi))+(1/2)p_3*(1+cos(3*phi))
+                            // =================================================================================
+                            // p_0/k_B [K]
+                            // p_1/k_B [K]
+                            // p_2/k_B [K]
+                            // p_3/k_B [K]
+                            arguments[0]=Framework[CurrentSystem].TorsionArgumentDefinitions[i][0]*KELVIN_TO_ENERGY;
+                            arguments[1]=Framework[CurrentSystem].TorsionArgumentDefinitions[i][1]*KELVIN_TO_ENERGY;
+                            arguments[2]=Framework[CurrentSystem].TorsionArgumentDefinitions[i][2]*KELVIN_TO_ENERGY;
+                            arguments[3]=Framework[CurrentSystem].TorsionArgumentDefinitions[i][3]*KELVIN_TO_ENERGY;
+                            break;
+                          case FOURIER_SERIES_DIHEDRAL:
+                            // (1/2)p_0*(1+cos(phi))+(1/2)p_1(1-cos(2*phi))+(1/2)*p2_2*(1+cos(3*phi))+
+                            // (1/2)p_3*(1-cos(4*phi))+(1/2)p_4*(1+cos(5*phi))+(1/2)p_5*(1+cos(6*phi))
+                            // =======================================================================
+                            // p_0/k_B [K]
+                            // p_1/k_B [K]
+                            // p_2/k_B [K]
+                            // p_3/k_B [K]
+                            // p_4/k_B [K]
+                            // p_5/k_B [K]
+                            arguments[0]=Framework[CurrentSystem].TorsionArgumentDefinitions[i][0]*KELVIN_TO_ENERGY;
+                            arguments[1]=Framework[CurrentSystem].TorsionArgumentDefinitions[i][1]*KELVIN_TO_ENERGY;
+                            arguments[2]=Framework[CurrentSystem].TorsionArgumentDefinitions[i][2]*KELVIN_TO_ENERGY;
+                            arguments[3]=Framework[CurrentSystem].TorsionArgumentDefinitions[i][3]*KELVIN_TO_ENERGY;
+                            arguments[4]=Framework[CurrentSystem].TorsionArgumentDefinitions[i][4]*KELVIN_TO_ENERGY;
+                            arguments[5]=Framework[CurrentSystem].TorsionArgumentDefinitions[i][5]*KELVIN_TO_ENERGY;
+                            break;
+                          case FOURIER_SERIES_DIHEDRAL2:
+                            // (1/2)p_0*(1+cos(phi))+(1/2)p_1(1-cos(2*phi))+(1/2)*p2_2*(1+cos(3*phi))+
+                            // (1/2)p_3*(1+cos(4*phi))+(1/2)p_4*(1+cos(5*phi))+(1/2)p_5*(1+cos(6*phi))
+                            // =======================================================================
+                            // p_0/k_B [K]
+                            // p_1/k_B [K]
+                            // p_2/k_B [K]
+                            // p_3/k_B [K]
+                            // p_4/k_B [K]
+                            // p_5/k_B [K]
+                            arguments[0]=Framework[CurrentSystem].TorsionArgumentDefinitions[i][0]*KELVIN_TO_ENERGY;
+                            arguments[1]=Framework[CurrentSystem].TorsionArgumentDefinitions[i][1]*KELVIN_TO_ENERGY;
+                            arguments[2]=Framework[CurrentSystem].TorsionArgumentDefinitions[i][2]*KELVIN_TO_ENERGY;
+                            arguments[3]=Framework[CurrentSystem].TorsionArgumentDefinitions[i][3]*KELVIN_TO_ENERGY;
+                            arguments[4]=Framework[CurrentSystem].TorsionArgumentDefinitions[i][4]*KELVIN_TO_ENERGY;
+                            arguments[5]=Framework[CurrentSystem].TorsionArgumentDefinitions[i][5]*KELVIN_TO_ENERGY;
+                            break;
+                          default:
+                            printf("Undefined Torsion potential in routine 'ReadFrameworkDefinition' ('framework.c')\n");
+                            exit(0);
+                            break;
+                        }
+
                         // we now have a quad-triple
                         present=FALSE;
                         for(n=0;n<index;n++)
                         {
-                          if(((Framework[CurrentSystem].Torsions[CurrentFramework][n].A==A)&&(Framework[CurrentSystem].Torsions[CurrentFramework][n].B==B)&&
+                          if((((Framework[CurrentSystem].Torsions[CurrentFramework][n].A==A)&&(Framework[CurrentSystem].Torsions[CurrentFramework][n].B==B)&&
                             (Framework[CurrentSystem].Torsions[CurrentFramework][n].C==C)&&(Framework[CurrentSystem].Torsions[CurrentFramework][n].D==D))||
                             ((Framework[CurrentSystem].Torsions[CurrentFramework][n].A==D)&&(Framework[CurrentSystem].Torsions[CurrentFramework][n].B==C)&&
-                            (Framework[CurrentSystem].Torsions[CurrentFramework][n].C==B)&&(Framework[CurrentSystem].Torsions[CurrentFramework][n].D==A)))
-                             present=TRUE; 
-                        }
+                            (Framework[CurrentSystem].Torsions[CurrentFramework][n].C==B)&&(Framework[CurrentSystem].Torsions[CurrentFramework][n].D==A)))&&
+                            (Framework[CurrentSystem].TorsionType[CurrentFramework][n]==TorsionType))
+                            {
+                               present=TRUE; 
+                               for(j=0;j<TorsionTypes[TorsionType].nr_args;j++)
+                                 present=present&&(fabs(Framework[CurrentSystem].TorsionArguments[CurrentFramework][n][j]-arguments[j])<1e-5);
 
+                               if(present) break;
+                            }
+                        }
+  
                         if(!present)
                         {
                           Framework[CurrentSystem].Torsions[CurrentFramework][index].A=A;
                           Framework[CurrentSystem].Torsions[CurrentFramework][index].B=B;
                           Framework[CurrentSystem].Torsions[CurrentFramework][index].C=C;
                           Framework[CurrentSystem].Torsions[CurrentFramework][index].D=D;
-
+  
                           Framework[CurrentSystem].TorsionType[CurrentFramework][index]=TorsionType;
                           Framework[CurrentSystem].NumberOfTorsionsPerType[i]++;
-
+ 
+                          // copy parsed and converted arguments to the torsion-potential parameters
                           for(j=0;j<TorsionTypes[TorsionType].nr_args;j++)
                             Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][j]=arguments[j];
 
-                          switch(TorsionType)
-                          {
-                            case HARMONIC_DIHEDRAL:
-                              // (1/2)*p_0*(phi-p_1)^2
-                              // ===============================================
-                              // p_0/k_B [K/rad^2]
-                              // p_1     [degrees]
-                              Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][0]*=KELVIN_TO_ENERGY;
-                              break;
-                            case HARMONIC_COSINE_DIHEDRAL:
-                              // (1/2)*p_0*(cos(phi)-cos(p_1))^2
-                              // ===============================================
-                              // p_0/k_B [K]
-                              // p_1     [degrees]
-                              Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][0]*=KELVIN_TO_ENERGY;
-                              Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][1]=cos(RAD2DEG*Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][1]);
-                              break;
-                            case THREE_COSINE_DIHEDRAL:
-                              // (1/2)*p_0*(1+cos(phi))+(1/2)*p_1*(1-cos(2*phi))+(1/2)*p_2*(1+cos(3*phi))
-                              // ========================================================================
-                              // p_0/k_B [K]
-                              // p_1/k_B [K]
-                              // p_2/k_B [K]
-                              Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][0]*=KELVIN_TO_ENERGY;
-                              Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][1]*=KELVIN_TO_ENERGY;
-                              Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][2]*=KELVIN_TO_ENERGY;
-                              break;
-                            case MM3_DIHEDRAL:
-                              // (1/2)*p_0*(1+cos(phi))+(1/2)*p_1*(1-cos(2*phi))+(1/2)*p_2*(1+cos(3*phi))
-                              // ========================================================================
-                              // p_0     [kcal/mol]
-                              // p_1     [kcal/mol]
-                              // p_2     [kcal/mol]
-                              Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][0]*=KCAL_PER_MOL_TO_ENERGY;
-                              Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][1]*=KCAL_PER_MOL_TO_ENERGY;
-                              Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][2]*=KCAL_PER_MOL_TO_ENERGY;
-                              break;
-                            case CFF_DIHEDRAL:
-                              // p_0*(1-cos(phi))+p_1*(1-cos(2*phi))+p_2*(1-cos(3*phi))
-                              // ======================================================
-                              // p_0/k_B [K]
-                              // p_1/k_B [K]
-                              // p_2/k_B [K]
-                              Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][0]*=KELVIN_TO_ENERGY;
-                              Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][1]*=KELVIN_TO_ENERGY;
-                              Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][2]*=KELVIN_TO_ENERGY;
-                              break;
-                            case CFF_DIHEDRAL2:
-                              // p_0*(1+cos(phi))+p_1*(1+cos(2*phi))+p_2*(1+cos(3*phi))
-                              // ======================================================
-                              // p_0/k_B [K]
-                              // p_1/k_B [K]
-                              // p_2/k_B [K]
-                              Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][0]*=KELVIN_TO_ENERGY;
-                              Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][1]*=KELVIN_TO_ENERGY;
-                              Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][2]*=KELVIN_TO_ENERGY;
-                              break;
-                           case SIX_COSINE_DIHEDRAL:
-                              // Prod_i=0^5 p_i*cos(phi)^i
-                              // =========================
-                              // p_0/k_B [K]
-                              // p_1/k_B [K]
-                              // p_2/k_B [K]
-                              // p_3/k_B [K]
-                              // p_4/k_B [K]
-                              // p_5/k_B [K]
-                              Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][0]*=KELVIN_TO_ENERGY;
-                              Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][1]*=KELVIN_TO_ENERGY;
-                              Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][2]*=KELVIN_TO_ENERGY;
-                              Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][3]*=KELVIN_TO_ENERGY;
-                              Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][4]*=KELVIN_TO_ENERGY;
-                              Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][5]*=KELVIN_TO_ENERGY;
-                              break;
-                            case TRAPPE_DIHEDRAL:
-                              // p_0[0]+p_1*(1+cos(phi))+p_2*(1-cos(2*phi))+p_3*(1+cos(3*phi))
-                              // =============================================================
-                              // p_0/k_B [K]
-                              // p_1/k_B [K]
-                              // p_2/k_B [K]
-                              // p_3/k_B [K]
-                              Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][0]*=KELVIN_TO_ENERGY;
-                              Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][1]*=KELVIN_TO_ENERGY;
-                              Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][2]*=KELVIN_TO_ENERGY;
-                              Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][3]*=KELVIN_TO_ENERGY;
-                              break;
-                            case CVFF_DIHEDRAL:
-                              // p_0*(1+cos(p_1*phi-p_2))
-                              // ========================
-                              // p_0/k_B [K]
-                              // p_1     [-]
-                              // p_2     [degrees]
-                              Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][0]*=KELVIN_TO_ENERGY;
-                              Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][2]*=DEG2RAD;
-                              break;
-                            case OPLS_DIHEDRAL:
-                              // (1/2)p_0[0]+(1/2)p_1*(1+cos(phi))+(1/2)p_2*(1-cos(2*phi))+(1/2)p_3*(1+cos(3*phi))
-                              // =================================================================================
-                              // p_0/k_B [K]
-                              // p_1/k_B [K]
-                              // p_2/k_B [K]
-                              // p_3/k_B [K]
-                              Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][0]*=KELVIN_TO_ENERGY;
-                              Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][1]*=KELVIN_TO_ENERGY;
-                              Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][2]*=KELVIN_TO_ENERGY;
-                              Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][3]*=KELVIN_TO_ENERGY;
-                              break;
-                            case FOURIER_SERIES_DIHEDRAL:
-                              // (1/2)p_0*(1+cos(phi))+(1/2)p_1(1-cos(2*phi))+(1/2)*p2_2*(1+cos(3*phi))+
-                              // (1/2)p_3*(1-cos(4*phi))+(1/2)p_4*(1+cos(5*phi))+(1/2)p_5*(1+cos(6*phi))
-                              // =======================================================================
-                              // p_0/k_B [K]
-                              // p_1/k_B [K]
-                              // p_2/k_B [K]
-                              // p_3/k_B [K]
-                              // p_4/k_B [K]
-                              // p_5/k_B [K]
-                              Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][0]*=KELVIN_TO_ENERGY;
-                              Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][1]*=KELVIN_TO_ENERGY;
-                              Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][2]*=KELVIN_TO_ENERGY;
-                              Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][3]*=KELVIN_TO_ENERGY;
-                              Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][4]*=KELVIN_TO_ENERGY;
-                              Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][5]*=KELVIN_TO_ENERGY;
-                              break;
-                            case FOURIER_SERIES_DIHEDRAL2:
-                              // (1/2)p_0*(1+cos(phi))+(1/2)p_1(1-cos(2*phi))+(1/2)*p2_2*(1+cos(3*phi))+
-                              // (1/2)p_3*(1+cos(4*phi))+(1/2)p_4*(1+cos(5*phi))+(1/2)p_5*(1+cos(6*phi))
-                              // =======================================================================
-                              // p_0/k_B [K]
-                              // p_1/k_B [K]
-                              // p_2/k_B [K]
-                              // p_3/k_B [K]
-                              // p_4/k_B [K]
-                              // p_5/k_B [K]
-                              Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][0]*=KELVIN_TO_ENERGY;
-                              Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][1]*=KELVIN_TO_ENERGY;
-                              Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][2]*=KELVIN_TO_ENERGY;
-                              Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][3]*=KELVIN_TO_ENERGY;
-                              Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][4]*=KELVIN_TO_ENERGY;
-                              Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][5]*=KELVIN_TO_ENERGY;
-                              break;
-                            default:
-                              printf("Undefined Torsion potential in routine 'ReadFrameworkDefinition' ('framework.c')\n");
-                              exit(0);
-                              break;
-                          }
+                          Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][6]=Framework[CurrentSystem].TorsionArgumentDefinitions[i][6];
+                          Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][7]=Framework[CurrentSystem].TorsionArgumentDefinitions[i][7];
+  
                           Framework[CurrentSystem].NumberOfTorsions[CurrentFramework]++;
                           index=Framework[CurrentSystem].NumberOfTorsions[CurrentFramework];
-
+  
                           if(index>=Framework[CurrentSystem].MaxNumberOfTorsions[CurrentFramework])
                           {
                             Framework[CurrentSystem].MaxNumberOfTorsions[CurrentFramework]+=4096;
@@ -7711,7 +9169,7 @@ int ReadFrameworkDefinition(void)
       }
     }
   }
-
+  
   // reading Improper torsion-data
   if(Framework[CurrentSystem].NumberOfImproperTorsionDefinitions>0)
   {
@@ -7721,7 +9179,7 @@ int ReadFrameworkDefinition(void)
     Framework[CurrentSystem].ImproperTorsionArgumentDefinitions=(REAL(*)[MAX_IMPROPER_TORSION_POTENTIAL_ARGUMENTS])
       calloc(Framework[CurrentSystem].NumberOfImproperTorsionDefinitions,sizeof(REAL[MAX_IMPROPER_TORSION_POTENTIAL_ARGUMENTS]));
     Framework[CurrentSystem].NumberOfImproperTorsionsPerType=(int*)calloc(Framework[CurrentSystem].NumberOfImproperTorsionDefinitions,sizeof(int));
-
+  
     for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
     {
       Framework[CurrentSystem].MaxNumberOfImproperTorsions[CurrentFramework]=4096;
@@ -7731,7 +9189,7 @@ int ReadFrameworkDefinition(void)
       Framework[CurrentSystem].ImproperTorsionArguments[CurrentFramework]=(REAL(*)[MAX_IMPROPER_TORSION_POTENTIAL_ARGUMENTS])
               calloc(Framework[CurrentSystem].MaxNumberOfImproperTorsions[CurrentFramework],sizeof(REAL[MAX_IMPROPER_TORSION_POTENTIAL_ARGUMENTS]));
     }
-
+  
     ReadLine(line,1024,FilePtr); // skip line
     for(i=0;i<Framework[CurrentSystem].NumberOfImproperTorsionDefinitions;i++)
     {
@@ -7742,12 +9200,12 @@ int ReadFrameworkDefinition(void)
       TypeB=ReturnPseudoAtomNumber(TypeNameB);
       TypeC=ReturnPseudoAtomNumber(TypeNameC);
       TypeD=ReturnPseudoAtomNumber(TypeNameD);
-
+  
       // determine inversionbend-type
       for(j=0;j<NR_IMPROPER_TORSION_TYPES;j++)
         if(strncasecmp(ImproperTorsionTypes[j].Name,buffer,MAX2(strlen(ImproperTorsionTypes[j].Name),strlen(buffer)))==0)
           ImproperTorsionType=j;
-
+  
       // read arguments
       for(j=0;j<ImproperTorsionTypes[ImproperTorsionType].nr_args;j++)
       {
@@ -7755,16 +9213,16 @@ int ReadFrameworkDefinition(void)
         sscanf(arg_pointer,"%lf%n",&temp,&n);
         arguments[j]=(REAL)temp;
       }
-
+  
       Framework[CurrentSystem].ImproperTorsionDefinitionType[i]=ImproperTorsionType;
       Framework[CurrentSystem].ImproperTorsionDefinitions[i].A=TypeA;
       Framework[CurrentSystem].ImproperTorsionDefinitions[i].B=TypeB;
       Framework[CurrentSystem].ImproperTorsionDefinitions[i].C=TypeC;
       Framework[CurrentSystem].ImproperTorsionDefinitions[i].D=TypeD;
-
+  
       for(j=0;j<ImproperTorsionTypes[ImproperTorsionType].nr_args;j++)
         Framework[CurrentSystem].ImproperTorsionArgumentDefinitions[i][j]=arguments[j];
-
+  
       // fill the appropriate improper torsion-data
       for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
       {
@@ -7772,7 +9230,7 @@ int ReadFrameworkDefinition(void)
         for(A=0;A<Framework[CurrentSystem].NumberOfAtoms[CurrentFramework];A++)
         {
           CurrentTypeA=Framework[CurrentSystem].Atoms[CurrentFramework][A].Type;
-
+  
           if(CurrentTypeA==TypeA)
           {
             for(k=0;k<Framework[CurrentSystem].Connectivity[CurrentFramework][A];k++)
@@ -7796,6 +9254,7 @@ int ReadFrameworkDefinition(void)
                       {
                         present=FALSE;
                         for(n=0;n<index;n++)
+/*
                           if(((Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].A==A)&&(Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].B==B)&&
                              (Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].C==C)&&(Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].D==D))||
                              ((Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].A==A)&&(Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].B==B)&&
@@ -7809,16 +9268,25 @@ int ReadFrameworkDefinition(void)
                              ((Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].A==D)&&(Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].B==B)&&
                              (Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].C==C)&&(Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].D==A)))
                                present=TRUE;
+*/
+                          if(((Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].A==A)&&(Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].B==B)&&
+                             (Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].C==C)&&(Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].D==D))&&
+                             (Framework[CurrentSystem].ImproperTorsionType[CurrentFramework][n]==ImproperTorsionType))
+                          {
+                             present=TRUE;
+                             for(j=0;j<ImproperTorsionTypes[ImproperTorsionType].nr_args;j++)
+                               present=present&&(fabs(Framework[CurrentSystem].ImproperTorsionArguments[CurrentFramework][n][j]-arguments[j])<1e-5);
+                          }
                         if(!present)
                         {
                           Framework[CurrentSystem].ImproperTorsions[CurrentFramework][index].A=A;
                           Framework[CurrentSystem].ImproperTorsions[CurrentFramework][index].B=B;
                           Framework[CurrentSystem].ImproperTorsions[CurrentFramework][index].C=C;
                           Framework[CurrentSystem].ImproperTorsions[CurrentFramework][index].D=D;
-
+  
                           Framework[CurrentSystem].ImproperTorsionType[CurrentFramework][index]=ImproperTorsionType;
                           Framework[CurrentSystem].NumberOfImproperTorsionsPerType[i]++;
-
+  
                           for(j=0;j<ImproperTorsionTypes[ImproperTorsionType].nr_args;j++)
                             Framework[CurrentSystem].ImproperTorsionArguments[CurrentFramework][index][j]=arguments[j];
                           switch(ImproperTorsionType)
@@ -7968,7 +9436,7 @@ int ReadFrameworkDefinition(void)
                           }
                           Framework[CurrentSystem].NumberOfImproperTorsions[CurrentFramework]++;
                           index=Framework[CurrentSystem].NumberOfImproperTorsions[CurrentFramework];
-
+  
                           if(index>=Framework[CurrentSystem].MaxNumberOfImproperTorsions[CurrentFramework])
                           {
                             Framework[CurrentSystem].MaxNumberOfImproperTorsions[CurrentFramework]+=4096;
@@ -7992,10 +9460,10 @@ int ReadFrameworkDefinition(void)
       }
     }
   }
-
+  
   // READ OUT_OF_PLANE TODO
-
-
+  
+  
   // reading Bond-Bond cross-term data
   index=0;
   if(Framework[CurrentSystem].NumberOfBondBondDefinitions>0)
@@ -8006,7 +9474,7 @@ int ReadFrameworkDefinition(void)
     Framework[CurrentSystem].BondBondArgumentDefinitions=(REAL(*)[MAX_BOND_BOND_POTENTIAL_ARGUMENTS])
       calloc(Framework[CurrentSystem].NumberOfBondBondDefinitions,sizeof(REAL[MAX_BOND_BOND_POTENTIAL_ARGUMENTS]));
     Framework[CurrentSystem].NumberOfBondBondsPerType=(int*)calloc(Framework[CurrentSystem].NumberOfBondBondDefinitions,sizeof(int));
-
+  
     for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
     {
       Framework[CurrentSystem].MaxNumberOfBondBonds[CurrentFramework]=4096;
@@ -8016,7 +9484,7 @@ int ReadFrameworkDefinition(void)
       Framework[CurrentSystem].BondBondArguments[CurrentFramework]=(REAL(*)[MAX_BOND_BOND_POTENTIAL_ARGUMENTS])
               calloc(Framework[CurrentSystem].MaxNumberOfBondBonds[CurrentFramework],sizeof(REAL[MAX_BOND_BOND_POTENTIAL_ARGUMENTS]));
     }
-
+  
     ReadLine(line,1024,FilePtr); // skip line
     for(i=0;i<Framework[CurrentSystem].NumberOfBondBondDefinitions;i++)
     {
@@ -8026,12 +9494,12 @@ int ReadFrameworkDefinition(void)
       TypeA=ReturnPseudoAtomNumber(TypeNameA);
       TypeB=ReturnPseudoAtomNumber(TypeNameB);
       TypeC=ReturnPseudoAtomNumber(TypeNameC);
-
+  
       // determine bond/bond-type
       for(j=0;j<NR_BOND_BOND_TYPES;j++)
         if(strncasecmp(BondBondTypes[j].Name,buffer,MAX2(strlen(BondBondTypes[j].Name),strlen(buffer)))==0)
           BondBondType=j;
-
+  
       // read arguments
       for(j=0;j<BondBondTypes[BondBondType].nr_args;j++)
       {
@@ -8039,14 +9507,14 @@ int ReadFrameworkDefinition(void)
         sscanf(arg_pointer,"%lf%n",&temp,&n);
         arguments[j]=(REAL)temp;
       }
-
+  
       Framework[CurrentSystem].BondBondDefinitionType[i]=BondBondType;
       Framework[CurrentSystem].BondBondDefinitions[i].A=TypeA;
       Framework[CurrentSystem].BondBondDefinitions[i].B=TypeB;
       Framework[CurrentSystem].BondBondDefinitions[i].C=TypeC;
       for(j=0;j<BondBondTypes[BondBondType].nr_args;j++)
         Framework[CurrentSystem].BondBondArgumentDefinitions[i][j]=arguments[j];
-
+  
       // fill the appropriate bond-bond data
       for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
       {
@@ -8060,14 +9528,14 @@ int ReadFrameworkDefinition(void)
             {
               A=GetNeighbour(CurrentSystem,CurrentFramework,B,k);
               CurrentTypeA=Framework[CurrentSystem].Atoms[CurrentFramework][A].Type;
-
+  
               if(CurrentTypeA==TypeA)
               {
                 for(l=0;l<Framework[CurrentSystem].Connectivity[CurrentFramework][B];l++)
                 {
                   C=GetNeighbour(CurrentSystem,CurrentFramework,B,l);
                   CurrentTypeC=Framework[CurrentSystem].Atoms[CurrentFramework][C].Type;
-
+  
                   if((A!=C)&&(CurrentTypeC==TypeC))
                   {
                     // check whether triplet A-B-C is already present in the list
@@ -8082,13 +9550,13 @@ int ReadFrameworkDefinition(void)
                       Framework[CurrentSystem].BondBonds[CurrentFramework][index].A=A;
                       Framework[CurrentSystem].BondBonds[CurrentFramework][index].B=B;
                       Framework[CurrentSystem].BondBonds[CurrentFramework][index].C=C;
- 
+  
                       Framework[CurrentSystem].BondBondType[CurrentFramework][index]=BondBondType;
                       Framework[CurrentSystem].NumberOfBondBondsPerType[i]++;
    
                       for(j=0;j<BondBondTypes[BondBondType].nr_args;j++)
                         Framework[CurrentSystem].BondBondArguments[CurrentFramework][index][j]=arguments[j];
-
+  
                       // set to appropriate parameters
                       // the order of the A-B-C triplet does matter for bond-bond cross terms
                       // if C-B-A was found reverse the appropriate arguments
@@ -8110,7 +9578,7 @@ int ReadFrameworkDefinition(void)
                       }
                       Framework[CurrentSystem].NumberOfBondBonds[CurrentSystem]++;
                       index=Framework[CurrentSystem].NumberOfBondBonds[CurrentSystem];
-
+  
                       if(index>=Framework[CurrentSystem].MaxNumberOfBondBonds[CurrentFramework])
                       {
                         Framework[CurrentSystem].MaxNumberOfBondBonds[CurrentFramework]+=4096;
@@ -8132,7 +9600,7 @@ int ReadFrameworkDefinition(void)
       }
     }
   }
-
+  
   // reading Bond-Bend cross-term data
   index=0;
   if(Framework[CurrentSystem].NumberOfBondBendDefinitions>0)
@@ -8143,7 +9611,7 @@ int ReadFrameworkDefinition(void)
     Framework[CurrentSystem].BondBendArgumentDefinitions=(REAL(*)[MAX_BOND_BEND_POTENTIAL_ARGUMENTS])
       calloc(Framework[CurrentSystem].NumberOfBondBendDefinitions,sizeof(REAL[MAX_BOND_BEND_POTENTIAL_ARGUMENTS]));
     Framework[CurrentSystem].NumberOfBondBendsPerType=(int*)calloc(Framework[CurrentSystem].NumberOfBondBendDefinitions,sizeof(int));
-
+  
     for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
     {
       Framework[CurrentSystem].MaxNumberOfBondBends[CurrentFramework]=4096;
@@ -8153,7 +9621,7 @@ int ReadFrameworkDefinition(void)
       Framework[CurrentSystem].BondBendArguments[CurrentFramework]=(REAL(*)[MAX_BOND_BEND_POTENTIAL_ARGUMENTS])
               calloc(Framework[CurrentSystem].MaxNumberOfBondBends[CurrentFramework],sizeof(REAL[MAX_BOND_BEND_POTENTIAL_ARGUMENTS]));
     }
-
+  
     ReadLine(line,1024,FilePtr); // skip line
     for(i=0;i<Framework[CurrentSystem].NumberOfBondBendDefinitions;i++)
     {
@@ -8163,12 +9631,12 @@ int ReadFrameworkDefinition(void)
       TypeA=ReturnPseudoAtomNumber(TypeNameA);
       TypeB=ReturnPseudoAtomNumber(TypeNameB);
       TypeC=ReturnPseudoAtomNumber(TypeNameC);
-
+  
       // determine bond/bond-type
       for(j=0;j<NR_BOND_BEND_TYPES;j++)
         if(strcasecmp(BondBendTypes[j].Name,buffer)==0)
           BondBendType=j;
-
+  
       // read arguments
       for(j=0;j<BondBendTypes[BondBendType].nr_args;j++)
       {
@@ -8176,14 +9644,14 @@ int ReadFrameworkDefinition(void)
         sscanf(arg_pointer,"%lf%n",&temp,&n);
         arguments[j]=(REAL)temp;
       }
-
+  
       Framework[CurrentSystem].BondBendDefinitionType[i]=BondBendType;
       Framework[CurrentSystem].BondBendDefinitions[i].A=TypeA;
       Framework[CurrentSystem].BondBendDefinitions[i].B=TypeB;
       Framework[CurrentSystem].BondBendDefinitions[i].C=TypeC;
       for(j=0;j<BondBendTypes[BondBendType].nr_args;j++)
         Framework[CurrentSystem].BondBendArgumentDefinitions[i][j]=arguments[j];
-
+  
       // fill the appropriate stretch bend-data
       for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
       {
@@ -8197,13 +9665,13 @@ int ReadFrameworkDefinition(void)
             {
               B=GetNeighbour(CurrentSystem,CurrentFramework,A,k);
               CurrentTypeB=Framework[CurrentSystem].Atoms[CurrentFramework][B].Type;
-
+  
               if(CurrentTypeB==TypeB)
               for(l=0;l<Framework[CurrentSystem].Connectivity[CurrentFramework][B];l++)
               {
                 C=GetNeighbour(CurrentSystem,CurrentFramework,B,l);
                 CurrentTypeC=Framework[CurrentSystem].Atoms[CurrentFramework][C].Type;
-
+  
                 if((A!=C)&&(CurrentTypeC==TypeC))
                 {
                   // check whether triplet A-B-C is already present in the list
@@ -8223,13 +9691,13 @@ int ReadFrameworkDefinition(void)
                     Framework[CurrentSystem].BondBends[CurrentFramework][index].A=A;
                     Framework[CurrentSystem].BondBends[CurrentFramework][index].B=B;
                     Framework[CurrentSystem].BondBends[CurrentFramework][index].C=C;
-
+  
                     Framework[CurrentSystem].BondBendType[CurrentFramework][index]=BondBendType;
                     Framework[CurrentSystem].NumberOfBondBendsPerType[i]++;
-
+  
                     for(j=0;j<BondBendTypes[BondBendType].nr_args;j++)
                       Framework[CurrentSystem].BondBendArguments[CurrentFramework][index][j]=arguments[j];
-
+  
                     // set to appropriate parameters
                     // the order of the A-B-C triplet does matter for bond-bond cross terms
                     // if C-B-A was found reverse the appropriate arguments
@@ -8305,7 +9773,7 @@ int ReadFrameworkDefinition(void)
                     }
                     Framework[CurrentSystem].NumberOfBondBends[CurrentFramework]++;
                     index=Framework[CurrentSystem].NumberOfBondBends[CurrentFramework];
-
+  
                     if(index>=Framework[CurrentSystem].MaxNumberOfBondBends[CurrentFramework])
                     {
                       Framework[CurrentSystem].MaxNumberOfBondBends[CurrentFramework]+=4096;
@@ -8326,7 +9794,7 @@ int ReadFrameworkDefinition(void)
       }
     }
   }
-
+  
   // reading Bend-Bend cross-term data
   index=0;
   if(Framework[CurrentSystem].NumberOfBendBendDefinitions>0)
@@ -8337,7 +9805,7 @@ int ReadFrameworkDefinition(void)
     Framework[CurrentSystem].BendBendArgumentDefinitions=(REAL(*)[MAX_BEND_BEND_POTENTIAL_ARGUMENTS])
       calloc(Framework[CurrentSystem].NumberOfBendBendDefinitions,sizeof(REAL[MAX_BEND_BEND_POTENTIAL_ARGUMENTS]));
     Framework[CurrentSystem].NumberOfBendBendsPerType=(int*)calloc(Framework[CurrentSystem].NumberOfBendBendDefinitions,sizeof(int));
-
+  
     for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
     {
       Framework[CurrentSystem].MaxNumberOfBendBends[CurrentFramework]=4096;
@@ -8347,7 +9815,7 @@ int ReadFrameworkDefinition(void)
       Framework[CurrentSystem].BendBendArguments[CurrentFramework]=(REAL(*)[MAX_BEND_BEND_POTENTIAL_ARGUMENTS])
               calloc(Framework[CurrentSystem].MaxNumberOfBendBends[CurrentFramework],sizeof(REAL[MAX_BEND_BEND_POTENTIAL_ARGUMENTS]));
     }
-
+  
     ReadLine(line,1024,FilePtr); // skip line
     for(i=0;i<Framework[CurrentSystem].NumberOfBendBendDefinitions;i++)
     {
@@ -8358,12 +9826,12 @@ int ReadFrameworkDefinition(void)
       TypeB=ReturnPseudoAtomNumber(TypeNameB);
       TypeC=ReturnPseudoAtomNumber(TypeNameC);
       TypeD=ReturnPseudoAtomNumber(TypeNameD);
-
+  
       // determine bend/bend-type
       for(j=0;j<NR_BEND_BEND_TYPES;j++)
         if(strncasecmp(BendBendTypes[j].Name,buffer,MAX2(strlen(BendBendTypes[j].Name),strlen(buffer)))==0)
           BendBendType=j;
-
+  
       // read arguments
       for(j=0;j<BendBendTypes[BendBendType].nr_args;j++)
       {
@@ -8371,7 +9839,7 @@ int ReadFrameworkDefinition(void)
         sscanf(arg_pointer,"%lf%n",&temp,&n);
         arguments[j]=(REAL)temp;
       }
-
+  
       Framework[CurrentSystem].BendBendDefinitionType[i]=BendBendType;
       Framework[CurrentSystem].BendBendDefinitions[i].A=TypeA;
       Framework[CurrentSystem].BendBendDefinitions[i].B=TypeB;
@@ -8379,7 +9847,7 @@ int ReadFrameworkDefinition(void)
       Framework[CurrentSystem].BendBendDefinitions[i].D=TypeD;
       for(j=0;j<BendBendTypes[BendBendType].nr_args;j++)
         Framework[CurrentSystem].BendBendArgumentDefinitions[i][j]=arguments[j];
-
+  
       // fill the appropriate bend/bend-data
       for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
       {
@@ -8387,14 +9855,14 @@ int ReadFrameworkDefinition(void)
         for(A=0;A<Framework[CurrentSystem].NumberOfAtoms[CurrentFramework];A++)
         {
           CurrentTypeA=Framework[CurrentSystem].Atoms[CurrentFramework][A].Type;
-
+  
           if(CurrentTypeA==TypeA)
           {
             for(k=0;k<Framework[CurrentSystem].Connectivity[CurrentFramework][A];k++)
             {
               B=GetNeighbour(CurrentSystem,CurrentFramework,A,k);
               CurrentTypeB=Framework[CurrentSystem].Atoms[CurrentFramework][B].Type;
-
+  
               if(CurrentTypeB==TypeB)
               {
                 for(l=0;l<Framework[CurrentSystem].Connectivity[CurrentFramework][B];l++)
@@ -8426,10 +9894,10 @@ int ReadFrameworkDefinition(void)
                           Framework[CurrentSystem].BendBends[CurrentFramework][index].B=B;
                           Framework[CurrentSystem].BendBends[CurrentFramework][index].C=C;
                           Framework[CurrentSystem].BendBends[CurrentFramework][index].D=D;
-
+  
                           Framework[CurrentSystem].BendBendType[CurrentFramework][index]=BendBendType;
                           Framework[CurrentSystem].NumberOfBendBendsPerType[i]++;
-
+  
                           for(j=0;j<BendBendTypes[BendBendType].nr_args;j++)
                             Framework[CurrentSystem].BendBendArguments[CurrentFramework][index][j]=arguments[j];
                           switch(BendBendType)
@@ -8462,7 +9930,7 @@ int ReadFrameworkDefinition(void)
                           }
                           Framework[CurrentSystem].NumberOfBendBends[CurrentFramework]++;
                           index=Framework[CurrentSystem].NumberOfBendBends[CurrentFramework];
-
+  
                           if(index>=Framework[CurrentSystem].MaxNumberOfBendBends[CurrentFramework])
                           {
                             Framework[CurrentSystem].MaxNumberOfBendBends[CurrentFramework]+=4096;
@@ -8474,7 +9942,7 @@ int ReadFrameworkDefinition(void)
                                  realloc(Framework[CurrentSystem].BendBendArguments[CurrentFramework],
                             Framework[CurrentSystem].MaxNumberOfBendBends[CurrentFramework]*sizeof(REAL[MAX_BEND_BEND_POTENTIAL_ARGUMENTS]));
                           }
-
+  
                         }
                       }
                     }
@@ -8487,7 +9955,7 @@ int ReadFrameworkDefinition(void)
       }
     }
   }
-
+  
   // reading Bond/Torsion-data
   if(Framework[CurrentSystem].NumberOfBondTorsionDefinitions>0)
   {
@@ -8497,7 +9965,7 @@ int ReadFrameworkDefinition(void)
     Framework[CurrentSystem].BondTorsionArgumentDefinitions=(REAL(*)[MAX_BOND_TORSION_POTENTIAL_ARGUMENTS])
       calloc(Framework[CurrentSystem].NumberOfBondTorsionDefinitions,sizeof(REAL[MAX_BOND_TORSION_POTENTIAL_ARGUMENTS]));
     Framework[CurrentSystem].NumberOfBondTorsionsPerType=(int*)calloc(Framework[CurrentSystem].NumberOfBondTorsionDefinitions,sizeof(int));
-
+  
     for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
     {
       Framework[CurrentSystem].MaxNumberOfBondTorsions[CurrentFramework]=4096;
@@ -8507,7 +9975,7 @@ int ReadFrameworkDefinition(void)
       Framework[CurrentSystem].BondTorsionArguments[CurrentFramework]=(REAL(*)[MAX_BOND_TORSION_POTENTIAL_ARGUMENTS])
               calloc(Framework[CurrentSystem].MaxNumberOfBondTorsions[CurrentFramework],sizeof(REAL[MAX_BOND_TORSION_POTENTIAL_ARGUMENTS]));
     }
-
+  
     ReadLine(line,1024,FilePtr); // skip line
     for(i=0;i<Framework[CurrentSystem].NumberOfBondTorsionDefinitions;i++)
     {
@@ -8518,12 +9986,12 @@ int ReadFrameworkDefinition(void)
       TypeB=ReturnPseudoAtomNumber(TypeNameB);
       TypeC=ReturnPseudoAtomNumber(TypeNameC);
       TypeD=ReturnPseudoAtomNumber(TypeNameD);
-
+  
       // determine torsion-type
       for(j=0;j<NR_BOND_TORSION_TYPES;j++)
         if(strncasecmp(BondTorsionTypes[j].Name,buffer,MAX2(strlen(BondTorsionTypes[j].Name),strlen(buffer)))==0)
           BondTorsionType=j;
-
+  
       // read arguments
       for(j=0;j<BondTorsionTypes[BondTorsionType].nr_args;j++)
       {
@@ -8531,7 +9999,7 @@ int ReadFrameworkDefinition(void)
         sscanf(arg_pointer,"%lf%n",&temp,&n);
         arguments[j]=(REAL)temp;
       }
-
+  
       Framework[CurrentSystem].BondTorsionDefinitionType[i]=BondTorsionType;
       Framework[CurrentSystem].BondTorsionDefinitions[i].A=TypeA;
       Framework[CurrentSystem].BondTorsionDefinitions[i].B=TypeB;
@@ -8539,23 +10007,23 @@ int ReadFrameworkDefinition(void)
       Framework[CurrentSystem].BondTorsionDefinitions[i].D=TypeD;
       for(j=0;j<BondTorsionTypes[BondTorsionType].nr_args;j++)
         Framework[CurrentSystem].BondTorsionArgumentDefinitions[i][j]=arguments[j];
-
+  
       // fill the appropriate stretch/torsion-data
       for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
       {
         index=Framework[CurrentSystem].NumberOfBondTorsions[CurrentFramework];
-
+  
         for(B=0;B<Framework[CurrentSystem].TotalNumberOfAtoms;B++)
         {
           CurrentTypeB=Framework[CurrentSystem].Atoms[CurrentFramework][B].Type;
-
+  
           if(CurrentTypeB==TypeB)
           {
             for(k=0;k<Framework[CurrentSystem].Connectivity[CurrentFramework][B];k++)
             {
               C=GetNeighbour(CurrentSystem,CurrentFramework,B,k);
               CurrentTypeC=Framework[CurrentSystem].Atoms[CurrentFramework][C].Type;
-
+  
               if((CurrentTypeC==TypeC)&&(B<C))
               {
                 // we now have pairs B-C with B<C
@@ -8575,10 +10043,10 @@ int ReadFrameworkDefinition(void)
                         Framework[CurrentSystem].BondTorsions[CurrentFramework][index].B=B;
                         Framework[CurrentSystem].BondTorsions[CurrentFramework][index].C=C;
                         Framework[CurrentSystem].BondTorsions[CurrentFramework][index].D=D;
-
+  
                         Framework[CurrentSystem].BondTorsionType[CurrentFramework][index]=BondTorsionType;
                         Framework[CurrentSystem].NumberOfBondTorsionsPerType[i]++;
-
+  
                         for(j=0;j<BondTorsionTypes[BondTorsionType].nr_args;j++)
                           Framework[CurrentSystem].BondTorsionArguments[CurrentFramework][index][j]=arguments[j];
                         switch(BondTorsionType)
@@ -8601,7 +10069,7 @@ int ReadFrameworkDefinition(void)
                         }
                         Framework[CurrentSystem].NumberOfBondTorsions[CurrentFramework]++;
                         index=Framework[CurrentSystem].NumberOfBondTorsions[CurrentFramework];
-
+  
                         if(index>=Framework[CurrentSystem].MaxNumberOfBondTorsions[CurrentFramework])
                         {
                           Framework[CurrentSystem].MaxNumberOfBondTorsions[CurrentFramework]+=4096;
@@ -8624,7 +10092,7 @@ int ReadFrameworkDefinition(void)
       }
     }
   }
-
+  
   // reading Bend/Torsion-data
   index=0;
   if(Framework[CurrentSystem].NumberOfBendTorsionDefinitions>0)
@@ -8635,7 +10103,7 @@ int ReadFrameworkDefinition(void)
     Framework[CurrentSystem].BendTorsionArgumentDefinitions=(REAL(*)[MAX_BEND_TORSION_POTENTIAL_ARGUMENTS])
       calloc(Framework[CurrentSystem].NumberOfBendTorsionDefinitions,sizeof(REAL[MAX_BEND_TORSION_POTENTIAL_ARGUMENTS]));
     Framework[CurrentSystem].NumberOfBendTorsionsPerType=(int*)calloc(Framework[CurrentSystem].NumberOfBendTorsionDefinitions,sizeof(int));
-
+  
     for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
     {
       Framework[CurrentSystem].MaxNumberOfBendTorsions[CurrentFramework]=4096;
@@ -8645,7 +10113,7 @@ int ReadFrameworkDefinition(void)
       Framework[CurrentSystem].BendTorsionArguments[CurrentFramework]=(REAL(*)[MAX_BEND_TORSION_POTENTIAL_ARGUMENTS])
               calloc(Framework[CurrentSystem].MaxNumberOfBendTorsions[CurrentFramework],sizeof(REAL[MAX_BEND_TORSION_POTENTIAL_ARGUMENTS]));
     }
-
+  
     ReadLine(line,1024,FilePtr); // skip line
     for(i=0;i<Framework[CurrentSystem].NumberOfBendTorsionDefinitions;i++)
     {
@@ -8656,14 +10124,14 @@ int ReadFrameworkDefinition(void)
       TypeB=ReturnPseudoAtomNumber(TypeNameB);
       TypeC=ReturnPseudoAtomNumber(TypeNameC);
       TypeD=ReturnPseudoAtomNumber(TypeNameD);
-
+  
       // determine torsion-type
       for(j=0;j<NR_BEND_TORSION_TYPES;j++)
       {
         if(strcasecmp(BendTorsionTypes[j].Name,buffer)==0)
           BendTorsionType=j;
       }
-
+  
       // read arguments
       for(j=0;j<BendTorsionTypes[BendTorsionType].nr_args;j++)
       {
@@ -8671,7 +10139,7 @@ int ReadFrameworkDefinition(void)
         sscanf(arg_pointer,"%lf%n",&temp,&n);
         arguments[j]=(REAL)temp;
       }
-
+  
       Framework[CurrentSystem].BendTorsionDefinitionType[i]=BendTorsionType;
       Framework[CurrentSystem].BendTorsionDefinitions[i].A=TypeA;
       Framework[CurrentSystem].BendTorsionDefinitions[i].B=TypeB;
@@ -8679,7 +10147,7 @@ int ReadFrameworkDefinition(void)
       Framework[CurrentSystem].BendTorsionDefinitions[i].D=TypeD;
       for(j=0;j<BendTorsionTypes[BendTorsionType].nr_args;j++)
         Framework[CurrentSystem].BendTorsionArgumentDefinitions[i][j]=arguments[j];
-
+  
       // fill the appropriate bend/torsion-data
       for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
       {
@@ -8687,14 +10155,14 @@ int ReadFrameworkDefinition(void)
         for(B=0;B<Framework[CurrentSystem].NumberOfAtoms[CurrentFramework];B++)
         {
           CurrentTypeB=Framework[CurrentSystem].Atoms[CurrentFramework][B].Type;
-
+  
           if(CurrentTypeB==TypeB)
           {
             for(k=0;k<Framework[CurrentSystem].Connectivity[CurrentFramework][B];k++)
             {
               C=GetNeighbour(CurrentSystem,CurrentFramework,B,k);
               CurrentTypeC=Framework[CurrentSystem].Atoms[CurrentFramework][C].Type;
-
+  
               if(CurrentTypeC==TypeC)
               {
                 // we now have pairs A-B
@@ -8730,13 +10198,13 @@ int ReadFrameworkDefinition(void)
                           Framework[CurrentSystem].BendTorsions[CurrentFramework][index].B=B;
                           Framework[CurrentSystem].BendTorsions[CurrentFramework][index].C=C;
                           Framework[CurrentSystem].BendTorsions[CurrentFramework][index].D=D;
-
+  
                           Framework[CurrentSystem].BendTorsionType[CurrentFramework][index]=BendTorsionType;
                           Framework[CurrentSystem].NumberOfBendTorsionsPerType[i]++;
-
+  
                           for(j=0;j<BendTorsionTypes[BendTorsionType].nr_args;j++)
                             Framework[CurrentSystem].BendTorsionArguments[CurrentFramework][index][j]=arguments[j];
-
+  
                           switch(BendTorsionType)
                           {
                             case SMOOTHED_DIHEDRAL:
@@ -8816,7 +10284,7 @@ int ReadFrameworkDefinition(void)
                           }
                           Framework[CurrentSystem].NumberOfBendTorsions[CurrentFramework]++;
                           index=Framework[CurrentSystem].NumberOfBendTorsions[CurrentFramework];
-
+  
                           if(index>=Framework[CurrentSystem].MaxNumberOfBendTorsions[CurrentFramework])
                           {
                             Framework[CurrentSystem].MaxNumberOfBendTorsions[CurrentFramework]+=4096;
@@ -8840,6 +10308,8 @@ int ReadFrameworkDefinition(void)
       }
     }
   }
+
+  printf("Number of bonds: %d %d %d\n",Framework[0].NumberOfBonds[0],CurrentSystem,CurrentFramework);
   return 0;
 }
 
@@ -8902,22 +10372,93 @@ int IsDefinedTorsionType(int system,int f1,int A,int B,int C,int D)
   return FALSE;
 }
 
+int IsDefinedBond(int system,int f1,int A,int B)
+{
+  int i;
+
+  A%=Framework[system].NumberOfAtoms[f1];
+  B%=Framework[system].NumberOfAtoms[f1];
+
+  for(i=0;i<Framework[system].NumberOfBonds[f1];i++)
+  {
+    if(((Framework[system].Bonds[f1][i].A==A)&&(Framework[system].Bonds[f1][i].B==B))||
+       ((Framework[system].Bonds[f1][i].A==B)&&(Framework[system].Bonds[f1][i].B==A)))
+       return TRUE;
+  }
+
+  return FALSE;
+}
+
+int IsDefinedBend(int system,int f1,int A,int B,int C)
+{
+  int i;
+
+  A%=Framework[system].NumberOfAtoms[f1];
+  B%=Framework[system].NumberOfAtoms[f1];
+  C%=Framework[system].NumberOfAtoms[f1];
+
+  for(i=0;i<Framework[system].NumberOfBends[f1];i++)
+  {
+    if(((Framework[system].Bends[f1][i].A==A)&&(Framework[system].Bends[f1][i].B==B)&&(Framework[system].Bends[f1][i].C==C))||
+       ((Framework[system].Bends[f1][i].A==C)&&(Framework[system].Bends[f1][i].B==B)&&(Framework[system].Bends[f1][i].C==A)))
+       return TRUE;
+  }
+
+  return FALSE;
+}
+
+int IsDefinedTorsion(int system,int f1,int A,int B,int C,int D)
+{
+  int i;
+
+  A%=Framework[system].NumberOfAtoms[f1];
+  B%=Framework[system].NumberOfAtoms[f1];
+  C%=Framework[system].NumberOfAtoms[f1];
+  D%=Framework[system].NumberOfAtoms[f1];
+  for(i=0;i<Framework[system].NumberOfTorsions[f1];i++)
+  {
+    if(((Framework[system].Torsions[f1][i].A==A)&&(Framework[system].Torsions[f1][i].B==B)&&(Framework[system].Torsions[f1][i].C==C)&&(Framework[system].Torsions[f1][i].D==D))||
+       ((Framework[system].Torsions[f1][i].A==D)&&(Framework[system].Torsions[f1][i].B==C)&&(Framework[system].Torsions[f1][i].C==B)&&(Framework[system].Torsions[f1][i].D==A)))
+       return TRUE;
+  }
+  return FALSE;
+}
+
+int IsDefinedImproperTorsion(int system,int f1,int A,int B,int C,int D)
+{
+  int i;
+
+  A%=Framework[system].NumberOfAtoms[f1];
+  B%=Framework[system].NumberOfAtoms[f1];
+  C%=Framework[system].NumberOfAtoms[f1];
+  D%=Framework[system].NumberOfAtoms[f1];
+  for(i=0;i<Framework[system].NumberOfImproperTorsions[f1];i++)
+  {
+    if(((Framework[system].ImproperTorsions[f1][i].A==A)&&(Framework[system].ImproperTorsions[f1][i].B==B)&&(Framework[system].ImproperTorsions[f1][i].C==C)&&(Framework[system].ImproperTorsions[f1][i].D==D))||
+       ((Framework[system].ImproperTorsions[f1][i].A==D)&&(Framework[system].ImproperTorsions[f1][i].B==C)&&(Framework[system].ImproperTorsions[f1][i].C==B)&&(Framework[system].ImproperTorsions[f1][i].D==A)))
+       return TRUE;
+  }
+  return FALSE;
+}
+
 
 void MakeExclusionMatrix(int system)
 {
   int i,j,k,l,m,f1;
   int A,B,C,D;
   int index1,index2;
+  int largest_size;
 
   Framework[system].ExclusionMatrix=(char***)calloc(Framework[system].NumberOfFrameworks,sizeof(char**));
   for(f1=0;f1<Framework[system].NumberOfFrameworks;f1++)
   {
-    Framework[system].ExclusionMatrix[f1]=(char**)calloc(Framework[system].NumberOfAtoms[f1],sizeof(char*));
-    for(i=0;i<Framework[system].NumberOfAtoms[f1];i++)
+    largest_size=MAX2(Framework[system].NumberOfAtoms[f1],Framework[system].NumberOfBonds[f1]);
+
+    Framework[system].ExclusionMatrix[f1]=(char**)calloc(largest_size,sizeof(char*));
+    for(i=0;i<largest_size;i++)
     {
-      Framework[system].ExclusionMatrix[f1][i]=(char*)calloc(TotalNumberOfReplicaCells[system]*
-                    Framework[system].NumberOfAtoms[f1],sizeof(char));
-      for(j=0;j<TotalNumberOfReplicaCells[system]*Framework[system].NumberOfAtoms[f1];j++)
+      Framework[system].ExclusionMatrix[f1][i]=(char*)calloc(TotalNumberOfReplicaCells[system]*largest_size,sizeof(char));
+      for(j=0;j<TotalNumberOfReplicaCells[system]*largest_size;j++)
         Framework[system].ExclusionMatrix[f1][i][j]=0;
     }
   }
@@ -8934,24 +10475,34 @@ void MakeExclusionMatrix(int system)
         B=GetReplicaNeighbour(system,f1,A,k);
 
         // we now have 2 connected atoms: A and B
-        if(Remove12NeighboursFromChargeChargeInteraction||(RemoveBondNeighboursFromLongRangeInteraction&&IsDefinedBondType(system,f1,A,B)))
+        if(Remove12NeighboursFromVDWInteraction||(RemoveBondNeighboursFromLongRangeInteraction&&IsDefinedBond(system,f1,A,B)))
         {
           SETBIT(Framework[system].ExclusionMatrix[f1][A][B],0);
           if(B<Framework[system].NumberOfAtoms[f1])
             SETBIT(Framework[system].ExclusionMatrix[f1][B][A],0);
         }
+        // always mark as a 1-2 interaction
+        SETBIT(Framework[system].ExclusionMatrix[f1][A][B],4);
+        if(B<Framework[system].NumberOfAtoms[f1])
+          SETBIT(Framework[system].ExclusionMatrix[f1][B][A],4);
+
         for(l=0;l<Framework[system].Connectivity[f1][B];l++)
         {
           C=GetReplicaNeighbour(system,f1,B,l);
           if(A!=C)
           {
             // we now have 3 connected atoms: A, B and C
-            if(Remove13NeighboursFromChargeChargeInteraction||(RemoveBendNeighboursFromLongRangeInteraction&&IsDefinedBendType(system,f1,A,B,C)))
+            if(Remove13NeighboursFromVDWInteraction||(RemoveBendNeighboursFromLongRangeInteraction&&IsDefinedBend(system,f1,A,B,C)))
             {
               SETBIT(Framework[system].ExclusionMatrix[f1][A][C],0);
               if(C<Framework[system].NumberOfAtoms[f1])
                 SETBIT(Framework[system].ExclusionMatrix[f1][C][A],0);
             }
+
+            // always mark as a 1-3 interaction
+            SETBIT(Framework[system].ExclusionMatrix[f1][A][C],5);
+            if(C<Framework[system].NumberOfAtoms[f1])
+              SETBIT(Framework[system].ExclusionMatrix[f1][C][A],5);
           }
 
           for(m=0;m<Framework[system].Connectivity[f1][C];m++)
@@ -8960,8 +10511,17 @@ void MakeExclusionMatrix(int system)
             if((D!=B)&&(D!=A))
             {
               // we now have 4 connected atoms: A, B, C, D
-              if(Remove14NeighboursFromChargeChargeInteraction||(RemoveTorsionNeighboursFromLongRangeInteraction&&IsDefinedTorsionType(system,f1,A,B,C,D)))
+              if(Remove14NeighboursFromVDWInteraction||(RemoveTorsionNeighboursFromLongRangeInteraction&&IsDefinedTorsion(system,f1,A,B,C,D)))
+              {
                 SETBIT(Framework[system].ExclusionMatrix[f1][A][D],0);
+                if(D<Framework[system].NumberOfAtoms[f1])
+                  SETBIT(Framework[system].ExclusionMatrix[f1][D][A],0);
+              }
+
+              // always mark as a 1-4 interaction
+              SETBIT(Framework[system].ExclusionMatrix[f1][A][D],6);
+              if(D<Framework[system].NumberOfAtoms[f1])
+                SETBIT(Framework[system].ExclusionMatrix[f1][D][A],6);
             }
           }
         }
@@ -8977,10 +10537,10 @@ void MakeExclusionMatrix(int system)
       SETBIT(Framework[system].ExclusionMatrix[f1][A][A],1);
       for(k=0;k<Framework[system].Connectivity[f1][A];k++)
       {
-        B=GetNeighbour(system,f1,A,k);
+        B=GetReplicaNeighbour(system,f1,A,k);
 
         // we now have 2 connected atoms: A and B
-        if(Remove12NeighboursFromChargeChargeInteraction||(RemoveBondNeighboursFromLongRangeInteraction&&IsDefinedBondType(system,f1,A,B)))
+        if(Remove12NeighboursFromChargeChargeInteraction||(RemoveBondNeighboursFromLongRangeInteraction&&IsDefinedBond(system,f1,A,B)))
         {
           SETBIT(Framework[system].ExclusionMatrix[f1][A][B],1);
           if(B<Framework[system].NumberOfAtoms[f1])
@@ -8988,11 +10548,11 @@ void MakeExclusionMatrix(int system)
         }
         for(l=0;l<Framework[system].Connectivity[f1][B];l++)
         {
-          C=GetNeighbour(system,f1,B,l);
+          C=GetReplicaNeighbour(system,f1,B,l);
           if(A!=C)
           {
             // we now have 3 connected atoms: A, B and C
-            if(Remove13NeighboursFromChargeChargeInteraction||(RemoveBendNeighboursFromLongRangeInteraction&&IsDefinedBendType(system,f1,A,B,C)))
+            if(Remove13NeighboursFromChargeChargeInteraction||(RemoveBendNeighboursFromLongRangeInteraction&&IsDefinedBend(system,f1,A,B,C)))
             {
               SETBIT(Framework[system].ExclusionMatrix[f1][A][C],1);
               if(C<Framework[system].NumberOfAtoms[f1])
@@ -9002,12 +10562,16 @@ void MakeExclusionMatrix(int system)
 
           for(m=0;m<Framework[system].Connectivity[f1][C];m++)
           {
-            D=GetNeighbour(system,f1,C,m);
+            D=GetReplicaNeighbour(system,f1,C,m);
             if((D!=B)&&(D!=A))
             {
               // we now have 4 connected atoms: A, B, C, D
-              if(Remove14NeighboursFromChargeChargeInteraction||(RemoveTorsionNeighboursFromLongRangeInteraction&&IsDefinedTorsionType(system,f1,A,B,C,D)))
+              if(Remove14NeighboursFromChargeChargeInteraction||(RemoveTorsionNeighboursFromLongRangeInteraction&&IsDefinedTorsion(system,f1,A,B,C,D)))
+              {
                 SETBIT(Framework[system].ExclusionMatrix[f1][A][D],1);
+                if(D<Framework[system].NumberOfAtoms[f1])
+                  SETBIT(Framework[system].ExclusionMatrix[f1][D][A],1);
+              }
             }
           }
         }
@@ -9022,7 +10586,7 @@ void MakeExclusionMatrix(int system)
     {
       for(k=0;k<Framework[system].Connectivity[f1][A];k++)
       {
-        B=GetNeighbour(system,f1,A,k);
+        B=GetReplicaNeighbour(system,f1,A,k);
 
         // we now have 2 connected atoms: A and B
         index1=ReturnDipoleIndex(f1,A,B);
@@ -9034,7 +10598,7 @@ void MakeExclusionMatrix(int system)
         }
         for(l=0;l<Framework[system].Connectivity[f1][B];l++)
         {
-          C=GetNeighbour(system,f1,B,l);
+          C=GetReplicaNeighbour(system,f1,B,l);
           if(A!=C)
           {
             // we now have 3 connected atoms: A, B and C
@@ -9051,7 +10615,7 @@ void MakeExclusionMatrix(int system)
 
           for(m=0;m<Framework[system].Connectivity[f1][C];m++)
           {
-            D=GetNeighbour(system,f1,C,m);
+            D=GetReplicaNeighbour(system,f1,C,m);
             if((D!=B)&&(D!=A))
             {
               // we now have 4 connected atoms: A, B, C, D
@@ -9076,11 +10640,11 @@ void MakeExclusionMatrix(int system)
       SETBIT(Framework[system].ExclusionMatrix[f1][A][A],3);
       for(k=0;k<Framework[system].Connectivity[f1][A];k++)
       {
-        B=GetNeighbour(system,f1,A,k);
+        B=GetReplicaNeighbour(system,f1,A,k);
 
         for(l=0;l<Framework[system].Connectivity[f1][B];l++)
         {
-          C=GetNeighbour(system,f1,B,l);
+          C=GetReplicaNeighbour(system,f1,B,l);
           if(A!=C)
           {
             // we now have 3 connected atoms: A, B and C
@@ -9095,7 +10659,7 @@ void MakeExclusionMatrix(int system)
 
           for(m=0;m<Framework[system].Connectivity[f1][C];m++)
           {
-            D=GetNeighbour(system,f1,C,m);
+            D=GetReplicaNeighbour(system,f1,C,m);
             if((D!=B)&&(D!=A))
             {
               // we now have 4 connected atoms: A, B, C, D
@@ -9112,12 +10676,39 @@ void MakeExclusionMatrix(int system)
       }
     }
   }
+
+  for(f1=0;f1<Framework[system].NumberOfFrameworks;f1++)
+  {
+    Framework[system].NumberOfIntra12Interactions=0;
+    Framework[system].NumberOfIntra13Interactions=0;
+    Framework[system].NumberOfIntra14Interactions=0;
+    Framework[system].NumberOfIntra123Interactions=0;
+    Framework[system].NumberOfIntra1234Interactions=0;
+    for(i=0;i<Framework[system].NumberOfAtoms[f1];i++)
+    {
+      for(j=i+1;j<Framework[system].NumberOfAtoms[f1];j++)
+      {
+        if(BITVAL(Framework[system].ExclusionMatrix[f1][i][j],4))
+          Framework[system].NumberOfIntra12Interactions++;
+        if(BITVAL(Framework[system].ExclusionMatrix[f1][i][j],5))
+          Framework[system].NumberOfIntra13Interactions++;
+        if(BITVAL(Framework[system].ExclusionMatrix[f1][i][j],6))
+          Framework[system].NumberOfIntra14Interactions++;
+        if((BITVAL(Framework[system].ExclusionMatrix[f1][i][j],4))||(BITVAL(Framework[system].ExclusionMatrix[f1][i][j],5)))
+          Framework[system].NumberOfIntra123Interactions++;
+        if((BITVAL(Framework[system].ExclusionMatrix[f1][i][j],4))||(BITVAL(Framework[system].ExclusionMatrix[f1][i][j],5))||
+           (BITVAL(Framework[system].ExclusionMatrix[f1][i][j],6)))
+          Framework[system].NumberOfIntra1234Interactions++;
+      }
+    }
+  }
 }
 
 void MakeExcludedInteractionLists(int system)
 {
   int i,j,f1;
   int index_excluded;
+  int index_excluded14;
   int TypeA,TypeB;
 
   // make lists for exclusion in the Ewald summation (subtraction using 'erf')
@@ -9132,15 +10723,28 @@ void MakeExcludedInteractionLists(int system)
       for(j=i+1;j<Framework[system].NumberOfAtoms[f1];j++)
       {
         TypeB=Framework[system].Atoms[f1][j].Type;
-        if(BITVAL(Framework[system].ExclusionMatrix[f1][i][j],1))
-          //if((PseudoAtoms[TypeA].HasCharges)&&(PseudoAtoms[TypeB].HasCharges))
+        if(Remove14NeighboursFromChargeChargeInteraction)
+        {
+          if(BITVAL(Framework[system].ExclusionMatrix[f1][i][j],1))
             Framework[system].NumberOfExcludedIntraChargeCharge[f1]++;
+        }
+        else
+        {
+          if((BITVAL(Framework[system].ExclusionMatrix[f1][i][j],1)))
+            Framework[system].NumberOfExcludedIntraChargeCharge[f1]++;
+        }
       }
     }
 
     // allocate memory for charge-charge exclusion
     Framework[system].ExcludedIntraChargeCharge[f1]=(PAIR*)calloc(
         Framework[system].NumberOfExcludedIntraChargeCharge[f1],sizeof(PAIR));
+
+    Framework[system].NumberOfExcludedIntra14ScalingChargeCharge[f1]=0;
+
+    // allocate memory for charge-charge exclusion
+    Framework[system].ExcludedIntra14ScalingChargeCharge[f1]=(PAIR*)calloc(
+        Framework[system].NumberOfExcludedIntra14ScalingChargeCharge[f1],sizeof(PAIR));
 
 
     Framework[system].NumberOfIntraVDW[f1]=0;
@@ -9159,6 +10763,7 @@ void MakeExcludedInteractionLists(int system)
 
     // charge-charge exclusion
     index_excluded=0;
+    index_excluded14=0;
     Framework[system].NumberOfIntraCharges[f1]=0;
     for(i=0;i<Framework[system].NumberOfAtoms[f1];i++)
     {
@@ -9178,6 +10783,7 @@ void MakeExcludedInteractionLists(int system)
         }
       }
     }
+    printf("index_excluded: %d index_excluded14: %d\n",index_excluded,index_excluded14);
     
 
     // charge-bonddipole exclusion
@@ -9996,6 +11602,10 @@ void WriteRestartFramework(FILE *FilePtr)
   fwrite(&RemoveBendNeighboursFromLongRangeInteraction,sizeof(int),1,FilePtr);
   fwrite(&RemoveTorsionNeighboursFromLongRangeInteraction,sizeof(int),1,FilePtr);
 
+  fwrite(&Remove12NeighboursFromVDWInteraction,sizeof(int),1,FilePtr);
+  fwrite(&Remove13NeighboursFromVDWInteraction,sizeof(int),1,FilePtr);
+  fwrite(&Remove14NeighboursFromVDWInteraction,sizeof(int),1,FilePtr);
+
   fwrite(&Remove12NeighboursFromChargeChargeInteraction,sizeof(int),1,FilePtr);
   fwrite(&Remove13NeighboursFromChargeChargeInteraction,sizeof(int),1,FilePtr);
   fwrite(&Remove14NeighboursFromChargeChargeInteraction,sizeof(int),1,FilePtr);
@@ -10441,8 +12051,8 @@ void WriteRestartFramework(FILE *FilePtr)
   if(NumberOfModificationRules>0)
   {
     fwrite(ModificationRuleType,sizeof(int),NumberOfModificationRules,FilePtr);
-    fwrite(ModifyFrameworkAtoms,sizeof(char[6][256]),NumberOfModificationRules,FilePtr);
-    fwrite(ModifyFrameworkAtomTypes,sizeof(int[6]),NumberOfModificationRules,FilePtr);
+    fwrite(ModifyFrameworkAtoms,sizeof(char[10][256]),NumberOfModificationRules,FilePtr);
+    fwrite(ModifyFrameworkAtomTypes,sizeof(int[10]),NumberOfModificationRules,FilePtr);
   }
   // write the framework atom forbidden connectivity rules
   fwrite(&NumberOfForbiddenConnectivityRules,sizeof(int),1,FilePtr);
@@ -10482,6 +12092,10 @@ void ReadRestartFramework(FILE *FilePtr)
   fread(&RemoveBondNeighboursFromLongRangeInteraction,sizeof(int),1,FilePtr);
   fread(&RemoveBendNeighboursFromLongRangeInteraction,sizeof(int),1,FilePtr);
   fread(&RemoveTorsionNeighboursFromLongRangeInteraction,sizeof(int),1,FilePtr);
+
+  fread(&Remove12NeighboursFromVDWInteraction,sizeof(int),1,FilePtr);
+  fread(&Remove13NeighboursFromVDWInteraction,sizeof(int),1,FilePtr);
+  fread(&Remove14NeighboursFromVDWInteraction,sizeof(int),1,FilePtr);
 
   fread(&Remove12NeighboursFromChargeChargeInteraction,sizeof(int),1,FilePtr);
   fread(&Remove13NeighboursFromChargeChargeInteraction,sizeof(int),1,FilePtr);
@@ -11285,7 +12899,7 @@ void ReadRestartFramework(FILE *FilePtr)
           {
             Framework[i].MaxNumberOfExcludedIntraChargeCharge[j]=Framework[i].NumberOfExcludedIntraChargeCharge[j];
             Framework[i].ExcludedIntraChargeCharge[j]=(PAIR*)calloc(Framework[i].NumberOfExcludedIntraChargeCharge[j],sizeof(PAIR));
-            fread(Framework[i].ExcludedIntraChargeCharge[j],sizeof(PAIR),Framework[i].NumberOfExcludedIntraChargeCharge[j],FilePtr);
+            fread(Framework[i].ExcludedIntraChargeCharge[j],sizeof(TRIPLE),Framework[i].NumberOfExcludedIntraChargeCharge[j],FilePtr);
 
             Framework[i].MaxNumberOfExcludedIntraChargeBondDipole[j]=Framework[i].NumberOfExcludedIntraChargeBondDipole[j];
             Framework[i].ExcludedIntraChargeBondDipole[j]=(PAIR*)calloc(Framework[i].NumberOfExcludedIntraChargeBondDipole[j],sizeof(PAIR));
@@ -11332,11 +12946,11 @@ void ReadRestartFramework(FILE *FilePtr)
   if(NumberOfModificationRules>0)
   {
     ModificationRuleType=(int*)calloc(NumberOfModificationRules,sizeof(int));
-    ModifyFrameworkAtoms=(char(*)[6][256])calloc(NumberOfModificationRules,sizeof(char[6][256]));
-    ModifyFrameworkAtomTypes=(int(*)[6])calloc(NumberOfModificationRules,sizeof(int[6]));
+    ModifyFrameworkAtoms=(char(*)[10][256])calloc(NumberOfModificationRules,sizeof(char[10][256]));
+    ModifyFrameworkAtomTypes=(int(*)[10])calloc(NumberOfModificationRules,sizeof(int[10]));
     fread(ModificationRuleType,sizeof(int),NumberOfModificationRules,FilePtr);
-    fread(ModifyFrameworkAtoms,sizeof(char[6][256]),NumberOfModificationRules,FilePtr);
-    fread(ModifyFrameworkAtomTypes,sizeof(int[6]),NumberOfModificationRules,FilePtr);
+    fread(ModifyFrameworkAtoms,sizeof(char[10][256]),NumberOfModificationRules,FilePtr);
+    fread(ModifyFrameworkAtomTypes,sizeof(int[10]),NumberOfModificationRules,FilePtr);
   }
   fread(&NumberOfForbiddenConnectivityRules,sizeof(int),1,FilePtr);
   if(NumberOfForbiddenConnectivityRules>0)

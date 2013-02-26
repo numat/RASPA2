@@ -1,27 +1,16 @@
-/*****************************************************************************************************
+/*************************************************************************************************************
     RASPA: a molecular-dynamics, monte-carlo and optimization code for nanoporous materials
-    Copyright (C) 2006-2012 David Dubbeldam, Sofia Calero, Donald E. Ellis, and Randall Q. Snurr.
+    Copyright (C) 2006-2013 David Dubbeldam, Sofia Calero, Thijs Vlugt, Donald E. Ellis, and Randall Q. Snurr.
 
     D.Dubbeldam@uva.nl            http://molsim.science.uva.nl/
     scaldia@upo.es                http://www.upo.es/raspa/
+    t.j.h.vlugt@tudelft.nl        http://homepage.tudelft.nl/v9k6y
     don-ellis@northwestern.edu    http://dvworld.northwestern.edu/
     snurr@northwestern.edu        http://zeolites.cqe.northwestern.edu/
 
-    This file 'spectra.c' is part of RASPA.
+    This file 'spectra.c' is part of RASPA-2.0
 
-    RASPA is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    RASPA is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *****************************************************************************************************/
+ *************************************************************************************************************/
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -103,10 +92,11 @@ typedef struct powder_diffraction_peaks
 int NumberOfPeaks;
 POWDER_DIFF_PEAK *PowderDiffractionPeaks;
 
+/*
 void StoredPositionsToRealPositions(int NumberOfPositionVariables,int NumberOfBoxVariables,REAL *Positions,REAL *displacement,REAL_MATRIX HessianMatrix,REAL_MATRIX3x3 StoredBox,REAL_MATRIX3x3 StoredInverseBox)
 {
   int i,j,f1,l,m,n,Type,A;
-  int index;
+  INT_VECTOR3 index;
   REAL_MATRIX3x3 Transform,RotationMatrix;
   REAL det,TotalMass,Mass,temp,EulerAngle;
   VECTOR r,pos,com,t,p;
@@ -225,9 +215,9 @@ void StoredPositionsToRealPositions(int NumberOfPositionVariables,int NumberOfBo
       {
         index=Framework[CurrentSystem].Atoms[f1][i].HessianIndex;
         Mass=PseudoAtoms[Framework[CurrentSystem].Atoms[f1][i].Type].Mass;
-        r.x=Positions[index]+displacement[index]/sqrt(Mass);
-        r.y=Positions[index+1]+displacement[index+1]/sqrt(Mass);
-        r.z=Positions[index+2]+displacement[index+2]/sqrt(Mass);
+        r.x=Positions[index.x]+displacement[index.x]/sqrt(Mass);
+        r.y=Positions[index.y]+displacement[index.y]/sqrt(Mass);
+        r.z=Positions[index.z]+displacement[index.z]/sqrt(Mass);
         Framework[CurrentSystem].Atoms[f1][i].Position.x=Transform.ax*r.x+Transform.bx*r.y+Transform.cx*r.z;
         Framework[CurrentSystem].Atoms[f1][i].Position.y=Transform.ay*r.x+Transform.by*r.y+Transform.cy*r.z;
         Framework[CurrentSystem].Atoms[f1][i].Position.z=Transform.az*r.x+Transform.bz*r.y+Transform.cz*r.z;
@@ -244,9 +234,9 @@ void StoredPositionsToRealPositions(int NumberOfPositionVariables,int NumberOfBo
       if(Components[Type].Groups[l].Rigid) // rigid unit
       {
         Mass=Components[Type].Groups[l].Mass;
-        pos.x=Positions[index]+displacement[index]/sqrt(Mass);
-        pos.y=Positions[index+1]+displacement[index+1]/sqrt(Mass);
-        pos.z=Positions[index+2]+displacement[index+2]/sqrt(Mass);
+        pos.x=Positions[index.x]+displacement[index.x]/sqrt(Mass);
+        pos.y=Positions[index.y]+displacement[index.y]/sqrt(Mass);
+        pos.z=Positions[index.z]+displacement[index.z]/sqrt(Mass);
         Adsorbates[CurrentSystem][m].Groups[l].CenterOfMassPosition.x=Transform.ax*pos.x+Transform.bx*pos.y+Transform.cx*pos.z;
         Adsorbates[CurrentSystem][m].Groups[l].CenterOfMassPosition.y=Transform.ay*pos.x+Transform.by*pos.y+Transform.cy*pos.z;
         Adsorbates[CurrentSystem][m].Groups[l].CenterOfMassPosition.z=Transform.az*pos.x+Transform.bz*pos.y+Transform.cz*pos.z;
@@ -301,9 +291,9 @@ void StoredPositionsToRealPositions(int NumberOfPositionVariables,int NumberOfBo
           index=Adsorbates[CurrentSystem][m].Atoms[A].HessianIndex;
           Mass=PseudoAtoms[Adsorbates[CurrentSystem][m].Atoms[A].Type].Mass;
 
-          r.x=Positions[index]+displacement[index]/sqrt(Mass);
-          r.y=Positions[index+1]+displacement[index+1]/sqrt(Mass);
-          r.z=Positions[index+2]+displacement[index+2]/sqrt(Mass);
+          r.x=Positions[index.x]+displacement[index.x]/sqrt(Mass);
+          r.y=Positions[index.y]+displacement[index.y]/sqrt(Mass);
+          r.z=Positions[index.z]+displacement[index.z]/sqrt(Mass);
           Adsorbates[CurrentSystem][m].Atoms[A].Position.x=Transform.ax*r.x+Transform.bx*r.y+Transform.cx*r.z;
           Adsorbates[CurrentSystem][m].Atoms[A].Position.y=Transform.ay*r.x+Transform.by*r.y+Transform.cy*r.z;
           Adsorbates[CurrentSystem][m].Atoms[A].Position.z=Transform.az*r.x+Transform.bz*r.y+Transform.cz*r.z;
@@ -321,9 +311,9 @@ void StoredPositionsToRealPositions(int NumberOfPositionVariables,int NumberOfBo
       if(Components[Type].Groups[l].Rigid) // rigid unit
       {
         Mass=Components[Type].Groups[l].Mass;
-        pos.x=Positions[index]+displacement[index]/sqrt(Mass);
-        pos.y=Positions[index+1]+displacement[index+1]/sqrt(Mass);
-        pos.z=Positions[index+2]+displacement[index+2]/sqrt(Mass);
+        pos.x=Positions[index.x]+displacement[index.x]/sqrt(Mass);
+        pos.y=Positions[index.y]+displacement[index.y]/sqrt(Mass);
+        pos.z=Positions[index.z]+displacement[index.z]/sqrt(Mass);
         Cations[CurrentSystem][m].Groups[l].CenterOfMassPosition.x=Transform.ax*pos.x+Transform.bx*pos.y+Transform.cx*pos.z;
         Cations[CurrentSystem][m].Groups[l].CenterOfMassPosition.y=Transform.ay*pos.x+Transform.by*pos.y+Transform.cy*pos.z;
         Cations[CurrentSystem][m].Groups[l].CenterOfMassPosition.z=Transform.az*pos.x+Transform.bz*pos.y+Transform.cz*pos.z;
@@ -378,9 +368,9 @@ void StoredPositionsToRealPositions(int NumberOfPositionVariables,int NumberOfBo
           index=Cations[CurrentSystem][m].Atoms[A].HessianIndex;
           Mass=PseudoAtoms[Cations[CurrentSystem][m].Atoms[A].Type].Mass;
 
-          r.x=Positions[index]+displacement[index]/sqrt(Mass);
-          r.y=Positions[index+1]+displacement[index+1]/sqrt(Mass);
-          r.z=Positions[index+2]+displacement[index+2]/sqrt(Mass);
+          r.x=Positions[index.x]+displacement[index.x]/sqrt(Mass);
+          r.y=Positions[index.y]+displacement[index.y]/sqrt(Mass);
+          r.z=Positions[index.z]+displacement[index.z]/sqrt(Mass);
           Cations[CurrentSystem][m].Atoms[A].Position.x=Transform.ax*r.x+Transform.bx*r.y+Transform.cx*r.z;
           Cations[CurrentSystem][m].Atoms[A].Position.y=Transform.ay*r.x+Transform.by*r.y+Transform.cy*r.z;
           Cations[CurrentSystem][m].Atoms[A].Position.z=Transform.az*r.x+Transform.bz*r.y+Transform.cz*r.z;
@@ -390,7 +380,7 @@ void StoredPositionsToRealPositions(int NumberOfPositionVariables,int NumberOfBo
   }
 
 }
-
+*/
 
 void WriteIR(void)
 {
@@ -1131,7 +1121,7 @@ void MakeNormalModeMovie(int NumberOfPositionVariables,int NumberOfBoxVariables,
   REAL *displacement;
   REAL StoredVolume,MaximumVolumeChange,VolumeChange;
   const REAL scale=1.0;
-  int index;
+  INT_VECTOR3 index;
 
   n=NumberOfPositionVariables+NumberOfBoxVariables;
 
@@ -1168,7 +1158,8 @@ void MakeNormalModeMovie(int NumberOfPositionVariables,int NumberOfBoxVariables,
         for(i=0;i<n;i++)
           displacement[i]=factor*HessianMatrix.element[mode][i];
 
-        StoredPositionsToRealPositions(NumberOfPositionVariables,NumberOfBoxVariables,Positions,displacement,HessianMatrix,StoredBox,StoredInverseBox);
+        // TODO!!! 08-02-2012
+        //StoredPositionsToRealPositions(NumberOfPositionVariables,NumberOfBoxVariables,Positions,displacement,HessianMatrix,StoredBox,StoredInverseBox);
 
         // correct the positions for constraints
         if(CorrectNormalModesForConstraints)
@@ -1546,7 +1537,7 @@ int ProjectConstraintsFromHessianMatrixMassWeighted(int np,int nb,REAL *Gradient
   int i,j,k,m,n,f1,l,ia;
   int A,B,C,D;
   int Type,NumberOfConstraints;
-  int index_i,index_j,index_k,index_l;
+  INT_VECTOR3 index_i,index_j,index_k,index_l;
   int NumberOfBonds,NumberOfBends,NumberOfTorsions,NumberOfImproperTorsions,NumberOfInversionBends;
   REAL dot_produkt,norm,length;
   REAL_MATRIX PrimativeUnitvectors,PrimativeUnitvectorsTranspose,ProjectionOperator,ProjectionOperator2;
@@ -1608,29 +1599,29 @@ int ProjectConstraintsFromHessianMatrixMassWeighted(int np,int nb,REAL *Gradient
       {
         index_i=Framework[CurrentSystem].Atoms[f1][i].HessianIndex;
 
-        if(index_i>=0)
+        //if(index_i>=0)
         {
           switch(Dimension)
           {
             case 2:
-              PrimativeUnitvectors.element[NumberOfConstraints][index_i]=1.0/Weights[index_i];
-              PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=0.0;
+              PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=1.0/Weights[index_i.x];
+              PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=0.0;
 
-              PrimativeUnitvectors.element[NumberOfConstraints+1][index_i]=0.0;
-              PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+1]=1.0/Weights[index_i+1];
+              PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.x]=0.0;
+              PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.y]=1.0/Weights[index_i.y];
               break;
             case 3:
-              PrimativeUnitvectors.element[NumberOfConstraints][index_i]=1.0/Weights[index_i];
-              PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=0.0;
-              PrimativeUnitvectors.element[NumberOfConstraints][index_i+2]=0.0;
+              PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=1.0/Weights[index_i.x];
+              PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=0.0;
+              PrimativeUnitvectors.element[NumberOfConstraints][index_i.z]=0.0;
 
-              PrimativeUnitvectors.element[NumberOfConstraints+1][index_i]=0.0;
-              PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+1]=1.0/Weights[index_i+1];
-              PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+2]=0.0;
+              PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.x]=0.0;
+              PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.y]=1.0/Weights[index_i.y];
+              PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.z]=0.0;
 
-              PrimativeUnitvectors.element[NumberOfConstraints+2][index_i]=0.0;
-              PrimativeUnitvectors.element[NumberOfConstraints+2][index_i+1]=0.0;
-              PrimativeUnitvectors.element[NumberOfConstraints+2][index_i+2]=1.0/Weights[index_i+2];
+              PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.x]=0.0;
+              PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.y]=0.0;
+              PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.z]=1.0/Weights[index_i.z];
               break;
           }
         }
@@ -1646,29 +1637,29 @@ int ProjectConstraintsFromHessianMatrixMassWeighted(int np,int nb,REAL *Gradient
         {
           index_i=Adsorbates[CurrentSystem][m].Groups[l].HessianIndex;
 
-          if(index_i>=0)
+          //if(index_i>=0)
           {
             switch(Dimension)
             {
               case 2:
-                PrimativeUnitvectors.element[NumberOfConstraints][index_i]=1.0/Weights[index_i];
-                PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=0.0;
+                PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=1.0/Weights[index_i.x];
+                PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=0.0;
 
-                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i]=0.0;
-                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+1]=1.0/Weights[index_i+1];
+                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.x]=0.0;
+                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.y]=1.0/Weights[index_i.y];
                 break;
               case 3:
-                PrimativeUnitvectors.element[NumberOfConstraints][index_i]=1.0/Weights[index_i];
-                PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=0.0;
-                PrimativeUnitvectors.element[NumberOfConstraints][index_i+2]=0.0;
+                PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=1.0/Weights[index_i.x];
+                PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=0.0;
+                PrimativeUnitvectors.element[NumberOfConstraints][index_i.z]=0.0;
 
-                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i]=0.0;
-                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+1]=1.0/Weights[index_i+1];
-                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+2]=0.0;
+                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.x]=0.0;
+                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.y]=1.0/Weights[index_i.y];
+                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.z]=0.0;
 
-                PrimativeUnitvectors.element[NumberOfConstraints+2][index_i]=0.0;
-                PrimativeUnitvectors.element[NumberOfConstraints+2][index_i+1]=0.0;
-                PrimativeUnitvectors.element[NumberOfConstraints+2][index_i+2]=1.0/Weights[index_i+2];
+                PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.x]=0.0;
+                PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.y]=0.0;
+                PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.z]=1.0/Weights[index_i.z];
                 break;
             }
           }
@@ -1680,29 +1671,29 @@ int ProjectConstraintsFromHessianMatrixMassWeighted(int np,int nb,REAL *Gradient
             A=Components[Type].Groups[l].Atoms[ia];
             index_i=Adsorbates[CurrentSystem][m].Atoms[A].HessianIndex;
 
-            if(index_i>=0)
+            //if(index_i>=0)
             {
               switch(Dimension)
               {
                 case 2:
-                  PrimativeUnitvectors.element[NumberOfConstraints][index_i]=1.0/Weights[index_i];
-                  PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=0.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=1.0/Weights[index_i.x];
+                  PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=0.0;
 
-                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i]=0.0;
-                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+1]=1.0/Weights[index_i+1];
+                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.x]=0.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.y]=1.0/Weights[index_i.y];
                   break;
                 case 3:
-                  PrimativeUnitvectors.element[NumberOfConstraints][index_i]=1.0/Weights[index_i];
-                  PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=0.0;
-                  PrimativeUnitvectors.element[NumberOfConstraints][index_i+2]=0.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=1.0/Weights[index_i.x];
+                  PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=0.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints][index_i.z]=0.0;
 
-                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i]=0.0;
-                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+1]=1.0/Weights[index_i+1];
-                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+2]=0.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.x]=0.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.y]=1.0/Weights[index_i.y];
+                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.z]=0.0;
 
-                  PrimativeUnitvectors.element[NumberOfConstraints+2][index_i]=0.0;
-                  PrimativeUnitvectors.element[NumberOfConstraints+2][index_i+1]=0.0;
-                  PrimativeUnitvectors.element[NumberOfConstraints+2][index_i+2]=1.0/Weights[index_i+2];
+                  PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.x]=0.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.y]=0.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.z]=1.0/Weights[index_i.z];
                   break;
               }
             }
@@ -1720,29 +1711,29 @@ int ProjectConstraintsFromHessianMatrixMassWeighted(int np,int nb,REAL *Gradient
         {
           index_i=Cations[CurrentSystem][m].Groups[l].HessianIndex;
 
-          if(index_i>=0)
+          //if(index_i>=0)
           {
             switch(Dimension)
             {
               case 2:
-                PrimativeUnitvectors.element[NumberOfConstraints][index_i]=1.0/Weights[index_i];
-                PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=0.0;
+                PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=1.0/Weights[index_i.x];
+                PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=0.0;
 
-                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i]=0.0;
-                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+1]=1.0/Weights[index_i+1];
+                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.x]=0.0;
+                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.y]=1.0/Weights[index_i.y];
                 break;
               case 3:
-                PrimativeUnitvectors.element[NumberOfConstraints][index_i]=1.0/Weights[index_i];
-                PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=0.0;
-                PrimativeUnitvectors.element[NumberOfConstraints][index_i+2]=0.0;
+                PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=1.0/Weights[index_i.x];
+                PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=0.0;
+                PrimativeUnitvectors.element[NumberOfConstraints][index_i.z]=0.0;
 
-                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i]=0.0;
-                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+1]=1.0/Weights[index_i+1];
-                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+2]=0.0;
+                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.x]=0.0;
+                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.y]=1.0/Weights[index_i.y];
+                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.z]=0.0;
 
-                PrimativeUnitvectors.element[NumberOfConstraints+2][index_i]=0.0;
-                PrimativeUnitvectors.element[NumberOfConstraints+2][index_i+1]=0.0;
-                PrimativeUnitvectors.element[NumberOfConstraints+2][index_i+2]=1.0/Weights[index_i+2];
+                PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.x]=0.0;
+                PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.y]=0.0;
+                PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.z]=1.0/Weights[index_i.z];
                 break;
             }
           }
@@ -1754,29 +1745,29 @@ int ProjectConstraintsFromHessianMatrixMassWeighted(int np,int nb,REAL *Gradient
             A=Components[Type].Groups[l].Atoms[ia];
             index_i=Cations[CurrentSystem][m].Atoms[A].HessianIndex;
 
-            if(index_i>=0)
+            //if(index_i>=0)
             {
               switch(Dimension)
               {
                 case 2:
-                  PrimativeUnitvectors.element[NumberOfConstraints][index_i]=1.0/Weights[index_i];
-                  PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=0.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=1.0/Weights[index_i.x];
+                  PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=0.0;
 
-                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i]=0.0;
-                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+1]=1.0/Weights[index_i+1];
+                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.x]=0.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.y]=1.0/Weights[index_i.y];
                   break;
                 case 3:
-                  PrimativeUnitvectors.element[NumberOfConstraints][index_i]=1.0/Weights[index_i];
-                  PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=0.0;
-                  PrimativeUnitvectors.element[NumberOfConstraints][index_i+2]=0.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=1.0/Weights[index_i.x];
+                  PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=0.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints][index_i.z]=0.0;
 
-                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i]=0.0;
-                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+1]=1.0/Weights[index_i+1];
-                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+2]=0.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.x]=0.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.y]=1.0/Weights[index_i.y];
+                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.z]=0.0;
 
-                  PrimativeUnitvectors.element[NumberOfConstraints+2][index_i]=0.0;
-                  PrimativeUnitvectors.element[NumberOfConstraints+2][index_i+1]=0.0;
-                  PrimativeUnitvectors.element[NumberOfConstraints+2][index_i+2]=1.0/Weights[index_i+2];
+                  PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.x]=0.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.y]=0.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.z]=1.0/Weights[index_i.z];
                   break;
               }
             }
@@ -1799,29 +1790,29 @@ int ProjectConstraintsFromHessianMatrixMassWeighted(int np,int nb,REAL *Gradient
         index_i=Framework[CurrentSystem].Atoms[f1][i].HessianIndex;
         posA=Framework[CurrentSystem].Atoms[f1][i].Position;
 
-        if(index_i>=0)
+        //if(index_i>=0)
         {
           switch(Dimension)
           {
             case 2:
-              PrimativeUnitvectors.element[NumberOfConstraints][index_i]=0.0;
-              PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=-(posA.z-com.z)/Weights[index_i+1];
+              PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=0.0;
+              PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=-(posA.z-com.z)/Weights[index_i.y];
 
-              PrimativeUnitvectors.element[NumberOfConstraints+1][index_i]=(posA.z-com.z)/Weights[index_i];
-              PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+1]=0.0;
+              PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.x]=(posA.z-com.z)/Weights[index_i.x];
+              PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.y]=0.0;
               break;
             case 3:
-              PrimativeUnitvectors.element[NumberOfConstraints][index_i]=0.0;
-              PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=-(posA.z-com.z)/Weights[index_i+1];
-              PrimativeUnitvectors.element[NumberOfConstraints][index_i+2]=(posA.y-com.y)/Weights[index_i+2];
+              PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=0.0;
+              PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=-(posA.z-com.z)/Weights[index_i.y];
+              PrimativeUnitvectors.element[NumberOfConstraints][index_i.z]=(posA.y-com.y)/Weights[index_i.z];
 
-              PrimativeUnitvectors.element[NumberOfConstraints+1][index_i]=(posA.z-com.z)/Weights[index_i];
-              PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+1]=0.0;
-              PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+2]=-(posA.x-com.x)/Weights[index_i+2];
+              PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.x]=(posA.z-com.z)/Weights[index_i.x];
+              PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.y]=0.0;
+              PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.z]=-(posA.x-com.x)/Weights[index_i.z];
 
-              PrimativeUnitvectors.element[NumberOfConstraints+2][index_i]=-(posA.y-com.y)/Weights[index_i];
-              PrimativeUnitvectors.element[NumberOfConstraints+2][index_i+1]=(posA.x-com.x)/Weights[index_i+1];
-              PrimativeUnitvectors.element[NumberOfConstraints+2][index_i+2]=0.0;
+              PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.x]=-(posA.y-com.y)/Weights[index_i.x];
+              PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.y]=(posA.x-com.x)/Weights[index_i.y];
+              PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.z]=0.0;
               break;
           }
         }
@@ -1838,29 +1829,29 @@ int ProjectConstraintsFromHessianMatrixMassWeighted(int np,int nb,REAL *Gradient
           index_i=Adsorbates[CurrentSystem][m].Groups[l].HessianIndex;
           posA=Adsorbates[CurrentSystem][m].Groups[l].CenterOfMassPosition;
 
-          if(index_i>=0)
+          //if(index_i>=0)
           {
             switch(Dimension)
             {
               case 2:
-                PrimativeUnitvectors.element[NumberOfConstraints][index_i]=0.0;
-                PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=-(posA.z-com.z)/Weights[index_i+1];
+                PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=0.0;
+                PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=-(posA.z-com.z)/Weights[index_i.y];
 
-                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i]=(posA.z-com.z)/Weights[index_i];
-                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+1]=0.0;
+                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.x]=(posA.z-com.z)/Weights[index_i.x];
+                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.y]=0.0;
                 break;
               case 3:
-                PrimativeUnitvectors.element[NumberOfConstraints][index_i]=0.0;
-                PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=-(posA.z-com.z)/Weights[index_i+1];
-                PrimativeUnitvectors.element[NumberOfConstraints][index_i+2]=(posA.y-com.y)/Weights[index_i+2];
+                PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=0.0;
+                PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=-(posA.z-com.z)/Weights[index_i.y];
+                PrimativeUnitvectors.element[NumberOfConstraints][index_i.z]=(posA.y-com.y)/Weights[index_i.z];
 
-                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i]=(posA.z-com.z)/Weights[index_i];
-                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+1]=0.0;
-                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+2]=-(posA.x-com.x)/Weights[index_i+2];
+                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.x]=(posA.z-com.z)/Weights[index_i.x];
+                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.y]=0.0;
+                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.z]=-(posA.x-com.x)/Weights[index_i.z];
 
-                PrimativeUnitvectors.element[NumberOfConstraints+2][index_i]=-(posA.y-com.y)/Weights[index_i];
-                PrimativeUnitvectors.element[NumberOfConstraints+2][index_i+1]=(posA.x-com.x)/Weights[index_i+1];
-                PrimativeUnitvectors.element[NumberOfConstraints+2][index_i+2]=0.0;
+                PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.x]=-(posA.y-com.y)/Weights[index_i.x];
+                PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.y]=(posA.x-com.x)/Weights[index_i.y];
+                PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.z]=0.0;
                 break;
             }
           }
@@ -1873,29 +1864,29 @@ int ProjectConstraintsFromHessianMatrixMassWeighted(int np,int nb,REAL *Gradient
             index_i=Adsorbates[CurrentSystem][m].Atoms[A].HessianIndex;
             posA=Adsorbates[CurrentSystem][m].Atoms[A].Position;
 
-            if(index_i>=0)
+            //if(index_i>=0)
             {
               switch(Dimension)
               {
                 case 2:
-                  PrimativeUnitvectors.element[NumberOfConstraints][index_i]=0.0;
-                  PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=-(posA.z-com.z)/Weights[index_i+1];
+                  PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=0.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=-(posA.z-com.z)/Weights[index_i.y];
 
-                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i]=(posA.z-com.z)/Weights[index_i];
-                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+1]=0.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.x]=(posA.z-com.z)/Weights[index_i.x];
+                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.y]=0.0;
                   break;
                 case 3:
-                  PrimativeUnitvectors.element[NumberOfConstraints][index_i]=0.0;
-                  PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=-(posA.z-com.z)/Weights[index_i+1];
-                  PrimativeUnitvectors.element[NumberOfConstraints][index_i+2]=(posA.y-com.y)/Weights[index_i+2];
+                  PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=0.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=-(posA.z-com.z)/Weights[index_i.y];
+                  PrimativeUnitvectors.element[NumberOfConstraints][index_i.z]=(posA.y-com.y)/Weights[index_i.z];
 
-                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i]=(posA.z-com.z)/Weights[index_i];
-                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+1]=0.0;
-                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+2]=-(posA.x-com.x)/Weights[index_i+2];
+                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.x]=(posA.z-com.z)/Weights[index_i.x];
+                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.y]=0.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.z]=-(posA.x-com.x)/Weights[index_i.z];
 
-                  PrimativeUnitvectors.element[NumberOfConstraints+2][index_i]=-(posA.y-com.y)/Weights[index_i];
-                  PrimativeUnitvectors.element[NumberOfConstraints+2][index_i+1]=(posA.x-com.x)/Weights[index_i+1];
-                  PrimativeUnitvectors.element[NumberOfConstraints+2][index_i+2]=0.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.x]=-(posA.y-com.y)/Weights[index_i.x];
+                  PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.y]=(posA.x-com.x)/Weights[index_i.y];
+                  PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.z]=0.0;
                   break;
               }
             }
@@ -1914,29 +1905,29 @@ int ProjectConstraintsFromHessianMatrixMassWeighted(int np,int nb,REAL *Gradient
           index_i=Cations[CurrentSystem][m].Groups[l].HessianIndex;
           posA=Cations[CurrentSystem][m].Groups[l].CenterOfMassPosition;
 
-          if(index_i>=0)
+          //if(index_i>=0)
           {
             switch(Dimension)
             {
               case 2:
-                PrimativeUnitvectors.element[NumberOfConstraints][index_i]=0.0;
-                PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=-(posA.z-com.z)/Weights[index_i+1];
+                PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=0.0;
+                PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=-(posA.z-com.z)/Weights[index_i.y];
 
-                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i]=(posA.z-com.z)/Weights[index_i];
-                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+1]=0.0;
+                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.x]=(posA.z-com.z)/Weights[index_i.x];
+                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.y]=0.0;
                 break;
               case 3:
-                PrimativeUnitvectors.element[NumberOfConstraints][index_i]=0.0;
-                PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=-(posA.z-com.z)/Weights[index_i+1];
-                PrimativeUnitvectors.element[NumberOfConstraints][index_i+2]=(posA.y-com.y)/Weights[index_i+2];
+                PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=0.0;
+                PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=-(posA.z-com.z)/Weights[index_i.y];
+                PrimativeUnitvectors.element[NumberOfConstraints][index_i.z]=(posA.y-com.y)/Weights[index_i.z];
 
-                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i]=(posA.z-com.z)/Weights[index_i];
-                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+1]=0.0;
-                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+2]=-(posA.x-com.x)/Weights[index_i+2];
+                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.x]=(posA.z-com.z)/Weights[index_i.x];
+                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.y]=0.0;
+                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.z]=-(posA.x-com.x)/Weights[index_i.z];
 
-                PrimativeUnitvectors.element[NumberOfConstraints+2][index_i]=-(posA.y-com.y)/Weights[index_i];
-                PrimativeUnitvectors.element[NumberOfConstraints+2][index_i+1]=(posA.x-com.x)/Weights[index_i+1];
-                PrimativeUnitvectors.element[NumberOfConstraints+2][index_i+2]=0.0;
+                PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.x]=-(posA.y-com.y)/Weights[index_i.x];
+                PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.y]=(posA.x-com.x)/Weights[index_i.y];
+                PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.z]=0.0;
                 break;
             }
           }
@@ -1949,29 +1940,29 @@ int ProjectConstraintsFromHessianMatrixMassWeighted(int np,int nb,REAL *Gradient
             index_i=Cations[CurrentSystem][m].Atoms[A].HessianIndex;
             posA=Cations[CurrentSystem][m].Atoms[A].Position;
 
-            if(index_i>=0)
+            //if(index_i>=0)
             {
               switch(Dimension)
               {
                 case 2:
-                  PrimativeUnitvectors.element[NumberOfConstraints][index_i]=0.0;
-                  PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=-(posA.z-com.z)/Weights[index_i+1];
+                  PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=0.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=-(posA.z-com.z)/Weights[index_i.y];
 
-                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i]=(posA.z-com.z)/Weights[index_i];
-                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+1]=0.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.x]=(posA.z-com.z)/Weights[index_i.x];
+                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.y]=0.0;
                   break;
                 case 3:
-                  PrimativeUnitvectors.element[NumberOfConstraints][index_i]=0.0;
-                  PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=-(posA.z-com.z)/Weights[index_i+1];
-                  PrimativeUnitvectors.element[NumberOfConstraints][index_i+2]=(posA.y-com.y)/Weights[index_i+2];
+                  PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=0.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=-(posA.z-com.z)/Weights[index_i.y];
+                  PrimativeUnitvectors.element[NumberOfConstraints][index_i.z]=(posA.y-com.y)/Weights[index_i.z];
 
-                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i]=(posA.z-com.z)/Weights[index_i];
-                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+1]=0.0;
-                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+2]=-(posA.x-com.x)/Weights[index_i+2];
+                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.x]=(posA.z-com.z)/Weights[index_i.x];
+                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.y]=0.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.z]=-(posA.x-com.x)/Weights[index_i.z];
 
-                  PrimativeUnitvectors.element[NumberOfConstraints+2][index_i]=-(posA.y-com.y)/Weights[index_i];
-                  PrimativeUnitvectors.element[NumberOfConstraints+2][index_i+1]=(posA.x-com.x)/Weights[index_i+1];
-                  PrimativeUnitvectors.element[NumberOfConstraints+2][index_i+2]=0.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.x]=-(posA.y-com.y)/Weights[index_i.x];
+                  PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.y]=(posA.x-com.x)/Weights[index_i.y];
+                  PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.z]=0.0;
                   break;
               }
             }
@@ -1999,37 +1990,37 @@ int ProjectConstraintsFromHessianMatrixMassWeighted(int np,int nb,REAL *Gradient
         index_i=Adsorbates[CurrentSystem][m].Atoms[A].HessianIndex;
         index_j=Adsorbates[CurrentSystem][m].Atoms[B].HessianIndex;
 
-        if((index_i<0)&&(index_j<0)) continue;
+        //if((index_i<0)&&(index_j<0)) continue;
 
         posA=Adsorbates[CurrentSystem][m].Atoms[A].Position;
         posB=Adsorbates[CurrentSystem][m].Atoms[B].Position;
 
         ReturnWilsonVectorsBond(posA,posB,&ha,&hb);
 
-        if(index_i>=0)
+        //if(index_i>=0)
         {
           switch(Dimension)
           {
             case 3:
-              PrimativeUnitvectors.element[NumberOfConstraints][index_i+2]=Weights[index_i+2]*ha.z;
+              PrimativeUnitvectors.element[NumberOfConstraints][index_i.z]=Weights[index_i.z]*ha.z;
             case 2:
-              PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=Weights[index_i+1]*ha.y;
+              PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=Weights[index_i.y]*ha.y;
             case 1:
-              PrimativeUnitvectors.element[NumberOfConstraints][index_i]=Weights[index_i]*ha.x;
+              PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=Weights[index_i.x]*ha.x;
               break;
           }
         }
 
-        if(index_j>=0)
+        //if(index_j>=0)
         {
           switch(Dimension)
           {
             case 3:
-              PrimativeUnitvectors.element[NumberOfConstraints][index_j+2]=Weights[index_j+2]*hb.z;
+              PrimativeUnitvectors.element[NumberOfConstraints][index_j.z]=Weights[index_j.z]*hb.z;
             case 2:
-              PrimativeUnitvectors.element[NumberOfConstraints][index_j+1]=Weights[index_j+1]*hb.y;
+              PrimativeUnitvectors.element[NumberOfConstraints][index_j.y]=Weights[index_j.y]*hb.y;
             case 1:
-              PrimativeUnitvectors.element[NumberOfConstraints][index_j]=Weights[index_j]*hb.x;
+              PrimativeUnitvectors.element[NumberOfConstraints][index_j.x]=Weights[index_j.x]*hb.x;
               break;
           }
         }
@@ -2053,37 +2044,37 @@ int ProjectConstraintsFromHessianMatrixMassWeighted(int np,int nb,REAL *Gradient
     index_i=DistanceConstraints[CurrentSystem][m][0]->HessianIndex;
     index_j=DistanceConstraints[CurrentSystem][m][1]->HessianIndex;
 
-    if((index_i<0)&&(index_j<0)) continue;
+    //if((index_i<0)&&(index_j<0)) continue;
 
     posA=DistanceConstraints[CurrentSystem][m][0]->Position;
     posB=DistanceConstraints[CurrentSystem][m][1]->Position;
 
     ReturnWilsonVectorsBond(posA,posB,&ha,&hb);
 
-    if(index_i>=0)
+    //if(index_i>=0)
     {
       switch(Dimension)
       {
         case 3:
-          PrimativeUnitvectors.element[NumberOfConstraints][index_i+2]=Weights[index_i+2]*ha.z;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_i.z]=Weights[index_i.z]*ha.z;
         case 2:
-          PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=Weights[index_i+1]*ha.y;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=Weights[index_i.y]*ha.y;
         case 1:
-          PrimativeUnitvectors.element[NumberOfConstraints][index_i]=Weights[index_i]*ha.x;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=Weights[index_i.x]*ha.x;
           break;
       }
     }
 
-    if(index_j>=0)
+    //if(index_j>=0)
     {
       switch(Dimension)
       {
         case 3:
-          PrimativeUnitvectors.element[NumberOfConstraints][index_j+2]=Weights[index_j+2]*hb.z;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_j.z]=Weights[index_j.z]*hb.z;
         case 2:
-          PrimativeUnitvectors.element[NumberOfConstraints][index_j+1]=Weights[index_j+1]*hb.y;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_j.y]=Weights[index_j.y]*hb.y;
         case 1:
-          PrimativeUnitvectors.element[NumberOfConstraints][index_j]=Weights[index_j]*hb.x;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_j.x]=Weights[index_j.x]*hb.x;
           break;
       }
     }
@@ -2116,7 +2107,7 @@ int ProjectConstraintsFromHessianMatrixMassWeighted(int np,int nb,REAL *Gradient
         index_j=Adsorbates[CurrentSystem][m].Atoms[B].HessianIndex;
         index_k=Adsorbates[CurrentSystem][m].Atoms[C].HessianIndex;
 
-        if((index_i<0)&&(index_j<0)&&(index_k<0)) continue;
+        //if((index_i<0)&&(index_j<0)&&(index_k<0)) continue;
 
         posA=Adsorbates[CurrentSystem][m].Atoms[A].Position;
         posB=Adsorbates[CurrentSystem][m].Atoms[B].Position;
@@ -2124,44 +2115,44 @@ int ProjectConstraintsFromHessianMatrixMassWeighted(int np,int nb,REAL *Gradient
 
         ReturnWilsonVectorsBend(posA,posB,posC,&ha,&hb,&hc);
 
-        if(index_i>=0)
+        //if(index_i>=0)
         {
           switch(Dimension)
           {
             case 3:
-              PrimativeUnitvectors.element[NumberOfConstraints][index_i+2]=Weights[index_i+2]*ha.z;
+              PrimativeUnitvectors.element[NumberOfConstraints][index_i.z]=Weights[index_i.z]*ha.z;
             case 2:
-              PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=Weights[index_i+1]*ha.y;
+              PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=Weights[index_i.y]*ha.y;
             case 1:
-              PrimativeUnitvectors.element[NumberOfConstraints][index_i]=Weights[index_i]*ha.x;
+              PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=Weights[index_i.x]*ha.x;
               break;
           }
         }
 
-        if(index_j>=0)
+        //if(index_j>=0)
         {
           switch(Dimension)
           {
             case 3:
-              PrimativeUnitvectors.element[NumberOfConstraints][index_j+2]=Weights[index_j+2]*hb.z;
+              PrimativeUnitvectors.element[NumberOfConstraints][index_j.z]=Weights[index_j.z]*hb.z;
             case 2:
-              PrimativeUnitvectors.element[NumberOfConstraints][index_j+1]=Weights[index_j+1]*hb.y;
+              PrimativeUnitvectors.element[NumberOfConstraints][index_j.y]=Weights[index_j.y]*hb.y;
             case 1:
-              PrimativeUnitvectors.element[NumberOfConstraints][index_j]=Weights[index_j]*hb.x;
+              PrimativeUnitvectors.element[NumberOfConstraints][index_j.x]=Weights[index_j.x]*hb.x;
               break;
           }
         }
 
-        if(index_k>=0)
+        //if(index_k>=0)
         {
           switch(Dimension)
           {
             case 3:
-              PrimativeUnitvectors.element[NumberOfConstraints][index_k+2]=Weights[index_k+2]*hc.z;
+              PrimativeUnitvectors.element[NumberOfConstraints][index_k.z]=Weights[index_k.z]*hc.z;
             case 2:
-              PrimativeUnitvectors.element[NumberOfConstraints][index_k+1]=Weights[index_k+1]*hc.y;
+              PrimativeUnitvectors.element[NumberOfConstraints][index_k.y]=Weights[index_k.y]*hc.y;
             case 1:
-              PrimativeUnitvectors.element[NumberOfConstraints][index_k]=Weights[index_k]*hc.x;
+              PrimativeUnitvectors.element[NumberOfConstraints][index_k.x]=Weights[index_k.x]*hc.x;
               break;
           }
         }
@@ -2179,7 +2170,7 @@ int ProjectConstraintsFromHessianMatrixMassWeighted(int np,int nb,REAL *Gradient
     index_j=AngleConstraints[CurrentSystem][m][1]->HessianIndex;
     index_k=AngleConstraints[CurrentSystem][m][2]->HessianIndex;
 
-    if((index_i<0)&&(index_j<0)&&(index_k<0)) continue;
+    //if((index_i<0)&&(index_j<0)&&(index_k<0)) continue;
 
     posA=AngleConstraints[CurrentSystem][m][0]->Position;
     posB=AngleConstraints[CurrentSystem][m][1]->Position;
@@ -2187,44 +2178,44 @@ int ProjectConstraintsFromHessianMatrixMassWeighted(int np,int nb,REAL *Gradient
 
     ReturnWilsonVectorsBend(posA,posB,posC,&ha,&hb,&hc);
 
-    if(index_i>=0)
+    //if(index_i>=0)
     {
       switch(Dimension)
       {
         case 3:
-          PrimativeUnitvectors.element[NumberOfConstraints][index_i+2]=Weights[index_i+2]*ha.z;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_i.z]=Weights[index_i.z]*ha.z;
         case 2:
-          PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=Weights[index_i+1]*ha.y;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=Weights[index_i.y]*ha.y;
         case 1:
-          PrimativeUnitvectors.element[NumberOfConstraints][index_i]=Weights[index_i]*ha.x;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=Weights[index_i.x]*ha.x;
           break;
       }
     }
 
-    if(index_j>=0)
+    //if(index_j>=0)
     {
       switch(Dimension)
       {
         case 3:
-          PrimativeUnitvectors.element[NumberOfConstraints][index_j+2]=Weights[index_j+2]*hb.z;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_j.z]=Weights[index_j.z]*hb.z;
         case 2:
-          PrimativeUnitvectors.element[NumberOfConstraints][index_j+1]=Weights[index_j+1]*hb.y;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_j.y]=Weights[index_j.y]*hb.y;
         case 1:
-          PrimativeUnitvectors.element[NumberOfConstraints][index_j]=Weights[index_j]*hb.x;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_j.x]=Weights[index_j.x]*hb.x;
           break;
       }
     }
 
-    if(index_k>=0)
+    //if(index_k>=0)
     {
       switch(Dimension)
       {
         case 3:
-          PrimativeUnitvectors.element[NumberOfConstraints][index_k+2]=Weights[index_k]*hc.z;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_k.z]=Weights[index_k.z]*hc.z;
         case 2:
-          PrimativeUnitvectors.element[NumberOfConstraints][index_k+1]=Weights[index_k]*hc.y;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_k.y]=Weights[index_k.y]*hc.y;
         case 1:
-          PrimativeUnitvectors.element[NumberOfConstraints][index_k]=Weights[index_k]*hc.x;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_k.x]=Weights[index_k.x]*hc.x;
           break;
       }
     }
@@ -2254,7 +2245,7 @@ int ProjectConstraintsFromHessianMatrixMassWeighted(int np,int nb,REAL *Gradient
         index_k=Adsorbates[CurrentSystem][m].Atoms[C].HessianIndex;
         index_l=Adsorbates[CurrentSystem][m].Atoms[D].HessianIndex;
 
-        if((index_i<0)&&(index_j<0)&&(index_k<0)&&(index_l<0)) continue;
+        //if((index_i<0)&&(index_j<0)&&(index_k<0)&&(index_l<0)) continue;
 
         posA=Adsorbates[CurrentSystem][m].Atoms[A].Position;
         posB=Adsorbates[CurrentSystem][m].Atoms[B].Position;
@@ -2263,32 +2254,32 @@ int ProjectConstraintsFromHessianMatrixMassWeighted(int np,int nb,REAL *Gradient
 
         ReturnWilsonVectorsTorsion(posA,posB,posC,posD,&ha,&hb,&hc,&hd);
 
-        if(index_i>=0)
+        //if(index_i>=0)
         {
-          PrimativeUnitvectors.element[NumberOfConstraints][index_i]=Weights[index_i]*ha.x;
-          PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=Weights[index_i]*ha.y;
-          PrimativeUnitvectors.element[NumberOfConstraints][index_i+2]=Weights[index_i]*ha.z;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=Weights[index_i.x]*ha.x;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=Weights[index_i.y]*ha.y;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_i.z]=Weights[index_i.z]*ha.z;
         }
 
-        if(index_j>=0)
+        //if(index_j>=0)
         {
-          PrimativeUnitvectors.element[NumberOfConstraints][index_j]=Weights[index_j]*hb.x;
-          PrimativeUnitvectors.element[NumberOfConstraints][index_j+1]=Weights[index_j]*hb.y;
-          PrimativeUnitvectors.element[NumberOfConstraints][index_j+2]=Weights[index_j]*hb.z;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_j.x]=Weights[index_j.x]*hb.x;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_j.y]=Weights[index_j.y]*hb.y;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_j.z]=Weights[index_j.z]*hb.z;
         }
 
-        if(index_k>=0)
+        //if(index_k>=0)
         {
-          PrimativeUnitvectors.element[NumberOfConstraints][index_k]=Weights[index_k]*hc.x;
-          PrimativeUnitvectors.element[NumberOfConstraints][index_k+1]=Weights[index_k]*hc.y;
-          PrimativeUnitvectors.element[NumberOfConstraints][index_k+2]=Weights[index_k]*hc.z;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_k.x]=Weights[index_k.x]*hc.x;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_k.y]=Weights[index_k.y]*hc.y;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_k.z]=Weights[index_k.z]*hc.z;
         }
 
-        if(index_l>=0)
+        //if(index_l>=0)
         {
-          PrimativeUnitvectors.element[NumberOfConstraints][index_l]=Weights[index_l]*hd.x;
-          PrimativeUnitvectors.element[NumberOfConstraints][index_l+1]=Weights[index_l]*hd.y;
-          PrimativeUnitvectors.element[NumberOfConstraints][index_l+2]=Weights[index_l]*hd.z;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_l.x]=Weights[index_l.x]*hd.x;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_l.y]=Weights[index_l.y]*hd.y;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_l.z]=Weights[index_l.z]*hd.z;
         }
 
         NumberOfConstraints++;
@@ -2315,7 +2306,7 @@ int ProjectConstraintsFromHessianMatrixMassWeighted(int np,int nb,REAL *Gradient
         index_k=Adsorbates[CurrentSystem][m].Atoms[C].HessianIndex;
         index_l=Adsorbates[CurrentSystem][m].Atoms[D].HessianIndex;
 
-        if((index_i<0)&&(index_j<0)&&(index_k<0)&&(index_l<0)) continue;
+        //if((index_i<0)&&(index_j<0)&&(index_k<0)&&(index_l<0)) continue;
 
         posA=Adsorbates[CurrentSystem][m].Atoms[A].Position;
         posB=Adsorbates[CurrentSystem][m].Atoms[B].Position;
@@ -2324,32 +2315,32 @@ int ProjectConstraintsFromHessianMatrixMassWeighted(int np,int nb,REAL *Gradient
 
         ReturnWilsonVectorsTorsion(posA,posB,posC,posD,&ha,&hb,&hc,&hd);
 
-        if(index_i>=0)
+        //if(index_i>=0)
         {
-          PrimativeUnitvectors.element[NumberOfConstraints][index_i]=Weights[index_i]*ha.x;
-          PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=Weights[index_i+1]*ha.y;
-          PrimativeUnitvectors.element[NumberOfConstraints][index_i+2]=Weights[index_i+2]*ha.z;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=Weights[index_i.x]*ha.x;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=Weights[index_i.y]*ha.y;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_i.z]=Weights[index_i.z]*ha.z;
         }
 
-        if(index_j>=0)
+        //if(index_j>=0)
         {
-          PrimativeUnitvectors.element[NumberOfConstraints][index_j]=Weights[index_j]*hb.x;
-          PrimativeUnitvectors.element[NumberOfConstraints][index_j+1]=Weights[index_j+1]*hb.y;
-          PrimativeUnitvectors.element[NumberOfConstraints][index_j+2]=Weights[index_j+2]*hb.z;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_j.x]=Weights[index_j.x]*hb.x;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_j.y]=Weights[index_j.y]*hb.y;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_j.z]=Weights[index_j.z]*hb.z;
         }
 
-        if(index_k>=0)
+        //if(index_k>=0)
         {
-          PrimativeUnitvectors.element[NumberOfConstraints][index_k]=Weights[index_k]*hc.x;
-          PrimativeUnitvectors.element[NumberOfConstraints][index_k+1]=Weights[index_k+1]*hc.y;
-          PrimativeUnitvectors.element[NumberOfConstraints][index_k+2]=Weights[index_k+2]*hc.z;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_k.x]=Weights[index_k.x]*hc.x;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_k.y]=Weights[index_k.y]*hc.y;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_k.z]=Weights[index_k.z]*hc.z;
         }
 
-        if(index_l>=0)
+        //if(index_l>=0)
         {
-          PrimativeUnitvectors.element[NumberOfConstraints][index_l]=Weights[index_l]*hd.x;
-          PrimativeUnitvectors.element[NumberOfConstraints][index_l+1]=Weights[index_l+1]*hd.y;
-          PrimativeUnitvectors.element[NumberOfConstraints][index_l+2]=Weights[index_l+2]*hd.z;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_l.x]=Weights[index_l.x]*hd.x;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_l.y]=Weights[index_l.y]*hd.y;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_l.z]=Weights[index_l.z]*hd.z;
         }
 
         NumberOfConstraints++;
@@ -2366,7 +2357,7 @@ int ProjectConstraintsFromHessianMatrixMassWeighted(int np,int nb,REAL *Gradient
     index_k=DihedralConstraints[CurrentSystem][m][2]->HessianIndex;
     index_l=DihedralConstraints[CurrentSystem][m][3]->HessianIndex;
 
-    if((index_i<0)&&(index_j<0)&&(index_k<0)&&(index_l<0)) continue;
+    //if((index_i<0)&&(index_j<0)&&(index_k<0)&&(index_l<0)) continue;
 
     posA=DihedralConstraints[CurrentSystem][m][0]->Position;
     posB=DihedralConstraints[CurrentSystem][m][1]->Position;
@@ -2375,32 +2366,32 @@ int ProjectConstraintsFromHessianMatrixMassWeighted(int np,int nb,REAL *Gradient
 
     ReturnWilsonVectorsTorsion(posA,posB,posC,posD,&ha,&hb,&hc,&hd);
 
-    if(index_i>=0)
+    //if(index_i>=0)
     {
-      PrimativeUnitvectors.element[NumberOfConstraints][index_i]=Weights[index_i]*ha.x;
-      PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=Weights[index_i+1]*ha.y;
-      PrimativeUnitvectors.element[NumberOfConstraints][index_i+2]=Weights[index_i+2]*ha.z;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=Weights[index_i.x]*ha.x;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=Weights[index_i.y]*ha.y;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_i.z]=Weights[index_i.z]*ha.z;
     }
 
-    if(index_j>=0)
+    //if(index_j>=0)
     {
-      PrimativeUnitvectors.element[NumberOfConstraints][index_j]=Weights[index_j]*hb.x;
-      PrimativeUnitvectors.element[NumberOfConstraints][index_j+1]=Weights[index_j+1]*hb.y;
-      PrimativeUnitvectors.element[NumberOfConstraints][index_j+2]=Weights[index_j+2]*hb.z;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_j.x]=Weights[index_j.x]*hb.x;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_j.y]=Weights[index_j.y]*hb.y;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_j.z]=Weights[index_j.z]*hb.z;
     }
 
-    if(index_k>=0)
+    //if(index_k>=0)
     {
-      PrimativeUnitvectors.element[NumberOfConstraints][index_k]=Weights[index_k]*hc.x;
-      PrimativeUnitvectors.element[NumberOfConstraints][index_k+1]=Weights[index_k+1]*hc.y;
-      PrimativeUnitvectors.element[NumberOfConstraints][index_k+2]=Weights[index_k+2]*hc.z;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_k.x]=Weights[index_k.x]*hc.x;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_k.y]=Weights[index_k.y]*hc.y;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_k.z]=Weights[index_k.z]*hc.z;
     }
 
-    if(index_l>=0)
+    //if(index_l>=0)
     {
-      PrimativeUnitvectors.element[NumberOfConstraints][index_l]=Weights[index_l]*hd.x;
-      PrimativeUnitvectors.element[NumberOfConstraints][index_l+1]=Weights[index_l+1]*hd.y;
-      PrimativeUnitvectors.element[NumberOfConstraints][index_l+2]=Weights[index_l+2]*hd.z;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_l.x]=Weights[index_l.x]*hd.x;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_l.y]=Weights[index_l.y]*hd.y;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_l.z]=Weights[index_l.z]*hd.z;
     }
 
     NumberOfConstraints++;
@@ -2414,7 +2405,7 @@ int ProjectConstraintsFromHessianMatrixMassWeighted(int np,int nb,REAL *Gradient
     index_k=ImproperDihedralConstraints[CurrentSystem][m][2]->HessianIndex;
     index_l=ImproperDihedralConstraints[CurrentSystem][m][3]->HessianIndex;
 
-    if((index_i<0)&&(index_j<0)&&(index_k<0)&&(index_l<0)) continue;
+    //if((index_i<0)&&(index_j<0)&&(index_k<0)&&(index_l<0)) continue;
 
     posA=ImproperDihedralConstraints[CurrentSystem][m][0]->Position;
     posB=ImproperDihedralConstraints[CurrentSystem][m][1]->Position;
@@ -2423,32 +2414,32 @@ int ProjectConstraintsFromHessianMatrixMassWeighted(int np,int nb,REAL *Gradient
 
     ReturnWilsonVectorsTorsion(posA,posB,posC,posD,&ha,&hb,&hc,&hd);
 
-    if(index_i>=0)
+    //if(index_i>=0)
     {
-      PrimativeUnitvectors.element[NumberOfConstraints][index_i]=Weights[index_i]*ha.x;
-      PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=Weights[index_i+1]*ha.y;
-      PrimativeUnitvectors.element[NumberOfConstraints][index_i+2]=Weights[index_i+2]*ha.z;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=Weights[index_i.x]*ha.x;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=Weights[index_i.y]*ha.y;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_i.z]=Weights[index_i.z]*ha.z;
     }
 
-    if(index_j>=0)
+    //if(index_j>=0)
     {
-      PrimativeUnitvectors.element[NumberOfConstraints][index_j]=Weights[index_j]*hb.x;
-      PrimativeUnitvectors.element[NumberOfConstraints][index_j+1]=Weights[index_j+1]*hb.y;
-      PrimativeUnitvectors.element[NumberOfConstraints][index_j+2]=Weights[index_j+2]*hb.z;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_j.x]=Weights[index_j.x]*hb.x;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_j.y]=Weights[index_j.y]*hb.y;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_j.z]=Weights[index_j.z]*hb.z;
     }
 
-    if(index_k>=0)
+    //if(index_k>=0)
     {
-      PrimativeUnitvectors.element[NumberOfConstraints][index_k]=Weights[index_k]*hc.x;
-      PrimativeUnitvectors.element[NumberOfConstraints][index_k+1]=Weights[index_k+1]*hc.y;
-      PrimativeUnitvectors.element[NumberOfConstraints][index_k+2]=Weights[index_k+2]*hc.z;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_k.x]=Weights[index_k.x]*hc.x;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_k.y]=Weights[index_k.y]*hc.y;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_k.z]=Weights[index_k.z]*hc.z;
     }
 
-    if(index_l>=0)
+    //if(index_l>=0)
     {
-      PrimativeUnitvectors.element[NumberOfConstraints][index_l]=Weights[index_l]*hd.x;
-      PrimativeUnitvectors.element[NumberOfConstraints][index_l+1]=Weights[index_l+1]*hd.y;
-      PrimativeUnitvectors.element[NumberOfConstraints][index_l+2]=Weights[index_l+2]*hd.z;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_l.x]=Weights[index_l.x]*hd.x;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_l.y]=Weights[index_l.y]*hd.y;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_l.z]=Weights[index_l.z]*hd.z;
     }
 
     NumberOfConstraints++;
@@ -2475,7 +2466,7 @@ int ProjectConstraintsFromHessianMatrixMassWeighted(int np,int nb,REAL *Gradient
         index_k=Adsorbates[CurrentSystem][m].Atoms[C].HessianIndex;
         index_l=Adsorbates[CurrentSystem][m].Atoms[D].HessianIndex;
 
-        if((index_i<0)&&(index_j<0)&&(index_k<0)&&(index_l<0)) continue;
+        //if((index_i<0)&&(index_j<0)&&(index_k<0)&&(index_l<0)) continue;
 
         posA=Adsorbates[CurrentSystem][m].Atoms[A].Position;
         posB=Adsorbates[CurrentSystem][m].Atoms[B].Position;
@@ -2484,32 +2475,32 @@ int ProjectConstraintsFromHessianMatrixMassWeighted(int np,int nb,REAL *Gradient
 
         ReturnWilsonVectorsInversionBend(posA,posB,posC,posD,&ha,&hb,&hc,&hd);
 
-        if(index_i>=0)
+        //if(index_i>=0)
         {
-          PrimativeUnitvectors.element[NumberOfConstraints][index_i]=Weights[index_i]*ha.x;
-          PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=Weights[index_i+1]*ha.y;
-          PrimativeUnitvectors.element[NumberOfConstraints][index_i+2]=Weights[index_i+2]*ha.z;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=Weights[index_i.x]*ha.x;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=Weights[index_i.y]*ha.y;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_i.z]=Weights[index_i.z]*ha.z;
         }
 
-        if(index_j>=0)
+        //if(index_j>=0)
         {
-          PrimativeUnitvectors.element[NumberOfConstraints][index_j]=Weights[index_j]*hb.x;
-          PrimativeUnitvectors.element[NumberOfConstraints][index_j+1]=Weights[index_j+1]*hb.y;
-          PrimativeUnitvectors.element[NumberOfConstraints][index_j+2]=Weights[index_j+2]*hb.z;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_j.x]=Weights[index_j.x]*hb.x;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_j.y]=Weights[index_j.y]*hb.y;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_j.z]=Weights[index_j.z]*hb.z;
         }
 
-        if(index_k>=0)
+        //if(index_k>=0)
         {
-          PrimativeUnitvectors.element[NumberOfConstraints][index_k]=Weights[index_k]*hc.x;
-          PrimativeUnitvectors.element[NumberOfConstraints][index_k+1]=Weights[index_k+1]*hc.y;
-          PrimativeUnitvectors.element[NumberOfConstraints][index_k+2]=Weights[index_k+2]*hc.z;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_k.x]=Weights[index_k.x]*hc.x;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_k.y]=Weights[index_k.y]*hc.y;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_k.z]=Weights[index_k.z]*hc.z;
         }
 
-        if(index_l>=0)
+        //if(index_l>=0)
         {
-          PrimativeUnitvectors.element[NumberOfConstraints][index_l]=Weights[index_l]*hd.x;
-          PrimativeUnitvectors.element[NumberOfConstraints][index_l+1]=Weights[index_l+1]*hd.y;
-          PrimativeUnitvectors.element[NumberOfConstraints][index_l+2]=Weights[index_l+2]*hd.z;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_l.x]=Weights[index_l.x]*hd.x;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_l.y]=Weights[index_l.y]*hd.y;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_l.z]=Weights[index_l.z]*hd.z;
         }
 
         NumberOfConstraints++;
@@ -2525,7 +2516,7 @@ int ProjectConstraintsFromHessianMatrixMassWeighted(int np,int nb,REAL *Gradient
     index_k=InversionBendConstraints[CurrentSystem][m][2]->HessianIndex;
     index_l=InversionBendConstraints[CurrentSystem][m][3]->HessianIndex;
 
-    if((index_i<0)&&(index_j<0)&&(index_k<0)&&(index_l<0)) continue;
+    //if((index_i<0)&&(index_j<0)&&(index_k<0)&&(index_l<0)) continue;
 
     posA=InversionBendConstraints[CurrentSystem][m][0]->Position;
     posB=InversionBendConstraints[CurrentSystem][m][1]->Position;
@@ -2534,32 +2525,32 @@ int ProjectConstraintsFromHessianMatrixMassWeighted(int np,int nb,REAL *Gradient
 
     ReturnWilsonVectorsInversionBend(posA,posB,posC,posD,&ha,&hb,&hc,&hd);
 
-    if(index_i>=0)
+    //if(index_i>=0)
     {
-      PrimativeUnitvectors.element[NumberOfConstraints][index_i]=Weights[index_i]*ha.x;
-      PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=Weights[index_i+1]*ha.y;
-      PrimativeUnitvectors.element[NumberOfConstraints][index_i+2]=Weights[index_i+2]*ha.z;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=Weights[index_i.x]*ha.x;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=Weights[index_i.y]*ha.y;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_i.z]=Weights[index_i.z]*ha.z;
     }
 
-    if(index_j>=0)
+    //if(index_j>=0)
     {
-      PrimativeUnitvectors.element[NumberOfConstraints][index_j]=Weights[index_j]*hb.x;
-      PrimativeUnitvectors.element[NumberOfConstraints][index_j+1]=Weights[index_j+1]*hb.y;
-      PrimativeUnitvectors.element[NumberOfConstraints][index_j+2]=Weights[index_j+2]*hb.z;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_j.x]=Weights[index_j.x]*hb.x;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_j.y]=Weights[index_j.y]*hb.y;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_j.z]=Weights[index_j.z]*hb.z;
     }
 
-    if(index_k>=0)
+    //if(index_k>=0)
     {
-      PrimativeUnitvectors.element[NumberOfConstraints][index_k]=Weights[index_k]*hc.x;
-      PrimativeUnitvectors.element[NumberOfConstraints][index_k+1]=Weights[index_k+1]*hc.y;
-      PrimativeUnitvectors.element[NumberOfConstraints][index_k+2]=Weights[index_k+2]*hc.z;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_k.x]=Weights[index_k.x]*hc.x;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_k.y]=Weights[index_k.y]*hc.y;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_k.z]=Weights[index_k.z]*hc.z;
     }
 
-    if(index_l>=0)
+    //if(index_l>=0)
     {
-      PrimativeUnitvectors.element[NumberOfConstraints][index_l]=Weights[index_l]*hd.x;
-      PrimativeUnitvectors.element[NumberOfConstraints][index_l+1]=Weights[index_l+1]*hd.y;
-      PrimativeUnitvectors.element[NumberOfConstraints][index_l+2]=Weights[index_l+2]*hd.z;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_l.x]=Weights[index_l.x]*hd.x;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_l.y]=Weights[index_l.y]*hd.y;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_l.z]=Weights[index_l.z]*hd.z;
     }
 
     NumberOfConstraints++;
@@ -2675,7 +2666,7 @@ int ProjectConstraintsFromHessianMatrix(int np,int nb,REAL *Gradient,REAL_MATRIX
   int i,j,k,m,n,f1,l,ia;
   int A,B,C,D;
   int Type,NumberOfConstraints;
-  int index_i,index_j,index_k,index_l;
+  INT_VECTOR3 index_i,index_j,index_k,index_l;
   int NumberOfBonds,NumberOfBends,NumberOfTorsions,NumberOfImproperTorsions,NumberOfInversionBends;
   REAL dot_produkt,norm,length;
   REAL_MATRIX PrimativeUnitvectors,PrimativeUnitvectorsTranspose,ProjectionOperator,ProjectionOperator2;
@@ -2736,29 +2727,29 @@ int ProjectConstraintsFromHessianMatrix(int np,int nb,REAL *Gradient,REAL_MATRIX
       {
         index_i=Framework[CurrentSystem].Atoms[f1][i].HessianIndex;
 
-        if(index_i>=0)
+        //if(index_i>=0)
         {
           switch(Dimension)
           {
             case 2:
-              PrimativeUnitvectors.element[NumberOfConstraints][index_i]=1.0;
-              PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=0.0;
+              PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=1.0;
+              PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=0.0;
 
-              PrimativeUnitvectors.element[NumberOfConstraints+1][index_i]=0.0;
-              PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+1]=1.0;
+              PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.x]=0.0;
+              PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.y]=1.0;
               break;
             case 3:
-              PrimativeUnitvectors.element[NumberOfConstraints][index_i]=1.0;
-              PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=0.0;
-              PrimativeUnitvectors.element[NumberOfConstraints][index_i+2]=0.0;
+              PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=1.0;
+              PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=0.0;
+              PrimativeUnitvectors.element[NumberOfConstraints][index_i.z]=0.0;
 
-              PrimativeUnitvectors.element[NumberOfConstraints+1][index_i]=0.0;
-              PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+1]=1.0;
-              PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+2]=0.0;
+              PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.x]=0.0;
+              PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.y]=1.0;
+              PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.z]=0.0;
 
-              PrimativeUnitvectors.element[NumberOfConstraints+2][index_i]=0.0;
-              PrimativeUnitvectors.element[NumberOfConstraints+2][index_i+1]=0.0;
-              PrimativeUnitvectors.element[NumberOfConstraints+2][index_i+2]=1.0;
+              PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.x]=0.0;
+              PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.y]=0.0;
+              PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.z]=1.0;
               break;
           }
         }
@@ -2774,29 +2765,29 @@ int ProjectConstraintsFromHessianMatrix(int np,int nb,REAL *Gradient,REAL_MATRIX
         {
           index_i=Adsorbates[CurrentSystem][m].Groups[l].HessianIndex;
 
-          if(index_i>=0)
+          //if(index_i>=0)
           {
             switch(Dimension)
             {
               case 2:
-                PrimativeUnitvectors.element[NumberOfConstraints][index_i]=1.0;
-                PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=0.0;
+                PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=1.0;
+                PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=0.0;
 
-                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i]=0.0;
-                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+1]=1.0;
+                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.x]=0.0;
+                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.y]=1.0;
                 break;
               case 3:
-                PrimativeUnitvectors.element[NumberOfConstraints][index_i]=1.0;
-                PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=0.0;
-                PrimativeUnitvectors.element[NumberOfConstraints][index_i+2]=0.0;
+                PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=1.0;
+                PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=0.0;
+                PrimativeUnitvectors.element[NumberOfConstraints][index_i.z]=0.0;
 
-                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i]=0.0;
-                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+1]=1.0;
-                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+2]=0.0;
+                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.x]=0.0;
+                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.y]=1.0;
+                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.z]=0.0;
 
-                PrimativeUnitvectors.element[NumberOfConstraints+2][index_i]=0.0;
-                PrimativeUnitvectors.element[NumberOfConstraints+2][index_i+1]=0.0;
-                PrimativeUnitvectors.element[NumberOfConstraints+2][index_i+2]=1.0;
+                PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.x]=0.0;
+                PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.y]=0.0;
+                PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.z]=1.0;
                 break;
             }
           }
@@ -2808,29 +2799,29 @@ int ProjectConstraintsFromHessianMatrix(int np,int nb,REAL *Gradient,REAL_MATRIX
             A=Components[Type].Groups[l].Atoms[ia];
             index_i=Adsorbates[CurrentSystem][m].Atoms[A].HessianIndex;
 
-            if(index_i>=0)
+            //if(index_i>=0)
             {
               switch(Dimension)
               {
                 case 2:
-                  PrimativeUnitvectors.element[NumberOfConstraints][index_i]=1.0;
-                  PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=0.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=1.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=0.0;
 
-                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i]=0.0;
-                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+1]=1.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.x]=0.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.y]=1.0;
                   break;
                 case 3:
-                  PrimativeUnitvectors.element[NumberOfConstraints][index_i]=1.0;
-                  PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=0.0;
-                  PrimativeUnitvectors.element[NumberOfConstraints][index_i+2]=0.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=1.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=0.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints][index_i.z]=0.0;
 
-                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i]=0.0;
-                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+1]=1.0;
-                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+2]=0.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.x]=0.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.y]=1.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.z]=0.0;
 
-                  PrimativeUnitvectors.element[NumberOfConstraints+2][index_i]=0.0;
-                  PrimativeUnitvectors.element[NumberOfConstraints+2][index_i+1]=0.0;
-                  PrimativeUnitvectors.element[NumberOfConstraints+2][index_i+2]=1.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.x]=0.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.y]=0.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.z]=1.0;
                   break;
               }
             }
@@ -2848,29 +2839,29 @@ int ProjectConstraintsFromHessianMatrix(int np,int nb,REAL *Gradient,REAL_MATRIX
         {
           index_i=Cations[CurrentSystem][m].Groups[l].HessianIndex;
 
-          if(index_i>=0)
+          //if(index_i>=0)
           {
             switch(Dimension)
             {
               case 2:
-                PrimativeUnitvectors.element[NumberOfConstraints][index_i]=1.0;
-                PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=0.0;
+                PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=1.0;
+                PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=0.0;
 
-                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i]=0.0;
-                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+1]=1.0;
+                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.x]=0.0;
+                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.y]=1.0;
                 break; 
               case 3:
-                PrimativeUnitvectors.element[NumberOfConstraints][index_i]=1.0;
-                PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=0.0;
-                PrimativeUnitvectors.element[NumberOfConstraints][index_i+2]=0.0;
+                PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=1.0;
+                PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=0.0;
+                PrimativeUnitvectors.element[NumberOfConstraints][index_i.z]=0.0;
 
-                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i]=0.0;
-                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+1]=1.0;
-                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+2]=0.0;
+                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.x]=0.0;
+                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.y]=1.0;
+                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.z]=0.0;
 
-                PrimativeUnitvectors.element[NumberOfConstraints+2][index_i]=0.0;
-                PrimativeUnitvectors.element[NumberOfConstraints+2][index_i+1]=0.0;
-                PrimativeUnitvectors.element[NumberOfConstraints+2][index_i+2]=1.0;
+                PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.x]=0.0;
+                PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.y]=0.0;
+                PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.z]=1.0;
                 break; 
             }
           }
@@ -2882,29 +2873,29 @@ int ProjectConstraintsFromHessianMatrix(int np,int nb,REAL *Gradient,REAL_MATRIX
             A=Components[Type].Groups[l].Atoms[ia];
             index_i=Cations[CurrentSystem][m].Atoms[A].HessianIndex;
 
-            if(index_i>=0)
+            //if(index_i>=0)
             {
               switch(Dimension)
               {
                 case 2:
-                  PrimativeUnitvectors.element[NumberOfConstraints][index_i]=1.0;
-                  PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=0.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=1.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=0.0;
 
-                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i]=0.0;
-                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+1]=1.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.x]=0.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.y]=1.0;
                   break;
                 case 3:
-                  PrimativeUnitvectors.element[NumberOfConstraints][index_i]=1.0;
-                  PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=0.0;
-                  PrimativeUnitvectors.element[NumberOfConstraints][index_i+2]=0.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=1.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=0.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints][index_i.z]=0.0;
 
-                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i]=0.0;
-                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+1]=1.0;
-                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+2]=0.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.x]=0.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.y]=1.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.z]=0.0;
 
-                  PrimativeUnitvectors.element[NumberOfConstraints+2][index_i]=0.0;
-                  PrimativeUnitvectors.element[NumberOfConstraints+2][index_i+1]=0.0;
-                  PrimativeUnitvectors.element[NumberOfConstraints+2][index_i+2]=1.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.x]=0.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.y]=0.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.z]=1.0;
                   break;
               }
             }
@@ -2926,29 +2917,29 @@ int ProjectConstraintsFromHessianMatrix(int np,int nb,REAL *Gradient,REAL_MATRIX
         index_i=Framework[CurrentSystem].Atoms[f1][i].HessianIndex;
         posA=Framework[CurrentSystem].Atoms[f1][i].Position;
 
-        if(index_i>=0)
+        //if(index_i>=0)
         {
           switch(Dimension)
           {
             case 2:
-              PrimativeUnitvectors.element[NumberOfConstraints][index_i]=0.0;
-              PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=-(posA.z-com.z);
+              PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=0.0;
+              PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=-(posA.z-com.z);
 
-              PrimativeUnitvectors.element[NumberOfConstraints+1][index_i]=posA.z-com.z;
-              PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+1]=0.0;
+              PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.x]=posA.z-com.z;
+              PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.y]=0.0;
               break;
             case 3:
-              PrimativeUnitvectors.element[NumberOfConstraints][index_i]=0.0;
-              PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=-(posA.z-com.z);
-              PrimativeUnitvectors.element[NumberOfConstraints][index_i+2]=posA.y-com.y;
+              PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=0.0;
+              PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=-(posA.z-com.z);
+              PrimativeUnitvectors.element[NumberOfConstraints][index_i.z]=posA.y-com.y;
 
-              PrimativeUnitvectors.element[NumberOfConstraints+1][index_i]=posA.z-com.z;
-              PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+1]=0.0;
-              PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+2]=-(posA.x-com.x);
+              PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.x]=posA.z-com.z;
+              PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.y]=0.0;
+              PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.z]=-(posA.x-com.x);
 
-              PrimativeUnitvectors.element[NumberOfConstraints+2][index_i]=-(posA.y-com.y);
-              PrimativeUnitvectors.element[NumberOfConstraints+2][index_i+1]=posA.x-com.x;
-              PrimativeUnitvectors.element[NumberOfConstraints+2][index_i+2]=0.0;
+              PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.x]=-(posA.y-com.y);
+              PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.y]=posA.x-com.x;
+              PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.z]=0.0;
               break;
           }
         }
@@ -2965,29 +2956,29 @@ int ProjectConstraintsFromHessianMatrix(int np,int nb,REAL *Gradient,REAL_MATRIX
           index_i=Adsorbates[CurrentSystem][m].Groups[l].HessianIndex;
           posA=Adsorbates[CurrentSystem][m].Groups[l].CenterOfMassPosition;
 
-          if(index_i>=0)
+          //if(index_i>=0)
           {
             switch(Dimension)
             {
               case 2:
-                PrimativeUnitvectors.element[NumberOfConstraints][index_i]=0.0;
-                PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=-(posA.z-com.z);
+                PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=0.0;
+                PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=-(posA.z-com.z);
 
-                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i]=posA.z-com.z;
-                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+1]=0.0;
+                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.x]=posA.z-com.z;
+                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.y]=0.0;
                 break;
               case 3:
-                PrimativeUnitvectors.element[NumberOfConstraints][index_i]=0.0;
-                PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=-(posA.z-com.z);
-                PrimativeUnitvectors.element[NumberOfConstraints][index_i+2]=posA.y-com.y;
+                PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=0.0;
+                PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=-(posA.z-com.z);
+                PrimativeUnitvectors.element[NumberOfConstraints][index_i.z]=posA.y-com.y;
 
-                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i]=posA.z-com.z;
-                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+1]=0.0;
-                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+2]=-(posA.x-com.x);
+                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.x]=posA.z-com.z;
+                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.y]=0.0;
+                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.z]=-(posA.x-com.x);
 
-                PrimativeUnitvectors.element[NumberOfConstraints+2][index_i]=-(posA.y-com.y);
-                PrimativeUnitvectors.element[NumberOfConstraints+2][index_i+1]=posA.x-com.x;
-                PrimativeUnitvectors.element[NumberOfConstraints+2][index_i+2]=0.0;
+                PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.x]=-(posA.y-com.y);
+                PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.y]=posA.x-com.x;
+                PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.z]=0.0;
                 break;
             }
           }
@@ -3000,29 +2991,29 @@ int ProjectConstraintsFromHessianMatrix(int np,int nb,REAL *Gradient,REAL_MATRIX
             index_i=Adsorbates[CurrentSystem][m].Atoms[A].HessianIndex;
             posA=Adsorbates[CurrentSystem][m].Atoms[A].Position;
 
-            if(index_i>=0)
+            //if(index_i>=0)
             {
               switch(Dimension)
               {
                 case 2:
-                  PrimativeUnitvectors.element[NumberOfConstraints][index_i]=0.0;
-                  PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=-(posA.z-com.z);
+                  PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=0.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=-(posA.z-com.z);
 
-                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i]=posA.z-com.z;
-                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+1]=0.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.x]=posA.z-com.z;
+                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.y]=0.0;
                   break;
                 case 3:
-                  PrimativeUnitvectors.element[NumberOfConstraints][index_i]=0.0;
-                  PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=-(posA.z-com.z);
-                  PrimativeUnitvectors.element[NumberOfConstraints][index_i+2]=posA.y-com.y;
+                  PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=0.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=-(posA.z-com.z);
+                  PrimativeUnitvectors.element[NumberOfConstraints][index_i.z]=posA.y-com.y;
 
-                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i]=posA.z-com.z;
-                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+1]=0.0;
-                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+2]=-(posA.x-com.x);
+                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.x]=posA.z-com.z;
+                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.y]=0.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.z]=-(posA.x-com.x);
 
-                  PrimativeUnitvectors.element[NumberOfConstraints+2][index_i]=-(posA.y-com.y);
-                  PrimativeUnitvectors.element[NumberOfConstraints+2][index_i+1]=posA.x-com.x;
-                  PrimativeUnitvectors.element[NumberOfConstraints+2][index_i+2]=0.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.x]=-(posA.y-com.y);
+                  PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.y]=posA.x-com.x;
+                  PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.z]=0.0;
                   break;
               }
             }
@@ -3041,29 +3032,29 @@ int ProjectConstraintsFromHessianMatrix(int np,int nb,REAL *Gradient,REAL_MATRIX
           index_i=Cations[CurrentSystem][m].Groups[l].HessianIndex;
           posA=Cations[CurrentSystem][m].Groups[l].CenterOfMassPosition;
 
-          if(index_i>=0)
+          //if(index_i>=0)
           {
             switch(Dimension)
             {
               case 2:
-                PrimativeUnitvectors.element[NumberOfConstraints][index_i]=0.0;
-                PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=-(posA.z-com.z);
+                PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=0.0;
+                PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=-(posA.z-com.z);
 
-                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i]=posA.z-com.z;
-                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+1]=0.0;
+                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.x]=posA.z-com.z;
+                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.y]=0.0;
                 break;
               case 3:
-                PrimativeUnitvectors.element[NumberOfConstraints][index_i]=0.0;
-                PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=-(posA.z-com.z);
-                PrimativeUnitvectors.element[NumberOfConstraints][index_i+2]=posA.y-com.y;
+                PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=0.0;
+                PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=-(posA.z-com.z);
+                PrimativeUnitvectors.element[NumberOfConstraints][index_i.z]=posA.y-com.y;
 
-                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i]=posA.z-com.z;
-                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+1]=0.0;
-                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+2]=-(posA.x-com.x);
+                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.x]=posA.z-com.z;
+                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.y]=0.0;
+                PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.z]=-(posA.x-com.x);
 
-                PrimativeUnitvectors.element[NumberOfConstraints+2][index_i]=-(posA.y-com.y);
-                PrimativeUnitvectors.element[NumberOfConstraints+2][index_i+1]=posA.x-com.x;
-                PrimativeUnitvectors.element[NumberOfConstraints+2][index_i+2]=0.0;
+                PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.x]=-(posA.y-com.y);
+                PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.y]=posA.x-com.x;
+                PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.z]=0.0;
                 break;
             }
           }
@@ -3076,29 +3067,29 @@ int ProjectConstraintsFromHessianMatrix(int np,int nb,REAL *Gradient,REAL_MATRIX
             index_i=Cations[CurrentSystem][m].Atoms[A].HessianIndex;
             posA=Cations[CurrentSystem][m].Atoms[A].Position;
 
-            if(index_i>=0)
+            //if(index_i>=0)
             {
               switch(Dimension)
               {
                 case 2:
-                  PrimativeUnitvectors.element[NumberOfConstraints][index_i]=0.0;
-                  PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=-(posA.z-com.z);
+                  PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=0.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=-(posA.z-com.z);
 
-                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i]=posA.z-com.z;
-                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+1]=0.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.x]=posA.z-com.z;
+                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.y]=0.0;
                   break;
                 case 3:
-                  PrimativeUnitvectors.element[NumberOfConstraints][index_i]=0.0;
-                  PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=-(posA.z-com.z);
-                  PrimativeUnitvectors.element[NumberOfConstraints][index_i+2]=posA.y-com.y;
+                  PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=0.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=-(posA.z-com.z);
+                  PrimativeUnitvectors.element[NumberOfConstraints][index_i.z]=posA.y-com.y;
 
-                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i]=posA.z-com.z;
-                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+1]=0.0;
-                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i+2]=-(posA.x-com.x);
+                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.x]=posA.z-com.z;
+                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.y]=0.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.z]=-(posA.x-com.x);
 
-                  PrimativeUnitvectors.element[NumberOfConstraints+2][index_i]=-(posA.y-com.y);
-                  PrimativeUnitvectors.element[NumberOfConstraints+2][index_i+1]=posA.x-com.x;
-                  PrimativeUnitvectors.element[NumberOfConstraints+2][index_i+2]=0.0;
+                  PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.x]=-(posA.y-com.y);
+                  PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.y]=posA.x-com.x;
+                  PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.z]=0.0;
                   break;
               }
             }
@@ -3126,37 +3117,37 @@ int ProjectConstraintsFromHessianMatrix(int np,int nb,REAL *Gradient,REAL_MATRIX
         index_i=Adsorbates[CurrentSystem][m].Atoms[A].HessianIndex;
         index_j=Adsorbates[CurrentSystem][m].Atoms[B].HessianIndex;
 
-        if((index_i<0)&&(index_j<0)) continue;
+        //if((index_i<0)&&(index_j<0)) continue;
 
         posA=Adsorbates[CurrentSystem][m].Atoms[A].Position;
         posB=Adsorbates[CurrentSystem][m].Atoms[B].Position;
 
         ReturnWilsonVectorsBond(posA,posB,&ha,&hb);
 
-        if(index_i>=0)
+        //if(index_i>=0)
         {
           switch(Dimension)
           {
             case 3:
-              PrimativeUnitvectors.element[NumberOfConstraints][index_i+2]=ha.z;
+              PrimativeUnitvectors.element[NumberOfConstraints][index_i.z]=ha.z;
             case 2:
-              PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=ha.y;
+              PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=ha.y;
             case 1:
-              PrimativeUnitvectors.element[NumberOfConstraints][index_i]=ha.x;
+              PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=ha.x;
               break;
           }
         }
 
-        if(index_j>=0)
+        //if(index_j>=0)
         {
           switch(Dimension)
           {
             case 3:
-              PrimativeUnitvectors.element[NumberOfConstraints][index_j+2]=hb.z;
+              PrimativeUnitvectors.element[NumberOfConstraints][index_j.z]=hb.z;
             case 2:
-              PrimativeUnitvectors.element[NumberOfConstraints][index_j+1]=hb.y;
+              PrimativeUnitvectors.element[NumberOfConstraints][index_j.y]=hb.y;
             case 1:
-              PrimativeUnitvectors.element[NumberOfConstraints][index_j]=hb.x;
+              PrimativeUnitvectors.element[NumberOfConstraints][index_j.x]=hb.x;
               break;
           }
         }
@@ -3180,37 +3171,37 @@ int ProjectConstraintsFromHessianMatrix(int np,int nb,REAL *Gradient,REAL_MATRIX
     index_i=DistanceConstraints[CurrentSystem][m][0]->HessianIndex;
     index_j=DistanceConstraints[CurrentSystem][m][1]->HessianIndex;
 
-    if((index_i<0)&&(index_j<0)) continue;
+    //if((index_i<0)&&(index_j<0)) continue;
 
     posA=DistanceConstraints[CurrentSystem][m][0]->Position;
     posB=DistanceConstraints[CurrentSystem][m][1]->Position;
 
     ReturnWilsonVectorsBond(posA,posB,&ha,&hb);
 
-    if(index_i>=0)
+    //if(index_i>=0)
     {
       switch(Dimension)
       {
         case 3:
-          PrimativeUnitvectors.element[NumberOfConstraints][index_i+2]=ha.z;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_i.z]=ha.z;
         case 2:
-          PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=ha.y;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=ha.y;
         case 1:
-          PrimativeUnitvectors.element[NumberOfConstraints][index_i]=ha.x;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=ha.x;
           break;
       }
     }
 
-    if(index_j>=0)
+    //if(index_j>=0)
     {
       switch(Dimension)
       {
         case 3:
-          PrimativeUnitvectors.element[NumberOfConstraints][index_j+2]=hb.z;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_j.z]=hb.z;
         case 2:
-          PrimativeUnitvectors.element[NumberOfConstraints][index_j+1]=hb.y;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_j.y]=hb.y;
         case 1:
-          PrimativeUnitvectors.element[NumberOfConstraints][index_j]=hb.x;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_j.x]=hb.x;
           break;
       }
     }
@@ -3243,7 +3234,7 @@ int ProjectConstraintsFromHessianMatrix(int np,int nb,REAL *Gradient,REAL_MATRIX
         index_j=Adsorbates[CurrentSystem][m].Atoms[B].HessianIndex;
         index_k=Adsorbates[CurrentSystem][m].Atoms[C].HessianIndex;
 
-        if((index_i<0)&&(index_j<0)&&(index_k<0)) continue;
+        //if((index_i<0)&&(index_j<0)&&(index_k<0)) continue;
 
         posA=Adsorbates[CurrentSystem][m].Atoms[A].Position;
         posB=Adsorbates[CurrentSystem][m].Atoms[B].Position;
@@ -3251,44 +3242,44 @@ int ProjectConstraintsFromHessianMatrix(int np,int nb,REAL *Gradient,REAL_MATRIX
 
         ReturnWilsonVectorsBend(posA,posB,posC,&ha,&hb,&hc);
 
-        if(index_i>=0)
+        //if(index_i>=0)
         {
           switch(Dimension)
           {
             case 3:
-              PrimativeUnitvectors.element[NumberOfConstraints][index_i+2]=ha.z;
+              PrimativeUnitvectors.element[NumberOfConstraints][index_i.z]=ha.z;
             case 2:
-              PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=ha.y;
+              PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=ha.y;
             case 1:
-              PrimativeUnitvectors.element[NumberOfConstraints][index_i]=ha.x;
+              PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=ha.x;
               break;
           }
         }
 
-        if(index_j>=0)
+        //if(index_j>=0)
         {
           switch(Dimension)
           {
             case 3:
-              PrimativeUnitvectors.element[NumberOfConstraints][index_j+2]=hb.z;
+              PrimativeUnitvectors.element[NumberOfConstraints][index_j.z]=hb.z;
             case 2:
-              PrimativeUnitvectors.element[NumberOfConstraints][index_j+1]=hb.y;
+              PrimativeUnitvectors.element[NumberOfConstraints][index_j.y]=hb.y;
             case 1:
-              PrimativeUnitvectors.element[NumberOfConstraints][index_j]=hb.x;
+              PrimativeUnitvectors.element[NumberOfConstraints][index_j.x]=hb.x;
               break;
           }
         }
 
-        if(index_k>=0)
+        //if(index_k>=0)
         {
           switch(Dimension)
           {
             case 3:
-              PrimativeUnitvectors.element[NumberOfConstraints][index_k+2]=hc.z;
+              PrimativeUnitvectors.element[NumberOfConstraints][index_k.z]=hc.z;
             case 2:
-              PrimativeUnitvectors.element[NumberOfConstraints][index_k+1]=hc.y;
+              PrimativeUnitvectors.element[NumberOfConstraints][index_k.y]=hc.y;
             case 1:
-              PrimativeUnitvectors.element[NumberOfConstraints][index_k]=hc.x;
+              PrimativeUnitvectors.element[NumberOfConstraints][index_k.x]=hc.x;
               break;
           }
         }
@@ -3306,7 +3297,7 @@ int ProjectConstraintsFromHessianMatrix(int np,int nb,REAL *Gradient,REAL_MATRIX
     index_j=AngleConstraints[CurrentSystem][m][1]->HessianIndex;
     index_k=AngleConstraints[CurrentSystem][m][2]->HessianIndex;
 
-    if((index_i<0)&&(index_j<0)&&(index_k<0)) continue;
+    //if((index_i<0)&&(index_j<0)&&(index_k<0)) continue;
 
     posA=AngleConstraints[CurrentSystem][m][0]->Position;
     posB=AngleConstraints[CurrentSystem][m][1]->Position;
@@ -3314,44 +3305,44 @@ int ProjectConstraintsFromHessianMatrix(int np,int nb,REAL *Gradient,REAL_MATRIX
 
     ReturnWilsonVectorsBend(posA,posB,posC,&ha,&hb,&hc);
 
-    if(index_i>=0)
+    //if(index_i>=0)
     {
       switch(Dimension)
       {
         case 3:
-          PrimativeUnitvectors.element[NumberOfConstraints][index_i+2]=ha.z;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_i.z]=ha.z;
         case 2:
-          PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=ha.y;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=ha.y;
         case 1:
-          PrimativeUnitvectors.element[NumberOfConstraints][index_i]=ha.x;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=ha.x;
           break;
       }
     }
 
-    if(index_j>=0)
+    //if(index_j>=0)
     {
       switch(Dimension)
       {
         case 3:
-          PrimativeUnitvectors.element[NumberOfConstraints][index_j+2]=hb.z;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_j.z]=hb.z;
         case 2:
-          PrimativeUnitvectors.element[NumberOfConstraints][index_j+1]=hb.y;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_j.y]=hb.y;
         case 1:
-          PrimativeUnitvectors.element[NumberOfConstraints][index_j]=hb.x;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_j.x]=hb.x;
           break;
       }
     }
 
-    if(index_k>=0)
+    //if(index_k>=0)
     {
       switch(Dimension)
       {
         case 3:
-          PrimativeUnitvectors.element[NumberOfConstraints][index_k+2]=hc.z;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_k.z]=hc.z;
         case 2:
-          PrimativeUnitvectors.element[NumberOfConstraints][index_k+1]=hc.y;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_k.y]=hc.y;
         case 1:
-          PrimativeUnitvectors.element[NumberOfConstraints][index_k]=hc.x;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_k.x]=hc.x;
           break;
       }
     }
@@ -3381,7 +3372,7 @@ int ProjectConstraintsFromHessianMatrix(int np,int nb,REAL *Gradient,REAL_MATRIX
         index_k=Adsorbates[CurrentSystem][m].Atoms[C].HessianIndex;
         index_l=Adsorbates[CurrentSystem][m].Atoms[D].HessianIndex;
 
-        if((index_i<0)&&(index_j<0)&&(index_k<0)&&(index_l<0)) continue;
+        //if((index_i<0)&&(index_j<0)&&(index_k<0)&&(index_l<0)) continue;
 
         posA=Adsorbates[CurrentSystem][m].Atoms[A].Position;
         posB=Adsorbates[CurrentSystem][m].Atoms[B].Position;
@@ -3390,32 +3381,32 @@ int ProjectConstraintsFromHessianMatrix(int np,int nb,REAL *Gradient,REAL_MATRIX
 
         ReturnWilsonVectorsTorsion(posA,posB,posC,posD,&ha,&hb,&hc,&hd);
 
-        if(index_i>=0)
+        //if(index_i>=0)
         {
-          PrimativeUnitvectors.element[NumberOfConstraints][index_i]=ha.x;
-          PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=ha.y;
-          PrimativeUnitvectors.element[NumberOfConstraints][index_i+2]=ha.z;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=ha.x;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=ha.y;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_i.z]=ha.z;
         }
 
-        if(index_j>=0)
+        //if(index_j>=0)
         {
-          PrimativeUnitvectors.element[NumberOfConstraints][index_j]=hb.x;
-          PrimativeUnitvectors.element[NumberOfConstraints][index_j+1]=hb.y;
-          PrimativeUnitvectors.element[NumberOfConstraints][index_j+2]=hb.z;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_j.x]=hb.x;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_j.y]=hb.y;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_j.z]=hb.z;
         }
 
-        if(index_k>=0)
+        //if(index_k>=0)
         {
-          PrimativeUnitvectors.element[NumberOfConstraints][index_k]=hc.x;
-          PrimativeUnitvectors.element[NumberOfConstraints][index_k+1]=hc.y;
-          PrimativeUnitvectors.element[NumberOfConstraints][index_k+2]=hc.z;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_k.x]=hc.x;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_k.y]=hc.y;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_k.z]=hc.z;
         }
 
-        if(index_l>=0)
+        //if(index_l>=0)
         {
-          PrimativeUnitvectors.element[NumberOfConstraints][index_l]=hd.x;
-          PrimativeUnitvectors.element[NumberOfConstraints][index_l+1]=hd.y;
-          PrimativeUnitvectors.element[NumberOfConstraints][index_l+2]=hd.z;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_l.x]=hd.x;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_l.y]=hd.y;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_l.z]=hd.z;
         }
 
         NumberOfConstraints++;
@@ -3442,7 +3433,7 @@ int ProjectConstraintsFromHessianMatrix(int np,int nb,REAL *Gradient,REAL_MATRIX
         index_k=Adsorbates[CurrentSystem][m].Atoms[C].HessianIndex;
         index_l=Adsorbates[CurrentSystem][m].Atoms[D].HessianIndex;
 
-        if((index_i<0)&&(index_j<0)&&(index_k<0)&&(index_l<0)) continue;
+        //if((index_i<0)&&(index_j<0)&&(index_k<0)&&(index_l<0)) continue;
 
         posA=Adsorbates[CurrentSystem][m].Atoms[A].Position;
         posB=Adsorbates[CurrentSystem][m].Atoms[B].Position;
@@ -3451,32 +3442,32 @@ int ProjectConstraintsFromHessianMatrix(int np,int nb,REAL *Gradient,REAL_MATRIX
 
         ReturnWilsonVectorsTorsion(posA,posB,posC,posD,&ha,&hb,&hc,&hd);
 
-        if(index_i>=0)
+        //if(index_i>=0)
         {
-          PrimativeUnitvectors.element[NumberOfConstraints][index_i]=ha.x;
-          PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=ha.y;
-          PrimativeUnitvectors.element[NumberOfConstraints][index_i+2]=ha.z;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=ha.x;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=ha.y;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_i.z]=ha.z;
         }
 
-        if(index_j>=0)
+        //if(index_j>=0)
         {
-          PrimativeUnitvectors.element[NumberOfConstraints][index_j]=hb.x;
-          PrimativeUnitvectors.element[NumberOfConstraints][index_j+1]=hb.y;
-          PrimativeUnitvectors.element[NumberOfConstraints][index_j+2]=hb.z;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_j.x]=hb.x;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_j.y]=hb.y;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_j.z]=hb.z;
         }
 
-        if(index_k>=0)
+        //if(index_k>=0)
         {
-          PrimativeUnitvectors.element[NumberOfConstraints][index_k]=hc.x;
-          PrimativeUnitvectors.element[NumberOfConstraints][index_k+1]=hc.y;
-          PrimativeUnitvectors.element[NumberOfConstraints][index_k+2]=hc.z;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_k.x]=hc.x;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_k.y]=hc.y;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_k.z]=hc.z;
         }
 
-        if(index_l>=0)
+        //if(index_l>=0)
         {
-          PrimativeUnitvectors.element[NumberOfConstraints][index_l]=hd.x;
-          PrimativeUnitvectors.element[NumberOfConstraints][index_l+1]=hd.y;
-          PrimativeUnitvectors.element[NumberOfConstraints][index_l+2]=hd.z;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_l.x]=hd.x;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_l.y]=hd.y;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_l.z]=hd.z;
         }
 
         NumberOfConstraints++;
@@ -3493,7 +3484,7 @@ int ProjectConstraintsFromHessianMatrix(int np,int nb,REAL *Gradient,REAL_MATRIX
     index_k=DihedralConstraints[CurrentSystem][m][2]->HessianIndex;
     index_l=DihedralConstraints[CurrentSystem][m][3]->HessianIndex;
 
-    if((index_i<0)&&(index_j<0)&&(index_k<0)&&(index_l<0)) continue;
+    //if((index_i<0)&&(index_j<0)&&(index_k<0)&&(index_l<0)) continue;
 
     posA=DihedralConstraints[CurrentSystem][m][0]->Position;
     posB=DihedralConstraints[CurrentSystem][m][1]->Position;
@@ -3502,32 +3493,32 @@ int ProjectConstraintsFromHessianMatrix(int np,int nb,REAL *Gradient,REAL_MATRIX
 
     ReturnWilsonVectorsTorsion(posA,posB,posC,posD,&ha,&hb,&hc,&hd);
 
-    if(index_i>=0)
+    //if(index_i>=0)
     {
-      PrimativeUnitvectors.element[NumberOfConstraints][index_i]=ha.x;
-      PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=ha.y;
-      PrimativeUnitvectors.element[NumberOfConstraints][index_i+2]=ha.z;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=ha.x;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=ha.y;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_i.z]=ha.z;
     }
 
-    if(index_j>=0)
+    //if(index_j>=0)
     {
-      PrimativeUnitvectors.element[NumberOfConstraints][index_j]=hb.x;
-      PrimativeUnitvectors.element[NumberOfConstraints][index_j+1]=hb.y;
-      PrimativeUnitvectors.element[NumberOfConstraints][index_j+2]=hb.z;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_j.x]=hb.x;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_j.y]=hb.y;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_j.z]=hb.z;
     }
 
-    if(index_k>=0)
+    //if(index_k>=0)
     {
-      PrimativeUnitvectors.element[NumberOfConstraints][index_k]=hc.x;
-      PrimativeUnitvectors.element[NumberOfConstraints][index_k+1]=hc.y;
-      PrimativeUnitvectors.element[NumberOfConstraints][index_k+2]=hc.z;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_k.x]=hc.x;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_k.y]=hc.y;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_k.z]=hc.z;
     }
 
-    if(index_l>=0)
+    //if(index_l>=0)
     {
-      PrimativeUnitvectors.element[NumberOfConstraints][index_l]=hd.x;
-      PrimativeUnitvectors.element[NumberOfConstraints][index_l+1]=hd.y;
-      PrimativeUnitvectors.element[NumberOfConstraints][index_l+2]=hd.z;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_l.x]=hd.x;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_l.y]=hd.y;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_l.z]=hd.z;
     }
 
     NumberOfConstraints++;
@@ -3541,7 +3532,7 @@ int ProjectConstraintsFromHessianMatrix(int np,int nb,REAL *Gradient,REAL_MATRIX
     index_k=ImproperDihedralConstraints[CurrentSystem][m][2]->HessianIndex;
     index_l=ImproperDihedralConstraints[CurrentSystem][m][3]->HessianIndex;
 
-    if((index_i<0)&&(index_j<0)&&(index_k<0)&&(index_l<0)) continue;
+    //if((index_i<0)&&(index_j<0)&&(index_k<0)&&(index_l<0)) continue;
 
     posA=ImproperDihedralConstraints[CurrentSystem][m][0]->Position;
     posB=ImproperDihedralConstraints[CurrentSystem][m][1]->Position;
@@ -3550,32 +3541,32 @@ int ProjectConstraintsFromHessianMatrix(int np,int nb,REAL *Gradient,REAL_MATRIX
 
     ReturnWilsonVectorsTorsion(posA,posB,posC,posD,&ha,&hb,&hc,&hd);
 
-    if(index_i>=0)
+    //if(index_i>=0)
     {
-      PrimativeUnitvectors.element[NumberOfConstraints][index_i]=ha.x;
-      PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=ha.y;
-      PrimativeUnitvectors.element[NumberOfConstraints][index_i+2]=ha.z;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=ha.x;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=ha.y;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_i.z]=ha.z;
     }
 
-    if(index_j>=0)
+    //if(index_j>=0)
     {
-      PrimativeUnitvectors.element[NumberOfConstraints][index_j]=hb.x;
-      PrimativeUnitvectors.element[NumberOfConstraints][index_j+1]=hb.y;
-      PrimativeUnitvectors.element[NumberOfConstraints][index_j+2]=hb.z;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_j.x]=hb.x;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_j.y]=hb.y;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_j.z]=hb.z;
     }
 
-    if(index_k>=0)
+    //if(index_k>=0)
     {
-      PrimativeUnitvectors.element[NumberOfConstraints][index_k]=hc.x;
-      PrimativeUnitvectors.element[NumberOfConstraints][index_k+1]=hc.y;
-      PrimativeUnitvectors.element[NumberOfConstraints][index_k+2]=hc.z;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_k.x]=hc.x;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_k.y]=hc.y;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_k.z]=hc.z;
     }
 
-    if(index_l>=0)
+    //if(index_l>=0)
     {
-      PrimativeUnitvectors.element[NumberOfConstraints][index_l]=hd.x;
-      PrimativeUnitvectors.element[NumberOfConstraints][index_l+1]=hd.y;
-      PrimativeUnitvectors.element[NumberOfConstraints][index_l+2]=hd.z;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_l.x]=hd.x;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_l.y]=hd.y;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_l.z]=hd.z;
     }
 
     NumberOfConstraints++;
@@ -3602,7 +3593,7 @@ int ProjectConstraintsFromHessianMatrix(int np,int nb,REAL *Gradient,REAL_MATRIX
         index_k=Adsorbates[CurrentSystem][m].Atoms[C].HessianIndex;
         index_l=Adsorbates[CurrentSystem][m].Atoms[D].HessianIndex;
 
-        if((index_i<0)&&(index_j<0)&&(index_k<0)&&(index_l<0)) continue;
+        //if((index_i<0)&&(index_j<0)&&(index_k<0)&&(index_l<0)) continue;
 
         posA=Adsorbates[CurrentSystem][m].Atoms[A].Position;
         posB=Adsorbates[CurrentSystem][m].Atoms[B].Position;
@@ -3611,32 +3602,32 @@ int ProjectConstraintsFromHessianMatrix(int np,int nb,REAL *Gradient,REAL_MATRIX
 
         ReturnWilsonVectorsInversionBend(posA,posB,posC,posD,&ha,&hb,&hc,&hd);
 
-        if(index_i>=0)
+        //if(index_i>=0)
         {
-          PrimativeUnitvectors.element[NumberOfConstraints][index_i]=ha.x;
-          PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=ha.y;
-          PrimativeUnitvectors.element[NumberOfConstraints][index_i+2]=ha.z;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=ha.x;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=ha.y;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_i.z]=ha.z;
         }
 
-        if(index_j>=0)
+        //if(index_j>=0)
         {
-          PrimativeUnitvectors.element[NumberOfConstraints][index_j]=hb.x;
-          PrimativeUnitvectors.element[NumberOfConstraints][index_j+1]=hb.y;
-          PrimativeUnitvectors.element[NumberOfConstraints][index_j+2]=hb.z;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_j.x]=hb.x;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_j.y]=hb.y;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_j.z]=hb.z;
         }
 
-        if(index_k>=0)
+        //if(index_k>=0)
         {
-          PrimativeUnitvectors.element[NumberOfConstraints][index_k]=hc.x;
-          PrimativeUnitvectors.element[NumberOfConstraints][index_k+1]=hc.y;
-          PrimativeUnitvectors.element[NumberOfConstraints][index_k+2]=hc.z;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_k.x]=hc.x;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_k.y]=hc.y;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_k.z]=hc.z;
         }
 
-        if(index_l>=0)
+        //if(index_l>=0)
         {
-          PrimativeUnitvectors.element[NumberOfConstraints][index_l]=hd.x;
-          PrimativeUnitvectors.element[NumberOfConstraints][index_l+1]=hd.y;
-          PrimativeUnitvectors.element[NumberOfConstraints][index_l+2]=hd.z;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_l.x]=hd.x;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_l.y]=hd.y;
+          PrimativeUnitvectors.element[NumberOfConstraints][index_l.z]=hd.z;
         }
 
         NumberOfConstraints++;
@@ -3652,7 +3643,7 @@ int ProjectConstraintsFromHessianMatrix(int np,int nb,REAL *Gradient,REAL_MATRIX
     index_k=InversionBendConstraints[CurrentSystem][m][2]->HessianIndex;
     index_l=InversionBendConstraints[CurrentSystem][m][3]->HessianIndex;
 
-    if((index_i<0)&&(index_j<0)&&(index_k<0)&&(index_l<0)) continue;
+    //if((index_i<0)&&(index_j<0)&&(index_k<0)&&(index_l<0)) continue;
 
     posA=InversionBendConstraints[CurrentSystem][m][0]->Position;
     posB=InversionBendConstraints[CurrentSystem][m][1]->Position;
@@ -3661,32 +3652,32 @@ int ProjectConstraintsFromHessianMatrix(int np,int nb,REAL *Gradient,REAL_MATRIX
 
     ReturnWilsonVectorsInversionBend(posA,posB,posC,posD,&ha,&hb,&hc,&hd);
 
-    if(index_i>=0)
+    //if(index_i>=0)
     {
-      PrimativeUnitvectors.element[NumberOfConstraints][index_i]=ha.x;
-      PrimativeUnitvectors.element[NumberOfConstraints][index_i+1]=ha.y;
-      PrimativeUnitvectors.element[NumberOfConstraints][index_i+2]=ha.z;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=ha.x;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=ha.y;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_i.z]=ha.z;
     }
 
-    if(index_j>=0)
+    //if(index_j>=0)
     {
-      PrimativeUnitvectors.element[NumberOfConstraints][index_j]=hb.x;
-      PrimativeUnitvectors.element[NumberOfConstraints][index_j+1]=hb.y;
-      PrimativeUnitvectors.element[NumberOfConstraints][index_j+2]=hb.z;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_j.x]=hb.x;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_j.y]=hb.y;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_j.z]=hb.z;
     }
 
-    if(index_k>=0)
+    //if(index_k>=0)
     {
-      PrimativeUnitvectors.element[NumberOfConstraints][index_k]=hc.x;
-      PrimativeUnitvectors.element[NumberOfConstraints][index_k+1]=hc.y;
-      PrimativeUnitvectors.element[NumberOfConstraints][index_k+2]=hc.z;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_k.x]=hc.x;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_k.y]=hc.y;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_k.z]=hc.z;
     }
 
-    if(index_l>=0)
+    //if(index_l>=0)
     {
-      PrimativeUnitvectors.element[NumberOfConstraints][index_l]=hd.x;
-      PrimativeUnitvectors.element[NumberOfConstraints][index_l+1]=hd.y;
-      PrimativeUnitvectors.element[NumberOfConstraints][index_l+2]=hd.z;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_l.x]=hd.x;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_l.y]=hd.y;
+      PrimativeUnitvectors.element[NumberOfConstraints][index_l.z]=hd.z;
     }
     NumberOfConstraints++;
   }

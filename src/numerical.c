@@ -1,27 +1,16 @@
-/*****************************************************************************************************
+/*************************************************************************************************************
     RASPA: a molecular-dynamics, monte-carlo and optimization code for nanoporous materials
-    Copyright (C) 2006-2012 David Dubbeldam, Sofia Calero, Donald E. Ellis, and Randall Q. Snurr.
+    Copyright (C) 2006-2013 David Dubbeldam, Sofia Calero, Thijs Vlugt, Donald E. Ellis, and Randall Q. Snurr.
 
     D.Dubbeldam@uva.nl            http://molsim.science.uva.nl/
     scaldia@upo.es                http://www.upo.es/raspa/
+    t.j.h.vlugt@tudelft.nl        http://homepage.tudelft.nl/v9k6y
     don-ellis@northwestern.edu    http://dvworld.northwestern.edu/
     snurr@northwestern.edu        http://zeolites.cqe.northwestern.edu/
 
-    This file 'numerical.c' is part of RASPA.
+    This file 'numerical.c' is part of RASPA-2.0
 
-    RASPA is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    RASPA is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *****************************************************************************************************/
+ *************************************************************************************************************/
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -110,7 +99,7 @@ void NumericallyComputeGradient(int np,int nb,REAL *x,REAL *NumericalGradient)
     {
       if(TailCorrection[i][j])
         pressure+=(2.0/3.0)*M_PI*CUBE(CutOffVDW)*(REAL)NumberOfPseudoAtomsType[CurrentSystem][i]*(REAL)NumberOfPseudoAtomsType[CurrentSystem][j]*
-                  PotentialValue(i,j,CutOffVDWSquared);
+                  PotentialValue(i,j,CutOffVDWSquared,1.0);
     }
 
   // correction for fixed external pressure
@@ -247,7 +236,7 @@ void NumericallyComputeDerivatives(int np,int nb,REAL *x,REAL *GradientNumerical
   REAL_MATRIX Hessian;
   REAL_MATRIX3x3 StrainDerivative;
 
-  delta=1e-7;
+  delta=1e-6;
   Gradient=(REAL*)calloc(np+nb,sizeof(REAL));
   GradientForward1=(REAL*)calloc(np+nb,sizeof(REAL));
   GradientForward2=(REAL*)calloc(np+nb,sizeof(REAL));
@@ -1223,19 +1212,17 @@ void TestForcesNumerically(void)
         if(fabs(force.z+derivative.z)>largest_difference.z) largest_difference.z=fabs(force.z+derivative.z);
 
 
-        if(!Framework[CurrentSystem].Atoms[k][i].Fixed)
-        { 
-          fprintf(FilePtr,"%4d %4d [%8s] % 18.10f % 18.10f % 18.10f\n",
-             k,i,PseudoAtoms[type].Name,
-             (double)force.x,(double)force.y,(double)force.z);
-          fprintf(FilePtr,"                     % 18.10f % 18.10f % 18.10f\n",
-             (double)(-derivative.x),(double)(-derivative.y),(double)(-derivative.z));
-          fprintf(OutputFilePtr[CurrentSystem],"%4d %4d [%8s] % 18.10f % 18.10f % 18.10f\n",
-             k,i,PseudoAtoms[type].Name,
-              (double)force.x,(double)force.y,(double)force.z);
-          fprintf(OutputFilePtr[CurrentSystem],"                     % 18.10f % 18.10f % 18.10f\n",
-             (double)(-derivative.x),(double)(-derivative.y),(double)(-derivative.z));
-        }
+         fprintf(FilePtr,"%4d %4d [%8s] % 18.10f % 18.10f % 18.10f\n",
+           k,i,PseudoAtoms[type].Name,
+           (double)force.x,(double)force.y,(double)force.z);
+        fprintf(FilePtr,"                     % 18.10f % 18.10f % 18.10f\n",
+           (double)(-derivative.x),(double)(-derivative.y),(double)(-derivative.z));
+        fprintf(OutputFilePtr[CurrentSystem],"%4d %4d [%8s] % 18.10f % 18.10f % 18.10f\n",
+           k,i,PseudoAtoms[type].Name,
+            (double)force.x,(double)force.y,(double)force.z);
+        fprintf(OutputFilePtr[CurrentSystem],"                     % 18.10f % 18.10f % 18.10f\n",
+           (double)(-derivative.x),(double)(-derivative.y),(double)(-derivative.z));
+
         fflush(OutputFilePtr[CurrentSystem]);
         fflush(FilePtr);
       }
@@ -2847,7 +2834,7 @@ REAL_MATRIX3x3 ComputeStrainDerivativeNumerically(void)
     {
       if(TailCorrection[i][j])
         pressure+=(2.0/3.0)*M_PI*CUBE(CutOffVDW)*(REAL)NumberOfPseudoAtomsType[CurrentSystem][i]*(REAL)NumberOfPseudoAtomsType[CurrentSystem][j]*
-                  PotentialValue(i,j,CutOffVDWSquared);
+                  PotentialValue(i,j,CutOffVDWSquared,1.0);
     }
   StrainDerivative.ax-=pressure/Volume[CurrentSystem];
   StrainDerivative.by-=pressure/Volume[CurrentSystem];
@@ -3945,7 +3932,7 @@ void TestEnergyForcesHessian(void)
     for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
     {
       for(j=0;j<Framework[CurrentSystem].NumberOfAtoms[f1];j++)
-        fprintf(FilePtr,"Framework Atom: %-5d %-2d Position: %24.20f %24.20f %24.20f   Force: %18.12f %18.12f %18.12f Fixed: %d\n",
+        fprintf(FilePtr,"Framework Atom: %-5d %-2d Position: %24.20f %24.20f %24.20f   Force: %18.12f %18.12f %18.12f Fixed: %d %d %d\n",
                   j,
                   CurrentFramework,
                   (double)Framework[CurrentSystem].Atoms[f1][j].Position.x,
@@ -3954,7 +3941,9 @@ void TestEnergyForcesHessian(void)
                   (double)Framework[CurrentSystem].Atoms[f1][j].Force.x,
                   (double)Framework[CurrentSystem].Atoms[f1][j].Force.y,
                   (double)Framework[CurrentSystem].Atoms[f1][j].Force.z,
-                  (int)Framework[CurrentSystem].Atoms[f1][j].Fixed);
+                  (int)Framework[CurrentSystem].Atoms[f1][j].Fixed.x,
+                  (int)Framework[CurrentSystem].Atoms[f1][j].Fixed.y,
+                  (int)Framework[CurrentSystem].Atoms[f1][j].Fixed.z);
     }
     fprintf(FilePtr,"\n");
   }
@@ -4374,19 +4363,19 @@ void CheckStatusNumerically(void)
   InitializeForcesAllSystems();
 
   for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
-    TestForcesNumerically();
-
-  for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
     TestEnergyForcesHessian();
 
   for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
     TestStressTensorNumerically();
 
   for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
-    TestStrainSecondDerivativeNumerically();
+    TestGradientsNumerically();
 
   for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
-    TestGradientsNumerically();
+    TestForcesNumerically();
+
+  for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
+    TestStrainSecondDerivativeNumerically();
 
   for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
     TestHessianNumerically();

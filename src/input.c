@@ -1,27 +1,16 @@
-/*****************************************************************************************************
+/*************************************************************************************************************
     RASPA: a molecular-dynamics, monte-carlo and optimization code for nanoporous materials
-    Copyright (C) 2006-2012 David Dubbeldam, Sofia Calero, Donald E. Ellis, and Randall Q. Snurr.
+    Copyright (C) 2006-2013 David Dubbeldam, Sofia Calero, Thijs Vlugt, Donald E. Ellis, and Randall Q. Snurr.
 
     D.Dubbeldam@uva.nl            http://molsim.science.uva.nl/
     scaldia@upo.es                http://www.upo.es/raspa/
+    t.j.h.vlugt@tudelft.nl        http://homepage.tudelft.nl/v9k6y
     don-ellis@northwestern.edu    http://dvworld.northwestern.edu/
     snurr@northwestern.edu        http://zeolites.cqe.northwestern.edu/
 
-    This file 'input.c' is part of RASPA.
+    This file 'input.c' is part of RASPA-2.0
 
-    RASPA is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    RASPA is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *****************************************************************************************************/
+ *************************************************************************************************************/
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -395,6 +384,7 @@ int ReadInputFile(char *inputfilename)
   TargetAccRatioVolumeChange=0.5;
   TargetAccRatioBoxShapeChange=0.5;
   TargetAccRatioGibbsVolumeChange=0.5;
+  TargetAccRatioCFCRXMCLambdaChange=0.5;        // CFC-RXMC
 
   NumberOfHybridNVESteps=5;
   NumberOfHybridNPHSteps=5;
@@ -457,6 +447,8 @@ int ReadInputFile(char *inputfilename)
   ProbabilityHybridNPHPRMove=0.0;
   ProbabilityFrameworkChangeMove=0.0;
   ProbabilityFrameworkShiftMove=0.0;
+  ProbabilityCFLambdaMove=0.0;
+  ProbabilityCFCRXMCLambdaChangeMove=0.0;     // CFC-RXMC
 
   // default time step is 0.5 fs
   DeltaT=0.0005;
@@ -557,6 +549,7 @@ int ReadInputFile(char *inputfilename)
 
   NumberOfSystems=0;
   NumberOfComponents=0;
+  NumberOfReactions=0;                                             // CFC-RXMC
   while(ReadLine(line,16384,FilePtr))
   {
     // extract first word
@@ -625,6 +618,12 @@ int ReadInputFile(char *inputfilename)
         NumberOfComponents++;
       }
     }
+
+    //-------------------------------------------------------------------------------------------------------------------------------------------------------
+    // CFC-RXMC : read statements for number of reactions
+    //-------------------------------------------------------------------------------------------------------------------------------------------------------
+    if(strcasecmp("Reaction",keyword)==0) NumberOfReactions++;
+    //-------------------------------------------------------------------------------------------------------------------------------------------------------
 
     // if restarted from a binary restart file we  can skip everything, and read
     // the full system status from that binary restart-file
@@ -745,6 +744,7 @@ int ReadInputFile(char *inputfilename)
     Components[i].NumberOfMolecules=(int*)calloc(NumberOfSystems,sizeof(int));
 
     Components[i].FractionalMolecule=(int*)calloc(NumberOfSystems,sizeof(int));
+    Components[i].CFMoleculePresent=(int*)calloc(NumberOfSystems,sizeof(int));
 
     Components[i].MOLEC_PER_UC_TO_MOL_PER_KG=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
     Components[i].MOLEC_PER_UC_TO_GRAM_PER_GRAM_OF_FRAMEWORK=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
@@ -771,6 +771,10 @@ int ReadInputFile(char *inputfilename)
       Components[i].IdealGasTotalEnergy[j]=0.0;
       Components[i].FugacityCoefficient[j]=-1.0;
       Components[i].MolFraction[j]=1.0;
+
+      // start with no defined fractional molecule
+      Components[i].FractionalMolecule[j]=-1;
+      Components[i].CFMoleculePresent[j]=FALSE;
     }
 
     strcpy(Components[i].MoleculeDefinition,"TraPPE");
@@ -905,6 +909,15 @@ int ReadInputFile(char *inputfilename)
     WriteRDFEvery[i]=5000;
     RDFHistogramSize[i]=500;
     RDFRange[i]=12.0;
+
+    //----------------------------------------------------------------------------
+    // CFC-RXMC : sampling lambda histogram
+    //----------------------------------------------------------------------------
+    ComputeCFCRXMCLambdaHistogram[i]=FALSE;
+    WriteCFCRXMCLambdaHistogramEvery[i]=5000;
+    CFCRXMCLambdaHistogramBins[i]=10;
+    //----------------------------------------------------------------------------
+
 
     // sampling the number-of-molecules histogram
     ComputeNumberOfMoleculesHistogram[i]=FALSE;
@@ -1186,6 +1199,10 @@ int ReadInputFile(char *inputfilename)
       Framework[i].MaxNumberOfExcludedIntraChargeCharge=(int*)calloc(Framework[i].NumberOfFrameworks,sizeof(int));
       Framework[i].ExcludedIntraChargeCharge=(PAIR**)calloc(Framework[i].NumberOfFrameworks,sizeof(PAIR*));
 
+      Framework[i].NumberOfExcludedIntra14ScalingChargeCharge=(int*)calloc(Framework[i].NumberOfFrameworks,sizeof(int));
+      Framework[i].MaxNumberOfExcludedIntra14ScalingChargeCharge=(int*)calloc(Framework[i].NumberOfFrameworks,sizeof(int));
+      Framework[i].ExcludedIntra14ScalingChargeCharge=(PAIR**)calloc(Framework[i].NumberOfFrameworks,sizeof(PAIR*));
+
       Framework[i].NumberOfExcludedIntraChargeBondDipole=(int*)calloc(Framework[i].NumberOfFrameworks,sizeof(int));
       Framework[i].MaxNumberOfExcludedIntraChargeBondDipole=(int*)calloc(Framework[i].NumberOfFrameworks,sizeof(int));
       Framework[i].ExcludedIntraChargeBondDipole=(PAIR**)calloc(Framework[i].NumberOfFrameworks,sizeof(PAIR*));
@@ -1195,10 +1212,26 @@ int ReadInputFile(char *inputfilename)
       Framework[i].ExcludedIntraBondDipoleBondDipole=(PAIR**)calloc(Framework[i].NumberOfFrameworks,sizeof(PAIR*));
 
       FrameworkFixedInitialization[i]=(int*)calloc(Framework[i].NumberOfFrameworks,sizeof(int));
+
       NumberOfFixedFrameworkAtoms[i]=(int*)calloc(Framework[i].NumberOfFrameworks,sizeof(int));
+      NumberOfFixedFrameworkAtomsX[i]=(int*)calloc(Framework[i].NumberOfFrameworks,sizeof(int));
+      NumberOfFixedFrameworkAtomsY[i]=(int*)calloc(Framework[i].NumberOfFrameworks,sizeof(int));
+      NumberOfFixedFrameworkAtomsZ[i]=(int*)calloc(Framework[i].NumberOfFrameworks,sizeof(int));
+
       NumberOfActiveFrameworkAtoms[i]=(int*)calloc(Framework[i].NumberOfFrameworks,sizeof(int));
+      NumberOfActiveFrameworkAtomsX[i]=(int*)calloc(Framework[i].NumberOfFrameworks,sizeof(int));
+      NumberOfActiveFrameworkAtomsY[i]=(int*)calloc(Framework[i].NumberOfFrameworks,sizeof(int));
+      NumberOfActiveFrameworkAtomsZ[i]=(int*)calloc(Framework[i].NumberOfFrameworks,sizeof(int));
+
       FixedFrameworkAtoms[i]=(int**)calloc(Framework[i].NumberOfFrameworks,sizeof(int*));
+      FixedFrameworkAtomsX[i]=(int**)calloc(Framework[i].NumberOfFrameworks,sizeof(int*));
+      FixedFrameworkAtomsY[i]=(int**)calloc(Framework[i].NumberOfFrameworks,sizeof(int*));
+      FixedFrameworkAtomsZ[i]=(int**)calloc(Framework[i].NumberOfFrameworks,sizeof(int*));
+
       ActiveFrameworkAtoms[i]=(int**)calloc(Framework[i].NumberOfFrameworks,sizeof(int*));
+      ActiveFrameworkAtomsX[i]=(int**)calloc(Framework[i].NumberOfFrameworks,sizeof(int*));
+      ActiveFrameworkAtomsY[i]=(int**)calloc(Framework[i].NumberOfFrameworks,sizeof(int*));
+      ActiveFrameworkAtomsZ[i]=(int**)calloc(Framework[i].NumberOfFrameworks,sizeof(int*));
 
       for(j=0;j<Framework[i].NumberOfFrameworks;j++)
       {
@@ -1215,6 +1248,9 @@ int ReadInputFile(char *inputfilename)
       Framework[i].AnisotropicType=ANISOTROPIC_MID_POINT;
       Framework[i].ForceSpaceGroupDetection=FALSE;
       Framework[i].ReadCIFAsCartesian=FALSE;
+
+      Framework[i].Intra14VDWScalingValue=1.0;
+      Framework[i].Intra14ChargeChargeScalingValue=1.0;
     }
     else
     {
@@ -1233,6 +1269,9 @@ int ReadInputFile(char *inputfilename)
       Framework[i].AnisotropicType=ANISOTROPIC_MID_POINT;
 
       Framework[i].FrameworkModel=NONE;
+
+      Framework[i].Intra14VDWScalingValue=1.0;
+      Framework[i].Intra14ChargeChargeScalingValue=1.0;
     }
   }
 
@@ -1247,12 +1286,13 @@ int ReadInputFile(char *inputfilename)
   }
 
   CurrentComponent=0;
+  CurrentReaction=0;
   LineNumber=0;
   while(ReadLine(line,16384,FilePtr))
   {
-   LineNumber++;
+    LineNumber++;
 
-   // extract first word
+    // extract first word
     strcpy(keyword,"keyword");
     sscanf(line,"%s%[^\n]",keyword,arguments);
     sscanf(arguments,"%s",firstargument);
@@ -1305,7 +1345,6 @@ int ReadInputFile(char *inputfilename)
     if(strcasecmp("NumberOfInitializationCycles",keyword)==0) sscanf(arguments,"%lld",&NumberOfInitializationCycles);
     if(strcasecmp("NumberOfEquilibrationCycles",keyword)==0) sscanf(arguments,"%lld",&NumberOfEquilibrationCycles);
     if(strcasecmp("NumberOfVelocityScalingCycles",keyword)==0) sscanf(arguments,"%lld",&NumberOfVelocityScalingCycles);
-
 
     // read restart-options
     if(strcasecmp("RestartFile",keyword)==0)
@@ -1583,8 +1622,8 @@ int ReadInputFile(char *inputfilename)
     {
       // allocate additional memory for this modification rule
       ModificationRuleType=(int*)realloc(ModificationRuleType,(NumberOfModificationRules+1)*sizeof(int));
-      ModifyFrameworkAtoms=(char(*)[6][256])realloc(ModifyFrameworkAtoms,(NumberOfModificationRules+1)*sizeof(char[6][256]));
-      ModifyFrameworkAtomTypes=(int(*)[6])realloc(ModifyFrameworkAtomTypes,(NumberOfModificationRules+1)*sizeof(int[6]));
+      ModifyFrameworkAtoms=(char(*)[10][256])realloc(ModifyFrameworkAtoms,(NumberOfModificationRules+1)*sizeof(char[10][256]));
+      ModifyFrameworkAtomTypes=(int(*)[10])realloc(ModifyFrameworkAtomTypes,(NumberOfModificationRules+1)*sizeof(int[10]));
       ModificationRuleType[NumberOfModificationRules]=MODIFY_FRAMEWORKATOM_CONNECTED_TO;
       strcpy(ModifyFrameworkAtoms[NumberOfModificationRules][3],"wild card");
       strcpy(ModifyFrameworkAtoms[NumberOfModificationRules][4],"wild card");
@@ -1603,8 +1642,8 @@ int ReadInputFile(char *inputfilename)
     {
       // allocate additional memory for this modification rule
       ModificationRuleType=(int*)realloc(ModificationRuleType,(NumberOfModificationRules+1)*sizeof(int));
-      ModifyFrameworkAtoms=(char(*)[6][256])realloc(ModifyFrameworkAtoms,(NumberOfModificationRules+1)*sizeof(char[6][256]));
-      ModifyFrameworkAtomTypes=(int(*)[6])realloc(ModifyFrameworkAtomTypes,(NumberOfModificationRules+1)*sizeof(int[6]));
+      ModifyFrameworkAtoms=(char(*)[10][256])realloc(ModifyFrameworkAtoms,(NumberOfModificationRules+1)*sizeof(char[10][256]));
+      ModifyFrameworkAtomTypes=(int(*)[10])realloc(ModifyFrameworkAtomTypes,(NumberOfModificationRules+1)*sizeof(int[10]));
       ModificationRuleType[NumberOfModificationRules]=MODIFY_FRAMEWORKATOM_CONNECTED_TO;
       strcpy(ModifyFrameworkAtoms[NumberOfModificationRules][2],"wild card");
       strcpy(ModifyFrameworkAtoms[NumberOfModificationRules][3],"wild card");
@@ -1625,8 +1664,8 @@ int ReadInputFile(char *inputfilename)
     {
       // allocate additional memory for this modification rule
       ModificationRuleType=(int*)realloc(ModificationRuleType,(NumberOfModificationRules+1)*sizeof(int));
-      ModifyFrameworkAtoms=(char(*)[6][256])realloc(ModifyFrameworkAtoms,(NumberOfModificationRules+1)*sizeof(char[6][256]));
-      ModifyFrameworkAtomTypes=(int(*)[6])realloc(ModifyFrameworkAtomTypes,(NumberOfModificationRules+1)*sizeof(int[6]));
+      ModifyFrameworkAtoms=(char(*)[10][256])realloc(ModifyFrameworkAtoms,(NumberOfModificationRules+1)*sizeof(char[10][256]));
+      ModifyFrameworkAtomTypes=(int(*)[10])realloc(ModifyFrameworkAtomTypes,(NumberOfModificationRules+1)*sizeof(int[10]));
       ModificationRuleType[NumberOfModificationRules]=MODIFY_FRAMEWORKATOM_DIMER;
       strcpy(ModifyFrameworkAtoms[NumberOfModificationRules][0],"wild card");
       strcpy(ModifyFrameworkAtoms[NumberOfModificationRules][1],"wild card");
@@ -1649,8 +1688,8 @@ int ReadInputFile(char *inputfilename)
     {
       // allocate additional memory for this modification rule
       ModificationRuleType=(int*)realloc(ModificationRuleType,(NumberOfModificationRules+1)*sizeof(int));
-      ModifyFrameworkAtoms=(char(*)[6][256])realloc(ModifyFrameworkAtoms,(NumberOfModificationRules+1)*sizeof(char[6][256]));
-      ModifyFrameworkAtomTypes=(int(*)[6])realloc(ModifyFrameworkAtomTypes,(NumberOfModificationRules+1)*sizeof(int[6]));
+      ModifyFrameworkAtoms=(char(*)[10][256])realloc(ModifyFrameworkAtoms,(NumberOfModificationRules+1)*sizeof(char[10][256]));
+      ModifyFrameworkAtomTypes=(int(*)[10])realloc(ModifyFrameworkAtomTypes,(NumberOfModificationRules+1)*sizeof(int[10]));
       ModificationRuleType[NumberOfModificationRules]=MODIFY_FRAMEWORKATOM_TRIPLE;
       strcpy(ModifyFrameworkAtoms[NumberOfModificationRules][0],"wild card");
       strcpy(ModifyFrameworkAtoms[NumberOfModificationRules][1],"wild card");
@@ -1667,6 +1706,40 @@ int ReadInputFile(char *inputfilename)
           ModifyFrameworkAtoms[NumberOfModificationRules][3],
           ModifyFrameworkAtoms[NumberOfModificationRules][4],
           ModifyFrameworkAtoms[NumberOfModificationRules][5]);
+
+      // increase the amount of modifcation rules by 1
+      NumberOfModificationRules++;
+    }
+    if(strcasecmp("ModifyFrameworkPlanar",keyword)==0)
+    {
+      // allocate additional memory for this modification rule
+      ModificationRuleType=(int*)realloc(ModificationRuleType,(NumberOfModificationRules+1)*sizeof(int));
+      ModifyFrameworkAtoms=(char(*)[10][256])realloc(ModifyFrameworkAtoms,(NumberOfModificationRules+1)*sizeof(char[10][256]));
+      ModifyFrameworkAtomTypes=(int(*)[10])realloc(ModifyFrameworkAtomTypes,(NumberOfModificationRules+1)*sizeof(int[10]));
+      ModificationRuleType[NumberOfModificationRules]=MODIFY_FRAMEWORKATOM_PLANAR;
+      strcpy(ModifyFrameworkAtoms[NumberOfModificationRules][0],"wild card");
+      strcpy(ModifyFrameworkAtoms[NumberOfModificationRules][1],"wild card");
+      strcpy(ModifyFrameworkAtoms[NumberOfModificationRules][2],"wild card");
+      strcpy(ModifyFrameworkAtoms[NumberOfModificationRules][3],"wild card");
+      strcpy(ModifyFrameworkAtoms[NumberOfModificationRules][4],"wild card");
+      strcpy(ModifyFrameworkAtoms[NumberOfModificationRules][5],"wild card");
+      strcpy(ModifyFrameworkAtoms[NumberOfModificationRules][6],"wild card");
+      strcpy(ModifyFrameworkAtoms[NumberOfModificationRules][7],"wild card");
+      strcpy(ModifyFrameworkAtoms[NumberOfModificationRules][8],"wild card");
+      strcpy(ModifyFrameworkAtoms[NumberOfModificationRules][9],"wild card");
+
+      // scan the arguments from the input
+      sscanf(arguments,"%s %s %s %s %s %s %s %s %s %s",
+          ModifyFrameworkAtoms[NumberOfModificationRules][0],
+          ModifyFrameworkAtoms[NumberOfModificationRules][1],
+          ModifyFrameworkAtoms[NumberOfModificationRules][2],
+          ModifyFrameworkAtoms[NumberOfModificationRules][3],
+          ModifyFrameworkAtoms[NumberOfModificationRules][4],
+          ModifyFrameworkAtoms[NumberOfModificationRules][5],
+          ModifyFrameworkAtoms[NumberOfModificationRules][6],
+          ModifyFrameworkAtoms[NumberOfModificationRules][7],
+          ModifyFrameworkAtoms[NumberOfModificationRules][8],
+          ModifyFrameworkAtoms[NumberOfModificationRules][9]);
 
       // increase the amount of modifcation rules by 1
       NumberOfModificationRules++;
@@ -1708,6 +1781,21 @@ int ReadInputFile(char *inputfilename)
     {
       if(strcasecmp("yes",firstargument)==0) RemoveTorsionNeighboursFromLongRangeInteraction=TRUE;
       if(strcasecmp("no",firstargument)==0) RemoveTorsionNeighboursFromLongRangeInteraction=FALSE;
+    }
+    if(strcasecmp("Remove12NeighboursFromVDWInteraction",keyword)==0)
+    {
+      if(strcasecmp("yes",firstargument)==0) Remove12NeighboursFromVDWInteraction=TRUE;
+      if(strcasecmp("no",firstargument)==0) Remove12NeighboursFromVDWInteraction=FALSE;
+    }
+    if(strcasecmp("Remove13NeighboursFromVDWInteraction",keyword)==0)
+    {
+      if(strcasecmp("yes",firstargument)==0) Remove13NeighboursFromVDWInteraction=TRUE;
+      if(strcasecmp("no",firstargument)==0) Remove13NeighboursFromVDWInteraction=FALSE;
+    }
+    if(strcasecmp("Remove14NeighboursFromVDWInteraction",keyword)==0)
+    {
+      if(strcasecmp("yes",firstargument)==0) Remove14NeighboursFromVDWInteraction=TRUE;
+      if(strcasecmp("no",firstargument)==0) Remove14NeighboursFromVDWInteraction=FALSE;
     }
     if(strcasecmp("Remove12NeighboursFromChargeChargeInteraction",keyword)==0)
     {
@@ -1821,6 +1909,27 @@ int ReadInputFile(char *inputfilename)
          break;
       }
     }
+
+
+    //-----------------------------------------------------------------------------------------------------
+    // CFC-RXMC : read reactions
+    //-----------------------------------------------------------------------------------------------------
+    if(strcasecmp("Reaction",keyword)==0)
+    {
+      arg_pointer=arguments; 
+      for(i=0;i<NumberOfComponents;i++)
+      {
+        sscanf(arg_pointer,"%d%n",&ReactantsStoichiometry[CurrentReaction][i],&n);
+        arg_pointer+=n;
+      }
+      for(i=0;i<NumberOfComponents;i++)
+      {
+        sscanf(arg_pointer,"%d%n",&ProductsStoichiometry[CurrentReaction][i],&n);
+        arg_pointer+=n;
+      }
+      CurrentReaction++;
+    }
+
 
     // read MD ensembles
     if(strcasecmp("Ensemble",keyword)==0) 
@@ -2037,15 +2146,17 @@ int ReadInputFile(char *inputfilename)
       sscanf(arguments,"%s",Framework[CurrentSystem].Name[CurrentFramework]);
     }
     if(strcasecmp("FrameworkDefinitions",keyword)==0) sscanf(arguments,"%s",Framework[CurrentSystem].FrameworkDefinitions);
+    if(strcasecmp("FlexibleModelInputType",keyword)==0) 
+    {
+      if(strcasecmp("RASPA",firstargument)==0) Framework[CurrentSystem].FlexibleModelInputType=FLEXIBLE_FILE_TYPE_RASPA;
+      if(strcasecmp("DLPOLY",firstargument)==0) Framework[CurrentSystem].FlexibleModelInputType=FLEXIBLE_FILE_TYPE_DLPOLY;
+    } 
     if(strcasecmp("HeliumVoidFraction",keyword)==0) sscanf(arguments,"%lf",&HeliumVoidFraction[CurrentSystem]);
     if(strcasecmp("ExcessVolume",keyword)==0) sscanf(arguments,"%lf",&ExcessVolume[CurrentSystem]);
     if(strcasecmp("IonsName",keyword)==0) sscanf(arguments,"%s",Framework[CurrentSystem].NameIons);
 
-    if(strcasecmp("ContinuousFraction",keyword)==0)
-    {
-      if(strcasecmp("yes",firstargument)==0) UseContinuousFraction=TRUE;
-      if(strcasecmp("no",firstargument)==0) UseContinuousFraction=FALSE;
-    }
+    if(strcasecmp("FrameworkIntra14VDWScalingValue",keyword)==0) sscanf(arguments,"%lf",&Framework[CurrentSystem].Intra14VDWScalingValue);
+    if(strcasecmp("FrameworkIntra14ChargeChargeScalingValue",keyword)==0) sscanf(arguments,"%lf",&Framework[CurrentSystem].Intra14ChargeChargeScalingValue);
 
     if(strcasecmp("CalculateSpaceGroup",keyword)==0)
     {
@@ -2082,6 +2193,7 @@ int ReadInputFile(char *inputfilename)
       if(strcasecmp("xyz",firstargument)==0) Framework[CurrentSystem].InputFileType[CurrentFramework]=XYZ_FORMAT;
       if(strcasecmp("mol",firstargument)==0) Framework[CurrentSystem].InputFileType[CurrentFramework]=MOL_FORMAT;
       if(strcasecmp("cssr",firstargument)==0) Framework[CurrentSystem].InputFileType[CurrentFramework]=CSSR_FORMAT;
+      if(strcasecmp("dlpoly",firstargument)==0) Framework[CurrentSystem].InputFileType[CurrentFramework]=DLPOLY_FORMAT;
       if(strcasecmp("pdb",firstargument)==0) Framework[CurrentSystem].InputFileType[CurrentFramework]=PDB_FORMAT;
       if(strcasecmp("cif",firstargument)==0) Framework[CurrentSystem].InputFileType[CurrentFramework]=CIF_FORMAT;
     }
@@ -2180,7 +2292,15 @@ int ReadInputFile(char *inputfilename)
     }
     if(strcasecmp("FrameworkChangeMoveProbability",keyword)==0) sscanf(arguments,"%lf",&ProbabilityFrameworkChangeMove);
     if(strcasecmp("FrameworkShiftMoveProbability",keyword)==0) sscanf(arguments,"%lf",&ProbabilityFrameworkShiftMove);
+    if(strcasecmp("CFLambdaMoveProbability",keyword)==0) sscanf(arguments,"%lf",&ProbabilityCFLambdaMove);
     if(strcasecmp("VolumeChangeProbability",keyword)==0) sscanf(arguments,"%lf",&ProbabilityVolumeChangeMove);
+    //--------------------------------------------------------------------------------------------------------------------------------------------------------
+    // CFC-RXMC : reading parameters
+    //--------------------------------------------------------------------------------------------------------------------------------------------------------
+    if(strcasecmp("CFCRXMCLambdaChangeProbability",keyword)==0) sscanf(arguments,"%lf",&ProbabilityCFCRXMCLambdaChangeMove);
+    if(strcasecmp("PartitionFunction",keyword)==0) sscanf(arguments,"%lf",&Components[CurrentComponent].PartitionFunction);
+    if(strcasecmp("MaximumCFCRXMCLambdaChange",keyword)==0) sscanf(arguments,"system %d: %lf",&CurrentSystem,&MaximumCFCRXMCLambdaChange[CurrentSystem]);
+    //--------------------------------------------------------------------------------------------------------------------------------------------------------
     if(strcasecmp("ParallelTemperingProbability",keyword)==0) sscanf(arguments,"%lf",&ProbabilityParallelTemperingMove);
     if(strcasecmp("HyperParallelTemperingProbability",keyword)==0) sscanf(arguments,"%lf",&ProbabilityHyperParallelTemperingMove);
     if(strcasecmp("ParallelMolFractionProbability",keyword)==0) sscanf(arguments,"%lf",&ProbabilityParallelMolFractionMove);
@@ -2295,6 +2415,26 @@ int ReadInputFile(char *inputfilename)
           Components[CurrentComponent].Swapable=TRUE;
           Swapable=TRUE;
         }
+    if(strcasecmp("CFSwapLambdaProbability",keyword)==0) 
+      if(sscanf(arguments,"%lf",&Components[CurrentComponent].ProbabilityCFSwapLambdaMove))
+      {
+        if(Components[CurrentComponent].ProbabilityCFSwapLambdaMove>0.0)
+        {
+          Components[CurrentComponent].Swapable=TRUE;
+          Components[CurrentComponent].CFMoleculePresent[CurrentSystem]=TRUE;
+          Swapable=TRUE;
+        }
+      }
+    if(strcasecmp("CFCBSwapLambdaProbability",keyword)==0) 
+      if(sscanf(arguments,"%lf",&Components[CurrentComponent].ProbabilityCFCBSwapLambdaMove))
+      {
+        if(Components[CurrentComponent].ProbabilityCFCBSwapLambdaMove>0.0)
+        {
+          Components[CurrentComponent].Swapable=TRUE;
+          Components[CurrentComponent].CFMoleculePresent[CurrentSystem]=TRUE;
+          Swapable=TRUE;
+        }
+      }
     if(strcasecmp("WidomProbability",keyword)==0) 
       if(sscanf(arguments,"%lf",&Components[CurrentComponent].ProbabilityWidomMove))
         if(Components[CurrentComponent].ProbabilityWidomMove>0.0)
@@ -2619,6 +2759,18 @@ int ReadInputFile(char *inputfilename)
     if(strcasecmp("WriteRDFEvery",keyword)==0) sscanf(arguments,"%d",&WriteRDFEvery[CurrentSystem]);
     if(strcasecmp("RDFHistogramSize",keyword)==0) sscanf(arguments,"%d",&RDFHistogramSize[CurrentSystem]);
     if(strcasecmp("RDFRange",keyword)==0) sscanf(arguments,"%lf",&RDFRange[CurrentSystem]);
+
+    //----------------------------------------------------------------------------------------------------------------------------------------------
+    // CFC-RXMC : sampling lambda histogram
+    //----------------------------------------------------------------------------------------------------------------------------------------------
+    if(strcasecmp("ComputeCFCRXMCLambdaHistogram",keyword)==0)
+    {
+      if(strcasecmp("yes",firstargument)==0) ComputeCFCRXMCLambdaHistogram[CurrentSystem]=TRUE;
+      if(strcasecmp("no",firstargument)==0) ComputeCFCRXMCLambdaHistogram[CurrentSystem]=FALSE;
+    }
+    if(strcasecmp("WriteCFCRXMCLambdaHistogramEvery",keyword)==0) sscanf(arguments,"%d",&WriteCFCRXMCLambdaHistogramEvery[CurrentSystem]);
+    if(strcasecmp("CFCRXMCLambdaHistogramBins",keyword)==0) sscanf(arguments,"%d",&CFCRXMCLambdaHistogramBins[CurrentSystem]);
+    //----------------------------------------------------------------------------------------------------------------------------------------------
 
     // sampling the number-of-molecules histogram
     if(strcasecmp("ComputeNumberOfMoleculesHistogram",keyword)==0)
@@ -3152,6 +3304,27 @@ int ReadInputFile(char *inputfilename)
       sscanf(arguments,"%d",&ActiveFrameworkAtoms[CurrentSystem][CurrentFramework][NumberOfActiveFrameworkAtoms[CurrentSystem][CurrentFramework]]);
       NumberOfActiveFrameworkAtoms[CurrentSystem][CurrentFramework]++;
     }
+    if(strcasecmp("ActiveFrameworkAtomX",keyword)==0)
+    {
+      ActiveFrameworkAtomsX[CurrentSystem][CurrentFramework]=(int*)realloc(ActiveFrameworkAtomsX[CurrentSystem][CurrentFramework],
+                           (NumberOfActiveFrameworkAtomsX[CurrentSystem][CurrentFramework]+1)*sizeof(int));
+      sscanf(arguments,"%d",&ActiveFrameworkAtomsX[CurrentSystem][CurrentFramework][NumberOfActiveFrameworkAtomsX[CurrentSystem][CurrentFramework]]);
+      NumberOfActiveFrameworkAtomsX[CurrentSystem][CurrentFramework]++;
+    }
+    if(strcasecmp("ActiveFrameworkAtomY",keyword)==0)
+    {
+      ActiveFrameworkAtomsY[CurrentSystem][CurrentFramework]=(int*)realloc(ActiveFrameworkAtomsY[CurrentSystem][CurrentFramework],
+                           (NumberOfActiveFrameworkAtomsY[CurrentSystem][CurrentFramework]+1)*sizeof(int));
+      sscanf(arguments,"%d",&ActiveFrameworkAtomsY[CurrentSystem][CurrentFramework][NumberOfActiveFrameworkAtomsY[CurrentSystem][CurrentFramework]]);
+      NumberOfActiveFrameworkAtomsY[CurrentSystem][CurrentFramework]++;
+    }
+    if(strcasecmp("ActiveFrameworkAtomZ",keyword)==0)
+    {
+      ActiveFrameworkAtomsZ[CurrentSystem][CurrentFramework]=(int*)realloc(ActiveFrameworkAtomsZ[CurrentSystem][CurrentFramework],
+                           (NumberOfActiveFrameworkAtomsZ[CurrentSystem][CurrentFramework]+1)*sizeof(int));
+      sscanf(arguments,"%d",&ActiveFrameworkAtomsZ[CurrentSystem][CurrentFramework][NumberOfActiveFrameworkAtomsZ[CurrentSystem][CurrentFramework]]);
+      NumberOfActiveFrameworkAtomsZ[CurrentSystem][CurrentFramework]++;
+    }
     if(strcasecmp("ActiveFrameworkAtoms",keyword)==0)
     {
       sscanf(arguments,"%d%[^\n]",&temp_int,arguments);
@@ -3160,12 +3333,57 @@ int ReadInputFile(char *inputfilename)
       for(i=0;i<temp_int;i++)
         sscanf(arguments,"%d%[^\n]",&ActiveFrameworkAtoms[CurrentSystem][CurrentFramework][NumberOfActiveFrameworkAtoms[CurrentSystem][CurrentFramework]++],arguments);
     }
+    if(strcasecmp("ActiveFrameworkAtomsX",keyword)==0)
+    {
+      sscanf(arguments,"%d%[^\n]",&temp_int,arguments);
+      ActiveFrameworkAtomsX[CurrentSystem][CurrentFramework]=(int*)realloc(ActiveFrameworkAtomsX[CurrentSystem][CurrentFramework],
+                           (NumberOfActiveFrameworkAtomsX[CurrentSystem][CurrentFramework]+temp_int)*sizeof(int));
+      for(i=0;i<temp_int;i++)
+        sscanf(arguments,"%d%[^\n]",&ActiveFrameworkAtomsX[CurrentSystem][CurrentFramework][NumberOfActiveFrameworkAtomsX[CurrentSystem][CurrentFramework]++],arguments);
+    }
+    if(strcasecmp("ActiveFrameworkAtomsY",keyword)==0)
+    {
+      sscanf(arguments,"%d%[^\n]",&temp_int,arguments);
+      ActiveFrameworkAtomsY[CurrentSystem][CurrentFramework]=(int*)realloc(ActiveFrameworkAtomsY[CurrentSystem][CurrentFramework],
+                           (NumberOfActiveFrameworkAtomsY[CurrentSystem][CurrentFramework]+temp_int)*sizeof(int));
+      for(i=0;i<temp_int;i++)
+        sscanf(arguments,"%d%[^\n]",&ActiveFrameworkAtomsY[CurrentSystem][CurrentFramework][NumberOfActiveFrameworkAtomsY[CurrentSystem][CurrentFramework]++],arguments);
+    }
+    if(strcasecmp("ActiveFrameworkAtomsZ",keyword)==0)
+    {
+      sscanf(arguments,"%d%[^\n]",&temp_int,arguments);
+      ActiveFrameworkAtomsZ[CurrentSystem][CurrentFramework]=(int*)realloc(ActiveFrameworkAtomsZ[CurrentSystem][CurrentFramework],
+                           (NumberOfActiveFrameworkAtomsZ[CurrentSystem][CurrentFramework]+temp_int)*sizeof(int));
+      for(i=0;i<temp_int;i++)
+        sscanf(arguments,"%d%[^\n]",&ActiveFrameworkAtomsZ[CurrentSystem][CurrentFramework][NumberOfActiveFrameworkAtomsZ[CurrentSystem][CurrentFramework]++],arguments);
+    }
     if(strcasecmp("FixedFrameworkAtom",keyword)==0)
     {
       FixedFrameworkAtoms[CurrentSystem][CurrentFramework]=(int*)realloc(FixedFrameworkAtoms[CurrentSystem][CurrentFramework],
                           (NumberOfFixedFrameworkAtoms[CurrentSystem][CurrentFramework]+1)*sizeof(int));
       sscanf(arguments,"%d",&FixedFrameworkAtoms[CurrentSystem][CurrentFramework][NumberOfFixedFrameworkAtoms[CurrentSystem][CurrentFramework]]);
       NumberOfFixedFrameworkAtoms[CurrentSystem][CurrentFramework]++;
+    }
+    if(strcasecmp("FixedFrameworkAtomX",keyword)==0)
+    {
+      FixedFrameworkAtomsX[CurrentSystem][CurrentFramework]=(int*)realloc(FixedFrameworkAtomsX[CurrentSystem][CurrentFramework],
+                          (NumberOfFixedFrameworkAtomsX[CurrentSystem][CurrentFramework]+1)*sizeof(int));
+      sscanf(arguments,"%d",&FixedFrameworkAtomsX[CurrentSystem][CurrentFramework][NumberOfFixedFrameworkAtomsX[CurrentSystem][CurrentFramework]]);
+      NumberOfFixedFrameworkAtomsX[CurrentSystem][CurrentFramework]++;
+    }
+    if(strcasecmp("FixedFrameworkAtomY",keyword)==0)
+    {
+      FixedFrameworkAtomsY[CurrentSystem][CurrentFramework]=(int*)realloc(FixedFrameworkAtomsY[CurrentSystem][CurrentFramework],
+                          (NumberOfFixedFrameworkAtomsY[CurrentSystem][CurrentFramework]+1)*sizeof(int));
+      sscanf(arguments,"%d",&FixedFrameworkAtomsY[CurrentSystem][CurrentFramework][NumberOfFixedFrameworkAtomsY[CurrentSystem][CurrentFramework]]);
+      NumberOfFixedFrameworkAtomsY[CurrentSystem][CurrentFramework]++;
+    }
+    if(strcasecmp("FixedFrameworkAtomZ",keyword)==0)
+    {
+      FixedFrameworkAtomsZ[CurrentSystem][CurrentFramework]=(int*)realloc(FixedFrameworkAtomsZ[CurrentSystem][CurrentFramework],
+                          (NumberOfFixedFrameworkAtomsZ[CurrentSystem][CurrentFramework]+1)*sizeof(int));
+      sscanf(arguments,"%d",&FixedFrameworkAtomsZ[CurrentSystem][CurrentFramework][NumberOfFixedFrameworkAtomsZ[CurrentSystem][CurrentFramework]]);
+      NumberOfFixedFrameworkAtomsZ[CurrentSystem][CurrentFramework]++;
     }
     if(strcasecmp("FixedFrameworkAtoms",keyword)==0)
     {
@@ -3174,6 +3392,30 @@ int ReadInputFile(char *inputfilename)
                           (NumberOfFixedFrameworkAtoms[CurrentSystem][CurrentFramework]+temp_int)*sizeof(int));
       for(i=0;i<temp_int;i++)
         sscanf(arguments,"%d%[^\n]",&FixedFrameworkAtoms[CurrentSystem][CurrentFramework][NumberOfFixedFrameworkAtoms[CurrentSystem][CurrentFramework]++],arguments);
+    }
+    if(strcasecmp("FixedFrameworkAtomsX",keyword)==0)
+    {
+      sscanf(arguments,"%d%[^\n]",&temp_int,arguments);
+      FixedFrameworkAtomsX[CurrentSystem][CurrentFramework]=(int*)realloc(FixedFrameworkAtomsX[CurrentSystem][CurrentFramework],
+                          (NumberOfFixedFrameworkAtomsX[CurrentSystem][CurrentFramework]+temp_int)*sizeof(int));
+      for(i=0;i<temp_int;i++)
+        sscanf(arguments,"%d%[^\n]",&FixedFrameworkAtomsX[CurrentSystem][CurrentFramework][NumberOfFixedFrameworkAtomsX[CurrentSystem][CurrentFramework]++],arguments);
+    }
+    if(strcasecmp("FixedFrameworkAtomsY",keyword)==0)
+    {
+      sscanf(arguments,"%d%[^\n]",&temp_int,arguments);
+      FixedFrameworkAtomsY[CurrentSystem][CurrentFramework]=(int*)realloc(FixedFrameworkAtomsY[CurrentSystem][CurrentFramework],
+                          (NumberOfFixedFrameworkAtomsY[CurrentSystem][CurrentFramework]+temp_int)*sizeof(int));
+      for(i=0;i<temp_int;i++)
+        sscanf(arguments,"%d%[^\n]",&FixedFrameworkAtomsY[CurrentSystem][CurrentFramework][NumberOfFixedFrameworkAtomsY[CurrentSystem][CurrentFramework]++],arguments);
+    }
+    if(strcasecmp("FixedFrameworkAtomsZ",keyword)==0)
+    {
+      sscanf(arguments,"%d%[^\n]",&temp_int,arguments);
+      FixedFrameworkAtomsZ[CurrentSystem][CurrentFramework]=(int*)realloc(FixedFrameworkAtomsZ[CurrentSystem][CurrentFramework],
+                          (NumberOfFixedFrameworkAtomsZ[CurrentSystem][CurrentFramework]+temp_int)*sizeof(int));
+      for(i=0;i<temp_int;i++)
+        sscanf(arguments,"%d%[^\n]",&FixedFrameworkAtomsZ[CurrentSystem][CurrentFramework][NumberOfFixedFrameworkAtomsZ[CurrentSystem][CurrentFramework]++],arguments);
     }
     if(strcasecmp("ActiveAdsorbateMolecule",keyword)==0)
     {
@@ -3194,12 +3436,54 @@ int ReadInputFile(char *inputfilename)
                        &ActiveAdsorbateAtoms[CurrentSystem][NumberOfActiveAdsorbateAtoms[CurrentSystem]].B);
       NumberOfActiveAdsorbateAtoms[CurrentSystem]++;
     }
+    if(strcasecmp("ActiveAdsorbateAtomX",keyword)==0)
+    {
+      ActiveAdsorbateAtomsX[CurrentSystem]=(PAIR*)realloc(ActiveAdsorbateAtomsX[CurrentSystem],(NumberOfActiveAdsorbateAtomsX[CurrentSystem]+1)*sizeof(PAIR));
+      sscanf(arguments,"%d%d\n",&ActiveAdsorbateAtomsX[CurrentSystem][NumberOfActiveAdsorbateAtomsX[CurrentSystem]].A,
+                       &ActiveAdsorbateAtomsX[CurrentSystem][NumberOfActiveAdsorbateAtomsX[CurrentSystem]].B);
+      NumberOfActiveAdsorbateAtomsX[CurrentSystem]++;
+    }
+    if(strcasecmp("ActiveAdsorbateAtomY",keyword)==0)
+    {
+      ActiveAdsorbateAtomsY[CurrentSystem]=(PAIR*)realloc(ActiveAdsorbateAtomsY[CurrentSystem],(NumberOfActiveAdsorbateAtomsY[CurrentSystem]+1)*sizeof(PAIR));
+      sscanf(arguments,"%d%d\n",&ActiveAdsorbateAtomsY[CurrentSystem][NumberOfActiveAdsorbateAtomsY[CurrentSystem]].A,
+                       &ActiveAdsorbateAtomsY[CurrentSystem][NumberOfActiveAdsorbateAtomsY[CurrentSystem]].B);
+      NumberOfActiveAdsorbateAtomsY[CurrentSystem]++;
+    }
+    if(strcasecmp("ActiveAdsorbateAtomZ",keyword)==0)
+    {
+      ActiveAdsorbateAtomsZ[CurrentSystem]=(PAIR*)realloc(ActiveAdsorbateAtomsZ[CurrentSystem],(NumberOfActiveAdsorbateAtomsZ[CurrentSystem]+1)*sizeof(PAIR));
+      sscanf(arguments,"%d%d\n",&ActiveAdsorbateAtomsZ[CurrentSystem][NumberOfActiveAdsorbateAtomsZ[CurrentSystem]].A,
+                       &ActiveAdsorbateAtomsZ[CurrentSystem][NumberOfActiveAdsorbateAtomsZ[CurrentSystem]].B);
+      NumberOfActiveAdsorbateAtomsZ[CurrentSystem]++;
+    }
     if(strcasecmp("FixedAdsorbateAtom",keyword)==0)
     {
       FixedAdsorbateAtoms[CurrentSystem]=(PAIR*)realloc(FixedAdsorbateAtoms[CurrentSystem],(NumberOfFixedAdsorbateAtoms[CurrentSystem]+1)*sizeof(PAIR));
       sscanf(arguments,"%d%d\n",&FixedAdsorbateAtoms[CurrentSystem][NumberOfFixedAdsorbateAtoms[CurrentSystem]].A,
                        &FixedAdsorbateAtoms[CurrentSystem][NumberOfFixedAdsorbateAtoms[CurrentSystem]].B);
       NumberOfFixedAdsorbateAtoms[CurrentSystem]++;
+    }
+    if(strcasecmp("FixedAdsorbateAtomX",keyword)==0)
+    {
+      FixedAdsorbateAtomsX[CurrentSystem]=(PAIR*)realloc(FixedAdsorbateAtomsX[CurrentSystem],(NumberOfFixedAdsorbateAtomsX[CurrentSystem]+1)*sizeof(PAIR));
+      sscanf(arguments,"%d%d\n",&FixedAdsorbateAtomsX[CurrentSystem][NumberOfFixedAdsorbateAtomsX[CurrentSystem]].A,
+                       &FixedAdsorbateAtomsX[CurrentSystem][NumberOfFixedAdsorbateAtomsX[CurrentSystem]].B);
+      NumberOfFixedAdsorbateAtomsX[CurrentSystem]++;
+    }
+    if(strcasecmp("FixedAdsorbateAtomY",keyword)==0)
+    {
+      FixedAdsorbateAtomsY[CurrentSystem]=(PAIR*)realloc(FixedAdsorbateAtomsY[CurrentSystem],(NumberOfFixedAdsorbateAtomsY[CurrentSystem]+1)*sizeof(PAIR));
+      sscanf(arguments,"%d%d\n",&FixedAdsorbateAtomsY[CurrentSystem][NumberOfFixedAdsorbateAtomsY[CurrentSystem]].A,
+                       &FixedAdsorbateAtomsY[CurrentSystem][NumberOfFixedAdsorbateAtomsY[CurrentSystem]].B);
+      NumberOfFixedAdsorbateAtomsY[CurrentSystem]++;
+    }
+    if(strcasecmp("FixedAdsorbateAtomZ",keyword)==0)
+    {
+      FixedAdsorbateAtomsZ[CurrentSystem]=(PAIR*)realloc(FixedAdsorbateAtomsZ[CurrentSystem],(NumberOfFixedAdsorbateAtomsZ[CurrentSystem]+1)*sizeof(PAIR));
+      sscanf(arguments,"%d%d\n",&FixedAdsorbateAtomsZ[CurrentSystem][NumberOfFixedAdsorbateAtomsZ[CurrentSystem]].A,
+                       &FixedAdsorbateAtomsZ[CurrentSystem][NumberOfFixedAdsorbateAtomsZ[CurrentSystem]].B);
+      NumberOfFixedAdsorbateAtomsZ[CurrentSystem]++;
     }
     if(strcasecmp("ActiveAdsorbateGroup",keyword)==0)
     {
@@ -3231,6 +3515,30 @@ int ReadInputFile(char *inputfilename)
                        &FixedAdsorbateGroupsCenterOfMass[CurrentSystem][NumberOfFixedAdsorbateGroupsCenterOfMass[CurrentSystem]].B);
       NumberOfFixedAdsorbateGroupsCenterOfMass[CurrentSystem]++;
     }
+    if(strcasecmp("FixedAdsorbateGroupCenterOfMassX",keyword)==0)
+    {
+      FixedAdsorbateGroupsCenterOfMassX[CurrentSystem]=(PAIR*)realloc(FixedAdsorbateGroupsCenterOfMassX[CurrentSystem],
+                                       (NumberOfFixedAdsorbateGroupsCenterOfMassX[CurrentSystem]+1)*sizeof(PAIR));
+      sscanf(arguments,"%d%d\n",&FixedAdsorbateGroupsCenterOfMassX[CurrentSystem][NumberOfFixedAdsorbateGroupsCenterOfMassX[CurrentSystem]].A,
+                       &FixedAdsorbateGroupsCenterOfMassX[CurrentSystem][NumberOfFixedAdsorbateGroupsCenterOfMassX[CurrentSystem]].B);
+      NumberOfFixedAdsorbateGroupsCenterOfMassX[CurrentSystem]++;
+    }
+    if(strcasecmp("FixedAdsorbateGroupCenterOfMassY",keyword)==0)
+    {
+      FixedAdsorbateGroupsCenterOfMassY[CurrentSystem]=(PAIR*)realloc(FixedAdsorbateGroupsCenterOfMassY[CurrentSystem],
+                                       (NumberOfFixedAdsorbateGroupsCenterOfMassY[CurrentSystem]+1)*sizeof(PAIR));
+      sscanf(arguments,"%d%d\n",&FixedAdsorbateGroupsCenterOfMassY[CurrentSystem][NumberOfFixedAdsorbateGroupsCenterOfMassY[CurrentSystem]].A,
+                       &FixedAdsorbateGroupsCenterOfMassY[CurrentSystem][NumberOfFixedAdsorbateGroupsCenterOfMassY[CurrentSystem]].B);
+      NumberOfFixedAdsorbateGroupsCenterOfMassY[CurrentSystem]++;
+    }
+    if(strcasecmp("FixedAdsorbateGroupCenterOfMassZ",keyword)==0)
+    {
+      FixedAdsorbateGroupsCenterOfMassZ[CurrentSystem]=(PAIR*)realloc(FixedAdsorbateGroupsCenterOfMassZ[CurrentSystem],
+                                       (NumberOfFixedAdsorbateGroupsCenterOfMassZ[CurrentSystem]+1)*sizeof(PAIR));
+      sscanf(arguments,"%d%d\n",&FixedAdsorbateGroupsCenterOfMassZ[CurrentSystem][NumberOfFixedAdsorbateGroupsCenterOfMassZ[CurrentSystem]].A,
+                       &FixedAdsorbateGroupsCenterOfMassZ[CurrentSystem][NumberOfFixedAdsorbateGroupsCenterOfMassZ[CurrentSystem]].B);
+      NumberOfFixedAdsorbateGroupsCenterOfMassZ[CurrentSystem]++;
+    }
     if(strcasecmp("ActiveAdsorbateGroupOrientation",keyword)==0)
     {
       ActiveAdsorbateGroupsOrientation[CurrentSystem]=(PAIR*)realloc(ActiveAdsorbateGroupsOrientation[CurrentSystem],
@@ -3246,6 +3554,30 @@ int ReadInputFile(char *inputfilename)
       sscanf(arguments,"%d%d\n",&FixedAdsorbateGroupsOrientation[CurrentSystem][NumberOfFixedAdsorbateGroupsOrientation[CurrentSystem]].A,
                        &FixedAdsorbateGroupsOrientation[CurrentSystem][NumberOfFixedAdsorbateGroupsOrientation[CurrentSystem]].B);
       NumberOfFixedAdsorbateGroupsOrientation[CurrentSystem]++;
+    }
+    if(strcasecmp("FixedAdsorbateGroupOrientationX",keyword)==0)
+    {
+      FixedAdsorbateGroupsOrientationX[CurrentSystem]=(PAIR*)realloc(FixedAdsorbateGroupsOrientationX[CurrentSystem],
+                                       (NumberOfFixedAdsorbateGroupsOrientationX[CurrentSystem]+1)*sizeof(PAIR));
+      sscanf(arguments,"%d%d\n",&FixedAdsorbateGroupsOrientationX[CurrentSystem][NumberOfFixedAdsorbateGroupsOrientationX[CurrentSystem]].A,
+                       &FixedAdsorbateGroupsOrientationX[CurrentSystem][NumberOfFixedAdsorbateGroupsOrientationX[CurrentSystem]].B);
+      NumberOfFixedAdsorbateGroupsOrientationX[CurrentSystem]++;
+    }
+    if(strcasecmp("FixedAdsorbateGroupOrientationY",keyword)==0)
+    {
+      FixedAdsorbateGroupsOrientationY[CurrentSystem]=(PAIR*)realloc(FixedAdsorbateGroupsOrientationY[CurrentSystem],
+                                       (NumberOfFixedAdsorbateGroupsOrientationY[CurrentSystem]+1)*sizeof(PAIR));
+      sscanf(arguments,"%d%d\n",&FixedAdsorbateGroupsOrientationY[CurrentSystem][NumberOfFixedAdsorbateGroupsOrientationY[CurrentSystem]].A,
+                       &FixedAdsorbateGroupsOrientationY[CurrentSystem][NumberOfFixedAdsorbateGroupsOrientationY[CurrentSystem]].B);
+      NumberOfFixedAdsorbateGroupsOrientationY[CurrentSystem]++;
+    }
+    if(strcasecmp("FixedAdsorbateGroupOrientationZ",keyword)==0)
+    {
+      FixedAdsorbateGroupsOrientationZ[CurrentSystem]=(PAIR*)realloc(FixedAdsorbateGroupsOrientationZ[CurrentSystem],
+                                       (NumberOfFixedAdsorbateGroupsOrientationZ[CurrentSystem]+1)*sizeof(PAIR));
+      sscanf(arguments,"%d%d\n",&FixedAdsorbateGroupsOrientationZ[CurrentSystem][NumberOfFixedAdsorbateGroupsOrientationZ[CurrentSystem]].A,
+                       &FixedAdsorbateGroupsOrientationZ[CurrentSystem][NumberOfFixedAdsorbateGroupsOrientationZ[CurrentSystem]].B);
+      NumberOfFixedAdsorbateGroupsOrientationZ[CurrentSystem]++;
     }
     if(strcasecmp("ActiveCationMolecule",keyword)==0)
     {
@@ -3266,12 +3598,54 @@ int ReadInputFile(char *inputfilename)
                        &ActiveCationAtoms[CurrentSystem][NumberOfActiveCationAtoms[CurrentSystem]].B);
       NumberOfActiveCationAtoms[CurrentSystem]++;
     }
+    if(strcasecmp("ActiveCationAtomX",keyword)==0)
+    {
+      ActiveCationAtomsX[CurrentSystem]=(PAIR*)realloc(ActiveCationAtomsX[CurrentSystem],(NumberOfActiveCationAtomsX[CurrentSystem]+1)*sizeof(PAIR));
+      sscanf(arguments,"%d%d\n",&ActiveCationAtomsX[CurrentSystem][NumberOfActiveCationAtomsX[CurrentSystem]].A,
+                       &ActiveCationAtomsX[CurrentSystem][NumberOfActiveCationAtomsX[CurrentSystem]].B);
+      NumberOfActiveCationAtomsX[CurrentSystem]++;
+    }
+    if(strcasecmp("ActiveCationAtomY",keyword)==0)
+    {
+      ActiveCationAtomsY[CurrentSystem]=(PAIR*)realloc(ActiveCationAtomsY[CurrentSystem],(NumberOfActiveCationAtomsY[CurrentSystem]+1)*sizeof(PAIR));
+      sscanf(arguments,"%d%d\n",&ActiveCationAtomsY[CurrentSystem][NumberOfActiveCationAtomsY[CurrentSystem]].A,
+                       &ActiveCationAtomsY[CurrentSystem][NumberOfActiveCationAtomsY[CurrentSystem]].B);
+      NumberOfActiveCationAtomsY[CurrentSystem]++;
+    }
+    if(strcasecmp("ActiveCationAtomZ",keyword)==0)
+    {
+      ActiveCationAtomsZ[CurrentSystem]=(PAIR*)realloc(ActiveCationAtomsZ[CurrentSystem],(NumberOfActiveCationAtomsZ[CurrentSystem]+1)*sizeof(PAIR));
+      sscanf(arguments,"%d%d\n",&ActiveCationAtomsZ[CurrentSystem][NumberOfActiveCationAtomsZ[CurrentSystem]].A,
+                       &ActiveCationAtomsZ[CurrentSystem][NumberOfActiveCationAtomsZ[CurrentSystem]].B);
+      NumberOfActiveCationAtomsZ[CurrentSystem]++;
+    }
     if(strcasecmp("FixedCationAtom",keyword)==0)
     {
       FixedCationAtoms[CurrentSystem]=(PAIR*)realloc(FixedCationAtoms[CurrentSystem],(NumberOfFixedCationAtoms[CurrentSystem]+1)*sizeof(PAIR));
       sscanf(arguments,"%d%d\n",&FixedCationAtoms[CurrentSystem][NumberOfFixedCationAtoms[CurrentSystem]].A,
                        &FixedCationAtoms[CurrentSystem][NumberOfFixedCationAtoms[CurrentSystem]].B);
       NumberOfFixedCationAtoms[CurrentSystem]++;
+    }
+    if(strcasecmp("FixedCationAtomX",keyword)==0)
+    {
+      FixedCationAtomsX[CurrentSystem]=(PAIR*)realloc(FixedCationAtomsX[CurrentSystem],(NumberOfFixedCationAtomsX[CurrentSystem]+1)*sizeof(PAIR));
+      sscanf(arguments,"%d%d\n",&FixedCationAtomsX[CurrentSystem][NumberOfFixedCationAtomsX[CurrentSystem]].A,
+                       &FixedCationAtomsX[CurrentSystem][NumberOfFixedCationAtomsX[CurrentSystem]].B);
+      NumberOfFixedCationAtomsX[CurrentSystem]++;
+    }
+    if(strcasecmp("FixedCationAtomY",keyword)==0)
+    {
+      FixedCationAtomsY[CurrentSystem]=(PAIR*)realloc(FixedCationAtomsY[CurrentSystem],(NumberOfFixedCationAtomsY[CurrentSystem]+1)*sizeof(PAIR));
+      sscanf(arguments,"%d%d\n",&FixedCationAtomsY[CurrentSystem][NumberOfFixedCationAtomsY[CurrentSystem]].A,
+                       &FixedCationAtomsY[CurrentSystem][NumberOfFixedCationAtomsY[CurrentSystem]].B);
+      NumberOfFixedCationAtomsY[CurrentSystem]++;
+    }
+    if(strcasecmp("FixedCationAtomZ",keyword)==0)
+    {
+      FixedCationAtomsZ[CurrentSystem]=(PAIR*)realloc(FixedCationAtomsZ[CurrentSystem],(NumberOfFixedCationAtomsZ[CurrentSystem]+1)*sizeof(PAIR));
+      sscanf(arguments,"%d%d\n",&FixedCationAtomsZ[CurrentSystem][NumberOfFixedCationAtomsZ[CurrentSystem]].A,
+                       &FixedCationAtomsZ[CurrentSystem][NumberOfFixedCationAtomsZ[CurrentSystem]].B);
+      NumberOfFixedCationAtomsZ[CurrentSystem]++;
     }
     if(strcasecmp("ActiveCationGroup",keyword)==0)
     {
@@ -3809,7 +4183,6 @@ int ReadInputFile(char *inputfilename)
 
       NumberOfOutOfPlaneDistanceConstraints[CurrentSystem]++;
     }
-
 
     if(strcasecmp("HarmonicDistanceConstraint",keyword)==0)
     {
@@ -4689,7 +5062,6 @@ int ReadInputFile(char *inputfilename)
       if(Framework[i].NumberOfFrameworks>1) Framework[i].FrameworkModel=FLEXIBLE;
   }
 
-
   // get the random number seed from the system-time if not specified
   if(seed<=0lu) seed=time(0lu);
 
@@ -4781,6 +5153,9 @@ int ReadInputFile(char *inputfilename)
             case CSSR_FORMAT:
               ReadFrameworkDefinitionCSSR();
               break;
+            case DLPOLY_FORMAT:
+              ReadFrameworkDefinitionDLPOLY();
+              break;
             case MOL_FORMAT:
               ReadFrameworkDefinitionMOL();
               break;
@@ -4797,7 +5172,7 @@ int ReadInputFile(char *inputfilename)
         for(i=0;i<NumberOfModificationRules;i++)
         {
           // convert strings to ids
-          for(k=0;k<6;k++)
+          for(k=0;k<10;k++)
           {
             Type=-1;
             for(j=0;j<NumberOfPseudoAtoms;j++)
@@ -4830,6 +5205,16 @@ int ReadInputFile(char *inputfilename)
               break;
             case MODIFY_FRAMEWORKATOM_TRIPLE:
               for(k=0;k<6;k++)
+              {
+                if(ModifyFrameworkAtomTypes[i][k]<0)
+                {
+                  printf("Unknown framework atom '%s' in modification rule %d atom %d\n",ModifyFrameworkAtoms[i][k],i,k);
+                  exit(0);
+                }
+              }
+              break;
+            case MODIFY_FRAMEWORKATOM_PLANAR:
+              for(k=0;k<10;k++)
               {
                 if(ModifyFrameworkAtomTypes[i][k]<0)
                 {
@@ -4876,6 +5261,7 @@ int ReadInputFile(char *inputfilename)
 
         // read the flexible framework model definitions
         ReadFrameworkDefinition();
+        ReadFrameworkSpecificDefinition();
 
         MakeExclusionMatrix(CurrentSystem);
         MakeExcludedInteractionLists(CurrentSystem);
@@ -5102,8 +5488,6 @@ int ReadInputFile(char *inputfilename)
     }
   }
 
-  // HERE
-
   // should be improved
   BondTypes[RIGID_BOND].nr_args=1;
 
@@ -5263,15 +5647,19 @@ int ReadInputFile(char *inputfilename)
       {
         NumberOfBeadsAlreadyPlaced=0;
         CurrentAdsorbateMolecule=0;
+        CurrentCationMolecule=0;
         CurrentComponent=0;
         StartingBead=Components[CurrentComponent].StartingBead;
         NewPosition[CurrentSystem][StartingBead].x=UnitCellBox[CurrentSystem].ax*s.x+UnitCellBox[CurrentSystem].bx*s.y+UnitCellBox[CurrentSystem].cx*s.z;
         NewPosition[CurrentSystem][StartingBead].y=UnitCellBox[CurrentSystem].ay*s.x+UnitCellBox[CurrentSystem].by*s.y+UnitCellBox[CurrentSystem].cy*s.z;
         NewPosition[CurrentSystem][StartingBead].z=UnitCellBox[CurrentSystem].az*s.x+UnitCellBox[CurrentSystem].bz*s.y+UnitCellBox[CurrentSystem].cz*s.z;
-        GrowMolecule(2);
+        GrowMolecule(CBMC_PARTIAL_INSERTION);
       }
       while(OVERLAP==TRUE);
-      InsertAdsorbateMolecule();
+      if(Components[CurrentComponent].ExtraFrameworkMolecule)
+        InsertCationMolecule();
+      else
+        InsertAdsorbateMolecule();
       Components[CurrentComponent].CreateNumberOfMolecules[CurrentSystem]--;
     }
     SetBarierNormal();
@@ -5290,6 +5678,23 @@ int ReadInputFile(char *inputfilename)
         else
           MakeInitialAdsorbates(Components[j].CreateNumberOfMolecules[i],j);
       }
+      if(Components[j].CFMoleculePresent[i])
+      {
+        // CF: if number of molecules is zero, create an initial fractional molecule
+        printf("Creating Lambda particle\n");
+        CurrentSystem=i;
+        CalculateAnisotropicSites();
+        if(Components[j].NumberOfMolecules[i]==0)
+        {
+          if(Components[j].ExtraFrameworkMolecule)
+            MakeInitialCations(1,j);
+          else
+            MakeInitialAdsorbates(1,j);
+        }
+        if(Components[j].FractionalMolecule[i]<0)
+          Components[j].FractionalMolecule[i]=SelectRandomMoleculeOfType(j);
+      }
+
     }
   }
 
@@ -5323,17 +5728,29 @@ int ReadInputFile(char *inputfilename)
         if(Framework[i].FrameworkModels[j]==FLEXIBLE)
         {
           for(k=0;k<Framework[i].NumberOfAtoms[j];k++)
-            Framework[i].Atoms[j][k].Fixed=FALSE;
+          {
+            Framework[i].Atoms[j][k].Fixed.x=FALSE;
+            Framework[i].Atoms[j][k].Fixed.y=FALSE;
+            Framework[i].Atoms[j][k].Fixed.z=FALSE;
+          }
 
           switch(FrameworkFixedInitialization[i][j])
           {
             case FIXED:
               for(k=0;k<Framework[i].NumberOfAtoms[j];k++)
-                Framework[i].Atoms[j][k].Fixed=TRUE;
+              {
+                Framework[i].Atoms[j][k].Fixed.x=TRUE;
+                Framework[i].Atoms[j][k].Fixed.y=TRUE;
+                Framework[i].Atoms[j][k].Fixed.z=TRUE;
+              }
               break;
             case FREE:
               for(k=0;k<Framework[i].NumberOfAtoms[j];k++)
-                Framework[i].Atoms[j][k].Fixed=FALSE;
+              {
+                Framework[i].Atoms[j][k].Fixed.x=FALSE;
+                Framework[i].Atoms[j][k].Fixed.y=FALSE;
+                Framework[i].Atoms[j][k].Fixed.z=FALSE;
+              }
               break;
             default:
               break;
@@ -5342,17 +5759,29 @@ int ReadInputFile(char *inputfilename)
         else
         {
           for(k=0;k<Framework[i].NumberOfAtoms[j];k++)
-            Framework[i].Atoms[j][k].Fixed=TRUE;
+          {
+            Framework[i].Atoms[j][k].Fixed.x=TRUE;
+            Framework[i].Atoms[j][k].Fixed.y=TRUE;
+            Framework[i].Atoms[j][k].Fixed.z=TRUE;
+          }
 
           switch(FrameworkFixedInitialization[i][j])
           {
             case FIXED:
               for(k=0;k<Framework[i].NumberOfAtoms[j];k++)
-                Framework[i].Atoms[j][k].Fixed=TRUE;
+              {
+                Framework[i].Atoms[j][k].Fixed.x=TRUE;
+                Framework[i].Atoms[j][k].Fixed.y=TRUE;
+                Framework[i].Atoms[j][k].Fixed.z=TRUE;
+              }
               break;
             case FREE:
               for(k=0;k<Framework[i].NumberOfAtoms[j];k++)
-                Framework[i].Atoms[j][k].Fixed=FALSE;
+              {
+                Framework[i].Atoms[j][k].Fixed.x=FALSE;
+                Framework[i].Atoms[j][k].Fixed.y=FALSE;
+                Framework[i].Atoms[j][k].Fixed.z=FALSE;
+              }
               break;
             default:
               break;
@@ -5366,7 +5795,11 @@ int ReadInputFile(char *inputfilename)
       for(j=0;j<Framework[i].NumberOfFrameworks;j++)
       {
         for(k=0;k<Framework[i].NumberOfAtoms[j];k++)
-          Framework[i].Atoms[j][k].Fixed=TRUE;
+        {
+          Framework[i].Atoms[j][k].Fixed.x=TRUE;
+          Framework[i].Atoms[j][k].Fixed.y=TRUE;
+          Framework[i].Atoms[j][k].Fixed.z=TRUE;
+        }
       }
     }
   }
@@ -5383,13 +5816,21 @@ int ReadInputFile(char *inputfilename)
         {
           if(AdsorbateFixedInitialization[i]==FIXED)
           {
-            Adsorbates[i][m].Groups[l].FixedCenterOfMass=TRUE;
-            Adsorbates[i][m].Groups[l].FixedOrientation=TRUE;
+            Adsorbates[i][m].Groups[l].FixedCenterOfMass.x=TRUE;
+            Adsorbates[i][m].Groups[l].FixedCenterOfMass.y=TRUE;
+            Adsorbates[i][m].Groups[l].FixedCenterOfMass.z=TRUE;
+            Adsorbates[i][m].Groups[l].FixedOrientation.x=TRUE;
+            Adsorbates[i][m].Groups[l].FixedOrientation.y=TRUE;
+            Adsorbates[i][m].Groups[l].FixedOrientation.z=TRUE;
           }
           else
           {
-            Adsorbates[i][m].Groups[l].FixedCenterOfMass=FALSE;
-            Adsorbates[i][m].Groups[l].FixedOrientation=FALSE;
+            Adsorbates[i][m].Groups[l].FixedCenterOfMass.x=FALSE;
+            Adsorbates[i][m].Groups[l].FixedCenterOfMass.y=FALSE;
+            Adsorbates[i][m].Groups[l].FixedCenterOfMass.z=FALSE;
+            Adsorbates[i][m].Groups[l].FixedOrientation.x=FALSE;
+            Adsorbates[i][m].Groups[l].FixedOrientation.y=FALSE;
+            Adsorbates[i][m].Groups[l].FixedOrientation.z=FALSE;
           }
         }
         else
@@ -5398,9 +5839,17 @@ int ReadInputFile(char *inputfilename)
           {
             A=Components[Type].Groups[l].Atoms[k];
             if(AdsorbateFixedInitialization[i]==FIXED)
-              Adsorbates[i][m].Atoms[k].Fixed=TRUE;
+            {
+              Adsorbates[i][m].Atoms[k].Fixed.x=TRUE;
+              Adsorbates[i][m].Atoms[k].Fixed.y=TRUE;
+              Adsorbates[i][m].Atoms[k].Fixed.z=TRUE;
+            }
             else
-              Adsorbates[i][m].Atoms[k].Fixed=FALSE;
+            {
+              Adsorbates[i][m].Atoms[k].Fixed.x=FALSE;
+              Adsorbates[i][m].Atoms[k].Fixed.y=FALSE;
+              Adsorbates[i][m].Atoms[k].Fixed.z=FALSE;
+            }
           }
         }
       }
@@ -5416,13 +5865,21 @@ int ReadInputFile(char *inputfilename)
         {
           if(CationFixedInitialization[i]==FIXED)
           {
-            Cations[i][m].Groups[l].FixedCenterOfMass=TRUE;
-            Cations[i][m].Groups[l].FixedOrientation=TRUE;
+            Cations[i][m].Groups[l].FixedCenterOfMass.x=TRUE;
+            Cations[i][m].Groups[l].FixedCenterOfMass.y=TRUE;
+            Cations[i][m].Groups[l].FixedCenterOfMass.z=TRUE;
+            Cations[i][m].Groups[l].FixedOrientation.x=TRUE;
+            Cations[i][m].Groups[l].FixedOrientation.y=TRUE;
+            Cations[i][m].Groups[l].FixedOrientation.z=TRUE;
           }
           else
           {
-            Cations[i][m].Groups[l].FixedCenterOfMass=FALSE;
-            Cations[i][m].Groups[l].FixedOrientation=FALSE;
+            Cations[i][m].Groups[l].FixedCenterOfMass.x=FALSE;
+            Cations[i][m].Groups[l].FixedCenterOfMass.y=FALSE;
+            Cations[i][m].Groups[l].FixedCenterOfMass.z=FALSE;
+            Cations[i][m].Groups[l].FixedOrientation.x=FALSE;
+            Cations[i][m].Groups[l].FixedOrientation.y=FALSE;
+            Cations[i][m].Groups[l].FixedOrientation.z=FALSE;
           }
         }
         else
@@ -5431,9 +5888,17 @@ int ReadInputFile(char *inputfilename)
           {
             A=Components[Type].Groups[l].Atoms[k];
             if(CationFixedInitialization[i]==FIXED)
-              Cations[i][m].Atoms[k].Fixed=TRUE;
+            {
+              Cations[i][m].Atoms[k].Fixed.x=TRUE;
+              Cations[i][m].Atoms[k].Fixed.y=TRUE;
+              Cations[i][m].Atoms[k].Fixed.z=TRUE;
+            }
             else
-              Cations[i][m].Atoms[k].Fixed=FALSE;
+            {
+              Cations[i][m].Atoms[k].Fixed.x=FALSE;
+              Cations[i][m].Atoms[k].Fixed.y=FALSE;
+              Cations[i][m].Atoms[k].Fixed.z=FALSE;
+            }
           }
         }
       }
@@ -5446,9 +5911,17 @@ int ReadInputFile(char *inputfilename)
       for(j=0;j<Framework[i].NumberOfAtoms[f1];j++)
       {
         if(IsActiveAtomType(Framework[i].Atoms[f1][j].Type))
-          Framework[CurrentSystem].Atoms[f1][j].Fixed=FALSE;
+        {
+          Framework[CurrentSystem].Atoms[f1][j].Fixed.x=FALSE;
+          Framework[CurrentSystem].Atoms[f1][j].Fixed.y=FALSE;
+          Framework[CurrentSystem].Atoms[f1][j].Fixed.z=FALSE;
+        }
         if(IsFixedAtomType(Framework[i].Atoms[f1][j].Type))
-          Framework[CurrentSystem].Atoms[f1][j].Fixed=TRUE;
+        {
+          Framework[CurrentSystem].Atoms[f1][j].Fixed.x=TRUE;
+          Framework[CurrentSystem].Atoms[f1][j].Fixed.y=TRUE;
+          Framework[CurrentSystem].Atoms[f1][j].Fixed.z=TRUE;
+        }
       }
     }
 
@@ -5469,10 +5942,17 @@ int ReadInputFile(char *inputfilename)
               for(j=0;j<Components[Type].Groups[l].NumberOfGroupAtoms;j++)
               {
                  B1=Components[Type].Groups[l].Atoms[j];
-                 Adsorbates[i][m].Atoms[B1].Fixed=FALSE;
+                 Adsorbates[i][m].Atoms[B1].Fixed.x=FALSE;
+                 Adsorbates[i][m].Atoms[B1].Fixed.y=FALSE;
+                 Adsorbates[i][m].Atoms[B1].Fixed.z=FALSE;
               }
             }
-            else Adsorbates[i][m].Atoms[A1].Fixed=FALSE;
+            else 
+            {
+              Adsorbates[i][m].Atoms[A1].Fixed.x=FALSE;
+              Adsorbates[i][m].Atoms[A1].Fixed.y=FALSE;
+              Adsorbates[i][m].Atoms[A1].Fixed.z=FALSE;
+            }
           }
           // handle fixed atoms
           if(IsFixedAtomType(Adsorbates[i][m].Atoms[A1].Type))
@@ -5482,10 +5962,17 @@ int ReadInputFile(char *inputfilename)
               for(j=0;j<Components[Type].Groups[l].NumberOfGroupAtoms;j++)
               {
                  B1=Components[Type].Groups[l].Atoms[j];
-                 Adsorbates[i][m].Atoms[B1].Fixed=TRUE;
+                 Adsorbates[i][m].Atoms[B1].Fixed.x=TRUE;
+                 Adsorbates[i][m].Atoms[B1].Fixed.y=TRUE;
+                 Adsorbates[i][m].Atoms[B1].Fixed.z=TRUE;
               }
             }
-            else Adsorbates[i][m].Atoms[A1].Fixed=TRUE;
+            else 
+            {
+              Adsorbates[i][m].Atoms[A1].Fixed.x=TRUE;
+              Adsorbates[i][m].Atoms[A1].Fixed.y=TRUE;
+              Adsorbates[i][m].Atoms[A1].Fixed.z=TRUE;
+            }
           }
         }
       }
@@ -5508,10 +5995,17 @@ int ReadInputFile(char *inputfilename)
               for(j=0;j<Components[Type].Groups[l].NumberOfGroupAtoms;j++)
               {
                  B1=Components[Type].Groups[l].Atoms[j];
-                 Cations[i][m].Atoms[B1].Fixed=FALSE;
+                 Cations[i][m].Atoms[B1].Fixed.x=FALSE;
+                 Cations[i][m].Atoms[B1].Fixed.y=FALSE;
+                 Cations[i][m].Atoms[B1].Fixed.z=FALSE;
               }
             }
-            else Cations[i][m].Atoms[A1].Fixed=FALSE;
+            else 
+            {
+              Cations[i][m].Atoms[A1].Fixed.x=FALSE;
+              Cations[i][m].Atoms[A1].Fixed.y=FALSE;
+              Cations[i][m].Atoms[A1].Fixed.z=FALSE;
+            }
           }
           // handle fixed atoms
           if(IsFixedAtomType(Cations[i][m].Atoms[A1].Type))
@@ -5521,10 +6015,17 @@ int ReadInputFile(char *inputfilename)
               for(j=0;j<Components[Type].Groups[l].NumberOfGroupAtoms;j++)
               {
                  B1=Components[Type].Groups[l].Atoms[j];
-                 Cations[i][m].Atoms[B1].Fixed=TRUE;
+                 Cations[i][m].Atoms[B1].Fixed.x=TRUE;
+                 Cations[i][m].Atoms[B1].Fixed.y=TRUE;
+                 Cations[i][m].Atoms[B1].Fixed.z=TRUE;
               }
             }
-            else Cations[i][m].Atoms[A1].Fixed=TRUE;
+            else 
+            {
+              Cations[i][m].Atoms[A1].Fixed.x=TRUE;
+              Cations[i][m].Atoms[A1].Fixed.y=TRUE;
+              Cations[i][m].Atoms[A1].Fixed.z=TRUE;
+            }
           }
         }
       }
@@ -5534,10 +6035,18 @@ int ReadInputFile(char *inputfilename)
     for(j=0;j<Framework[i].NumberOfFrameworks;j++)
     {
       for(k=0;k<NumberOfActiveFrameworkAtoms[i][j];k++)
-        Framework[i].Atoms[j][ActiveFrameworkAtoms[i][j][k]].Fixed=FALSE;
+      {
+        Framework[i].Atoms[j][ActiveFrameworkAtoms[i][j][k]].Fixed.x=FALSE;
+        Framework[i].Atoms[j][ActiveFrameworkAtoms[i][j][k]].Fixed.y=FALSE;
+        Framework[i].Atoms[j][ActiveFrameworkAtoms[i][j][k]].Fixed.z=FALSE;
+      }
 
       for(k=0;k<NumberOfFixedFrameworkAtoms[i][j];k++)
-        Framework[i].Atoms[j][FixedFrameworkAtoms[i][j][k]].Fixed=TRUE;
+      {
+        Framework[i].Atoms[j][FixedFrameworkAtoms[i][j][k]].Fixed.x=TRUE;
+        Framework[i].Atoms[j][FixedFrameworkAtoms[i][j][k]].Fixed.y=TRUE;
+        Framework[i].Atoms[j][FixedFrameworkAtoms[i][j][k]].Fixed.z=TRUE;
+      }
     }
 
     // overwrite individual settings for the adsorbates
@@ -5550,13 +6059,21 @@ int ReadInputFile(char *inputfilename)
       {
         if(Components[Type].Groups[l].Rigid) // rigid unit
         {
-          Adsorbates[i][A1].Groups[l].FixedCenterOfMass=FALSE;
-          Adsorbates[i][A1].Groups[l].FixedOrientation=FALSE;
+          Adsorbates[i][A1].Groups[l].FixedCenterOfMass.x=FALSE;
+          Adsorbates[i][A1].Groups[l].FixedCenterOfMass.y=FALSE;
+          Adsorbates[i][A1].Groups[l].FixedCenterOfMass.z=FALSE;
+          Adsorbates[i][A1].Groups[l].FixedOrientation.x=FALSE;
+          Adsorbates[i][A1].Groups[l].FixedOrientation.y=FALSE;
+          Adsorbates[i][A1].Groups[l].FixedOrientation.z=FALSE;
         }
         else
         {
           for(j=0;j<Components[Type].Groups[l].NumberOfGroupAtoms;j++)
-            Adsorbates[i][A1].Atoms[Components[Type].Groups[l].Atoms[j]].Fixed=FALSE;
+          {
+            Adsorbates[i][A1].Atoms[Components[Type].Groups[l].Atoms[j]].Fixed.x=FALSE;
+            Adsorbates[i][A1].Atoms[Components[Type].Groups[l].Atoms[j]].Fixed.y=FALSE;
+            Adsorbates[i][A1].Atoms[Components[Type].Groups[l].Atoms[j]].Fixed.z=FALSE;
+          }
         }
       }
     }
@@ -5569,13 +6086,21 @@ int ReadInputFile(char *inputfilename)
       {
         if(Components[Type].Groups[l].Rigid) // rigid unit
         {
-          Adsorbates[i][A1].Groups[l].FixedCenterOfMass=TRUE;
-          Adsorbates[i][A1].Groups[l].FixedOrientation=TRUE;
+          Adsorbates[i][A1].Groups[l].FixedCenterOfMass.x=TRUE;
+          Adsorbates[i][A1].Groups[l].FixedCenterOfMass.y=TRUE;
+          Adsorbates[i][A1].Groups[l].FixedCenterOfMass.z=TRUE;
+          Adsorbates[i][A1].Groups[l].FixedOrientation.x=TRUE;
+          Adsorbates[i][A1].Groups[l].FixedOrientation.y=TRUE;
+          Adsorbates[i][A1].Groups[l].FixedOrientation.z=TRUE;
         }
         else
         {
           for(j=0;j<Components[Type].Groups[l].NumberOfGroupAtoms;j++)
-            Adsorbates[i][A1].Atoms[Components[Type].Groups[l].Atoms[j]].Fixed=TRUE;
+          {
+            Adsorbates[i][A1].Atoms[Components[Type].Groups[l].Atoms[j]].Fixed.x=TRUE;
+            Adsorbates[i][A1].Atoms[Components[Type].Groups[l].Atoms[j]].Fixed.y=TRUE;
+            Adsorbates[i][A1].Atoms[Components[Type].Groups[l].Atoms[j]].Fixed.z=TRUE;
+          }
         }
       }
     }
@@ -5583,51 +6108,143 @@ int ReadInputFile(char *inputfilename)
     {
       A1=ActiveAdsorbateAtoms[i][k].A;
       B1=ActiveAdsorbateAtoms[i][k].B;
-      Adsorbates[i][A1].Atoms[B1].Fixed=FALSE;
+      Adsorbates[i][A1].Atoms[B1].Fixed.x=FALSE;
+      Adsorbates[i][A1].Atoms[B1].Fixed.y=FALSE;
+      Adsorbates[i][A1].Atoms[B1].Fixed.z=FALSE;
+    }
+    for(k=0;k<NumberOfActiveAdsorbateAtomsX[i];k++)
+    {
+      A1=ActiveAdsorbateAtomsX[i][k].A;
+      B1=ActiveAdsorbateAtomsX[i][k].B;
+      Adsorbates[i][A1].Atoms[B1].Fixed.x=FALSE;
+    }
+    for(k=0;k<NumberOfActiveAdsorbateAtomsY[i];k++)
+    {
+      A1=ActiveAdsorbateAtomsY[i][k].A;
+      B1=ActiveAdsorbateAtomsY[i][k].B;
+      Adsorbates[i][A1].Atoms[B1].Fixed.y=FALSE;
+    }
+    for(k=0;k<NumberOfActiveAdsorbateAtomsZ[i];k++)
+    {
+      A1=ActiveAdsorbateAtomsZ[i][k].A;
+      B1=ActiveAdsorbateAtomsZ[i][k].B;
+      Adsorbates[i][A1].Atoms[B1].Fixed.z=FALSE;
     }
     for(k=0;k<NumberOfFixedAdsorbateAtoms[i];k++)
     {
       A1=FixedAdsorbateAtoms[i][k].A;
       B1=FixedAdsorbateAtoms[i][k].B;
-      Adsorbates[i][A1].Atoms[B1].Fixed=TRUE;
+      Adsorbates[i][A1].Atoms[B1].Fixed.x=TRUE;
+      Adsorbates[i][A1].Atoms[B1].Fixed.y=TRUE;
+      Adsorbates[i][A1].Atoms[B1].Fixed.z=TRUE;
+    }
+    for(k=0;k<NumberOfFixedAdsorbateAtomsX[i];k++)
+    {
+      A1=FixedAdsorbateAtomsX[i][k].A;
+      B1=FixedAdsorbateAtomsX[i][k].B;
+      Adsorbates[i][A1].Atoms[B1].Fixed.x=TRUE;
+    }
+    for(k=0;k<NumberOfFixedAdsorbateAtomsY[i];k++)
+    {
+      A1=FixedAdsorbateAtomsY[i][k].A;
+      B1=FixedAdsorbateAtomsY[i][k].B;
+      Adsorbates[i][A1].Atoms[B1].Fixed.y=TRUE;
+    }
+    for(k=0;k<NumberOfFixedAdsorbateAtomsZ[i];k++)
+    {
+      A1=FixedAdsorbateAtomsZ[i][k].A;
+      B1=FixedAdsorbateAtomsZ[i][k].B;
+      Adsorbates[i][A1].Atoms[B1].Fixed.z=TRUE;
     }
     for(k=0;k<NumberOfActiveAdsorbateGroups[i];k++)
     {
       A1=ActiveAdsorbateGroups[i][k].A;
       B1=ActiveAdsorbateGroups[i][k].B;
-      Adsorbates[i][A1].Groups[B1].FixedCenterOfMass=FALSE;
-      Adsorbates[i][A1].Groups[B1].FixedOrientation=FALSE;
+      Adsorbates[i][A1].Groups[B1].FixedCenterOfMass.x=FALSE;
+      Adsorbates[i][A1].Groups[B1].FixedCenterOfMass.y=FALSE;
+      Adsorbates[i][A1].Groups[B1].FixedCenterOfMass.z=FALSE;
+      Adsorbates[i][A1].Groups[B1].FixedOrientation.x=FALSE;
+      Adsorbates[i][A1].Groups[B1].FixedOrientation.y=FALSE;
+      Adsorbates[i][A1].Groups[B1].FixedOrientation.z=FALSE;
     }
     for(k=0;k<NumberOfFixedAdsorbateGroups[i];k++)
     {
       A1=FixedAdsorbateGroups[i][k].A;
       B1=FixedAdsorbateGroups[i][k].B;
-      Adsorbates[i][A1].Groups[B1].FixedCenterOfMass=TRUE;
-      Adsorbates[i][A1].Groups[B1].FixedOrientation=TRUE;
+      Adsorbates[i][A1].Groups[B1].FixedCenterOfMass.x=TRUE;
+      Adsorbates[i][A1].Groups[B1].FixedCenterOfMass.y=TRUE;
+      Adsorbates[i][A1].Groups[B1].FixedCenterOfMass.z=TRUE;
+      Adsorbates[i][A1].Groups[B1].FixedOrientation.x=TRUE;
+      Adsorbates[i][A1].Groups[B1].FixedOrientation.y=TRUE;
+      Adsorbates[i][A1].Groups[B1].FixedOrientation.z=TRUE;
     }
     for(k=0;k<NumberOfActiveAdsorbateGroupsCenterOfMass[i];k++)
     {
       A1=ActiveAdsorbateGroupsCenterOfMass[i][k].A;
       B1=ActiveAdsorbateGroupsCenterOfMass[i][k].B;
-      Adsorbates[i][A1].Groups[B1].FixedCenterOfMass=FALSE;
+      Adsorbates[i][A1].Groups[B1].FixedCenterOfMass.x=FALSE;
+      Adsorbates[i][A1].Groups[B1].FixedCenterOfMass.y=FALSE;
+      Adsorbates[i][A1].Groups[B1].FixedCenterOfMass.z=FALSE;
     }
     for(k=0;k<NumberOfFixedAdsorbateGroupsCenterOfMass[i];k++)
     {
       A1=FixedAdsorbateGroupsCenterOfMass[i][k].A;
       B1=FixedAdsorbateGroupsCenterOfMass[i][k].B;
-      Adsorbates[i][A1].Groups[B1].FixedCenterOfMass=TRUE;
+      Adsorbates[i][A1].Groups[B1].FixedCenterOfMass.x=TRUE;
+      Adsorbates[i][A1].Groups[B1].FixedCenterOfMass.y=TRUE;
+      Adsorbates[i][A1].Groups[B1].FixedCenterOfMass.z=TRUE;
+    }
+    for(k=0;k<NumberOfFixedAdsorbateGroupsCenterOfMassX[i];k++)
+    {
+      A1=FixedAdsorbateGroupsCenterOfMassX[i][k].A;
+      B1=FixedAdsorbateGroupsCenterOfMassX[i][k].B;
+      Adsorbates[i][A1].Groups[B1].FixedCenterOfMass.x=TRUE;
+    }
+    for(k=0;k<NumberOfFixedAdsorbateGroupsCenterOfMassY[i];k++)
+    {
+      A1=FixedAdsorbateGroupsCenterOfMassY[i][k].A;
+      B1=FixedAdsorbateGroupsCenterOfMassY[i][k].B;
+      Adsorbates[i][A1].Groups[B1].FixedCenterOfMass.y=TRUE;
+    }
+    for(k=0;k<NumberOfFixedAdsorbateGroupsCenterOfMassZ[i];k++)
+    {
+      A1=FixedAdsorbateGroupsCenterOfMassZ[i][k].A;
+      B1=FixedAdsorbateGroupsCenterOfMassZ[i][k].B;
+      Adsorbates[i][A1].Groups[B1].FixedCenterOfMass.z=TRUE;
     }
     for(k=0;k<NumberOfActiveAdsorbateGroupsOrientation[i];k++)
     {
       A1=ActiveAdsorbateGroupsOrientation[i][k].A;
       B1=ActiveAdsorbateGroupsOrientation[i][k].B;
-      Adsorbates[i][A1].Groups[B1].FixedOrientation=FALSE;
+      Adsorbates[i][A1].Groups[B1].FixedOrientation.x=FALSE;
+      Adsorbates[i][A1].Groups[B1].FixedOrientation.y=FALSE;
+      Adsorbates[i][A1].Groups[B1].FixedOrientation.z=FALSE;
     }
     for(k=0;k<NumberOfFixedAdsorbateGroupsOrientation[i];k++)
     {
       A1=FixedAdsorbateGroupsOrientation[i][k].A;
       B1=FixedAdsorbateGroupsOrientation[i][k].B;
-      Adsorbates[i][A1].Groups[B1].FixedOrientation=TRUE;
+      Adsorbates[i][A1].Groups[B1].FixedOrientation.x=TRUE;
+      Adsorbates[i][A1].Groups[B1].FixedOrientation.y=TRUE;
+      Adsorbates[i][A1].Groups[B1].FixedOrientation.z=TRUE;
+    }
+    for(k=0;k<NumberOfFixedAdsorbateGroupsOrientationX[i];k++)
+    {
+      A1=FixedAdsorbateGroupsOrientationX[i][k].A;
+      B1=FixedAdsorbateGroupsOrientationX[i][k].B;
+      Adsorbates[i][A1].Groups[B1].FixedOrientation.x=TRUE;
+    }
+    for(k=0;k<NumberOfFixedAdsorbateGroupsOrientationY[i];k++)
+    {
+      A1=FixedAdsorbateGroupsOrientationY[i][k].A;
+      B1=FixedAdsorbateGroupsOrientationY[i][k].B;
+      Adsorbates[i][A1].Groups[B1].FixedOrientation.y=TRUE;
+    }
+    for(k=0;k<NumberOfFixedAdsorbateGroupsOrientationZ[i];k++)
+    {
+      A1=FixedAdsorbateGroupsOrientationZ[i][k].A;
+      B1=FixedAdsorbateGroupsOrientationZ[i][k].B;
+      Adsorbates[i][A1].Groups[B1].FixedOrientation.z=TRUE;
     }
 
     // overwrite individual settings for the cations
@@ -5640,13 +6257,21 @@ int ReadInputFile(char *inputfilename)
       {
         if(Components[Type].Groups[l].Rigid) // rigid unit
         {
-          Cations[i][A1].Groups[l].FixedCenterOfMass=FALSE;
-          Cations[i][A1].Groups[l].FixedOrientation=FALSE;
+          Cations[i][A1].Groups[l].FixedCenterOfMass.x=FALSE;
+          Cations[i][A1].Groups[l].FixedCenterOfMass.y=FALSE;
+          Cations[i][A1].Groups[l].FixedCenterOfMass.x=FALSE;
+          Cations[i][A1].Groups[l].FixedOrientation.x=FALSE;
+          Cations[i][A1].Groups[l].FixedOrientation.y=FALSE;
+          Cations[i][A1].Groups[l].FixedOrientation.z=FALSE;
         }
         else
         {
           for(j=0;j<Components[Type].Groups[l].NumberOfGroupAtoms;j++)
-            Cations[i][A1].Atoms[Components[Type].Groups[l].Atoms[j]].Fixed=FALSE;
+          {
+            Cations[i][A1].Atoms[Components[Type].Groups[l].Atoms[j]].Fixed.x=FALSE;
+            Cations[i][A1].Atoms[Components[Type].Groups[l].Atoms[j]].Fixed.y=FALSE;
+            Cations[i][A1].Atoms[Components[Type].Groups[l].Atoms[j]].Fixed.z=FALSE;
+          }
         }
       }
     }
@@ -5659,13 +6284,21 @@ int ReadInputFile(char *inputfilename)
       {
         if(Components[Type].Groups[l].Rigid) // rigid unit
         {
-          Cations[i][A1].Groups[l].FixedCenterOfMass=TRUE;
-          Cations[i][A1].Groups[l].FixedOrientation=TRUE;
+          Cations[i][A1].Groups[l].FixedCenterOfMass.x=TRUE;
+          Cations[i][A1].Groups[l].FixedCenterOfMass.y=TRUE;
+          Cations[i][A1].Groups[l].FixedCenterOfMass.z=TRUE;
+          Cations[i][A1].Groups[l].FixedOrientation.x=TRUE;
+          Cations[i][A1].Groups[l].FixedOrientation.y=TRUE;
+          Cations[i][A1].Groups[l].FixedOrientation.z=TRUE;
         }
         else
         {
           for(j=0;j<Components[Type].Groups[l].NumberOfGroupAtoms;j++)
-            Cations[i][A1].Atoms[Components[Type].Groups[l].Atoms[j]].Fixed=TRUE;
+          {
+            Cations[i][A1].Atoms[Components[Type].Groups[l].Atoms[j]].Fixed.x=TRUE;
+            Cations[i][A1].Atoms[Components[Type].Groups[l].Atoms[j]].Fixed.y=TRUE;
+            Cations[i][A1].Atoms[Components[Type].Groups[l].Atoms[j]].Fixed.z=TRUE;
+          }
         }
       }
     }
@@ -5673,51 +6306,179 @@ int ReadInputFile(char *inputfilename)
     {
       A1=ActiveCationAtoms[i][k].A;
       B1=ActiveCationAtoms[i][k].B;
-      Cations[i][A1].Atoms[B1].Fixed=FALSE;
+      Cations[i][A1].Atoms[B1].Fixed.x=FALSE;
+      Cations[i][A1].Atoms[B1].Fixed.y=FALSE;
+      Cations[i][A1].Atoms[B1].Fixed.z=FALSE;
+    }
+    for(k=0;k<NumberOfActiveCationAtomsX[i];k++)
+    {
+      A1=ActiveCationAtomsX[i][k].A;
+      B1=ActiveCationAtomsX[i][k].B;
+      Cations[i][A1].Atoms[B1].Fixed.x=FALSE;
+    }
+    for(k=0;k<NumberOfActiveCationAtomsY[i];k++)
+    {
+      A1=ActiveCationAtomsY[i][k].A;
+      B1=ActiveCationAtomsY[i][k].B;
+      Cations[i][A1].Atoms[B1].Fixed.y=FALSE;
+    }
+    for(k=0;k<NumberOfActiveCationAtomsZ[i];k++)
+    {
+      A1=ActiveCationAtomsZ[i][k].A;
+      B1=ActiveCationAtomsZ[i][k].B;
+      Cations[i][A1].Atoms[B1].Fixed.z=FALSE;
     }
     for(k=0;k<NumberOfFixedCationAtoms[i];k++)
     {
       A1=FixedCationAtoms[i][k].A;
       B1=FixedCationAtoms[i][k].B;
-      Cations[i][A1].Atoms[B1].Fixed=TRUE;
+      Cations[i][A1].Atoms[B1].Fixed.x=TRUE;
+      Cations[i][A1].Atoms[B1].Fixed.y=TRUE;
+      Cations[i][A1].Atoms[B1].Fixed.z=TRUE;
+    }
+    for(k=0;k<NumberOfFixedCationAtomsX[i];k++)
+    {
+      A1=FixedCationAtomsX[i][k].A;
+      B1=FixedCationAtomsX[i][k].B;
+      Cations[i][A1].Atoms[B1].Fixed.x=TRUE;
+    }
+    for(k=0;k<NumberOfFixedCationAtomsY[i];k++)
+    {
+      A1=FixedCationAtomsY[i][k].A;
+      B1=FixedCationAtomsY[i][k].B;
+      Cations[i][A1].Atoms[B1].Fixed.y=TRUE;
+    }
+    for(k=0;k<NumberOfFixedCationAtomsZ[i];k++)
+    {
+      A1=FixedCationAtomsZ[i][k].A;
+      B1=FixedCationAtomsZ[i][k].B;
+      Cations[i][A1].Atoms[B1].Fixed.z=TRUE;
     }
     for(k=0;k<NumberOfActiveCationGroups[i];k++)
     {
       A1=ActiveCationGroups[i][k].A;
       B1=ActiveCationGroups[i][k].B;
-      Cations[i][A1].Groups[B1].FixedCenterOfMass=FALSE;
-      Cations[i][A1].Groups[B1].FixedOrientation=FALSE;
+      Cations[i][A1].Groups[B1].FixedCenterOfMass.x=FALSE;
+      Cations[i][A1].Groups[B1].FixedCenterOfMass.y=FALSE;
+      Cations[i][A1].Groups[B1].FixedCenterOfMass.z=FALSE;
+      Cations[i][A1].Groups[B1].FixedOrientation.x=FALSE;
+      Cations[i][A1].Groups[B1].FixedOrientation.y=FALSE;
+      Cations[i][A1].Groups[B1].FixedOrientation.z=FALSE;
     }
     for(k=0;k<NumberOfFixedCationGroups[i];k++)
     {
       A1=FixedCationGroups[i][k].A;
       B1=FixedCationGroups[i][k].B;
-      Cations[i][A1].Groups[B1].FixedCenterOfMass=TRUE;
-      Cations[i][A1].Groups[B1].FixedOrientation=TRUE;
+      Cations[i][A1].Groups[B1].FixedCenterOfMass.x=TRUE;
+      Cations[i][A1].Groups[B1].FixedCenterOfMass.y=TRUE;
+      Cations[i][A1].Groups[B1].FixedCenterOfMass.z=TRUE;
+      Cations[i][A1].Groups[B1].FixedOrientation.x=TRUE;
+      Cations[i][A1].Groups[B1].FixedOrientation.y=TRUE;
+      Cations[i][A1].Groups[B1].FixedOrientation.z=TRUE;
     }
     for(k=0;k<NumberOfActiveCationGroupsCenterOfMass[i];k++)
     {
       A1=ActiveCationGroupsCenterOfMass[i][k].A;
       B1=ActiveCationGroupsCenterOfMass[i][k].B;
-      Cations[i][A1].Groups[B1].FixedCenterOfMass=FALSE;
+      Cations[i][A1].Groups[B1].FixedCenterOfMass.x=FALSE;
+      Cations[i][A1].Groups[B1].FixedCenterOfMass.y=FALSE;
+      Cations[i][A1].Groups[B1].FixedCenterOfMass.z=FALSE;
+    }
+    for(k=0;k<NumberOfActiveCationGroupsCenterOfMassX[i];k++)
+    {
+      A1=ActiveCationGroupsCenterOfMassX[i][k].A;
+      B1=ActiveCationGroupsCenterOfMassX[i][k].B;
+      Cations[i][A1].Groups[B1].FixedCenterOfMass.x=FALSE;
+    }
+    for(k=0;k<NumberOfActiveCationGroupsCenterOfMassY[i];k++)
+    {
+      A1=ActiveCationGroupsCenterOfMassY[i][k].A;
+      B1=ActiveCationGroupsCenterOfMassY[i][k].B;
+      Cations[i][A1].Groups[B1].FixedCenterOfMass.y=FALSE;
+    }
+    for(k=0;k<NumberOfActiveCationGroupsCenterOfMassZ[i];k++)
+    {
+      A1=ActiveCationGroupsCenterOfMassZ[i][k].A;
+      B1=ActiveCationGroupsCenterOfMassZ[i][k].B;
+      Cations[i][A1].Groups[B1].FixedCenterOfMass.z=FALSE;
     }
     for(k=0;k<NumberOfFixedCationGroupsCenterOfMass[i];k++)
     {
       A1=FixedCationGroupsCenterOfMass[i][k].A;
       B1=FixedCationGroupsCenterOfMass[i][k].B;
-      Cations[i][A1].Groups[B1].FixedCenterOfMass=TRUE;
+      Cations[i][A1].Groups[B1].FixedCenterOfMass.x=TRUE;
+      Cations[i][A1].Groups[B1].FixedCenterOfMass.y=TRUE;
+      Cations[i][A1].Groups[B1].FixedCenterOfMass.z=TRUE;
+    }
+    for(k=0;k<NumberOfFixedCationGroupsCenterOfMassX[i];k++)
+    {
+      A1=FixedCationGroupsCenterOfMassX[i][k].A;
+      B1=FixedCationGroupsCenterOfMassX[i][k].B;
+      Cations[i][A1].Groups[B1].FixedCenterOfMass.x=TRUE;
+    }
+    for(k=0;k<NumberOfFixedCationGroupsCenterOfMassY[i];k++)
+    {
+      A1=FixedCationGroupsCenterOfMassY[i][k].A;
+      B1=FixedCationGroupsCenterOfMassY[i][k].B;
+      Cations[i][A1].Groups[B1].FixedCenterOfMass.y=TRUE;
+    }
+    for(k=0;k<NumberOfFixedCationGroupsCenterOfMassZ[i];k++)
+    {
+      A1=FixedCationGroupsCenterOfMassZ[i][k].A;
+      B1=FixedCationGroupsCenterOfMassZ[i][k].B;
+      Cations[i][A1].Groups[B1].FixedCenterOfMass.z=TRUE;
     }
     for(k=0;k<NumberOfActiveCationGroupsOrientation[i];k++)
     {
       A1=ActiveCationGroupsOrientation[i][k].A;
       B1=ActiveCationGroupsOrientation[i][k].B;
-      Cations[i][A1].Groups[B1].FixedOrientation=FALSE;
+      Cations[i][A1].Groups[B1].FixedOrientation.x=FALSE;
+      Cations[i][A1].Groups[B1].FixedOrientation.y=FALSE;
+      Cations[i][A1].Groups[B1].FixedOrientation.z=FALSE;
+    }
+    for(k=0;k<NumberOfActiveCationGroupsOrientationX[i];k++)
+    {
+      A1=ActiveCationGroupsOrientationX[i][k].A;
+      B1=ActiveCationGroupsOrientationX[i][k].B;
+      Cations[i][A1].Groups[B1].FixedOrientation.x=FALSE;
+    }
+    for(k=0;k<NumberOfActiveCationGroupsOrientationY[i];k++)
+    {
+      A1=ActiveCationGroupsOrientationY[i][k].A;
+      B1=ActiveCationGroupsOrientationY[i][k].B;
+      Cations[i][A1].Groups[B1].FixedOrientation.y=FALSE;
+    }
+    for(k=0;k<NumberOfActiveCationGroupsOrientationZ[i];k++)
+    {
+      A1=ActiveCationGroupsOrientationZ[i][k].A;
+      B1=ActiveCationGroupsOrientationZ[i][k].B;
+      Cations[i][A1].Groups[B1].FixedOrientation.z=FALSE;
     }
     for(k=0;k<NumberOfFixedCationGroupsOrientation[i];k++)
     {
       A1=FixedCationGroupsOrientation[i][k].A;
       B1=FixedCationGroupsOrientation[i][k].B;
-      Cations[i][A1].Groups[B1].FixedOrientation=TRUE;
+      Cations[i][A1].Groups[B1].FixedOrientation.x=TRUE;
+      Cations[i][A1].Groups[B1].FixedOrientation.y=TRUE;
+      Cations[i][A1].Groups[B1].FixedOrientation.z=TRUE;
+    }
+    for(k=0;k<NumberOfFixedCationGroupsOrientationX[i];k++)
+    {
+      A1=FixedCationGroupsOrientationX[i][k].A;
+      B1=FixedCationGroupsOrientationX[i][k].B;
+      Cations[i][A1].Groups[B1].FixedOrientation.x=TRUE;
+    }
+    for(k=0;k<NumberOfFixedCationGroupsOrientationY[i];k++)
+    {
+      A1=FixedCationGroupsOrientationY[i][k].A;
+      B1=FixedCationGroupsOrientationY[i][k].B;
+      Cations[i][A1].Groups[B1].FixedOrientation.y=TRUE;
+    }
+    for(k=0;k<NumberOfFixedCationGroupsOrientationZ[i];k++)
+    {
+      A1=FixedCationGroupsOrientationZ[i][k].A;
+      B1=FixedCationGroupsOrientationZ[i][k].B;
+      Cations[i][A1].Groups[B1].FixedOrientation.z=TRUE;
     }
   }
 
@@ -6895,7 +7656,7 @@ int ReadInputFile(char *inputfilename)
       Framework[i].NumberOfFixedAtoms[j]=0;
       for(k=0;k<Framework[i].NumberOfAtoms[j];k++)
       {
-        if(Framework[i].Atoms[j][k].Fixed)
+        if(Framework[i].Atoms[j][k].Fixed.x) // FIX
           Framework[i].NumberOfFixedAtoms[j]++;
         else
           Framework[i].NumberOfFreeAtoms[j]++;
@@ -6929,22 +7690,29 @@ int ReadInputFile(char *inputfilename)
     PrecomputeTotalEwaldContributions();
   }
 
-  if(UseContinuousFraction)
+  for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
+    WriteFrameworkDefinition();
+
+  //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  // CFC-RXMC : Initializing Lambda, Pi and randomly picking a fractional molecule
+  //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------  
+  if(NumberOfReactions>0)
   {
     for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
     {
-      for(CurrentComponent=0;CurrentComponent<NumberOfComponents;CurrentComponent++)
-      {
-        Components[CurrentComponent].FractionalMolecule[CurrentSystem]=(int)(RandomNumber()*Components[CurrentComponent].NumberOfMolecules[CurrentSystem]);
-        if(Components[CurrentComponent].ExtraFrameworkMolecule)
-          Cations[CurrentSystem][Components[CurrentComponent].FractionalMolecule[CurrentSystem]].Fractional=TRUE;
-        else
-          Adsorbates[CurrentSystem][Components[CurrentComponent].FractionalMolecule[CurrentSystem]].Fractional=TRUE;
-
-        Components[CurrentComponent].Lambda=0.5;
-      }
+       for(CurrentReaction=0;CurrentReaction<NumberOfReactions;CurrentReaction++)
+       {
+          CFCRXMCLambda[CurrentSystem][CurrentReaction]=0.5;
+          for(CurrentComponent=0;CurrentComponent<NumberOfComponents;CurrentComponent++)
+          {
+             //Components[CurrentComponent].RXMCFractionalMolecule[CurrentReaction]=(int)(RandomNumber()*Components[CurrentComponent].NumberOfMolecules[CurrentSystem]);
+             //Adsorbates[CurrentSystem][Components[CurrentComponent].RXMCFractionalMolecule[CurrentReaction]].Pi=0.5;
+          }
+       }
     }
   }
+  //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 
   CurrentSystem=0;
   CurrentComponent=0;

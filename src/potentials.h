@@ -1,27 +1,16 @@
-/*****************************************************************************************************
+/*************************************************************************************************************
     RASPA: a molecular-dynamics, monte-carlo and optimization code for nanoporous materials
-    Copyright (C) 2006-2012 David Dubbeldam, Sofia Calero, Donald E. Ellis, and Randall Q. Snurr.
+    Copyright (C) 2006-2013 David Dubbeldam, Sofia Calero, Thijs Vlugt, Donald E. Ellis, and Randall Q. Snurr.
 
     D.Dubbeldam@uva.nl            http://molsim.science.uva.nl/
     scaldia@upo.es                http://www.upo.es/raspa/
+    t.j.h.vlugt@tudelft.nl        http://homepage.tudelft.nl/v9k6y
     don-ellis@northwestern.edu    http://dvworld.northwestern.edu/
     snurr@northwestern.edu        http://zeolites.cqe.northwestern.edu/
 
-    This file 'potentials.h' is part of RASPA.
+    This file 'potentials.h' is part of RASPA-2.0
 
-    RASPA is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    RASPA is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *****************************************************************************************************/
+ *************************************************************************************************************/
 
 #ifndef POTENTIALS_H
 #define POTENTIALS_H
@@ -105,6 +94,7 @@ extern POTENTIAL BendTorsionTypes[NR_BEND_TORSION_TYPES];
 enum {UNDEFINED_POTENTIAL,
       ZERO_POTENTIAL,
       LENNARD_JONES,
+      LENNARD_JONES_CONTINUOUS_FRACTIONAL,
       LENNARD_JONES_SMOOTHED3,
       LENNARD_JONES_SMOOTHED5,
       WCA,
@@ -171,75 +161,7 @@ enum {UNDEFINED_POTENTIAL,
       BORN_HUGGINS_MEYER_SMOOTHED5,
       HYDROGEN,
       HYDROGEN_SMOOTHED3,
-      HYDROGEN_SMOOTHED5,
-
-      LENNARD_JONES_CONTINUOUS_FRACTIONAL,
-      LENNARD_JONES_SMOOTHED3_CONTINUOUS_FRACTIONAL,
-      LENNARD_JONES_SMOOTHED5_CONTINUOUS_FRACTIONAL,
-      WCA_CONTINUOUS_FRACTIONAL,
-      FEYNMAN_HIBBS_LENNARD_JONES_CONTINUOUS_FRACTIONAL,
-      FEYNMAN_HIBBS_LENNARD_JONES_SMOOTHED3_CONTINUOUS_FRACTIONAL,
-      FEYNMAN_HIBBS_LENNARD_JONES_SMOOTHED5_CONTINUOUS_FRACTIONAL,
-      FEYNMAN_HIBBS_LENNARD_JONES2_CONTINUOUS_FRACTIONAL,
-      FEYNMAN_HIBBS_LENNARD_JONES2_SMOOTHED3_CONTINUOUS_FRACTIONAL,
-      FEYNMAN_HIBBS_LENNARD_JONES2_SMOOTHED5_CONTINUOUS_FRACTIONAL,
-      LENNARD_JONES_SHIFTED_FORCE_CONTINUOUS_FRACTIONAL,
-      LENNARD_JONES_SHIFTED_FORCE2_CONTINUOUS_FRACTIONAL,
-      POTENTIAL_12_6_CONTINUOUS_FRACTIONAL,
-      POTENTIAL_12_6_SMOOTHED3_CONTINUOUS_FRACTIONAL,
-      POTENTIAL_12_6_SMOOTHED5_CONTINUOUS_FRACTIONAL,
-      POTENTIAL_12_6_2_0_CONTINUOUS_FRACTIONAL,
-      POTENTIAL_12_6_2_0_SMOOTHED3_CONTINUOUS_FRACTIONAL,
-      POTENTIAL_12_6_2_0_SMOOTHED5_CONTINUOUS_FRACTIONAL,
-      MORSE_CONTINUOUS_FRACTIONAL,
-      MORSE_SMOOTHED3_CONTINUOUS_FRACTIONAL,
-      MORSE_SMOOTHED5_CONTINUOUS_FRACTIONAL,
-      MORSE2_CONTINUOUS_FRACTIONAL,
-      MORSE2_SMOOTHED3_CONTINUOUS_FRACTIONAL,
-      MORSE2_SMOOTHED5_CONTINUOUS_FRACTIONAL,
-      MORSE3_CONTINUOUS_FRACTIONAL,
-      MORSE3_SMOOTHED3_CONTINUOUS_FRACTIONAL,
-      MORSE3_SMOOTHED5_CONTINUOUS_FRACTIONAL,
-      CFF_9_6_CONTINUOUS_FRACTIONAL,
-      CFF_9_6_SMOOTHED3_CONTINUOUS_FRACTIONAL,
-      CFF_9_6_SMOOTHED5_CONTINUOUS_FRACTIONAL,
-      CFF_EPS_SIGMA_CONTINUOUS_FRACTIONAL,
-      CFF_EPS_SIGMA_SMOOTHED3_CONTINUOUS_FRACTIONAL,
-      CFF_EPS_SIGMA_SMOOTHED5_CONTINUOUS_FRACTIONAL,
-      BUCKINGHAM_CONTINUOUS_FRACTIONAL,
-      BUCKINGHAM_SMOOTHED3_CONTINUOUS_FRACTIONAL,
-      BUCKINGHAM_SMOOTHED5_CONTINUOUS_FRACTIONAL,
-      BUCKINGHAM2_CONTINUOUS_FRACTIONAL,
-      BUCKINGHAM2_SMOOTHED3_CONTINUOUS_FRACTIONAL,
-      BUCKINGHAM2_SMOOTHED5_CONTINUOUS_FRACTIONAL,
-      MM3_HYDROGEN_VDW_CONTINUOUS_FRACTIONAL,            // obsolete
-      MM3_VDW_CONTINUOUS_FRACTIONAL,
-      MM3_VDW_SMOOTHED3_CONTINUOUS_FRACTIONAL,
-      MM3_VDW_SMOOTHED5_CONTINUOUS_FRACTIONAL,
-      MATSUOKA_CLEMENTI_YOSHIMINE_CONTINUOUS_FRACTIONAL,
-      MATSUOKA_CLEMENTI_YOSHIMINE_SMOOTHED3_CONTINUOUS_FRACTIONAL,
-      MATSUOKA_CLEMENTI_YOSHIMINE_SMOOTHED5_CONTINUOUS_FRACTIONAL,
-      MORSE_POTENTIAL_CONTINUOUS_FRACTIONAL,
-      MORSE_POTENTIAL_SMOOTHED3_CONTINUOUS_FRACTIONAL,
-      MORSE_POTENTIAL_SMOOTHED5_CONTINUOUS_FRACTIONAL,
-      GENERIC_CONTINUOUS_FRACTIONAL,
-      GENERIC_SMOOTHED3_CONTINUOUS_FRACTIONAL,
-      GENERIC_SMOOTHED5_CONTINUOUS_FRACTIONAL,
-      PELLENQ_NICHOLSON_CONTINUOUS_FRACTIONAL,
-      PELLENQ_NICHOLSON_SMOOTHED3_CONTINUOUS_FRACTIONAL,
-      PELLENQ_NICHOLSON_SMOOTHED5_CONTINUOUS_FRACTIONAL,
-      HYDRATED_ION_WATER_CONTINUOUS_FRACTIONAL,
-      HYDRATED_ION_WATER_SMOOTHED3_CONTINUOUS_FRACTIONAL,
-      HYDRATED_ION_WATER_SMOOTHED5_CONTINUOUS_FRACTIONAL,
-      MIE_CONTINUOUS_FRACTIONAL,
-      MIE_SMOOTHED3_CONTINUOUS_FRACTIONAL,
-      MIE_SMOOTHED5_CONTINUOUS_FRACTIONAL,
-      BORN_HUGGINS_MEYER_CONTINUOUS_FRACTIONAL,
-      BORN_HUGGINS_MEYER_SMOOTHED3_CONTINUOUS_FRACTIONAL,
-      BORN_HUGGINS_MEYER_SMOOTHED5_CONTINUOUS_FRACTIONAL,
-      HYDROGEN_CONTINUOUS_FRACTIONAL,
-      HYDROGEN_SMOOTHED3_CONTINUOUS_FRACTIONAL,
-      HYDROGEN_SMOOTHED5_CONTINUOUS_FRACTIONAL};
+      HYDROGEN_SMOOTHED5};
 
 #define MAX_NUMBER_OF_POTENTIAL_ARGUMENTS 10
 extern REAL (**PotentialParms)[MAX_NUMBER_OF_POTENTIAL_ARGUMENTS];
@@ -321,8 +243,8 @@ static inline VECTOR ApplyBoundaryCondition(VECTOR dr)
 extern VECTOR ApplyReplicaBoundaryCondition(VECTOR dr);
 extern VECTOR ApplyBoundaryConditionUnitCell(VECTOR dr);
 
-extern REAL PotentialValue(int a,int b,REAL rr);
-void PotentialGradient(int a,int b,REAL rr,REAL *energy,REAL *force_factor);
+extern REAL PotentialValue(int a,int b,REAL rr,REAL scaling);
+void PotentialGradient(int a,int b,REAL rr,REAL *energy,REAL *force_factor,REAL scaling);
 void PotentialSecondDerivative(int typeA,int typeB,REAL rr,REAL *energy,REAL *factor1,REAL *factor2);
 void PotentialThirdDerivative(int typeA,int typeB,REAL rr,REAL *energy,REAL *factor1,REAL *factor2,REAL *factor3);
 
@@ -348,6 +270,10 @@ REAL SwitchingFunctionBendDerivative(REAL theta);
 
 void ComputeDampingCoefficients(REAL r, REAL b,REAL *f6,REAL *f8,REAL *f10);
 void ComputeSwitchingFactors(void);
+
+REAL PotentialValueCoulombic(REAL chargeA,REAL chargeB,REAL r);
+REAL PotentialValueChargeBondDipole(REAL chargeA,VECTOR dipoleB,VECTOR dr,REAL r);
+REAL PotentialValueBondDipoleBondDipole(VECTOR dipoleA,VECTOR dipoleB,VECTOR dr,REAL r);
 
 void WriteTinkerParameterFile(void);
 void WriteTinkerKeyFile(void);

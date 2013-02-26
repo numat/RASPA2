@@ -1,27 +1,16 @@
-/*****************************************************************************************************
+/*************************************************************************************************************
     RASPA: a molecular-dynamics, monte-carlo and optimization code for nanoporous materials
-    Copyright (C) 2006-2012 David Dubbeldam, Sofia Calero, Donald E. Ellis, and Randall Q. Snurr.
+    Copyright (C) 2006-2013 David Dubbeldam, Sofia Calero, Thijs Vlugt, Donald E. Ellis, and Randall Q. Snurr.
 
     D.Dubbeldam@uva.nl            http://molsim.science.uva.nl/
     scaldia@upo.es                http://www.upo.es/raspa/
+    t.j.h.vlugt@tudelft.nl        http://homepage.tudelft.nl/v9k6y
     don-ellis@northwestern.edu    http://dvworld.northwestern.edu/
     snurr@northwestern.edu        http://zeolites.cqe.northwestern.edu/
 
-    This file 'simulation.h' is part of RASPA.
+    This file 'simulation.h' is part of RASPA-2.0
 
-    RASPA is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    RASPA is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *****************************************************************************************************/
+ *************************************************************************************************************/
 
 #ifndef SIMULATION_H
 #define SIMULATION_H
@@ -54,9 +43,9 @@ enum {XYZ_DIR,XY_DIR,XZ_DIR,YZ_DIR,X_DIR,Y_DIR,Z_DIR,ABC_DIR,AB_DIR,AC_DIR,BC_DI
       ORTHOGONAL_TO_A_BC_DIR,ORTHOGONAL_TO_B_AC_DIR,ORTHOGONAL_TO_C_AB_DIR,ORTHOGONAL_TO_O_ABC_DIR};
 
 
-enum {MOL_FORMAT,CSSR_FORMAT,XYZ_FORMAT,PDB_FORMAT,CIF_FORMAT};
+enum {MOL_FORMAT,CSSR_FORMAT,DLPOLY_FORMAT,XYZ_FORMAT,PDB_FORMAT,CIF_FORMAT};
 
-enum {CHARGE_PER_ATOM_TYPE,CHARGE_PER_ATOM};
+enum {CHARGE_ATOM_FROM_PSEUDO_ATOM_DEFINITION,CHARGE_ATOM_FROM_STRUCTURE_FILE,CHARGE_NOT_DEFINED};
 
 extern int (**CellListMap)[27];
 
@@ -69,11 +58,24 @@ extern char ForceField[256];
 
 extern int SimulationType;
 
-extern int UseContinuousFraction;
-
 extern int NumberOfSystems;                 // the number of systems
 extern int CurrentSystem;                   // the current system
-extern REAL CurrentLambda;                  // the current continuous fraction
+
+//----------------------------------------------------------------------------------------
+// CFC-RXMC Parameters
+//----------------------------------------------------------------------------------------
+
+extern int NumberOfReactions;                       // Total number of Reactions
+extern int CurrentReaction;                         // The Current Reaction
+extern REAL CurrentReactionLambda;                  // Current Reaction Lambda
+extern REAL **CFCRXMCLambda;                        // Reaction Lambda for all reactions
+extern REAL ProbabilityCFCRXMCLambdaChangeMove;
+extern int **ReactionStoichiometry;                 // Reaction Stoichiometry
+extern int **ReactantsStoichiometry;                // Reactants Stoichiometry
+extern int **ProductsStoichiometry;                 // Products Stoichiometry
+
+//----------------------------------------------------------------------------------------
+
 
 extern int NumberOfPartialPressures;
 extern int CurrentPartialPressure;
@@ -361,16 +363,22 @@ enum {MONOCLINIC_ALPHA_ANGLE,MONOCLINIC_BETA_ANGLE,MONOCLINIC_GAMMA_ANGLE};
 extern int *DegreesOfFreedom;
 extern int *DegreesOfFreedomTranslation;
 extern int *DegreesOfFreedomRotation;
+extern int *DegreesOfFreedomVibration;
+extern int *DegreesOfFreedomConstraint;
 
 extern int *DegreesOfFreedomFramework;
 
 extern int *DegreesOfFreedomAdsorbates;
 extern int *DegreesOfFreedomTranslationalAdsorbates;
 extern int *DegreesOfFreedomRotationalAdsorbates;
+extern int *DegreesOfFreedomVibrationalAdsorbates;
+extern int *DegreesOfFreedomConstraintAdsorbates;
 
 extern int *DegreesOfFreedomCations;
 extern int *DegreesOfFreedomTranslationalCations;
 extern int *DegreesOfFreedomRotationalCations;
+extern int *DegreesOfFreedomVibrationalCations;
+extern int *DegreesOfFreedomConstraintCations;
 
 extern REAL ProbabilityVolumeChangeMove;
 extern REAL ProbabilityBoxShapeChangeMove;
@@ -384,6 +392,7 @@ extern REAL ProbabilityHybridNPHMove;
 extern REAL ProbabilityHybridNPHPRMove;
 extern REAL ProbabilityFrameworkChangeMove;
 extern REAL ProbabilityFrameworkShiftMove;
+extern REAL ProbabilityCFLambdaMove;
 
 void ScaleBornTerm(REAL r);
 void AddContributionToCrossTerm(int i,REAL_MATRIX CrossTerm,REAL DDF,REAL DF,VECTOR dr);

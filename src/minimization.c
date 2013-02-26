@@ -1,27 +1,16 @@
-/*****************************************************************************************************
+/*************************************************************************************************************
     RASPA: a molecular-dynamics, monte-carlo and optimization code for nanoporous materials
-    Copyright (C) 2006-2012 David Dubbeldam, Sofia Calero, Donald E. Ellis, and Randall Q. Snurr.
+    Copyright (C) 2006-2013 David Dubbeldam, Sofia Calero, Thijs Vlugt, Donald E. Ellis, and Randall Q. Snurr.
 
     D.Dubbeldam@uva.nl            http://molsim.science.uva.nl/
     scaldia@upo.es                http://www.upo.es/raspa/
+    t.j.h.vlugt@tudelft.nl        http://homepage.tudelft.nl/v9k6y
     don-ellis@northwestern.edu    http://dvworld.northwestern.edu/
     snurr@northwestern.edu        http://zeolites.cqe.northwestern.edu/
 
-    This file 'minimization.c' is part of RASPA.
+    This file 'minimization.c' is part of RASPA-2.0
 
-    RASPA is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    RASPA is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *****************************************************************************************************/
+ *************************************************************************************************************/
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -70,8 +59,21 @@ int *CationFixedInitialization;
 
 int **NumberOfFixedFrameworkAtoms;
 int ***FixedFrameworkAtoms;
+int **NumberOfFixedFrameworkAtomsX;
+int ***FixedFrameworkAtomsX;
+int **NumberOfFixedFrameworkAtomsY;
+int ***FixedFrameworkAtomsY;
+int **NumberOfFixedFrameworkAtomsZ;
+int ***FixedFrameworkAtomsZ;
+
 int **NumberOfActiveFrameworkAtoms;
 int ***ActiveFrameworkAtoms;
+int **NumberOfActiveFrameworkAtomsX;
+int ***ActiveFrameworkAtomsX;
+int **NumberOfActiveFrameworkAtomsY;
+int ***ActiveFrameworkAtomsY;
+int **NumberOfActiveFrameworkAtomsZ;
+int ***ActiveFrameworkAtomsZ;
 
 int *NumberOfFixedAdsorbateMolecules;
 int **FixedAdsorbateMolecules;
@@ -80,8 +82,20 @@ int **ActiveAdsorbateMolecules;
 
 int *NumberOfFixedAdsorbateAtoms;
 PAIR **FixedAdsorbateAtoms;
+int *NumberOfFixedAdsorbateAtomsX;
+PAIR **FixedAdsorbateAtomsX;
+int *NumberOfFixedAdsorbateAtomsY;
+PAIR **FixedAdsorbateAtomsY;
+int *NumberOfFixedAdsorbateAtomsZ;
+PAIR **FixedAdsorbateAtomsZ;
 int *NumberOfActiveAdsorbateAtoms;
 PAIR **ActiveAdsorbateAtoms;
+int *NumberOfActiveAdsorbateAtomsX;
+PAIR **ActiveAdsorbateAtomsX;
+int *NumberOfActiveAdsorbateAtomsY;
+PAIR **ActiveAdsorbateAtomsY;
+int *NumberOfActiveAdsorbateAtomsZ;
+PAIR **ActiveAdsorbateAtomsZ;
 
 int *NumberOfFixedAdsorbateGroups;
 PAIR **FixedAdsorbateGroups;
@@ -90,13 +104,39 @@ PAIR **ActiveAdsorbateGroups;
 
 int *NumberOfFixedAdsorbateGroupsCenterOfMass;
 PAIR **FixedAdsorbateGroupsCenterOfMass;
+int *NumberOfFixedAdsorbateGroupsCenterOfMassX;
+PAIR **FixedAdsorbateGroupsCenterOfMassX;
+int *NumberOfFixedAdsorbateGroupsCenterOfMassY;
+PAIR **FixedAdsorbateGroupsCenterOfMassY;
+int *NumberOfFixedAdsorbateGroupsCenterOfMassZ;
+PAIR **FixedAdsorbateGroupsCenterOfMassZ;
+
 int *NumberOfActiveAdsorbateGroupsCenterOfMass;
 PAIR **ActiveAdsorbateGroupsCenterOfMass;
+int *NumberOfActiveAdsorbateGroupsCenterOfMassX;
+PAIR **ActiveAdsorbateGroupsCenterOfMassX;
+int *NumberOfActiveAdsorbateGroupsCenterOfMassY;
+PAIR **ActiveAdsorbateGroupsCenterOfMassY;
+int *NumberOfActiveAdsorbateGroupsCenterOfMassZ;
+PAIR **ActiveAdsorbateGroupsCenterOfMassZ;
 
 int *NumberOfFixedAdsorbateGroupsOrientation;
 PAIR **FixedAdsorbateGroupsOrientation;
+int *NumberOfFixedAdsorbateGroupsOrientationX;
+PAIR **FixedAdsorbateGroupsOrientationX;
+int *NumberOfFixedAdsorbateGroupsOrientationY;
+PAIR **FixedAdsorbateGroupsOrientationY;
+int *NumberOfFixedAdsorbateGroupsOrientationZ;
+PAIR **FixedAdsorbateGroupsOrientationZ;
+
 int *NumberOfActiveAdsorbateGroupsOrientation;
 PAIR **ActiveAdsorbateGroupsOrientation;
+int *NumberOfActiveAdsorbateGroupsOrientationX;
+PAIR **ActiveAdsorbateGroupsOrientationX;
+int *NumberOfActiveAdsorbateGroupsOrientationY;
+PAIR **ActiveAdsorbateGroupsOrientationY;
+int *NumberOfActiveAdsorbateGroupsOrientationZ;
+PAIR **ActiveAdsorbateGroupsOrientationZ;
 
 int *NumberOfFixedCationMolecules;
 int **FixedCationMolecules;
@@ -105,8 +145,20 @@ int **ActiveCationMolecules;
 
 int *NumberOfFixedCationAtoms;
 PAIR **FixedCationAtoms;
+int *NumberOfFixedCationAtomsX;
+PAIR **FixedCationAtomsX;
+int *NumberOfFixedCationAtomsY;
+PAIR **FixedCationAtomsY;
+int *NumberOfFixedCationAtomsZ;
+PAIR **FixedCationAtomsZ;
 int *NumberOfActiveCationAtoms;
 PAIR **ActiveCationAtoms;
+int *NumberOfActiveCationAtomsX;
+PAIR **ActiveCationAtomsX;
+int *NumberOfActiveCationAtomsY;
+PAIR **ActiveCationAtomsY;
+int *NumberOfActiveCationAtomsZ;
+PAIR **ActiveCationAtomsZ;
 
 int *NumberOfFixedCationGroups;
 PAIR **FixedCationGroups;
@@ -115,13 +167,39 @@ PAIR **ActiveCationGroups;
 
 int *NumberOfFixedCationGroupsCenterOfMass;
 PAIR **FixedCationGroupsCenterOfMass;
+int *NumberOfFixedCationGroupsCenterOfMassX;
+PAIR **FixedCationGroupsCenterOfMassX;
+int *NumberOfFixedCationGroupsCenterOfMassY;
+PAIR **FixedCationGroupsCenterOfMassY;
+int *NumberOfFixedCationGroupsCenterOfMassZ;
+PAIR **FixedCationGroupsCenterOfMassZ;
+
 int *NumberOfActiveCationGroupsCenterOfMass;
 PAIR **ActiveCationGroupsCenterOfMass;
+int *NumberOfActiveCationGroupsCenterOfMassX;
+PAIR **ActiveCationGroupsCenterOfMassX;
+int *NumberOfActiveCationGroupsCenterOfMassY;
+PAIR **ActiveCationGroupsCenterOfMassY;
+int *NumberOfActiveCationGroupsCenterOfMassZ;
+PAIR **ActiveCationGroupsCenterOfMassZ;
 
 int *NumberOfFixedCationGroupsOrientation;
 PAIR **FixedCationGroupsOrientation;
+int *NumberOfFixedCationGroupsOrientationX;
+PAIR **FixedCationGroupsOrientationX;
+int *NumberOfFixedCationGroupsOrientationY;
+PAIR **FixedCationGroupsOrientationY;
+int *NumberOfFixedCationGroupsOrientationZ;
+PAIR **FixedCationGroupsOrientationZ;
+
 int *NumberOfActiveCationGroupsOrientation;
 PAIR **ActiveCationGroupsOrientation;
+int *NumberOfActiveCationGroupsOrientationX;
+PAIR **ActiveCationGroupsOrientationX;
+int *NumberOfActiveCationGroupsOrientationY;
+PAIR **ActiveCationGroupsOrientationY;
+int *NumberOfActiveCationGroupsOrientationZ;
+PAIR **ActiveCationGroupsOrientationZ;
 
 
 int NumberOfFixedAtomTypes;
@@ -624,11 +702,12 @@ void SetStrainToZero(int np,REAL *x)
 void SetWeights(int np,REAL *Weights,REAL *Charges)
 {
   int i,m,l,f1,A;
-  int index,index2,MolType,AtomType;
+  INT_VECTOR3 index,index2;
+  int MolType,AtomType;
   REAL Mass;
 
   // fill in the generalized coordinates array from the current positions
-  index=0;
+  index=UNDEFINED_INT_VECTOR3;
   if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
   {
     for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
@@ -643,11 +722,11 @@ void SetWeights(int np,REAL *Weights,REAL *Charges)
           switch(Dimension)
           {
             case 3:
-              Weights[index+2]=1.0/sqrt(Mass);
+              Weights[index.z]=1.0/sqrt(Mass);
             case 2:
-              Weights[index+1]=1.0/sqrt(Mass);
+              Weights[index.y]=1.0/sqrt(Mass);
             case 1:
-              Weights[index]=1.0/sqrt(Mass);
+              Weights[index.x]=1.0/sqrt(Mass);
               break;
           }
         }
@@ -666,30 +745,30 @@ void SetWeights(int np,REAL *Weights,REAL *Charges)
         index2=Adsorbates[CurrentSystem][m].Groups[l].HessianIndexOrientation;
 
         Mass=Components[MolType].Groups[l].Mass;
-        if(index>=0)
+        //if(index>=0)
         {
           switch(Dimension)
           {
             case 3:
-              Weights[index+2]=1.0/sqrt(Mass);
+              Weights[index.z]=1.0/sqrt(Mass);
             case 2:
-              Weights[index+1]=1.0/sqrt(Mass);
+              Weights[index.y]=1.0/sqrt(Mass);
             case 1:
-              Weights[index]=1.0/sqrt(Mass);
+              Weights[index.x]=1.0/sqrt(Mass);
               break;
           }
         }
 
-        if(index2>=0)
+        //if(index2>=0)
         {
           switch(Dimension)
           {
             case 3:
-              Weights[index2+2]=1.0/sqrt(Mass);
+              Weights[index2.z]=1.0/sqrt(Mass);
             case 2:
-              Weights[index2+1]=1.0/sqrt(Mass);
+              Weights[index2.y]=1.0/sqrt(Mass);
             case 1:
-              Weights[index2]=1.0/sqrt(Mass);
+              Weights[index2.x]=1.0/sqrt(Mass);
               break;
           }
         }
@@ -704,16 +783,16 @@ void SetWeights(int np,REAL *Weights,REAL *Charges)
           Mass=PseudoAtoms[AtomType].Mass;
           if(PseudoAtoms[AtomType].CoreShell==CORE)
           {
-            if(index>=0)
+            //if(index>=0)
             {
               switch(Dimension)
               {
                 case 3:
-                  Weights[index+2]=1.0/sqrt(Mass);
+                  Weights[index.z]=1.0/sqrt(Mass);
                 case 2:
-                  Weights[index+1]=1.0/sqrt(Mass);
+                  Weights[index.y]=1.0/sqrt(Mass);
                 case 1:
-                  Weights[index]=1.0/sqrt(Mass);
+                  Weights[index.x]=1.0/sqrt(Mass);
                   break;
               }
             }
@@ -734,30 +813,30 @@ void SetWeights(int np,REAL *Weights,REAL *Charges)
         index2=Cations[CurrentSystem][m].Groups[l].HessianIndexOrientation;
 
         Mass=Components[MolType].Groups[l].Mass;
-        if(index>=0)
+        //if(index>=0)
         {
           switch(Dimension)
           {
             case 3:
-              Weights[index+2]=1.0/sqrt(Mass);
+              Weights[index.z]=1.0/sqrt(Mass);
             case 2:
-              Weights[index+1]=1.0/sqrt(Mass);
+              Weights[index.y]=1.0/sqrt(Mass);
             case 1:
-              Weights[index]=1.0/sqrt(Mass);
+              Weights[index.x]=1.0/sqrt(Mass);
               break;
           }
         }
 
-        if(index2>=0)
+        //if(index2>=0)
         {
           switch(Dimension)
           {
             case 3:
-              Weights[index2+2]=1.0/sqrt(Mass);
+              Weights[index2.z]=1.0/sqrt(Mass);
             case 2:
-              Weights[index2+1]=1.0/sqrt(Mass);
+              Weights[index2.y]=1.0/sqrt(Mass);
             case 1:
-              Weights[index2]=1.0/sqrt(Mass);
+              Weights[index2.x]=1.0/sqrt(Mass);
               break;
           }
         }
@@ -772,16 +851,16 @@ void SetWeights(int np,REAL *Weights,REAL *Charges)
           Mass=PseudoAtoms[AtomType].Mass;
           if(PseudoAtoms[AtomType].CoreShell==CORE)
           {
-            if(index>=0)
+            //if(index>=0)
             {
               switch(Dimension)
               {
                 case 3:
-                  Weights[index+2]=1.0/sqrt(Mass);
+                  Weights[index.z]=1.0/sqrt(Mass);
                 case 2:
-                  Weights[index+1]=1.0/sqrt(Mass);
+                  Weights[index.y]=1.0/sqrt(Mass);
                 case 1:
-                  Weights[index]=1.0/sqrt(Mass);
+                  Weights[index.x]=1.0/sqrt(Mass);
                   break;
               }
             }
@@ -814,15 +893,68 @@ int OrderNumberOfMinimiationVariables(void)
         AtomType=Framework[CurrentSystem].Atoms[f1][i].Type;
         if(PseudoAtoms[AtomType].CoreShell==CORE)
         {
-          if(Framework[CurrentSystem].Atoms[f1][i].Fixed)
-            Framework[CurrentSystem].Atoms[f1][i].HessianIndex=-1;
-          else
+          switch(Dimension)
           {
-            Framework[CurrentSystem].Atoms[f1][i].HessianIndex=index;
-            index+=Dimension;
-            NumberOfMinimizationVariables+=Dimension;
-            NumberOfPositionalMinimizationVariables+=Dimension;
-            NumberOfCoordinatesMinimizationVariables+=Dimension;
+            case 3:
+              if(Framework[CurrentSystem].Atoms[f1][i].Fixed.x)
+                Framework[CurrentSystem].Atoms[f1][i].HessianIndex.x=-1;
+              else
+              {
+                Framework[CurrentSystem].Atoms[f1][i].HessianIndex.x=index++;
+                NumberOfMinimizationVariables++;
+                NumberOfPositionalMinimizationVariables++;
+                NumberOfCoordinatesMinimizationVariables++;
+              }
+              if(Framework[CurrentSystem].Atoms[f1][i].Fixed.y)
+                Framework[CurrentSystem].Atoms[f1][i].HessianIndex.y=-1;
+              else
+              {
+                Framework[CurrentSystem].Atoms[f1][i].HessianIndex.y=index++;
+                NumberOfMinimizationVariables++;
+                NumberOfPositionalMinimizationVariables++;
+                NumberOfCoordinatesMinimizationVariables++;
+              }
+              if(Framework[CurrentSystem].Atoms[f1][i].Fixed.z)
+                Framework[CurrentSystem].Atoms[f1][i].HessianIndex.z=-1;
+              else
+              {
+                Framework[CurrentSystem].Atoms[f1][i].HessianIndex.z=index++;
+                NumberOfMinimizationVariables++;
+                NumberOfPositionalMinimizationVariables++;
+                NumberOfCoordinatesMinimizationVariables++;
+              }
+              break;
+            case 2:
+              if(Framework[CurrentSystem].Atoms[f1][i].Fixed.x)
+                Framework[CurrentSystem].Atoms[f1][i].HessianIndex.x=-1;
+              else
+              {
+                Framework[CurrentSystem].Atoms[f1][i].HessianIndex.x=index++;
+                NumberOfMinimizationVariables++;
+                NumberOfPositionalMinimizationVariables++;
+                NumberOfCoordinatesMinimizationVariables++;
+              }
+              if(Framework[CurrentSystem].Atoms[f1][i].Fixed.y)
+                Framework[CurrentSystem].Atoms[f1][i].HessianIndex.y=-1;
+              else
+              {
+                Framework[CurrentSystem].Atoms[f1][i].HessianIndex.y=index++;
+                NumberOfMinimizationVariables++;
+                NumberOfPositionalMinimizationVariables++;
+                NumberOfCoordinatesMinimizationVariables++;
+              }
+              break;
+            case 1:
+              if(Framework[CurrentSystem].Atoms[f1][i].Fixed.x)
+                Framework[CurrentSystem].Atoms[f1][i].HessianIndex.x=-1;
+              else
+              {
+                Framework[CurrentSystem].Atoms[f1][i].HessianIndex.x=index++;
+                NumberOfMinimizationVariables++;
+                NumberOfPositionalMinimizationVariables++;
+                NumberOfCoordinatesMinimizationVariables++;
+              }
+              break;
           }
         }
       }
@@ -834,30 +966,142 @@ int OrderNumberOfMinimiationVariables(void)
     Type=Adsorbates[CurrentSystem][m].Type;
     for(l=0;l<Components[Type].NumberOfGroups;l++)
     {
-      Adsorbates[CurrentSystem][m].Groups[l].HessianIndex=index;
+      // FIX (maybe)
+      //Adsorbates[CurrentSystem][m].Groups[l].HessianIndex=index;
       if(Components[Type].Groups[l].Rigid)
       {
-        if(Adsorbates[CurrentSystem][m].Groups[l].FixedCenterOfMass)
-          Adsorbates[CurrentSystem][m].Groups[l].HessianIndex=-1;
-        else
+        switch(Dimension)
         {
-          Adsorbates[CurrentSystem][m].Groups[l].HessianIndex=index;
-          index+=Dimension;
-          NumberOfMinimizationVariables+=Dimension;
-          NumberOfPositionalMinimizationVariables+=Dimension;
-          NumberOfCoordinatesMinimizationVariables+=Dimension;
+          case 3:
+            if(Adsorbates[CurrentSystem][m].Groups[l].FixedCenterOfMass.x)
+              Adsorbates[CurrentSystem][m].Groups[l].HessianIndex.x=-1;
+            else
+            {
+              Adsorbates[CurrentSystem][m].Groups[l].HessianIndex.x=index++;
+              NumberOfMinimizationVariables++;
+              NumberOfPositionalMinimizationVariables++;
+              NumberOfCoordinatesMinimizationVariables++;
+            }
+            if(Adsorbates[CurrentSystem][m].Groups[l].FixedCenterOfMass.y)
+              Adsorbates[CurrentSystem][m].Groups[l].HessianIndex.y=-1;
+            else
+            {
+              Adsorbates[CurrentSystem][m].Groups[l].HessianIndex.y=index++;
+              NumberOfMinimizationVariables++;
+              NumberOfPositionalMinimizationVariables++;
+              NumberOfCoordinatesMinimizationVariables++;
+            }
+            if(Adsorbates[CurrentSystem][m].Groups[l].FixedCenterOfMass.z)
+              Adsorbates[CurrentSystem][m].Groups[l].HessianIndex.z=-1;
+            else
+            {
+              Adsorbates[CurrentSystem][m].Groups[l].HessianIndex.z=index++;
+              NumberOfMinimizationVariables++;
+              NumberOfPositionalMinimizationVariables++;
+              NumberOfCoordinatesMinimizationVariables++;
+            }
+            break;
+          case 2:
+            if(Adsorbates[CurrentSystem][m].Groups[l].FixedCenterOfMass.x)
+              Adsorbates[CurrentSystem][m].Groups[l].HessianIndex.x=-1;
+            else
+            {
+              Adsorbates[CurrentSystem][m].Groups[l].HessianIndex.x=index++;
+              NumberOfMinimizationVariables++;
+              NumberOfPositionalMinimizationVariables++;
+              NumberOfCoordinatesMinimizationVariables++;
+            }
+            if(Adsorbates[CurrentSystem][m].Groups[l].FixedCenterOfMass.y)
+              Adsorbates[CurrentSystem][m].Groups[l].HessianIndex.y=-1;
+            else
+            {
+              Adsorbates[CurrentSystem][m].Groups[l].HessianIndex.y=index++;
+              NumberOfMinimizationVariables++;
+              NumberOfPositionalMinimizationVariables++;
+              NumberOfCoordinatesMinimizationVariables++;
+            }
+            break;
+          case 1:
+            if(Adsorbates[CurrentSystem][m].Groups[l].FixedCenterOfMass.x)
+              Adsorbates[CurrentSystem][m].Groups[l].HessianIndex.x=-1;
+            else
+            {
+              Adsorbates[CurrentSystem][m].Groups[l].HessianIndex.x=index++;
+              NumberOfMinimizationVariables++;
+              NumberOfPositionalMinimizationVariables++;
+              NumberOfCoordinatesMinimizationVariables++;
+            }
+            break;
         }
 
-        if(Adsorbates[CurrentSystem][m].Groups[l].FixedOrientation)
-          Adsorbates[CurrentSystem][m].Groups[l].HessianIndexOrientation=-1;
-        else
+        switch(Dimension)
         {
-          Adsorbates[CurrentSystem][m].Groups[l].HessianIndexOrientation=index;
-          index+=Dimension;
-          NumberOfMinimizationVariables+=Dimension;
-          NumberOfCoordinatesMinimizationVariables+=Dimension;
-          NumberOfOrientationalMinimizationVariables+=Dimension;
+          case 3:
+            if(Adsorbates[CurrentSystem][m].Groups[l].FixedOrientation.x)
+              Adsorbates[CurrentSystem][m].Groups[l].HessianIndexOrientation.x=-1;
+            else
+            {
+              Adsorbates[CurrentSystem][m].Groups[l].HessianIndexOrientation.x=index++;
+              NumberOfMinimizationVariables++;
+              NumberOfCoordinatesMinimizationVariables++;
+              NumberOfOrientationalMinimizationVariables++;
  
+            }
+            if(Adsorbates[CurrentSystem][m].Groups[l].FixedOrientation.y)
+              Adsorbates[CurrentSystem][m].Groups[l].HessianIndexOrientation.y=-1;
+            else
+            {
+              Adsorbates[CurrentSystem][m].Groups[l].HessianIndexOrientation.y=index++;
+              NumberOfMinimizationVariables++;
+              NumberOfCoordinatesMinimizationVariables++;
+              NumberOfOrientationalMinimizationVariables++;
+ 
+            }
+            if(Adsorbates[CurrentSystem][m].Groups[l].FixedOrientation.z)
+              Adsorbates[CurrentSystem][m].Groups[l].HessianIndexOrientation.z=-1;
+            else
+            {
+              Adsorbates[CurrentSystem][m].Groups[l].HessianIndexOrientation.z=index++;
+              NumberOfMinimizationVariables++;
+              NumberOfCoordinatesMinimizationVariables++;
+              NumberOfOrientationalMinimizationVariables++;
+ 
+            }
+            break;
+          case 2:
+            if(Adsorbates[CurrentSystem][m].Groups[l].FixedOrientation.x)
+              Adsorbates[CurrentSystem][m].Groups[l].HessianIndexOrientation.x=-1;
+            else
+            {
+              Adsorbates[CurrentSystem][m].Groups[l].HessianIndexOrientation.x=index++;
+              NumberOfMinimizationVariables++;
+              NumberOfCoordinatesMinimizationVariables++;
+              NumberOfOrientationalMinimizationVariables++;
+ 
+            }
+            if(Adsorbates[CurrentSystem][m].Groups[l].FixedOrientation.y)
+              Adsorbates[CurrentSystem][m].Groups[l].HessianIndexOrientation.y=-1;
+            else
+            {
+              Adsorbates[CurrentSystem][m].Groups[l].HessianIndexOrientation.y=index++;
+              NumberOfMinimizationVariables++;
+              NumberOfCoordinatesMinimizationVariables++;
+              NumberOfOrientationalMinimizationVariables++;
+ 
+            }
+            break;
+          case 1:
+            if(Adsorbates[CurrentSystem][m].Groups[l].FixedOrientation.x)
+              Adsorbates[CurrentSystem][m].Groups[l].HessianIndexOrientation.x=-1;
+            else
+            {
+              Adsorbates[CurrentSystem][m].Groups[l].HessianIndexOrientation.x=index++;
+              NumberOfMinimizationVariables++;
+              NumberOfCoordinatesMinimizationVariables++;
+              NumberOfOrientationalMinimizationVariables++;
+ 
+            }
+            break;
         }
       }
       else
@@ -870,15 +1114,68 @@ int OrderNumberOfMinimiationVariables(void)
 
           if(PseudoAtoms[AtomType].CoreShell==CORE)
           {
-            if(Adsorbates[CurrentSystem][m].Atoms[A].Fixed)
-              Adsorbates[CurrentSystem][m].Atoms[A].HessianIndex=-1;
-            else
+            switch(Dimension)
             {
-              Adsorbates[CurrentSystem][m].Atoms[A].HessianIndex=index;
-              index+=Dimension;
-              NumberOfMinimizationVariables+=Dimension;
-              NumberOfPositionalMinimizationVariables+=Dimension;
-              NumberOfCoordinatesMinimizationVariables+=Dimension;
+              case 3:
+                if(Adsorbates[CurrentSystem][m].Atoms[A].Fixed.x)
+                  Adsorbates[CurrentSystem][m].Atoms[A].HessianIndex.x=-1;
+                else
+                {
+                  Adsorbates[CurrentSystem][m].Atoms[A].HessianIndex.x=index++;
+                  NumberOfMinimizationVariables++;
+                  NumberOfPositionalMinimizationVariables++;
+                  NumberOfCoordinatesMinimizationVariables++;
+                }
+                if(Adsorbates[CurrentSystem][m].Atoms[A].Fixed.y)
+                  Adsorbates[CurrentSystem][m].Atoms[A].HessianIndex.y=-1;
+                else
+                {
+                  Adsorbates[CurrentSystem][m].Atoms[A].HessianIndex.y=index++;
+                  NumberOfMinimizationVariables++;
+                  NumberOfPositionalMinimizationVariables++;
+                  NumberOfCoordinatesMinimizationVariables++;
+                }
+                if(Adsorbates[CurrentSystem][m].Atoms[A].Fixed.z)
+                  Adsorbates[CurrentSystem][m].Atoms[A].HessianIndex.z=-1;
+                else
+                {
+                  Adsorbates[CurrentSystem][m].Atoms[A].HessianIndex.z=index++;
+                  NumberOfMinimizationVariables++;
+                  NumberOfPositionalMinimizationVariables++;
+                  NumberOfCoordinatesMinimizationVariables++;
+                }
+                break;
+              case 2:
+                if(Adsorbates[CurrentSystem][m].Atoms[A].Fixed.x)
+                  Adsorbates[CurrentSystem][m].Atoms[A].HessianIndex.x=-1;
+                else
+                {
+                  Adsorbates[CurrentSystem][m].Atoms[A].HessianIndex.x=index++;
+                  NumberOfMinimizationVariables++;
+                  NumberOfPositionalMinimizationVariables++;
+                  NumberOfCoordinatesMinimizationVariables++;
+                }
+                if(Adsorbates[CurrentSystem][m].Atoms[A].Fixed.y)
+                  Adsorbates[CurrentSystem][m].Atoms[A].HessianIndex.y=-1;
+                else
+                {
+                  Adsorbates[CurrentSystem][m].Atoms[A].HessianIndex.y=index++;
+                  NumberOfMinimizationVariables++;
+                  NumberOfPositionalMinimizationVariables++;
+                  NumberOfCoordinatesMinimizationVariables++;
+                }
+                break;
+              case 1:
+                if(Adsorbates[CurrentSystem][m].Atoms[A].Fixed.x)
+                  Adsorbates[CurrentSystem][m].Atoms[A].HessianIndex.x=-1;
+                else
+                {
+                  Adsorbates[CurrentSystem][m].Atoms[A].HessianIndex.x=index++;
+                  NumberOfMinimizationVariables++;
+                  NumberOfPositionalMinimizationVariables++;
+                  NumberOfCoordinatesMinimizationVariables++;
+                }
+                break;
             }
           }
         }
@@ -891,29 +1188,142 @@ int OrderNumberOfMinimiationVariables(void)
     Type=Cations[CurrentSystem][m].Type;
     for(l=0;l<Components[Type].NumberOfGroups;l++)
     {
-      Cations[CurrentSystem][m].Groups[l].HessianIndex=index;
+      // FIX (maybe)
+      //Cations[CurrentSystem][m].Groups[l].HessianIndex=index;
       if(Components[Type].Groups[l].Rigid)
       {
-        if(Cations[CurrentSystem][m].Groups[l].FixedCenterOfMass)
-          Cations[CurrentSystem][m].Groups[l].HessianIndex=-1;
-        else
+        switch(Dimension)
         {
-          Cations[CurrentSystem][m].Groups[l].HessianIndex=index;
-          index+=Dimension;
-          NumberOfMinimizationVariables+=Dimension;
-          NumberOfPositionalMinimizationVariables+=Dimension;
-          NumberOfCoordinatesMinimizationVariables+=Dimension;
+          case 3:
+            if(Cations[CurrentSystem][m].Groups[l].FixedCenterOfMass.x)
+              Cations[CurrentSystem][m].Groups[l].HessianIndex.x=-1;
+            else
+            {
+              Cations[CurrentSystem][m].Groups[l].HessianIndex.x=index++;
+              NumberOfMinimizationVariables++;
+              NumberOfPositionalMinimizationVariables++;
+              NumberOfCoordinatesMinimizationVariables++;
+            }
+            if(Cations[CurrentSystem][m].Groups[l].FixedCenterOfMass.y)
+              Cations[CurrentSystem][m].Groups[l].HessianIndex.y=-1;
+            else
+            {
+              Cations[CurrentSystem][m].Groups[l].HessianIndex.y=index++;
+              NumberOfMinimizationVariables++;
+              NumberOfPositionalMinimizationVariables++;
+              NumberOfCoordinatesMinimizationVariables++;
+            }
+            if(Cations[CurrentSystem][m].Groups[l].FixedCenterOfMass.z)
+              Cations[CurrentSystem][m].Groups[l].HessianIndex.z=-1;
+            else
+            {
+              Cations[CurrentSystem][m].Groups[l].HessianIndex.z=index++;
+              NumberOfMinimizationVariables++;
+              NumberOfPositionalMinimizationVariables++;
+              NumberOfCoordinatesMinimizationVariables++;
+            }
+            break;
+          case 2:
+            if(Cations[CurrentSystem][m].Groups[l].FixedCenterOfMass.x)
+              Cations[CurrentSystem][m].Groups[l].HessianIndex.x=-1;
+            else
+            {
+              Cations[CurrentSystem][m].Groups[l].HessianIndex.x=index++;
+              NumberOfMinimizationVariables++;
+              NumberOfPositionalMinimizationVariables++;
+              NumberOfCoordinatesMinimizationVariables++;
+            }
+            if(Cations[CurrentSystem][m].Groups[l].FixedCenterOfMass.y)
+              Cations[CurrentSystem][m].Groups[l].HessianIndex.y=-1;
+            else
+            {
+              Cations[CurrentSystem][m].Groups[l].HessianIndex.y=index++;
+              NumberOfMinimizationVariables++;
+              NumberOfPositionalMinimizationVariables++;
+              NumberOfCoordinatesMinimizationVariables++;
+            }
+            break;
+          case 1:
+            if(Cations[CurrentSystem][m].Groups[l].FixedCenterOfMass.x)
+              Cations[CurrentSystem][m].Groups[l].HessianIndex.x=-1;
+            else
+            {
+              Cations[CurrentSystem][m].Groups[l].HessianIndex.x=index++;
+              NumberOfMinimizationVariables++;
+              NumberOfPositionalMinimizationVariables++;
+              NumberOfCoordinatesMinimizationVariables++;
+            }
+            break;
         }
 
-        if(Cations[CurrentSystem][m].Groups[l].FixedOrientation)
-          Cations[CurrentSystem][m].Groups[l].HessianIndexOrientation=-1;
-        else
+        switch(Dimension)
         {
-          Cations[CurrentSystem][m].Groups[l].HessianIndexOrientation=index;
-          index+=Dimension;
-          NumberOfMinimizationVariables+=Dimension;
-          NumberOfCoordinatesMinimizationVariables+=Dimension;
-          NumberOfOrientationalMinimizationVariables+=Dimension;
+          case 3:
+            if(Cations[CurrentSystem][m].Groups[l].FixedOrientation.x)
+              Cations[CurrentSystem][m].Groups[l].HessianIndexOrientation.x=-1;
+            else
+            {
+              Cations[CurrentSystem][m].Groups[l].HessianIndexOrientation.x=index++;
+              NumberOfMinimizationVariables++;
+              NumberOfCoordinatesMinimizationVariables++;
+              NumberOfOrientationalMinimizationVariables++;
+ 
+            }
+            if(Cations[CurrentSystem][m].Groups[l].FixedOrientation.y)
+              Cations[CurrentSystem][m].Groups[l].HessianIndexOrientation.y=-1;
+            else
+            {
+              Cations[CurrentSystem][m].Groups[l].HessianIndexOrientation.y=index++;
+              NumberOfMinimizationVariables++;
+              NumberOfCoordinatesMinimizationVariables++;
+              NumberOfOrientationalMinimizationVariables++;
+ 
+            }
+            if(Cations[CurrentSystem][m].Groups[l].FixedOrientation.z)
+              Cations[CurrentSystem][m].Groups[l].HessianIndexOrientation.z=-1;
+            else
+            {
+              Cations[CurrentSystem][m].Groups[l].HessianIndexOrientation.z=index++;
+              NumberOfMinimizationVariables++;
+              NumberOfCoordinatesMinimizationVariables++;
+              NumberOfOrientationalMinimizationVariables++;
+ 
+            }
+            break;
+          case 2:
+            if(Cations[CurrentSystem][m].Groups[l].FixedOrientation.x)
+              Cations[CurrentSystem][m].Groups[l].HessianIndexOrientation.x=-1;
+            else
+            {
+              Cations[CurrentSystem][m].Groups[l].HessianIndexOrientation.x=index++;
+              NumberOfMinimizationVariables++;
+              NumberOfCoordinatesMinimizationVariables++;
+              NumberOfOrientationalMinimizationVariables++;
+ 
+            }
+            if(Cations[CurrentSystem][m].Groups[l].FixedOrientation.y)
+              Cations[CurrentSystem][m].Groups[l].HessianIndexOrientation.y=-1;
+            else
+            {
+              Cations[CurrentSystem][m].Groups[l].HessianIndexOrientation.y=index++;
+              NumberOfMinimizationVariables++;
+              NumberOfCoordinatesMinimizationVariables++;
+              NumberOfOrientationalMinimizationVariables++;
+ 
+            }
+            break;
+          case 1:
+            if(Cations[CurrentSystem][m].Groups[l].FixedOrientation.x)
+              Cations[CurrentSystem][m].Groups[l].HessianIndexOrientation.x=-1;
+            else
+            {
+              Cations[CurrentSystem][m].Groups[l].HessianIndexOrientation.x=index++;
+              NumberOfMinimizationVariables++;
+              NumberOfCoordinatesMinimizationVariables++;
+              NumberOfOrientationalMinimizationVariables++;
+ 
+            }
+            break;
         }
       }
       else
@@ -926,15 +1336,68 @@ int OrderNumberOfMinimiationVariables(void)
 
           if(PseudoAtoms[AtomType].CoreShell==CORE)
           {
-            if(Cations[CurrentSystem][m].Atoms[A].Fixed)
-              Cations[CurrentSystem][m].Atoms[A].HessianIndex=-1;
-            else
+            switch(Dimension)
             {
-              Cations[CurrentSystem][m].Atoms[A].HessianIndex=index;
-              index+=Dimension;
-              NumberOfMinimizationVariables+=Dimension;
-              NumberOfPositionalMinimizationVariables+=Dimension;
-              NumberOfCoordinatesMinimizationVariables+=Dimension;
+              case 3:
+                if(Cations[CurrentSystem][m].Atoms[A].Fixed.x)
+                  Cations[CurrentSystem][m].Atoms[A].HessianIndex.x=-1;
+                else
+                {
+                  Cations[CurrentSystem][m].Atoms[A].HessianIndex.x=index++;
+                  NumberOfMinimizationVariables++;
+                  NumberOfPositionalMinimizationVariables++;
+                  NumberOfCoordinatesMinimizationVariables++;
+                }
+                if(Cations[CurrentSystem][m].Atoms[A].Fixed.y)
+                  Cations[CurrentSystem][m].Atoms[A].HessianIndex.y=-1;
+                else
+                {
+                  Cations[CurrentSystem][m].Atoms[A].HessianIndex.y=index++;
+                  NumberOfMinimizationVariables++;
+                  NumberOfPositionalMinimizationVariables++;
+                  NumberOfCoordinatesMinimizationVariables++;
+                }
+                if(Cations[CurrentSystem][m].Atoms[A].Fixed.z)
+                  Cations[CurrentSystem][m].Atoms[A].HessianIndex.z=-1;
+                else
+                {
+                  Cations[CurrentSystem][m].Atoms[A].HessianIndex.z=index++;
+                  NumberOfMinimizationVariables++;
+                  NumberOfPositionalMinimizationVariables++;
+                  NumberOfCoordinatesMinimizationVariables++;
+                }
+                break;
+              case 2:
+                if(Cations[CurrentSystem][m].Atoms[A].Fixed.x)
+                  Cations[CurrentSystem][m].Atoms[A].HessianIndex.x=-1;
+                else
+                {
+                  Cations[CurrentSystem][m].Atoms[A].HessianIndex.x=index++;
+                  NumberOfMinimizationVariables++;
+                  NumberOfPositionalMinimizationVariables++;
+                  NumberOfCoordinatesMinimizationVariables++;
+                }
+                if(Cations[CurrentSystem][m].Atoms[A].Fixed.y)
+                  Cations[CurrentSystem][m].Atoms[A].HessianIndex.y=-1;
+                else
+                {
+                  Cations[CurrentSystem][m].Atoms[A].HessianIndex.y=index++;
+                  NumberOfMinimizationVariables++;
+                  NumberOfPositionalMinimizationVariables++;
+                  NumberOfCoordinatesMinimizationVariables++;
+                }
+                break;
+              case 1:
+                if(Cations[CurrentSystem][m].Atoms[A].Fixed.x)
+                  Cations[CurrentSystem][m].Atoms[A].HessianIndex.x=-1;
+                else
+                {
+                  Cations[CurrentSystem][m].Atoms[A].HessianIndex.x=index++;
+                  NumberOfMinimizationVariables++;
+                  NumberOfPositionalMinimizationVariables++;
+                  NumberOfCoordinatesMinimizationVariables++;
+                }
+                break;
             }
           }
         }
@@ -942,12 +1405,13 @@ int OrderNumberOfMinimiationVariables(void)
     }
   }
 
+
   ShellIndex=index;
   CoreSize=index;
 
   // put the shells last
   // ===================
-
+/*
   if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
   {
     for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
@@ -975,15 +1439,16 @@ int OrderNumberOfMinimiationVariables(void)
   // If Adsorbate/Cations shells are added then these two routines needs to be added here
 
   ShellSize=index-ShellIndex;
+*/
 
   atomic_index=0;
   for(m=0;m<NumberOfAdsorbateMolecules[CurrentSystem];m++)
     for(i=0;i<Adsorbates[CurrentSystem][m].NumberOfAtoms;i++)
       Adsorbates[CurrentSystem][m].Atoms[i].HessianAtomIndex=atomic_index++;
+
   for(m=0;m<NumberOfCationMolecules[CurrentSystem];m++)
     for(i=0;i<Cations[CurrentSystem][m].NumberOfAtoms;i++)
       Cations[CurrentSystem][m].Atoms[i].HessianAtomIndex=atomic_index++;
-
   return index;
 }
 
@@ -991,7 +1456,8 @@ int OrderNumberOfMinimiationVariables(void)
 
 void CreateGeneralizedCoordinatesFromPositions(int np,int nb,REAL *x)
 {
-  int i,m,f1,index,index2,A,MolType,l;
+  int i,m,f1,A,MolType,l;
+  INT_VECTOR3 index,index2;
   VECTOR pos,com,EulerAxis,pos1;
   REAL temp;
   REAL_MATRIX3x3 Transform,InverseTransform;
@@ -1148,29 +1614,23 @@ void CreateGeneralizedCoordinatesFromPositions(int np,int nb,REAL *x)
       {
         index=Framework[CurrentSystem].Atoms[f1][i].HessianIndex;
 
-        if(index>=0)
+        pos=Framework[CurrentSystem].Atoms[f1][i].Position;
+
+        pos1.x=InverseTransform.ax*pos.x+InverseTransform.bx*pos.y+InverseTransform.cx*pos.z;
+        pos1.y=InverseTransform.ay*pos.x+InverseTransform.by*pos.y+InverseTransform.cy*pos.z;
+        pos1.z=InverseTransform.az*pos.x+InverseTransform.bz*pos.y+InverseTransform.cz*pos.z;
+
+        if(MinimizationVariables==FRACTIONAL)
+          pos=ConvertFromXYZtoABC(pos);
+        switch(Dimension)
         {
-          pos=Framework[CurrentSystem].Atoms[f1][i].Position;
-
-          pos1.x=InverseTransform.ax*pos.x+InverseTransform.bx*pos.y+InverseTransform.cx*pos.z;
-          pos1.y=InverseTransform.ay*pos.x+InverseTransform.by*pos.y+InverseTransform.cy*pos.z;
-          pos1.z=InverseTransform.az*pos.x+InverseTransform.bz*pos.y+InverseTransform.cz*pos.z;
-
-          if(MinimizationVariables==FRACTIONAL)
-            pos=ConvertFromXYZtoABC(pos);
-          if(index>=0)
-          {
-            switch(Dimension)
-            {
-              case 3:
-                x[index+2]=pos1.z;
-              case 2:
-                x[index+1]=pos1.y;
-              case 1:
-                x[index]=pos1.x;
-                break;
-            }
-          }
+          case 3:
+            if(index.z>=0) x[index.z]=pos1.z;
+          case 2:
+            if(index.y>=0) x[index.y]=pos1.y;
+          case 1:
+            if(index.x>=0) x[index.x]=pos1.x;
+            break;
         }
       }
     }
@@ -1197,33 +1657,28 @@ void CreateGeneralizedCoordinatesFromPositions(int np,int nb,REAL *x)
         pos1.y=InverseTransform.ay*com.x+InverseTransform.by*com.y+InverseTransform.cy*com.z;
         pos1.z=InverseTransform.az*com.x+InverseTransform.bz*com.y+InverseTransform.cz*com.z;
 
-        if(index>=0)
+        switch(Dimension)
         {
-          switch(Dimension)
-          {
-            case 3:
-              x[index+2]=pos1.z;
-            case 2:
-              x[index+1]=pos1.y;
-            case 1:
-              x[index]=pos1.x;
-              break;
-          }
+          case 3:
+            if(index.z>=0) x[index.z]=pos1.z;
+          case 2:
+            if(index.y>=0) x[index.y]=pos1.y;
+          case 1:
+            if(index.x>=0) x[index.x]=pos1.x;
+            break;
         }
+        
 
         EulerAxis=Adsorbates[CurrentSystem][m].Groups[l].EulerAxis;
-        if(index2>=0)
+        switch(Dimension)
         {
-          switch(Dimension)
-          {
-            case 3:
-              x[index2+2]=EulerAxis.z;
-            case 2:
-              x[index2+1]=EulerAxis.y;
-            case 1:
-              x[index2]=EulerAxis.x;
-              break;
-          }
+          case 3:
+            if(index2.z>=0) x[index2.z]=EulerAxis.z;
+          case 2:
+            if(index2.y>=0) x[index2.y]=EulerAxis.y;
+          case 1:
+            if(index2.x>=0) x[index2.x]=EulerAxis.x;
+            break;
         }
       }
       else // flexible unit
@@ -1243,18 +1698,15 @@ void CreateGeneralizedCoordinatesFromPositions(int np,int nb,REAL *x)
           if(MinimizationVariables==FRACTIONAL)
             pos1=ConvertFromXYZtoABC(pos);
 
-          if(index>=0)
+          switch(Dimension)
           {
-            switch(Dimension)
-            {
-              case 3:
-                x[index+2]=pos1.z;
-              case 2:
-                x[index+1]=pos1.y;
-              case 1:
-                x[index]=pos1.x;
-                break;
-            }
+            case 3:
+              if(index.z>=0) x[index.z]=pos1.z;
+            case 2:
+              if(index.y>=0) x[index.y]=pos1.y;
+            case 1:
+              if(index.x>=0) x[index.x]=pos1.x;
+              break;
           }
         }
       }
@@ -1274,6 +1726,7 @@ void CreateGeneralizedCoordinatesFromPositions(int np,int nb,REAL *x)
 
         // convert to fractional positions
         com=Cations[CurrentSystem][m].Groups[l].CenterOfMassPosition;
+
         if(MinimizationVariables==FRACTIONAL)
           com=ConvertFromXYZtoABC(com);
 
@@ -1281,33 +1734,28 @@ void CreateGeneralizedCoordinatesFromPositions(int np,int nb,REAL *x)
         pos1.y=InverseTransform.ay*com.x+InverseTransform.by*com.y+InverseTransform.cy*com.z;
         pos1.z=InverseTransform.az*com.x+InverseTransform.bz*com.y+InverseTransform.cz*com.z;
 
-        if(index>=0)
+        switch(Dimension)
         {
-          switch(Dimension)
-          {
-            case 3:
-              x[index+2]=pos1.z;
-            case 2:
-              x[index+1]=pos1.y;
-            case 1:
-              x[index]=pos1.x;
-              break;
-          }
+          case 3:
+            if(index.z>=0) x[index.z]=pos1.z;
+          case 2:
+            if(index.y>=0) x[index.y]=pos1.y;
+          case 1:
+            if(index.x>=0) x[index.x]=pos1.x;
+            break;
         }
+        
 
         EulerAxis=Cations[CurrentSystem][m].Groups[l].EulerAxis;
-        if(index2>=0)
+        switch(Dimension)
         {
-          switch(Dimension)
-          {
-            case 3:
-              x[index2+2]=EulerAxis.z;
-            case 2:
-              x[index2+1]=EulerAxis.y;
-            case 1:
-              x[index2]=EulerAxis.x;
-              break;
-          }
+          case 3:
+            if(index2.z>=0) x[index2.z]=EulerAxis.z;
+          case 2:
+            if(index2.y>=0) x[index2.y]=EulerAxis.y;
+          case 1:
+            if(index2.x>=0) x[index2.x]=EulerAxis.x;
+            break;
         }
       }
       else // flexible unit
@@ -1326,23 +1774,22 @@ void CreateGeneralizedCoordinatesFromPositions(int np,int nb,REAL *x)
 
           if(MinimizationVariables==FRACTIONAL)
             pos1=ConvertFromXYZtoABC(pos);
-          if(index>=0)
+
+          switch(Dimension)
           {
-            switch(Dimension)
-            {
-              case 3:
-                x[index+2]=pos1.z;
-              case 2:
-                x[index+1]=pos1.y;
-              case 1:
-                x[index]=pos1.x;
-                break;
-            }
+            case 3:
+              if(index.z>=0) x[index.z]=pos1.z;
+            case 2:
+              if(index.y>=0) x[index.y]=pos1.y;
+            case 1:
+              if(index.x>=0) x[index.x]=pos1.x;
+              break;
           }
         }
       }
     }
   }
+
 }
 
 // Get the positions, orientation and cell-info from the generalized vector 'x'.
@@ -1350,8 +1797,8 @@ void CreateGeneralizedCoordinatesFromPositions(int np,int nb,REAL *x)
 // This function is used to compute the energy, gradients, and Hessian matrix at 'x'.
 void CreatePositionsFromGeneralizedCoordinates(int np,int nb,REAL *x)
 {
-  int i,m,l,A,f1;
-  int index,index2,Type;
+  int i,m,l,A,f1,Type;
+  INT_VECTOR3 index,index2;
   REAL EulerAngle,det,temp;
   REAL_MATRIX3x3 RotationMatrix,Transform;
   VECTOR p,com,t,pos;
@@ -1531,23 +1978,21 @@ void CreatePositionsFromGeneralizedCoordinates(int np,int nb,REAL *x)
       {
         index=Framework[CurrentSystem].Atoms[f1][i].HessianIndex;
 
-        if(index>=0)
+        pos.x=pos.y=pos.z=0.0;
+        switch(Dimension)
         {
-          pos.x=pos.y=pos.z=0.0;
-          switch(Dimension)
-          {
-            case 3:
-              pos.z=x[index+2];
-            case 2:
-              pos.y=x[index+1]; 
-            case 1:
-              pos.x=x[index];
-              break;
-          }
+          case 3:
+            if(index.z>=0) pos.z=x[index.z];
+            else pos.z=Framework[CurrentSystem].Atoms[f1][i].Position.z;
+          case 2:
+            if(index.y>=0) pos.y=x[index.y];
+            else pos.y=Framework[CurrentSystem].Atoms[f1][i].Position.y;
+          case 1:
+            if(index.x>=0) pos.x=x[index.x];
+            else pos.x=Framework[CurrentSystem].Atoms[f1][i].Position.x;
+            break;
         }
-        else
-          //pos=Framework[CurrentSystem].Atoms[f1][i].ReferencePosition;
-          pos=Framework[CurrentSystem].Atoms[f1][i].Position;
+        
 
         if(MinimizationVariables==FRACTIONAL)
           Framework[CurrentSystem].Atoms[f1][i].Position=ConvertFromABCtoXYZ(pos);
@@ -1566,7 +2011,6 @@ void CreatePositionsFromGeneralizedCoordinates(int np,int nb,REAL *x)
     {
       for(i=0;i<Framework[CurrentSystem].NumberOfAtoms[f1];i++)
       {
-        //pos=Framework[CurrentSystem].Atoms[f1][i].ReferencePosition;
         pos=Framework[CurrentSystem].Atoms[f1][i].Position;
         if(MinimizationVariables==FRACTIONAL)
           Framework[CurrentSystem].Atoms[f1][i].Position=ConvertFromABCtoXYZ(pos);
@@ -1590,24 +2034,20 @@ void CreatePositionsFromGeneralizedCoordinates(int np,int nb,REAL *x)
         index=Adsorbates[CurrentSystem][m].Groups[l].HessianIndex;
         index2=Adsorbates[CurrentSystem][m].Groups[l].HessianIndexOrientation;
 
-        if(index>=0)
+        pos.x=pos.y=pos.z=0.0;
+        switch(Dimension)
         {
-          pos.x=pos.y=pos.z=0.0;
-          switch(Dimension)
-          {
-            case 3:
-              pos.z=x[index+2];
-            case 2:
-              pos.y=x[index+1];
-            case 1:
-              pos.x=x[index];
-              break;
-          }
+          case 3:
+            if(index.z>=0) pos.z=x[index.z];
+            else pos.z=Adsorbates[CurrentSystem][m].Groups[l].CenterOfMassPosition.z;
+          case 2:
+            if(index.y>=0) pos.y=x[index.y];
+            else pos.y=Adsorbates[CurrentSystem][m].Groups[l].CenterOfMassPosition.y;
+          case 1:
+            if(index.x>=0) pos.x=x[index.x];
+            else pos.x=Adsorbates[CurrentSystem][m].Groups[l].CenterOfMassPosition.x;
+            break;
         }
-        else
-          //pos=Adsorbates[CurrentSystem][m].Groups[l].CenterOfMassReferencePosition;
-          pos=Adsorbates[CurrentSystem][m].Groups[l].CenterOfMassPosition;
-
 
         if(MinimizationVariables==FRACTIONAL)
           Adsorbates[CurrentSystem][m].Groups[l].CenterOfMassPosition=ConvertFromABCtoXYZ(pos);
@@ -1618,25 +2058,21 @@ void CreatePositionsFromGeneralizedCoordinates(int np,int nb,REAL *x)
           Adsorbates[CurrentSystem][m].Groups[l].CenterOfMassPosition.z=Transform.az*pos.x+Transform.bz*pos.y+Transform.cz*pos.z;
         }
 
-        com=Adsorbates[CurrentSystem][m].Groups[l].CenterOfMassPosition;
 
-        if(index2>=0)
+        //Adsorbates[CurrentSystem][m].Groups[l].EulerAxis.x=Adsorbates[CurrentSystem][m].Groups[l].EulerAxis.y=Adsorbates[CurrentSystem][m].Groups[l].EulerAxis.z=0.0;
+        switch(Dimension)
         {
-          Adsorbates[CurrentSystem][m].Groups[l].EulerAxis.x=Adsorbates[CurrentSystem][m].Groups[l].EulerAxis.y=Adsorbates[CurrentSystem][m].Groups[l].EulerAxis.z=0.0;
-          switch(Dimension)
-          {
-            case 3:
-              Adsorbates[CurrentSystem][m].Groups[l].EulerAxis.z=x[index2+2];
-            case 2:
-              Adsorbates[CurrentSystem][m].Groups[l].EulerAxis.y=x[index2+1]; 
-            case 1:
-              Adsorbates[CurrentSystem][m].Groups[l].EulerAxis.x=x[index2]; 
-              break;
-          }
+          case 3:
+            if(index2.z>=0) Adsorbates[CurrentSystem][m].Groups[l].EulerAxis.z=x[index2.z];
+            //else Adsorbates[CurrentSystem][m].Groups[l].EulerAxis.z=Adsorbates[CurrentSystem][m].Groups[l].EulerAxis.z;
+          case 2:
+            if(index2.y>=0) Adsorbates[CurrentSystem][m].Groups[l].EulerAxis.y=x[index2.y];
+            //else Adsorbates[CurrentSystem][m].Groups[l].EulerAxis.y=Adsorbates[CurrentSystem][m].Groups[l].EulerAxis.y;
+          case 1:
+            if(index2.x>=0) Adsorbates[CurrentSystem][m].Groups[l].EulerAxis.x=x[index2.x];
+            //else Adsorbates[CurrentSystem][m].Groups[l].EulerAxis.x=Adsorbates[CurrentSystem][m].Groups[l].EulerAxis.x;
+            break;
         }
-        else
-          //Adsorbates[CurrentSystem][m].Groups[l].EulerAxis=Adsorbates[CurrentSystem][m].Groups[l].ReferenceEulerAxis;
-          Adsorbates[CurrentSystem][m].Groups[l].EulerAxis=Adsorbates[CurrentSystem][m].Groups[l].EulerAxis;
 
         p=Adsorbates[CurrentSystem][m].Groups[l].EulerAxis;
         EulerAngle=sqrt(SQR(p.x)+SQR(p.y)+SQR(p.z));
@@ -1662,6 +2098,7 @@ void CreatePositionsFromGeneralizedCoordinates(int np,int nb,REAL *x)
           RotationMatrix.cz=1.0+((SQR(p.x) + SQR(p.y))*(-1.0 + cos(EulerAngle)))/SQR(EulerAngle);
         }
 
+        com=Adsorbates[CurrentSystem][m].Groups[l].CenterOfMassPosition;
         for(i=0;i<Components[Type].Groups[l].NumberOfGroupAtoms;i++)
         {
           A=Components[Type].Groups[l].Atoms[i];
@@ -1683,23 +2120,20 @@ void CreatePositionsFromGeneralizedCoordinates(int np,int nb,REAL *x)
           A=Components[Type].Groups[l].Atoms[i];
           index=Adsorbates[CurrentSystem][m].Atoms[A].HessianIndex;
 
-          if(index>=0)
+          pos.x=pos.y=pos.z=0.0;
+          switch(Dimension)
           {
-            pos.x=pos.y=pos.z=0.0;
-            switch(Dimension)
-            {
-              case 3:
-                pos.z=x[index+2];
-              case 2:
-                pos.y=x[index+1];
-              case 1:
-                pos.x=x[index];
-                break;
-            }
+            case 3:
+              if(index.z>=0) pos.z=x[index.z];
+              else pos.z=Adsorbates[CurrentSystem][m].Atoms[A].Position.z;
+            case 2:
+              if(index.y>=0) pos.y=x[index.y];
+              else pos.y=Adsorbates[CurrentSystem][m].Atoms[A].Position.y;
+            case 1:
+              if(index.x>=0) pos.x=x[index.x];
+              else pos.x=Adsorbates[CurrentSystem][m].Atoms[A].Position.x;
+              break;
           }
-          else
-            //pos=Adsorbates[CurrentSystem][m].Atoms[A].ReferencePosition;
-            pos=Adsorbates[CurrentSystem][m].Atoms[A].Position;
 
           if(MinimizationVariables==FRACTIONAL)
             Adsorbates[CurrentSystem][m].Atoms[A].Position=ConvertFromABCtoXYZ(pos);
@@ -1726,24 +2160,20 @@ void CreatePositionsFromGeneralizedCoordinates(int np,int nb,REAL *x)
         index=Cations[CurrentSystem][m].Groups[l].HessianIndex;
         index2=Cations[CurrentSystem][m].Groups[l].HessianIndexOrientation;
 
-        if(index>=0)
+        pos.x=pos.y=pos.z=0.0;
+        switch(Dimension)
         {
-          pos.x=pos.y=pos.z=0.0;
-          switch(Dimension)
-          {
-            case 3:
-              pos.z=x[index+2];
-            case 2:
-              pos.y=x[index+1];
-            case 1:
-              pos.x=x[index]; 
-              break;
-          }
+          case 3:
+            if(index.z>=0) pos.z=x[index.z];
+            else pos.z=Cations[CurrentSystem][m].Groups[l].CenterOfMassPosition.z;
+          case 2:
+            if(index.y>=0) pos.y=x[index.y];
+            else pos.y=Cations[CurrentSystem][m].Groups[l].CenterOfMassPosition.y;
+          case 1:
+            if(index.x>=0) pos.x=x[index.x];
+            else pos.x=Cations[CurrentSystem][m].Groups[l].CenterOfMassPosition.x;
+            break;
         }
-        else
-          //pos=Cations[CurrentSystem][m].Groups[l].CenterOfMassReferencePosition;
-          pos=Cations[CurrentSystem][m].Groups[l].CenterOfMassPosition;
-
 
         if(MinimizationVariables==FRACTIONAL)
           Cations[CurrentSystem][m].Groups[l].CenterOfMassPosition=ConvertFromABCtoXYZ(pos);
@@ -1754,25 +2184,21 @@ void CreatePositionsFromGeneralizedCoordinates(int np,int nb,REAL *x)
           Cations[CurrentSystem][m].Groups[l].CenterOfMassPosition.z=Transform.az*pos.x+Transform.bz*pos.y+Transform.cz*pos.z;
         }
 
-        com=Cations[CurrentSystem][m].Groups[l].CenterOfMassPosition;
 
-        if(index2>=0)
+        //Cations[CurrentSystem][m].Groups[l].EulerAxis.x=Cations[CurrentSystem][m].Groups[l].EulerAxis.y=Cations[CurrentSystem][m].Groups[l].EulerAxis.z=0.0;
+        switch(Dimension)
         {
-          Cations[CurrentSystem][m].Groups[l].EulerAxis.x=Cations[CurrentSystem][m].Groups[l].EulerAxis.y=Cations[CurrentSystem][m].Groups[l].EulerAxis.z=0.0;
-          switch(Dimension)
-          {
-            case 3:
-              Cations[CurrentSystem][m].Groups[l].EulerAxis.z=x[index2+2];
-            case 2:
-              Cations[CurrentSystem][m].Groups[l].EulerAxis.y=x[index2+1]; 
-            case 1:
-              Cations[CurrentSystem][m].Groups[l].EulerAxis.x=x[index2]; 
-              break;
-          }
+          case 3:
+            if(index2.z>=0) Cations[CurrentSystem][m].Groups[l].EulerAxis.z=x[index2.z];
+            //else Cations[CurrentSystem][m].Groups[l].EulerAxis.z=Cations[CurrentSystem][m].Groups[l].EulerAxis.z;
+          case 2:
+            if(index2.y>=0) Cations[CurrentSystem][m].Groups[l].EulerAxis.y=x[index2.y];
+            //else Cations[CurrentSystem][m].Groups[l].EulerAxis.y=Cations[CurrentSystem][m].Groups[l].EulerAxis.y;
+          case 1:
+            if(index2.x>=0) Cations[CurrentSystem][m].Groups[l].EulerAxis.x=x[index2.x];
+            //else Cations[CurrentSystem][m].Groups[l].EulerAxis.x=Cations[CurrentSystem][m].Groups[l].EulerAxis.x;
+            break;
         }
-        else
-          //Cations[CurrentSystem][m].Groups[l].EulerAxis=Cations[CurrentSystem][m].Groups[l].ReferenceEulerAxis;
-          Cations[CurrentSystem][m].Groups[l].EulerAxis=Cations[CurrentSystem][m].Groups[l].EulerAxis;
 
         p=Cations[CurrentSystem][m].Groups[l].EulerAxis;
         EulerAngle=sqrt(SQR(p.x)+SQR(p.y)+SQR(p.z));
@@ -1798,6 +2224,7 @@ void CreatePositionsFromGeneralizedCoordinates(int np,int nb,REAL *x)
           RotationMatrix.cz=1.0+((SQR(p.x) + SQR(p.y))*(-1.0 + cos(EulerAngle)))/SQR(EulerAngle);
         }
 
+        com=Cations[CurrentSystem][m].Groups[l].CenterOfMassPosition;
         for(i=0;i<Components[Type].Groups[l].NumberOfGroupAtoms;i++)
         {
           A=Components[Type].Groups[l].Atoms[i];
@@ -1810,9 +2237,7 @@ void CreatePositionsFromGeneralizedCoordinates(int np,int nb,REAL *x)
           pos.y=com.y+t.y;
           pos.z=com.z+t.z;
           Cations[CurrentSystem][m].Atoms[A].Position=pos;
-
         }
-
       }
       else // flexible unit
       {
@@ -1821,23 +2246,20 @@ void CreatePositionsFromGeneralizedCoordinates(int np,int nb,REAL *x)
           A=Components[Type].Groups[l].Atoms[i];
           index=Cations[CurrentSystem][m].Atoms[A].HessianIndex;
 
-          if(index>=0)
+          pos.x=pos.y=pos.z=0.0;
+          switch(Dimension)
           {
-            pos.x=pos.y=pos.z=0.0;
-            switch(Dimension)
-            {
-              case 3:
-                pos.z=x[index+2];
-              case 2:
-                pos.y=x[index+1];
-              case 1:
-                pos.x=x[index];
-                break;
-            }
+            case 3:
+              if(index.z>=0) pos.z=x[index.z];
+              else pos.z=Cations[CurrentSystem][m].Atoms[A].Position.z;
+            case 2:
+              if(index.y>=0) pos.y=x[index.y];
+              else pos.y=Cations[CurrentSystem][m].Atoms[A].Position.y;
+            case 1:
+              if(index.x>=0) pos.x=x[index.x];
+              else pos.x=Cations[CurrentSystem][m].Atoms[A].Position.x;
+              break;
           }
-          else
-            //pos=Cations[CurrentSystem][m].Atoms[A].ReferencePosition;
-            pos=Cations[CurrentSystem][m].Atoms[A].Position;
 
           if(MinimizationVariables==FRACTIONAL)
             Cations[CurrentSystem][m].Atoms[A].Position=ConvertFromABCtoXYZ(pos);
@@ -1853,6 +2275,7 @@ void CreatePositionsFromGeneralizedCoordinates(int np,int nb,REAL *x)
     UpdateGroupCenterOfMassCation(m);
     ComputeQuaternionCation(m);
   }
+
 }
 
 // Compute the energy, generalized gradient, generalized Hessian matrix
@@ -2409,7 +2832,8 @@ void ComputeDerivativesSpectra(int np,int nb,REAL *x,REAL* Energy,REAL *Gradient
 
 void ConvertGradientFromCartesianToFractional(REAL *Gradient)
 {
-  int f1,i,index,l,m,Type,A,ia;
+  int f1,i,l,m,Type,A,ia;
+  INT_VECTOR3 index;
   VECTOR grad,fgrad;
 
   if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
@@ -2420,13 +2844,17 @@ void ConvertGradientFromCartesianToFractional(REAL *Gradient)
       {
         index=Framework[CurrentSystem].Atoms[f1][i].HessianIndex;
 
-        if(index>=0)
+        //if(index>=0)
         {
-          grad.x=Gradient[index]; grad.y=Gradient[index+1]; grad.z=Gradient[index+2];
+          grad.x=Gradient[index.x]; 
+          grad.y=Gradient[index.y]; 
+          grad.z=Gradient[index.z];
           fgrad.x=Box[CurrentSystem].ax*grad.x+Box[CurrentSystem].ay*grad.y+Box[CurrentSystem].az*grad.z;
           fgrad.y=Box[CurrentSystem].bx*grad.x+Box[CurrentSystem].by*grad.y+Box[CurrentSystem].bz*grad.z;
           fgrad.z=Box[CurrentSystem].cx*grad.x+Box[CurrentSystem].cy*grad.y+Box[CurrentSystem].cz*grad.z;
-          Gradient[index]=fgrad.x; Gradient[index+1]=fgrad.y; Gradient[index+2]=fgrad.z;
+          Gradient[index.x]=fgrad.x; 
+          Gradient[index.y]=fgrad.y; 
+          Gradient[index.z]=fgrad.z;
         }
       }
     }
@@ -2441,13 +2869,17 @@ void ConvertGradientFromCartesianToFractional(REAL *Gradient)
       {
         index=Adsorbates[CurrentSystem][m].Groups[l].HessianIndex;
 
-        if(index>=0)
+        //if(index>=0)
         {
-          grad.x=Gradient[index]; grad.y=Gradient[index+1]; grad.z=Gradient[index+2];
+          grad.x=Gradient[index.x];
+          grad.y=Gradient[index.y];
+          grad.z=Gradient[index.z];
           fgrad.x=Box[CurrentSystem].ax*grad.x+Box[CurrentSystem].ay*grad.y+Box[CurrentSystem].az*grad.z;
           fgrad.y=Box[CurrentSystem].bx*grad.x+Box[CurrentSystem].by*grad.y+Box[CurrentSystem].bz*grad.z;
           fgrad.z=Box[CurrentSystem].cx*grad.x+Box[CurrentSystem].cy*grad.y+Box[CurrentSystem].cz*grad.z;
-          Gradient[index]=fgrad.x; Gradient[index+1]=fgrad.y; Gradient[index+2]=fgrad.z;
+          Gradient[index.x]=fgrad.x;
+          Gradient[index.y]=fgrad.y;
+          Gradient[index.z]=fgrad.z;
         }
       }
       else
@@ -2457,13 +2889,17 @@ void ConvertGradientFromCartesianToFractional(REAL *Gradient)
           A=Components[Type].Groups[l].Atoms[ia];
           index=Adsorbates[CurrentSystem][m].Atoms[A].HessianIndex;
 
-          if(index>=0)
+          //if(index>=0)
           {
-            grad.x=Gradient[index]; grad.y=Gradient[index+1]; grad.z=Gradient[index+2];
+            grad.x=Gradient[index.x];
+            grad.y=Gradient[index.y];
+            grad.z=Gradient[index.z];
             fgrad.x=Box[CurrentSystem].ax*grad.x+Box[CurrentSystem].ay*grad.y+Box[CurrentSystem].az*grad.z;
             fgrad.y=Box[CurrentSystem].bx*grad.x+Box[CurrentSystem].by*grad.y+Box[CurrentSystem].bz*grad.z;
             fgrad.z=Box[CurrentSystem].cx*grad.x+Box[CurrentSystem].cy*grad.y+Box[CurrentSystem].cz*grad.z;
-            Gradient[index]=fgrad.x; Gradient[index+1]=fgrad.y; Gradient[index+2]=fgrad.z;
+            Gradient[index.x]=fgrad.x;
+            Gradient[index.y]=fgrad.y;
+            Gradient[index.z]=fgrad.z;
           }
         }
       }
@@ -2479,13 +2915,17 @@ void ConvertGradientFromCartesianToFractional(REAL *Gradient)
       {
         index=Cations[CurrentSystem][m].Groups[l].HessianIndex;
 
-        if(index>=0)
+        //if(index>=0)
         {
-          grad.x=Gradient[index]; grad.y=Gradient[index+1]; grad.z=Gradient[index+2];
+          grad.x=Gradient[index.x];
+          grad.y=Gradient[index.y];
+          grad.z=Gradient[index.z];
           fgrad.x=Box[CurrentSystem].ax*grad.x+Box[CurrentSystem].ay*grad.y+Box[CurrentSystem].az*grad.z;
           fgrad.y=Box[CurrentSystem].bx*grad.x+Box[CurrentSystem].by*grad.y+Box[CurrentSystem].bz*grad.z;
           fgrad.z=Box[CurrentSystem].cx*grad.x+Box[CurrentSystem].cy*grad.y+Box[CurrentSystem].cz*grad.z;
-          Gradient[index]=fgrad.x; Gradient[index+1]=fgrad.y; Gradient[index+2]=fgrad.z;
+          Gradient[index.x]=fgrad.x;
+          Gradient[index.y]=fgrad.y;
+          Gradient[index.z]=fgrad.z;
         }
       }
       else
@@ -2495,13 +2935,17 @@ void ConvertGradientFromCartesianToFractional(REAL *Gradient)
           A=Components[Type].Groups[l].Atoms[ia];
           index=Cations[CurrentSystem][m].Atoms[A].HessianIndex;
 
-          if(index>=0)
+          //if(index>=0)
           {
-            grad.x=Gradient[index]; grad.y=Gradient[index+1]; grad.z=Gradient[index+2];
+            grad.x=Gradient[index.x];
+            grad.y=Gradient[index.y];
+            grad.z=Gradient[index.z];
             fgrad.x=Box[CurrentSystem].ax*grad.x+Box[CurrentSystem].ay*grad.y+Box[CurrentSystem].az*grad.z;
             fgrad.y=Box[CurrentSystem].bx*grad.x+Box[CurrentSystem].by*grad.y+Box[CurrentSystem].bz*grad.z;
             fgrad.z=Box[CurrentSystem].cx*grad.x+Box[CurrentSystem].cy*grad.y+Box[CurrentSystem].cz*grad.z;
-            Gradient[index]=fgrad.x; Gradient[index+1]=fgrad.y; Gradient[index+2]=fgrad.z;
+            Gradient[index.x]=fgrad.x;
+            Gradient[index.y]=fgrad.y;
+            Gradient[index.z]=fgrad.z;
           }
         }
       }
@@ -2514,12 +2958,14 @@ void ConvertGradientFromCartesianToFractional(REAL *Gradient)
 void ConvertHessianFromCartesianToFractional(int np,int nb,REAL *Gradient,REAL_MATRIX Hessian)
 {
   int I,J,ig,jg,ia,ja,i,j;
-  int f1,f2,index_i,index_j;
-  int m,l,A,Type,index;
+  int f1,f2;
+  INT_VECTOR3 index_i,index_j,index;
+  int m,l,A,Type;
   VECTOR grad,fgrad;
   REAL_MATRIX3x3 H,fH,tempBox;
   int TypeMolA,TypeMolB;
 
+/*
   // correct the gradient
   if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
   {
@@ -3216,6 +3662,8 @@ void ConvertHessianFromCartesianToFractional(int np,int nb,REAL *Gradient,REAL_M
     for(j=0;j<np+nb;j++)
       Hessian.element[j][i]=Hessian.element[i][j];
 
+*/
+
 }
 
 
@@ -3896,6 +4344,13 @@ void BakerMinimization(int np,int nb,REAL *x,int run)
   ComputeDerivatives(np,nb,x,&Energy,Gradient,HessianMatrix,&StrainFirstDerivative);
 
   fprintf(OutputFilePtr[CurrentSystem],"\n\n");
+  fprintf(OutputFilePtr[CurrentSystem],"Variable vector:\n");
+  fprintf(OutputFilePtr[CurrentSystem],"================\n");
+  for(i=0;i<NumberOfVariables;i++)
+    fprintf(OutputFilePtr[CurrentSystem],"x: %d = %g\n",i,(double)x[i]);
+  fprintf(OutputFilePtr[CurrentSystem],"\n\n");
+
+  fprintf(OutputFilePtr[CurrentSystem],"\n\n");
   fprintf(OutputFilePtr[CurrentSystem],"Gradient vector:\n");
   fprintf(OutputFilePtr[CurrentSystem],"================\n");
   for(i=0;i<NumberOfVariables;i++)
@@ -3970,11 +4425,10 @@ void BakerMinimization(int np,int nb,REAL *x,int run)
   {
     for(i=0;i<Framework[CurrentSystem].NumberOfAtoms[f1];i++)
     {
-      if(!Framework[CurrentSystem].Atoms[f1][i].Fixed)
       fprintf(OutputFilePtr[CurrentSystem],"Framework[%d] Atom: %d  %g %g %g\n",f1,i,
-        Framework[CurrentSystem].Atoms[f1][i].Force.x,
-        Framework[CurrentSystem].Atoms[f1][i].Force.y,
-        Framework[CurrentSystem].Atoms[f1][i].Force.z);
+        Framework[CurrentSystem].Atoms[f1][i].Fixed.x?0.0:Framework[CurrentSystem].Atoms[f1][i].Force.x,
+        Framework[CurrentSystem].Atoms[f1][i].Fixed.y?0.0:Framework[CurrentSystem].Atoms[f1][i].Force.y,
+        Framework[CurrentSystem].Atoms[f1][i].Fixed.z?0.0:Framework[CurrentSystem].Atoms[f1][i].Force.z);
     }
   }
 
@@ -3985,27 +4439,24 @@ void BakerMinimization(int np,int nb,REAL *x,int run)
     {
       if(Components[Type].Groups[l].Rigid)
       {
-        if(!Adsorbates[CurrentSystem][i].Groups[l].FixedCenterOfMass)
-          fprintf(OutputFilePtr[CurrentSystem],"Adsorbate[%d] Group: %d  Com force: %g %g %g\n",i,l,
-                 Adsorbates[CurrentSystem][i].Groups[l].CenterOfMassForce.x,
-                 Adsorbates[CurrentSystem][i].Groups[l].CenterOfMassForce.y,
-                 Adsorbates[CurrentSystem][i].Groups[l].CenterOfMassForce.z);
-        if(!Adsorbates[CurrentSystem][i].Groups[l].FixedOrientation)
-          fprintf(OutputFilePtr[CurrentSystem],"Adsorbate[%d] Group: %d  torque: %g %g %g\n",i,l,
-                 Adsorbates[CurrentSystem][i].Groups[l].Torque.x,
-                 Adsorbates[CurrentSystem][i].Groups[l].Torque.y,
-                 Adsorbates[CurrentSystem][i].Groups[l].Torque.z);
+        fprintf(OutputFilePtr[CurrentSystem],"Adsorbate[%d] Group: %d  Com force: %g %g %g\n",i,l,
+               Adsorbates[CurrentSystem][i].Groups[l].FixedCenterOfMass.x?0.0:Adsorbates[CurrentSystem][i].Groups[l].CenterOfMassForce.x,
+               Adsorbates[CurrentSystem][i].Groups[l].FixedCenterOfMass.y?0.0:Adsorbates[CurrentSystem][i].Groups[l].CenterOfMassForce.y,
+               Adsorbates[CurrentSystem][i].Groups[l].FixedCenterOfMass.z?0.0:Adsorbates[CurrentSystem][i].Groups[l].CenterOfMassForce.z);
+        fprintf(OutputFilePtr[CurrentSystem],"Adsorbate[%d] Group: %d  torque: %g %g %g\n",i,l,
+               Adsorbates[CurrentSystem][i].Groups[l].FixedOrientation.x?0.0:Adsorbates[CurrentSystem][i].Groups[l].Torque.x,
+               Adsorbates[CurrentSystem][i].Groups[l].FixedOrientation.y?0.0:Adsorbates[CurrentSystem][i].Groups[l].Torque.y,
+               Adsorbates[CurrentSystem][i].Groups[l].FixedOrientation.z?0.0:Adsorbates[CurrentSystem][i].Groups[l].Torque.z);
       }
       else
       {
         for(j=0;j<Components[Type].Groups[l].NumberOfGroupAtoms;j++)
         {
           A=Components[Type].Groups[l].Atoms[j];
-          if(!Adsorbates[CurrentSystem][i].Atoms[A].Fixed)
-            fprintf(OutputFilePtr[CurrentSystem],"Adsorbate[%d] Atom: %d  %g %g %g\n",i,A,
-              Adsorbates[CurrentSystem][i].Atoms[A].Force.x,
-              Adsorbates[CurrentSystem][i].Atoms[A].Force.y,
-              Adsorbates[CurrentSystem][i].Atoms[A].Force.z);
+          fprintf(OutputFilePtr[CurrentSystem],"Adsorbate[%d] Atom: %d  %g %g %g\n",i,A,
+            Adsorbates[CurrentSystem][i].Atoms[A].Fixed.x?0.0:Adsorbates[CurrentSystem][i].Atoms[A].Force.x,
+            Adsorbates[CurrentSystem][i].Atoms[A].Fixed.y?0.0:Adsorbates[CurrentSystem][i].Atoms[A].Force.y,
+            Adsorbates[CurrentSystem][i].Atoms[A].Fixed.z?0.0:Adsorbates[CurrentSystem][i].Atoms[A].Force.z);
         }
       }
     }
@@ -4018,27 +4469,24 @@ void BakerMinimization(int np,int nb,REAL *x,int run)
     {
       if(Components[Type].Groups[l].Rigid)
       {
-        if(!Cations[CurrentSystem][i].Groups[l].FixedCenterOfMass)
-          fprintf(OutputFilePtr[CurrentSystem],"Cation[%d] Group: %d  Com force: %g %g %g\n",i,l,
-                 Cations[CurrentSystem][i].Groups[l].CenterOfMassForce.x,
-                 Cations[CurrentSystem][i].Groups[l].CenterOfMassForce.y,
-                 Cations[CurrentSystem][i].Groups[l].CenterOfMassForce.z);
-        if(!Cations[CurrentSystem][i].Groups[l].FixedOrientation)
-          fprintf(OutputFilePtr[CurrentSystem],"Cation[%d] Group: %d  torque: %g %g %g\n",i,l,
-                 Cations[CurrentSystem][i].Groups[l].Torque.x,
-                 Cations[CurrentSystem][i].Groups[l].Torque.y,
-                 Cations[CurrentSystem][i].Groups[l].Torque.z);
+        fprintf(OutputFilePtr[CurrentSystem],"Cation[%d] Group: %d  Com force: %g %g %g\n",i,l,
+               Cations[CurrentSystem][i].Groups[l].FixedCenterOfMass.x?0.0:Cations[CurrentSystem][i].Groups[l].CenterOfMassForce.x,
+               Cations[CurrentSystem][i].Groups[l].FixedCenterOfMass.y?0.0:Cations[CurrentSystem][i].Groups[l].CenterOfMassForce.y,
+               Cations[CurrentSystem][i].Groups[l].FixedCenterOfMass.z?0.0:Cations[CurrentSystem][i].Groups[l].CenterOfMassForce.z);
+        fprintf(OutputFilePtr[CurrentSystem],"Cation[%d] Group: %d  torque: %g %g %g\n",i,l,
+               Cations[CurrentSystem][i].Groups[l].FixedOrientation.x?0.0:Cations[CurrentSystem][i].Groups[l].Torque.x,
+               Cations[CurrentSystem][i].Groups[l].FixedOrientation.y?0.0:Cations[CurrentSystem][i].Groups[l].Torque.y,
+               Cations[CurrentSystem][i].Groups[l].FixedOrientation.z?0.0:Cations[CurrentSystem][i].Groups[l].Torque.z);
       }
       else
       {
         for(j=0;j<Components[Type].Groups[l].NumberOfGroupAtoms;j++)
         {
           A=Components[Type].Groups[l].Atoms[j];
-          if(!Cations[CurrentSystem][i].Atoms[A].Fixed)
-            fprintf(OutputFilePtr[CurrentSystem],"Cation[%d] Atom: %d  %g %g %g\n",i,A,
-              Cations[CurrentSystem][i].Atoms[A].Force.x,
-              Cations[CurrentSystem][i].Atoms[A].Force.y,
-              Cations[CurrentSystem][i].Atoms[A].Force.z);
+          fprintf(OutputFilePtr[CurrentSystem],"Cation[%d] Atom: %d  %g %g %g\n",i,A,
+            Cations[CurrentSystem][i].Atoms[A].Fixed.x?0.0:Cations[CurrentSystem][i].Atoms[A].Force.x,
+            Cations[CurrentSystem][i].Atoms[A].Fixed.y?0.0:Cations[CurrentSystem][i].Atoms[A].Force.y,
+            Cations[CurrentSystem][i].Atoms[A].Fixed.z?0.0:Cations[CurrentSystem][i].Atoms[A].Force.z);
         }
       }
     }
@@ -4301,6 +4749,13 @@ void NewtonRaphsonMinimization(int np,int nb,REAL *x,int run)
   ComputeDerivatives(np,nb,x,&Energy,Gradient,HessianMatrix,&StrainFirstDerivative);
 
   fprintf(OutputFilePtr[CurrentSystem],"\n\n");
+  fprintf(OutputFilePtr[CurrentSystem],"Variable vector:\n");
+  fprintf(OutputFilePtr[CurrentSystem],"================\n");
+  for(i=0;i<NumberOfVariables;i++)
+    fprintf(OutputFilePtr[CurrentSystem],"x: %d = %g\n",i,(double)x[i]);
+  fprintf(OutputFilePtr[CurrentSystem],"\n\n");
+
+  fprintf(OutputFilePtr[CurrentSystem],"\n\n");
   fprintf(OutputFilePtr[CurrentSystem],"Gradient vector:\n");
   fprintf(OutputFilePtr[CurrentSystem],"================\n");
   for(i=0;i<NumberOfVariables;i++)
@@ -4352,11 +4807,10 @@ void NewtonRaphsonMinimization(int np,int nb,REAL *x,int run)
   {
     for(i=0;i<Framework[CurrentSystem].NumberOfAtoms[f1];i++)
     {
-      if(!Framework[CurrentSystem].Atoms[f1][i].Fixed)
       fprintf(OutputFilePtr[CurrentSystem],"Framework[%d] Atom: %d  %g %g %g\n",f1,i,
-        Framework[CurrentSystem].Atoms[f1][i].Force.x,
-        Framework[CurrentSystem].Atoms[f1][i].Force.y,
-        Framework[CurrentSystem].Atoms[f1][i].Force.z);
+        Framework[CurrentSystem].Atoms[f1][i].Fixed.x?0.0:Framework[CurrentSystem].Atoms[f1][i].Force.x,
+        Framework[CurrentSystem].Atoms[f1][i].Fixed.y?0.0:Framework[CurrentSystem].Atoms[f1][i].Force.y,
+        Framework[CurrentSystem].Atoms[f1][i].Fixed.z?0.0:Framework[CurrentSystem].Atoms[f1][i].Force.z);
     }
   }
 
@@ -4367,27 +4821,24 @@ void NewtonRaphsonMinimization(int np,int nb,REAL *x,int run)
     {
       if(Components[Type].Groups[l].Rigid)
       {
-        if(!Adsorbates[CurrentSystem][i].Groups[l].FixedCenterOfMass)
-          fprintf(OutputFilePtr[CurrentSystem],"Adsorbate[%d] Group: %d  Com force: %g %g %g\n",i,l,
-                 Adsorbates[CurrentSystem][i].Groups[l].CenterOfMassForce.x,
-                 Adsorbates[CurrentSystem][i].Groups[l].CenterOfMassForce.y,
-                 Adsorbates[CurrentSystem][i].Groups[l].CenterOfMassForce.z);
-        if(!Adsorbates[CurrentSystem][i].Groups[l].FixedOrientation)
-          fprintf(OutputFilePtr[CurrentSystem],"Adsorbate[%d] Group: %d  torque: %g %g %g\n",i,l,
-                 Adsorbates[CurrentSystem][i].Groups[l].Torque.x,
-                 Adsorbates[CurrentSystem][i].Groups[l].Torque.y,
-                 Adsorbates[CurrentSystem][i].Groups[l].Torque.z);
+        fprintf(OutputFilePtr[CurrentSystem],"Adsorbate[%d] Group: %d  Com force: %g %g %g\n",i,l,
+               Adsorbates[CurrentSystem][i].Groups[l].FixedCenterOfMass.x?0.0:Adsorbates[CurrentSystem][i].Groups[l].CenterOfMassForce.x,
+               Adsorbates[CurrentSystem][i].Groups[l].FixedCenterOfMass.y?0.0:Adsorbates[CurrentSystem][i].Groups[l].CenterOfMassForce.y,
+               Adsorbates[CurrentSystem][i].Groups[l].FixedCenterOfMass.z?0.0:Adsorbates[CurrentSystem][i].Groups[l].CenterOfMassForce.z);
+        fprintf(OutputFilePtr[CurrentSystem],"Adsorbate[%d] Group: %d  torque: %g %g %g\n",i,l,
+               Adsorbates[CurrentSystem][i].Groups[l].FixedOrientation.x?0.0:Adsorbates[CurrentSystem][i].Groups[l].Torque.x,
+               Adsorbates[CurrentSystem][i].Groups[l].FixedOrientation.y?0.0:Adsorbates[CurrentSystem][i].Groups[l].Torque.y,
+               Adsorbates[CurrentSystem][i].Groups[l].FixedOrientation.z?0.0:Adsorbates[CurrentSystem][i].Groups[l].Torque.z);
       }
       else
       {
         for(j=0;j<Components[Type].Groups[l].NumberOfGroupAtoms;j++)
         {
           A=Components[Type].Groups[l].Atoms[j];
-          if(!Adsorbates[CurrentSystem][i].Atoms[A].Fixed)
-            fprintf(OutputFilePtr[CurrentSystem],"Adsorbate[%d] Atom: %d  %g %g %g\n",i,A,
-              Adsorbates[CurrentSystem][i].Atoms[A].Force.x,
-              Adsorbates[CurrentSystem][i].Atoms[A].Force.y,
-              Adsorbates[CurrentSystem][i].Atoms[A].Force.z);
+          fprintf(OutputFilePtr[CurrentSystem],"Adsorbate[%d] Atom: %d  %g %g %g\n",i,A,
+            Adsorbates[CurrentSystem][i].Atoms[A].Fixed.x?0.0:Adsorbates[CurrentSystem][i].Atoms[A].Force.x,
+            Adsorbates[CurrentSystem][i].Atoms[A].Fixed.y?0.0:Adsorbates[CurrentSystem][i].Atoms[A].Force.y,
+            Adsorbates[CurrentSystem][i].Atoms[A].Fixed.z?0.0:Adsorbates[CurrentSystem][i].Atoms[A].Force.z);
         }
       }
     }
@@ -4400,27 +4851,24 @@ void NewtonRaphsonMinimization(int np,int nb,REAL *x,int run)
     {
       if(Components[Type].Groups[l].Rigid)
       {
-        if(!Cations[CurrentSystem][i].Groups[l].FixedCenterOfMass)
-          fprintf(OutputFilePtr[CurrentSystem],"Cation[%d] Group: %d  Com force: %g %g %g\n",i,l,
-                 Cations[CurrentSystem][i].Groups[l].CenterOfMassForce.x,
-                 Cations[CurrentSystem][i].Groups[l].CenterOfMassForce.y,
-                 Cations[CurrentSystem][i].Groups[l].CenterOfMassForce.z);
-        if(!Cations[CurrentSystem][i].Groups[l].FixedOrientation)
-          fprintf(OutputFilePtr[CurrentSystem],"Cation[%d] Group: %d  torque: %g %g %g\n",i,l,
-                 Cations[CurrentSystem][i].Groups[l].Torque.x,
-                 Cations[CurrentSystem][i].Groups[l].Torque.y,
-                 Cations[CurrentSystem][i].Groups[l].Torque.z);
+        fprintf(OutputFilePtr[CurrentSystem],"Cation[%d] Group: %d  Com force: %g %g %g\n",i,l,
+               Cations[CurrentSystem][i].Groups[l].FixedCenterOfMass.x?0.0:Cations[CurrentSystem][i].Groups[l].CenterOfMassForce.x,
+               Cations[CurrentSystem][i].Groups[l].FixedCenterOfMass.y?0.0:Cations[CurrentSystem][i].Groups[l].CenterOfMassForce.y,
+               Cations[CurrentSystem][i].Groups[l].FixedCenterOfMass.z?0.0:Cations[CurrentSystem][i].Groups[l].CenterOfMassForce.z);
+        fprintf(OutputFilePtr[CurrentSystem],"Cation[%d] Group: %d  torque: %g %g %g\n",i,l,
+               Cations[CurrentSystem][i].Groups[l].FixedOrientation.x?0.0:Cations[CurrentSystem][i].Groups[l].Torque.x,
+               Cations[CurrentSystem][i].Groups[l].FixedOrientation.y?0.0:Cations[CurrentSystem][i].Groups[l].Torque.y,
+               Cations[CurrentSystem][i].Groups[l].FixedOrientation.z?0.0:Cations[CurrentSystem][i].Groups[l].Torque.z);
       }
       else
       {
         for(j=0;j<Components[Type].Groups[l].NumberOfGroupAtoms;j++)
         {
           A=Components[Type].Groups[l].Atoms[j];
-          if(!Cations[CurrentSystem][i].Atoms[A].Fixed)
-            fprintf(OutputFilePtr[CurrentSystem],"Cation[%d] Atom: %d  %g %g %g\n",i,A,
-              Cations[CurrentSystem][i].Atoms[A].Force.x,
-              Cations[CurrentSystem][i].Atoms[A].Force.y,
-              Cations[CurrentSystem][i].Atoms[A].Force.z);
+          fprintf(OutputFilePtr[CurrentSystem],"Cation[%d] Atom: %d  %g %g %g\n",i,A,
+              Cations[CurrentSystem][i].Atoms[A].Fixed.x?0.0:Cations[CurrentSystem][i].Atoms[A].Force.x,
+              Cations[CurrentSystem][i].Atoms[A].Fixed.y?0.0:Cations[CurrentSystem][i].Atoms[A].Force.y,
+              Cations[CurrentSystem][i].Atoms[A].Fixed.z?0.0:Cations[CurrentSystem][i].Atoms[A].Force.z);
         }
       }
     }
@@ -5114,6 +5562,12 @@ void SnymanMinimization(int np,int nb,REAL *x,int run)
   }
   fprintf(OutputFilePtr[CurrentSystem],"\n\n");
 
+  fprintf(OutputFilePtr[CurrentSystem],"\n\n");
+  fprintf(OutputFilePtr[CurrentSystem],"Variable vector:\n");
+  fprintf(OutputFilePtr[CurrentSystem],"================\n");
+  for(i=0;i<NumberOfMinimizationVariables;i++)
+    fprintf(OutputFilePtr[CurrentSystem],"x: %d = %g\n",i,(double)x[i]);
+  fprintf(OutputFilePtr[CurrentSystem],"\n\n");
 
   fprintf(OutputFilePtr[CurrentSystem],"\n\n");
   fprintf(OutputFilePtr[CurrentSystem],"Gradient vector:\n");
@@ -5270,8 +5724,21 @@ void AllocateMinimizationMemory(void)
 
   NumberOfFixedFrameworkAtoms=(int**)calloc(NumberOfSystems,sizeof(int*));
   NumberOfActiveFrameworkAtoms=(int**)calloc(NumberOfSystems,sizeof(int*));
+  NumberOfFixedFrameworkAtomsX=(int**)calloc(NumberOfSystems,sizeof(int*));
+  NumberOfActiveFrameworkAtomsX=(int**)calloc(NumberOfSystems,sizeof(int*));
+  NumberOfFixedFrameworkAtomsY=(int**)calloc(NumberOfSystems,sizeof(int*));
+  NumberOfActiveFrameworkAtomsY=(int**)calloc(NumberOfSystems,sizeof(int*));
+  NumberOfFixedFrameworkAtomsZ=(int**)calloc(NumberOfSystems,sizeof(int*));
+  NumberOfActiveFrameworkAtomsZ=(int**)calloc(NumberOfSystems,sizeof(int*));
+
   FixedFrameworkAtoms=(int***)calloc(NumberOfSystems,sizeof(int**));
   ActiveFrameworkAtoms=(int***)calloc(NumberOfSystems,sizeof(int**));
+  FixedFrameworkAtomsX=(int***)calloc(NumberOfSystems,sizeof(int**));
+  ActiveFrameworkAtomsX=(int***)calloc(NumberOfSystems,sizeof(int**));
+  FixedFrameworkAtomsY=(int***)calloc(NumberOfSystems,sizeof(int**));
+  ActiveFrameworkAtomsY=(int***)calloc(NumberOfSystems,sizeof(int**));
+  FixedFrameworkAtomsZ=(int***)calloc(NumberOfSystems,sizeof(int**));
+  ActiveFrameworkAtomsZ=(int***)calloc(NumberOfSystems,sizeof(int**));
 
   NumberOfFixedAdsorbateMolecules=(int*)calloc(NumberOfSystems,sizeof(int));
   FixedAdsorbateMolecules=(int**)calloc(NumberOfSystems,sizeof(int*));
@@ -5280,8 +5747,20 @@ void AllocateMinimizationMemory(void)
 
   NumberOfFixedAdsorbateAtoms=(int*)calloc(NumberOfSystems,sizeof(int));
   FixedAdsorbateAtoms=(PAIR**)calloc(NumberOfSystems,sizeof(PAIR*));
+  NumberOfFixedAdsorbateAtomsX=(int*)calloc(NumberOfSystems,sizeof(int));
+  FixedAdsorbateAtomsX=(PAIR**)calloc(NumberOfSystems,sizeof(PAIR*));
+  NumberOfFixedAdsorbateAtomsY=(int*)calloc(NumberOfSystems,sizeof(int));
+  FixedAdsorbateAtomsY=(PAIR**)calloc(NumberOfSystems,sizeof(PAIR*));
+  NumberOfFixedAdsorbateAtomsZ=(int*)calloc(NumberOfSystems,sizeof(int));
+  FixedAdsorbateAtomsZ=(PAIR**)calloc(NumberOfSystems,sizeof(PAIR*));
   NumberOfActiveAdsorbateAtoms=(int*)calloc(NumberOfSystems,sizeof(int));
   ActiveAdsorbateAtoms=(PAIR**)calloc(NumberOfSystems,sizeof(PAIR*));
+  NumberOfActiveAdsorbateAtomsX=(int*)calloc(NumberOfSystems,sizeof(int));
+  ActiveAdsorbateAtomsX=(PAIR**)calloc(NumberOfSystems,sizeof(PAIR*));
+  NumberOfActiveAdsorbateAtomsY=(int*)calloc(NumberOfSystems,sizeof(int));
+  ActiveAdsorbateAtomsY=(PAIR**)calloc(NumberOfSystems,sizeof(PAIR*));
+  NumberOfActiveAdsorbateAtomsZ=(int*)calloc(NumberOfSystems,sizeof(int));
+  ActiveAdsorbateAtomsZ=(PAIR**)calloc(NumberOfSystems,sizeof(PAIR*));
 
   NumberOfFixedAdsorbateGroups=(int*)calloc(NumberOfSystems,sizeof(int));
   FixedAdsorbateGroups=(PAIR**)calloc(NumberOfSystems,sizeof(PAIR*));
@@ -5290,13 +5769,39 @@ void AllocateMinimizationMemory(void)
 
   NumberOfFixedAdsorbateGroupsCenterOfMass=(int*)calloc(NumberOfSystems,sizeof(int));
   FixedAdsorbateGroupsCenterOfMass=(PAIR**)calloc(NumberOfSystems,sizeof(PAIR*));
+  NumberOfFixedAdsorbateGroupsCenterOfMassX=(int*)calloc(NumberOfSystems,sizeof(int));
+  FixedAdsorbateGroupsCenterOfMassX=(PAIR**)calloc(NumberOfSystems,sizeof(PAIR*));
+  NumberOfFixedAdsorbateGroupsCenterOfMassY=(int*)calloc(NumberOfSystems,sizeof(int));
+  FixedAdsorbateGroupsCenterOfMassY=(PAIR**)calloc(NumberOfSystems,sizeof(PAIR*));
+  NumberOfFixedAdsorbateGroupsCenterOfMassZ=(int*)calloc(NumberOfSystems,sizeof(int));
+  FixedAdsorbateGroupsCenterOfMassZ=(PAIR**)calloc(NumberOfSystems,sizeof(PAIR*));
+
   NumberOfActiveAdsorbateGroupsCenterOfMass=(int*)calloc(NumberOfSystems,sizeof(int));
   ActiveAdsorbateGroupsCenterOfMass=(PAIR**)calloc(NumberOfSystems,sizeof(PAIR*));
+  NumberOfActiveAdsorbateGroupsCenterOfMassX=(int*)calloc(NumberOfSystems,sizeof(int));
+  ActiveAdsorbateGroupsCenterOfMassX=(PAIR**)calloc(NumberOfSystems,sizeof(PAIR*));
+  NumberOfActiveAdsorbateGroupsCenterOfMassY=(int*)calloc(NumberOfSystems,sizeof(int));
+  ActiveAdsorbateGroupsCenterOfMassY=(PAIR**)calloc(NumberOfSystems,sizeof(PAIR*));
+  NumberOfActiveAdsorbateGroupsCenterOfMassZ=(int*)calloc(NumberOfSystems,sizeof(int));
+  ActiveAdsorbateGroupsCenterOfMassZ=(PAIR**)calloc(NumberOfSystems,sizeof(PAIR*));
 
   NumberOfFixedAdsorbateGroupsOrientation=(int*)calloc(NumberOfSystems,sizeof(int));
   FixedAdsorbateGroupsOrientation=(PAIR**)calloc(NumberOfSystems,sizeof(PAIR*));
+  NumberOfFixedAdsorbateGroupsOrientationX=(int*)calloc(NumberOfSystems,sizeof(int));
+  FixedAdsorbateGroupsOrientationX=(PAIR**)calloc(NumberOfSystems,sizeof(PAIR*));
+  NumberOfFixedAdsorbateGroupsOrientationY=(int*)calloc(NumberOfSystems,sizeof(int));
+  FixedAdsorbateGroupsOrientationY=(PAIR**)calloc(NumberOfSystems,sizeof(PAIR*));
+  NumberOfFixedAdsorbateGroupsOrientationZ=(int*)calloc(NumberOfSystems,sizeof(int));
+  FixedAdsorbateGroupsOrientationZ=(PAIR**)calloc(NumberOfSystems,sizeof(PAIR*));
+
   NumberOfActiveAdsorbateGroupsOrientation=(int*)calloc(NumberOfSystems,sizeof(int));
   ActiveAdsorbateGroupsOrientation=(PAIR**)calloc(NumberOfSystems,sizeof(PAIR*));
+  NumberOfActiveAdsorbateGroupsOrientationX=(int*)calloc(NumberOfSystems,sizeof(int));
+  ActiveAdsorbateGroupsOrientationX=(PAIR**)calloc(NumberOfSystems,sizeof(PAIR*));
+  NumberOfActiveAdsorbateGroupsOrientationY=(int*)calloc(NumberOfSystems,sizeof(int));
+  ActiveAdsorbateGroupsOrientationY=(PAIR**)calloc(NumberOfSystems,sizeof(PAIR*));
+  NumberOfActiveAdsorbateGroupsOrientationZ=(int*)calloc(NumberOfSystems,sizeof(int));
+  ActiveAdsorbateGroupsOrientationZ=(PAIR**)calloc(NumberOfSystems,sizeof(PAIR*));
 
   NumberOfFixedCationMolecules=(int*)calloc(NumberOfSystems,sizeof(int));
   FixedCationMolecules=(int**)calloc(NumberOfSystems,sizeof(int*));
@@ -5305,8 +5810,20 @@ void AllocateMinimizationMemory(void)
 
   NumberOfFixedCationAtoms=(int*)calloc(NumberOfSystems,sizeof(int));
   FixedCationAtoms=(PAIR**)calloc(NumberOfSystems,sizeof(PAIR*));
+  NumberOfFixedCationAtomsX=(int*)calloc(NumberOfSystems,sizeof(int));
+  FixedCationAtomsX=(PAIR**)calloc(NumberOfSystems,sizeof(PAIR*));
+  NumberOfFixedCationAtomsY=(int*)calloc(NumberOfSystems,sizeof(int));
+  FixedCationAtomsY=(PAIR**)calloc(NumberOfSystems,sizeof(PAIR*));
+  NumberOfFixedCationAtomsZ=(int*)calloc(NumberOfSystems,sizeof(int));
+  FixedCationAtomsZ=(PAIR**)calloc(NumberOfSystems,sizeof(PAIR*));
   NumberOfActiveCationAtoms=(int*)calloc(NumberOfSystems,sizeof(int));
   ActiveCationAtoms=(PAIR**)calloc(NumberOfSystems,sizeof(PAIR*));
+  NumberOfActiveCationAtomsX=(int*)calloc(NumberOfSystems,sizeof(int));
+  ActiveCationAtomsX=(PAIR**)calloc(NumberOfSystems,sizeof(PAIR*));
+  NumberOfActiveCationAtomsY=(int*)calloc(NumberOfSystems,sizeof(int));
+  ActiveCationAtomsY=(PAIR**)calloc(NumberOfSystems,sizeof(PAIR*));
+  NumberOfActiveCationAtomsZ=(int*)calloc(NumberOfSystems,sizeof(int));
+  ActiveCationAtomsZ=(PAIR**)calloc(NumberOfSystems,sizeof(PAIR*));
 
   NumberOfFixedCationGroups=(int*)calloc(NumberOfSystems,sizeof(int));
   FixedCationGroups=(PAIR**)calloc(NumberOfSystems,sizeof(PAIR*));
@@ -5315,13 +5832,39 @@ void AllocateMinimizationMemory(void)
 
   NumberOfFixedCationGroupsCenterOfMass=(int*)calloc(NumberOfSystems,sizeof(int));
   FixedCationGroupsCenterOfMass=(PAIR**)calloc(NumberOfSystems,sizeof(PAIR*));
+  NumberOfFixedCationGroupsCenterOfMassX=(int*)calloc(NumberOfSystems,sizeof(int));
+  FixedCationGroupsCenterOfMassX=(PAIR**)calloc(NumberOfSystems,sizeof(PAIR*));
+  NumberOfFixedCationGroupsCenterOfMassY=(int*)calloc(NumberOfSystems,sizeof(int));
+  FixedCationGroupsCenterOfMassY=(PAIR**)calloc(NumberOfSystems,sizeof(PAIR*));
+  NumberOfFixedCationGroupsCenterOfMassZ=(int*)calloc(NumberOfSystems,sizeof(int));
+  FixedCationGroupsCenterOfMassZ=(PAIR**)calloc(NumberOfSystems,sizeof(PAIR*));
+
   NumberOfActiveCationGroupsCenterOfMass=(int*)calloc(NumberOfSystems,sizeof(int));
   ActiveCationGroupsCenterOfMass=(PAIR**)calloc(NumberOfSystems,sizeof(PAIR*));
+  NumberOfActiveCationGroupsCenterOfMassX=(int*)calloc(NumberOfSystems,sizeof(int));
+  ActiveCationGroupsCenterOfMassX=(PAIR**)calloc(NumberOfSystems,sizeof(PAIR*));
+  NumberOfActiveCationGroupsCenterOfMassY=(int*)calloc(NumberOfSystems,sizeof(int));
+  ActiveCationGroupsCenterOfMassY=(PAIR**)calloc(NumberOfSystems,sizeof(PAIR*));
+  NumberOfActiveCationGroupsCenterOfMassZ=(int*)calloc(NumberOfSystems,sizeof(int));
+  ActiveCationGroupsCenterOfMassZ=(PAIR**)calloc(NumberOfSystems,sizeof(PAIR*));
 
   NumberOfFixedCationGroupsOrientation=(int*)calloc(NumberOfSystems,sizeof(int));
   FixedCationGroupsOrientation=(PAIR**)calloc(NumberOfSystems,sizeof(PAIR*));
+  NumberOfFixedCationGroupsOrientationX=(int*)calloc(NumberOfSystems,sizeof(int));
+  FixedCationGroupsOrientationX=(PAIR**)calloc(NumberOfSystems,sizeof(PAIR*));
+  NumberOfFixedCationGroupsOrientationY=(int*)calloc(NumberOfSystems,sizeof(int));
+  FixedCationGroupsOrientationY=(PAIR**)calloc(NumberOfSystems,sizeof(PAIR*));
+  NumberOfFixedCationGroupsOrientationZ=(int*)calloc(NumberOfSystems,sizeof(int));
+  FixedCationGroupsOrientationZ=(PAIR**)calloc(NumberOfSystems,sizeof(PAIR*));
+
   NumberOfActiveCationGroupsOrientation=(int*)calloc(NumberOfSystems,sizeof(int));
   ActiveCationGroupsOrientation=(PAIR**)calloc(NumberOfSystems,sizeof(PAIR*));
+  NumberOfActiveCationGroupsOrientationX=(int*)calloc(NumberOfSystems,sizeof(int));
+  ActiveCationGroupsOrientationX=(PAIR**)calloc(NumberOfSystems,sizeof(PAIR*));
+  NumberOfActiveCationGroupsOrientationY=(int*)calloc(NumberOfSystems,sizeof(int));
+  ActiveCationGroupsOrientationY=(PAIR**)calloc(NumberOfSystems,sizeof(PAIR*));
+  NumberOfActiveCationGroupsOrientationZ=(int*)calloc(NumberOfSystems,sizeof(int));
+  ActiveCationGroupsOrientationZ=(PAIR**)calloc(NumberOfSystems,sizeof(PAIR*));
 
   NumberOfDistanceConstraints=(int*)calloc(NumberOfSystems,sizeof(int));
   DistanceConstraints=(ATOM*(**)[2])calloc(NumberOfSystems,sizeof(ATOM*(*)[2]));

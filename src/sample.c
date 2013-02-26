@@ -1,27 +1,16 @@
-/*****************************************************************************************************
+/*************************************************************************************************************
     RASPA: a molecular-dynamics, monte-carlo and optimization code for nanoporous materials
-    Copyright (C) 2006-2012 David Dubbeldam, Sofia Calero, Donald E. Ellis, and Randall Q. Snurr.
+    Copyright (C) 2006-2013 David Dubbeldam, Sofia Calero, Thijs Vlugt, Donald E. Ellis, and Randall Q. Snurr.
 
     D.Dubbeldam@uva.nl            http://molsim.science.uva.nl/
     scaldia@upo.es                http://www.upo.es/raspa/
+    t.j.h.vlugt@tudelft.nl        http://homepage.tudelft.nl/v9k6y
     don-ellis@northwestern.edu    http://dvworld.northwestern.edu/
     snurr@northwestern.edu        http://zeolites.cqe.northwestern.edu/
 
-    This file 'sample.c' is part of RASPA.
+    This file 'rigid.c' is part of RASPA-2.0
 
-    RASPA is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    RASPA is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *****************************************************************************************************/
+ *************************************************************************************************************/
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -38,8 +27,10 @@
 #include "utils.h"
 #include "inter_energy.h"
 #include "internal_force.h"
+#include "inter_force.h"
 #include "framework.h"
 #include "framework_energy.h"
+#include "framework_force.h"
 #include "internal_energy.h"
 #include "ewald.h"
 #include "cubic_spline_1d.h"
@@ -64,6 +55,18 @@ static REAL *CountRDF;
 int *RDFHistogramSize;
 REAL *RDFRange;
 static REAL ****RadialDistributionFunction;
+
+//----------------------------------------------------------------------------------------
+// CFC-RXMC : sampling lambda histogram
+//----------------------------------------------------------------------------------------
+
+int *ComputeCFCRXMCLambdaHistogram;
+int *WriteCFCRXMCLambdaHistogramEvery;
+int *CFCRXMCLambdaHistogramBins;
+static REAL ***CFCRXMCLambdaHistogram;
+
+//----------------------------------------------------------------------------------------
+
 
 // sampling the number-of-molecules histogram
 int *ComputeNumberOfMoleculesHistogram;
@@ -684,6 +687,88 @@ void SampleRadialDistributionFunction(int Switch)
       }
   }
 }
+
+
+/********************************************************************************************************
+* Name       | SampleCFCRXMCLambdaHistogram                                                             *
+* ----------------------------------------------------------------------------------------------------- *
+* Function   | Samples the lambda histograms                                                            *
+* Parameters | -                                                                                        *
+*********************************************************************************************************/
+
+void SampleCFCRXMCLambdaHistogram(int Switch)
+{
+  int i,j,k,index;
+  REAL norm,r,delta;
+  char buffer[256];
+  FILE *FilePtr;
+
+  switch(Switch)
+  {
+    case ALLOCATE:
+      CFCRXMCLambdaHistogram=(REAL***)calloc(NumberOfSystems,sizeof(REAL**));
+      for(i=0;i<NumberOfSystems;i++)
+      {
+         if(ComputeCFCRXMCLambdaHistogram[i])
+         {
+           CFCRXMCLambdaHistogram[i]=(REAL**)calloc(NumberOfReactions,sizeof(REAL*));
+           for(j=0;j<NumberOfReactions;j++)
+              CFCRXMCLambdaHistogram[i][j]=(REAL*)calloc(CFCRXMCLambdaHistogramBins[i]+1,sizeof(REAL));
+         }
+      }
+      break;
+    case INITIALIZE:
+      for(i=0;i<NumberOfSystems;i++)
+      {
+         if(ComputeCFCRXMCLambdaHistogram[i])
+         {
+           for(j=0;j<NumberOfReactions;j++)
+              for(k=0;k<=CFCRXMCLambdaHistogramBins[i];k++)
+                 CFCRXMCLambdaHistogram[i][j][k]=0.0;
+         }
+      }
+      break;
+    case SAMPLE:
+      if(!ComputeCFCRXMCLambdaHistogram[CurrentSystem]) return;
+
+      for(i=0;i<NumberOfReactions;i++)
+      {
+         r=CFCRXMCLambda[CurrentReaction][i];
+         delta=CFCRXMCLambdaHistogramBins[CurrentSystem];
+         index=(int)(r*delta);
+         CFCRXMCLambdaHistogram[CurrentSystem][i][index]+=1.0;
+      }
+      break;
+    case PRINT:
+      if((!ComputeCFCRXMCLambdaHistogram[CurrentSystem])||(CurrentCycle%WriteCFCRXMCLambdaHistogramEvery[CurrentSystem]!=0)) return;
+      mkdir("CFCRXMCLambdaHistograms",S_IRWXU);
+      sprintf(buffer,"CFCRXMCLambdaHistograms/System_%d",CurrentSystem);
+      mkdir(buffer,S_IRWXU);
+
+      delta=CFCRXMCLambdaHistogramBins[CurrentSystem];
+      for(i=0;i<NumberOfReactions;i++)
+      {
+        norm=0.0;
+        for(k=0;k<=CFCRXMCLambdaHistogramBins[CurrentSystem];k++)
+          norm+=CFCRXMCLambdaHistogram[CurrentSystem][i][k];
+        norm/=delta;
+
+        sprintf(buffer,"CFCRXMCLambdaHistograms/System_%d/Histogram_Reaction_%d%s.dat",CurrentSystem,i,FileNameAppend);
+        FilePtr=fopen(buffer,"w");
+        for(k=0;k<=CFCRXMCLambdaHistogramBins[CurrentSystem];k++)
+        {
+          r=(REAL)k/delta;
+          if(CFCRXMCLambdaHistogram[CurrentSystem][i][k]>0.0)
+            fprintf(FilePtr,"%g %g\n",(double)r,(double)(CFCRXMCLambdaHistogram[CurrentSystem][i][k]/norm));
+        }
+        fclose(FilePtr);
+      }
+      break;
+    case FINALIZE:
+      break;
+  }
+}
+
 
 
 /*********************************************************************************************************
@@ -8494,34 +8579,11 @@ void MeasurePrincipleMomentsOfInertia(void)
 void ComputeMolecularPressureTensor(REAL_MATRIX3x3 *Pressure_matrix, REAL* PressureIdealGas, REAL* PressureTail)
 {
   int bak;
-  int m,l,N,Type;
+  REAL temp;
 
-  N=0;
-  for(m=0;m<NumberOfAdsorbateMolecules[CurrentSystem];m++)
-  {
-    Type=Adsorbates[CurrentSystem][m].Type;
-    for(l=0;l<Components[Type].NumberOfGroups;l++)
-    {
-      if(Components[Type].Groups[l].Rigid)
-        N++;
-      else
-        N+=Components[Type].Groups[l].NumberOfGroupAtoms;
-    }
-  }
-  for(m=0;m<NumberOfCationMolecules[CurrentSystem];m++)
-  {
-    Type=Cations[CurrentSystem][m].Type;
-    for(l=0;l<Components[Type].NumberOfGroups;l++)
-    {
-      if(Components[Type].Groups[l].Rigid)
-        N++;
-      else
-        N+=Components[Type].Groups[l].NumberOfGroupAtoms;
-    }
-  }
-
-  // compute the ideal gas part of the pressure
-  *PressureIdealGas=N*K_B*therm_baro_stats.ExternalTemperature[CurrentSystem]/Volume[CurrentSystem];
+  // compute the ideal gas part of the pressure (related to the translational degrees of freedom, not rotational dof)
+  *PressureIdealGas=(DegreesOfFreedomTranslation[CurrentSystem])
+                  *K_B*therm_baro_stats.ExternalTemperature[CurrentSystem]/(3.0*Volume[CurrentSystem]);
 
   bak=CurrentSystem;
   // compute the Inertia-tensors and quaternions for all rigid molecules
@@ -8529,7 +8591,243 @@ void ComputeMolecularPressureTensor(REAL_MATRIX3x3 *Pressure_matrix, REAL* Press
   CurrentSystem=bak;
 
   // compute the strain-derivative tensor
-  CalculateForce();
+  //CalculateForce();
+
+  // initialize stress
+  StressTensor[CurrentSystem].ax=StressTensor[CurrentSystem].bx=StressTensor[CurrentSystem].cx=0.0;
+  StressTensor[CurrentSystem].ay=StressTensor[CurrentSystem].by=StressTensor[CurrentSystem].cy=0.0;
+  StressTensor[CurrentSystem].az=StressTensor[CurrentSystem].bz=StressTensor[CurrentSystem].cz=0.0;
+
+  StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
+  StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
+  StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
+
+  UHostBond[CurrentSystem]=0.0;
+  UHostUreyBradley[CurrentSystem]=0.0;
+  UHostBend[CurrentSystem]=0.0;
+  UHostInversionBend[CurrentSystem]=0.0;
+  UHostTorsion[CurrentSystem]=0.0;
+  UHostImproperTorsion[CurrentSystem]=0.0;
+  UHostBondBond[CurrentSystem]=0.0;
+  UHostBondBend[CurrentSystem]=0.0;
+  UHostBendBend[CurrentSystem]=0.0;
+  UHostBondTorsion[CurrentSystem]=0.0;
+  UHostBendTorsion[CurrentSystem]=0.0;
+
+  UHostHost[CurrentSystem]=0.0;
+  UAdsorbateAdsorbate[CurrentSystem]=0.0;
+  UCationCation[CurrentSystem]=0.0;
+  UHostAdsorbate[CurrentSystem]=0.0;
+  UHostCation[CurrentSystem]=0.0;
+  UAdsorbateCation[CurrentSystem]=0.0;
+
+  UHostHostVDW[CurrentSystem]=0.0;
+  UAdsorbateAdsorbateVDW[CurrentSystem]=0.0;
+  UCationCationVDW[CurrentSystem]=0.0;
+  UHostAdsorbateVDW[CurrentSystem]=0.0;
+  UHostCationVDW[CurrentSystem]=0.0;
+  UAdsorbateCationVDW[CurrentSystem]=0.0;
+
+  UHostHostCoulomb[CurrentSystem]=0.0;
+  UAdsorbateAdsorbateCoulomb[CurrentSystem]=0.0;
+  UCationCationCoulomb[CurrentSystem]=0.0;
+  UHostAdsorbateCoulomb[CurrentSystem]=0.0;
+  UHostCationCoulomb[CurrentSystem]=0.0;
+  UAdsorbateCationCoulomb[CurrentSystem]=0.0;
+
+  UHostHostChargeChargeReal[CurrentSystem]=0.0;
+  UAdsorbateAdsorbateChargeChargeReal[CurrentSystem]=0.0;
+  UCationCationChargeChargeReal[CurrentSystem]=0.0;
+  UHostAdsorbateChargeChargeReal[CurrentSystem]=0.0;
+  UHostCationChargeChargeReal[CurrentSystem]=0.0;
+  UAdsorbateCationChargeChargeReal[CurrentSystem]=0.0;
+
+  UHostHostChargeBondDipoleReal[CurrentSystem]=0.0;
+  UAdsorbateAdsorbateChargeBondDipoleReal[CurrentSystem]=0.0;
+  UCationCationChargeBondDipoleReal[CurrentSystem]=0.0;
+  UHostAdsorbateChargeBondDipoleReal[CurrentSystem]=0.0;
+  UHostCationChargeBondDipoleReal[CurrentSystem]=0.0;
+  UAdsorbateCationChargeBondDipoleReal[CurrentSystem]=0.0;
+
+  UHostHostBondDipoleBondDipoleReal[CurrentSystem]=0.0;
+  UAdsorbateAdsorbateBondDipoleBondDipoleReal[CurrentSystem]=0.0;
+  UCationCationBondDipoleBondDipoleReal[CurrentSystem]=0.0;
+  UHostAdsorbateBondDipoleBondDipoleReal[CurrentSystem]=0.0;
+  UHostCationBondDipoleBondDipoleReal[CurrentSystem]=0.0;
+  UAdsorbateCationBondDipoleBondDipoleReal[CurrentSystem]=0.0;
+
+  UHostHostChargeChargeFourier[CurrentSystem]=0.0;
+  UAdsorbateAdsorbateChargeChargeFourier[CurrentSystem]=0.0;
+  UCationCationChargeChargeFourier[CurrentSystem]=0.0;
+  UHostAdsorbateChargeChargeFourier[CurrentSystem]=0.0;
+  UHostCationChargeChargeFourier[CurrentSystem]=0.0;
+  UAdsorbateCationChargeChargeFourier[CurrentSystem]=0.0;
+
+  UHostHostChargeBondDipoleFourier[CurrentSystem]=0.0;
+  UAdsorbateAdsorbateChargeBondDipoleFourier[CurrentSystem]=0.0;
+  UCationCationChargeBondDipoleFourier[CurrentSystem]=0.0;
+  UHostAdsorbateChargeBondDipoleFourier[CurrentSystem]=0.0;
+  UHostCationChargeBondDipoleFourier[CurrentSystem]=0.0;
+  UAdsorbateCationChargeBondDipoleFourier[CurrentSystem]=0.0;
+
+  UHostHostBondDipoleBondDipoleFourier[CurrentSystem]=0.0;
+  UAdsorbateAdsorbateBondDipoleBondDipoleFourier[CurrentSystem]=0.0;
+  UCationCationBondDipoleBondDipoleFourier[CurrentSystem]=0.0;
+  UHostAdsorbateBondDipoleBondDipoleFourier[CurrentSystem]=0.0;
+  UHostCationBondDipoleBondDipoleFourier[CurrentSystem]=0.0;
+  UAdsorbateCationBondDipoleBondDipoleFourier[CurrentSystem]=0.0;
+
+  UHostPolarization[CurrentSystem]=0.0;
+  UAdsorbatePolarization[CurrentSystem]=0.0;
+  UCationPolarization[CurrentSystem]=0.0;
+
+  UHostBackPolarization[CurrentSystem]=0.0;
+  UAdsorbateBackPolarization[CurrentSystem]=0.0;
+  UCationBackPolarization[CurrentSystem]=0.0;
+
+  UTailCorrection[CurrentSystem]=0.0;
+
+  // compute the modified VDW sites for anisotropic models
+  CalculateAnisotropicSites();
+
+
+  // contribution of the intra molecular interactions of the framework
+  if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+  {
+    CalculateFrameworkBondForce();
+    CalculateFrameworkUreyBradleyForce();
+    CalculateFrameworkBendForce();
+    CalculateFrameworkInversionBendForce();
+    CalculateFrameworkTorsionForce();
+    CalculateFrameworkImproperTorsionForce();
+    CalculateFrameworkBondBondForce();
+    CalculateFrameworkBondBendForce();
+    CalculateFrameworkBendBendForce();
+    CalculateFrameworkBondTorsionForce();
+    CalculateFrameworkBendTorsionForce();
+
+    if(UseReplicas[CurrentSystem])
+    {
+      CalculateFrameworkIntraReplicaVDWForce();
+      CalculateFrameworkIntraReplicaChargeChargeForce();
+    }
+    else
+    {
+      CalculateFrameworkIntraVDWForce();
+      CalculateFrameworkIntraChargeChargeForce();
+    }
+    CalculateFrameworkIntraChargeBondDipoleForce();
+    CalculateFrameworkIntraBondDipoleBondDipoleForce();
+  }
+
+
+  // contribution of the intermolecular interactions (between adsorbates and/or cations)
+  if(UseReplicas[CurrentSystem])
+  {
+    CalculateTotalInterReplicaVDWForce();
+    CalculateTotalInterReplicaChargeChargeCoulombForce();
+  }
+  else
+  {
+    CalculateTotalInterVDWForce();
+    CalculateTotalInterChargeChargeCoulombForce();
+
+  }
+  CalculateTotalInterChargeBondDipoleCoulombForce();
+  CalculateTotalInterBondDipoleBondDipoleCoulombForce();
+
+  // contribution of the interactions of the adsorbates with the framework
+  if(UseReplicas[CurrentSystem])
+  {
+    CalculateFrameworkAdsorbateReplicaVDWForce();
+    CalculateFrameworkAdsorbateReplicaChargeChargeForce();
+  }
+  else
+  {
+    CalculateFrameworkAdsorbateVDWForce();
+    CalculateFrameworkAdsorbateChargeChargeForce();
+  }
+  CalculateFrameworkAdsorbateChargeBondDipoleForce();
+  CalculateFrameworkAdsorbateBondDipoleBondDipoleForce();
+
+  // contribution of the interactions of the cations with the framework
+  if(UseReplicas[CurrentSystem])
+  {
+    CalculateFrameworkCationReplicaVDWForce();
+    CalculateFrameworkCationReplicaChargeChargeForce();
+  }
+  else
+  {
+    CalculateFrameworkCationVDWForce();
+    CalculateFrameworkCationChargeChargeForce();
+  }
+  CalculateFrameworkCationChargeBondDipoleForce();
+  CalculateFrameworkCationBondDipoleBondDipoleForce();
+
+  // the contribution of the charges present in the system (long-range interaction)
+  if((ChargeMethod==EWALD)&&(!OmitEwaldFourier))
+    EwaldFourierForce();
+  
+
+  if(ComputePolarization)
+  {
+    CalculateElectricField();
+
+    CalculateFrameworkAdsorbateChargeInducedDipoleForce();
+    CalculateFrameworkAdsorbateInducedDipoleInducedDipoleForce();
+
+    CalculateInterChargeInducedDipoleForce();
+    CalculateInterInducedDipoleInducedDipoleForce();
+
+    if((ChargeMethod==EWALD)&&(!OmitEwaldFourier))
+      ComputeInducedDipolesForcesEwald();
+  }
+
+  CalculateTailCorrection();
+
+  UAdsorbateAdsorbateCoulomb[CurrentSystem]=
+      UAdsorbateAdsorbateChargeChargeReal[CurrentSystem]+UAdsorbateAdsorbateChargeChargeFourier[CurrentSystem]+
+      UAdsorbateAdsorbateChargeBondDipoleReal[CurrentSystem]+UAdsorbateAdsorbateChargeBondDipoleFourier[CurrentSystem]+
+      UAdsorbateAdsorbateBondDipoleBondDipoleReal[CurrentSystem]+UAdsorbateAdsorbateBondDipoleBondDipoleFourier[CurrentSystem];
+  UAdsorbateAdsorbate[CurrentSystem]=UAdsorbateAdsorbateVDW[CurrentSystem]+UAdsorbateAdsorbateCoulomb[CurrentSystem];
+
+  UCationCationCoulomb[CurrentSystem]=
+      UCationCationChargeChargeReal[CurrentSystem]+UCationCationChargeChargeFourier[CurrentSystem]+
+      UCationCationChargeBondDipoleReal[CurrentSystem]+UCationCationChargeBondDipoleFourier[CurrentSystem]+
+      UCationCationBondDipoleBondDipoleReal[CurrentSystem]+UCationCationBondDipoleBondDipoleFourier[CurrentSystem];
+  UCationCation[CurrentSystem]=UCationCationVDW[CurrentSystem]+UCationCationCoulomb[CurrentSystem];
+
+  UAdsorbateCationCoulomb[CurrentSystem]=
+      UAdsorbateCationChargeChargeReal[CurrentSystem]+UAdsorbateCationChargeChargeFourier[CurrentSystem]+
+      UAdsorbateCationChargeBondDipoleReal[CurrentSystem]+UAdsorbateCationChargeBondDipoleFourier[CurrentSystem]+
+      UAdsorbateCationBondDipoleBondDipoleReal[CurrentSystem]+UAdsorbateCationBondDipoleBondDipoleFourier[CurrentSystem];
+  UAdsorbateCation[CurrentSystem]=UAdsorbateCationVDW[CurrentSystem]+UAdsorbateCationCoulomb[CurrentSystem];
+
+  UHostAdsorbateCoulomb[CurrentSystem]=
+      UHostAdsorbateChargeChargeReal[CurrentSystem]+UHostAdsorbateChargeChargeFourier[CurrentSystem]+
+      UHostAdsorbateChargeBondDipoleReal[CurrentSystem]+UHostAdsorbateChargeBondDipoleFourier[CurrentSystem]+
+      UHostAdsorbateBondDipoleBondDipoleReal[CurrentSystem]+UHostAdsorbateBondDipoleBondDipoleFourier[CurrentSystem];
+  UHostAdsorbate[CurrentSystem]=UHostAdsorbateVDW[CurrentSystem]+UHostAdsorbateCoulomb[CurrentSystem];
+
+  UHostCationCoulomb[CurrentSystem]=
+      UHostCationChargeChargeReal[CurrentSystem]+UHostCationChargeChargeFourier[CurrentSystem]+
+      UHostCationChargeBondDipoleReal[CurrentSystem]+UHostCationChargeBondDipoleFourier[CurrentSystem]+
+      UHostCationBondDipoleBondDipoleReal[CurrentSystem]+UHostCationBondDipoleBondDipoleFourier[CurrentSystem];
+  UHostCation[CurrentSystem]=UHostCationVDW[CurrentSystem]+UHostCationCoulomb[CurrentSystem];
+
+  UHostHostCoulomb[CurrentSystem]=
+      UHostHostChargeChargeReal[CurrentSystem]+UHostHostChargeChargeFourier[CurrentSystem]+
+      UHostHostChargeBondDipoleReal[CurrentSystem]+UHostHostChargeBondDipoleFourier[CurrentSystem]+
+      UHostHostBondDipoleBondDipoleReal[CurrentSystem]+UHostHostBondDipoleBondDipoleFourier[CurrentSystem];
+  UHostHost[CurrentSystem]=UHostHostVDW[CurrentSystem]+UHostHostCoulomb[CurrentSystem];
+
+  // symmetrize strain-derivative (asymmetry originates from torque induced by rigid units and bond-dipoles)
+  temp=0.5*(StrainDerivativeTensor[CurrentSystem].ay+StrainDerivativeTensor[CurrentSystem].bx);
+  StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].bx=temp;
+  temp=0.5*(StrainDerivativeTensor[CurrentSystem].az+StrainDerivativeTensor[CurrentSystem].cx);
+  StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].cx=temp;
+  temp=0.5*(StrainDerivativeTensor[CurrentSystem].bz+StrainDerivativeTensor[CurrentSystem].cy);
+  StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cy=temp;
 
   *PressureTail=CalculatePressureTailCorrection()/Volume[CurrentSystem];
   *Pressure_matrix=StrainDerivativeTensor[CurrentSystem];
@@ -9225,6 +9523,14 @@ void AllocateSampleMemory(void)
   WriteRDFEvery=(int*)calloc(NumberOfSystems,sizeof(int));
   RDFHistogramSize=(int*)calloc(NumberOfSystems,sizeof(int));
   RDFRange=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+
+  //-----------------------------------------------------------------------------------------------------
+  // CFC-RXMC : sampling lambda histogram
+  //-----------------------------------------------------------------------------------------------------
+  ComputeCFCRXMCLambdaHistogram=(int*)calloc(NumberOfSystems,sizeof(int));
+  WriteCFCRXMCLambdaHistogramEvery=(int*)calloc(NumberOfSystems,sizeof(int));
+  CFCRXMCLambdaHistogramBins=(int*)calloc(NumberOfSystems,sizeof(int));
+  //-----------------------------------------------------------------------------------------------------
 
   // sampling the number-of-molecules histogram
   ComputeNumberOfMoleculesHistogram=(int*)calloc(NumberOfSystems,sizeof(int));
