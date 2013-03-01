@@ -6127,7 +6127,7 @@ void CalculateAdsorbateTorsionHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX He
           if((index_k.z>=0)&&(index_i.z>=0)) HessianMatrix.element[index_k.z][index_i.z]+=DDF*dtA.z*dtC.z+D2IK.cz;
         }
         
-        if(index1<index2)
+        if(index1<index4)
         {
           if((index_i.x>=0)&&(index_l.x>=0)) HessianMatrix.element[index_i.x][index_l.x]+=DDF*dtA.x*dtD.x+D2IL.ax;
           if((index_i.x>=0)&&(index_l.y>=0)) HessianMatrix.element[index_i.x][index_l.y]+=DDF*dtA.x*dtD.y+D2IL.ay; 
@@ -6894,7 +6894,7 @@ void CalculateCationTorsionHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX Hessi
           if((index_k.z>=0)&&(index_i.z>=0)) HessianMatrix.element[index_k.z][index_i.z]+=DDF*dtA.z*dtC.z+D2IK.cz;
         }
         
-        if(index1<index2)
+        if(index1<index4)
         {
           if((index_i.x>=0)&&(index_l.x>=0)) HessianMatrix.element[index_i.x][index_l.x]+=DDF*dtA.x*dtD.x+D2IL.ax;
           if((index_i.x>=0)&&(index_l.y>=0)) HessianMatrix.element[index_i.x][index_l.y]+=DDF*dtA.x*dtD.y+D2IL.ay; 
@@ -7660,7 +7660,7 @@ void CalculateAdsorbateImproperTorsionHessian(REAL *Energy,REAL* Gradient,REAL_M
           if((index_k.z>=0)&&(index_i.z>=0)) HessianMatrix.element[index_k.z][index_i.z]+=DDF*dtA.z*dtC.z+D2IK.cz;
         }
         
-        if(index1<index2)
+        if(index1<index4)
         {
           if((index_i.x>=0)&&(index_l.x>=0)) HessianMatrix.element[index_i.x][index_l.x]+=DDF*dtA.x*dtD.x+D2IL.ax;
           if((index_i.x>=0)&&(index_l.y>=0)) HessianMatrix.element[index_i.x][index_l.y]+=DDF*dtA.x*dtD.y+D2IL.ay; 
@@ -8426,7 +8426,7 @@ void CalculateCationImproperTorsionHessian(REAL *Energy,REAL* Gradient,REAL_MATR
           if((index_k.z>=0)&&(index_i.z>=0)) HessianMatrix.element[index_k.z][index_i.z]+=DDF*dtA.z*dtC.z+D2IK.cz;
         }
         
-        if(index1<index2)
+        if(index1<index4)
         {
           if((index_i.x>=0)&&(index_l.x>=0)) HessianMatrix.element[index_i.x][index_l.x]+=DDF*dtA.x*dtD.x+D2IL.ax;
           if((index_i.x>=0)&&(index_l.y>=0)) HessianMatrix.element[index_i.x][index_l.y]+=DDF*dtA.x*dtD.y+D2IL.ay; 

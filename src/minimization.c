@@ -1442,6 +1442,16 @@ int OrderNumberOfMinimiationVariables(void)
 */
 
   atomic_index=0;
+  if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+  {
+    for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
+    {
+      for(i=0;i<Framework[CurrentSystem].NumberOfAtoms[f1];i++)
+        Framework[CurrentSystem].Atoms[f1][i].HessianAtomIndex=atomic_index++;
+    }
+  }
+
+  atomic_index=0;
   for(m=0;m<NumberOfAdsorbateMolecules[CurrentSystem];m++)
     for(i=0;i<Adsorbates[CurrentSystem][m].NumberOfAtoms;i++)
       Adsorbates[CurrentSystem][m].Atoms[i].HessianAtomIndex=atomic_index++;

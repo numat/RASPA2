@@ -3863,7 +3863,6 @@ void ComputeFrameworkBendHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX Hessian
           if((index_j.z>=0)&&(index_k.z>=0)) HessianMatrix.element[index_j.z][index_k.z]+=DDF*dtC.z*dtB.z-D2K.cz-D2IK.cz;
         }
 
-
         HessianBendStrainPosition(index_i,index_j,index_k,HessianMatrix,vec_u,vec_v,u,v,
                                   rab,rbc,Rab,Rbc,dtA,dtC,DF,DDF,S,CosTheta);
 
@@ -4514,7 +4513,7 @@ void ComputeFrameworkTorsionHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX Hess
           if((index_k.z>=0)&&(index_i.z>=0)) HessianMatrix.element[index_k.z][index_i.z]+=DDF*dtA.z*dtC.z+D2IK.cz;
         }
         
-        if(index1<index2)
+        if(index1<index4)
         {
           if((index_i.x>=0)&&(index_l.x>=0)) HessianMatrix.element[index_i.x][index_l.x]+=DDF*dtA.x*dtD.x+D2IL.ax;
           if((index_i.x>=0)&&(index_l.y>=0)) HessianMatrix.element[index_i.x][index_l.y]+=DDF*dtA.x*dtD.y+D2IL.ay; 
@@ -5201,7 +5200,7 @@ void ComputeFrameworkImproperTorsionHessian(REAL *Energy,REAL* Gradient,REAL_MAT
           if((index_k.z>=0)&&(index_i.z>=0)) HessianMatrix.element[index_k.z][index_i.z]+=DDF*dtA.z*dtC.z+D2IK.cz;
         }
         
-        if(index1<index2)
+        if(index1<index4)
         {
           if((index_i.x>=0)&&(index_l.x>=0)) HessianMatrix.element[index_i.x][index_l.x]+=DDF*dtA.x*dtD.x+D2IL.ax;
           if((index_i.x>=0)&&(index_l.y>=0)) HessianMatrix.element[index_i.x][index_l.y]+=DDF*dtA.x*dtD.y+D2IL.ay; 

@@ -2168,9 +2168,10 @@ void WriteFrameworkDefinitionCIF(char * string)
       }
       
       
-      fprintf(FilePtr,"_cell_length_a    %g\n",(REAL)NumberOfUnitCells[CurrentSystem].x*UnitCellSize[CurrentSystem].x);
-      fprintf(FilePtr,"_cell_length_b    %g\n",(REAL)NumberOfUnitCells[CurrentSystem].y*UnitCellSize[CurrentSystem].y);
-      fprintf(FilePtr,"_cell_length_c    %g\n",(REAL)NumberOfUnitCells[CurrentSystem].z*UnitCellSize[CurrentSystem].z);
+      fprintf(FilePtr,"_cell_length_a    %g\n",BoxProperties[CurrentSystem].ax/(REAL)NumberOfUnitCells[CurrentSystem].x);
+      fprintf(FilePtr,"_cell_length_b    %g\n",BoxProperties[CurrentSystem].ay/(REAL)NumberOfUnitCells[CurrentSystem].y);
+      fprintf(FilePtr,"_cell_length_c    %g\n",BoxProperties[CurrentSystem].az/(REAL)NumberOfUnitCells[CurrentSystem].z);
+
       fprintf(FilePtr,"_cell_angle_alpha %g\n",(REAL)AlphaAngle[CurrentSystem]*RAD2DEG);
       fprintf(FilePtr,"_cell_angle_beta  %g\n",(REAL)BetaAngle[CurrentSystem]*RAD2DEG);
       fprintf(FilePtr,"_cell_angle_gamma %g\n",(REAL)GammaAngle[CurrentSystem]*RAD2DEG);
@@ -2385,9 +2386,9 @@ void WriteFrameworkDefinitionCIF(char * string)
       }
       
       
-      fprintf(FilePtr,"_cell_length_a    %g\n",(REAL)NumberOfUnitCells[CurrentSystem].x*UnitCellSize[CurrentSystem].x);
-      fprintf(FilePtr,"_cell_length_b    %g\n",(REAL)NumberOfUnitCells[CurrentSystem].y*UnitCellSize[CurrentSystem].y);
-      fprintf(FilePtr,"_cell_length_c    %g\n",(REAL)NumberOfUnitCells[CurrentSystem].z*UnitCellSize[CurrentSystem].z);
+      fprintf(FilePtr,"_cell_length_a    %g\n",BoxProperties[CurrentSystem].ax/(REAL)NumberOfUnitCells[CurrentSystem].x);
+      fprintf(FilePtr,"_cell_length_b    %g\n",BoxProperties[CurrentSystem].ay/(REAL)NumberOfUnitCells[CurrentSystem].y);
+      fprintf(FilePtr,"_cell_length_c    %g\n",BoxProperties[CurrentSystem].az/(REAL)NumberOfUnitCells[CurrentSystem].z);
       fprintf(FilePtr,"_cell_angle_alpha %g\n",(REAL)AlphaAngle[CurrentSystem]*RAD2DEG);
       fprintf(FilePtr,"_cell_angle_beta  %g\n",(REAL)BetaAngle[CurrentSystem]*RAD2DEG);
       fprintf(FilePtr,"_cell_angle_gamma %g\n",(REAL)GammaAngle[CurrentSystem]*RAD2DEG);
@@ -7001,6 +7002,8 @@ int ReadFrameworkSpecificDefinition(void)
                   if(strcasecmp(TorsionTypes[j].Name,"TRAPPE_DIHEDRAL")==0)
                     TorsionType=j;
                 Framework[CurrentSystem].TorsionType[CurrentFramework][index]=TorsionType;
+                for(j=0;j<MAX_TORSION_POTENTIAL_ARGUMENTS;j++)
+                  potential_arguments[j]=0.0;
                 sscanf(arguments,"%lf %lf %d %lf %lf\n",&potential_arguments[0],&potential_arguments[1],&int_temp2,&potential_arguments[2],&potential_arguments[3]);
                 Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][0]=0.0;
                 Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][1]=0.0;
@@ -8912,12 +8915,19 @@ int ReadFrameworkDefinition(void)
       }
   
       // read arguments
+      arg_pointer+=n;
+      for(j=0;j<TorsionTypes[TorsionType].nr_args+2;j++)
+        arguments[j]=0;
+
       for(j=0;j<TorsionTypes[TorsionType].nr_args+2;j++)
       {
-        arg_pointer+=n;
+        arguments[j]=0;
         temp=0.0;
-        sscanf(arg_pointer,"%lf%n",&temp,&n);
-        arguments[j]=(REAL)temp;
+        if(sscanf(arg_pointer,"%lf%n",&temp,&n)>=1)
+        {
+          arguments[j]=(REAL)temp;
+          arg_pointer+=n;
+        }
       }
   
       Framework[CurrentSystem].TorsionDefinitionType[i]=TorsionType;
@@ -9254,7 +9264,6 @@ int ReadFrameworkDefinition(void)
                       {
                         present=FALSE;
                         for(n=0;n<index;n++)
-/*
                           if(((Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].A==A)&&(Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].B==B)&&
                              (Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].C==C)&&(Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].D==D))||
                              ((Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].A==A)&&(Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].B==B)&&
@@ -9268,7 +9277,7 @@ int ReadFrameworkDefinition(void)
                              ((Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].A==D)&&(Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].B==B)&&
                              (Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].C==C)&&(Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].D==A)))
                                present=TRUE;
-*/
+/*
                           if(((Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].A==A)&&(Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].B==B)&&
                              (Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].C==C)&&(Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].D==D))&&
                              (Framework[CurrentSystem].ImproperTorsionType[CurrentFramework][n]==ImproperTorsionType))
@@ -9277,6 +9286,7 @@ int ReadFrameworkDefinition(void)
                              for(j=0;j<ImproperTorsionTypes[ImproperTorsionType].nr_args;j++)
                                present=present&&(fabs(Framework[CurrentSystem].ImproperTorsionArguments[CurrentFramework][n][j]-arguments[j])<1e-5);
                           }
+*/
                         if(!present)
                         {
                           Framework[CurrentSystem].ImproperTorsions[CurrentFramework][index].A=A;

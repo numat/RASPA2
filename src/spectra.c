@@ -613,24 +613,6 @@ int RemoveTranslationAndRotationFromHessianMatrix(REAL_MATRIX HessianMatrix,REAL
 
   for(i=0;i<n/3;i++)
   {
-/*
-    TransRotationMatrix.element[0][3*i]=1.0*Weights[3*i];
-    TransRotationMatrix.element[1][3*i+1]=1.0*Weights[3*i+1];
-    TransRotationMatrix.element[2][3*i+2]=1.0*Weights[3*i+2];
-
-    // rotational modes
-    TransRotationMatrix.element[3][3*i]=(1.0*Weights[3*i])*(-com.x);
-    TransRotationMatrix.element[3][3*i+1]=-(1.0*Weights[3*i+1])*(Positions[3*i+2]-com.z);
-    TransRotationMatrix.element[3][3*i+2]=(1.0*Weights[3*i+2])*(Positions[3*i+1]-com.y);
-
-    TransRotationMatrix.element[4][3*i]=(1.0*Weights[3*i])*(Positions[3*i+2]-com.z);
-    TransRotationMatrix.element[4][3*i+1]=(1.0*Weights[3*i])*(-com.y);
-    TransRotationMatrix.element[4][3*i+2]=-(1.0*Weights[3*i+2])*(Positions[3*i]-com.x);
-
-    TransRotationMatrix.element[5][3*i]=-(1.0*Weights[3*i])*(Positions[3*i+1]-com.y);
-    TransRotationMatrix.element[5][3*i+1]=(1.0*Weights[3*i+1])*(Positions[3*i]-com.x);
-    TransRotationMatrix.element[5][3*i+2]=(1.0*Weights[3*i+2])*(-com.z);
-*/
     TransRotationMatrix.element[0][3*i]=1.0/Weights[3*i];
     TransRotationMatrix.element[1][3*i+1]=1.0/Weights[3*i+1];
     TransRotationMatrix.element[2][3*i+2]=1.0/Weights[3*i+2];
