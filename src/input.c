@@ -386,6 +386,8 @@ int ReadInputFile(char *inputfilename)
   TargetAccRatioGibbsVolumeChange=0.5;
   TargetAccRatioCFCRXMCLambdaChange=0.5;        // CFC-RXMC
 
+  LambdaHistogramSize=20;
+
   NumberOfHybridNVESteps=5;
   NumberOfHybridNPHSteps=5;
   NumberOfHybridNPHPRSteps=5;

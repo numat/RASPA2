@@ -342,6 +342,10 @@ REAL TargetAccRatioCFCRXMCLambdaChange;
 
 //----------------------------------------------------------------------------------------
 
+
+int LambdaHistogramSize;
+static REAL ***LambdaHistogram;
+
 void CheckEnergy(void);
 
 
@@ -13884,7 +13888,7 @@ int CFSwapLambaMove(void)
   int MoveType;
   REAL RosenbluthNew,RosenbluthOld;
   REAL UTailNew,UTailOld;
-  int FractionalMolecule;
+  int FractionalMolecule,index;
   REAL DeltaUFirstStep;
   REAL UAdsorbateVDWDeltaFirstStep,UHostVDWDeltaFirstStep,UCationVDWDeltaFirstStep;
   REAL UHostPolarizationNewFirstStep,UAdsorbatePolarizationNewFirstStep;
@@ -13910,7 +13914,6 @@ int CFSwapLambaMove(void)
 
   FractionalMolecule=Components[CurrentComponent].FractionalMolecule[CurrentSystem];
 
-
   CurrentAdsorbateMolecule=FractionalMolecule;
 
   // calculate a random displacement
@@ -13924,6 +13927,9 @@ int CFSwapLambaMove(void)
     CFVDWScalingNew[i]=Adsorbates[CurrentSystem][FractionalMolecule].Atoms[i].CFVDWScalingParameter+vNew;
     CFChargeScalingNew[i]=pow(CFVDWScaling[i],5);
   }
+
+  index=(int)(CFVDWScalingStored[0]*LambdaHistogramSize);
+  LambdaHistogram[CurrentSystem][CurrentComponent][index]+=1.0;
 
   if(CFVDWScalingNew[0]<0.0) MoveType=CF_DELETE_MOVE;
   else if(CFVDWScalingNew[0]>1.0) MoveType=CF_INSERT_MOVE;
@@ -14587,7 +14593,8 @@ int CFSwapLambaMove(void)
 
 void PrintCFSwapLambdaStatistics(FILE *FilePtr)
 {
-  int i,MoveUsed;
+  int i,k,MoveUsed;
+  REAL total;
 
   MoveUsed=FALSE;
   for(i=0;i<NumberOfComponents;i++)
@@ -14618,6 +14625,15 @@ void PrintCFSwapLambdaStatistics(FILE *FilePtr)
           (double)CFSwapLambdaAccepted[CurrentSystem][i][2],
           (double)(CFSwapLambdaAttempts[CurrentSystem][i][2]>(REAL)0.0?
             100.0*CFSwapLambdaAccepted[CurrentSystem][i][2]/CFSwapLambdaAttempts[CurrentSystem][i][2]:(REAL)0.0));
+
+      total=0.0;
+      for(k=0;k<LambdaHistogramSize;k++)
+        total+=LambdaHistogram[CurrentSystem][i][k];
+
+      fprintf(FilePtr,"\n\tLambda probabilities:\n");
+      fprintf(FilePtr,"\t---------------------\n");
+      for(k=0;k<LambdaHistogramSize;k++)
+        fprintf(FilePtr,"\tLambda [ %4f - %4f ]: %18.10f\n",(REAL)k/LambdaHistogramSize,(REAL)(k+1)/LambdaHistogramSize,100.0*LambdaHistogram[CurrentSystem][i][k]/total);
     }
     fprintf(FilePtr,"\n");
   }
@@ -14661,8 +14677,6 @@ int CFCBSwapLambaMove(void)
   int SelectedRetraceMolecule,LastMolecule;
   REAL PartialFugacity,RosenbluthIdeal,Rosen;
 
-  printf("Starting Lambda move\n");
-
 
   FractionalMolecule=Components[CurrentComponent].FractionalMolecule[CurrentSystem];
 
@@ -14679,11 +14693,10 @@ int CFCBSwapLambaMove(void)
     CFVDWScalingStored[i]=Adsorbates[CurrentSystem][FractionalMolecule].Atoms[i].CFVDWScalingParameter;
     CFChargeScalingStored[i]=Adsorbates[CurrentSystem][FractionalMolecule].Atoms[i].CFChargeScalingParameter;
 
+
     CFVDWScalingNew[i]=Adsorbates[CurrentSystem][FractionalMolecule].Atoms[i].CFVDWScalingParameter+vNew;
     CFChargeScalingNew[i]=pow(CFVDWScaling[i],5);
   }
-  printf("NEW scaling: %18.10f %18.10f\n",CFVDWScalingNew[0],CFChargeScalingNew[0]);
-  
 
   if(CFVDWScalingNew[0]<0.0) MoveType=CF_DELETE_MOVE;
   else if(CFVDWScalingNew[0]>1.0) MoveType=CF_INSERT_MOVE;
@@ -15372,7 +15385,8 @@ int CFCBSwapLambaMove(void)
 
 void PrintCFCBSwapLambdaStatistics(FILE *FilePtr)
 {
-  int i,MoveUsed;
+  int i,k,MoveUsed;
+  REAL total;
 
   MoveUsed=FALSE;
   for(i=0;i<NumberOfComponents;i++)
@@ -15403,6 +15417,16 @@ void PrintCFCBSwapLambdaStatistics(FILE *FilePtr)
           (double)CFCBSwapLambdaAccepted[CurrentSystem][i][2],
           (double)(CFCBSwapLambdaAttempts[CurrentSystem][i][2]>(REAL)0.0?
             100.0*CFCBSwapLambdaAccepted[CurrentSystem][i][2]/CFCBSwapLambdaAttempts[CurrentSystem][i][2]:(REAL)0.0));
+
+      total=0.0;
+      for(k=0;k<LambdaHistogramSize;k++)
+        total+=LambdaHistogram[CurrentSystem][i][k];
+
+      fprintf(FilePtr,"\tLambda probabilities:\n"); 
+      fprintf(FilePtr,"\t---------------------\n"); 
+      for(k=0;k<LambdaHistogramSize;k++)
+        fprintf(FilePtr,"\tLambda [%g-%g]: %18.10f\n",(REAL)k/LambdaHistogramSize,(REAL)(k+1)/LambdaHistogramSize,LambdaHistogram[CurrentSystem][i][k]);
+        
     }
     fprintf(FilePtr,"\n");
   }
@@ -15472,6 +15496,8 @@ void WriteRestartMcMoves(FILE *FilePtr)
 
       fwrite(GibbsIdentityChangeAttempts[i][j],sizeof(REAL),NumberOfComponents,FilePtr);
       fwrite(GibbsIdentityChangeAccepted[i][j],sizeof(REAL[2]),NumberOfComponents,FilePtr);
+
+      fwrite(LambdaHistogram[i][j],sizeof(REAL),LambdaHistogramSize,FilePtr);
     }
 
     fwrite(ParallelTemperingAttempts[i],sizeof(REAL),NumberOfSystems,FilePtr);
@@ -15726,6 +15752,8 @@ void AllocateMCMovesMemory(void)
   GibbsIdentityChangeAttempts=(REAL***)calloc(NumberOfSystems,sizeof(REAL**));
   GibbsIdentityChangeAccepted=(REAL(***)[2])calloc(NumberOfSystems,sizeof(REAL(**)[2]));
 
+  LambdaHistogram=(REAL***)calloc(NumberOfSystems,sizeof(REAL**));
+
   ParallelTemperingAttempts=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
   ParallelTemperingAccepted=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
 
@@ -15791,6 +15819,8 @@ void AllocateMCMovesMemory(void)
     GibbsIdentityChangeAttempts[i]=(REAL**)calloc(NumberOfComponents,sizeof(REAL*));
     GibbsIdentityChangeAccepted[i]=(REAL(**)[2])calloc(NumberOfComponents,sizeof(REAL(*)[2]));
 
+    LambdaHistogram[i]=(REAL**)calloc(NumberOfComponents,sizeof(REAL*));
+
     for(j=0;j<NumberOfComponents;j++)
     {
       IdentityChangeAttempts[i][j]=(REAL*)calloc(NumberOfComponents,sizeof(REAL));
@@ -15798,6 +15828,8 @@ void AllocateMCMovesMemory(void)
 
       GibbsIdentityChangeAttempts[i][j]=(REAL*)calloc(NumberOfComponents,sizeof(REAL));
       GibbsIdentityChangeAccepted[i][j]=(REAL(*)[2])calloc(NumberOfComponents,sizeof(REAL[2]));
+
+      LambdaHistogram[i][j]=(REAL*)calloc(LambdaHistogramSize,sizeof(REAL));
     }
 
     ParallelTemperingAttempts[i]=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
@@ -16032,6 +16064,8 @@ void ReadRestartMcMoves(FILE *FilePtr)
 
       fread(GibbsIdentityChangeAttempts[i][j],sizeof(REAL),NumberOfComponents,FilePtr);
       fread(GibbsIdentityChangeAccepted[i][j],sizeof(REAL[2]),NumberOfComponents,FilePtr);
+
+      fread(LambdaHistogram[i][j],sizeof(REAL),LambdaHistogramSize,FilePtr);
     }
 
     fread(ParallelTemperingAttempts[i],sizeof(REAL),NumberOfSystems,FilePtr);

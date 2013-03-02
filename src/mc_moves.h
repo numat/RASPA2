@@ -78,6 +78,8 @@ extern int NumberOfHybridNPHPRSteps;
 extern REAL *MaximumCFCRXMCLambdaChange;
 extern REAL TargetAccRatioCFCRXMCLambdaChange;
 
+extern int LambdaHistogramSize;
+
 //----------------------------------------------------------------------------------------
 
 void InitializeMCMovesStatisticsAllSystems(void);
