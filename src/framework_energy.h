@@ -46,10 +46,10 @@ int CalculateFrameworkIntraReplicaChargeChargeEnergy(void);
 int CalculateFrameworkIntraChargeBondDipoleEnergy(void);
 int CalculateFrameworkIntraBondDipoleBondDipoleEnergy(void);
 
-void CalculateFrameworkAdsorbateVDWEnergy(void);
-void CalculateFrameworkAdsorbateReplicaVDWEnergy(void);
-void CalculateFrameworkCationVDWEnergy(void);
-void CalculateFrameworkCationReplicaVDWEnergy(void);
+int CalculateFrameworkAdsorbateVDWEnergy(void);
+int CalculateFrameworkAdsorbateReplicaVDWEnergy(void);
+int CalculateFrameworkCationVDWEnergy(void);
+int CalculateFrameworkCationReplicaVDWEnergy(void);
 
 int CalculateFrameworkAdsorbateChargeChargeEnergy(void);
 int CalculateFrameworkAdsorbateReplicaChargeChargeEnergy(void);
@@ -75,8 +75,8 @@ void CalculateFrameworkEnergyDifferenceShiftedFramework(void);
 int CalculateFrameworkAdsorbateVDWEnergyDifference(int m,int comp,int New,int Old);
 int CalculateFrameworkCationVDWEnergyDifference(int m,int comp,int New,int Old);
 
-void CalculateFrameworkAdsorbateChargeChargeEnergyDifference(int m,int comp,int New,int Old);
-void CalculateFrameworkCationChargeChargeEnergyDifference(int m,int comp,int New,int Old);
+int CalculateFrameworkAdsorbateChargeChargeEnergyDifference(int m,int comp,int New,int Old);
+int CalculateFrameworkCationChargeChargeEnergyDifference(int m,int comp,int New,int Old);
 
 int CalculateFrameworkAdsorbateChargeBondDipoleEnergyDifference(int m,int comp,int New,int Old);
 int CalculateFrameworkCationChargeBondDipoleEnergyDifference(int m,int comp,int New,int Old);

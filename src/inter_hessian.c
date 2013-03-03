@@ -4896,7 +4896,6 @@ void CalculateBondConstraintExclusionHessian(REAL *Energy,REAL* Gradient,REAL_MA
   int ncell,k1,k2,k3;
   int typeA,typeB;
   REAL f1,f2,ReplicaFactor,energy;
-  REAL ChargeA,ChargeB;
 
   for(m=0;m<NumberOfDistanceConstraints[CurrentSystem];m++)
   {

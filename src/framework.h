@@ -431,7 +431,7 @@ void AllocateAnisotropicNeighbors(void);
 
 void ReadFrameworkDefinitionMOL(void);
 
-int ReadFrameworkSpecificDefinition(void);
+void ReadFrameworkSpecificDefinition(void);
 int ReadFrameworkDefinition(void);
 void WriteFrameworkDefinition(void);
 

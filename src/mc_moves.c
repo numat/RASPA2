@@ -13930,7 +13930,7 @@ void CFWangLandauIteration(int Switch)
           condition=TRUE;
           for(k=0;k<CFLambdaHistogramSize;k++)
           {
-            if(CFLambdaHistogram[i][j][k]<0.7*MostProbableValue)
+            if(CFLambdaHistogram[i][j][k]<0.8*MostProbableValue)
             {
               condition=FALSE;
               break;
@@ -14024,7 +14024,7 @@ int CFSwapLambaMove(void)
     CFChargeScalingStored[i]=Adsorbates[CurrentSystem][FractionalMolecule].Atoms[i].CFChargeScalingParameter;
 
     CFVDWScalingNew[i]=Adsorbates[CurrentSystem][FractionalMolecule].Atoms[i].CFVDWScalingParameter+vNew;
-    CFChargeScalingNew[i]=pow(CFVDWScaling[i],5);
+    CFChargeScalingNew[i]=pow(CFVDWScalingNew[i],5);
   }
 
   if(CFVDWScalingNew[0]<0.0) MoveType=CF_DELETE_MOVE;
@@ -14079,20 +14079,26 @@ int CFSwapLambaMove(void)
   if(OVERLAP) goto l1;
 
   CalculateInterChargeChargeEnergyDifferenceAdsorbate(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE);
+  if(OVERLAP) goto l1;
 
   CalculateInterChargeBondDipoleEnergyDifferenceAdsorbate(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE);
+  if(OVERLAP) goto l1;
 
   CalculateInterBondDipoleBondDipoleEnergyDifferenceAdsorbate(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE);
+  if(OVERLAP) goto l1;
 
   // compute energy differences framework-adsorbate
   CalculateFrameworkAdsorbateVDWEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE);
   if(OVERLAP) goto l1;
 
   CalculateFrameworkAdsorbateChargeChargeEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE);
+  if(OVERLAP) goto l1;
 
   CalculateFrameworkAdsorbateChargeBondDipoleEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE);
+  if(OVERLAP) goto l1;
 
   CalculateFrameworkAdsorbateBondDipoleBondDipoleEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE);
+  if(OVERLAP) goto l1;
 
   // compute the energy differenes in Fourier-space
   if((ChargeMethod==EWALD)&&(!OmitEwaldFourier))
@@ -14178,7 +14184,7 @@ int CFSwapLambaMove(void)
       for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
       {
         CFVDWScaling[i]=CFVDWScalingNew[i]-1.0;
-        CFChargeScaling[i]=CFChargeScalingNew[i]-1.0;
+        CFChargeScaling[i]=pow(CFVDWScaling[i],5);
 
         Adsorbates[CurrentSystem][FractionalMolecule].Atoms[i].CFVDWScalingParameter=1.0;
         Adsorbates[CurrentSystem][FractionalMolecule].Atoms[i].CFChargeScalingParameter=1.0;
@@ -14203,20 +14209,26 @@ int CFSwapLambaMove(void)
       if(OVERLAP) goto l1;
 
       CalculateInterChargeChargeEnergyDifferenceAdsorbate(CurrentAdsorbateMolecule,CurrentComponent,TRUE,FALSE);
+      if(OVERLAP) goto l1;
 
       CalculateInterChargeBondDipoleEnergyDifferenceAdsorbate(CurrentAdsorbateMolecule,CurrentComponent,TRUE,FALSE);
+      if(OVERLAP) goto l1;
 
       CalculateInterBondDipoleBondDipoleEnergyDifferenceAdsorbate(CurrentAdsorbateMolecule,CurrentComponent,TRUE,FALSE);
+      if(OVERLAP) goto l1;
 
       // compute energy differences framework-adsorbate
       CalculateFrameworkAdsorbateVDWEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,FALSE);
       if(OVERLAP) goto l1;
 
       CalculateFrameworkAdsorbateChargeChargeEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,FALSE);
+      if(OVERLAP) goto l1;
 
       CalculateFrameworkAdsorbateChargeBondDipoleEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,FALSE);
+      if(OVERLAP) goto l1;
 
       CalculateFrameworkAdsorbateBondDipoleBondDipoleEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,FALSE);
+      if(OVERLAP) goto l1;
 
       // compute the energy differenes in Fourier-space
       if((ChargeMethod==EWALD)&&(!OmitEwaldFourier))
@@ -14274,7 +14286,7 @@ int CFSwapLambaMove(void)
         Adsorbates[CurrentSystem][SelectedRetraceMolecule].Atoms[i].CFChargeScalingParameter=1.0;
 
         CFVDWScaling[i]=CFVDWScalingNew[i]+1.0;
-        CFChargeScaling[i]=CFChargeScalingNew[i]+1.0;
+        CFChargeScaling[i]=pow(CFVDWScaling[i],5);
       }
 
       // calculate the energy of the current configuration with a change in lambda (but with the same positions)

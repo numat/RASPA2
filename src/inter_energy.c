@@ -4562,7 +4562,7 @@ int CalculateInterVDWEnergyDifferenceCation(int m,int comp,int New,int Old)
 int CalculateInterChargeChargeEnergyDifferenceAdsorbate(int m,int comp,int New,int Old)
 {
   int i,j,k;
-  REAL r2,chargeB;
+  REAL r2,chargeB,energy;
   REAL chargeA_new,chargeA_old;
   VECTOR posA_new,posA_old,posB,dr;
   int ncell;
@@ -4606,7 +4606,11 @@ int CalculateInterChargeChargeEnergyDifferenceAdsorbate(int m,int comp,int New,i
               dr=ApplyReplicaBoundaryCondition(dr);
               r2=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
               if(r2<CutOffChargeChargeSquared)
-                UAdsorbateChargeChargeRealDelta[CurrentSystem]+=0.5*PotentialValueCoulombic(chargeA_new,chargeB,sqrt(r2));
+              {
+                energy=0.5*PotentialValueCoulombic(chargeA_new,chargeB,sqrt(r2));
+                if(energy>=EnergyOverlapCriteria) return OVERLAP=TRUE;
+                UAdsorbateChargeChargeRealDelta[CurrentSystem]+=energy;
+              }
             }
           }
 
@@ -4646,7 +4650,11 @@ int CalculateInterChargeChargeEnergyDifferenceAdsorbate(int m,int comp,int New,i
                   dr=ApplyReplicaBoundaryCondition(dr);
                   r2=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
                   if(r2<CutOffChargeChargeSquared)
-                    UAdsorbateChargeChargeRealDelta[CurrentSystem]+=PotentialValueCoulombic(chargeA_new,chargeB,sqrt(r2));
+                  {
+                    energy=PotentialValueCoulombic(chargeA_new,chargeB,sqrt(r2));
+                    if(energy>=EnergyOverlapCriteria) return OVERLAP=TRUE;
+                    UAdsorbateChargeChargeRealDelta[CurrentSystem]+=energy;
+                  }
                 }
               }
     
@@ -4685,7 +4693,11 @@ int CalculateInterChargeChargeEnergyDifferenceAdsorbate(int m,int comp,int New,i
               dr=ApplyReplicaBoundaryCondition(dr);
               r2=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
               if(r2<CutOffChargeChargeSquared)
-                UCationChargeChargeRealDelta[CurrentSystem]+=PotentialValueCoulombic(chargeA_new,chargeB,sqrt(r2));
+              {
+                energy=PotentialValueCoulombic(chargeA_new,chargeB,sqrt(r2));
+                if(energy>=EnergyOverlapCriteria) return OVERLAP=TRUE;
+                UCationChargeChargeRealDelta[CurrentSystem]+=energy;
+              }
             }
           }
     
@@ -4741,7 +4753,11 @@ int CalculateInterChargeChargeEnergyDifferenceAdsorbate(int m,int comp,int New,i
                 dr=ApplyBoundaryCondition(dr);
                 r2=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
                 if(r2<CutOffChargeChargeSquared)
-                  UAdsorbateChargeChargeRealDelta[CurrentSystem]+=PotentialValueCoulombic(chargeA_new,chargeB,sqrt(r2));
+                {
+                  energy=PotentialValueCoulombic(chargeA_new,chargeB,sqrt(r2));
+                  if(energy>=EnergyOverlapCriteria) return OVERLAP=TRUE;
+                  UAdsorbateChargeChargeRealDelta[CurrentSystem]+=energy;
+                }
               }
  
               if(Old)
@@ -4774,7 +4790,11 @@ int CalculateInterChargeChargeEnergyDifferenceAdsorbate(int m,int comp,int New,i
             dr=ApplyBoundaryCondition(dr);
             r2=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
             if(r2<CutOffChargeChargeSquared)
-              UCationChargeChargeRealDelta[CurrentSystem]+=PotentialValueCoulombic(chargeA_new,chargeB,sqrt(r2));
+            {
+              energy=PotentialValueCoulombic(chargeA_new,chargeB,sqrt(r2));
+              if(energy>=EnergyOverlapCriteria) return OVERLAP=TRUE;
+              UCationChargeChargeRealDelta[CurrentSystem]+=energy;
+            }
           }
  
           if(Old)

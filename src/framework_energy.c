@@ -3132,11 +3132,11 @@ int CalculateFrameworkIntraBondDipoleBondDipoleEnergy(void)
   return 0;
 }
 
-void CalculateFrameworkAdsorbateVDWEnergy(void)
+int CalculateFrameworkAdsorbateVDWEnergy(void)
 {
   int i,j,k,l,f1;
   int typeA,typeB,type;
-  REAL rr,scalingA;
+  REAL rr,scalingA,energy;
   VECTOR posA,posB,dr;
   VECTOR s;
   int icell0,icell;
@@ -3223,20 +3223,25 @@ void CalculateFrameworkAdsorbateVDWEnergy(void)
               rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
 
               if(rr<CutOffVDWSquared)
-                UHostAdsorbateVDW[CurrentSystem]+=PotentialValue(typeA,typeB,rr,scalingA);
+              {
+                energy=PotentialValue(typeA,typeB,rr,scalingA);;
+                if(energy>=EnergyOverlapCriteria) return OVERLAP=TRUE;
+                UHostAdsorbateVDW[CurrentSystem]+=energy;
+              }
             }
           }
         }
       }
     }
   }
+  return 0;
 }
 
-void CalculateFrameworkCationVDWEnergy(void)
+int CalculateFrameworkCationVDWEnergy(void)
 {
   int i,j,k,l,f1;
   int typeA,typeB,type;
-  REAL rr,scalingA;
+  REAL rr,scalingA,energy;
   VECTOR posA,posB,dr;
   VECTOR s;
   int icell0,icell;
@@ -3323,13 +3328,18 @@ void CalculateFrameworkCationVDWEnergy(void)
               rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
 
               if(rr<CutOffVDWSquared)
-                UHostCationVDW[CurrentSystem]+=PotentialValue(typeA,typeB,rr,scalingA);
+              {
+                energy=PotentialValue(typeA,typeB,rr,scalingA);
+                if(energy>=EnergyOverlapCriteria) return OVERLAP=TRUE;
+                UHostCationVDW[CurrentSystem]+=energy;
+              }
             }
           }
         }
       }
     }
   }
+  return 0;
 }
 
 int CalculateFrameworkAdsorbateChargeChargeEnergy(void)
@@ -7646,7 +7656,7 @@ int CalculateFrameworkIntraReplicaChargeChargeEnergy(void)
 }
 
 
-void CalculateFrameworkAdsorbateReplicaVDWEnergy(void)
+int CalculateFrameworkAdsorbateReplicaVDWEnergy(void)
 {
   int i,j,k,f1;
   int typeA,typeB,type;
@@ -7693,9 +7703,10 @@ void CalculateFrameworkAdsorbateReplicaVDWEnergy(void)
       }
     }
   }
+  return 0;
 }
 
-void CalculateFrameworkCationReplicaVDWEnergy(void)
+int CalculateFrameworkCationReplicaVDWEnergy(void)
 {
   int i,j,k,f1;
   int typeA,typeB,type;
@@ -7742,6 +7753,7 @@ void CalculateFrameworkCationReplicaVDWEnergy(void)
       }
     }
   }
+  return 0;
 }
 
 int CalculateFrameworkAdsorbateReplicaChargeChargeEnergy(void)
@@ -8473,11 +8485,11 @@ int CalculateFrameworkCationVDWEnergyDifference(int m,int comp,int New,int Old)
  *            | int CFCBSwapLambaMove(void)                                                              *
  *********************************************************************************************************/
 
-void CalculateFrameworkAdsorbateChargeChargeEnergyDifference(int m,int comp,int New,int Old)
+int CalculateFrameworkAdsorbateChargeChargeEnergyDifference(int m,int comp,int New,int Old)
 {
   int j,k,f1,typeA;
   POINT posA_new,posA_old,posB;
-  REAL rr,chargeB;
+  REAL rr,chargeB,energy;
   REAL chargeA_old,chargeA_new;
   VECTOR dr;
   int ncell;
@@ -8485,7 +8497,7 @@ void CalculateFrameworkAdsorbateChargeChargeEnergyDifference(int m,int comp,int 
   // Framework-Adsorbate energy
   UHostChargeChargeRealDelta[CurrentSystem]=0.0;
 
-  if(ChargeMethod==NONE) return;
+  if(ChargeMethod==NONE) return 0;
 
   if(Framework[CurrentSystem].FrameworkModel!=NONE)
   {
@@ -8496,7 +8508,7 @@ void CalculateFrameworkAdsorbateChargeChargeEnergyDifference(int m,int comp,int 
       {
         posA_new=TrialPosition[CurrentSystem][j];
         typeA=Components[comp].Type[j];
-        chargeA_new=CFChargeScaling[j]*PseudoAtoms[typeA].Charge1;;
+        chargeA_new=CFChargeScaling[j]*PseudoAtoms[typeA].Charge1;
       }
 
       if(Old)
@@ -8533,7 +8545,11 @@ void CalculateFrameworkAdsorbateChargeChargeEnergyDifference(int m,int comp,int 
                 rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
 
                 if(rr<CutOffChargeChargeSquared)
-                  UHostChargeChargeRealDelta[CurrentSystem]+=PotentialValueCoulombic(chargeA_new,chargeB,sqrt(rr));
+                {
+                  energy=PotentialValueCoulombic(chargeA_new,chargeB,sqrt(rr));
+                  if(energy>=EnergyOverlapCriteria) return OVERLAP=TRUE;
+                  UHostChargeChargeRealDelta[CurrentSystem]+=energy;
+                }
               }
             }
 
@@ -8572,7 +8588,11 @@ void CalculateFrameworkAdsorbateChargeChargeEnergyDifference(int m,int comp,int 
               rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
 
               if(rr<CutOffChargeChargeSquared)
-                UHostChargeChargeRealDelta[CurrentSystem]+=PotentialValueCoulombic(chargeA_new,chargeB,sqrt(rr));
+              {
+                energy=PotentialValueCoulombic(chargeA_new,chargeB,sqrt(rr));
+                if(energy>=EnergyOverlapCriteria) return OVERLAP=TRUE;
+                UHostChargeChargeRealDelta[CurrentSystem]+=energy;
+              }
             }
 
             if(Old)
@@ -8591,6 +8611,7 @@ void CalculateFrameworkAdsorbateChargeChargeEnergyDifference(int m,int comp,int 
       }
     }
   }
+  return 0;
 }
 
 /*********************************************************************************************************
@@ -8616,7 +8637,7 @@ void CalculateFrameworkAdsorbateChargeChargeEnergyDifference(int m,int comp,int 
  *            | int CFCBSwapLambaMove(void)                                                              *
  *********************************************************************************************************/
 
-void CalculateFrameworkCationChargeChargeEnergyDifference(int m,int comp,int New,int Old)
+int CalculateFrameworkCationChargeChargeEnergyDifference(int m,int comp,int New,int Old)
 {
   int j,k,f1,typeA;
   POINT posA_new,posA_old,posB;
@@ -8628,7 +8649,7 @@ void CalculateFrameworkCationChargeChargeEnergyDifference(int m,int comp,int New
   // Framework-Cation energy
   UHostChargeChargeRealDelta[CurrentSystem]=0.0;
 
-  if(ChargeMethod==NONE) return;
+  if(ChargeMethod==NONE) return 0;
 
   if(Framework[CurrentSystem].FrameworkModel!=NONE)
   {
@@ -8734,6 +8755,7 @@ void CalculateFrameworkCationChargeChargeEnergyDifference(int m,int comp,int New
       }
     }
   }
+  return 0;
 }
 
 

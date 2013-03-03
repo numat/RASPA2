@@ -6738,7 +6738,7 @@ void AddImproperTorsionTypeToDefinitions(int TypeA,int TypeB,int TypeC,int TypeD
  *            | framework exclusion rules (1-2, 1-3, 1-4 omission, bond/bend/torsion omission).          *
  *********************************************************************************************************/
 
-int ReadFrameworkSpecificDefinition(void)
+void ReadFrameworkSpecificDefinition(void)
 {
   int i,j,k,l,m,n,f1,index_excluded,present,nr_atoms;
   char line[16384],string[1024],buffer[256];
