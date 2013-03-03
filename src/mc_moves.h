@@ -80,6 +80,7 @@ extern REAL TargetAccRatioCFCRXMCLambdaChange;
 
 extern int CFLambdaHistogramSize;
 extern int CFWangLandauEvery;
+extern REAL **MaximumCFLambdaChange;
 
 //----------------------------------------------------------------------------------------
 
@@ -180,6 +181,7 @@ void SurfaceAreaMove(void);
 
 void CFWangLandauIteration(int Switch);
 int CFSwapLambaMove(void);
+void OptimizeCFLambdaChangeAcceptence(void);
 int CFCBSwapLambaMove(void);
 
 void WriteRestartMcMoves(FILE *FilePtr);

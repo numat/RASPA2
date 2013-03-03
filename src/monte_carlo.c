@@ -264,6 +264,7 @@ void MonteCarloSimulation(void)
           if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
             OptimizeFrameworkChangeAcceptence();
           OptimizeFrameworkShiftAcceptence();
+          OptimizeCFLambdaChangeAcceptence();
           RescaleMaximumRotationAnglesSmallMC();
         }
       }
@@ -301,7 +302,7 @@ void MonteCarloSimulation(void)
         {
           for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
           {
-            PrintIntervalStatusEquilibration(CurrentCycle,NumberOfInitializationCycles,OutputFilePtr[CurrentSystem]);
+            PrintIntervalStatusEquilibration(CurrentCycle,NumberOfEquilibrationCycles,OutputFilePtr[CurrentSystem]);
             PrintRestartFile();
           }
         }
@@ -427,6 +428,7 @@ void MonteCarloSimulation(void)
             if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
               OptimizeFrameworkChangeAcceptence();
             OptimizeFrameworkShiftAcceptence();
+            OptimizeCFLambdaChangeAcceptence();
             RescaleMaximumRotationAnglesSmallMC();
           }
         }
@@ -638,6 +640,7 @@ void MonteCarloSimulation(void)
           if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
             OptimizeFrameworkChangeAcceptence();
           OptimizeFrameworkShiftAcceptence();
+          OptimizeCFLambdaChangeAcceptence();
           RescaleMaximumRotationAnglesSmallMC();
         }
       }

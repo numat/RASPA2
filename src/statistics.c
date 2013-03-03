@@ -1491,7 +1491,7 @@ void PrintIntervalStatusInit(long long CurrentCycle,long long NumberOfCycles,FIL
       if(Components[i].CFMoleculePresent[CurrentSystem])
       {
         FractionalMolecule=Components[i].FractionalMolecule[CurrentSystem];
-        fprintf(FilePtr,"Fractional molecule-id: %d\n",FractionalMolecule);
+        fprintf(FilePtr,"Fractional molecule-id: %d, max. Lambda-change: %5lf\n",FractionalMolecule,MaximumCFLambdaChange[CurrentSystem][i]);
         fprintf(FilePtr,"Lambda factors: ");
         for(k=0;k<Components[i].NumberOfAtoms;k++)
         {
@@ -1682,7 +1682,7 @@ void PrintIntervalStatusEquilibration(long long CurrentCycle,long long NumberOfC
       if(Components[i].CFMoleculePresent[CurrentSystem])
       {
         FractionalMolecule=Components[i].FractionalMolecule[CurrentSystem];
-        fprintf(FilePtr,"Fractional molecule-id: %d\n",FractionalMolecule);
+        fprintf(FilePtr,"Fractional molecule-id: %d, max. Lambda-change: %5lf\n",FractionalMolecule,MaximumCFLambdaChange[CurrentSystem][i]);
         fprintf(FilePtr,"Lambda factors: ");
         for(k=0;k<Components[i].NumberOfAtoms;k++) 
         {
@@ -2494,7 +2494,7 @@ void PrintIntervalStatus(long long CurrentCycle,long long NumberOfCycles, FILE *
       if(Components[i].CFMoleculePresent[CurrentSystem])
       {
         FractionalMolecule=Components[i].FractionalMolecule[CurrentSystem];
-        fprintf(FilePtr,"Fractional molecule-id: %d\n",FractionalMolecule);
+        fprintf(FilePtr,"Fractional molecule-id: %d, max. Lambda-change: %5lf\n",FractionalMolecule,MaximumCFLambdaChange[CurrentSystem][i]);
         fprintf(FilePtr,"Lambda factors: ");
         for(k=0;k<Components[i].NumberOfAtoms;k++)
         {

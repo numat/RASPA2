@@ -150,8 +150,15 @@ static REAL (**SwapRemoveAccepted)[2];
 
 static REAL (**CFSwapLambdaAttempts)[3];
 static REAL (**CFSwapLambdaAccepted)[3];
+static REAL **TotalCFSwapLambdaAttempts;
+static REAL **TotalCFSwapLambdaAccepted;
+REAL **MaximumCFLambdaChange;
+
 static REAL (**CFCBSwapLambdaAttempts)[3];
 static REAL (**CFCBSwapLambdaAccepted)[3];
+static REAL **TotalCFCBSwapLambdaAttempts;
+static REAL **TotalCFCBSwapLambdaAccepted;
+REAL **MaximumCFCBLambdaChange;
 
 static REAL **ReinsertionAttempts;
 static REAL (**ReinsertionAccepted)[2];
@@ -396,6 +403,8 @@ void InitializeMCMovesStatisticsAllSystems(void)
       CFSwapLambdaAccepted[j][i][0]=0.0;
       CFSwapLambdaAccepted[j][i][1]=0.0;
       CFSwapLambdaAccepted[j][i][2]=0.0;
+      TotalCFSwapLambdaAttempts[j][i]=0.0;
+      TotalCFSwapLambdaAccepted[j][i]=0.0;
 
       CFCBSwapLambdaAttempts[j][i][0]=0.0;
       CFCBSwapLambdaAttempts[j][i][1]=0.0;
@@ -403,6 +412,8 @@ void InitializeMCMovesStatisticsAllSystems(void)
       CFCBSwapLambdaAccepted[j][i][0]=0.0;
       CFCBSwapLambdaAccepted[j][i][1]=0.0;
       CFCBSwapLambdaAccepted[j][i][2]=0.0;
+      TotalCFCBSwapLambdaAttempts[j][i]=0.0;
+      TotalCFCBSwapLambdaAccepted[j][i]=0.0;
 
       PartialReinsertionAttempts[j][i]=0.0;
       PartialReinsertionAccepted[j][i][0]=0.0;
@@ -442,7 +453,6 @@ void InitializeMCMovesStatisticsAllSystems(void)
       ReinsertionInPlaceAttempts[j][i]=0.0;
       ReinsertionInPlaceAccepted[j][i][0]=0.0;
       ReinsertionInPlaceAccepted[j][i][1]=0.0;
-
 
       for(k=0;k<NumberOfComponents;k++)
       {
@@ -13999,7 +14009,7 @@ int CFSwapLambaMove(void)
   CFLambdaHistogram[CurrentSystem][CurrentComponent][index_old]+=1.0;
 
   // calculate a random displacement
-  vNew=(2.0*RandomNumber()-1.0)*0.2;
+  vNew=(2.0*RandomNumber()-1.0)*MaximumCFLambdaChange[CurrentSystem][CurrentComponent];
 
   LambdaNew=LambdaOld+vNew;
   if(LambdaNew>1.0) LambdaNew-=1.0;
@@ -14066,6 +14076,7 @@ int CFSwapLambaMove(void)
 
   // compute inter-molecular energy differences
   CalculateInterVDWEnergyDifferenceAdsorbate(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE);
+  if(OVERLAP) goto l1;
 
   CalculateInterChargeChargeEnergyDifferenceAdsorbate(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE);
 
@@ -14075,6 +14086,7 @@ int CFSwapLambaMove(void)
 
   // compute energy differences framework-adsorbate
   CalculateFrameworkAdsorbateVDWEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE);
+  if(OVERLAP) goto l1;
 
   CalculateFrameworkAdsorbateChargeChargeEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE);
 
@@ -14188,6 +14200,7 @@ int CFSwapLambaMove(void)
 
       // compute inter-molecular energy differences
       CalculateInterVDWEnergyDifferenceAdsorbate(CurrentAdsorbateMolecule,CurrentComponent,TRUE,FALSE);
+      if(OVERLAP) goto l1;
 
       CalculateInterChargeChargeEnergyDifferenceAdsorbate(CurrentAdsorbateMolecule,CurrentComponent,TRUE,FALSE);
 
@@ -14197,6 +14210,7 @@ int CFSwapLambaMove(void)
 
       // compute energy differences framework-adsorbate
       CalculateFrameworkAdsorbateVDWEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,FALSE);
+      if(OVERLAP) goto l1;
 
       CalculateFrameworkAdsorbateChargeChargeEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,FALSE);
 
@@ -14656,6 +14670,7 @@ int CFSwapLambaMove(void)
   }
   else
   {
+l1:;
     #ifdef DEBUG
       printf("Lambda-move adsorbate rejected\n");
     #endif
@@ -14673,6 +14688,40 @@ int CFSwapLambaMove(void)
 
   return 0;
 
+}
+
+/*********************************************************************************************************
+ * Name       | OptimizeTranslationAcceptence                                                            *
+ * ----------------------------------------------------------------------------------------------------- *
+ * Function   | Adjusts the maximum displacement on-the-fly to obtain an acceptance-rate of 50%.         *
+ * Parameters | -                                                                                        *
+ *********************************************************************************************************/
+
+void OptimizeCFLambdaChangeAcceptence(void)
+{
+  int i;
+  REAL ratio,vandr;
+
+  for(i=0;i<NumberOfComponents;i++)
+  {
+    if(CFSwapLambdaAttempts[CurrentSystem][i][0]>0.0)
+      ratio=CFSwapLambdaAccepted[CurrentSystem][i][0]/CFSwapLambdaAttempts[CurrentSystem][i][0];
+    else
+      ratio=0.0;
+
+    vandr=ratio/TargetAccRatioTranslation;
+    if(vandr>1.0) vandr=1.0;
+    else if(vandr<0.5) vandr=0.5;
+    MaximumCFLambdaChange[CurrentSystem][i]*=vandr;
+    if(MaximumCFLambdaChange[CurrentSystem][i]<0.01)
+       MaximumCFLambdaChange[CurrentSystem][i]=0.01;
+    if(MaximumCFLambdaChange[CurrentSystem][i]>1.0)
+       MaximumCFLambdaChange[CurrentSystem][i]=1.0;
+
+    TotalCFSwapLambdaAttempts[CurrentSystem][i]+=CFSwapLambdaAttempts[CurrentSystem][i][0];
+    TotalCFSwapLambdaAccepted[CurrentSystem][i]+=CFSwapLambdaAccepted[CurrentSystem][i][0];
+    CFSwapLambdaAttempts[CurrentSystem][i][0]=CFSwapLambdaAccepted[CurrentSystem][i][0]=0.0;
+  }
 }
 
 
@@ -15805,9 +15854,15 @@ void AllocateMCMovesMemory(void)
 
   CFSwapLambdaAttempts=(REAL(**)[3])calloc(NumberOfSystems,sizeof(REAL(*)[3]));
   CFSwapLambdaAccepted=(REAL(**)[3])calloc(NumberOfSystems,sizeof(REAL(*)[3]));
+  TotalCFSwapLambdaAttempts=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
+  TotalCFSwapLambdaAccepted=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
+  MaximumCFLambdaChange=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
 
   CFCBSwapLambdaAttempts=(REAL(**)[3])calloc(NumberOfSystems,sizeof(REAL(*)[3]));
   CFCBSwapLambdaAccepted=(REAL(**)[3])calloc(NumberOfSystems,sizeof(REAL(*)[3]));
+  TotalCFCBSwapLambdaAttempts=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
+  TotalCFCBSwapLambdaAccepted=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
+  MaximumCFCBLambdaChange=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
 
   ReinsertionAttempts=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
   ReinsertionAccepted=(REAL(**)[2])calloc(NumberOfSystems,sizeof(REAL(*)[2]));
@@ -15872,9 +15927,15 @@ void AllocateMCMovesMemory(void)
 
     CFSwapLambdaAttempts[i]=(REAL(*)[3])calloc(NumberOfComponents,sizeof(REAL[3]));
     CFSwapLambdaAccepted[i]=(REAL(*)[3])calloc(NumberOfComponents,sizeof(REAL[3]));
+    TotalCFSwapLambdaAttempts[i]=(REAL*)calloc(NumberOfComponents,sizeof(REAL));
+    TotalCFSwapLambdaAccepted[i]=(REAL*)calloc(NumberOfComponents,sizeof(REAL));
+    MaximumCFLambdaChange[i]=(REAL*)calloc(NumberOfComponents,sizeof(REAL));
 
     CFCBSwapLambdaAttempts[i]=(REAL(*)[3])calloc(NumberOfComponents,sizeof(REAL[3]));
     CFCBSwapLambdaAccepted[i]=(REAL(*)[3])calloc(NumberOfComponents,sizeof(REAL[3]));
+    TotalCFCBSwapLambdaAttempts[i]=(REAL*)calloc(NumberOfComponents,sizeof(REAL));
+    TotalCFCBSwapLambdaAccepted[i]=(REAL*)calloc(NumberOfComponents,sizeof(REAL));
+    MaximumCFCBLambdaChange[i]=(REAL*)calloc(NumberOfComponents,sizeof(REAL));
 
     ReinsertionAttempts[i]=(REAL*)calloc(NumberOfComponents,sizeof(REAL));
     ReinsertionAccepted[i]=(REAL(*)[2])calloc(NumberOfComponents,sizeof(REAL[2]));

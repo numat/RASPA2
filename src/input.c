@@ -5428,6 +5428,7 @@ int ReadInputFile(char *inputfilename)
 
     for(j=0;j<NumberOfComponents;j++)
     {
+      MaximumCFLambdaChange[i][j]=0.5;
       switch(Components[j].TranslationDirection)
       {
         case XYZ_DIR:
