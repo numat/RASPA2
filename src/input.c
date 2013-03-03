@@ -182,6 +182,7 @@ int ReadInputFile(char *inputfilename)
   REAL realinput1,realinput2;
   int LineNumber;
   int CurrentPrism,CurrentCylinder,CurrentSphere;
+  int NumberOfCFBiasingFactors;
 
   NumberOfFixedAtomTypes=0;
   NumberOfActiveAtomTypes=0;
@@ -386,7 +387,8 @@ int ReadInputFile(char *inputfilename)
   TargetAccRatioGibbsVolumeChange=0.5;
   TargetAccRatioCFCRXMCLambdaChange=0.5;        // CFC-RXMC
 
-  LambdaHistogramSize=20;
+  CFLambdaHistogramSize=20;
+  CFWangLandauEvery=5000;
 
   NumberOfHybridNVESteps=5;
   NumberOfHybridNPHSteps=5;
@@ -566,6 +568,8 @@ int ReadInputFile(char *inputfilename)
     }
 
     if(strcasecmp("Dimension",keyword)==0) sscanf(arguments,"%d",&Dimension);
+
+    if(strcasecmp("CFLambdaHistogramSize",keyword)==0) sscanf(arguments,"%d",&CFLambdaHistogramSize);
 
     // read statements for the number of systems
     if(strcasecmp("Box",keyword)==0)
@@ -747,6 +751,7 @@ int ReadInputFile(char *inputfilename)
 
     Components[i].FractionalMolecule=(int*)calloc(NumberOfSystems,sizeof(int));
     Components[i].CFMoleculePresent=(int*)calloc(NumberOfSystems,sizeof(int));
+    Components[i].CFWangLandauScalingFactor=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
 
     Components[i].MOLEC_PER_UC_TO_MOL_PER_KG=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
     Components[i].MOLEC_PER_UC_TO_GRAM_PER_GRAM_OF_FRAMEWORK=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
@@ -765,6 +770,8 @@ int ReadInputFile(char *inputfilename)
     Components[i].BlockDistance=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
     Components[i].BlockCenters=(VECTOR**)calloc(NumberOfSystems,sizeof(VECTOR*));
 
+    Components[i].CFBiasingFactors=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
+
     for(j=0;j<NumberOfSystems;j++)
     {
       Components[i].BlockPockets[j]=FALSE;
@@ -777,6 +784,13 @@ int ReadInputFile(char *inputfilename)
       // start with no defined fractional molecule
       Components[i].FractionalMolecule[j]=-1;
       Components[i].CFMoleculePresent[j]=FALSE;
+      Components[i].CFWangLandauScalingFactor[j]=0.01;
+
+      Components[i].CFBiasingFactors[j]=(REAL*)calloc(CFLambdaHistogramSize,sizeof(REAL));
+
+      // starting bias-factor for CF are zero
+      for(k=0;k<CFLambdaHistogramSize;k++)
+        Components[i].CFBiasingFactors[j][k]=0.0;
     }
 
     strcpy(Components[i].MoleculeDefinition,"TraPPE");
@@ -2437,6 +2451,18 @@ int ReadInputFile(char *inputfilename)
           Swapable=TRUE;
         }
       }
+    if(strcasecmp("CFWangLandauScalingFactor",keyword)==0)
+      sscanf(arguments,"%lf",&Components[CurrentComponent].CFWangLandauScalingFactor[CurrentSystem]);
+    if(strcasecmp("CFBiasingFactors",keyword)==0)
+    {
+      arg_pointer=arguments;
+      NumberOfCFBiasingFactors=0;
+      while(sscanf(arg_pointer,"%lf%n",&Components[CurrentComponent].CFBiasingFactors[CurrentSystem][NumberOfCFBiasingFactors],&n)==1)
+      {
+        arg_pointer+=n;
+        NumberOfCFBiasingFactors++;
+      }
+    }
     if(strcasecmp("WidomProbability",keyword)==0) 
       if(sscanf(arguments,"%lf",&Components[CurrentComponent].ProbabilityWidomMove))
         if(Components[CurrentComponent].ProbabilityWidomMove>0.0)

@@ -41,6 +41,7 @@
 #include "warnings.h"
 #include "integration.h"
 #include "equations_of_state.h"
+#include "mc_moves.h"
 
 long long *BlockCycle;
 REAL **BlockCount;
@@ -1426,9 +1427,10 @@ VECTOR GetAverageComponentVectorProperty(VECTOR ***Property,int comp)
 
 void PrintIntervalStatusInit(long long CurrentCycle,long long NumberOfCycles,FILE *FilePtr)
 {
-  int i;
+  int i,k;
   REAL number_of_unit_cells;
-  REAL loading,average_loading;
+  int FractionalMolecule;
+  REAL loading,average_loading,Lambda,shift;
   VECTOR com;
 
   fprintf(FilePtr,"[Init] Current cycle: %lld out of %lld\n",CurrentCycle,NumberOfCycles);
@@ -1487,7 +1489,29 @@ void PrintIntervalStatusInit(long long CurrentCycle,long long NumberOfCycles,FIL
         Components[i].NumberOfMolecules[CurrentSystem],
         (double)(Components[i].Mass*(REAL)Components[i].NumberOfMolecules[CurrentSystem]/Volume[CurrentSystem])*DENSITY_CONVERSION_FACTOR);
       if(Components[i].CFMoleculePresent[CurrentSystem])
-        fprintf(FilePtr,"Fractional molecule-id: %d\n",Components[i].FractionalMolecule[CurrentSystem]);
+      {
+        FractionalMolecule=Components[i].FractionalMolecule[CurrentSystem];
+        fprintf(FilePtr,"Fractional molecule-id: %d\n",FractionalMolecule);
+        fprintf(FilePtr,"Lambda factors: ");
+        for(k=0;k<Components[i].NumberOfAtoms;k++)
+        {
+          if(Components[i].ExtraFrameworkMolecule)
+            Lambda=Cations[CurrentSystem][FractionalMolecule].Atoms[i].CFVDWScalingParameter;
+          else
+            Lambda=Adsorbates[CurrentSystem][FractionalMolecule].Atoms[i].CFVDWScalingParameter;
+          fprintf(FilePtr,"%4f ",Lambda);
+          if((k+1)%10==0&&(k+1)!=Components[i].NumberOfAtoms)  fprintf(FilePtr,"\n                ");
+        }
+        fprintf(FilePtr,"\n");
+        shift=Components[i].CFBiasingFactors[CurrentSystem][0];
+        fprintf(FilePtr,"Biasing Factors: ");
+        for(k=0;k<CFLambdaHistogramSize;k++)
+        {
+          fprintf(FilePtr,"%4f ",Components[i].CFBiasingFactors[CurrentSystem][k]-shift);
+          if((k+1)%10==0&&(k+1)!=CFLambdaHistogramSize)  fprintf(FilePtr,"\n                 ");
+        }
+        fprintf(FilePtr,"\n");
+      }
 
       loading=(REAL)Components[i].NumberOfMolecules[CurrentSystem]/(REAL)number_of_unit_cells;
       average_loading=GetAverageComponentProperty(NumberOfMoleculesPerComponentAverage,i)/(REAL)number_of_unit_cells;
@@ -1584,12 +1608,13 @@ void PrintIntervalStatusInit(long long CurrentCycle,long long NumberOfCycles,FIL
 
 void PrintIntervalStatusEquilibration(long long CurrentCycle,long long NumberOfCycles,FILE *FilePtr)
 {
-  int i;
+  int i,k;
   REAL number_of_unit_cells;
-  REAL loading,average_loading;
+  int FractionalMolecule;
+  REAL loading,average_loading,shift,Lambda;
   VECTOR com;
 
-  fprintf(FilePtr,"[Init] Current cycle: %lld out of %lld\n",CurrentCycle,NumberOfCycles);
+  fprintf(FilePtr,"[Equilibration] Current cycle: %lld out of %lld\n",CurrentCycle,NumberOfCycles);
   fprintf(FilePtr,"========================================================================================================\n\n");
   fprintf(FilePtr,"Net charge: %g (F: %g, A: %g, C: %g)\n",NetChargeSystem[CurrentSystem],NetChargeFramework[CurrentSystem],
                                                            NetChargeAdsorbates[CurrentSystem],NetChargeCations[CurrentSystem]);
@@ -1655,7 +1680,29 @@ void PrintIntervalStatusEquilibration(long long CurrentCycle,long long NumberOfC
         Components[i].NumberOfMolecules[CurrentSystem],
         (double)(Components[i].Mass*(REAL)Components[i].NumberOfMolecules[CurrentSystem]/Volume[CurrentSystem])*DENSITY_CONVERSION_FACTOR);
       if(Components[i].CFMoleculePresent[CurrentSystem])
-        fprintf(FilePtr,"Fractional molecule-id: %d\n",Components[i].FractionalMolecule[CurrentSystem]);
+      {
+        FractionalMolecule=Components[i].FractionalMolecule[CurrentSystem];
+        fprintf(FilePtr,"Fractional molecule-id: %d\n",FractionalMolecule);
+        fprintf(FilePtr,"Lambda factors: ");
+        for(k=0;k<Components[i].NumberOfAtoms;k++) 
+        {
+          if(Components[i].ExtraFrameworkMolecule)
+            Lambda=Cations[CurrentSystem][FractionalMolecule].Atoms[i].CFVDWScalingParameter;
+          else
+            Lambda=Adsorbates[CurrentSystem][FractionalMolecule].Atoms[i].CFVDWScalingParameter;
+          fprintf(FilePtr,"%4f ",Lambda);
+          if((k+1)%10==0&&(k+1)!=Components[i].NumberOfAtoms)  fprintf(FilePtr,"\n                ");
+        }
+        fprintf(FilePtr,"\n");
+        shift=Components[i].CFBiasingFactors[CurrentSystem][0];
+        fprintf(FilePtr,"Biasing Factors: ");
+        for(k=0;k<CFLambdaHistogramSize;k++)
+        {
+          fprintf(FilePtr,"%4f ",Components[i].CFBiasingFactors[CurrentSystem][k]-shift);
+          if((k+1)%10==0&&(k+1)!=CFLambdaHistogramSize)  fprintf(FilePtr,"\n                 ");
+        }
+        fprintf(FilePtr,"\n");
+      }
 
       loading=(REAL)Components[i].NumberOfMolecules[CurrentSystem]/(REAL)number_of_unit_cells;
       average_loading=GetAverageComponentProperty(NumberOfMoleculesPerComponentAverage,i)/(REAL)number_of_unit_cells;
@@ -2193,9 +2240,6 @@ REAL GetAverageCationSurfaceArea(void)
   else return 0.0;
 }
 
-
-
-
 void PrintPropertyStatus(long long CurrentCycle,long long NumberOfCycles, FILE *FilePtr)
 {
   int i,k;
@@ -2302,9 +2346,11 @@ void PrintPropertyStatus(long long CurrentCycle,long long NumberOfCycles, FILE *
 
 void PrintIntervalStatus(long long CurrentCycle,long long NumberOfCycles, FILE *FilePtr)
 {
-  int i;
+  int i,k;
   REAL number_of_unit_cells;
+  int FractionalMolecule;
   REAL loading,average_loading,fac,fac2,temp;
+  REAL Lambda,shift;
   REAL_MATRIX3x3 Stress;
   VECTOR com;
 
@@ -2446,7 +2492,29 @@ void PrintIntervalStatus(long long CurrentCycle,long long NumberOfCycles, FILE *
         (double)(Components[i].Mass*(REAL)Components[i].NumberOfMolecules[CurrentSystem]/Volume[CurrentSystem])*DENSITY_CONVERSION_FACTOR,
         (double)GetAverageComponentProperty(DensityPerComponentAverage,i)*DENSITY_CONVERSION_FACTOR);
       if(Components[i].CFMoleculePresent[CurrentSystem])
-        fprintf(FilePtr,"Fractional molecule-id: %d\n",Components[i].FractionalMolecule[CurrentSystem]);
+      {
+        FractionalMolecule=Components[i].FractionalMolecule[CurrentSystem];
+        fprintf(FilePtr,"Fractional molecule-id: %d\n",FractionalMolecule);
+        fprintf(FilePtr,"Lambda factors: ");
+        for(k=0;k<Components[i].NumberOfAtoms;k++)
+        {
+          if(Components[i].ExtraFrameworkMolecule)
+            Lambda=Cations[CurrentSystem][FractionalMolecule].Atoms[i].CFVDWScalingParameter;
+          else
+            Lambda=Adsorbates[CurrentSystem][FractionalMolecule].Atoms[i].CFVDWScalingParameter;
+          fprintf(FilePtr,"%4f ",Lambda);
+          if((k+1)%10==0&&(k+1)!=Components[i].NumberOfAtoms)  fprintf(FilePtr,"\n                ");
+        }
+        fprintf(FilePtr,"\n");
+        shift=Components[i].CFBiasingFactors[CurrentSystem][0];
+        fprintf(FilePtr,"Biasing Factors: ");
+        for(k=0;k<CFLambdaHistogramSize;k++)
+        {
+          fprintf(FilePtr,"%4f ",Components[i].CFBiasingFactors[CurrentSystem][k]-shift);
+          if((k+1)%10==0&&(k+1)!=CFLambdaHistogramSize)  fprintf(FilePtr,"\n                 ");
+        }
+        fprintf(FilePtr,"\n");
+      }
 
       loading=(REAL)Components[i].NumberOfMolecules[CurrentSystem]/(REAL)number_of_unit_cells;
       average_loading=GetAverageComponentProperty(NumberOfMoleculesPerComponentAverage,i)/(REAL)number_of_unit_cells;

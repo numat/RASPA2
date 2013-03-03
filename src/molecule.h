@@ -301,6 +301,8 @@ typedef struct Component
   REAL Lambda;                    // the Lambda of the component
   int *FractionalMolecule;
   int *CFMoleculePresent;
+  REAL *CFWangLandauScalingFactor;
+  REAL **CFBiasingFactors;
 
   REAL *IdealGasRosenbluthWeight; // the Rosenbluth weight of an ideal-chain per system
   REAL *IdealGasTotalEnergy;      // the total energy of an ideal-chain per system

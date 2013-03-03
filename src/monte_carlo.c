@@ -66,7 +66,8 @@ void MonteCarloSimulation(void)
   if(ContinueAfterCrash)
   {
     if(SimulationStage==POSITION_INITIALIZATION) goto ContinueAfterCrashLabel1;
-    else goto ContinueAfterCrashLabel2;
+    else if(SimulationStage==VELOCITY_EQUILIBRATION) goto ContinueAfterCrashLabel2;
+    else goto ContinueAfterCrashLabel3;
   }
   
   // allocate memory for sampling routines
@@ -121,6 +122,8 @@ void MonteCarloSimulation(void)
 
     // compute total energy for all systems
     CalculateTotalEnergyAllSystems();
+
+    CFWangLandauIteration(INITIALIZE);
 
     // initialization to reach equilibration of positions (no averages are computed yet)
     SimulationStage=POSITION_INITIALIZATION;
@@ -267,14 +270,182 @@ void MonteCarloSimulation(void)
     }
 
 
-    // after equilibration, recompute all the energies
+
+    // initialize the energies and compute the total energies for all systems
     InitializesEnergiesAllSystems();
     InitializesEnergyAveragesAllSystems();
 
     InitializeSmallMCStatisticsAllSystems();
     InitializeMCMovesStatisticsAllSystems();
 
+    // compute total energy for all systems
     CalculateTotalEnergyAllSystems();
+
+    if(NumberOfEquilibrationCycles>0)
+    {
+      CFWangLandauIteration(INITIALIZE);
+
+      // initialization to reach equilibration of positions (no averages are computed yet)
+      SimulationStage=CF_WANG_LANDAU_EQUILIBRATION;
+      for(CurrentCycle=0;CurrentCycle<NumberOfEquilibrationCycles;CurrentCycle++)
+      {
+        if((CurrentCycle>0)&&(WriteBinaryRestartFileEvery>0)&&(CurrentCycle%WriteBinaryRestartFileEvery==0))
+          WriteBinaryRestartFiles();
+        
+        // a label to jump to for a restart, everything before here is skipped
+        // this is the point where the previous binary restart file was written
+        ContinueAfterCrashLabel2: ;
+
+        // Print at 'PrintEvery' intervals the status and a restart-file
+        if((CurrentCycle%PrintEvery)==0) 
+        {
+          for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
+          {
+            PrintIntervalStatusEquilibration(CurrentCycle,NumberOfInitializationCycles,OutputFilePtr[CurrentSystem]);
+            PrintRestartFile();
+          }
+        }
+
+        // moves
+        for(i=0;i<NumberOfSystems;i++)
+        { 
+          // choose system at random
+          CurrentSystem=(int)(RandomNumber()*(REAL)NumberOfSystems);
+
+          NumberOfSystemMoves=12;
+          NumberOfParticleMoves=MAX2(MinimumInnerCycles,NumberOfAdsorbateMolecules[CurrentSystem]+NumberOfCationMolecules[CurrentSystem]);
+          NumberOfSteps=(NumberOfSystemMoves+NumberOfParticleMoves)*NumberOfComponents;
+
+          for(j=0;j<NumberOfSteps;j++)
+          {
+            ran_int=(int)(RandomNumber()*NumberOfSteps);
+            switch(ran_int)
+            {
+              case 0:
+                if(RandomNumber()<ProbabilityParallelTemperingMove) ParallelTemperingMove();
+                break;
+              case 1:
+                if(RandomNumber()<ProbabilityHyperParallelTemperingMove) HyperParallelTemperingMove();
+                break;
+              case 2:
+                if(RandomNumber()<ProbabilityParallelMolFractionMove) ParallelMolFractionMove();
+                break;
+              case 3:
+                if(RandomNumber()<ProbabilityChiralInversionMove) ChiralInversionMove();
+                break;
+              case 4:
+                if(RandomNumber()<ProbabilityHybridNVEMove) HybridNVEMove();
+                break;
+              case 5:
+                if(RandomNumber()<ProbabilityHybridNPHMove) HybridNPHMove();
+                break;
+              case 6:
+                if(RandomNumber()<ProbabilityHybridNPHPRMove) HybridNPHPRMove();
+                break;
+              case 7:
+                if(RandomNumber()<ProbabilityVolumeChangeMove) VolumeMove();
+                break;
+              case 8:
+                if(RandomNumber()<ProbabilityBoxShapeChangeMove) BoxShapeChangeMove();
+                break;
+              case 9:
+                if(RandomNumber()<ProbabilityGibbsVolumeChangeMove) GibbsVolumeMove();
+                break;
+              case 10:
+                if(RandomNumber()<ProbabilityFrameworkChangeMove) FrameworkChangeMove();
+                break;
+              case 11:
+                if(RandomNumber()<ProbabilityFrameworkShiftMove) FrameworkShiftMove();
+                break;
+              default:
+                // choose component at random
+                CurrentComponent=(int)(RandomNumber()*(REAL)NumberOfComponents);
+
+                // choose the Monte Carlo move at random
+                ran=RandomNumber();
+
+                if(ran<Components[CurrentComponent].ProbabilityTranslationMove)
+                {
+                  #ifdef DEBUG
+                    printf("Chosen MC-move: TranslationMove\n");
+                  #endif
+                  TranslationMove();
+                }
+                else if(ran<Components[CurrentComponent].ProbabilityRandomTranslationMove)
+                  RandomTranslationMove();
+                else if(ran<Components[CurrentComponent].ProbabilityRotationMove)
+                {
+                  #ifdef DEBUG
+                    printf("Chosen MC-move: RotationMove\n");
+                  #endif
+                  RotationMove();
+                }
+                else if(ran<Components[CurrentComponent].ProbabilityPartialReinsertionMove)
+                  PartialReinsertionMove();
+                else if(ran<Components[CurrentComponent].ProbabilityReinsertionMove)
+                  ReinsertionMove();
+                else if(ran<Components[CurrentComponent].ProbabilityReinsertionInPlaceMove)
+                  ReinsertionInPlaceMove();
+                else if(ran<Components[CurrentComponent].ProbabilityReinsertionInPlaneMove)
+                  ReinsertionInPlaneMove();
+                else if(ran<Components[CurrentComponent].ProbabilityIdentityChangeMove)
+                  IdentityChangeMove();
+                else if(ran<Components[CurrentComponent].ProbabilitySwapMove)
+                {
+                  if(RandomNumber()<0.5) SwapAddMove();
+                  else SwapRemoveMove();
+                }
+                else if(ran<Components[CurrentComponent].ProbabilityCFSwapLambdaMove)
+                {
+                  CFSwapLambaMove();
+                  CFWangLandauIteration(SAMPLE);
+                }
+                else if(ran<Components[CurrentComponent].ProbabilityCFCBSwapLambdaMove)
+                  CFCBSwapLambaMove();
+                else if(ran<Components[CurrentComponent].ProbabilityWidomMove)
+                  ;
+                else if(ran<Components[CurrentComponent].ProbabilitySurfaceAreaMove)
+                  ;
+                else if(ran<Components[CurrentComponent].ProbabilityGibbsSwapChangeMove)
+                  GibbsParticleTransferMove();
+                else if(ran<Components[CurrentComponent].ProbabilityGibbsIdentityChangeMove)
+                  GibbsIdentityChangeMove();
+                break;
+            }
+            #ifdef DEBUG
+              DebugEnergyStatus();
+            #endif
+          }
+        }
+
+        if(CurrentCycle%PrintEvery==0)
+        {
+          for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
+          {
+            OptimizeVolumeChangeAcceptence();
+            OptimizeTranslationAcceptence();
+            if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+              OptimizeFrameworkChangeAcceptence();
+            OptimizeFrameworkShiftAcceptence();
+            RescaleMaximumRotationAnglesSmallMC();
+          }
+        }
+
+        if(CurrentCycle%CFWangLandauEvery==0)
+          CFWangLandauIteration(PRINT);
+      }
+
+      CFWangLandauIteration(FINALIZE);
+
+      // after equilibration, recompute all the energies
+      InitializesEnergiesAllSystems();
+      InitializesEnergyAveragesAllSystems();
+
+      InitializeSmallMCStatisticsAllSystems();
+      InitializeMCMovesStatisticsAllSystems();
+
+      CalculateTotalEnergyAllSystems();
+    }
 
     // initialize sampling-routines at the start of the production run
     SampleRadialDistributionFunction(INITIALIZE);
@@ -476,7 +647,7 @@ void MonteCarloSimulation(void)
 
       // a label to jump to for a restart, everything before here is skipped
       // this is the point where the previous binary restart file was written
-      ContinueAfterCrashLabel2: ;
+      ContinueAfterCrashLabel3: ;
 
       for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
       {

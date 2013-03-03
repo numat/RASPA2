@@ -78,7 +78,8 @@ extern int NumberOfHybridNPHPRSteps;
 extern REAL *MaximumCFCRXMCLambdaChange;
 extern REAL TargetAccRatioCFCRXMCLambdaChange;
 
-extern int LambdaHistogramSize;
+extern int CFLambdaHistogramSize;
+extern int CFWangLandauEvery;
 
 //----------------------------------------------------------------------------------------
 
@@ -177,6 +178,7 @@ void PrintHybridNPHPRStatistics(FILE *FilePtr);
 
 void SurfaceAreaMove(void);
 
+void CFWangLandauIteration(int Switch);
 int CFSwapLambaMove(void);
 int CFCBSwapLambaMove(void);
 
