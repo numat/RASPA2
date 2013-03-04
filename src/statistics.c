@@ -1505,10 +1505,10 @@ void PrintIntervalStatusInit(long long CurrentCycle,long long NumberOfCycles,FIL
         fprintf(FilePtr,"\n");
         shift=Components[i].CFBiasingFactors[CurrentSystem][0];
         fprintf(FilePtr,"Biasing Factors: ");
-        for(k=0;k<CFLambdaHistogramSize;k++)
+        for(k=0;k<Components[i].CFLambdaHistogramSize;k++)
         {
           fprintf(FilePtr,"%4f ",Components[i].CFBiasingFactors[CurrentSystem][k]-shift);
-          if((k+1)%10==0&&(k+1)!=CFLambdaHistogramSize)  fprintf(FilePtr,"\n                 ");
+          if((k+1)%10==0&&(k+1)!=Components[i].CFLambdaHistogramSize)  fprintf(FilePtr,"\n                 ");
         }
         fprintf(FilePtr,"\n");
       }
@@ -1696,10 +1696,10 @@ void PrintIntervalStatusEquilibration(long long CurrentCycle,long long NumberOfC
         fprintf(FilePtr,"\n");
         shift=Components[i].CFBiasingFactors[CurrentSystem][0];
         fprintf(FilePtr,"Biasing Factors: ");
-        for(k=0;k<CFLambdaHistogramSize;k++)
+        for(k=0;k<Components[i].CFLambdaHistogramSize;k++)
         {
           fprintf(FilePtr,"%4f ",Components[i].CFBiasingFactors[CurrentSystem][k]-shift);
-          if((k+1)%10==0&&(k+1)!=CFLambdaHistogramSize)  fprintf(FilePtr,"\n                 ");
+          if((k+1)%10==0&&(k+1)!=Components[i].CFLambdaHistogramSize)  fprintf(FilePtr,"\n                 ");
         }
         fprintf(FilePtr,"\n");
       }
@@ -2508,10 +2508,10 @@ void PrintIntervalStatus(long long CurrentCycle,long long NumberOfCycles, FILE *
         fprintf(FilePtr,"\n");
         shift=Components[i].CFBiasingFactors[CurrentSystem][0];
         fprintf(FilePtr,"Biasing Factors: ");
-        for(k=0;k<CFLambdaHistogramSize;k++)
+        for(k=0;k<Components[i].CFLambdaHistogramSize;k++)
         {
           fprintf(FilePtr,"%4f ",Components[i].CFBiasingFactors[CurrentSystem][k]-shift);
-          if((k+1)%10==0&&(k+1)!=CFLambdaHistogramSize)  fprintf(FilePtr,"\n                 ");
+          if((k+1)%10==0&&(k+1)!=Components[i].CFLambdaHistogramSize)  fprintf(FilePtr,"\n                 ");
         }
         fprintf(FilePtr,"\n");
       }
@@ -3886,6 +3886,7 @@ void WriteRestartStatistics(FILE *FilePtr)
 {
   int i,j;
   int NumberOfBlocks=NR_BLOCKS;
+  REAL Check;
 
   NumberOfBlocks=NR_BLOCKS;
 
@@ -4065,6 +4066,9 @@ void WriteRestartStatistics(FILE *FilePtr)
       fwrite(PrincipleMomentsOfInertiaCount[i][j],sizeof(REAL),NumberOfBlocks,FilePtr);
     }
   }
+
+  Check=123456789.0;
+  fwrite(&Check,1,sizeof(REAL),FilePtr);
 }
 
 void AllocateStatisticsMemory(void)
@@ -4433,6 +4437,7 @@ void ReadRestartStatistics(FILE *FilePtr)
 {
   int i,j;
   int NumberOfBlocks;
+  REAL Check;
 
   NumberOfBlocks=NR_BLOCKS;
 
@@ -4614,5 +4619,12 @@ void ReadRestartStatistics(FILE *FilePtr)
       fread(PrincipleMomentsOfInertiaAverage[i][j],sizeof(REAL),NumberOfBlocks,FilePtr);
       fread(PrincipleMomentsOfInertiaCount[i][j],sizeof(REAL),NumberOfBlocks,FilePtr);
     }
+  }
+
+  fread(&Check,1,sizeof(REAL),FilePtr);
+  if(fabs(Check-123456789.0)>1e-10)
+  {
+    printf("Error in binary restart-file (ReadRestartStatistics)\n");
+    exit(0);
   }
 }

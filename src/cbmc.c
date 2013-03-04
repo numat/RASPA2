@@ -3535,6 +3535,7 @@ void PrintSmallMCAddStatistics(FILE *FilePtr)
 
 void WriteRestartCBMC(FILE *FilePtr)
 {
+  REAL Check;
   fwrite(&BiasingMethod,sizeof(BiasingMethod),1,FilePtr);
   fwrite(&NumberOfTrialPositions,sizeof(NumberOfTrialPositions),1,FilePtr);
   fwrite(&NumberOfTrialPositionsForTheFirstBead,sizeof(NumberOfTrialPositionsForTheFirstBead),1,FilePtr);
@@ -3561,6 +3562,9 @@ void WriteRestartCBMC(FILE *FilePtr)
   fwrite(&MaxNumberOfIntraChargeCharge,sizeof(int),1,FilePtr);
   fwrite(&MaxNumberOfIntraChargeBondDipole,sizeof(int),1,FilePtr);
   fwrite(&MaxNumberOfIntraBondDipoleBondDipole,sizeof(int),1,FilePtr);
+
+  Check=123456789.0;
+  fwrite(&Check,1,sizeof(REAL),FilePtr);
 }
 
 void AllocateCBMCMemory(void)
@@ -3817,6 +3821,7 @@ void AllocateCBMCMemory(void)
 
 void ReadRestartCBMC(FILE *FilePtr)
 {
+  REAL Check;
   fread(&BiasingMethod,sizeof(BiasingMethod),1,FilePtr);
   fread(&NumberOfTrialPositions,sizeof(NumberOfTrialPositions),1,FilePtr);
   fread(&NumberOfTrialPositionsForTheFirstBead,sizeof(NumberOfTrialPositionsForTheFirstBead),1,FilePtr);
@@ -3845,4 +3850,11 @@ void ReadRestartCBMC(FILE *FilePtr)
   fread(&MaxNumberOfIntraBondDipoleBondDipole,sizeof(int),1,FilePtr);
 
   AllocateCBMCMemory();
+
+  fread(&Check,1,sizeof(REAL),FilePtr);
+  if(fabs(Check-123456789.0)>1e-10)
+  {
+    printf("Error in binary restart-file (ReadRestartCBMC)\n");
+    exit(0);
+  }
 }

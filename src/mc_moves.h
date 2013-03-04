@@ -78,9 +78,9 @@ extern int NumberOfHybridNPHPRSteps;
 extern REAL *MaximumCFCRXMCLambdaChange;
 extern REAL TargetAccRatioCFCRXMCLambdaChange;
 
-extern int CFLambdaHistogramSize;
 extern int CFWangLandauEvery;
 extern REAL **MaximumCFLambdaChange;
+extern REAL TargetAccRatioLambdaChange;
 
 //----------------------------------------------------------------------------------------
 

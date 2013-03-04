@@ -5936,10 +5936,25 @@ void AllocateMinimizationMemory(void)
 
 void WriteRestartMinimization(FILE *FilePtr)
 {
+  REAL Check;
+
+  Check=123456789.0;
+  fwrite(&Check,1,sizeof(REAL),FilePtr);
+
+
 }
 
 void ReadRestartMinimization(FILE *FilePtr)
 {
+  REAL Check;
+
   AllocateMinimizationMemory();
+
+  fread(&Check,1,sizeof(REAL),FilePtr);
+  if(fabs(Check-123456789.0)>1e-10)
+  {
+    printf("Error in binary restart-file (ReadRestartMinimization)\n");
+    exit(0);
+  }
 }
 

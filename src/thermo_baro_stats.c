@@ -3449,6 +3449,7 @@ void NoseHooverNPHPR(void)
 void WriteRestartThermoBarostats(FILE *FilePtr)
 {
   int i;
+  REAL Check;
 
   fwrite(&therm_baro_stats,1,sizeof(therm_baro_stats),FilePtr);
   fwrite(&NumberOfIsothermPressures,1,sizeof(int),FilePtr);
@@ -3517,6 +3518,9 @@ void WriteRestartThermoBarostats(FILE *FilePtr)
     fwrite(BarostatPosition[i],therm_baro_stats.BarostatChainLength,sizeof(REAL),FilePtr);
     fwrite(BarostatMass[i],therm_baro_stats.BarostatChainLength,sizeof(REAL),FilePtr);
   }
+
+  Check=123456789.0;
+  fwrite(&Check,1,sizeof(REAL),FilePtr);
 }
 
 void AllocateThermoBaroStatMemory(void)
@@ -3632,6 +3636,7 @@ void AllocateThermoBaroStatMemory(void)
 void ReadRestartThermoBarostats(FILE *FilePtr)
 {
   int i;
+  REAL Check;
 
   fread(&therm_baro_stats,1,sizeof(therm_baro_stats),FilePtr);
   fread(&NumberOfIsothermPressures,1,sizeof(int),FilePtr);
@@ -3701,5 +3706,12 @@ void ReadRestartThermoBarostats(FILE *FilePtr)
     fread(BarostatVelocity[i],therm_baro_stats.BarostatChainLength,sizeof(REAL),FilePtr);
     fread(BarostatPosition[i],therm_baro_stats.BarostatChainLength,sizeof(REAL),FilePtr);
     fread(BarostatMass[i],therm_baro_stats.BarostatChainLength,sizeof(REAL),FilePtr);
+  }
+
+  fread(&Check,1,sizeof(REAL),FilePtr);
+  if(fabs(Check-123456789.0)>1e-10)
+  {
+    printf("Error in binary restart-file (ReadRestartThermoBarostats)\n");
+    exit(0);
   }
 }

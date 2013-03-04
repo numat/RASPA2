@@ -18257,6 +18257,7 @@ int CalculateEwaldFourierPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX_MAT
 void WriteRestartEwald(FILE *FilePtr)
 {
   int i;
+  REAL Check;
 
   fwrite(&OmitEwaldFourier,sizeof(int),1,FilePtr);
   fwrite(Alpha,sizeof(REAL),NumberOfSystems,FilePtr);
@@ -18304,11 +18305,15 @@ void WriteRestartEwald(FILE *FilePtr)
       fwrite(StoreTotalBondDipolesAdsorbates[i],sizeof(COMPLEX),NumberOfKVectors[i],FilePtr);
     }
   }
+
+  Check=123456789.0;
+  fwrite(&Check,1,sizeof(REAL),FilePtr);
 }
 
 void ReadRestartEwald(FILE *FilePtr)
 {
   int i;
+  REAL Check;
 
   Alpha=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
   kvec=(INT_VECTOR3*)calloc(NumberOfSystems,sizeof(INT_VECTOR3));
@@ -18363,6 +18368,13 @@ void ReadRestartEwald(FILE *FilePtr)
       fread(StoreTotalBondDipolesCations[i],sizeof(COMPLEX),NumberOfKVectors[i],FilePtr);
       fread(StoreTotalBondDipolesAdsorbates[i],sizeof(COMPLEX),NumberOfKVectors[i],FilePtr);
     }
+  }
+
+  fread(&Check,1,sizeof(REAL),FilePtr);
+  if(fabs(Check-123456789.0)>1e-10)
+  {
+    printf("Error in binary restart-file (ReadRestartEwald)\n");
+    exit(0);
   }
 
   //CurrentSystem=0;

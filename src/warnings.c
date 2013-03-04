@@ -278,10 +278,14 @@ void PrintWarningStatus(void)
 
 void WriteRestartWarnings(FILE *FilePtr)
 {
+  REAL Check;
   fwrite(NumberOfWarnings,sizeof(int),NumberOfSystems,FilePtr);
   fwrite(Warnings,sizeof(int[MAX_NUMBER_OF_WARNINGS]),NumberOfSystems,FilePtr);
   fwrite(NumberOfWarningValues,sizeof(int[MAX_NUMBER_OF_WARNINGS]),NumberOfSystems,FilePtr);
   fwrite(WarningValues,sizeof(char[MAX_NUMBER_OF_WARNINGS][MAX_NUMBER_OF_WARNING_ARGUMENTS][32]),NumberOfSystems,FilePtr);
+
+  Check=123456789.0;
+  fwrite(&Check,1,sizeof(REAL),FilePtr);
 }
 
 void AllocateWarningsMemory(void)
@@ -295,10 +299,18 @@ void AllocateWarningsMemory(void)
 
 void ReadRestartWarnings(FILE *FilePtr)
 {
+  REAL Check;
   AllocateWarningsMemory();
 
   fread(NumberOfWarnings,sizeof(int),NumberOfSystems,FilePtr);
   fread(Warnings,sizeof(int[MAX_NUMBER_OF_WARNINGS]),NumberOfSystems,FilePtr);
   fread(NumberOfWarningValues,sizeof(int[MAX_NUMBER_OF_WARNINGS]),NumberOfSystems,FilePtr);
   fread(WarningValues,sizeof(char[MAX_NUMBER_OF_WARNINGS][MAX_NUMBER_OF_WARNING_ARGUMENTS][32]),NumberOfSystems,FilePtr);
+
+  fread(&Check,1,sizeof(REAL),FilePtr);
+  if(fabs(Check-123456789.0)>1e-10)
+  {
+    printf("Error in binary restart-file (ReadRestartWarnings)\n");
+    exit(0);
+  }
 }

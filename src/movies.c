@@ -2006,6 +2006,7 @@ void WriteRestartMovies(FILE *FilePtr)
 {
   int i,j;
   fpos_t pos;
+  REAL Check;
 
   fwrite(Movies,NumberOfSystems,sizeof(int),FilePtr);
   fwrite(WriteMoviesEvery,NumberOfSystems,sizeof(int),FilePtr);
@@ -2042,6 +2043,9 @@ void WriteRestartMovies(FILE *FilePtr)
       fwrite(&pos,1,sizeof(fpos_t),FilePtr);
     }
   }
+
+  Check=123456789.0;
+  fwrite(&Check,1,sizeof(REAL),FilePtr);
 }
 
 void ReadRestartMovies(FILE *FilePtr)
@@ -2049,6 +2053,7 @@ void ReadRestartMovies(FILE *FilePtr)
   int i,j;
   fpos_t pos;
   char buffer[1024];
+  REAL Check;
 
   AllocateMovieMemory();
 
@@ -2109,6 +2114,13 @@ void ReadRestartMovies(FILE *FilePtr)
       else
         PDBFilePtrwork[i]=fopen(buffer,"a");
     }
+  }
+
+  fread(&Check,1,sizeof(REAL),FilePtr);
+  if(fabs(Check-123456789.0)>1e-10)
+  {
+    printf("Error in binary restart-file (ReadRestartMovies)\n");
+    exit(0);
   }
 }
 

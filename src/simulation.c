@@ -369,7 +369,6 @@ REAL ProbabilityHybridNPHMove;
 REAL ProbabilityHybridNPHPRMove;
 REAL ProbabilityFrameworkChangeMove;
 REAL ProbabilityFrameworkShiftMove;
-REAL ProbabilityCFLambdaMove;
 
 void ScaleBornTerm(REAL r)
 {
@@ -750,6 +749,7 @@ void InitializeReplicaBox(void)
 void WriteRestartSimulation(FILE *FilePtr)
 {
   int i;
+  REAL Check;
 
   fwrite(&seed,sizeof(seed),1,FilePtr);
   fwrite(&ForceField,sizeof(ForceField),1,FilePtr);
@@ -1019,6 +1019,7 @@ void WriteRestartSimulation(FILE *FilePtr)
   fwrite(DegreesOfFreedomTranslation,sizeof(int),NumberOfSystems,FilePtr);
   fwrite(DegreesOfFreedomRotation,sizeof(int),NumberOfSystems,FilePtr);
   fwrite(DegreesOfFreedomVibration,sizeof(int),NumberOfSystems,FilePtr);
+  fwrite(DegreesOfFreedomConstraint,sizeof(int),NumberOfSystems,FilePtr);
 
   fwrite(DegreesOfFreedomFramework,sizeof(int),NumberOfSystems,FilePtr);
 
@@ -1073,7 +1074,9 @@ void WriteRestartSimulation(FILE *FilePtr)
   fwrite(&ProbabilityHybridNPHPRMove,sizeof(REAL),1,FilePtr);
   fwrite(&ProbabilityFrameworkChangeMove,sizeof(REAL),1,FilePtr);
   fwrite(&ProbabilityFrameworkShiftMove,sizeof(REAL),1,FilePtr);
-  fwrite(&ProbabilityCFLambdaMove,sizeof(REAL),1,FilePtr);
+
+  Check=123456789.0;
+  fwrite(&Check,1,sizeof(REAL),FilePtr);
 }
 
 void AllocateSimulationMemory(void)
@@ -1317,6 +1320,7 @@ void AllocateSimulationMemory(void)
 void ReadRestartSimulation(FILE *FilePtr)
 {
   int i;
+  REAL Check;
 
   fread(&seed,sizeof(seed),1,FilePtr);
   fread(&ForceField,sizeof(ForceField),1,FilePtr);
@@ -1422,8 +1426,6 @@ void ReadRestartSimulation(FILE *FilePtr)
   fread(UseReplicas,sizeof(int),NumberOfSystems,FilePtr);
   fread(BoxProperties,sizeof(REAL_MATRIX3x3),NumberOfSystems,FilePtr);
   fread(InverseBoxProperties,sizeof(REAL_MATRIX3x3),NumberOfSystems,FilePtr);
-
-
 
   fread(Volume,sizeof(REAL),NumberOfSystems,FilePtr);
   fread(AlphaAngle,sizeof(REAL),NumberOfSystems,FilePtr);
@@ -1649,6 +1651,11 @@ void ReadRestartSimulation(FILE *FilePtr)
   fread(&ProbabilityHybridNPHPRMove,sizeof(REAL),1,FilePtr);
   fread(&ProbabilityFrameworkChangeMove,sizeof(REAL),1,FilePtr);
   fread(&ProbabilityFrameworkShiftMove,sizeof(REAL),1,FilePtr);
-  fread(&ProbabilityCFLambdaMove,sizeof(REAL),1,FilePtr);
 
+  fread(&Check,1,sizeof(REAL),FilePtr);
+  if(fabs(Check-123456789.0)>1e-10)
+  {
+    printf("Error in binary restart-file (ReadRestartSimulation)\n");
+    exit(0);
+  }
 }

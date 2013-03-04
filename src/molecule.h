@@ -277,53 +277,53 @@ extern CATION_MOLECULE **Cations;
 
 typedef struct Component
 {
-  char Name[256];                 // the name of the component ("methane","C12","propane" etc).
-  int NumberOfAtoms;              // the number of atoms in the component
-  int NumberOfCharges;            // the number of atoms in the component
-  int NumberOfRigidAtoms;         // the number of atoms in rigid units
-  int NumberOfFlexibleAtoms;      // the number of atoms in flexible units
-  REAL Mass;                      // the mass of the component
-  int *NumberOfMolecules;         // the number of molecules of the component for each system
-  int *Fixed;                     // array for the atoms denoting whether to consider the atom fixed in space or free
-  int *Type;                      // the pseudo-atom Type of each atom
+  char Name[256];                  // the name of the component ("methane","C12","propane" etc).
+  int NumberOfAtoms;               // the number of atoms in the component
+  int NumberOfCharges;             // the number of atoms in the component
+  int NumberOfRigidAtoms;          // the number of atoms in rigid units
+  int NumberOfFlexibleAtoms;       // the number of atoms in flexible units
+  REAL Mass;                       // the mass of the component
+  int *NumberOfMolecules;          // the number of molecules of the component for each system
+  int *Fixed;                      // array for the atoms denoting whether to consider the atom fixed in space or free
+  int *Type;                       // the pseudo-atom Type of each atom
   REAL* Charge;
-  int *Connectivity;              // the connectivity of each atom
-  int **ConnectivityList;         // the neighbors of each atom
-  int **ConnectivityMatrix;       // the connectivity matrix
-  int HasCharges;                 // whether the molecule contains charges or not
-  int IsPolarizable;              // whether the molecule has point dipoles or not
-  int ExtraFrameworkMolecule;     // TRUE: Cation, FALSE: Adsorbate
-  int Swapable;                   // whether or not the number of molecules is fluctuating (i.e. GCMC)
-  int Widom;                      // whether this component is used for Widom insertions
-  int *RXMCFractionalMolecule;    // the index of the fractional molecule for the particular reaction
-  REAL PartitionFunction;         // the partition function of the component
+  int *Connectivity;               // the connectivity of each atom
+  int **ConnectivityList;          // the neighbors of each atom
+  int **ConnectivityMatrix;        // the connectivity matrix
+  int HasCharges;                  // whether the molecule contains charges or not
+  int IsPolarizable;               // whether the molecule has point dipoles or not
+  int ExtraFrameworkMolecule;      // TRUE: Cation, FALSE: Adsorbate
+  int Swapable;                    // whether or not the number of molecules is fluctuating (i.e. GCMC)
+  int Widom;                       // whether this component is used for Widom insertions
+  int *RXMCFractionalMolecule;     // the index of the fractional molecule for the particular reaction
+  REAL PartitionFunction;          // the partition function of the component
 
-  REAL Lambda;                    // the Lambda of the component
-  int *FractionalMolecule;
-  int *CFMoleculePresent;
-  REAL *CFWangLandauScalingFactor;
-  REAL **CFBiasingFactors;
+  int *FractionalMolecule;         // the fractional molecule for each system
+  int *CFMoleculePresent;          // whether or not there is a fractional molecule present for each system
+  REAL *CFWangLandauScalingFactor; // the CF Wang-Landau scaling factor
+  int CFLambdaHistogramSize;       // the size of the histogram and biasing-array
+  REAL **CFBiasingFactors;         // the biasing-factors for conventional CF
 
-  REAL *IdealGasRosenbluthWeight; // the Rosenbluth weight of an ideal-chain per system
-  REAL *IdealGasTotalEnergy;      // the total energy of an ideal-chain per system
+  REAL *IdealGasRosenbluthWeight;  // the Rosenbluth weight of an ideal-chain per system
+  REAL *IdealGasTotalEnergy;       // the total energy of an ideal-chain per system
 
-  REAL *PartialPressure;          // the partial pressure of the component per system
-  REAL *FugacityCoefficient;      // the fugacity coefficient of the component per system
-  REAL *BulkFluidDensity;         // the bulkfluid-density of the component per system
-  REAL *Compressibility;          // the compresibility of the fluid-fase per system
-  REAL *MolFraction;              // the mol-fraction of the component per system
-  REAL *AmountOfExcessMolecules;  // the amount of excess molecules per syste,
+  REAL *PartialPressure;           // the partial pressure of the component per system
+  REAL *FugacityCoefficient;       // the fugacity coefficient of the component per system
+  REAL *BulkFluidDensity;          // the bulkfluid-density of the component per system
+  REAL *Compressibility;           // the compresibility of the fluid-fase per system
+  REAL *MolFraction;               // the mol-fraction of the component per system
+  REAL *AmountOfExcessMolecules;   // the amount of excess molecules per syste,
 
-  REAL CriticalTemperature;       // the critical temperature of the component
-  REAL CriticalPressure;          // the critical pressure of the component
-  REAL AcentricFactor;            // the acentric factor of the component
+  REAL CriticalTemperature;        // the critical temperature of the component
+  REAL CriticalPressure;           // the critical pressure of the component
+  REAL AcentricFactor;             // the acentric factor of the component
 
-  int NumberOfGroups;             // the number of groups
-  GROUP_DEFINITION *Groups;       // the definition of the groups
-  int *group;                     // to which group an atom belongs
-  VECTOR *Positions;              // the positions in the body-fixed frame
+  int NumberOfGroups;              // the number of groups
+  GROUP_DEFINITION *Groups;        // the definition of the groups
+  int *group;                      // to which group an atom belongs
+  VECTOR *Positions;               // the positions in the body-fixed frame
 
-  int NumberOfHessianIndices;     // the amount of indices of the Hessian matrix
+  int NumberOfHessianIndices;      // the amount of indices of the Hessian matrix
 
   int AnisotropicType;
 

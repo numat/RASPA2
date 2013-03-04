@@ -8844,6 +8844,7 @@ void ComputeMolecularPressureTensor(REAL_MATRIX3x3 *Pressure_matrix, REAL* Press
 void WriteRestartSample(FILE *FilePtr)
 {
   int i,j,k,l;
+  REAL Check;
 
   // write data for the histograms of the radial distribution function
   fwrite(ComputeRDF,NumberOfSystems,sizeof(int),FilePtr);
@@ -9504,6 +9505,9 @@ void WriteRestartSample(FILE *FilePtr)
   }
 
   fwrite(ComputeMolecularPressure,NumberOfSystems,sizeof(int),FilePtr);
+
+  Check=123456789.0;
+  fwrite(&Check,1,sizeof(REAL),FilePtr);
 }
 
 
@@ -9698,6 +9702,7 @@ void ReadRestartSample(FILE *FilePtr)
 {
   int i,j,k,l;
   int intinput1,intinput2,intinput3,intinput4;
+  REAL Check;
 
   // initialize and allocate memory
   AllocateSampleMemory();
@@ -10666,4 +10671,11 @@ void ReadRestartSample(FILE *FilePtr)
 
   // read the molecular-pressure data
   fread(ComputeMolecularPressure,NumberOfSystems,sizeof(int),FilePtr);
+
+  fread(&Check,1,sizeof(REAL),FilePtr);
+  if(fabs(Check-123456789.0)>1e-10)
+  {
+    printf("Error in binary restart-file (ReadRestartSample)\n");
+    exit(0);
+  }
 }

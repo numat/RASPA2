@@ -829,18 +829,8 @@ void ReadComponentDefinition(int comp)
 
   Components[comp].Fixed=(int*)calloc(Components[comp].NumberOfAtoms,sizeof(int));
   Components[comp].Type=(int*)calloc(Components[comp].NumberOfAtoms,sizeof(int));
-  //Components[comp].CFVDWScalingParameter=(REAL*)calloc(Components[comp].NumberOfAtoms,sizeof(REAL));
-  //Components[comp].CFChargeScalingParameter=(REAL*)calloc(Components[comp].NumberOfAtoms,sizeof(REAL));
   Components[comp].Charge=(REAL*)calloc(Components[comp].NumberOfAtoms,sizeof(REAL));
   Components[comp].Connectivity=(int*)calloc(Components[comp].NumberOfAtoms,sizeof(int));
-
-/*
-  for(i=0;i<Components[comp].NumberOfAtoms;i++)
-  {
-    Components[comp].CFVDWScalingParameter[i]=1.0;
-    Components[comp].CFChargeScalingParameter[i]=1.0;
-  }
-*/
 
   // allocate bond-connectivity matrix
   Components[comp].ConnectivityMatrix=(int**)calloc(Components[comp].NumberOfAtoms,sizeof(int*));
@@ -5401,6 +5391,7 @@ int ValidCartesianPoint(int i, POINT pos)
 void WriteRestartPseudoAtoms(FILE *FilePtr)
 {
   int i;
+  REAL Check;
 
   fwrite(&ShiftPotentials,sizeof(int),1,FilePtr);
   fwrite(&NumberOfPseudoAtoms,sizeof(NumberOfPseudoAtoms),1,FilePtr);
@@ -5427,11 +5418,15 @@ void WriteRestartPseudoAtoms(FILE *FilePtr)
   fwrite(SwitchingVDWFactors3,sizeof(REAL),4,FilePtr);
   fwrite(SwitchingVDWFactors5,sizeof(REAL),6,FilePtr);
   fwrite(SwitchingVDWFactors7,sizeof(REAL),8,FilePtr);
+
+  Check=123456789.0;
+  fwrite(&Check,1,sizeof(REAL),FilePtr);
 }
 
 void ReadRestartPseudoAtoms(FILE *FilePtr)
 {
   int i;
+  REAL Check;
 
   fread(&ShiftPotentials,sizeof(int),1,FilePtr);
   fread(&NumberOfPseudoAtoms,sizeof(NumberOfPseudoAtoms),1,FilePtr);
@@ -5480,6 +5475,14 @@ void ReadRestartPseudoAtoms(FILE *FilePtr)
   fread(SwitchingVDWFactors3,sizeof(REAL),4,FilePtr);
   fread(SwitchingVDWFactors5,sizeof(REAL),6,FilePtr);
   fread(SwitchingVDWFactors7,sizeof(REAL),8,FilePtr);
+
+  fread(&Check,1,sizeof(REAL),FilePtr);
+  if(fabs(Check-123456789.0)>1e-10)
+  {
+    printf("Error in binary restart-file (ReadRestartPseudoAtoms)\n");
+    exit(0);
+  }
+
 }
 
 
@@ -5487,6 +5490,7 @@ void WriteRestartMolecules(FILE *FilePtr)
 {
   int i,j;
   int Type;
+  REAL Check;
 
   fwrite(&NumberOfSystems,sizeof(int),1,FilePtr);
   fwrite(&CurrentSystem,sizeof(int),1,FilePtr);
@@ -5532,12 +5536,16 @@ void WriteRestartMolecules(FILE *FilePtr)
         fwrite(Cations[i][j].Groups,sizeof(GROUP),Components[Type].NumberOfGroups,FilePtr);
     }
   }
+
+  Check=123456789.0;
+  fwrite(&Check,1,sizeof(REAL),FilePtr);
 }
 
 void ReadRestartMolecules(FILE *FilePtr)
 {
   int i,j;
   int Type;
+  REAL Check;
 
   fread(&NumberOfSystems,sizeof(int),1,FilePtr);
   fread(&CurrentSystem,sizeof(int),1,FilePtr);
@@ -5623,6 +5631,13 @@ void ReadRestartMolecules(FILE *FilePtr)
       if(Components[Type].NumberOfGroups>0)
         fread(Cations[i][j].Groups,sizeof(GROUP),Components[Type].NumberOfGroups,FilePtr);
     }
+  }
+
+  fread(&Check,1,sizeof(REAL),FilePtr);
+  if(fabs(Check-123456789.0)>1e-10)
+  {
+    printf("Error in binary restart-file (ReadRestartMolecules)\n");
+    exit(0);
   }
 }
 
@@ -5744,6 +5759,7 @@ void CheckChiralityMolecules(void)
 void WriteRestartComponent(FILE *FilePtr)
 {
   int i,j,n;
+  REAL Check;
 
   fwrite(&NumberOfSystems,sizeof(int),1,FilePtr);
   fwrite(&NumberOfComponents,sizeof(int),1,FilePtr);
@@ -5794,8 +5810,6 @@ void WriteRestartComponent(FILE *FilePtr)
 
     fwrite(Components[i].Fixed,sizeof(int),Components[i].NumberOfAtoms,FilePtr);
     fwrite(Components[i].Type,sizeof(int),Components[i].NumberOfAtoms,FilePtr);
-    //fwrite(Components[i].CFVDWScalingParameter,sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
-    //fwrite(Components[i].CFChargeScalingParameter,sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
     fwrite(Components[i].Charge,sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
     fwrite(Components[i].Connectivity,sizeof(int),Components[i].NumberOfAtoms,FilePtr);
     for(j=0;j<Components[i].NumberOfAtoms;j++)
@@ -5813,6 +5827,11 @@ void WriteRestartComponent(FILE *FilePtr)
     fwrite(Components[i].group,sizeof(int),Components[i].NumberOfAtoms,FilePtr);
 
     fwrite(Components[i].RMCMOL,sizeof(VECTOR),Components[i].NumberOfAtoms,FilePtr);
+
+
+    fwrite(Components[i].FractionalMolecule,sizeof(int),NumberOfSystems,FilePtr);
+    fwrite(Components[i].CFMoleculePresent,sizeof(int),NumberOfSystems,FilePtr);
+    fwrite(Components[i].CFWangLandauScalingFactor,sizeof(REAL),NumberOfSystems,FilePtr);
 
     for(j=0;j<NumberOfSystems;j++)
     {
@@ -5836,6 +5855,8 @@ void WriteRestartComponent(FILE *FilePtr)
       fwrite(Components[i].acs0[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
       fwrite(Components[i].acs1[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
       fwrite(Components[i].acs2[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
+
+      fwrite(Components[i].CFBiasingFactors[j],sizeof(REAL),Components[i].CFLambdaHistogramSize,FilePtr);
     }
 
     // allocate charility-centers
@@ -5965,11 +5986,15 @@ void WriteRestartComponent(FILE *FilePtr)
     fwrite(Components[i].RestrictSphereCenter,sizeof(VECTOR),MAX_NUMBER_OF_SPHERES,FilePtr);
     fwrite(Components[i].RestrictSphereRadius,sizeof(REAL),MAX_NUMBER_OF_SPHERES,FilePtr);
   }
+
+  Check=123456789.0;
+  fwrite(&Check,1,sizeof(REAL),FilePtr);
 }
 
 void ReadRestartComponent(FILE *FilePtr)
 {
   int i,j,n;
+  REAL Check;
 
   fread(&NumberOfSystems,sizeof(int),1,FilePtr);
   fread(&NumberOfComponents,sizeof(int),1,FilePtr);
@@ -6025,8 +6050,6 @@ void ReadRestartComponent(FILE *FilePtr)
 
     Components[i].Fixed=(int*)calloc(Components[i].NumberOfAtoms,sizeof(int));
     Components[i].Type=(int*)calloc(Components[i].NumberOfAtoms,sizeof(int));
-    //Components[i].CFVDWScalingParameter=(REAL*)calloc(Components[i].NumberOfAtoms,sizeof(REAL));
-    //Components[i].CFChargeScalingParameter=(REAL*)calloc(Components[i].NumberOfAtoms,sizeof(REAL));
     Components[i].Charge=(REAL*)calloc(Components[i].NumberOfAtoms,sizeof(REAL));
     Components[i].Connectivity=(int*)calloc(Components[i].NumberOfAtoms,sizeof(int));
     Components[i].ConnectivityMatrix=(int**)calloc(Components[i].NumberOfAtoms,sizeof(int*));
@@ -6080,8 +6103,6 @@ void ReadRestartComponent(FILE *FilePtr)
 
     fread(Components[i].Fixed,sizeof(int),Components[i].NumberOfAtoms,FilePtr);
     fread(Components[i].Type,sizeof(int),Components[i].NumberOfAtoms,FilePtr);
-    //fread(Components[i].CFVDWScalingParameter,sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
-    //fread(Components[i].CFChargeScalingParameter,sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
     fread(Components[i].Charge,sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
 
     fread(Components[i].Connectivity,sizeof(int),Components[i].NumberOfAtoms,FilePtr);
@@ -6123,6 +6144,15 @@ void ReadRestartComponent(FILE *FilePtr)
     Components[i].acs0=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
     Components[i].acs1=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
     Components[i].acs2=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
+
+    Components[i].FractionalMolecule=(int*)calloc(NumberOfSystems,sizeof(int));
+    Components[i].CFMoleculePresent=(int*)calloc(NumberOfSystems,sizeof(int));
+    Components[i].CFWangLandauScalingFactor=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+    Components[i].CFBiasingFactors=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
+
+    fread(Components[i].FractionalMolecule,sizeof(int),NumberOfSystems,FilePtr);
+    fread(Components[i].CFMoleculePresent,sizeof(int),NumberOfSystems,FilePtr);
+    fread(Components[i].CFWangLandauScalingFactor,sizeof(REAL),NumberOfSystems,FilePtr);
 
     for(j=0;j<NumberOfSystems;j++)
     {
@@ -6166,6 +6196,9 @@ void ReadRestartComponent(FILE *FilePtr)
       fread(Components[i].acs0[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
       fread(Components[i].acs1[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
       fread(Components[i].acs2[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
+
+      Components[i].CFBiasingFactors[j]=(REAL*)calloc(Components[i].CFLambdaHistogramSize,sizeof(REAL));
+      fread(Components[i].CFBiasingFactors[j],sizeof(REAL),Components[i].CFLambdaHistogramSize,FilePtr);
     }
 
     // allocate charility-centers
@@ -6400,5 +6433,12 @@ void ReadRestartComponent(FILE *FilePtr)
     fread(Components[i].RestrictMovesToSphere,sizeof(int),MAX_NUMBER_OF_SPHERES,FilePtr);
     fread(Components[i].RestrictSphereCenter,sizeof(VECTOR),MAX_NUMBER_OF_SPHERES,FilePtr);
     fread(Components[i].RestrictSphereRadius,sizeof(REAL),MAX_NUMBER_OF_SPHERES,FilePtr);
+  }
+
+  fread(&Check,1,sizeof(REAL),FilePtr);
+  if(fabs(Check-123456789.0)>1e-10)
+  {
+    printf("Error in binary restart-file (ReadRestartComponent)\n");
+    exit(0);
   }
 }

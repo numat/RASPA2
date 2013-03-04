@@ -128,6 +128,7 @@ REAL *UAdsorbateFourierDelta;
 
 // the acceptance-ratio for translation
 REAL TargetAccRatioTranslation;
+REAL TargetAccRatioLambdaChange;
 
 static VECTOR **TranslationAttempts;
 static VECTOR **TranslationAccepted;
@@ -350,8 +351,6 @@ REAL TargetAccRatioCFCRXMCLambdaChange;
 
 //----------------------------------------------------------------------------------------
 
-
-int CFLambdaHistogramSize;
 int CFWangLandauEvery;
 static REAL ***CFLambdaHistogram;
 
@@ -13899,14 +13898,14 @@ void CFWangLandauIteration(int Switch)
   {
     case INITIALIZE:
       for(i=0;i<NumberOfComponents;i++)
-        for(j=0;j<CFLambdaHistogramSize;j++)
+        for(j=0;j<Components[i].CFLambdaHistogramSize;j++)
           CFLambdaHistogram[CurrentSystem][i][j]=0.0;
       break;
     case SAMPLE:
       FractionalMolecule=Components[CurrentComponent].FractionalMolecule[CurrentSystem];
       Lambda=Adsorbates[CurrentSystem][FractionalMolecule].Atoms[0].CFVDWScalingParameter;
-      index=(int)(CFLambdaHistogramSize*Lambda);
-      if(index==CFLambdaHistogramSize) index--;
+      index=(int)(Components[CurrentComponent].CFLambdaHistogramSize*Lambda);
+      if(index==Components[CurrentComponent].CFLambdaHistogramSize) index--;
       Components[CurrentComponent].CFBiasingFactors[CurrentSystem][index]-=Components[CurrentComponent].CFWangLandauScalingFactor[CurrentSystem];
       break;
     case PRINT:
@@ -13917,7 +13916,7 @@ void CFWangLandauIteration(int Switch)
           // find highest probability
           MostProbableIndex=0;
           MostProbableValue=CFLambdaHistogram[i][j][0];
-          for(k=1;k<CFLambdaHistogramSize;k++)
+          for(k=1;k<Components[j].CFLambdaHistogramSize;k++)
           {
             if(Components[j].CFBiasingFactors[i][k]>MostProbableValue)
             {
@@ -13928,7 +13927,7 @@ void CFWangLandauIteration(int Switch)
 
           // check if all bins are at least 70% of this value
           condition=TRUE;
-          for(k=0;k<CFLambdaHistogramSize;k++)
+          for(k=0;k<Components[j].CFLambdaHistogramSize;k++)
           {
             if(CFLambdaHistogram[i][j][k]<0.8*MostProbableValue)
             {
@@ -13939,8 +13938,8 @@ void CFWangLandauIteration(int Switch)
 
           if(condition)
           {
-            Components[CurrentComponent].CFWangLandauScalingFactor[CurrentSystem]*=0.5;
-            for(k=0;k<CFLambdaHistogramSize;k++)
+            Components[j].CFWangLandauScalingFactor[CurrentSystem]*=0.5;
+            for(k=0;k<Components[j].CFLambdaHistogramSize;k++)
              CFLambdaHistogram[i][j][k]=0.0;
           }
         }
@@ -13951,7 +13950,7 @@ void CFWangLandauIteration(int Switch)
         for(j=0;j<NumberOfComponents;j++)
         {
           shift=Components[j].CFBiasingFactors[i][0];
-          for(k=0;k<CFLambdaHistogramSize;k++)
+          for(k=0;k<Components[j].CFLambdaHistogramSize;k++)
           {
             CFLambdaHistogram[i][j][k]=0.0;
             Components[j].CFBiasingFactors[i][k]-=shift;
@@ -14001,8 +14000,8 @@ int CFSwapLambaMove(void)
   CurrentAdsorbateMolecule=FractionalMolecule;
 
   LambdaOld=Adsorbates[CurrentSystem][FractionalMolecule].Atoms[0].CFVDWScalingParameter;
-  index_old=(int)(CFLambdaHistogramSize*LambdaOld);
-  if(index_old==CFLambdaHistogramSize) index_old--;
+  index_old=(int)(Components[CurrentComponent].CFLambdaHistogramSize*LambdaOld);
+  if(index_old==Components[CurrentComponent].CFLambdaHistogramSize) index_old--;
   BiasOld=Components[CurrentComponent].CFBiasingFactors[CurrentSystem][index_old];
 
 
@@ -14014,8 +14013,8 @@ int CFSwapLambaMove(void)
   LambdaNew=LambdaOld+vNew;
   if(LambdaNew>1.0) LambdaNew-=1.0;
   if(LambdaNew<0.0) LambdaNew+=1.0;
-  index_new=(int)(CFLambdaHistogramSize*LambdaNew);
-  if(index_new==CFLambdaHistogramSize) index_new--;
+  index_new=(int)(Components[CurrentComponent].CFLambdaHistogramSize*LambdaNew);
+  if(index_new==Components[CurrentComponent].CFLambdaHistogramSize) index_new--;
   BiasNew=Components[CurrentComponent].CFBiasingFactors[CurrentSystem][index_new];
 
   for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
@@ -14759,28 +14758,35 @@ void PrintCFSwapLambdaStatistics(FILE *FilePtr)
     for(i=0;i<NumberOfComponents;i++)
     {
       if(Components[i].FractionOfCFSwapLambdaMove>0.0)
-        fprintf(FilePtr,"Component [%s] total tried: %lf constant-lambda accepted: %lf (%lf [%%])\n\t\tinsert accepted %lf (%lf [%%])\n\t\tremoved accepted %lf (%lf [%%])\n",
+      {
+        fprintf(FilePtr,"Component [%s] total tried: %lf constant-lambda accepted: %lf (%lf [%%])\n",
           Components[i].Name,
           (double)CFSwapLambdaAttempts[CurrentSystem][i][0],
           (double)CFSwapLambdaAccepted[CurrentSystem][i][0],
           (double)(CFSwapLambdaAttempts[CurrentSystem][i][0]>(REAL)0.0?
-            100.0*CFSwapLambdaAccepted[CurrentSystem][i][0]/CFSwapLambdaAttempts[CurrentSystem][i][0]:(REAL)0.0),
+            100.0*CFSwapLambdaAccepted[CurrentSystem][i][0]/CFSwapLambdaAttempts[CurrentSystem][i][0]:(REAL)0.0));
+        fprintf(FilePtr,"               total tried: %lf insert-lambda accepted: %lf (%lf [%%])\n",
+          (double)CFSwapLambdaAttempts[CurrentSystem][i][1],
           (double)CFSwapLambdaAccepted[CurrentSystem][i][1],
           (double)(CFSwapLambdaAttempts[CurrentSystem][i][1]>(REAL)0.0?
-            100.0*CFSwapLambdaAccepted[CurrentSystem][i][1]/CFSwapLambdaAttempts[CurrentSystem][i][1]:(REAL)0.0),
+            100.0*CFSwapLambdaAccepted[CurrentSystem][i][1]/CFSwapLambdaAttempts[CurrentSystem][i][1]:(REAL)0.0));
+        fprintf(FilePtr,"               total tried: %lf remove-lambda accepted: %lf (%lf [%%])\n",
+          (double)CFSwapLambdaAttempts[CurrentSystem][i][2],
           (double)CFSwapLambdaAccepted[CurrentSystem][i][2],
           (double)(CFSwapLambdaAttempts[CurrentSystem][i][2]>(REAL)0.0?
             100.0*CFSwapLambdaAccepted[CurrentSystem][i][2]/CFSwapLambdaAttempts[CurrentSystem][i][2]:(REAL)0.0));
 
-      total=0.0;
-      for(k=0;k<CFLambdaHistogramSize;k++)
-        total+=CFLambdaHistogram[CurrentSystem][i][k];
+        total=0.0;
+        for(k=0;k<Components[i].CFLambdaHistogramSize;k++)
+          total+=CFLambdaHistogram[CurrentSystem][i][k];
 
-      fprintf(FilePtr,"\n\tLambda probabilities:\n");
-      fprintf(FilePtr,"\t---------------------\n");
-      for(k=0;k<CFLambdaHistogramSize;k++)
-        fprintf(FilePtr,"\tLambda [ %4f - %4f ]: %18.10f (biasing factor: %18.10f)\n",(REAL)k/CFLambdaHistogramSize,(REAL)(k+1)/CFLambdaHistogramSize,
-          100.0*CFLambdaHistogram[CurrentSystem][i][k]/total,Components[i].CFBiasingFactors[CurrentSystem][k]);
+        fprintf(FilePtr,"\n\tLambda probabilities:\n");
+        fprintf(FilePtr,"\t---------------------\n");
+        for(k=0;k<Components[i].CFLambdaHistogramSize;k++)
+          fprintf(FilePtr,"\tLambda [ %4f - %4f ]: %18.10f (biasing factor: %18.10f)\n",
+            (REAL)k/Components[i].CFLambdaHistogramSize,(REAL)(k+1)/Components[i].CFLambdaHistogramSize,
+            100.0*CFLambdaHistogram[CurrentSystem][i][k]/total,Components[i].CFBiasingFactors[CurrentSystem][k]);
+      } 
     }
     fprintf(FilePtr,"\n");
   }
@@ -15566,13 +15572,14 @@ void PrintCFCBSwapLambdaStatistics(FILE *FilePtr)
             100.0*CFCBSwapLambdaAccepted[CurrentSystem][i][2]/CFCBSwapLambdaAttempts[CurrentSystem][i][2]:(REAL)0.0));
 
       total=0.0;
-      for(k=0;k<CFLambdaHistogramSize;k++)
+      for(k=0;k<Components[i].CFLambdaHistogramSize;k++)
         total+=CFLambdaHistogram[CurrentSystem][i][k];
 
       fprintf(FilePtr,"\tLambda probabilities:\n"); 
       fprintf(FilePtr,"\t---------------------\n"); 
-      for(k=0;k<CFLambdaHistogramSize;k++)
-        fprintf(FilePtr,"\tLambda [%g-%g]: %18.10f\n",(REAL)k/CFLambdaHistogramSize,(REAL)(k+1)/CFLambdaHistogramSize,CFLambdaHistogram[CurrentSystem][i][k]);
+      for(k=0;k<Components[i].CFLambdaHistogramSize;k++)
+        fprintf(FilePtr,"\tLambda [%g-%g]: %18.10f\n",(REAL)k/Components[i].CFLambdaHistogramSize,
+        (REAL)(k+1)/Components[i].CFLambdaHistogramSize,CFLambdaHistogram[CurrentSystem][i][k]);
         
     }
     fprintf(FilePtr,"\n");
@@ -15585,6 +15592,7 @@ void PrintCFCBSwapLambdaStatistics(FILE *FilePtr)
 void WriteRestartMcMoves(FILE *FilePtr)
 {
   int i,j;
+  REAL Check;
 
   for(i=0;i<NumberOfSystems;i++)
   {
@@ -15609,9 +15617,15 @@ void WriteRestartMcMoves(FILE *FilePtr)
 
     fwrite(CFSwapLambdaAttempts[i],sizeof(REAL[3]),NumberOfComponents,FilePtr);
     fwrite(CFSwapLambdaAccepted[i],sizeof(REAL[3]),NumberOfComponents,FilePtr);
+    fwrite(TotalCFSwapLambdaAttempts[i],sizeof(REAL),NumberOfComponents,FilePtr);
+    fwrite(TotalCFSwapLambdaAccepted[i],sizeof(REAL),NumberOfComponents,FilePtr);
+    fwrite(MaximumCFLambdaChange[i],sizeof(REAL),NumberOfComponents,FilePtr);
 
     fwrite(CFCBSwapLambdaAttempts[i],sizeof(REAL[3]),NumberOfComponents,FilePtr);
     fwrite(CFCBSwapLambdaAccepted[i],sizeof(REAL[3]),NumberOfComponents,FilePtr);
+    fwrite(TotalCFCBSwapLambdaAttempts[i],sizeof(REAL),NumberOfComponents,FilePtr);
+    fwrite(TotalCFCBSwapLambdaAccepted[i],sizeof(REAL),NumberOfComponents,FilePtr);
+    fwrite(MaximumCFCBLambdaChange[i],sizeof(REAL),NumberOfComponents,FilePtr);
 
     fwrite(ReinsertionAttempts[i],sizeof(REAL),NumberOfComponents,FilePtr);
     fwrite(ReinsertionAccepted[i],sizeof(REAL[2]),NumberOfComponents,FilePtr);
@@ -15644,7 +15658,7 @@ void WriteRestartMcMoves(FILE *FilePtr)
       fwrite(GibbsIdentityChangeAttempts[i][j],sizeof(REAL),NumberOfComponents,FilePtr);
       fwrite(GibbsIdentityChangeAccepted[i][j],sizeof(REAL[2]),NumberOfComponents,FilePtr);
 
-      fwrite(CFLambdaHistogram[i][j],sizeof(REAL),CFLambdaHistogramSize,FilePtr);
+      fwrite(CFLambdaHistogram[i][j],sizeof(REAL),Components[j].CFLambdaHistogramSize,FilePtr);
     }
 
     fwrite(ParallelTemperingAttempts[i],sizeof(REAL),NumberOfSystems,FilePtr);
@@ -15791,6 +15805,12 @@ void WriteRestartMcMoves(FILE *FilePtr)
   fwrite(HybridNPHPREndTemperatureFrameworkCount,sizeof(REAL),NumberOfSystems,FilePtr);
   fwrite(HybridNPHPREndTemperatureAdsorbateCount,sizeof(REAL),NumberOfSystems,FilePtr);
   fwrite(HybridNPHPREndTemperatureCationCount,sizeof(REAL),NumberOfSystems,FilePtr);
+
+  fwrite(&CFWangLandauEvery,sizeof(int),1,FilePtr);
+  fwrite(&TargetAccRatioLambdaChange,sizeof(REAL),1,FilePtr);
+
+  Check=123456789.0;
+  fwrite(&Check,1,sizeof(REAL),FilePtr);
 }
 
 void AllocateMCMovesMemory(void)
@@ -15988,7 +16008,7 @@ void AllocateMCMovesMemory(void)
       GibbsIdentityChangeAttempts[i][j]=(REAL*)calloc(NumberOfComponents,sizeof(REAL));
       GibbsIdentityChangeAccepted[i][j]=(REAL(*)[2])calloc(NumberOfComponents,sizeof(REAL[2]));
 
-      CFLambdaHistogram[i][j]=(REAL*)calloc(CFLambdaHistogramSize,sizeof(REAL));
+      CFLambdaHistogram[i][j]=(REAL*)calloc(Components[j].CFLambdaHistogramSize,sizeof(REAL));
     }
 
     ParallelTemperingAttempts[i]=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
@@ -16164,6 +16184,8 @@ void AllocateMCMovesMemory(void)
 void ReadRestartMcMoves(FILE *FilePtr)
 {
   int i,j;
+  REAL Check;
+
   AllocateMCMovesMemory();
 
   for(i=0;i<NumberOfSystems;i++)
@@ -16189,9 +16211,15 @@ void ReadRestartMcMoves(FILE *FilePtr)
 
     fread(CFSwapLambdaAttempts[i],sizeof(REAL[3]),NumberOfComponents,FilePtr);
     fread(CFSwapLambdaAccepted[i],sizeof(REAL[3]),NumberOfComponents,FilePtr);
+    fread(TotalCFSwapLambdaAttempts[i],sizeof(REAL),NumberOfComponents,FilePtr);
+    fread(TotalCFSwapLambdaAccepted[i],sizeof(REAL),NumberOfComponents,FilePtr);
+    fread(MaximumCFLambdaChange[i],sizeof(REAL),NumberOfComponents,FilePtr);
 
     fread(CFCBSwapLambdaAttempts[i],sizeof(REAL[3]),NumberOfComponents,FilePtr);
     fread(CFCBSwapLambdaAccepted[i],sizeof(REAL[3]),NumberOfComponents,FilePtr);
+    fread(TotalCFCBSwapLambdaAttempts[i],sizeof(REAL),NumberOfComponents,FilePtr);
+    fread(TotalCFCBSwapLambdaAccepted[i],sizeof(REAL),NumberOfComponents,FilePtr);
+    fread(MaximumCFCBLambdaChange[i],sizeof(REAL),NumberOfComponents,FilePtr);
 
     fread(ReinsertionAttempts[i],sizeof(REAL),NumberOfComponents,FilePtr);
     fread(ReinsertionAccepted[i],sizeof(REAL[2]),NumberOfComponents,FilePtr);
@@ -16224,7 +16252,7 @@ void ReadRestartMcMoves(FILE *FilePtr)
       fread(GibbsIdentityChangeAttempts[i][j],sizeof(REAL),NumberOfComponents,FilePtr);
       fread(GibbsIdentityChangeAccepted[i][j],sizeof(REAL[2]),NumberOfComponents,FilePtr);
 
-      fread(CFLambdaHistogram[i][j],sizeof(REAL),CFLambdaHistogramSize,FilePtr);
+      fread(CFLambdaHistogram[i][j],sizeof(REAL),Components[j].CFLambdaHistogramSize,FilePtr);
     }
 
     fread(ParallelTemperingAttempts[i],sizeof(REAL),NumberOfSystems,FilePtr);
@@ -16372,5 +16400,15 @@ void ReadRestartMcMoves(FILE *FilePtr)
   fread(HybridNPHPREndTemperatureFrameworkCount,sizeof(REAL),NumberOfSystems,FilePtr);
   fread(HybridNPHPREndTemperatureAdsorbateCount,sizeof(REAL),NumberOfSystems,FilePtr);
   fread(HybridNPHPREndTemperatureCationCount,sizeof(REAL),NumberOfSystems,FilePtr);
+
+  fread(&CFWangLandauEvery,sizeof(int),1,FilePtr);
+  fread(&TargetAccRatioLambdaChange,sizeof(REAL),1,FilePtr);
+
+  fread(&Check,1,sizeof(REAL),FilePtr);
+  if(fabs(Check-123456789.0)>1e-10)
+  {
+    printf("Error in binary restart-file (ReadRestartMcMoves)\n");
+    exit(0);
+  }
 }
 

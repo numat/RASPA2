@@ -7107,7 +7107,6 @@ void WriteBinaryRestartFiles(void)
 {
   FILE *FilePtr;
   char buffer[1024];
-  REAL Check;
 
   printf("Writing Crash-file!\n");
 
@@ -7137,9 +7136,6 @@ void WriteBinaryRestartFiles(void)
   WriteRestartMovies(FilePtr);
   WriteRestartOutput(FilePtr);
 
-  Check=123456789.0;
-  fwrite(&Check,1,sizeof(REAL),FilePtr);
-
   fclose(FilePtr);
 }
 
@@ -7148,6 +7144,7 @@ void ReadRestartOutput(FILE* FilePtr)
   int i;
   fpos_t pos;
   char buffer[1024],buffer2[256];
+  REAL Check;
 
   // open output-file for systems
   mkdir("Output",S_IRWXU);
@@ -7192,12 +7189,20 @@ void ReadRestartOutput(FILE* FilePtr)
       PrintPreSimulationStatusCurrentSystem(i); // print the pre-simulation status again
     }
   }
+
+  fread(&Check,1,sizeof(REAL),FilePtr);
+  if(fabs(Check-123456789.0)>1e-10)
+  {
+    printf("Error in binary restart-file (ReadRestartOutput)\n");
+    exit(0);
+  }
 }
 
 void WriteRestartOutput(FILE* FilePtr)
 {
   int i;
   fpos_t pos;
+  REAL Check;
 
   for(i=0;i<NumberOfSystems;i++)
   {
@@ -7205,4 +7210,7 @@ void WriteRestartOutput(FILE* FilePtr)
     fgetpos(OutputFilePtr[i],&pos);
     fwrite(&pos,1,sizeof(fpos_t),FilePtr);
   }
+
+  Check=123456789.0;
+  fwrite(&Check,1,sizeof(REAL),FilePtr);
 }

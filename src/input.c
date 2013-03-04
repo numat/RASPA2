@@ -277,8 +277,14 @@ int ReadInputFile(char *inputfilename)
   NumberOfTrialMovesPerOpenBead=150;
   EnergyOverlapCriteria=1.0e5;
   MinimumRosenbluthFactor=1.0e-150;
+
   TargetAccRatioSmallMCScheme=0.4;
   TargetAccRatioTranslation=0.5;
+  TargetAccRatioLambdaChange=0.5;
+  TargetAccRatioVolumeChange=0.5;
+  TargetAccRatioBoxShapeChange=0.5;
+  TargetAccRatioGibbsVolumeChange=0.5;
+  TargetAccRatioCFCRXMCLambdaChange=0.5;        // CFC-RXMC
 
   BlockGridPockets=TRUE;
   BlockGridPores=FALSE;
@@ -382,12 +388,6 @@ int ReadInputFile(char *inputfilename)
 
   ComputePrincipleMomentsOfInertia=FALSE;
 
-  TargetAccRatioVolumeChange=0.5;
-  TargetAccRatioBoxShapeChange=0.5;
-  TargetAccRatioGibbsVolumeChange=0.5;
-  TargetAccRatioCFCRXMCLambdaChange=0.5;        // CFC-RXMC
-
-  CFLambdaHistogramSize=20;
   CFWangLandauEvery=5000;
 
   NumberOfHybridNVESteps=5;
@@ -451,7 +451,6 @@ int ReadInputFile(char *inputfilename)
   ProbabilityHybridNPHPRMove=0.0;
   ProbabilityFrameworkChangeMove=0.0;
   ProbabilityFrameworkShiftMove=0.0;
-  ProbabilityCFLambdaMove=0.0;
   ProbabilityCFCRXMCLambdaChangeMove=0.0;     // CFC-RXMC
 
   // default time step is 0.5 fs
@@ -471,7 +470,6 @@ int ReadInputFile(char *inputfilename)
   Diffraction.two_theta_step=0.01;
   Diffraction.PeakShape=DIFFRACTION_PSEUDO_VOIGT;
 
-  TargetAccRatioTranslation=0.5;
 
   ComputeRattleSteps=FALSE;
   DistanceConstraintType=DISTANCE_R_SQUARED;
@@ -568,8 +566,6 @@ int ReadInputFile(char *inputfilename)
     }
 
     if(strcasecmp("Dimension",keyword)==0) sscanf(arguments,"%d",&Dimension);
-
-    if(strcasecmp("CFLambdaHistogramSize",keyword)==0) sscanf(arguments,"%d",&CFLambdaHistogramSize);
 
     // read statements for the number of systems
     if(strcasecmp("Box",keyword)==0)
@@ -752,6 +748,7 @@ int ReadInputFile(char *inputfilename)
     Components[i].FractionalMolecule=(int*)calloc(NumberOfSystems,sizeof(int));
     Components[i].CFMoleculePresent=(int*)calloc(NumberOfSystems,sizeof(int));
     Components[i].CFWangLandauScalingFactor=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+    Components[i].CFBiasingFactors=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
 
     Components[i].MOLEC_PER_UC_TO_MOL_PER_KG=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
     Components[i].MOLEC_PER_UC_TO_GRAM_PER_GRAM_OF_FRAMEWORK=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
@@ -770,7 +767,7 @@ int ReadInputFile(char *inputfilename)
     Components[i].BlockDistance=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
     Components[i].BlockCenters=(VECTOR**)calloc(NumberOfSystems,sizeof(VECTOR*));
 
-    Components[i].CFBiasingFactors=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
+    Components[i].CFLambdaHistogramSize=20;
 
     for(j=0;j<NumberOfSystems;j++)
     {
@@ -785,12 +782,6 @@ int ReadInputFile(char *inputfilename)
       Components[i].FractionalMolecule[j]=-1;
       Components[i].CFMoleculePresent[j]=FALSE;
       Components[i].CFWangLandauScalingFactor[j]=0.01;
-
-      Components[i].CFBiasingFactors[j]=(REAL*)calloc(CFLambdaHistogramSize,sizeof(REAL));
-
-      // starting bias-factor for CF are zero
-      for(k=0;k<CFLambdaHistogramSize;k++)
-        Components[i].CFBiasingFactors[j][k]=0.0;
     }
 
     strcpy(Components[i].MoleculeDefinition,"TraPPE");
@@ -800,6 +791,7 @@ int ReadInputFile(char *inputfilename)
 
     // initialize box restriction to false (the full box is selected)
     Components[i].RestrictMoves=FALSE;
+
 
     // initialize the first box to all, the other 3 boxes to empty
     Components[i].RestrictMovesToBox=FALSE;
@@ -870,6 +862,7 @@ int ReadInputFile(char *inputfilename)
   }
 
   CurrentSystem=0;
+  CurrentComponent=0;
   while(ReadLine(line,16384,FilePtr))
   {
    // extract first word
@@ -900,8 +893,23 @@ int ReadInputFile(char *inputfilename)
         NumberOfIsothermPressures++;
       }
     }
+
+    // read statement for the number of components
+    if(strcasecmp("Component",keyword)==0)
+    {
+      if(sscanf(arguments,"%d %*s %s",&CurrentComponent,string)) 
+      {
+        if(CurrentComponent<0)
+        {
+          printf("Input error in 'Component'-command: the number of the component is incorrect (%d given, 0 <= component-number)\n",CurrentComponent);
+          exit(0);
+        }
+      }
+    }
+    if(strcasecmp("CFLambdaHistogramSize",keyword)==0) sscanf(arguments,"%d",&Components[CurrentComponent].CFLambdaHistogramSize);
   }
   fclose(FilePtr);
+
 
   AllocateThermoBaroStatMemory();
   AllocateSampleMemory();
@@ -909,6 +917,16 @@ int ReadInputFile(char *inputfilename)
   NumberOfIsothermPressures=1;
   for(i=0;i<NumberOfSystems;i++)
   {
+    for(j=0;j<NumberOfComponents;j++)
+    {
+      Components[j].CFBiasingFactors[i]=(REAL*)calloc(Components[j].CFLambdaHistogramSize,sizeof(REAL));
+
+      // starting bias-factor for CF are zero
+      for(k=0;k<Components[j].CFLambdaHistogramSize;k++)
+        Components[j].CFBiasingFactors[i][k]=0.0;
+    }
+
+
     ReciprocalCutOffSquared[i]=-1.0;
 
     therm_baro_stats.ExternalTemperature[i]=298.0;
@@ -2308,7 +2326,6 @@ int ReadInputFile(char *inputfilename)
     }
     if(strcasecmp("FrameworkChangeMoveProbability",keyword)==0) sscanf(arguments,"%lf",&ProbabilityFrameworkChangeMove);
     if(strcasecmp("FrameworkShiftMoveProbability",keyword)==0) sscanf(arguments,"%lf",&ProbabilityFrameworkShiftMove);
-    if(strcasecmp("CFLambdaMoveProbability",keyword)==0) sscanf(arguments,"%lf",&ProbabilityCFLambdaMove);
     if(strcasecmp("VolumeChangeProbability",keyword)==0) sscanf(arguments,"%lf",&ProbabilityVolumeChangeMove);
     //--------------------------------------------------------------------------------------------------------------------------------------------------------
     // CFC-RXMC : reading parameters
@@ -2367,6 +2384,7 @@ int ReadInputFile(char *inputfilename)
         Swapable=TRUE;
     }
     if(strcasecmp("TranslationProbability",keyword)==0) sscanf(arguments,"%lf",&Components[CurrentComponent].ProbabilityTranslationMove);
+    if(strcasecmp("TargetAccRatioTranslation",keyword)==0) sscanf(arguments,"%lf",&TargetAccRatioTranslation);
     if(strcasecmp("TranslationDirection",keyword)==0)
     {
       if(strcasecmp("XYZ",firstargument)==0) Components[CurrentComponent].TranslationDirection=XYZ_DIR;
@@ -2453,6 +2471,7 @@ int ReadInputFile(char *inputfilename)
       }
     if(strcasecmp("CFWangLandauScalingFactor",keyword)==0)
       sscanf(arguments,"%lf",&Components[CurrentComponent].CFWangLandauScalingFactor[CurrentSystem]);
+    if(strcasecmp("TargetAccRatioLambdaChange",keyword)==0) sscanf(arguments,"%lf",&TargetAccRatioLambdaChange);
     if(strcasecmp("CFBiasingFactors",keyword)==0)
     {
       arg_pointer=arguments;
@@ -4480,7 +4499,6 @@ int ReadInputFile(char *inputfilename)
        sscanf(arguments,"%d",&NumberOfTrialPositionsForTheFirstBead);
     if(strcasecmp("NumberOfTrialMovesPerOpenBead",keyword)==0) sscanf(arguments,"%d",&NumberOfTrialMovesPerOpenBead);
     if(strcasecmp("TargetAccRatioSmallMCScheme",keyword)==0) sscanf(arguments,"%lf",&TargetAccRatioSmallMCScheme);
-    if(strcasecmp("TargetAccRatioTranslation",keyword)==0) sscanf(arguments,"%lf",&TargetAccRatioTranslation);
     if(strcasecmp("EnergyOverlapCriteria",keyword)==0) sscanf(arguments,"%lf",&EnergyOverlapCriteria);
     if(strcasecmp("MinimumRosenbluthFactor",keyword)==0) sscanf(arguments,"%lf",&MinimumRosenbluthFactor);
 
@@ -7970,7 +7988,6 @@ void ReadBinaryRestartFiles(void)
 {
   FILE *FilePtr;
   char buffer[1024];
-  REAL Check;
 
   printf("read binary file\n");
 
@@ -7996,14 +8013,6 @@ void ReadBinaryRestartFiles(void)
     ReadRestartUtils(FilePtr);
     ReadRestartMovies(FilePtr);
     ReadRestartOutput(FilePtr);
-
-    fread(&Check,1,sizeof(REAL),FilePtr);
-    printf("Check number: %18.10f\n",Check);
-    if(fabs(Check-123456789.0)>1e-10)
-    {
-      printf("Error in binary restart-file\n");
-      exit(0);
-    }
 
     fclose(FilePtr);
   }

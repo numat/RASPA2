@@ -469,6 +469,7 @@ void ComputeGasPropertiesForAllSystems(void)
 void WriteRestartEquationOfState(FILE *FilePtr)
 {
   int i;
+  REAL Check;
 
   for(i=0;i<NumberOfComponents;i++)
     fwrite(BinaryInteractionParameter[i],NumberOfComponents,sizeof(REAL),FilePtr);
@@ -479,6 +480,9 @@ void WriteRestartEquationOfState(FILE *FilePtr)
   fwrite(HeliumVoidFraction,NumberOfSystems,sizeof(REAL),FilePtr);
   fwrite(ExcessVolume,NumberOfSystems,sizeof(REAL),FilePtr);
   fwrite(FluidState,NumberOfSystems,sizeof(int),FilePtr);
+
+  Check=123456789.0;
+  fwrite(&Check,1,sizeof(REAL),FilePtr);
 }
 
 
@@ -513,6 +517,7 @@ void AllocateEquationOfStateMemory(void)
 void ReadRestartEquationOfState(FILE *FilePtr)
 {
   int i;
+  REAL Check;
 
   AllocateEquationOfStateMemory();
   for(i=0;i<NumberOfComponents;i++)
@@ -524,5 +529,12 @@ void ReadRestartEquationOfState(FILE *FilePtr)
   fread(HeliumVoidFraction,NumberOfSystems,sizeof(REAL),FilePtr);
   fread(ExcessVolume,NumberOfSystems,sizeof(REAL),FilePtr);
   fread(FluidState,NumberOfSystems,sizeof(int),FilePtr);
+
+  fread(&Check,1,sizeof(REAL),FilePtr);
+  if(fabs(Check-123456789.0)>1e-10)
+  {
+    printf("Error in binary restart-file (ReadRestartEquationOfState)\n");
+    exit(0);
+  }
 }
 

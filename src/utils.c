@@ -335,16 +335,30 @@ void ConvertStringToUppercase(char *buffer)
 
   void WriteRestartUtils(FILE *FilePtr)
   {
+    REAL Check;
+
     fwrite(mt,NN,sizeof(unsigned long long),FilePtr);
     fwrite(&mti,1,sizeof(int),FilePtr);
     fwrite(mag01,1,sizeof(unsigned long long[2]),FilePtr);
+
+    Check=123456789.0;
+    fwrite(&Check,1,sizeof(REAL),FilePtr);
   }
 
   void ReadRestartUtils(FILE *FilePtr)
   {
+    REAL Check;
+
     fread(mt,NN,sizeof(unsigned long long),FilePtr);
     fread(&mti,1,sizeof(int),FilePtr);
     fread(mag01,1,sizeof(unsigned long long[2]),FilePtr);
+
+    fread(&Check,1,sizeof(REAL),FilePtr);
+    if(fabs(Check-123456789.0)>1e-10)
+    {
+      printf("Error in binary restart-file (ReadRestartUtils)\n");
+      exit(0);
+    }
   }
 
   #undef NN

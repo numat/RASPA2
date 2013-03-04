@@ -11595,6 +11595,7 @@ void FindSpatialGroup2(void)
 void WriteRestartFramework(FILE *FilePtr)
 {
   int i,j,k;
+  REAL Check;
 
   fwrite(&NumberOfSystems,sizeof(NumberOfSystems),1,FilePtr);
   fwrite(crystallographic_stats,sizeof(CRYSTALLOGRAPHIC_STATISTICS),NumberOfSystems,FilePtr);
@@ -12071,12 +12072,16 @@ void WriteRestartFramework(FILE *FilePtr)
     fwrite(ForbiddenConnectivityAtoms,sizeof(char[3][256]),NumberOfForbiddenConnectivityRules,FilePtr);
     fwrite(ForbiddenConnectivityTypes,sizeof(int[3]),NumberOfForbiddenConnectivityRules,FilePtr);
   }
+
+  Check=123456789.0;
+  fwrite(&Check,1,sizeof(REAL),FilePtr);
 }
 
 
 void ReadRestartFramework(FILE *FilePtr)
 {
   int i,j,k;
+  REAL Check;
 
   fread(&NumberOfSystems,sizeof(NumberOfSystems),1,FilePtr);
   Framework=(FRAMEWORK_COMPONENT*)calloc(NumberOfSystems,sizeof(FRAMEWORK_COMPONENT));
@@ -12976,4 +12981,12 @@ void ReadRestartFramework(FILE *FilePtr)
     AllocateFrameworkCellList();
     MakeFrameworkCellList();
   }
+
+  fread(&Check,1,sizeof(REAL),FilePtr);
+  if(fabs(Check-123456789.0)>1e-10)
+  {
+    printf("Error in binary restart-file (ReadRestartFramework)\n");
+    exit(0);
+  }
+
 }

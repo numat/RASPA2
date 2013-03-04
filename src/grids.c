@@ -2407,10 +2407,15 @@ void BlockingVDWGrid(void)
 
 void WriteRestartGrids(FILE *FilePtr)
 {
+  REAL Check;
+
   fwrite(&SpacingVDWGrid,1,sizeof(REAL),FilePtr);
   fwrite(&SpacingCoulombGrid,1,sizeof(REAL),FilePtr);
   fwrite(&NumberOfGrids,1,sizeof(int),FilePtr);
   fwrite(GridTypeList,NumberOfGrids,sizeof(int),FilePtr);
+
+  Check=123456789.0;
+  fwrite(&Check,1,sizeof(REAL),FilePtr);
 }
 
 void AllocateGridMemory(void)
@@ -2422,6 +2427,8 @@ void AllocateGridMemory(void)
 
 void ReadRestartGrids(FILE *FilePtr)
 {
+  REAL Check;
+
   fread(&SpacingVDWGrid,1,sizeof(REAL),FilePtr);
   fread(&SpacingCoulombGrid,1,sizeof(REAL),FilePtr);
   fread(&NumberOfGrids,1,sizeof(int),FilePtr);
@@ -2435,5 +2442,12 @@ void ReadRestartGrids(FILE *FilePtr)
     ReadVDWGrid();
     if(ChargeMethod!=NONE)
       ReadCoulombGrid();
+  }
+
+  fread(&Check,1,sizeof(REAL),FilePtr);
+  if(fabs(Check-123456789.0)>1e-10)
+  {
+    printf("Error in binary restart-file (ReadRestartGrids)\n");
+    exit(0);
   }
 }

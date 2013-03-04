@@ -166,6 +166,8 @@ void SetSimulationUnits(void)
 
 void WriteRestartConstants(FILE *FilePtr)
 {
+  REAL Check;
+
   fwrite(&LENGTH_UNIT,sizeof(REAL),1,FilePtr);
   fwrite(&TIME_UNIT,sizeof(REAL),1,FilePtr);
   fwrite(&MASS_UNIT,sizeof(REAL),1,FilePtr);
@@ -207,10 +209,14 @@ void WriteRestartConstants(FILE *FilePtr)
 
   fwrite(&TO_WAVENUMBERS,sizeof(REAL),1,FilePtr);
   fwrite(&TO_THZ,sizeof(REAL),1,FilePtr);
+
+  Check=123456789.0;
+  fwrite(&Check,1,sizeof(REAL),FilePtr);
 }
 
 void ReadRestartConstants(FILE *FilePtr)
 {
+  REAL Check;
   fread(&LENGTH_UNIT,sizeof(REAL),1,FilePtr);
   fread(&TIME_UNIT,sizeof(REAL),1,FilePtr);
   fread(&MASS_UNIT,sizeof(REAL),1,FilePtr);
@@ -252,5 +258,12 @@ void ReadRestartConstants(FILE *FilePtr)
 
   fread(&TO_WAVENUMBERS,sizeof(REAL),1,FilePtr);
   fread(&TO_THZ,sizeof(REAL),1,FilePtr);
+
+  fread(&Check,1,sizeof(REAL),FilePtr);
+  if(fabs(Check-123456789.0)>1e-10)
+  {
+    printf("Error in binary restart-file (ReadRestartConstants)\n");
+    exit(0);
+  }
 }
 
