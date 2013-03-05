@@ -84,8 +84,6 @@ REAL *CFVDWScalingStored;
 REAL *CFChargeScalingStored;
 REAL *CFVDWScalingStored2;
 REAL *CFChargeScalingStored2;
-REAL *CFVDWScalingNew;
-REAL *CFChargeScalingNew;
 
 int OVERLAP;
 static REAL *BoltzmannFactors;
@@ -3605,8 +3603,6 @@ void AllocateCBMCMemory(void)
   CFChargeScalingStored=(REAL*)calloc(MaxNumberOfBeads,sizeof(REAL));
   CFVDWScalingStored2=(REAL*)calloc(MaxNumberOfBeads,sizeof(REAL));
   CFChargeScalingStored2=(REAL*)calloc(MaxNumberOfBeads,sizeof(REAL));
-  CFVDWScalingNew=(REAL*)calloc(MaxNumberOfBeads,sizeof(REAL));
-  CFChargeScalingNew=(REAL*)calloc(MaxNumberOfBeads,sizeof(REAL));
 
   TrialPositions=(VECTOR**)calloc(NumberOfTrialPositions,sizeof(VECTOR*));
   for(i=0;i<NumberOfTrialPositions;i++)

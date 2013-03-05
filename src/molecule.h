@@ -140,6 +140,7 @@ extern PSEUDO_ATOM *PseudoAtoms;
 extern int **NumberOfPseudoAtomsCount;
 extern int **NumberOfPseudoAtomsType;
 extern int *NumberOfPseudoAtomsTypeNew;
+extern int *NumberOfPseudoAtomsTypeOld;
 
 extern int *MapPseudoAtom;
 
@@ -497,6 +498,8 @@ typedef struct Component
   REAL ProbabilityWidomMove;
   REAL ProbabilityGibbsSwapChangeMove;
   REAL ProbabilityGibbsIdentityChangeMove;
+  REAL ProbabilityCFGibbsSwapChangeMove;
+  REAL ProbabilityCBCFGibbsSwapChangeMove;
   REAL ProbabilitySurfaceAreaMove;
   int RestrictMovesToBox;
   VECTOR BoxAxisABC_Min,BoxAxisABC_Min2,BoxAxisABC_Min3,BoxAxisABC_Min4;
@@ -537,6 +540,8 @@ typedef struct Component
   REAL FractionOfWidomMove;
   REAL FractionOfGibbsSwapChangeMove;
   REAL FractionOfGibbsIdentityChangeMove;
+  REAL FractionOfCFGibbsSwapChangeMove;
+  REAL FractionOfCBCFGibbsSwapChangeMove;
   REAL FractionOfSurfaceAreaMove;
 
   int NumberOfChiralityCenters;
@@ -582,8 +587,7 @@ extern int NumberOfCationComponents;
 extern COMPONENT *Components;
 
 int SelectRandomMoleculeOfType(int comp);
-int SelectRandomAdsorbateOfTypeExcludingFractionalMolecules(int comp);
-int SelectRandomCationOfTypeExcludingFractionalMolecules(int comp);
+int SelectRandomMoleculeOfTypeExcludingFractionalMolecule(int comp);
 
 int ReturnPseudoAtomNumber(char *buffer);
 int ReturnPossiblePseudoAtomNumber(char *buffer);

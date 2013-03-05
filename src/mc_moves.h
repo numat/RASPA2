@@ -184,6 +184,9 @@ int CFSwapLambaMove(void);
 void OptimizeCFLambdaChangeAcceptence(void);
 int CFCBSwapLambaMove(void);
 
+int CFGibbsParticleTransferMove(void);
+int CBCFGibbsParticleTransferMove(void);
+
 void WriteRestartMcMoves(FILE *FilePtr);
 void AllocateMCMovesMemory(void);
 void ReadRestartMcMoves(FILE *FilePtr);

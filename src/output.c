@@ -3699,24 +3699,26 @@ void PrintPreSimulationStatusCurrentSystem(int system)
           break;
 
       }
-      fprintf(FilePtr,"\t\tPercentage of random translation moves:       %lf\n",(double)(100.0*Components[i].FractionOfRandomTranslationMove));
-      fprintf(FilePtr,"\t\tPercentage of rotation moves:                 %lf\n",(double)(100.0*Components[i].FractionOfRotationMove));
-      fprintf(FilePtr,"\t\tPercentage of partial reinsertion moves:      %lf\n",(double)(100.0*Components[i].FractionOfPartialReinsertionMove));
-      fprintf(FilePtr,"\t\tPercentage of regrow moves:                   %lf\n",(double)(100.0*Components[i].FractionOfReinsertionMove));
-      fprintf(FilePtr,"\t\tPercentage of regrow-in-place moves:          %lf\n",(double)(100.0*Components[i].FractionOfReinsertionInPlaceMove));
-      fprintf(FilePtr,"\t\tPercentage of regrow-in-plane moves:          %lf\n",(double)(100.0*Components[i].FractionOfReinsertionInPlaneMove));
-      fprintf(FilePtr,"\t\tPercentage of identity-change moves:          %lf\n",(double)(100.0*Components[i].FractionOfIdentityChangeMove));
+      fprintf(FilePtr,"\t\tPercentage of random translation moves:         %lf\n",(double)(100.0*Components[i].FractionOfRandomTranslationMove));
+      fprintf(FilePtr,"\t\tPercentage of rotation moves:                   %lf\n",(double)(100.0*Components[i].FractionOfRotationMove));
+      fprintf(FilePtr,"\t\tPercentage of partial reinsertion moves:        %lf\n",(double)(100.0*Components[i].FractionOfPartialReinsertionMove));
+      fprintf(FilePtr,"\t\tPercentage of regrow moves:                     %lf\n",(double)(100.0*Components[i].FractionOfReinsertionMove));
+      fprintf(FilePtr,"\t\tPercentage of regrow-in-place moves:            %lf\n",(double)(100.0*Components[i].FractionOfReinsertionInPlaceMove));
+      fprintf(FilePtr,"\t\tPercentage of regrow-in-plane moves:            %lf\n",(double)(100.0*Components[i].FractionOfReinsertionInPlaneMove));
+      fprintf(FilePtr,"\t\tPercentage of identity-change moves:            %lf\n",(double)(100.0*Components[i].FractionOfIdentityChangeMove));
       for(j=0;j<Components[i].NumberOfIdentityChanges;j++)
         fprintf(FilePtr,"\t\t\tmove %d    component %d => %d\n",j,i,Components[i].IdentityChanges[j]);
-      fprintf(FilePtr,"\t\tPercentage of swap (insert/delete) moves:     %lf\n",(double)(100.0*Components[i].FractionOfSwapMove));
-      fprintf(FilePtr,"\t\tPercentage of CF swap lambda moves:           %lf\n",(double)(100.0*Components[i].FractionOfCFSwapLambdaMove));
-      fprintf(FilePtr,"\t\tPercentage of CFCB swap lambda moves:         %lf\n",(double)(100.0*Components[i].FractionOfCFCBSwapLambdaMove));
-      fprintf(FilePtr,"\t\tPercentage of Widom insertion moves:          %lf\n",(double)(100.0*Components[i].FractionOfWidomMove));
-      fprintf(FilePtr,"\t\tPercentage of surface-area moves:             %lf\n",(double)(100.0*Components[i].FractionOfSurfaceAreaMove));
-      fprintf(FilePtr,"\t\tPercentage of Gibbs particle-transfer moves:  %lf\n",(double)(100.0*Components[i].FractionOfGibbsSwapChangeMove));
-      fprintf(FilePtr,"\t\tPercentage of Gibbs identity-change moves:    %lf\n",(double)(100.0*Components[i].FractionOfGibbsIdentityChangeMove));
+      fprintf(FilePtr,"\t\tPercentage of swap (insert/delete) moves:       %lf\n",(double)(100.0*Components[i].FractionOfSwapMove));
+      fprintf(FilePtr,"\t\tPercentage of CF swap lambda moves:             %lf\n",(double)(100.0*Components[i].FractionOfCFSwapLambdaMove));
+      fprintf(FilePtr,"\t\tPercentage of CFCB swap lambda moves:           %lf\n",(double)(100.0*Components[i].FractionOfCFCBSwapLambdaMove));
+      fprintf(FilePtr,"\t\tPercentage of Widom insertion moves:            %lf\n",(double)(100.0*Components[i].FractionOfWidomMove));
+      fprintf(FilePtr,"\t\tPercentage of surface-area moves:               %lf\n",(double)(100.0*Components[i].FractionOfSurfaceAreaMove));
+      fprintf(FilePtr,"\t\tPercentage of Gibbs particle-transfer moves:    %lf\n",(double)(100.0*Components[i].FractionOfGibbsSwapChangeMove));
+      fprintf(FilePtr,"\t\tPercentage of Gibbs identity-change moves:      %lf\n",(double)(100.0*Components[i].FractionOfGibbsIdentityChangeMove));
       for(j=0;j<Components[i].NumberOfGibbsIdentityChanges;j++)
         fprintf(FilePtr,"\t\t\tmove %d    component %d => %d\n",j,i,Components[i].GibbsIdentityChanges[j]);
+      fprintf(FilePtr,"\t\tPercentage of CF Gibbs lambda-transfer moves:   %lf\n",(double)(100.0*Components[i].FractionOfCFGibbsSwapChangeMove));
+      fprintf(FilePtr,"\t\tPercentage of CBCF Gibbs lambda-transfer moves: %lf\n",(double)(100.0*Components[i].FractionOfCBCFGibbsSwapChangeMove));
       fprintf(FilePtr,"\n");
 
       fprintf(FilePtr,"\tSystem Moves (percentage per cycle):\n");

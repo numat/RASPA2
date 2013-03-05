@@ -10129,6 +10129,7 @@ REAL PotentialCorrection(int typeA,int typeB,REAL r)
     case ZERO_POTENTIAL:
       return 0.0;
     case LENNARD_JONES:
+    case LENNARD_JONES_CONTINUOUS_FRACTIONAL:
       // 4*p_0*((p_1/r)^12-(p_1/r)^6)
       // ======================================================================================
       // p_0/k_B [K]    strength parameter epsilon
@@ -10453,6 +10454,7 @@ REAL PotentialCorrectionPressure(int typeA,int typeB,REAL r)
     case ZERO_POTENTIAL:
       return 0.0;
     case LENNARD_JONES:
+    case LENNARD_JONES_CONTINUOUS_FRACTIONAL:
       // 4*p_0*((p_1/r)^12-(p_1/r)^6)
       // ======================================================================================
       // p_0/k_B [K]    strength parameter epsilon
@@ -10804,6 +10806,52 @@ REAL CalculatePressureTailCorrection(void)
   }
   return pressure/Volume[CurrentSystem];
 }
+
+/*********************************************************************************************************
+ * Name       | TailMolecularEnergyDifference                                                            *
+ * ----------------------------------------------------------------------------------------------------- *
+ * Function   | Returns the tail-correction energy difference when adding and/or removing  a molecule    *
+ * Parameters | -                                                                                        *
+ * Note       | This function is used in the swap-addition Monte Carlo move                              *
+ *********************************************************************************************************/
+
+REAL TailMolecularEnergyDifference(int ComponentToAdd,int ComponentToRemove,int Add,int Remove)
+{
+  int i,j;
+  int nr_atoms;
+  REAL energy_new,energy_old;
+
+  for(i=0;i<NumberOfPseudoAtoms;i++)
+    NumberOfPseudoAtomsTypeNew[i]=NumberOfPseudoAtomsType[CurrentSystem][i];
+
+  if(Add)
+  {
+    nr_atoms=Components[ComponentToAdd].NumberOfAtoms;
+    for(i=0;i<nr_atoms;i++)
+      NumberOfPseudoAtomsTypeNew[Components[ComponentToAdd].Type[i]]++;
+  }
+  else if(Remove)
+  {
+    nr_atoms=Components[ComponentToRemove].NumberOfAtoms;
+    for(i=0;i<nr_atoms;i++)
+      NumberOfPseudoAtomsTypeNew[Components[ComponentToRemove].Type[i]]--;
+  }
+ 
+  energy_new=0.0;
+  energy_old=0.0;
+  for(i=0;i<NumberOfPseudoAtoms;i++)
+    for(j=0;j<NumberOfPseudoAtoms;j++)
+    {
+      if(TailCorrection[i][j])
+      {
+        energy_new+=2.0*M_PI*NumberOfPseudoAtomsTypeNew[i]*NumberOfPseudoAtomsTypeNew[j]*PotentialCorrection(i,j,CutOffVDW);
+        energy_old+=2.0*M_PI*NumberOfPseudoAtomsType[CurrentSystem][i]*NumberOfPseudoAtomsType[CurrentSystem][j]*
+                    PotentialCorrection(i,j,CutOffVDW);
+      }
+    }
+  return (energy_new-energy_old)/Volume[CurrentSystem];
+}
+
 
 
 /*********************************************************************************************************

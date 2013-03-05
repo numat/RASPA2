@@ -124,8 +124,6 @@ extern REAL *CFVDWScalingStored;
 extern REAL *CFChargeScalingStored;
 extern REAL *CFVDWScalingStored2;
 extern REAL *CFChargeScalingStored2;
-extern REAL *CFVDWScalingNew;
-extern REAL *CFChargeScalingNew;
 extern int OVERLAP;           
 
 void CalculateAnisotropicTrialPositions(int TypeMolA,VECTOR *TrialPosition,VECTOR *TrialAnisotropicPosition);

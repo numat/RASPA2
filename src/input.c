@@ -2383,6 +2383,28 @@ int ReadInputFile(char *inputfilename)
       if(Components[CurrentComponent].ProbabilityGibbsIdentityChangeMove>0.0)
         Swapable=TRUE;
     }
+    if(strcasecmp("CFGibbsSwapProbability",keyword)==0) 
+    {
+      sscanf(arguments,"%lf",&Components[CurrentComponent].ProbabilityCFGibbsSwapChangeMove);
+      if(Components[CurrentComponent].ProbabilityCFGibbsSwapChangeMove>0.0)
+      {
+        Components[CurrentComponent].Swapable=TRUE;
+        for(i=0;i<NumberOfSystems;i++)
+          Components[CurrentComponent].CFMoleculePresent[i]=TRUE;
+        Swapable=TRUE;
+      }
+    }
+    if(strcasecmp("CBCFGibbsSwapProbability",keyword)==0) 
+    {
+      sscanf(arguments,"%lf",&Components[CurrentComponent].ProbabilityCBCFGibbsSwapChangeMove);
+      if(Components[CurrentComponent].ProbabilityCBCFGibbsSwapChangeMove>0.0)
+      {
+        Components[CurrentComponent].Swapable=TRUE;
+        for(i=0;i<NumberOfSystems;i++)
+          Components[CurrentComponent].CFMoleculePresent[i]=TRUE;
+        Swapable=TRUE;
+      }
+    }
     if(strcasecmp("TranslationProbability",keyword)==0) sscanf(arguments,"%lf",&Components[CurrentComponent].ProbabilityTranslationMove);
     if(strcasecmp("TargetAccRatioTranslation",keyword)==0) sscanf(arguments,"%lf",&TargetAccRatioTranslation);
     if(strcasecmp("TranslationDirection",keyword)==0)

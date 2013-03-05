@@ -48,6 +48,7 @@ PSEUDO_ATOM *PseudoAtoms;
 int **NumberOfPseudoAtomsCount;
 int **NumberOfPseudoAtomsType;
 int *NumberOfPseudoAtomsTypeNew;
+int *NumberOfPseudoAtomsTypeOld;
 int *MapPseudoAtom;
 
 int *MaxNumberOfAdsorbateMolecules;
@@ -152,10 +153,12 @@ int AddPseudoAtom(PSEUDO_ATOM atom)
     PseudoAtoms[NumberOfPseudoAtoms]=atom;
 
     NumberOfPseudoAtomsTypeNew=(int*)realloc(NumberOfPseudoAtomsTypeNew,(NumberOfPseudoAtoms+1)*sizeof(int));
+    NumberOfPseudoAtomsTypeOld=(int*)realloc(NumberOfPseudoAtomsTypeOld,(NumberOfPseudoAtoms+1)*sizeof(int));
 
     MapPseudoAtom=(int*)realloc(MapPseudoAtom,(NumberOfPseudoAtoms+1)*sizeof(int));
 
     NumberOfPseudoAtomsTypeNew[NumberOfPseudoAtoms]=0;
+    NumberOfPseudoAtomsTypeOld[NumberOfPseudoAtoms]=0;
     MapPseudoAtom[NumberOfPseudoAtoms]=0;
 
     for(i=0;i<NumberOfSystems;i++)
@@ -175,32 +178,26 @@ int AddPseudoAtom(PSEUDO_ATOM atom)
 int SelectRandomMoleculeOfType(int comp)
 {
   int d,count;
-  int CurrentAdsorbateMolecule;
-  int CurrentCationMolecule;
+  int CurrentMolecule;
 
   // choose a random molecule of this component
   d=(int)(RandomNumber()*(REAL)Components[comp].NumberOfMolecules[CurrentSystem]);
 
+  count=-1;
+  CurrentMolecule=-1;
   if(Components[comp].ExtraFrameworkMolecule)
   {
-    count=-1;
-    CurrentAdsorbateMolecule=-1;
-    CurrentCationMolecule=-1;
     do   // search for d-th molecule of the right type
-      if(Cations[CurrentSystem][++CurrentCationMolecule].Type==CurrentComponent) count++;
+      if(Cations[CurrentSystem][++CurrentMolecule].Type==comp) count++;
     while(d!=count);
   }
   else
   {
-    count=-1;
-    CurrentAdsorbateMolecule=-1;
-    CurrentCationMolecule=-1;
     do   // search for d-th molecule of the right type
-      if(Adsorbates[CurrentSystem][++CurrentAdsorbateMolecule].Type==CurrentComponent) count++;
+      if(Adsorbates[CurrentSystem][++CurrentMolecule].Type==comp) count++;
     while(d!=count);
-    return CurrentAdsorbateMolecule;
   }
-  return -1;
+  return CurrentMolecule;
 }
 
 int IsFractionalAdsorbateMolecule(int m)
@@ -223,43 +220,39 @@ int IsFractionalCationMolecule(int m)
   return FALSE;
 }
 
-int SelectRandomAdsorbateOfTypeExcludingFractionalMolecules(int comp)
+int SelectRandomMoleculeOfTypeExcludingFractionalMolecule(int comp)
 {
   int d,count;
   int CurrentMolecule;
 
-  // choose a random molecule of this component
-  d=(int)(RandomNumber()*(REAL)(Components[comp].NumberOfMolecules[CurrentSystem]-NumberOfAdsorbateComponents));
-
-  count=-1;
-  CurrentMolecule=-1;
-  do   // search for d-th molecule of the right type
+  if(Components[comp].ExtraFrameworkMolecule)
   {
-    CurrentMolecule++;
-    if((Adsorbates[CurrentSystem][CurrentMolecule].Type==comp)&&(!IsFractionalAdsorbateMolecule(CurrentMolecule))) count++;
+    // choose a random molecule of this component
+    d=(int)(RandomNumber()*(Components[comp].NumberOfMolecules[CurrentSystem]-Components[comp].CFMoleculePresent[CurrentSystem]?1:0));
+
+    count=-1;
+    CurrentMolecule=-1;
+    do   // search for d-th molecule of the right type
+    {
+      CurrentMolecule++;
+      if((Cations[CurrentSystem][CurrentMolecule].Type==comp)&&(!IsFractionalCationMolecule(CurrentMolecule))) count++;
+    }
+    while(d!=count);
   }
-  while(d!=count);
-
-  return CurrentMolecule;
-}
-
-
-int SelectRandomCationOfTypeExcludingFractionalMolecules(int comp)
-{
-  int d,count;
-  int CurrentMolecule;
-
-  // choose a random molecule of this component
-  d=(int)(RandomNumber()*(REAL)(Components[comp].NumberOfMolecules[CurrentSystem]-NumberOfCationComponents));
-
-  count=-1;
-  CurrentMolecule=-1;
-  do   // search for d-th molecule of the right type
+  else
   {
-    CurrentMolecule++;
-    if((Cations[CurrentSystem][CurrentMolecule].Type==comp)&&(!IsFractionalCationMolecule(CurrentMolecule))) count++;
+    // choose a random molecule of this component
+    d=(int)(RandomNumber()*(Components[comp].NumberOfMolecules[CurrentSystem]-Components[comp].CFMoleculePresent[CurrentSystem]?1:0));
+
+    count=-1;
+    CurrentMolecule=-1;
+    do   // search for d-th molecule of the right type
+    {
+      CurrentMolecule++;
+      if((Adsorbates[CurrentSystem][CurrentMolecule].Type==comp)&&(!IsFractionalAdsorbateMolecule(CurrentMolecule))) count++;
+    }
+    while(d!=count);
   }
-  while(d!=count);
 
   return CurrentMolecule;
 }
@@ -298,6 +291,7 @@ void ReadPseudoAtomsDefinitions(void)
   PseudoAtoms=(PSEUDO_ATOM*)calloc(NumberOfPseudoAtoms,sizeof(PSEUDO_ATOM));
 
   NumberOfPseudoAtomsTypeNew=(int*)calloc(NumberOfPseudoAtoms,sizeof(int));
+  NumberOfPseudoAtomsTypeOld=(int*)calloc(NumberOfPseudoAtoms,sizeof(int));
   MapPseudoAtom=(int*)calloc(NumberOfPseudoAtoms,sizeof(int));
 
   for(i=0;i<NumberOfSystems;i++)
@@ -3005,7 +2999,9 @@ void RescaleComponentProbabilities(void)
             Components[i].ProbabilityWidomMove+
             Components[i].ProbabilitySurfaceAreaMove+
             Components[i].ProbabilityGibbsSwapChangeMove+
-            Components[i].ProbabilityGibbsIdentityChangeMove;
+            Components[i].ProbabilityGibbsIdentityChangeMove+
+            Components[i].ProbabilityCFGibbsSwapChangeMove+
+            Components[i].ProbabilityCBCFGibbsSwapChangeMove;
 
     Components[i].ProbabilityRandomTranslationMove+=Components[i].ProbabilityTranslationMove;
     Components[i].ProbabilityRotationMove+=Components[i].ProbabilityRandomTranslationMove;
@@ -3021,6 +3017,8 @@ void RescaleComponentProbabilities(void)
     Components[i].ProbabilitySurfaceAreaMove+=Components[i].ProbabilityWidomMove;
     Components[i].ProbabilityGibbsSwapChangeMove+=Components[i].ProbabilitySurfaceAreaMove;
     Components[i].ProbabilityGibbsIdentityChangeMove+=Components[i].ProbabilityGibbsSwapChangeMove;
+    Components[i].ProbabilityCFGibbsSwapChangeMove+=Components[i].ProbabilityGibbsIdentityChangeMove;
+    Components[i].ProbabilityCBCFGibbsSwapChangeMove+=Components[i].ProbabilityCFGibbsSwapChangeMove;
 
     if(TotProb>1e-5)
     {
@@ -3039,6 +3037,8 @@ void RescaleComponentProbabilities(void)
       Components[i].ProbabilitySurfaceAreaMove/=TotProb;
       Components[i].ProbabilityGibbsSwapChangeMove/=TotProb;
       Components[i].ProbabilityGibbsIdentityChangeMove/=TotProb;
+      Components[i].ProbabilityCFGibbsSwapChangeMove/=TotProb;
+      Components[i].ProbabilityCBCFGibbsSwapChangeMove/=TotProb;
     }
 
     Components[i].FractionOfTranslationMove=Components[i].ProbabilityTranslationMove;
@@ -3056,6 +3056,8 @@ void RescaleComponentProbabilities(void)
     Components[i].FractionOfSurfaceAreaMove=Components[i].ProbabilitySurfaceAreaMove-Components[i].ProbabilityWidomMove;
     Components[i].FractionOfGibbsSwapChangeMove=Components[i].ProbabilityGibbsSwapChangeMove-Components[i].ProbabilitySurfaceAreaMove;
     Components[i].FractionOfGibbsIdentityChangeMove=Components[i].ProbabilityGibbsIdentityChangeMove-Components[i].ProbabilityGibbsSwapChangeMove;
+    Components[i].FractionOfCFGibbsSwapChangeMove=Components[i].ProbabilityCFGibbsSwapChangeMove-Components[i].ProbabilityGibbsIdentityChangeMove;
+    Components[i].FractionOfCBCFGibbsSwapChangeMove=Components[i].ProbabilityCBCFGibbsSwapChangeMove-Components[i].ProbabilityCFGibbsSwapChangeMove;
   }
 }
 
@@ -5443,6 +5445,7 @@ void ReadRestartPseudoAtoms(FILE *FilePtr)
   NumberOfPseudoAtomsCount=(int**)calloc(NumberOfSystems,sizeof(int*));
   NumberOfPseudoAtomsType=(int**)calloc(NumberOfSystems,sizeof(int*));
   NumberOfPseudoAtomsTypeNew=(int*)calloc(NumberOfPseudoAtoms,sizeof(int));
+  NumberOfPseudoAtomsTypeOld=(int*)calloc(NumberOfPseudoAtoms,sizeof(int));
   MapPseudoAtom=(int*)calloc(NumberOfPseudoAtoms,sizeof(int));
   for(i=0;i<NumberOfPseudoAtoms;i++)
   {

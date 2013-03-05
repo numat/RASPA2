@@ -247,6 +247,10 @@ void MonteCarloSimulation(void)
                 GibbsParticleTransferMove();
               else if(ran<Components[CurrentComponent].ProbabilityGibbsIdentityChangeMove)
                 GibbsIdentityChangeMove();
+              else if(ran<Components[CurrentComponent].ProbabilityCFGibbsSwapChangeMove)
+                CFGibbsParticleTransferMove();
+              else if(ran<Components[CurrentComponent].ProbabilityCBCFGibbsSwapChangeMove)
+                CBCFGibbsParticleTransferMove();
               break;
           }
           #ifdef DEBUG
@@ -411,6 +415,10 @@ void MonteCarloSimulation(void)
                   GibbsParticleTransferMove();
                 else if(ran<Components[CurrentComponent].ProbabilityGibbsIdentityChangeMove)
                   GibbsIdentityChangeMove();
+                else if(ran<Components[CurrentComponent].ProbabilityCFGibbsSwapChangeMove)
+                  CFGibbsParticleTransferMove();
+                else if(ran<Components[CurrentComponent].ProbabilityCBCFGibbsSwapChangeMove)
+                  CBCFGibbsParticleTransferMove();
                 break;
             }
             #ifdef DEBUG
@@ -622,6 +630,10 @@ void MonteCarloSimulation(void)
                 GibbsParticleTransferMove();
               else if(ran<Components[CurrentComponent].ProbabilityGibbsIdentityChangeMove)
                 GibbsIdentityChangeMove();
+              else if(ran<Components[CurrentComponent].ProbabilityCFGibbsSwapChangeMove)
+                CFGibbsParticleTransferMove();
+              else if(ran<Components[CurrentComponent].ProbabilityCBCFGibbsSwapChangeMove)
+                CBCFGibbsParticleTransferMove();
               break;
           }
           #ifdef DEBUG
