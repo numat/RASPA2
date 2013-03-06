@@ -13966,29 +13966,29 @@ int CFSwapLambaMove(void)
 
   // compute inter-molecular energy differences
   CalculateInterVDWEnergyDifferenceAdsorbate(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE);
-  if(OVERLAP) goto l1;
+  if(OVERLAP) goto label_CFSwapLambaMove_rejected;
 
   CalculateInterChargeChargeEnergyDifferenceAdsorbate(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE);
-  if(OVERLAP) goto l1;
+  if(OVERLAP) goto label_CFSwapLambaMove_rejected;
 
   CalculateInterChargeBondDipoleEnergyDifferenceAdsorbate(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE);
-  if(OVERLAP) goto l1;
+  if(OVERLAP) goto label_CFSwapLambaMove_rejected;
 
   CalculateInterBondDipoleBondDipoleEnergyDifferenceAdsorbate(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE);
-  if(OVERLAP) goto l1;
+  if(OVERLAP) goto label_CFSwapLambaMove_rejected;
 
   // compute energy differences framework-adsorbate
   CalculateFrameworkAdsorbateVDWEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE);
-  if(OVERLAP) goto l1;
+  if(OVERLAP) goto label_CFSwapLambaMove_rejected;
 
   CalculateFrameworkAdsorbateChargeChargeEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE);
-  if(OVERLAP) goto l1;
+  if(OVERLAP) goto label_CFSwapLambaMove_rejected;
 
   CalculateFrameworkAdsorbateChargeBondDipoleEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE);
-  if(OVERLAP) goto l1;
+  if(OVERLAP) goto label_CFSwapLambaMove_rejected;
 
   CalculateFrameworkAdsorbateBondDipoleBondDipoleEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE);
-  if(OVERLAP) goto l1;
+  if(OVERLAP) goto label_CFSwapLambaMove_rejected;
 
   // compute the energy differenes in Fourier-space
   if((ChargeMethod==EWALD)&&(!OmitEwaldFourier))
@@ -14096,29 +14096,29 @@ int CFSwapLambaMove(void)
 
       // compute inter-molecular energy differences
       CalculateInterVDWEnergyDifferenceAdsorbate(CurrentAdsorbateMolecule,CurrentComponent,TRUE,FALSE);
-      if(OVERLAP) goto l1;
+      if(OVERLAP) goto label_CFSwapLambaMove_rejected;
 
       CalculateInterChargeChargeEnergyDifferenceAdsorbate(CurrentAdsorbateMolecule,CurrentComponent,TRUE,FALSE);
-      if(OVERLAP) goto l1;
+      if(OVERLAP) goto label_CFSwapLambaMove_rejected;
 
       CalculateInterChargeBondDipoleEnergyDifferenceAdsorbate(CurrentAdsorbateMolecule,CurrentComponent,TRUE,FALSE);
-      if(OVERLAP) goto l1;
+      if(OVERLAP) goto label_CFSwapLambaMove_rejected;
 
       CalculateInterBondDipoleBondDipoleEnergyDifferenceAdsorbate(CurrentAdsorbateMolecule,CurrentComponent,TRUE,FALSE);
-      if(OVERLAP) goto l1;
+      if(OVERLAP) goto label_CFSwapLambaMove_rejected;
 
       // compute energy differences framework-adsorbate
       CalculateFrameworkAdsorbateVDWEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,FALSE);
-      if(OVERLAP) goto l1;
+      if(OVERLAP) goto label_CFSwapLambaMove_rejected;
 
       CalculateFrameworkAdsorbateChargeChargeEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,FALSE);
-      if(OVERLAP) goto l1;
+      if(OVERLAP) goto label_CFSwapLambaMove_rejected;
 
       CalculateFrameworkAdsorbateChargeBondDipoleEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,FALSE);
-      if(OVERLAP) goto l1;
+      if(OVERLAP) goto label_CFSwapLambaMove_rejected;
 
       CalculateFrameworkAdsorbateBondDipoleBondDipoleEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,FALSE);
-      if(OVERLAP) goto l1;
+      if(OVERLAP) goto label_CFSwapLambaMove_rejected;
 
       // compute the energy differenes in Fourier-space
       if((ChargeMethod==EWALD)&&(!OmitEwaldFourier))
@@ -14580,7 +14580,7 @@ int CFSwapLambaMove(void)
   }
   else
   {
-l1:;
+    label_CFSwapLambaMove_rejected:;
     #ifdef DEBUG
       printf("Lambda-move adsorbate rejected\n");
     #endif
@@ -14686,8 +14686,9 @@ void PrintCFSwapLambdaStatistics(FILE *FilePtr)
             (REAL)k/Components[i].CFLambdaHistogramSize,(REAL)(k+1)/Components[i].CFLambdaHistogramSize,
             100.0*CFLambdaHistogram[CurrentSystem][i][k]/total,Components[i].CFBiasingFactors[CurrentSystem][k]);
       }
+      fprintf(FilePtr,"\n");
     }
-    fprintf(FilePtr,"\n\n");
+    fprintf(FilePtr,"\n");
   }
   else
     fprintf(FilePtr,"CF swap lambda move was OFF for all components\n\n");
