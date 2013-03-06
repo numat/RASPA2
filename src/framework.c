@@ -2053,14 +2053,21 @@ void WriteFrameworkDefinitionCIF(char * string)
       
       fprintf(FilePtr,"_audit_creation_method RASPA-1.0\n");
       fprintf(FilePtr,"_audit_creation_date %d-%d-%d\n",loctime->tm_year+1900,loctime->tm_mon+1,loctime->tm_mday);
-      p=getpwuid(geteuid());
-      if(p)
-      {
-        n=strcspn(p->pw_gecos,",");
-        memcpy(fullname,p->pw_gecos,n);
-        fullname[n] = '\0';
+
+
+      #if defined(__INTEL_COMPILER)
+        getlogin_r(fullname,256);
         fprintf(FilePtr,"_audit_author_name '%s'\n",fullname);
-      }
+      #else
+        p=getpwuid(geteuid());
+        if(p)
+        {
+          n=strcspn(p->pw_gecos,",");
+          memcpy(fullname,p->pw_gecos,n);
+          fullname[n] = '\0';
+          fprintf(FilePtr,"_audit_author_name '%s'\n",fullname);
+        }
+      #endif
       fprintf(FilePtr,"\n");
       
       if(Framework[CurrentSystem].NumberOfCitations[CurrentFramework]>0)
@@ -2271,14 +2278,19 @@ void WriteFrameworkDefinitionCIF(char * string)
       
       fprintf(FilePtr,"_audit_creation_method RASPA-1.0\n");
       fprintf(FilePtr,"_audit_creation_date %d-%d-%d\n",loctime->tm_year+1900,loctime->tm_mon+1,loctime->tm_mday);
-      p=getpwuid(geteuid());
-      if(p)
-      {
-        n=strcspn(p->pw_gecos,",");
-        memcpy(fullname,p->pw_gecos,n);
-        fullname[n] = '\0';
+      #if defined(__INTEL_COMPILER)
+        getlogin_r(fullname,256);
         fprintf(FilePtr,"_audit_author_name '%s'\n",fullname);
-      }
+      #else
+        p=getpwuid(geteuid());
+        if(p)
+        {
+          n=strcspn(p->pw_gecos,",");
+          memcpy(fullname,p->pw_gecos,n);
+          fullname[n] = '\0';
+          fprintf(FilePtr,"_audit_author_name '%s'\n",fullname);
+        }
+      #endif
       fprintf(FilePtr,"\n");
       
       if(Framework[CurrentSystem].NumberOfCitations[CurrentFramework]>0)
@@ -2479,14 +2491,19 @@ void WriteFrameworkDefinitionCIF(char * string)
         
         fprintf(FilePtr,"_audit_creation_method RASPA-1.0\n");
         fprintf(FilePtr,"_audit_creation_date %d-%d-%d\n",loctime->tm_year+1900,loctime->tm_mon+1,loctime->tm_mday);
-        p=getpwuid(geteuid());
-        if(p)
-        {
-          n=strcspn(p->pw_gecos,",");
-          memcpy(fullname,p->pw_gecos,n);
-          fullname[n] = '\0';
+        #if defined(__INTEL_COMPILER)
+          getlogin_r(fullname,256);
           fprintf(FilePtr,"_audit_author_name '%s'\n",fullname);
-        }
+        #else
+          p=getpwuid(geteuid());
+          if(p)
+          {
+            n=strcspn(p->pw_gecos,",");
+            memcpy(fullname,p->pw_gecos,n);
+            fullname[n] = '\0';
+            fprintf(FilePtr,"_audit_author_name '%s'\n",fullname);
+          }
+        #endif
         fprintf(FilePtr,"\n");
         
         if(Framework[CurrentSystem].NumberOfCitations[CurrentFramework]>0)
