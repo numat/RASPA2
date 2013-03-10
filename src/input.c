@@ -728,6 +728,8 @@ int ReadInputFile(char *inputfilename)
   NumberOfCationMolecules=(int*)calloc(NumberOfSystems,sizeof(int));
 
   NumberOfFractionalMolecules=(int*)calloc(NumberOfSystems,sizeof(int));
+  NumberOfFractionalAdsorbateMolecules=(int*)calloc(NumberOfSystems,sizeof(int));
+  NumberOfFractionalCationMolecules=(int*)calloc(NumberOfSystems,sizeof(int));
 
   NumberOfAtomsPerSystem=(int*)calloc(NumberOfSystems,sizeof(int));
   NumberOfChargesPerSystem=(int*)calloc(NumberOfSystems,sizeof(int));
@@ -6515,6 +6517,10 @@ int ReadInputFile(char *inputfilename)
       if(Components[j].CFMoleculePresent[i])
       {
         NumberOfFractionalMolecules[i]++;
+        if(Components[j].ExtraFrameworkMolecule)
+          NumberOfFractionalCationMolecules[i]++;
+        else
+          NumberOfFractionalAdsorbateMolecules[i]++;
 
         // CF: if number of molecules is zero, create an initial fractional molecule
         printf("Creating Lambda particle\n");

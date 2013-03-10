@@ -251,6 +251,8 @@ typedef struct adsorbate
 extern int *MaxNumberOfAdsorbateMolecules;
 extern int *MaxNumberOfCationMolecules;
 extern int *NumberOfFractionalMolecules;
+extern int *NumberOfFractionalAdsorbateMolecules;
+extern int *NumberOfFractionalCationMolecules;
 
 extern int MaxNumberOfCoulombicSites;
 extern int MaxNumberOfBondDipoleSites;

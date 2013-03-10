@@ -1,0 +1,12 @@
+# general rule for shifted vs truncated
+shifted
+# general rule tailcorrections
+no
+# number of defined interactions
+3
+# type interaction
+He        LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED3    10.9        2.64
+S_so2     LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED3    154.387710  3.585
+O_so2     LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED3    62.2985610  2.993
+# general mixing rule for Lennard-Jones
+Lorentz-Berthelot

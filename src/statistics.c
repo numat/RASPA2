@@ -1187,8 +1187,8 @@ void UpdateEnergyAveragesCurrentSystem(void)
   UExclusionConstraintsAverage[CurrentSystem][Block]+=UExclusionConstraints[CurrentSystem];
   UTotalAverage[CurrentSystem][Block]+=UTotal[CurrentSystem];
 
-  NumberOfMoleculesAverage[CurrentSystem][Block]+=NumberOfAdsorbateMolecules[CurrentSystem];
-  NumberOfMoleculesSquaredAverage[CurrentSystem][Block]+=SQR(NumberOfAdsorbateMolecules[CurrentSystem]);
+  NumberOfMoleculesAverage[CurrentSystem][Block]+=NumberOfAdsorbateMolecules[CurrentSystem]-NumberOfFractionalAdsorbateMolecules[CurrentSystem];
+  NumberOfMoleculesSquaredAverage[CurrentSystem][Block]+=SQR(NumberOfAdsorbateMolecules[CurrentSystem]-NumberOfFractionalAdsorbateMolecules[CurrentSystem]);
   TotalEnergyTimesNumberOfMoleculesAverage[CurrentSystem][Block]+=UTotal[CurrentSystem]*(REAL)NumberOfAdsorbateMolecules[CurrentSystem];
   HostAdsorbateEnergyTimesNumberOfMoleculesAverage[CurrentSystem][Block]+=UHostAdsorbate[CurrentSystem]*(REAL)NumberOfAdsorbateMolecules[CurrentSystem];
   AdsorbateAdsorbateEnergyTimesNumberOfMoleculesAverage[CurrentSystem][Block]+=UAdsorbateAdsorbate[CurrentSystem]*(REAL)NumberOfAdsorbateMolecules[CurrentSystem];
@@ -1197,10 +1197,10 @@ void UpdateEnergyAveragesCurrentSystem(void)
   nr=NumberOfUnitCells[0].x*NumberOfUnitCells[0].y*NumberOfUnitCells[0].z;
   for(i=0;i<NumberOfComponents;i++)
   {
-    NumberOfMoleculesPerComponentAverage[CurrentSystem][i][Block]+=Components[i].NumberOfMolecules[CurrentSystem];
+    NumberOfMoleculesPerComponentAverage[CurrentSystem][i][Block]+=Components[i].NumberOfMolecules[CurrentSystem]-(Components[i].CFMoleculePresent[CurrentSystem]?1:0);
     NumberOfExcessMoleculesPerComponentAverage[CurrentSystem][i][Block]+=
-             (REAL)Components[i].NumberOfMolecules[CurrentSystem]-Components[i].AmountOfExcessMolecules[CurrentSystem];
-    density=Components[i].Mass*(REAL)Components[i].NumberOfMolecules[CurrentSystem]/Volume[CurrentSystem];
+             (REAL)Components[i].NumberOfMolecules[CurrentSystem]-Components[i].AmountOfExcessMolecules[CurrentSystem]-(Components[i].CFMoleculePresent[CurrentSystem]?1:0);
+    density=Components[i].Mass*(REAL)(Components[i].NumberOfMolecules[CurrentSystem]-(Components[i].CFMoleculePresent[CurrentSystem]?1:0))/Volume[CurrentSystem];
     DensityPerComponentAverage[CurrentSystem][i][Block]+=density;
     DensityAverage[CurrentSystem][Block]+=density;
   }
@@ -1472,8 +1472,9 @@ void PrintIntervalStatusInit(long long CurrentCycle,long long NumberOfCycles,FIL
       fprintf(FilePtr,"Component %d (%s), current number of mol/uc: %9.5lf, density: %9.5lf [kg/m^3]\n",
         i,
         Components[i].Name,
-        (double)((REAL)Components[i].NumberOfMolecules[CurrentSystem]/(REAL)number_of_unit_cells),
-        (double)((Components[i].Mass*(REAL)Components[i].NumberOfMolecules[CurrentSystem]/Volume[CurrentSystem])*DENSITY_CONVERSION_FACTOR));
+        (double)((REAL)(Components[i].NumberOfMolecules[CurrentSystem]-(Components[i].CFMoleculePresent[CurrentSystem]?1:0))/(REAL)number_of_unit_cells),
+        (double)((Components[i].Mass*(REAL)(Components[i].NumberOfMolecules[CurrentSystem]-(Components[i].CFMoleculePresent[CurrentSystem]?1:0))/
+                Volume[CurrentSystem])*DENSITY_CONVERSION_FACTOR));
 
       if(Components[i].CFMoleculePresent[CurrentSystem])
       {
@@ -1538,7 +1539,7 @@ void PrintIntervalStatusInit(long long CurrentCycle,long long NumberOfCycles,FIL
         fprintf(FilePtr,"\n");
       }
 
-      loading=(REAL)Components[i].NumberOfMolecules[CurrentSystem]/(REAL)number_of_unit_cells;
+      loading=(REAL)(Components[i].NumberOfMolecules[CurrentSystem]-(Components[i].CFMoleculePresent[CurrentSystem]?1:0))/(REAL)number_of_unit_cells;
       average_loading=GetAverageComponentProperty(NumberOfMoleculesPerComponentAverage,i)/(REAL)number_of_unit_cells;
       fprintf(FilePtr,"\tabsolute adsorption: %9.5lf [mol/uc], %14.4lf [mol/kg],      %14.4lf [mg/g]\n",
          (double)loading,
@@ -1548,7 +1549,8 @@ void PrintIntervalStatusInit(long long CurrentCycle,long long NumberOfCycles,FIL
          (double)(Components[i].MOLEC_PER_UC_TO_CC_STP_G[CurrentSystem]*loading),
          (double)(Components[i].MOLEC_PER_UC_TO_CC_STP_CC[CurrentSystem]*loading));
 
-      loading=((REAL)Components[i].NumberOfMolecules[CurrentSystem]-Components[i].AmountOfExcessMolecules[CurrentSystem])/(REAL)number_of_unit_cells;
+      loading=((REAL)Components[i].NumberOfMolecules[CurrentSystem]-Components[i].AmountOfExcessMolecules[CurrentSystem]-
+                    (Components[i].CFMoleculePresent[CurrentSystem]?1:0))/(REAL)number_of_unit_cells;
       average_loading=GetAverageComponentProperty(NumberOfExcessMoleculesPerComponentAverage,i)/(REAL)number_of_unit_cells;
       fprintf(FilePtr,"\texcess adsorption:   %9.5lf [mol/uc], %14.4lf [mol/kg],      %14.4lf [mg/g]\n",
          (double)loading,
@@ -1567,8 +1569,20 @@ void PrintIntervalStatusInit(long long CurrentCycle,long long NumberOfCycles,FIL
            DegreesOfFreedomTranslation[CurrentSystem],DegreesOfFreedomRotation[CurrentSystem],
            DegreesOfFreedomVibration[CurrentSystem],DegreesOfFreedomConstraint[CurrentSystem]);
   fprintf(FilePtr,"Number of Framework-atoms: %6d\n",Framework[CurrentSystem].TotalNumberOfAtoms);
-  fprintf(FilePtr,"Number of Adsorbates:      %6d\n",NumberOfAdsorbateMolecules[CurrentSystem]);
-  fprintf(FilePtr,"Number of Cations:         %6d\n",NumberOfCationMolecules[CurrentSystem]);
+  if(NumberOfFractionalAdsorbateMolecules[CurrentSystem]>0)
+    fprintf(FilePtr,"Number of Adsorbates:      %6d (%d integer, %d fractional)\n",
+            NumberOfAdsorbateMolecules[CurrentSystem],
+            NumberOfAdsorbateMolecules[CurrentSystem]-NumberOfFractionalAdsorbateMolecules[CurrentSystem],
+            NumberOfFractionalAdsorbateMolecules[CurrentSystem]);
+  else
+    fprintf(FilePtr,"Number of Adsorbates:      %6d\n",NumberOfAdsorbateMolecules[CurrentSystem]);
+  if(NumberOfFractionalCationMolecules[CurrentSystem]>0)
+    fprintf(FilePtr,"Number of Cations:         %6d (%d integer, %d fractional\n",
+        NumberOfCationMolecules[CurrentSystem],
+        NumberOfCationMolecules[CurrentSystem]-NumberOfFractionalCationMolecules[CurrentSystem],
+        NumberOfFractionalCationMolecules[CurrentSystem]);
+  else
+    fprintf(FilePtr,"Number of Cations:         %6d\n",NumberOfCationMolecules[CurrentSystem]);
   fprintf(FilePtr,"\n");
 
   fprintf(FilePtr,"Current total potential energy:       % 22.10lf [K]\n",
@@ -1688,8 +1702,9 @@ void PrintIntervalStatusEquilibration(long long CurrentCycle,long long NumberOfC
       fprintf(FilePtr,"Component %d (%s), current number of mol/uc: %9.5lf, density: %9.5lf [kg/m^3]\n",
         i,
         Components[i].Name,
-        (double)((REAL)Components[i].NumberOfMolecules[CurrentSystem]/(REAL)number_of_unit_cells),
-        (double)((Components[i].Mass*(REAL)Components[i].NumberOfMolecules[CurrentSystem]/Volume[CurrentSystem])*DENSITY_CONVERSION_FACTOR));
+        (double)((REAL)(Components[i].NumberOfMolecules[CurrentSystem]-(Components[i].CFMoleculePresent[CurrentSystem]?1:0))/(REAL)number_of_unit_cells),
+        (double)((Components[i].Mass*(REAL)(Components[i].NumberOfMolecules[CurrentSystem]-(Components[i].CFMoleculePresent[CurrentSystem]?1:0))/
+                 Volume[CurrentSystem])*DENSITY_CONVERSION_FACTOR));
       if(Components[i].CFMoleculePresent[CurrentSystem])
       {
         FractionalMolecule=Components[i].FractionalMolecule[CurrentSystem];
@@ -1727,7 +1742,8 @@ void PrintIntervalStatusEquilibration(long long CurrentCycle,long long NumberOfC
         i,
         Components[i].Name,
         Components[i].NumberOfMolecules[CurrentSystem],
-        (double)(Components[i].Mass*(REAL)Components[i].NumberOfMolecules[CurrentSystem]/Volume[CurrentSystem])*DENSITY_CONVERSION_FACTOR);
+        (double)(Components[i].Mass*(REAL)(Components[i].NumberOfMolecules[CurrentSystem]-(Components[i].CFMoleculePresent[CurrentSystem]?1:0))/
+             Volume[CurrentSystem])*DENSITY_CONVERSION_FACTOR);
       if(Components[i].CFMoleculePresent[CurrentSystem])
       {
         FractionalMolecule=Components[i].FractionalMolecule[CurrentSystem];
@@ -1753,7 +1769,7 @@ void PrintIntervalStatusEquilibration(long long CurrentCycle,long long NumberOfC
         fprintf(FilePtr,"\n");
       }
 
-      loading=(REAL)Components[i].NumberOfMolecules[CurrentSystem]/(REAL)number_of_unit_cells;
+      loading=(REAL)(Components[i].NumberOfMolecules[CurrentSystem]-(Components[i].CFMoleculePresent[CurrentSystem]?1:0))/(REAL)number_of_unit_cells;
       average_loading=GetAverageComponentProperty(NumberOfMoleculesPerComponentAverage,i)/(REAL)number_of_unit_cells;
       fprintf(FilePtr,"\tabsolute adsorption: %9.5lf [mol/uc], %14.4lf [mol/kg],      %14.4lf [mg/g]\n",
          (double)loading,
@@ -1763,7 +1779,8 @@ void PrintIntervalStatusEquilibration(long long CurrentCycle,long long NumberOfC
          (double)(Components[i].MOLEC_PER_UC_TO_CC_STP_G[CurrentSystem]*loading),
          (double)(Components[i].MOLEC_PER_UC_TO_CC_STP_CC[CurrentSystem]*loading));
 
-      loading=((REAL)Components[i].NumberOfMolecules[CurrentSystem]-Components[i].AmountOfExcessMolecules[CurrentSystem])/(REAL)number_of_unit_cells;
+      loading=((REAL)Components[i].NumberOfMolecules[CurrentSystem]-Components[i].AmountOfExcessMolecules[CurrentSystem]-
+                    (Components[i].CFMoleculePresent[CurrentSystem]?1:0))/(REAL)number_of_unit_cells;
       average_loading=GetAverageComponentProperty(NumberOfExcessMoleculesPerComponentAverage,i)/(REAL)number_of_unit_cells;
       fprintf(FilePtr,"\texcess adsorption:   %9.5lf [mol/uc], %14.4lf [mol/kg],      %14.4lf [mg/g]\n",
          (double)loading,
@@ -1781,8 +1798,20 @@ void PrintIntervalStatusEquilibration(long long CurrentCycle,long long NumberOfC
            DegreesOfFreedomTranslation[CurrentSystem],DegreesOfFreedomRotation[CurrentSystem],
            DegreesOfFreedomVibration[CurrentSystem],DegreesOfFreedomConstraint[CurrentSystem]);
   fprintf(FilePtr,"Number of Framework-atoms: %6d\n",Framework[CurrentSystem].TotalNumberOfAtoms);
-  fprintf(FilePtr,"Number of Adsorbates:      %6d\n",NumberOfAdsorbateMolecules[CurrentSystem]);
-  fprintf(FilePtr,"Number of Cations:         %6d\n",NumberOfCationMolecules[CurrentSystem]);
+  if(NumberOfFractionalAdsorbateMolecules[CurrentSystem]>0)
+    fprintf(FilePtr,"Number of Adsorbates:      %6d (%d integer, %d fractional)\n",
+            NumberOfAdsorbateMolecules[CurrentSystem],
+            NumberOfAdsorbateMolecules[CurrentSystem]-NumberOfFractionalAdsorbateMolecules[CurrentSystem],
+            NumberOfFractionalAdsorbateMolecules[CurrentSystem]);
+  else
+    fprintf(FilePtr,"Number of Adsorbates:      %6d\n",NumberOfAdsorbateMolecules[CurrentSystem]);
+  if(NumberOfFractionalCationMolecules[CurrentSystem]>0)
+    fprintf(FilePtr,"Number of Cations:         %6d (%d integer, %d fractional)\n",
+            NumberOfCationMolecules[CurrentSystem],
+            NumberOfCationMolecules[CurrentSystem]-NumberOfFractionalCationMolecules[CurrentSystem],
+            NumberOfFractionalCationMolecules[CurrentSystem]);
+  else
+    fprintf(FilePtr,"Number of Cations:         %6d\n",NumberOfCationMolecules[CurrentSystem]);
   fprintf(FilePtr,"\n");
 
   if(SimulationType==MOLECULAR_DYNAMICS)
@@ -2520,9 +2549,10 @@ void PrintIntervalStatus(long long CurrentCycle,long long NumberOfCycles, FILE *
       fprintf(FilePtr,"Component %d (%s), current number of mol/uc: %9.5lf (average %9.5lf), density: %9.5lf (average %9.5lf) kg/m^3]\n",
         i,
         Components[i].Name,
-        (double)((REAL)Components[i].NumberOfMolecules[CurrentSystem]/(REAL)number_of_unit_cells),
+        (double)((REAL)(Components[i].NumberOfMolecules[CurrentSystem]-(Components[i].CFMoleculePresent[CurrentSystem]?1:0))/(REAL)number_of_unit_cells),
         (double)(GetAverageComponentProperty(NumberOfMoleculesPerComponentAverage,i)/(REAL)number_of_unit_cells),
-        (double)((Components[i].Mass*(REAL)Components[i].NumberOfMolecules[CurrentSystem]/Volume[CurrentSystem])*DENSITY_CONVERSION_FACTOR),
+        (double)((Components[i].Mass*(REAL)(Components[i].NumberOfMolecules[CurrentSystem]-(Components[i].CFMoleculePresent[CurrentSystem]?1:0))/
+                 Volume[CurrentSystem])*DENSITY_CONVERSION_FACTOR),
         (double)(GetAverageComponentProperty(DensityPerComponentAverage,i)*DENSITY_CONVERSION_FACTOR));
       if(Components[i].CFMoleculePresent[CurrentSystem])
       {
@@ -2561,9 +2591,10 @@ void PrintIntervalStatus(long long CurrentCycle,long long NumberOfCycles, FILE *
       fprintf(FilePtr,"Component %d (%s), current number of molecules: %d (avg. %9.5lf), density: %9.5lf (avg. %9.5lf) [kg/m^3]\n",
         i,
         Components[i].Name,
-        Components[i].NumberOfMolecules[CurrentSystem],
+        Components[i].NumberOfMolecules[CurrentSystem]-(Components[i].CFMoleculePresent[CurrentSystem]?1:0),
         (double)GetAverageComponentProperty(NumberOfMoleculesPerComponentAverage,i),
-        (double)(Components[i].Mass*(REAL)Components[i].NumberOfMolecules[CurrentSystem]/Volume[CurrentSystem])*DENSITY_CONVERSION_FACTOR,
+        (double)(Components[i].Mass*(REAL)(Components[i].NumberOfMolecules[CurrentSystem]-(Components[i].CFMoleculePresent[CurrentSystem]?1:0))/
+                Volume[CurrentSystem])*DENSITY_CONVERSION_FACTOR,
         (double)GetAverageComponentProperty(DensityPerComponentAverage,i)*DENSITY_CONVERSION_FACTOR);
       if(Components[i].CFMoleculePresent[CurrentSystem])
       {
@@ -2590,7 +2621,7 @@ void PrintIntervalStatus(long long CurrentCycle,long long NumberOfCycles, FILE *
         fprintf(FilePtr,"\n");
       }
 
-      loading=(REAL)Components[i].NumberOfMolecules[CurrentSystem]/(REAL)number_of_unit_cells;
+      loading=(REAL)(Components[i].NumberOfMolecules[CurrentSystem]-(Components[i].CFMoleculePresent[CurrentSystem]?1:0))/(REAL)number_of_unit_cells;
       average_loading=GetAverageComponentProperty(NumberOfMoleculesPerComponentAverage,i)/(REAL)number_of_unit_cells;
       fprintf(FilePtr,"\tabsolute adsorption: %9.5lf (avg. %9.5lf) [mol/uc], %14.10lf (avg. %14.10lf) [mol/kg], %14.10lf (avg. %14.10lf) [mg/g]\n",
          (double)loading,
@@ -2606,7 +2637,8 @@ void PrintIntervalStatus(long long CurrentCycle,long long NumberOfCycles, FILE *
          (double)(Components[i].MOLEC_PER_UC_TO_CC_STP_CC[CurrentSystem]*average_loading));
 
 
-      loading=((REAL)Components[i].NumberOfMolecules[CurrentSystem]-Components[i].AmountOfExcessMolecules[CurrentSystem])/(REAL)number_of_unit_cells;
+      loading=((REAL)Components[i].NumberOfMolecules[CurrentSystem]-Components[i].AmountOfExcessMolecules[CurrentSystem]-
+                    (Components[i].CFMoleculePresent[CurrentSystem]?1:0))/(REAL)number_of_unit_cells;
       average_loading=GetAverageComponentProperty(NumberOfExcessMoleculesPerComponentAverage,i)/(REAL)number_of_unit_cells;
       fprintf(FilePtr,"\texcess adsorption:   %14.10lf (avg. %14.10lf) [mol/uc], %14.10lf (avg. %14.10lf) [mol/kg], %14.10lf (avg. %14.10lf) [mg/g]\n",
          (double)loading,
@@ -2629,8 +2661,20 @@ void PrintIntervalStatus(long long CurrentCycle,long long NumberOfCycles, FILE *
            DegreesOfFreedomTranslation[CurrentSystem],DegreesOfFreedomRotation[CurrentSystem],
            DegreesOfFreedomVibration[CurrentSystem],DegreesOfFreedomConstraint[CurrentSystem]);
   fprintf(FilePtr,"Number of Framework-atoms: %6d\n",Framework[CurrentSystem].TotalNumberOfAtoms);
-  fprintf(FilePtr,"Number of Adsorbates:      %6d\n",NumberOfAdsorbateMolecules[CurrentSystem]);
-  fprintf(FilePtr,"Number of Cations:         %6d\n",NumberOfCationMolecules[CurrentSystem]);
+  if(NumberOfFractionalAdsorbateMolecules[CurrentSystem]>0)
+    fprintf(FilePtr,"Number of Adsorbates:      %6d (%d integer, %d fractional)\n",
+            NumberOfAdsorbateMolecules[CurrentSystem],
+            NumberOfAdsorbateMolecules[CurrentSystem]-NumberOfFractionalAdsorbateMolecules[CurrentSystem],
+            NumberOfFractionalAdsorbateMolecules[CurrentSystem]);
+  else
+    fprintf(FilePtr,"Number of Adsorbates:      %6d\n",NumberOfAdsorbateMolecules[CurrentSystem]);
+  if(NumberOfFractionalCationMolecules[CurrentSystem]>0)
+    fprintf(FilePtr,"Number of Cations:         %6d (%d integer, %d fractional)\n",
+            NumberOfCationMolecules[CurrentSystem],
+            NumberOfCationMolecules[CurrentSystem]-NumberOfFractionalCationMolecules[CurrentSystem],
+            NumberOfFractionalCationMolecules[CurrentSystem]);
+  else
+    fprintf(FilePtr,"Number of Cations:         %6d\n",NumberOfCationMolecules[CurrentSystem]);
   fprintf(FilePtr,"\n");
 
   if(SimulationType==MOLECULAR_DYNAMICS)

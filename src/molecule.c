@@ -54,6 +54,8 @@ int *MapPseudoAtom;
 int *MaxNumberOfAdsorbateMolecules;
 int *MaxNumberOfCationMolecules;
 int *NumberOfFractionalMolecules;
+int *NumberOfFractionalAdsorbateMolecules;
+int *NumberOfFractionalCationMolecules;
 
 int MaxNumberOfCoulombicSites;
 int MaxNumberOfBondDipoleSites;
@@ -5507,6 +5509,8 @@ void WriteRestartMolecules(FILE *FilePtr)
   fwrite(NumberOfCationMolecules,NumberOfSystems,sizeof(int),FilePtr);
 
   fwrite(NumberOfFractionalMolecules,sizeof(int),NumberOfSystems,FilePtr);
+  fwrite(NumberOfFractionalAdsorbateMolecules,sizeof(int),NumberOfSystems,FilePtr);
+  fwrite(NumberOfFractionalCationMolecules,sizeof(int),NumberOfSystems,FilePtr);
 
   fwrite(&MaxNumberOfCoulombicSites,sizeof(int),1,FilePtr);
   fwrite(&LargestNumberOfCoulombicSites,sizeof(int),1,FilePtr);
@@ -5571,7 +5575,11 @@ void ReadRestartMolecules(FILE *FilePtr)
   fread(NumberOfCationMolecules,sizeof(int),NumberOfSystems,FilePtr);
 
   NumberOfFractionalMolecules=(int*)calloc(NumberOfSystems,sizeof(int));
+  NumberOfFractionalAdsorbateMolecules=(int*)calloc(NumberOfSystems,sizeof(int));
+  NumberOfFractionalCationMolecules=(int*)calloc(NumberOfSystems,sizeof(int));
   fread(NumberOfFractionalMolecules,sizeof(int),NumberOfSystems,FilePtr);
+  fread(NumberOfFractionalAdsorbateMolecules,sizeof(int),NumberOfSystems,FilePtr);
+  fread(NumberOfFractionalCationMolecules,sizeof(int),NumberOfSystems,FilePtr);
 
   fread(&MaxNumberOfCoulombicSites,sizeof(int),1,FilePtr);
   fread(&LargestNumberOfCoulombicSites,sizeof(int),1,FilePtr);
