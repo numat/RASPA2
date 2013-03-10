@@ -243,13 +243,13 @@ void MonteCarloSimulation(void)
                 ;
               else if(ran<Components[CurrentComponent].ProbabilitySurfaceAreaMove)
                 ;
-              else if(ran<Components[CurrentComponent].ProbabilityGibbsSwapChangeMove)
+              else if(ran<Components[CurrentComponent].ProbabilityGibbsChangeMove)
                 GibbsParticleTransferMove();
               else if(ran<Components[CurrentComponent].ProbabilityGibbsIdentityChangeMove)
                 GibbsIdentityChangeMove();
-              else if(ran<Components[CurrentComponent].ProbabilityCFGibbsSwapChangeMove)
+              else if(ran<Components[CurrentComponent].ProbabilityCFGibbsChangeMove)
                 CFGibbsParticleTransferMove();
-              else if(ran<Components[CurrentComponent].ProbabilityCBCFGibbsSwapChangeMove)
+              else if(ran<Components[CurrentComponent].ProbabilityCBCFGibbsChangeMove)
                 CBCFGibbsParticleTransferMove();
               break;
           }
@@ -259,7 +259,7 @@ void MonteCarloSimulation(void)
         }
       }
 
-      if(CurrentCycle%PrintEvery==0)
+      if(CurrentCycle%OptimizeAcceptenceEvery==0)
       {
         for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
         {
@@ -269,6 +269,7 @@ void MonteCarloSimulation(void)
             OptimizeFrameworkChangeAcceptence();
           OptimizeFrameworkShiftAcceptence();
           OptimizeCFLambdaChangeAcceptence();
+          OptimizeCFGibbsLambdaChangeAcceptence();
           RescaleMaximumRotationAnglesSmallMC();
         }
       }
@@ -406,19 +407,28 @@ void MonteCarloSimulation(void)
                   CFWangLandauIteration(SAMPLE);
                 }
                 else if(ran<Components[CurrentComponent].ProbabilityCFCBSwapLambdaMove)
+                {
+                  CFWangLandauIteration(SAMPLE);
                   CFCBSwapLambaMove();
+                }
                 else if(ran<Components[CurrentComponent].ProbabilityWidomMove)
                   ;
                 else if(ran<Components[CurrentComponent].ProbabilitySurfaceAreaMove)
                   ;
-                else if(ran<Components[CurrentComponent].ProbabilityGibbsSwapChangeMove)
+                else if(ran<Components[CurrentComponent].ProbabilityGibbsChangeMove)
                   GibbsParticleTransferMove();
                 else if(ran<Components[CurrentComponent].ProbabilityGibbsIdentityChangeMove)
                   GibbsIdentityChangeMove();
-                else if(ran<Components[CurrentComponent].ProbabilityCFGibbsSwapChangeMove)
+                else if(ran<Components[CurrentComponent].ProbabilityCFGibbsChangeMove)
+                {
+                  CFWangLandauIteration(SAMPLE);
                   CFGibbsParticleTransferMove();
-                else if(ran<Components[CurrentComponent].ProbabilityCBCFGibbsSwapChangeMove)
+                }
+                else if(ran<Components[CurrentComponent].ProbabilityCBCFGibbsChangeMove)
+                {
+                  CFWangLandauIteration(SAMPLE);
                   CBCFGibbsParticleTransferMove();
+                }
                 break;
             }
             #ifdef DEBUG
@@ -427,7 +437,7 @@ void MonteCarloSimulation(void)
           }
         }
 
-        if(CurrentCycle%PrintEvery==0)
+        if(CurrentCycle%OptimizeAcceptenceEvery==0)
         {
           for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
           {
@@ -437,6 +447,7 @@ void MonteCarloSimulation(void)
               OptimizeFrameworkChangeAcceptence();
             OptimizeFrameworkShiftAcceptence();
             OptimizeCFLambdaChangeAcceptence();
+            OptimizeCFGibbsLambdaChangeAcceptence();
             RescaleMaximumRotationAnglesSmallMC();
           }
         }
@@ -626,13 +637,13 @@ void MonteCarloSimulation(void)
                 WidomMove();
               else if(ran<Components[CurrentComponent].ProbabilitySurfaceAreaMove)
                 SurfaceAreaMove();
-              else if(ran<Components[CurrentComponent].ProbabilityGibbsSwapChangeMove)
+              else if(ran<Components[CurrentComponent].ProbabilityGibbsChangeMove)
                 GibbsParticleTransferMove();
               else if(ran<Components[CurrentComponent].ProbabilityGibbsIdentityChangeMove)
                 GibbsIdentityChangeMove();
-              else if(ran<Components[CurrentComponent].ProbabilityCFGibbsSwapChangeMove)
+              else if(ran<Components[CurrentComponent].ProbabilityCFGibbsChangeMove)
                 CFGibbsParticleTransferMove();
-              else if(ran<Components[CurrentComponent].ProbabilityCBCFGibbsSwapChangeMove)
+              else if(ran<Components[CurrentComponent].ProbabilityCBCFGibbsChangeMove)
                 CBCFGibbsParticleTransferMove();
               break;
           }
@@ -643,7 +654,7 @@ void MonteCarloSimulation(void)
       }
 
 
-      if(CurrentCycle%PrintEvery==0)
+      if(CurrentCycle%OptimizeAcceptenceEvery==0)
       {
         for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
         {
@@ -653,6 +664,7 @@ void MonteCarloSimulation(void)
             OptimizeFrameworkChangeAcceptence();
           OptimizeFrameworkShiftAcceptence();
           OptimizeCFLambdaChangeAcceptence();
+          OptimizeCFGibbsLambdaChangeAcceptence();
           RescaleMaximumRotationAnglesSmallMC();
         }
       }

@@ -120,10 +120,6 @@ extern VECTOR FirstBeadPosition;
 extern VECTOR **TrialPositions;
 extern REAL *CFVDWScaling;
 extern REAL *CFChargeScaling;
-extern REAL *CFVDWScalingStored;
-extern REAL *CFChargeScalingStored;
-extern REAL *CFVDWScalingStored2;
-extern REAL *CFChargeScalingStored2;
 extern int OVERLAP;           
 
 void CalculateAnisotropicTrialPositions(int TypeMolA,VECTOR *TrialPosition,VECTOR *TrialAnisotropicPosition);

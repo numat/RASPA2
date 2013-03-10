@@ -53,6 +53,7 @@ int *MapPseudoAtom;
 
 int *MaxNumberOfAdsorbateMolecules;
 int *MaxNumberOfCationMolecules;
+int *NumberOfFractionalMolecules;
 
 int MaxNumberOfCoulombicSites;
 int MaxNumberOfBondDipoleSites;
@@ -228,7 +229,7 @@ int SelectRandomMoleculeOfTypeExcludingFractionalMolecule(int comp)
   if(Components[comp].ExtraFrameworkMolecule)
   {
     // choose a random molecule of this component
-    d=(int)(RandomNumber()*(Components[comp].NumberOfMolecules[CurrentSystem]-Components[comp].CFMoleculePresent[CurrentSystem]?1:0));
+    d=(int)(RandomNumber()*(Components[comp].NumberOfMolecules[CurrentSystem]-(Components[comp].CFMoleculePresent[CurrentSystem]?1:0)));
 
     count=-1;
     CurrentMolecule=-1;
@@ -242,7 +243,7 @@ int SelectRandomMoleculeOfTypeExcludingFractionalMolecule(int comp)
   else
   {
     // choose a random molecule of this component
-    d=(int)(RandomNumber()*(Components[comp].NumberOfMolecules[CurrentSystem]-Components[comp].CFMoleculePresent[CurrentSystem]?1:0));
+    d=(int)(RandomNumber()*(Components[comp].NumberOfMolecules[CurrentSystem]-(Components[comp].CFMoleculePresent[CurrentSystem]?1:0)));
 
     count=-1;
     CurrentMolecule=-1;
@@ -2940,8 +2941,8 @@ void RemoveCationMolecule(void)
   // be changed when you delete a molecule with a lower index).
   for(i=0;i<NumberOfComponents;i++)
   {
-    if((CurrentCationMolecule<Components[i].FractionalMolecule[CurrentSystem])&&(Components[i].ExtraFrameworkMolecule))
-      Components[i].FractionalMolecule[CurrentSystem]--;
+    if((Components[i].FractionalMolecule[CurrentSystem]==LastMolecule)&&(Components[i].ExtraFrameworkMolecule))
+      Components[i].FractionalMolecule[CurrentSystem]=CurrentCationMolecule;
   }
 
   // modify the degrees of freedom
@@ -2998,10 +2999,10 @@ void RescaleComponentProbabilities(void)
             Components[i].ProbabilityCFCBSwapLambdaMove+
             Components[i].ProbabilityWidomMove+
             Components[i].ProbabilitySurfaceAreaMove+
-            Components[i].ProbabilityGibbsSwapChangeMove+
+            Components[i].ProbabilityGibbsChangeMove+
             Components[i].ProbabilityGibbsIdentityChangeMove+
-            Components[i].ProbabilityCFGibbsSwapChangeMove+
-            Components[i].ProbabilityCBCFGibbsSwapChangeMove;
+            Components[i].ProbabilityCFGibbsChangeMove+
+            Components[i].ProbabilityCBCFGibbsChangeMove;
 
     Components[i].ProbabilityRandomTranslationMove+=Components[i].ProbabilityTranslationMove;
     Components[i].ProbabilityRotationMove+=Components[i].ProbabilityRandomTranslationMove;
@@ -3015,10 +3016,10 @@ void RescaleComponentProbabilities(void)
     Components[i].ProbabilityCFCBSwapLambdaMove+=Components[i].ProbabilityCFSwapLambdaMove;
     Components[i].ProbabilityWidomMove+=Components[i].ProbabilityCFCBSwapLambdaMove;
     Components[i].ProbabilitySurfaceAreaMove+=Components[i].ProbabilityWidomMove;
-    Components[i].ProbabilityGibbsSwapChangeMove+=Components[i].ProbabilitySurfaceAreaMove;
-    Components[i].ProbabilityGibbsIdentityChangeMove+=Components[i].ProbabilityGibbsSwapChangeMove;
-    Components[i].ProbabilityCFGibbsSwapChangeMove+=Components[i].ProbabilityGibbsIdentityChangeMove;
-    Components[i].ProbabilityCBCFGibbsSwapChangeMove+=Components[i].ProbabilityCFGibbsSwapChangeMove;
+    Components[i].ProbabilityGibbsChangeMove+=Components[i].ProbabilitySurfaceAreaMove;
+    Components[i].ProbabilityGibbsIdentityChangeMove+=Components[i].ProbabilityGibbsChangeMove;
+    Components[i].ProbabilityCFGibbsChangeMove+=Components[i].ProbabilityGibbsIdentityChangeMove;
+    Components[i].ProbabilityCBCFGibbsChangeMove+=Components[i].ProbabilityCFGibbsChangeMove;
 
     if(TotProb>1e-5)
     {
@@ -3035,10 +3036,10 @@ void RescaleComponentProbabilities(void)
       Components[i].ProbabilityCFCBSwapLambdaMove/=TotProb;
       Components[i].ProbabilityWidomMove/=TotProb;
       Components[i].ProbabilitySurfaceAreaMove/=TotProb;
-      Components[i].ProbabilityGibbsSwapChangeMove/=TotProb;
+      Components[i].ProbabilityGibbsChangeMove/=TotProb;
       Components[i].ProbabilityGibbsIdentityChangeMove/=TotProb;
-      Components[i].ProbabilityCFGibbsSwapChangeMove/=TotProb;
-      Components[i].ProbabilityCBCFGibbsSwapChangeMove/=TotProb;
+      Components[i].ProbabilityCFGibbsChangeMove/=TotProb;
+      Components[i].ProbabilityCBCFGibbsChangeMove/=TotProb;
     }
 
     Components[i].FractionOfTranslationMove=Components[i].ProbabilityTranslationMove;
@@ -3054,10 +3055,10 @@ void RescaleComponentProbabilities(void)
     Components[i].FractionOfCFCBSwapLambdaMove=Components[i].ProbabilityCFCBSwapLambdaMove-Components[i].ProbabilityCFSwapLambdaMove;
     Components[i].FractionOfWidomMove=Components[i].ProbabilityWidomMove-Components[i].ProbabilityCFCBSwapLambdaMove;
     Components[i].FractionOfSurfaceAreaMove=Components[i].ProbabilitySurfaceAreaMove-Components[i].ProbabilityWidomMove;
-    Components[i].FractionOfGibbsSwapChangeMove=Components[i].ProbabilityGibbsSwapChangeMove-Components[i].ProbabilitySurfaceAreaMove;
-    Components[i].FractionOfGibbsIdentityChangeMove=Components[i].ProbabilityGibbsIdentityChangeMove-Components[i].ProbabilityGibbsSwapChangeMove;
-    Components[i].FractionOfCFGibbsSwapChangeMove=Components[i].ProbabilityCFGibbsSwapChangeMove-Components[i].ProbabilityGibbsIdentityChangeMove;
-    Components[i].FractionOfCBCFGibbsSwapChangeMove=Components[i].ProbabilityCBCFGibbsSwapChangeMove-Components[i].ProbabilityCFGibbsSwapChangeMove;
+    Components[i].FractionOfGibbsChangeMove=Components[i].ProbabilityGibbsChangeMove-Components[i].ProbabilitySurfaceAreaMove;
+    Components[i].FractionOfGibbsIdentityChangeMove=Components[i].ProbabilityGibbsIdentityChangeMove-Components[i].ProbabilityGibbsChangeMove;
+    Components[i].FractionOfCFGibbsChangeMove=Components[i].ProbabilityCFGibbsChangeMove-Components[i].ProbabilityGibbsIdentityChangeMove;
+    Components[i].FractionOfCBCFGibbsChangeMove=Components[i].ProbabilityCBCFGibbsChangeMove-Components[i].ProbabilityCFGibbsChangeMove;
   }
 }
 
@@ -5505,6 +5506,8 @@ void WriteRestartMolecules(FILE *FilePtr)
   fwrite(MaxNumberOfCationMolecules,NumberOfSystems,sizeof(int),FilePtr);
   fwrite(NumberOfCationMolecules,NumberOfSystems,sizeof(int),FilePtr);
 
+  fwrite(NumberOfFractionalMolecules,sizeof(int),NumberOfSystems,FilePtr);
+
   fwrite(&MaxNumberOfCoulombicSites,sizeof(int),1,FilePtr);
   fwrite(&LargestNumberOfCoulombicSites,sizeof(int),1,FilePtr);
   fwrite(&LargestNumberOfBondDipoleSites,sizeof(int),1,FilePtr);
@@ -5566,6 +5569,9 @@ void ReadRestartMolecules(FILE *FilePtr)
 
   fread(MaxNumberOfCationMolecules,sizeof(int),NumberOfSystems,FilePtr);
   fread(NumberOfCationMolecules,sizeof(int),NumberOfSystems,FilePtr);
+
+  NumberOfFractionalMolecules=(int*)calloc(NumberOfSystems,sizeof(int));
+  fread(NumberOfFractionalMolecules,sizeof(int),NumberOfSystems,FilePtr);
 
   fread(&MaxNumberOfCoulombicSites,sizeof(int),1,FilePtr);
   fread(&LargestNumberOfCoulombicSites,sizeof(int),1,FilePtr);

@@ -207,14 +207,6 @@ void ParseForceFieldSelfParameters(char *Arguments,int i,char *PotentialName)
     PotentialParms[i][i][1]=arg2;
     PotentialParms[i][i][2]=(REAL)0.0;
   }
-  if((strcasecmp(PotentialName,"LENNARD_JONES_CONTINUOUS_FRACTIONAL")==0)||(strcasecmp(PotentialName,"LENNARD_JONES_CONTINUOUS_FRACTIONAL-JONES")==0))
-  {
-    PotentialType[i][i]=LENNARD_JONES_CONTINUOUS_FRACTIONAL;
-    sscanf(Arguments,"%lf %lf",&arg1,&arg2);
-    PotentialParms[i][i][0]=arg1*KELVIN_TO_ENERGY;
-    PotentialParms[i][i][1]=arg2;
-    PotentialParms[i][i][2]=(REAL)0.0;
-  }
   // {4*p_0*((p_1/r)^12-(p_1/r)^6)}*S(r)
   // ======================================================================================
   // p_0/k_B [K]    strength parameter epsilon
@@ -238,6 +230,47 @@ void ParseForceFieldSelfParameters(char *Arguments,int i,char *PotentialName)
     TailCorrection[i][i]=FALSE;
     ShiftPotential[i][i]=FALSE;
     PotentialType[i][i]=LENNARD_JONES_SMOOTHED5;
+    sscanf(Arguments,"%lf %lf",&arg1,&arg2);
+    PotentialParms[i][i][0]=arg1*KELVIN_TO_ENERGY;
+    PotentialParms[i][i][1]=arg2;
+    PotentialParms[i][i][2]=(REAL)0.0;
+  }
+  // 4*p_0*((p_1/r)^12-(p_1/r)^6)
+  // ======================================================================================
+  // p_0/k_B [K]    strength parameter epsilon
+  // p_1     [A]    size parameter sigma
+  // p_3/k_B [K]    (non-zero for a shifted potential)
+  if((strcasecmp(PotentialName,"LENNARD_JONES_CONTINUOUS_FRACTIONAL")==0)||(strcasecmp(PotentialName,"LENNARD-JONES-CONTINUOUS-FRACTIONAL-JONES")==0))
+  {
+    PotentialType[i][i]=LENNARD_JONES_CONTINUOUS_FRACTIONAL;
+    sscanf(Arguments,"%lf %lf",&arg1,&arg2);
+    PotentialParms[i][i][0]=arg1*KELVIN_TO_ENERGY;
+    PotentialParms[i][i][1]=arg2;
+    PotentialParms[i][i][2]=(REAL)0.0;
+  }
+  // {4*p_0*((p_1/r)^12-(p_1/r)^6)}*S(r)
+  // ======================================================================================
+  // p_0/k_B [K]    strength parameter epsilon
+  // p_1     [A]    size parameter sigma
+  if((strcasecmp(PotentialName,"LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED3")==0)||(strcasecmp(PotentialName,"LENNARD-JONES-CONTINUOUS-FRACTIONAL-SMOOTHED3")==0))
+  {
+    TailCorrection[i][i]=FALSE;
+    ShiftPotential[i][i]=FALSE;
+    PotentialType[i][i]=LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED3;
+    sscanf(Arguments,"%lf %lf",&arg1,&arg2);
+    PotentialParms[i][i][0]=arg1*KELVIN_TO_ENERGY;
+    PotentialParms[i][i][1]=arg2;
+    PotentialParms[i][i][2]=(REAL)0.0;
+  }
+  // {4*p_0*((p_1/r)^12-(p_1/r)^6)}*S(r)
+  // ======================================================================================
+  // p_0/k_B [K]    strength parameter epsilon
+  // p_1     [A]    size parameter sigma
+  if((strcasecmp(PotentialName,"LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED5")==0)||(strcasecmp(PotentialName,"LENNARD-JONES-CONTINUOUS-FRACTIONAL-SMOOTHED5")==0))
+  {
+    TailCorrection[i][i]=FALSE;
+    ShiftPotential[i][i]=FALSE;
+    PotentialType[i][i]=LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED5;
     sscanf(Arguments,"%lf %lf",&arg1,&arg2);
     PotentialParms[i][i][0]=arg1*KELVIN_TO_ENERGY;
     PotentialParms[i][i][1]=arg2;
@@ -1308,18 +1341,6 @@ void ParseForceFieldBinaryParameters(char *Arguments,int i,int j,char *Potential
     PotentialParms[j][i][2]=(REAL)0.0;
     PotentialParms[i][j][2]=(REAL)0.0;
   }
-  if((strcasecmp(PotentialName,"LENNARD_JONES_CONTINUOUS_FRACTIONAL")==0)||(strcasecmp(PotentialName,"LENNARD-JONES-CONTINUOUS-FRACTIONAL")==0))
-  {
-    PotentialType[i][j]=LENNARD_JONES_CONTINUOUS_FRACTIONAL;
-    PotentialType[j][i]=LENNARD_JONES_CONTINUOUS_FRACTIONAL;
-    sscanf(Arguments,"%lf %lf",&arg1,&arg2);
-    PotentialParms[j][i][0]=arg1*KELVIN_TO_ENERGY;
-    PotentialParms[i][j][0]=arg1*KELVIN_TO_ENERGY;
-    PotentialParms[j][i][1]=arg2;
-    PotentialParms[i][j][1]=arg2;
-    PotentialParms[j][i][2]=(REAL)0.0;
-    PotentialParms[i][j][2]=(REAL)0.0;
-  }
   // {4*p_0*((p_1/r)^12-(p_1/r)^6)}*S(r)
   // ======================================================================================
   // p_0/k_B [K]    strength parameter epsilon
@@ -1348,6 +1369,59 @@ void ParseForceFieldBinaryParameters(char *Arguments,int i,int j,char *Potential
     ShiftPotential[i][j]=ShiftPotential[j][i]=FALSE;
     PotentialType[i][j]=LENNARD_JONES_SMOOTHED5;
     PotentialType[j][i]=LENNARD_JONES_SMOOTHED5;
+    sscanf(Arguments,"%lf %lf",&arg1,&arg2);
+    PotentialParms[j][i][0]=arg1*KELVIN_TO_ENERGY;
+    PotentialParms[i][j][0]=arg1*KELVIN_TO_ENERGY;
+    PotentialParms[j][i][1]=arg2;
+    PotentialParms[i][j][1]=arg2;
+    PotentialParms[j][i][2]=(REAL)0.0;
+    PotentialParms[i][j][2]=(REAL)0.0;
+  }
+  // 4*p_0*((p_1/r)^12-(p_1/r)^6)
+  // ======================================================================================
+  // p_0/k_B [K]    strength parameter epsilon
+  // p_1     [A]    size parameter sigma
+  // p_3/k_B [K]    (non-zero for a shifted potential)
+  if((strcasecmp(PotentialName,"LENNARD_JONES_CONTINUOUS_FRACTIONAL")==0)||(strcasecmp(PotentialName,"LENNARD-JONES-CONTINUOUS-FRACTIONAL")==0))
+  {
+    PotentialType[i][j]=LENNARD_JONES_CONTINUOUS_FRACTIONAL;
+    PotentialType[j][i]=LENNARD_JONES_CONTINUOUS_FRACTIONAL;
+    sscanf(Arguments,"%lf %lf",&arg1,&arg2);
+    PotentialParms[j][i][0]=arg1*KELVIN_TO_ENERGY;
+    PotentialParms[i][j][0]=arg1*KELVIN_TO_ENERGY;
+    PotentialParms[j][i][1]=arg2;
+    PotentialParms[i][j][1]=arg2;
+    PotentialParms[j][i][2]=(REAL)0.0;
+    PotentialParms[i][j][2]=(REAL)0.0;
+  }
+  // {4*p_0*((p_1/r)^12-(p_1/r)^6)}*S(r)
+  // ======================================================================================
+  // p_0/k_B [K]    strength parameter epsilon
+  // p_1     [A]    size parameter sigma
+  if((strcasecmp(PotentialName,"LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED3")==0)||(strcasecmp(PotentialName,"LENNARD-JONES-CONTINUOUS-FRACTIONAL-SMOOTHED3")==0))
+  {
+    TailCorrection[i][j]=TailCorrection[j][i]=FALSE;
+    ShiftPotential[i][j]=ShiftPotential[j][i]=FALSE;
+    PotentialType[i][j]=LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED3;
+    PotentialType[j][i]=LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED3;
+    sscanf(Arguments,"%lf %lf",&arg1,&arg2);
+    PotentialParms[j][i][0]=arg1*KELVIN_TO_ENERGY;
+    PotentialParms[i][j][0]=arg1*KELVIN_TO_ENERGY;
+    PotentialParms[j][i][1]=arg2;
+    PotentialParms[i][j][1]=arg2;
+    PotentialParms[j][i][2]=(REAL)0.0;
+    PotentialParms[i][j][2]=(REAL)0.0;
+  }
+  // {4*p_0*((p_1/r)^12-(p_1/r)^6)}*S(r)
+  // ======================================================================================
+  // p_0/k_B [K]    strength parameter epsilon
+  // p_1     [A]    size parameter sigma
+  if((strcasecmp(PotentialName,"LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED5")==0)||(strcasecmp(PotentialName,"LENNARD-JONES-CONTINUOUS-FRACTIONAL-SMOOTHED5")==0))
+  {
+    TailCorrection[i][j]=TailCorrection[j][i]=FALSE;
+    ShiftPotential[i][j]=ShiftPotential[j][i]=FALSE;
+    PotentialType[i][j]=LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED5;
+    PotentialType[j][i]=LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED5;
     sscanf(Arguments,"%lf %lf",&arg1,&arg2);
     PotentialParms[j][i][0]=arg1*KELVIN_TO_ENERGY;
     PotentialParms[i][j][0]=arg1*KELVIN_TO_ENERGY;
@@ -2887,6 +2961,24 @@ void ReadForceFieldDefinitionsMixingRules(void)
           PotentialParms[i][j][1]=0.5*(PotentialParms[i][i][1]+PotentialParms[j][j][1]); // p_1^ij=(p_1^i+p_1^j)/2
           PotentialParms[j][i][1]=0.5*(PotentialParms[i][i][1]+PotentialParms[j][j][1]); // p_1^ji=(p_1^j+p_1^i)/2
         }
+        if((PotentialType[i][i]==LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED3)&&(PotentialType[j][j]==LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED3))
+        {
+          PotentialType[i][j]=LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED3;
+          PotentialType[j][i]=LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED3;
+          PotentialParms[i][j][0]=sqrt(PotentialParms[i][i][0]*PotentialParms[j][j][0]); // p_0^ij=sqrt(p_0^i*p_0^j)
+          PotentialParms[j][i][0]=sqrt(PotentialParms[i][i][0]*PotentialParms[j][j][0]); // p_0^ji=sqrt(p_0^j*p_0^i)
+          PotentialParms[i][j][1]=0.5*(PotentialParms[i][i][1]+PotentialParms[j][j][1]); // p_1^ij=(p_1^i+p_1^j)/2
+          PotentialParms[j][i][1]=0.5*(PotentialParms[i][i][1]+PotentialParms[j][j][1]); // p_1^ji=(p_1^j+p_1^i)/2
+        }
+        if((PotentialType[i][i]==LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED5)&&(PotentialType[j][j]==LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED5))
+        {
+          PotentialType[i][j]=LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED5;
+          PotentialType[j][i]=LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED5;
+          PotentialParms[i][j][0]=sqrt(PotentialParms[i][i][0]*PotentialParms[j][j][0]); // p_0^ij=sqrt(p_0^i*p_0^j)
+          PotentialParms[j][i][0]=sqrt(PotentialParms[i][i][0]*PotentialParms[j][j][0]); // p_0^ji=sqrt(p_0^j*p_0^i)
+          PotentialParms[i][j][1]=0.5*(PotentialParms[i][i][1]+PotentialParms[j][j][1]); // p_1^ij=(p_1^i+p_1^j)/2
+          PotentialParms[j][i][1]=0.5*(PotentialParms[i][i][1]+PotentialParms[j][j][1]); // p_1^ji=(p_1^j+p_1^i)/2
+        }
 
         if((PotentialType[i][i]==WCA)&&(PotentialType[j][j]==WCA))
         {
@@ -3434,6 +3526,24 @@ void ReadForceFieldDefinitionsMixingRules(void)
         {
           PotentialType[i][j]=LENNARD_JONES_SMOOTHED5;
           PotentialType[j][i]=LENNARD_JONES_SMOOTHED5;
+          PotentialParms[i][j][0]=sqrt(PotentialParms[i][i][0]*PotentialParms[j][j][0]); // p_0^ij=sqrt(p_0^i*p_0^j)
+          PotentialParms[j][i][0]=sqrt(PotentialParms[i][i][0]*PotentialParms[j][j][0]); // p_0^ji=sqrt(p_0^j*p_0^i)
+          PotentialParms[i][j][1]=sqrt(PotentialParms[i][i][1]*PotentialParms[j][j][1]); // p_1^ij=sqrt(p_1^i*p_1^j)
+          PotentialParms[j][i][1]=sqrt(PotentialParms[i][i][1]*PotentialParms[j][j][1]); // p_1^ji=sqrt(p_1^j*p_1^i)
+        }
+        if((PotentialType[i][i]==LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED3)&&(PotentialType[j][j]==LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED3))
+        {
+          PotentialType[i][j]=LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED3;
+          PotentialType[j][i]=LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED3;
+          PotentialParms[i][j][0]=sqrt(PotentialParms[i][i][0]*PotentialParms[j][j][0]); // p_0^ij=sqrt(p_0^i*p_0^j)
+          PotentialParms[j][i][0]=sqrt(PotentialParms[i][i][0]*PotentialParms[j][j][0]); // p_0^ji=sqrt(p_0^j*p_0^i)
+          PotentialParms[i][j][1]=sqrt(PotentialParms[i][i][1]*PotentialParms[j][j][1]); // p_1^ij=sqrt(p_1^i*p_1^j)
+          PotentialParms[j][i][1]=sqrt(PotentialParms[i][i][1]*PotentialParms[j][j][1]); // p_1^ji=sqrt(p_1^j*p_1^i)
+        }
+        if((PotentialType[i][i]==LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED5)&&(PotentialType[j][j]==LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED5))
+        {
+          PotentialType[i][j]=LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED5;
+          PotentialType[j][i]=LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED5;
           PotentialParms[i][j][0]=sqrt(PotentialParms[i][i][0]*PotentialParms[j][j][0]); // p_0^ij=sqrt(p_0^i*p_0^j)
           PotentialParms[j][i][0]=sqrt(PotentialParms[i][i][0]*PotentialParms[j][j][0]); // p_0^ji=sqrt(p_0^j*p_0^i)
           PotentialParms[i][j][1]=sqrt(PotentialParms[i][i][1]*PotentialParms[j][j][1]); // p_1^ij=sqrt(p_1^i*p_1^j)
@@ -4094,14 +4204,6 @@ void ReadForceFieldDefinitions(void)
           PotentialParms[i][j][1]=0.5*(PotentialParms[i][i][1]+PotentialParms[j][j][1]); // p_1^ij=(p_1^i+p_1^j)/2
           PotentialParms[j][i][1]=0.5*(PotentialParms[i][i][1]+PotentialParms[j][j][1]); // p_1^ji=(p_1^j+p_1^i)/2
           break;
-        case LENNARD_JONES_CONTINUOUS_FRACTIONAL:
-          PotentialType[i][j]=LENNARD_JONES_CONTINUOUS_FRACTIONAL;
-          PotentialType[j][i]=LENNARD_JONES_CONTINUOUS_FRACTIONAL;
-          PotentialParms[i][j][0]=sqrt(PotentialParms[i][i][0]*PotentialParms[j][j][0]); // p_0^ij=sqrt(p_0^i*p_0^j)
-          PotentialParms[j][i][0]=sqrt(PotentialParms[i][i][0]*PotentialParms[j][j][0]); // p_0^ji=sqrt(p_0^j*p_0^i)
-          PotentialParms[i][j][1]=0.5*(PotentialParms[i][i][1]+PotentialParms[j][j][1]); // p_1^ij=(p_1^i+p_1^j)/2
-          PotentialParms[j][i][1]=0.5*(PotentialParms[i][i][1]+PotentialParms[j][j][1]); // p_1^ji=(p_1^j+p_1^i)/2
-          break;
         case LENNARD_JONES_SMOOTHED3:
           PotentialType[i][j]=LENNARD_JONES_SMOOTHED3;
           PotentialType[j][i]=LENNARD_JONES_SMOOTHED3;
@@ -4113,6 +4215,30 @@ void ReadForceFieldDefinitions(void)
         case LENNARD_JONES_SMOOTHED5:
           PotentialType[i][j]=LENNARD_JONES_SMOOTHED5;
           PotentialType[j][i]=LENNARD_JONES_SMOOTHED5;
+          PotentialParms[i][j][0]=sqrt(PotentialParms[i][i][0]*PotentialParms[j][j][0]); // p_0^ij=sqrt(p_0^i*p_0^j)
+          PotentialParms[j][i][0]=sqrt(PotentialParms[i][i][0]*PotentialParms[j][j][0]); // p_0^ji=sqrt(p_0^j*p_0^i)
+          PotentialParms[i][j][1]=0.5*(PotentialParms[i][i][1]+PotentialParms[j][j][1]); // p_1^ij=(p_1^i+p_1^j)/2
+          PotentialParms[j][i][1]=0.5*(PotentialParms[i][i][1]+PotentialParms[j][j][1]); // p_1^ji=(p_1^j+p_1^i)/2
+          break;
+        case LENNARD_JONES_CONTINUOUS_FRACTIONAL:
+          PotentialType[i][j]=LENNARD_JONES_CONTINUOUS_FRACTIONAL;
+          PotentialType[j][i]=LENNARD_JONES_CONTINUOUS_FRACTIONAL;
+          PotentialParms[i][j][0]=sqrt(PotentialParms[i][i][0]*PotentialParms[j][j][0]); // p_0^ij=sqrt(p_0^i*p_0^j)
+          PotentialParms[j][i][0]=sqrt(PotentialParms[i][i][0]*PotentialParms[j][j][0]); // p_0^ji=sqrt(p_0^j*p_0^i)
+          PotentialParms[i][j][1]=0.5*(PotentialParms[i][i][1]+PotentialParms[j][j][1]); // p_1^ij=(p_1^i+p_1^j)/2
+          PotentialParms[j][i][1]=0.5*(PotentialParms[i][i][1]+PotentialParms[j][j][1]); // p_1^ji=(p_1^j+p_1^i)/2
+          break;
+        case LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED3:
+          PotentialType[i][j]=LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED3;
+          PotentialType[j][i]=LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED3;
+          PotentialParms[i][j][0]=sqrt(PotentialParms[i][i][0]*PotentialParms[j][j][0]); // p_0^ij=sqrt(p_0^i*p_0^j)
+          PotentialParms[j][i][0]=sqrt(PotentialParms[i][i][0]*PotentialParms[j][j][0]); // p_0^ji=sqrt(p_0^j*p_0^i)
+          PotentialParms[i][j][1]=0.5*(PotentialParms[i][i][1]+PotentialParms[j][j][1]); // p_1^ij=(p_1^i+p_1^j)/2
+          PotentialParms[j][i][1]=0.5*(PotentialParms[i][i][1]+PotentialParms[j][j][1]); // p_1^ji=(p_1^j+p_1^i)/2
+          break;
+        case LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED5:
+          PotentialType[i][j]=LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED5;
+          PotentialType[j][i]=LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED5;
           PotentialParms[i][j][0]=sqrt(PotentialParms[i][i][0]*PotentialParms[j][j][0]); // p_0^ij=sqrt(p_0^i*p_0^j)
           PotentialParms[j][i][0]=sqrt(PotentialParms[i][i][0]*PotentialParms[j][j][0]); // p_0^ji=sqrt(p_0^j*p_0^i)
           PotentialParms[i][j][1]=0.5*(PotentialParms[i][i][1]+PotentialParms[j][j][1]); // p_1^ij=(p_1^i+p_1^j)/2
@@ -4471,14 +4597,6 @@ void ReadForceFieldDefinitions(void)
           PotentialParms[i][j][1]=sqrt(PotentialParms[i][i][1]*PotentialParms[j][j][1]); // p_1^ij=sqrt(p_1^i*p_1^j)
           PotentialParms[j][i][1]=sqrt(PotentialParms[i][i][1]*PotentialParms[j][j][1]); // p_1^ji=sqrt(p_1^j*p_1^i)
           break;
-        case LENNARD_JONES_CONTINUOUS_FRACTIONAL:
-          PotentialType[i][j]=LENNARD_JONES_CONTINUOUS_FRACTIONAL;
-          PotentialType[j][i]=LENNARD_JONES_CONTINUOUS_FRACTIONAL;
-          PotentialParms[i][j][0]=sqrt(PotentialParms[i][i][0]*PotentialParms[j][j][0]); // p_0^ij=sqrt(p_0^i*p_0^j)
-          PotentialParms[j][i][0]=sqrt(PotentialParms[i][i][0]*PotentialParms[j][j][0]); // p_0^ji=sqrt(p_0^j*p_0^i)
-          PotentialParms[i][j][1]=sqrt(PotentialParms[i][i][1]*PotentialParms[j][j][1]); // p_1^ij=sqrt(p_1^i*p_1^j)
-          PotentialParms[j][i][1]=sqrt(PotentialParms[i][i][1]*PotentialParms[j][j][1]); // p_1^ji=sqrt(p_1^j*p_1^i)
-          break;
         case LENNARD_JONES_SMOOTHED3:
           PotentialType[i][j]=LENNARD_JONES_SMOOTHED3;
           PotentialType[j][i]=LENNARD_JONES_SMOOTHED3;
@@ -4490,6 +4608,30 @@ void ReadForceFieldDefinitions(void)
         case LENNARD_JONES_SMOOTHED5:
           PotentialType[i][j]=LENNARD_JONES_SMOOTHED5;
           PotentialType[j][i]=LENNARD_JONES_SMOOTHED5;
+          PotentialParms[i][j][0]=sqrt(PotentialParms[i][i][0]*PotentialParms[j][j][0]); // p_0^ij=sqrt(p_0^i*p_0^j)
+          PotentialParms[j][i][0]=sqrt(PotentialParms[i][i][0]*PotentialParms[j][j][0]); // p_0^ji=sqrt(p_0^j*p_0^i)
+          PotentialParms[i][j][1]=sqrt(PotentialParms[i][i][1]*PotentialParms[j][j][1]); // p_1^ij=sqrt(p_1^i*p_1^j)
+          PotentialParms[j][i][1]=sqrt(PotentialParms[i][i][1]*PotentialParms[j][j][1]); // p_1^ji=sqrt(p_1^j*p_1^i)
+          break;
+        case LENNARD_JONES_CONTINUOUS_FRACTIONAL:
+          PotentialType[i][j]=LENNARD_JONES_CONTINUOUS_FRACTIONAL;
+          PotentialType[j][i]=LENNARD_JONES_CONTINUOUS_FRACTIONAL;
+          PotentialParms[i][j][0]=sqrt(PotentialParms[i][i][0]*PotentialParms[j][j][0]); // p_0^ij=sqrt(p_0^i*p_0^j)
+          PotentialParms[j][i][0]=sqrt(PotentialParms[i][i][0]*PotentialParms[j][j][0]); // p_0^ji=sqrt(p_0^j*p_0^i)
+          PotentialParms[i][j][1]=sqrt(PotentialParms[i][i][1]*PotentialParms[j][j][1]); // p_1^ij=sqrt(p_1^i*p_1^j)
+          PotentialParms[j][i][1]=sqrt(PotentialParms[i][i][1]*PotentialParms[j][j][1]); // p_1^ji=sqrt(p_1^j*p_1^i)
+          break;
+        case LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED3:
+          PotentialType[i][j]=LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED3;
+          PotentialType[j][i]=LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED3;
+          PotentialParms[i][j][0]=sqrt(PotentialParms[i][i][0]*PotentialParms[j][j][0]); // p_0^ij=sqrt(p_0^i*p_0^j)
+          PotentialParms[j][i][0]=sqrt(PotentialParms[i][i][0]*PotentialParms[j][j][0]); // p_0^ji=sqrt(p_0^j*p_0^i)
+          PotentialParms[i][j][1]=sqrt(PotentialParms[i][i][1]*PotentialParms[j][j][1]); // p_1^ij=sqrt(p_1^i*p_1^j)
+          PotentialParms[j][i][1]=sqrt(PotentialParms[i][i][1]*PotentialParms[j][j][1]); // p_1^ji=sqrt(p_1^j*p_1^i)
+          break;
+        case LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED5:
+          PotentialType[i][j]=LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED5;
+          PotentialType[j][i]=LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED5;
           PotentialParms[i][j][0]=sqrt(PotentialParms[i][i][0]*PotentialParms[j][j][0]); // p_0^ij=sqrt(p_0^i*p_0^j)
           PotentialParms[j][i][0]=sqrt(PotentialParms[i][i][0]*PotentialParms[j][j][0]); // p_0^ji=sqrt(p_0^j*p_0^i)
           PotentialParms[i][j][1]=sqrt(PotentialParms[i][i][1]*PotentialParms[j][j][1]); // p_1^ij=sqrt(p_1^i*p_1^j)
@@ -4859,6 +5001,8 @@ void ComputePotentialShifts(void)
           break;
         case LENNARD_JONES_SMOOTHED3:
         case LENNARD_JONES_SMOOTHED5:
+        case LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED3:
+        case LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED5:
           PotentialParms[j][i][2]=0.0;
           PotentialParms[i][j][2]=0.0;
           break;
@@ -5429,17 +5573,6 @@ REAL PotentialValue(int typeA,int typeB,REAL rr,REAL scaling)
       arg3=PotentialParms[typeA][typeB][2];
       rri3=CUBE(arg2/rr);
       return 4.0*arg1*(rri3*(rri3-1.0))-arg3;
-    case LENNARD_JONES_CONTINUOUS_FRACTIONAL:
-      // 4*p_0*((p_1/r)^12-(p_1/r)^6)
-      // ======================================================================================
-      // p_0/k_B [K]    strength parameter epsilon
-      // p_1     [A]    size parameter sigma
-      // p_3/k_B [K]    (non-zero for a shifted potential)
-      arg1=PotentialParms[typeA][typeB][0];
-      arg2=SQR(PotentialParms[typeA][typeB][1]);
-      arg3=PotentialParms[typeA][typeB][2];
-      rri3=1.0/(CUBE(rr/arg2)+0.5*SQR(1.0-scaling));
-      return scaling*(4.0*arg1*(rri3*(rri3-1.0))-arg3);
     case LENNARD_JONES_SMOOTHED3:
       // {4*p_0*((p_1/r)^12-(p_1/r)^6)}*S(r)
       // ======================================================================================
@@ -5471,6 +5604,48 @@ REAL PotentialValue(int typeA,int typeB,REAL rr,REAL scaling)
         return SwitchingValue*4.0*arg1*(rri3*(rri3-1.0));
       }
       return 4.0*arg1*(rri3*(rri3-1.0));
+    case LENNARD_JONES_CONTINUOUS_FRACTIONAL:
+      // 4*p_0*((p_1/r)^12-(p_1/r)^6)
+      // ======================================================================================
+      // p_0/k_B [K]    strength parameter epsilon
+      // p_1     [A]    size parameter sigma
+      // p_3/k_B [K]    (non-zero for a shifted potential)
+      arg1=PotentialParms[typeA][typeB][0];
+      arg2=SQR(PotentialParms[typeA][typeB][1]);
+      arg3=PotentialParms[typeA][typeB][2];
+      rri3=1.0/(CUBE(rr/arg2)+0.5*SQR(1.0-scaling));
+      return scaling*(4.0*arg1*(rri3*(rri3-1.0))-arg3);
+    case LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED3:
+      // {4*p_0*((p_1/r)^12-(p_1/r)^6)}*S(r)
+      // ======================================================================================
+      // p_0/k_B [K]    strength parameter epsilon
+      // p_1     [A]    size parameter sigma
+      arg1=PotentialParms[typeA][typeB][0];
+      arg2=SQR(PotentialParms[typeA][typeB][1]);
+      rri3=1.0/(CUBE(rr/arg2)+0.5*SQR(1.0-scaling));
+      if(rr>CutOffVDWSwitchSquared)
+      {
+        r=sqrt(rr);
+        SwitchingValue=SwitchingVDWFactors3[3]*(rr*r)+SwitchingVDWFactors3[2]*rr+SwitchingVDWFactors3[1]*r+SwitchingVDWFactors3[0];
+        return SwitchingValue*scaling*4.0*arg1*(rri3*(rri3-1.0));
+      }
+      return scaling*4.0*arg1*(rri3*(rri3-1.0));
+    case LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED5:
+      // {4*p_0*((p_1/r)^12-(p_1/r)^6)}*S(r)
+      // ======================================================================================
+      // p_0/k_B [K]    strength parameter epsilon
+      // p_1     [A]    size parameter sigma
+      arg1=PotentialParms[typeA][typeB][0];
+      arg2=SQR(PotentialParms[typeA][typeB][1]);
+      rri3=1.0/(CUBE(rr/arg2)+0.5*SQR(1.0-scaling));
+      if(rr>CutOffVDWSwitchSquared)
+      {
+        r=sqrt(rr);
+        SwitchingValue=SwitchingVDWFactors5[5]*(rr*rr*r)+SwitchingVDWFactors5[4]*(rr*rr)+SwitchingVDWFactors5[3]*(rr*r)+
+                        SwitchingVDWFactors5[2]*rr+SwitchingVDWFactors5[1]*r+SwitchingVDWFactors5[0];
+        return SwitchingValue*scaling*4.0*arg1*(rri3*(rri3-1.0));
+      }
+      return scaling*4.0*arg1*(rri3*(rri3-1.0));
     case WCA:
       // 4*p_0*((p_1/r)^12-(p_1/r)^6)
       // ======================================================================================
@@ -6720,21 +6895,6 @@ void PotentialGradient(int typeA,int typeB,REAL rr,REAL *energy,REAL *force_fact
       U=4.0*arg1*(rri3*(rri3-1.0))-arg3;
       fcVal=48.0*arg1*(rri3*(0.5-rri3))/rr;
       break;
-    case LENNARD_JONES_CONTINUOUS_FRACTIONAL:
-      // 4*p_0*((p_1/r)^12-(p_1/r)^6)
-      // ======================================================================================
-      // p_0/k_B [K]    strength parameter epsilon
-      // p_1     [A]    size parameter sigma
-      // p_3/k_B [K]    (non-zero for a shifted potential)
-      arg1=PotentialParms[typeA][typeB][0];
-      arg2=SQR(PotentialParms[typeA][typeB][1]);
-      arg3=PotentialParms[typeA][typeB][2];
-      rri3=1.0/(CUBE(rr/arg2)+0.5*SQR(1.0-scaling));
-      U=scaling*(4.0*arg1*(rri3*(rri3-1.0))-arg3);
-      // FIX derivative
-      term1=0.5*SQR(scaling-1.0)*pow(arg2,3);
-      fcVal=(24*arg1*scaling*SQR(rr)*pow(arg2,3)*(pow(rr,3)+(term1-2.0*pow(arg2,3))))/pow(pow(rr,3)+term1,3);
-      break;
     case LENNARD_JONES_SMOOTHED3:
       // {4*p_0*((p_1/r)^12-(p_1/r)^6)}*S(r)
       // ======================================================================================
@@ -6765,6 +6925,63 @@ void PotentialGradient(int typeA,int typeB,REAL rr,REAL *energy,REAL *force_fact
       rri3=CUBE(arg2/rr);
       U=4.0*arg1*(rri3*(rri3-1.0));
       fcVal=48.0*arg1*(rri3*(0.5-rri3))/rr;
+      if(rr>CutOffVDWSwitchSquared)
+      {
+        r=sqrt(rr);
+        SwitchingValue=SwitchingVDWFactors5[5]*(rr*rr*r)+SwitchingVDWFactors5[4]*(rr*rr)+SwitchingVDWFactors5[3]*(rr*r)+
+                       SwitchingVDWFactors5[2]*rr+SwitchingVDWFactors5[1]*r+SwitchingVDWFactors5[0];
+        SwitchingValueDerivative=5.0*SwitchingVDWFactors5[5]*rr*rr+4.0*SwitchingVDWFactors5[4]*rr*r+3.0*SwitchingVDWFactors5[3]*rr+
+                                 2.0*SwitchingVDWFactors5[2]*r+SwitchingVDWFactors5[1];
+        fcVal=U*SwitchingValueDerivative/r+fcVal*SwitchingValue;
+        U*=SwitchingValue;
+      }
+      break;
+    case LENNARD_JONES_CONTINUOUS_FRACTIONAL:
+      // 4*p_0*((p_1/r)^12-(p_1/r)^6)
+      // ======================================================================================
+      // p_0/k_B [K]    strength parameter epsilon
+      // p_1     [A]    size parameter sigma
+      // p_3/k_B [K]    (non-zero for a shifted potential)
+      arg1=PotentialParms[typeA][typeB][0];
+      arg2=SQR(PotentialParms[typeA][typeB][1]);
+      arg3=PotentialParms[typeA][typeB][2];
+      rri3=1.0/(CUBE(rr/arg2)+0.5*SQR(1.0-scaling));
+      U=scaling*(4.0*arg1*(rri3*(rri3-1.0))-arg3);
+      term1=0.5*SQR(scaling-1.0)*pow(arg2,3);
+      fcVal=(24*arg1*scaling*SQR(rr)*pow(arg2,3)*(pow(rr,3)+(term1-2.0*pow(arg2,3))))/pow(pow(rr,3)+term1,3);
+      break;
+    case LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED3:
+      // {4*p_0*((p_1/r)^12-(p_1/r)^6)}*S(r)
+      // ======================================================================================
+      // p_0/k_B [K]    strength parameter epsilon
+      // p_1     [A]    size parameter sigma
+      arg1=PotentialParms[typeA][typeB][0];
+      arg2=SQR(PotentialParms[typeA][typeB][1]);
+      rri3=1.0/(CUBE(rr/arg2)+0.5*SQR(1.0-scaling));
+      U=scaling*4.0*arg1*(rri3*(rri3-1.0));
+      term1=0.5*SQR(scaling-1.0)*pow(arg2,3);
+      fcVal=(24*arg1*scaling*SQR(rr)*pow(arg2,3)*(pow(rr,3)+(term1-2.0*pow(arg2,3))))/pow(pow(rr,3)+term1,3);
+      if(rr>CutOffVDWSwitchSquared)
+      {
+        r=sqrt(rr);
+        SwitchingValue=(SwitchingVDWFactors3[3]*(rr*r)+SwitchingVDWFactors3[2]*rr+
+                        SwitchingVDWFactors3[1]*r+SwitchingVDWFactors3[0]);
+        SwitchingValueDerivative=(3.0*SwitchingVDWFactors3[3]*rr+2.0*SwitchingVDWFactors3[2]*r+SwitchingVDWFactors3[1]);
+        fcVal=U*SwitchingValueDerivative/r+fcVal*SwitchingValue;
+        U*=SwitchingValue;
+      }
+      break;
+    case LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED5:
+      // {4*p_0*((p_1/r)^12-(p_1/r)^6)}*S(r)
+      // ======================================================================================
+      // p_0/k_B [K]    strength parameter epsilon
+      // p_1     [A]    size parameter sigma
+      arg1=PotentialParms[typeA][typeB][0];
+      arg2=SQR(PotentialParms[typeA][typeB][1]);
+      rri3=1.0/(CUBE(rr/arg2)+0.5*SQR(1.0-scaling));
+      U=scaling*4.0*arg1*(rri3*(rri3-1.0));
+      term1=0.5*SQR(scaling-1.0)*pow(arg2,3);
+      fcVal=(24*arg1*scaling*SQR(rr)*pow(arg2,3)*(pow(rr,3)+(term1-2.0*pow(arg2,3))))/pow(pow(rr,3)+term1,3);
       if(rr>CutOffVDWSwitchSquared)
       {
         r=sqrt(rr);
@@ -10141,6 +10358,8 @@ REAL PotentialCorrection(int typeA,int typeB,REAL r)
       return (4.0/3.0)*arg1*CUBE(arg2)*((1.0/3.0)*term2-term1);
     case LENNARD_JONES_SMOOTHED3:
     case LENNARD_JONES_SMOOTHED5:
+    case LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED3:
+    case LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED5:
       return 0.0;
     case FEYNMAN_HIBBS_LENNARD_JONES:
       // 4*p_0*((p_1/r)^12-(p_1/r)^6)+(h_bar^2/(24 p_2 K_B T))*4*p_0*(132*(p_1/r)^12-30*(p_1/r)^6)/r^2
@@ -10464,6 +10683,11 @@ REAL PotentialCorrectionPressure(int typeA,int typeB,REAL r)
       term1=CUBE(arg2);
       term2=CUBE(arg2/r);
       return 8.0*arg1*term1*(term2-(2.0/3.0)*CUBE(term2));
+    case LENNARD_JONES_SMOOTHED3:
+    case LENNARD_JONES_SMOOTHED5:
+    case LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED3:
+    case LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED5:
+      return 0.0;
     case WCA:
       return 0.0;
     case FEYNMAN_HIBBS_LENNARD_JONES:

@@ -80,10 +80,6 @@ VECTOR **NewForce;
 VECTOR **TrialPositions;
 REAL *CFVDWScaling;
 REAL *CFChargeScaling;
-REAL *CFVDWScalingStored;
-REAL *CFChargeScalingStored;
-REAL *CFVDWScalingStored2;
-REAL *CFChargeScalingStored2;
 
 int OVERLAP;
 static REAL *BoltzmannFactors;
@@ -3599,10 +3595,6 @@ void AllocateCBMCMemory(void)
   TrialAnisotropicPositionRetrace=(VECTOR*)calloc(MaxNumberOfBeads,sizeof(VECTOR));
   CFVDWScaling=(REAL*)calloc(MaxNumberOfBeads,sizeof(REAL));
   CFChargeScaling=(REAL*)calloc(MaxNumberOfBeads,sizeof(REAL));
-  CFVDWScalingStored=(REAL*)calloc(MaxNumberOfBeads,sizeof(REAL));
-  CFChargeScalingStored=(REAL*)calloc(MaxNumberOfBeads,sizeof(REAL));
-  CFVDWScalingStored2=(REAL*)calloc(MaxNumberOfBeads,sizeof(REAL));
-  CFChargeScalingStored2=(REAL*)calloc(MaxNumberOfBeads,sizeof(REAL));
 
   TrialPositions=(VECTOR**)calloc(NumberOfTrialPositions,sizeof(VECTOR*));
   for(i=0;i<NumberOfTrialPositions;i++)

@@ -250,6 +250,7 @@ typedef struct adsorbate
 
 extern int *MaxNumberOfAdsorbateMolecules;
 extern int *MaxNumberOfCationMolecules;
+extern int *NumberOfFractionalMolecules;
 
 extern int MaxNumberOfCoulombicSites;
 extern int MaxNumberOfBondDipoleSites;
@@ -496,10 +497,10 @@ typedef struct Component
   REAL ProbabilityCFCBSwapLambdaMove;
   int  SwapEvery;
   REAL ProbabilityWidomMove;
-  REAL ProbabilityGibbsSwapChangeMove;
+  REAL ProbabilityGibbsChangeMove;
   REAL ProbabilityGibbsIdentityChangeMove;
-  REAL ProbabilityCFGibbsSwapChangeMove;
-  REAL ProbabilityCBCFGibbsSwapChangeMove;
+  REAL ProbabilityCFGibbsChangeMove;
+  REAL ProbabilityCBCFGibbsChangeMove;
   REAL ProbabilitySurfaceAreaMove;
   int RestrictMovesToBox;
   VECTOR BoxAxisABC_Min,BoxAxisABC_Min2,BoxAxisABC_Min3,BoxAxisABC_Min4;
@@ -538,10 +539,10 @@ typedef struct Component
   REAL FractionOfCFSwapLambdaMove;
   REAL FractionOfCFCBSwapLambdaMove;
   REAL FractionOfWidomMove;
-  REAL FractionOfGibbsSwapChangeMove;
+  REAL FractionOfGibbsChangeMove;
   REAL FractionOfGibbsIdentityChangeMove;
-  REAL FractionOfCFGibbsSwapChangeMove;
-  REAL FractionOfCBCFGibbsSwapChangeMove;
+  REAL FractionOfCFGibbsChangeMove;
+  REAL FractionOfCBCFGibbsChangeMove;
   REAL FractionOfSurfaceAreaMove;
 
   int NumberOfChiralityCenters;

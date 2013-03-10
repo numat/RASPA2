@@ -164,6 +164,7 @@ void PrintFrameworkShiftStatistics(FILE *FilePtr);
 void PrintGibbsIdentityChangeStatistics(FILE *FilePtr);
 void PrintCFSwapLambdaStatistics(FILE *FilePtr);
 void PrintCFCBSwapLambdaStatistics(FILE *FilePtr);
+void PrintCFGibbsLambdaStatistics(FILE *FilePtr);
 
 REAL WidomAdsorbateMove(void);
 REAL WidomCationMove(void);
@@ -180,12 +181,21 @@ void PrintHybridNPHPRStatistics(FILE *FilePtr);
 void SurfaceAreaMove(void);
 
 void CFWangLandauIteration(int Switch);
-int CFSwapLambaMove(void);
+void CFSwapLambaMove(void);
+int CFSwapLambaAdsorbateMove(void);
+int CFSwapLambaCationMove(void);
 void OptimizeCFLambdaChangeAcceptence(void);
-int CFCBSwapLambaMove(void);
+void CFCBSwapLambaMove(void);
+int CFCBSwapLambaAdsorbateMove(void);
+int CFCBSwapLambaCationMove(void);
 
-int CFGibbsParticleTransferMove(void);
-int CBCFGibbsParticleTransferMove(void);
+void CFGibbsParticleTransferMove(void);
+int CFGibbsParticleTransferAdsorbateMove(void);
+int CFGibbsParticleTransferCationMove(void);
+void CBCFGibbsParticleTransferMove(void);
+int CBCFGibbsParticleTransferAdsorbateMove(void);
+int CBCFGibbsParticleTransferCationMove(void);
+void OptimizeCFGibbsLambdaChangeAcceptence(void);
 
 void WriteRestartMcMoves(FILE *FilePtr);
 void AllocateMCMovesMemory(void);

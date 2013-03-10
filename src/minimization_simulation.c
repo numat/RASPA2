@@ -159,7 +159,7 @@ void MinimalizationSimulation(void)
                ;
               else if(ran<Components[CurrentComponent].ProbabilitySurfaceAreaMove)
                ;
-              else if(ran<Components[CurrentComponent].ProbabilityGibbsSwapChangeMove)
+              else if(ran<Components[CurrentComponent].ProbabilityGibbsChangeMove)
                 GibbsParticleTransferMove();
               else if(ran<Components[CurrentComponent].ProbabilityGibbsIdentityChangeMove)
                GibbsIdentityChangeMove();

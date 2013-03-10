@@ -7537,7 +7537,7 @@ int CalculateEwaldFourierAdsorbate(int NewMolecule,int OldMolecule,int mol,int s
   return 0;
 }
 
-int CalculateEwaldFourierAdsorbate2(int NewMolecule,int OldMolecule,int mol,int store)
+int CalculateEwaldFourierAdsorbateCF(int NewMolecule,int OldMolecule,int mol,int store)
 {
   int i,j,ii,jj,kk;
   int A,B,nvec,nr_of_excluded_pairs;
@@ -7943,12 +7943,12 @@ int CalculateEwaldFourierAdsorbate2(int NewMolecule,int OldMolecule,int mol,int 
             energy_charge_bonddipole_framework_adsorbates+=temp*
               (StoreTotalChargeFramework[CurrentSystem][nvec].im*(sum_bonddipole_adsorbates.re-NewTotalBondDipolesAdsorbates[CurrentSystem][nvec].re)
               +StoreTotalChargeFramework[CurrentSystem][nvec].re*(NewTotalBondDipolesAdsorbates[CurrentSystem][nvec].im-sum_bonddipole_adsorbates.im)
-              +NewTotalBondDipolesFramework[CurrentSystem][nvec].re*(sum_adsorbates.im-NewTotalChargeAdsorbates[CurrentSystem][nvec].im)
-              +NewTotalBondDipolesFramework[CurrentSystem][nvec].im*(NewTotalChargeAdsorbates[CurrentSystem][nvec].re-sum_adsorbates.re));
+              +StoreTotalBondDipolesFramework[CurrentSystem][nvec].re*(sum_adsorbates.im-NewTotalChargeAdsorbates[CurrentSystem][nvec].im)
+              +StoreTotalBondDipolesFramework[CurrentSystem][nvec].im*(NewTotalChargeAdsorbates[CurrentSystem][nvec].re-sum_adsorbates.re));
 
             energy_bonddipole_framework_adsorbates+=temp*
-              (NewTotalBondDipolesFramework[CurrentSystem][nvec].re*(sum_bonddipole_adsorbates.re-NewTotalBondDipolesAdsorbates[CurrentSystem][nvec].re)
-              +NewTotalBondDipolesFramework[CurrentSystem][nvec].im*(sum_bonddipole_adsorbates.im-NewTotalBondDipolesAdsorbates[CurrentSystem][nvec].im));
+              (StoreTotalBondDipolesFramework[CurrentSystem][nvec].re*(sum_bonddipole_adsorbates.re-NewTotalBondDipolesAdsorbates[CurrentSystem][nvec].re)
+              +StoreTotalBondDipolesFramework[CurrentSystem][nvec].im*(sum_bonddipole_adsorbates.im-NewTotalBondDipolesAdsorbates[CurrentSystem][nvec].im));
           }
 
           energy_charge_adsorbates+=temp*(SQR(sum_adsorbates.re)-SQR(NewTotalChargeAdsorbates[CurrentSystem][nvec].re)+
@@ -8686,6 +8686,715 @@ int CalculateEwaldFourierCation(int NewMolecule,int OldMolecule,int mol,int stor
             energy_bonddipole_adsorbates_cations+=temp*
               (StoreTotalBondDipolesAdsorbates[CurrentSystem][nvec].re*(sum_bonddipole_cations.re-StoreTotalBondDipolesCations[CurrentSystem][nvec].re)
               +StoreTotalBondDipolesAdsorbates[CurrentSystem][nvec].im*(sum_bonddipole_cations.im-StoreTotalBondDipolesCations[CurrentSystem][nvec].im));
+          }
+
+          // store the new sums, these will be the current ones on acceptance of the mc-move
+          NewTotalChargeCations[store][nvec]=sum_cations;
+          NewTotalBondDipolesCations[store][nvec]=sum_bonddipole_cations;
+
+          // next wave-vector
+          nvec++;
+        }
+      }
+    }
+  }
+
+  energy_excluded_new=0.0;
+  energy_excluded_c_bd_new=0.0;
+  energy_excluded_bd_new=0.0;
+  if(NewMolecule)
+  {
+    nr_of_excluded_pairs=Components[CurrentComponent].NumberOfExcludedIntraChargeCharge;
+    for(i=0;i<nr_of_excluded_pairs;i++)
+    {
+      A=Components[CurrentComponent].ExcludedIntraChargeCharge[i].A;
+      B=Components[CurrentComponent].ExcludedIntraChargeCharge[i].B;
+      scalingA=CFChargeScaling[A];
+      scalingB=CFChargeScaling[B];
+      chargeA=scalingA*Components[CurrentComponent].Charge[A];
+      chargeB=scalingB*Components[CurrentComponent].Charge[B];
+      posA=TrialPosition[CurrentSystem][A];
+      posB=TrialPosition[CurrentSystem][B];
+
+      dr.x=posA.x-posB.x;
+      dr.y=posA.y-posB.y;
+      dr.z=posA.z-posB.z;
+      r=sqrt(SQR(dr.x)+SQR(dr.y)+SQR(dr.z));
+      Bt0=-erf(alpha*r)/r;
+      energy_excluded_new-=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*Bt0;
+    }
+
+    nr_of_excluded_pairs=Components[CurrentComponent].NumberOfExcludedIntraChargeBondDipole;
+    for(i=0;i<nr_of_excluded_pairs;i++)
+    {
+      A=Components[CurrentComponent].ExcludedIntraChargeBondDipole[i].A;
+      B=Components[CurrentComponent].ExcludedIntraChargeBondDipole[i].B;
+
+      chargeA=Components[CurrentComponent].Charge[A];
+      posA=TrialPosition[CurrentSystem][A];
+
+      pair=Components[CurrentComponent].BondDipoles[B];
+      posB1=TrialPosition[CurrentSystem][pair.A];
+      posB2=TrialPosition[CurrentSystem][pair.B];
+
+      dipoleB.x=posB2.x-posB1.x;
+      dipoleB.y=posB2.y-posB1.y;
+      dipoleB.z=posB2.z-posB1.z;
+      posB.x=posB1.x+0.5*dipoleB.x;
+      posB.y=posB1.y+0.5*dipoleB.y;
+      posB.z=posB1.z+0.5*dipoleB.z;
+      temp=Components[CurrentComponent].BondDipoleMagnitude[B]/sqrt(SQR(dipoleB.x)+SQR(dipoleB.y)+SQR(dipoleB.z));
+      dipoleB.x*=temp; dipoleB.y*=temp; dipoleB.z*=temp;
+
+      dr.x=posB.x-posA.x;
+      dr.y=posB.y-posA.y;
+      dr.z=posB.z-posA.z;
+      dr=ApplyBoundaryCondition(dr);
+      rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
+      r=sqrt(rr);
+
+      Bt0=-erf(alpha*r)/r;
+      Bt1=(2.0/sqrt(M_PI))*alpha*exp(-SQR(-alpha*r))/rr+Bt0/rr;
+
+      cosB=dipoleB.x*dr.x+dipoleB.y*dr.y+dipoleB.z*dr.z;
+      energy_excluded_c_bd_new+=COULOMBIC_CONVERSION_FACTOR*Bt1*chargeA*cosB;
+    }
+
+
+    nr_of_excluded_pairs=Components[CurrentComponent].NumberOfExcludedIntraBondDipoleBondDipole;
+    for(i=0;i<nr_of_excluded_pairs;i++)
+    {
+      A=Components[CurrentComponent].ExcludedIntraBondDipoleBondDipole[i].A;
+      B=Components[CurrentComponent].ExcludedIntraBondDipoleBondDipole[i].B;
+
+      pair=Components[CurrentComponent].BondDipoles[A];
+      posA1=TrialPosition[CurrentSystem][pair.A];
+      posA2=TrialPosition[CurrentSystem][pair.B];
+      dipoleA.x=posA2.x-posA1.x;
+      dipoleA.y=posA2.y-posA1.y;
+      dipoleA.z=posA2.z-posA1.z;
+      posA.x=posA1.x+0.5*dipoleA.x;
+      posA.y=posA1.y+0.5*dipoleA.y;
+      posA.z=posA1.z+0.5*dipoleA.z;
+      temp=Components[CurrentComponent].BondDipoleMagnitude[A]/sqrt(SQR(dipoleA.x)+SQR(dipoleA.y)+SQR(dipoleA.z));
+      dipoleA.x*=temp; dipoleA.y*=temp; dipoleA.z*=temp;
+
+      pair=Components[CurrentComponent].BondDipoles[B];
+      posB1=TrialPosition[CurrentSystem][pair.A];
+      posB2=TrialPosition[CurrentSystem][pair.B];
+      dipoleB.x=posB2.x-posB1.x;
+      dipoleB.y=posB2.y-posB1.y;
+      dipoleB.z=posB2.z-posB1.z;
+      posB.x=posB1.x+0.5*dipoleB.x;
+      posB.y=posB1.y+0.5*dipoleB.y;
+      posB.z=posB1.z+0.5*dipoleB.z;
+      temp=Components[CurrentComponent].BondDipoleMagnitude[B]/sqrt(SQR(dipoleB.x)+SQR(dipoleB.y)+SQR(dipoleB.z));
+      dipoleB.x*=temp; dipoleB.y*=temp; dipoleB.z*=temp;
+
+      dr.x=posA.x-posB.x;
+      dr.y=posA.y-posB.y;
+      dr.z=posA.z-posB.z;
+      dr=ApplyBoundaryCondition(dr);
+      rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
+      r=sqrt(rr);
+
+      temp=(2.0/sqrt(M_PI))*alpha*exp(-SQR(-alpha*r))/rr;
+      Bt0=-erf(alpha*r)/r;
+      Bt1=temp+Bt0/rr;
+      temp*=2.0*SQR(alpha);
+      Bt2=temp+(3.0/rr)*Bt1;
+
+      cosAB=dipoleA.x*dipoleB.x+dipoleA.y*dipoleB.y+dipoleA.z*dipoleB.z;
+      cosA=dipoleA.x*dr.x+dipoleA.y*dr.y+dipoleA.z*dr.z;
+      cosB=dipoleB.x*dr.x+dipoleB.y*dr.y+dipoleB.z*dr.z;
+      energy_excluded_bd_new-=COULOMBIC_CONVERSION_FACTOR*(Bt1*cosAB-Bt2*cosA*cosB);
+    }
+  }
+
+  energy_excluded_old=0.0;
+  energy_excluded_c_bd_old=0.0;
+  energy_excluded_bd_old=0.0;
+  if(OldMolecule)
+  {
+    type=Cations[CurrentSystem][mol].Type;
+
+    nr_of_excluded_pairs=Components[type].NumberOfExcludedIntraChargeCharge;
+    for(i=0;i<nr_of_excluded_pairs;i++)
+    {
+      pair=Components[type].ExcludedIntraChargeCharge[i];
+      scalingA=Cations[CurrentSystem][mol].Atoms[pair.A].CFChargeScalingParameter;
+      scalingB=Cations[CurrentSystem][mol].Atoms[pair.B].CFChargeScalingParameter;
+      chargeA=scalingA*Cations[CurrentSystem][mol].Atoms[pair.A].Charge;
+      chargeB=scalingB*Cations[CurrentSystem][mol].Atoms[pair.B].Charge;
+      posA=Cations[CurrentSystem][mol].Atoms[pair.A].Position;
+      posB=Cations[CurrentSystem][mol].Atoms[pair.B].Position;
+
+      dr.x=posA.x-posB.x;
+      dr.y=posA.y-posB.y;
+      dr.z=posA.z-posB.z;
+      r=sqrt(SQR(dr.x)+SQR(dr.y)+SQR(dr.z));
+
+      Bt0=-erf(alpha*r)/r;
+      energy_excluded_old-=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*Bt0;
+    }
+
+    nr_of_excluded_pairs=Components[type].NumberOfExcludedIntraChargeBondDipole;
+    for(i=0;i<nr_of_excluded_pairs;i++)
+    {
+      A=Components[type].ExcludedIntraChargeBondDipole[i].A;
+      B=Components[type].ExcludedIntraChargeBondDipole[i].B;
+
+      chargeA=Cations[CurrentSystem][mol].Atoms[A].Charge;
+      posA=Cations[CurrentSystem][mol].Atoms[A].Position;
+
+      pair=Components[type].BondDipoles[B];
+      posB1=Cations[CurrentSystem][mol].Atoms[pair.A].Position;
+      posB2=Cations[CurrentSystem][mol].Atoms[pair.B].Position;
+      dipoleB.x=posB2.x-posB1.x;
+      dipoleB.y=posB2.y-posB1.y;
+      dipoleB.z=posB2.z-posB1.z;
+      posB.x=posB1.x+0.5*dipoleB.x;
+      posB.y=posB1.y+0.5*dipoleB.y;
+      posB.z=posB1.z+0.5*dipoleB.z;
+      temp=Components[type].BondDipoleMagnitude[B]/sqrt(SQR(dipoleB.x)+SQR(dipoleB.y)+SQR(dipoleB.z));
+      dipoleB.x*=temp; dipoleB.y*=temp; dipoleB.z*=temp;
+
+      dr.x=posB.x-posA.x;
+      dr.y=posB.y-posA.y;
+      dr.z=posB.z-posA.z;
+      dr=ApplyBoundaryCondition(dr);
+      rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
+      r=sqrt(rr);
+
+      Bt0=-erf(alpha*r)/r;
+      Bt1=(2.0/sqrt(M_PI))*alpha*exp(-SQR(-alpha*r))/rr+Bt0/rr;
+
+      cosB=dipoleB.x*dr.x+dipoleB.y*dr.y+dipoleB.z*dr.z;
+      energy_excluded_c_bd_old+=COULOMBIC_CONVERSION_FACTOR*Bt1*chargeA*cosB;
+    }
+
+    nr_of_excluded_pairs=Components[type].NumberOfExcludedIntraBondDipoleBondDipole;
+    for(i=0;i<nr_of_excluded_pairs;i++)
+    {
+      A=Components[type].ExcludedIntraBondDipoleBondDipole[i].A;
+      B=Components[type].ExcludedIntraBondDipoleBondDipole[i].B;
+
+      pair=Components[type].BondDipoles[A];
+      posA1=Cations[CurrentSystem][mol].Atoms[pair.A].Position;
+      posA2=Cations[CurrentSystem][mol].Atoms[pair.B].Position;
+      dipoleA.x=posA2.x-posA1.x;
+      dipoleA.y=posA2.y-posA1.y;
+      dipoleA.z=posA2.z-posA1.z;
+      posA.x=posA1.x+0.5*dipoleA.x;
+      posA.y=posA1.y+0.5*dipoleA.y;
+      posA.z=posA1.z+0.5*dipoleA.z;
+      temp=Components[type].BondDipoleMagnitude[A]/sqrt(SQR(dipoleA.x)+SQR(dipoleA.y)+SQR(dipoleA.z));
+      dipoleA.x*=temp; dipoleA.y*=temp; dipoleA.z*=temp;
+
+      pair=Components[type].BondDipoles[B];
+      posB1=Cations[CurrentSystem][mol].Atoms[pair.A].Position;
+      posB2=Cations[CurrentSystem][mol].Atoms[pair.B].Position;
+      dipoleB.x=posB2.x-posB1.x;
+      dipoleB.y=posB2.y-posB1.y;
+      dipoleB.z=posB2.z-posB1.z;
+      posB.x=posB1.x+0.5*dipoleB.x;
+      posB.y=posB1.y+0.5*dipoleB.y;
+      posB.z=posB1.z+0.5*dipoleB.z;
+      temp=Components[type].BondDipoleMagnitude[B]/sqrt(SQR(dipoleB.x)+SQR(dipoleB.y)+SQR(dipoleB.z));
+      dipoleB.x*=temp; dipoleB.y*=temp; dipoleB.z*=temp;
+
+      dr.x=posA.x-posB.x;
+      dr.y=posA.y-posB.y;
+      dr.z=posA.z-posB.z;
+      dr=ApplyBoundaryCondition(dr);
+      rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
+      r=sqrt(rr);
+
+      temp=(2.0/sqrt(M_PI))*alpha*exp(-SQR(-alpha*r))/rr;
+      Bt0=-erf(alpha*r)/r;
+      Bt1=temp+Bt0/rr;
+      temp*=2.0*SQR(alpha);
+      Bt2=temp+(3.0/rr)*Bt1;
+
+      cosAB=dipoleA.x*dipoleB.x+dipoleA.y*dipoleB.y+dipoleA.z*dipoleB.z;
+      cosA=dipoleA.x*dr.x+dipoleA.y*dr.y+dipoleA.z*dr.z;
+      cosB=dipoleB.x*dr.x+dipoleB.y*dr.y+dipoleB.z*dr.z;
+      energy_excluded_bd_old-=COULOMBIC_CONVERSION_FACTOR*(Bt1*cosAB-Bt2*cosA*cosB);
+    }
+  }
+
+  // set net-charge difference
+  NetChargeCationDelta=net_charge_new-net_charge_old;
+
+  // set energy differences
+  if(!OmitCationCationCoulombInteractions)
+  {
+    UCationCationChargeChargeFourierDelta[CurrentSystem]=energy_charge_cations-(energy_excluded_new-energy_excluded_old)-(energy_self_new-energy_self_old);
+    UCationCationChargeBondDipoleFourierDelta[CurrentSystem]=energy_charge_bonddipole_cations-(energy_excluded_c_bd_new-energy_excluded_c_bd_old);
+    UCationCationBondDipoleBondDipoleFourierDelta[CurrentSystem]=energy_bonddipole_cations-(energy_self_bd_new-energy_self_bd_old)-
+                                     (energy_excluded_bd_new-energy_excluded_bd_old);
+    UCationCationChargeChargeFourierDelta[CurrentSystem]+=UIon[CurrentSystem]*SQR(NetChargeCations[CurrentSystem]+NetChargeCationDelta)-
+                                                          UIon[CurrentSystem]*SQR(NetChargeCations[CurrentSystem]);
+  }
+
+  if(!OmitInterMolecularInteractions)
+  {
+    UAdsorbateCationChargeChargeFourierDelta[CurrentSystem]=2.0*energy_charge_adsorbates_cations;
+    UAdsorbateCationChargeBondDipoleFourierDelta[CurrentSystem]=2.0*energy_charge_bonddipole_adsorbates_cations;
+    UAdsorbateCationBondDipoleBondDipoleFourierDelta[CurrentSystem]=2.0*energy_bonddipole_adsorbates_cations;
+    UAdsorbateCationChargeChargeFourierDelta[CurrentSystem]+=2.0*UIon[CurrentSystem]*NetChargeAdsorbates[CurrentSystem]*(NetChargeCations[CurrentSystem]+NetChargeCationDelta)-
+                                                             2.0*UIon[CurrentSystem]*NetChargeAdsorbates[CurrentSystem]*(NetChargeCations[CurrentSystem]);
+  }
+
+  UHostCationChargeChargeFourierDelta[CurrentSystem]=2.0*energy_charge_framework_cations;
+  UHostCationChargeBondDipoleFourierDelta[CurrentSystem]=2.0*energy_charge_bonddipole_framework_cations;
+  UHostCationBondDipoleBondDipoleFourierDelta[CurrentSystem]=2.0*energy_bonddipole_framework_cations;
+  UHostCationChargeChargeFourierDelta[CurrentSystem]+=2.0*UIon[CurrentSystem]*NetChargeFramework[CurrentSystem]*(NetChargeCations[CurrentSystem]+net_charge_new)-
+                                                      2.0*UIon[CurrentSystem]*NetChargeFramework[CurrentSystem]*(NetChargeCations[CurrentSystem]+net_charge_old);
+
+  return 0;
+}
+
+int CalculateEwaldFourierCationCF(int NewMolecule,int OldMolecule,int mol,int store)
+{
+  int i,j,ii,jj,kk;
+  int A,B,nvec,nr_of_excluded_pairs;
+  int kmax_x,kmax_y,kmax_z,index_i,index_j,index_k;
+  int type_mol,nr_atoms,type,nr_of_bonddipoles;
+  int nr_of_coulombic_sites,nr_of_coulombic_sites_old,nr_of_coulombic_sites_new;
+  int nr_of_bonddipole_sites,nr_of_bonddipole_sites_old,nr_of_bonddipole_sites_new;
+  COMPLEX sum_old,sum_new,sum_cations,sum_bonddipole_cations;
+  COMPLEX sum_bonddipole_old,sum_bonddipole_new;
+  REAL fac,energy_charge_cations,energy_charge_adsorbates_cations,energy_charge_framework_cations;
+  REAL energy_bonddipole_cations,energy_bonddipole_adsorbates_cations,energy_bonddipole_framework_cations;
+  REAL alpha,chargeA,chargeB,charge,r,rr;
+  REAL energy_self_new,energy_self_old;
+  REAL net_charge_new,net_charge_old;
+  REAL scaling,scalingA,scalingB;
+  REAL cosA,cosB,cosAB,Bt0,Bt1,Bt2,temp;
+  REAL energy_self_bd_old,energy_self_bd_new;
+  REAL energy_charge_bonddipole_cations,energy_charge_bonddipole_adsorbates_cations;
+  REAL energy_charge_bonddipole_framework_cations;
+  REAL energy_excluded_new,energy_excluded_old;
+  REAL energy_excluded_c_bd_new,energy_excluded_c_bd_old;
+  REAL energy_excluded_bd_new,energy_excluded_bd_old;
+  VECTOR pos,posA,posB,dr;
+  VECTOR dipole,dipoleA,dipoleB,rk;
+  VECTOR posA1,posA2,posB1,posB2;
+  VECTOR *kvecs;
+  REAL *kfactor,recip_cutoff,ksqr;
+  PAIR pair;
+  ATOM *atom_pointer;
+  int considered_charged;
+
+  // intialize differences in energy
+  NetChargeCationDelta=0.0;
+  UAdsorbateAdsorbateChargeChargeFourierDelta[CurrentSystem]=0.0;
+  UAdsorbateCationChargeChargeFourierDelta[CurrentSystem]=0.0;
+  UHostAdsorbateChargeChargeFourierDelta[CurrentSystem]=0.0;
+  UHostCationChargeChargeFourierDelta[CurrentSystem]=0.0;
+  UCationCationChargeChargeFourierDelta[CurrentSystem]=0.0;
+
+  UAdsorbateAdsorbateChargeBondDipoleFourierDelta[CurrentSystem]=0.0;
+  UAdsorbateCationChargeBondDipoleFourierDelta[CurrentSystem]=0.0;
+  UHostAdsorbateChargeBondDipoleFourierDelta[CurrentSystem]=0.0;
+  UHostCationChargeBondDipoleFourierDelta[CurrentSystem]=0.0;
+  UCationCationChargeBondDipoleFourierDelta[CurrentSystem]=0.0;
+
+  UAdsorbateAdsorbateBondDipoleBondDipoleFourierDelta[CurrentSystem]=0.0;
+  UAdsorbateCationBondDipoleBondDipoleFourierDelta[CurrentSystem]=0.0;
+  UHostAdsorbateBondDipoleBondDipoleFourierDelta[CurrentSystem]=0.0;
+  UHostCationBondDipoleBondDipoleFourierDelta[CurrentSystem]=0.0;
+  UCationCationBondDipoleBondDipoleFourierDelta[CurrentSystem]=0.0;
+
+  // return immediately if the Ewald summation is not used
+  if(ChargeMethod!=EWALD) return 0;
+  if(OmitEwaldFourier) return 0;
+
+  alpha=Alpha[CurrentSystem];
+  kmax_x=kvec[CurrentSystem].x;
+  kmax_y=kvec[CurrentSystem].y;
+  kmax_z=kvec[CurrentSystem].z;
+  kvecs=KVectors[CurrentSystem];
+  kfactor=KFactor[CurrentSystem];
+  recip_cutoff=ReciprocalCutOffSquared[CurrentSystem];
+
+  nvec=0;
+  energy_self_new=energy_self_old=0.0;
+  energy_self_bd_old=energy_self_bd_new=0.0;
+  net_charge_new=net_charge_old=0.0;
+  energy_charge_cations=0.0;
+  energy_charge_adsorbates_cations=0.0;
+  energy_charge_framework_cations=0.0;
+  energy_charge_bonddipole_cations=0.0;
+  energy_charge_bonddipole_adsorbates_cations=0.0;
+  energy_charge_bonddipole_framework_cations=0.0;
+  energy_bonddipole_cations=0.0;
+  energy_bonddipole_adsorbates_cations=0.0;
+  energy_bonddipole_framework_cations=0.0;
+  fac=0.0;
+
+  nr_of_coulombic_sites=nr_of_coulombic_sites_old=nr_of_coulombic_sites_new=0;
+  nr_of_bonddipole_sites=nr_of_bonddipole_sites_old=nr_of_bonddipole_sites_new=0;
+
+  if(OldMolecule)
+  {
+    nr_atoms=Cations[CurrentSystem][mol].NumberOfAtoms;
+    for(j=0;j<nr_atoms;j++)
+    {
+      type=Cations[CurrentSystem][mol].Atoms[j].Type;
+      charge=Cations[CurrentSystem][mol].Atoms[j].Charge;
+      scaling=Cations[CurrentSystem][mol].Atoms[j].CFChargeScalingParameter;
+      considered_charged=(fabs(charge)>1e-10)||(PseudoAtoms[type].IsPolarizable);
+      charge*=scaling;
+      if(considered_charged)
+      {
+        Charge[nr_of_coulombic_sites]=charge;
+        energy_self_old+=COULOMBIC_CONVERSION_FACTOR*SQR(charge)*alpha/sqrt(M_PI);
+        net_charge_old+=Charge[nr_of_coulombic_sites];
+        Positions[nr_of_coulombic_sites]=ConvertFromXYZtoABC(Cations[CurrentSystem][mol].Atoms[j].Position);
+        Positions[nr_of_coulombic_sites].x*=TWO_PI; Positions[nr_of_coulombic_sites].y*=TWO_PI; Positions[nr_of_coulombic_sites].z*=TWO_PI;
+        nr_of_coulombic_sites++;
+      }
+    }
+  }
+  nr_of_coulombic_sites_old=nr_of_coulombic_sites;
+
+  if(NewMolecule)
+  {
+    for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
+    {
+      type=Components[CurrentComponent].Type[i];
+      if(PseudoAtoms[type].HasCharges)
+      {
+        scaling=CFChargeScaling[i];
+        Charge[nr_of_coulombic_sites]=scaling*Components[CurrentComponent].Charge[i];
+        energy_self_new+=COULOMBIC_CONVERSION_FACTOR*SQR(Charge[nr_of_coulombic_sites])*alpha/sqrt(M_PI);
+        net_charge_new+=Charge[nr_of_coulombic_sites];
+        Positions[nr_of_coulombic_sites]=ConvertFromXYZtoABC(TrialPosition[CurrentSystem][i]);
+        Positions[nr_of_coulombic_sites].x*=TWO_PI; Positions[nr_of_coulombic_sites].y*=TWO_PI; Positions[nr_of_coulombic_sites].z*=TWO_PI;
+        nr_of_coulombic_sites++;
+      }
+    }
+  }
+  nr_of_coulombic_sites_new=nr_of_coulombic_sites;
+
+  if(OldMolecule)
+  {
+    type_mol=Cations[CurrentSystem][mol].Type;
+    nr_of_bonddipoles=Components[type_mol].NumberOfBondDipoles;
+    for(j=0;j<nr_of_bonddipoles;j++)
+    {
+      pair=Components[type_mol].BondDipoles[j];
+      atom_pointer=Cations[CurrentSystem][mol].Atoms;
+      posA=atom_pointer[pair.A].Position;
+      posB=atom_pointer[pair.B].Position;
+      dipole.x=posB.x-posA.x;
+      dipole.y=posB.y-posA.y;
+      dipole.z=posB.z-posA.z;
+      pos.x=posA.x+0.5*dipole.x;
+      pos.y=posA.y+0.5*dipole.y;
+      pos.z=posA.z+0.5*dipole.z;
+      temp=Components[type_mol].BondDipoleMagnitude[j]/sqrt(SQR(dipole.x)+SQR(dipole.y)+SQR(dipole.z));
+      DipoleVector[nr_of_bonddipole_sites].x=temp*dipole.x;
+      DipoleVector[nr_of_bonddipole_sites].y=temp*dipole.y;
+      DipoleVector[nr_of_bonddipole_sites].z=temp*dipole.z;
+      BondDipoleMagnitude[nr_of_bonddipole_sites]=Components[type_mol].BondDipoleMagnitude[j];
+      BondLength[nr_of_bonddipole_sites]=sqrt(SQR(dipole.x)+SQR(dipole.y)+SQR(dipole.z));
+      energy_self_bd_old+=COULOMBIC_CONVERSION_FACTOR*2.0*CUBE(alpha)*SQR(temp)*(SQR(dipole.x)+SQR(dipole.y)+SQR(dipole.z))/(3.0*sqrt(M_PI));
+      BondDipolePositions[nr_of_bonddipole_sites]=ConvertFromXYZtoABC(pos);
+      BondDipolePositions[nr_of_bonddipole_sites].x*=TWO_PI;
+      BondDipolePositions[nr_of_bonddipole_sites].y*=TWO_PI;
+      BondDipolePositions[nr_of_bonddipole_sites].z*=TWO_PI;
+      nr_of_bonddipole_sites++;
+    }
+  }
+  nr_of_bonddipole_sites_old=nr_of_bonddipole_sites;
+
+  if(NewMolecule)
+  {
+    type_mol=CurrentComponent;
+    for(i=0;i<Components[type_mol].NumberOfBondDipoles;i++)
+    {
+      pair=Components[type_mol].BondDipoles[i];
+      posA=TrialPosition[CurrentSystem][pair.A];
+      posB=TrialPosition[CurrentSystem][pair.B];
+      dipole.x=posB.x-posA.x;
+      dipole.y=posB.y-posA.y;
+      dipole.z=posB.z-posA.z;
+      pos.x=posA.x+0.5*dipole.x;
+      pos.y=posA.y+0.5*dipole.y;
+      pos.z=posA.z+0.5*dipole.z;
+      temp=Components[type_mol].BondDipoleMagnitude[i]/sqrt(SQR(dipole.x)+SQR(dipole.y)+SQR(dipole.z));
+      DipoleVector[nr_of_bonddipole_sites].x=temp*dipole.x;
+      DipoleVector[nr_of_bonddipole_sites].y=temp*dipole.y;
+      DipoleVector[nr_of_bonddipole_sites].z=temp*dipole.z;
+      BondDipoleMagnitude[nr_of_bonddipole_sites]=Components[type_mol].BondDipoleMagnitude[i];
+      BondLength[nr_of_bonddipole_sites]=sqrt(SQR(dipole.x)+SQR(dipole.y)+SQR(dipole.z));
+      energy_self_bd_new+=COULOMBIC_CONVERSION_FACTOR*2.0*CUBE(alpha)*SQR(temp)*(SQR(dipole.x)+SQR(dipole.y)+SQR(dipole.z))/(3.0*sqrt(M_PI));
+      BondDipolePositions[nr_of_bonddipole_sites]=ConvertFromXYZtoABC(pos);
+      BondDipolePositions[nr_of_bonddipole_sites].x*=TWO_PI;
+      BondDipolePositions[nr_of_bonddipole_sites].y*=TWO_PI;
+      BondDipolePositions[nr_of_bonddipole_sites].z*=TWO_PI;
+      nr_of_bonddipole_sites++;
+    }
+  }
+  nr_of_bonddipole_sites_new=nr_of_bonddipole_sites;
+
+  // Calculate the exp(ik.r) terms for all wavevectors
+  // =================================================
+
+  // calculate kx,ky,kz=-1,0,1 explicitly
+  for(i=0;i<nr_of_coulombic_sites;i++)
+  {
+    Eikx[i].re=1.0; Eikx[i].im=0.0;
+    Eiky[i].re=1.0; Eiky[i].im=0.0;
+    Eikz[i].re=1.0; Eikz[i].im=0.0;
+
+    pos=Positions[i];
+
+    index_i=MaxNumberOfCoulombicSites+i;
+    Eikx[index_i].re=cos(pos.x); Eikx[index_i].im=sin(pos.x);
+    Eiky[index_i].re=cos(pos.y); Eiky[index_i].im=sin(pos.y);
+    Eikz[index_i].re=cos(pos.z); Eikz[index_i].im=sin(pos.z);
+
+    index_i=-MaxNumberOfCoulombicSites+i;
+    Eikx[index_i].re=cos(pos.x); Eikx[index_i].im=-sin(pos.x);
+    Eiky[index_i].re=cos(pos.y); Eiky[index_i].im=-sin(pos.y);
+    Eikz[index_i].re=cos(pos.z); Eikz[index_i].im=-sin(pos.z);
+  }
+
+
+  // calculate remaining kx,jy,kz by a recurrence formula (to avoid using 'cos' and 'sin' explicitly)
+  // in the x-direction symmetry is used (-kx=kx) and only positive wavevectors are used
+  for(j=2;j<=kmax_x;j++)
+    for(i=0;i<nr_of_coulombic_sites;i++)
+    {
+      Eikx[j*MaxNumberOfCoulombicSites+i].re=Eikx[(j-1)*MaxNumberOfCoulombicSites+i].re*Eikx[MaxNumberOfCoulombicSites+i].re-
+                                             Eikx[(j-1)*MaxNumberOfCoulombicSites+i].im*Eikx[MaxNumberOfCoulombicSites+i].im;
+      Eikx[j*MaxNumberOfCoulombicSites+i].im=Eikx[(j-1)*MaxNumberOfCoulombicSites+i].im*Eikx[MaxNumberOfCoulombicSites+i].re+
+                                             Eikx[(j-1)*MaxNumberOfCoulombicSites+i].re*Eikx[MaxNumberOfCoulombicSites+i].im;
+    }
+
+  for(j=2;j<=kmax_y;j++)
+    for(i=0;i<nr_of_coulombic_sites;i++)
+    {
+      Eiky[j*MaxNumberOfCoulombicSites+i].re=Eiky[(j-1)*MaxNumberOfCoulombicSites+i].re*Eiky[MaxNumberOfCoulombicSites+i].re-
+                                             Eiky[(j-1)*MaxNumberOfCoulombicSites+i].im*Eiky[MaxNumberOfCoulombicSites+i].im;
+      Eiky[j*MaxNumberOfCoulombicSites+i].im=Eiky[(j-1)*MaxNumberOfCoulombicSites+i].im*Eiky[MaxNumberOfCoulombicSites+i].re+
+                                             Eiky[(j-1)*MaxNumberOfCoulombicSites+i].re*Eiky[MaxNumberOfCoulombicSites+i].im;
+      Eiky[-j*MaxNumberOfCoulombicSites+i].re=Eiky[j*MaxNumberOfCoulombicSites+i].re;
+      Eiky[-j*MaxNumberOfCoulombicSites+i].im=-Eiky[j*MaxNumberOfCoulombicSites+i].im;
+    }
+
+  for(j=2;j<=kmax_z;j++)
+    for(i=0;i<nr_of_coulombic_sites;i++)
+    {
+      Eikz[j*MaxNumberOfCoulombicSites+i].re=Eikz[(j-1)*MaxNumberOfCoulombicSites+i].re*Eikz[MaxNumberOfCoulombicSites+i].re-
+                                             Eikz[(j-1)*MaxNumberOfCoulombicSites+i].im*Eikz[MaxNumberOfCoulombicSites+i].im;
+      Eikz[j*MaxNumberOfCoulombicSites+i].im=Eikz[(j-1)*MaxNumberOfCoulombicSites+i].im*Eikz[MaxNumberOfCoulombicSites+i].re+
+                                             Eikz[(j-1)*MaxNumberOfCoulombicSites+i].re*Eikz[MaxNumberOfCoulombicSites+i].im;
+      Eikz[-j*MaxNumberOfCoulombicSites+i].re=Eikz[j*MaxNumberOfCoulombicSites+i].re;
+      Eikz[-j*MaxNumberOfCoulombicSites+i].im=-Eikz[j*MaxNumberOfCoulombicSites+i].im;
+    }
+
+  // calculate kx,ky,kz=-1,0,1 explicitly
+  for(i=0;i<nr_of_bonddipole_sites;i++)
+  {
+    Eikx_bd[i].re=1.0; Eikx_bd[i].im=0.0;
+    Eiky_bd[i].re=1.0; Eiky_bd[i].im=0.0;
+    Eikz_bd[i].re=1.0; Eikz_bd[i].im=0.0;
+
+    pos=BondDipolePositions[i];
+
+    index_i=MaxNumberOfBondDipoleSites+i;
+    Eikx_bd[index_i].re=cos(pos.x);  Eikx_bd[index_i].im=sin(pos.x);
+    Eiky_bd[index_i].re=cos(pos.y);  Eiky_bd[index_i].im=sin(pos.y);
+    Eikz_bd[index_i].re=cos(pos.z);  Eikz_bd[index_i].im=sin(pos.z);
+
+    index_i=-MaxNumberOfBondDipoleSites+i;
+    Eikx_bd[index_i].re=cos(pos.x); Eikx_bd[index_i].im=-sin(pos.x);
+    Eiky_bd[index_i].re=cos(pos.y); Eiky_bd[index_i].im=-sin(pos.y);
+    Eikz_bd[index_i].re=cos(pos.z); Eikz_bd[index_i].im=-sin(pos.z);
+  }
+
+  // calculate remaining kx,jy,kz by a recurrence formula (to avoid using 'cos' and 'sin' explicitly)
+  // in the x-direction symmetry is used (-kx=kx) and only positive wavevectors are used
+  for(j=2;j<=kmax_x;j++)
+    for(i=0;i<nr_of_bonddipole_sites;i++)
+    {
+      Eikx_bd[j*MaxNumberOfBondDipoleSites+i].re=Eikx_bd[(j-1)*MaxNumberOfBondDipoleSites+i].re*Eikx_bd[MaxNumberOfBondDipoleSites+i].re-
+                                                 Eikx_bd[(j-1)*MaxNumberOfBondDipoleSites+i].im*Eikx_bd[MaxNumberOfBondDipoleSites+i].im;
+      Eikx_bd[j*MaxNumberOfBondDipoleSites+i].im=Eikx_bd[(j-1)*MaxNumberOfBondDipoleSites+i].im*Eikx_bd[MaxNumberOfBondDipoleSites+i].re+
+                                                 Eikx_bd[(j-1)*MaxNumberOfBondDipoleSites+i].re*Eikx_bd[MaxNumberOfBondDipoleSites+i].im;
+    }
+
+  for(j=2;j<=kmax_y;j++)
+    for(i=0;i<nr_of_bonddipole_sites;i++)
+    {
+      Eiky_bd[j*MaxNumberOfBondDipoleSites+i].re=Eiky_bd[(j-1)*MaxNumberOfBondDipoleSites+i].re*Eiky_bd[MaxNumberOfBondDipoleSites+i].re-
+                                                 Eiky_bd[(j-1)*MaxNumberOfBondDipoleSites+i].im*Eiky_bd[MaxNumberOfBondDipoleSites+i].im;
+      Eiky_bd[j*MaxNumberOfBondDipoleSites+i].im=Eiky_bd[(j-1)*MaxNumberOfBondDipoleSites+i].im*Eiky_bd[MaxNumberOfBondDipoleSites+i].re+
+                                                 Eiky_bd[(j-1)*MaxNumberOfBondDipoleSites+i].re*Eiky_bd[MaxNumberOfBondDipoleSites+i].im;
+      Eiky_bd[-j*MaxNumberOfBondDipoleSites+i].re=Eiky_bd[j*MaxNumberOfBondDipoleSites+i].re;
+      Eiky_bd[-j*MaxNumberOfBondDipoleSites+i].im=-Eiky_bd[j*MaxNumberOfBondDipoleSites+i].im;
+    }
+
+  for(j=2;j<=kmax_z;j++)
+    for(i=0;i<nr_of_bonddipole_sites;i++)
+    {
+      Eikz_bd[j*MaxNumberOfBondDipoleSites+i].re=Eikz_bd[(j-1)*MaxNumberOfBondDipoleSites+i].re*Eikz_bd[MaxNumberOfBondDipoleSites+i].re-
+                                                 Eikz_bd[(j-1)*MaxNumberOfBondDipoleSites+i].im*Eikz_bd[MaxNumberOfBondDipoleSites+i].im;
+      Eikz_bd[j*MaxNumberOfBondDipoleSites+i].im=Eikz_bd[(j-1)*MaxNumberOfBondDipoleSites+i].im*Eikz_bd[MaxNumberOfBondDipoleSites+i].re+
+                                                 Eikz_bd[(j-1)*MaxNumberOfBondDipoleSites+i].re*Eikz_bd[MaxNumberOfBondDipoleSites+i].im;
+      Eikz_bd[-j*MaxNumberOfBondDipoleSites+i].re=Eikz_bd[j*MaxNumberOfBondDipoleSites+i].re;
+      Eikz_bd[-j*MaxNumberOfBondDipoleSites+i].im=-Eikz_bd[j*MaxNumberOfBondDipoleSites+i].im;
+    }
+
+  // Main loop of the Fourier-routine
+  // ================================
+
+  nvec=0;
+  for(ii=0;ii<=kmax_x;ii++)
+  {
+    for(jj=-kmax_y;jj<=kmax_y;jj++)
+    {
+      for(i=0;i<nr_of_coulombic_sites;i++)
+      {
+        // exp(-ik.r)=exp(-ik.kx)*exp(-ik.ky)*exp(-ik.kz)
+        // precompute exp(-ik.kx)*exp(-ik.ky) outside the 'kk' loop
+        index_i=ii*MaxNumberOfCoulombicSites+i;
+        index_j=jj*MaxNumberOfCoulombicSites+i;
+        Eikr_xy[i].re=Eikx[index_i].re*Eiky[index_j].re-Eikx[index_i].im*Eiky[index_j].im;
+        Eikr_xy[i].im=Eikx[index_i].im*Eiky[index_j].re+Eikx[index_i].re*Eiky[index_j].im;
+      }
+      for(i=0;i<nr_of_bonddipole_sites;i++)
+      {
+        // exp(-ik.r)=exp(-ik.kx)*exp(-ik.ky)*exp(-ik.kz)
+        // precompute exp(-ik.kx)*exp(-ik.ky) outside the 'kk' loop
+        index_i=ii*MaxNumberOfBondDipoleSites+i;
+        index_j=jj*MaxNumberOfBondDipoleSites+i;
+        Eikr_xy_bd[i].re=Eikx_bd[index_i].re*Eiky_bd[index_j].re-Eikx_bd[index_i].im*Eiky_bd[index_j].im;
+        Eikr_xy_bd[i].im=Eikx_bd[index_i].im*Eiky_bd[index_j].re+Eikx_bd[index_i].re*Eiky_bd[index_j].im;
+      }
+
+      for(kk=-kmax_z;kk<=kmax_z;kk++)
+      {
+        ksqr=SQR(ii)+SQR(jj)+SQR(kk);
+        if((ksqr!=0)&&(ksqr<recip_cutoff)) // explicitly exclude |k|=0
+        {
+          sum_old.re=0.0;
+          sum_old.im=0.0;
+          for(i=0;i<nr_of_coulombic_sites_old;i++)
+          {
+            // exp(-ik.r)=exp(-ik.kx)*exp(-ik.ky)*exp(-ik.kz)
+            index_k=kk*MaxNumberOfCoulombicSites+i;
+            Eikr[i].re=Eikr_xy[i].re*Eikz[index_k].re-Eikr_xy[i].im*Eikz[index_k].im;
+            Eikr[i].im=Eikr_xy[i].im*Eikz[index_k].re+Eikr_xy[i].re*Eikz[index_k].im;
+
+            // add contribution to the sum
+            temp=Charge[i];
+            sum_old.re+=temp*Eikr[i].re;
+            sum_old.im+=temp*Eikr[i].im;
+          }
+          sum_new.re=0.0;
+          sum_new.im=0.0;
+          for(;i<nr_of_coulombic_sites_new;i++)
+          {
+            // exp(-ik.r)=exp(-ik.kx)*exp(-ik.ky)*exp(-ik.kz)
+            index_k=kk*MaxNumberOfCoulombicSites+i;
+            Eikr[i].re=Eikr_xy[i].re*Eikz[index_k].re-Eikr_xy[i].im*Eikz[index_k].im;
+            Eikr[i].im=Eikr_xy[i].im*Eikz[index_k].re+Eikr_xy[i].re*Eikz[index_k].im;
+
+            // add contribution to the sum
+            temp=Charge[i];
+            sum_new.re+=temp*Eikr[i].re;
+            sum_new.im+=temp*Eikr[i].im;
+          }
+
+          sum_bonddipole_old.re=0.0;
+          sum_bonddipole_old.im=0.0;
+          rk=kvecs[nvec];
+          for(i=0;i<nr_of_bonddipole_sites_old;i++)
+          {
+            // exp(-ik.r)=exp(-ik.kx)*exp(-ik.ky)*exp(-ik.kz)
+            index_k=kk*MaxNumberOfBondDipoleSites+i;
+            Eikr_bd[i].re=Eikr_xy_bd[i].re*Eikz_bd[index_k].re-Eikr_xy_bd[i].im*Eikz_bd[index_k].im;
+            Eikr_bd[i].im=Eikr_xy_bd[i].im*Eikz_bd[index_k].re+Eikr_xy_bd[i].re*Eikz_bd[index_k].im;
+
+            dipole=DipoleVector[i];
+            temp=dipole.x*rk.x+dipole.y*rk.y+dipole.z*rk.z;
+            sum_bonddipole_old.re+=temp*Eikr_bd[i].re;
+            sum_bonddipole_old.im+=temp*Eikr_bd[i].im;
+          }
+
+          sum_bonddipole_new.re=0.0;
+          sum_bonddipole_new.im=0.0;
+          for(;i<nr_of_bonddipole_sites_new;i++)
+          {
+            // exp(-ik.r)=exp(-ik.kx)*exp(-ik.ky)*exp(-ik.kz)
+            index_k=kk*MaxNumberOfBondDipoleSites+i;
+            Eikr_bd[i].re=Eikr_xy_bd[i].re*Eikz_bd[index_k].re-Eikr_xy_bd[i].im*Eikz_bd[index_k].im;
+            Eikr_bd[i].im=Eikr_xy_bd[i].im*Eikz_bd[index_k].re+Eikr_xy_bd[i].re*Eikz_bd[index_k].im;
+
+            dipole=DipoleVector[i];
+            temp=dipole.x*rk.x+dipole.y*rk.y+dipole.z*rk.z;
+            sum_bonddipole_new.re+=temp*Eikr_bd[i].re;
+            sum_bonddipole_new.im+=temp*Eikr_bd[i].im;
+          }
+
+          sum_cations.re=NewTotalChargeCations[CurrentSystem][nvec].re+(sum_new.re-sum_old.re);
+          sum_cations.im=NewTotalChargeCations[CurrentSystem][nvec].im+(sum_new.im-sum_old.im);
+
+          sum_bonddipole_cations.re=NewTotalBondDipolesCations[CurrentSystem][nvec].re+(sum_bonddipole_new.re-sum_bonddipole_old.re);
+          sum_bonddipole_cations.im=NewTotalBondDipolesCations[CurrentSystem][nvec].im+(sum_bonddipole_new.im-sum_bonddipole_old.im);
+
+          temp=kfactor[nvec];
+
+          // compute energy differences using the stored total sums and the sum of the differences of the moving atoms
+          if(Framework[CurrentSystem].FrameworkModel!=NONE)
+          {
+            energy_charge_framework_cations+=temp*
+              (StoreTotalChargeFramework[CurrentSystem][nvec].re*(sum_cations.re-NewTotalChargeCations[CurrentSystem][nvec].re)
+              +StoreTotalChargeFramework[CurrentSystem][nvec].im*(sum_cations.im-NewTotalChargeCations[CurrentSystem][nvec].im));
+
+            energy_charge_bonddipole_framework_cations+=temp*
+              (StoreTotalChargeFramework[CurrentSystem][nvec].im*(sum_bonddipole_cations.re-NewTotalBondDipolesCations[CurrentSystem][nvec].re)
+              +StoreTotalChargeFramework[CurrentSystem][nvec].re*(NewTotalBondDipolesCations[CurrentSystem][nvec].im-sum_bonddipole_cations.im)
+              +StoreTotalBondDipolesFramework[CurrentSystem][nvec].re*(sum_cations.im-NewTotalChargeCations[CurrentSystem][nvec].im)
+              +StoreTotalBondDipolesFramework[CurrentSystem][nvec].im*(NewTotalChargeCations[CurrentSystem][nvec].re-sum_cations.re));
+
+            energy_bonddipole_framework_cations+=temp*
+              (StoreTotalBondDipolesFramework[CurrentSystem][nvec].re*(sum_bonddipole_cations.re-NewTotalBondDipolesCations[CurrentSystem][nvec].re)
+              +StoreTotalBondDipolesFramework[CurrentSystem][nvec].im*(sum_bonddipole_cations.im-NewTotalBondDipolesCations[CurrentSystem][nvec].im));
+          }
+
+          energy_charge_cations+=temp*(SQR(sum_cations.re)-SQR(NewTotalChargeCations[CurrentSystem][nvec].re)+
+                                       SQR(sum_cations.im)-SQR(NewTotalChargeCations[CurrentSystem][nvec].im));
+
+          energy_charge_bonddipole_cations+=2.0*temp*
+                  (sum_cations.im*sum_bonddipole_cations.re-sum_cations.re*sum_bonddipole_cations.im
+                  -NewTotalChargeCations[CurrentSystem][nvec].im*NewTotalBondDipolesCations[CurrentSystem][nvec].re
+                  +NewTotalChargeCations[CurrentSystem][nvec].re*NewTotalBondDipolesCations[CurrentSystem][nvec].im);
+
+          energy_bonddipole_cations+=temp*(SQR(sum_bonddipole_cations.re)-SQR(NewTotalBondDipolesCations[CurrentSystem][nvec].re)+
+                                           SQR(sum_bonddipole_cations.im)-SQR(NewTotalBondDipolesCations[CurrentSystem][nvec].im));
+
+          if(NumberOfAdsorbateMolecules[CurrentSystem]>0)
+          {
+            energy_charge_adsorbates_cations+=temp*
+              (NewTotalChargeAdsorbates[CurrentSystem][nvec].re*(sum_cations.re-NewTotalChargeCations[CurrentSystem][nvec].re)
+              +NewTotalChargeAdsorbates[CurrentSystem][nvec].im*(sum_cations.im-NewTotalChargeCations[CurrentSystem][nvec].im));
+
+            energy_charge_bonddipole_adsorbates_cations+=temp*
+              (NewTotalChargeAdsorbates[CurrentSystem][nvec].im*(sum_bonddipole_cations.re-NewTotalBondDipolesCations[CurrentSystem][nvec].re)
+              +NewTotalChargeAdsorbates[CurrentSystem][nvec].re*(NewTotalBondDipolesCations[CurrentSystem][nvec].im-sum_bonddipole_cations.im)
+              +NewTotalBondDipolesAdsorbates[CurrentSystem][nvec].re*(sum_cations.im-NewTotalChargeCations[CurrentSystem][nvec].im)
+              +NewTotalBondDipolesAdsorbates[CurrentSystem][nvec].im*(NewTotalChargeCations[CurrentSystem][nvec].re-sum_cations.re));
+
+            energy_bonddipole_adsorbates_cations+=temp*
+              (NewTotalBondDipolesAdsorbates[CurrentSystem][nvec].re*(sum_bonddipole_cations.re-NewTotalBondDipolesCations[CurrentSystem][nvec].re)
+              +NewTotalBondDipolesAdsorbates[CurrentSystem][nvec].im*(sum_bonddipole_cations.im-NewTotalBondDipolesCations[CurrentSystem][nvec].im));
           }
 
           // store the new sums, these will be the current ones on acceptance of the mc-move

@@ -2540,6 +2540,7 @@ void PrintIntervalStatus(long long CurrentCycle,long long NumberOfCycles, FILE *
         }
         fprintf(FilePtr,"\n");
         shift=Components[i].CFBiasingFactors[CurrentSystem][0];
+        shift=0;
         fprintf(FilePtr,"\tBiasing Factors: ");
         for(k=0;k<Components[i].CFLambdaHistogramSize;k++)
         {

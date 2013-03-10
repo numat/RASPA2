@@ -169,9 +169,9 @@ void PrintPreSimulationStatus(void)
 
 void PrintPreSimulationStatusCurrentSystem(int system)
 {
-  int i,j,k,m,l,f1;
+  int i,j,k,m,l;
   int ncell,k1,k2,k3;
-  int A,B,Type,nr_args,typeA;
+  int A,B,Type,nr_args;
   int nr_free,nr_fixed;
   REAL charge,NetCharge;
   REAL smallest_charge,largest_charge;
@@ -180,7 +180,6 @@ void PrintPreSimulationStatusCurrentSystem(int system)
   char charge_string[256];
   char framework_charge_string[256];
   char polarization_string[256];
-  REAL total_count,total_charge;
   FILE *FilePtr;
   char my_date[] = "Compile Date = " __DATE__;
   char my_time[] = "Compile Time = " __TIME__;
@@ -229,7 +228,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
   fprintf(FilePtr,"Compiler and run-time data\n");
   fprintf(FilePtr,"===========================================================================\n");
 
-  fprintf(FilePtr,"%s\n","RASPA 1.7-1");
+  fprintf(FilePtr,"%s\n","RASPA 1.7-2");
   
   #if defined (__LP64__) || defined (__64BIT__) || defined (_LP64) || (__WORDSIZE == 64)
     fprintf(FilePtr,"Compiled as a 64-bits application\n");
@@ -2365,20 +2364,6 @@ void PrintPreSimulationStatusCurrentSystem(int system)
               (double)PotentialParms[i][j][2]*ENERGY_TO_KELVIN,
               TailCorrection[i][j]?"yes":"no");
             break;
-          case LENNARD_JONES_CONTINUOUS_FRACTIONAL:
-            // 4*p_0*((p_1/r)^12-(p_1/r)^6)
-            // ======================================================================================
-            // p_0/k_B [K]    strength parameter epsilon
-            // p_1     [A]    size parameter sigma
-            // p_2/k_B [K]    (non-zero for a shifted potential)
-            fprintf(FilePtr,"%7s - %7s [LENNARD_JONES_CONTINUOUS_FRACTIONAL] p_0/k_B: %9.5lf [K], p_1: %7.5lf [A], shift/k_B: %12.8lf [K], tailcorrection: %s\n",
-              PseudoAtoms[i].Name,
-              PseudoAtoms[j].Name,
-              (double)PotentialParms[i][j][0]*ENERGY_TO_KELVIN,
-              (double)PotentialParms[i][j][1],
-              (double)PotentialParms[i][j][2]*ENERGY_TO_KELVIN,
-              TailCorrection[i][j]?"yes":"no");
-            break;
           case LENNARD_JONES_SMOOTHED3:
             // {4*p_0*((p_1/r)^12-(p_1/r)^6)}*S(r)
             // ======================================================================================
@@ -2396,6 +2381,42 @@ void PrintPreSimulationStatusCurrentSystem(int system)
             // p_0/k_B [K]    strength parameter epsilon
             // p_1     [A]    size parameter sigma
             fprintf(FilePtr,"%7s - %7s [LENNARD_JONES_SMOOTHED5] p_0/k_B: %9.5lf, p_1: %7.5lf [A]\n",
+              PseudoAtoms[i].Name,
+              PseudoAtoms[j].Name,
+              (double)PotentialParms[i][j][0]*ENERGY_TO_KELVIN,
+              (double)PotentialParms[i][j][1]);
+            break;
+          case LENNARD_JONES_CONTINUOUS_FRACTIONAL:
+            // 4*p_0*((p_1/r)^12-(p_1/r)^6)
+            // ======================================================================================
+            // p_0/k_B [K]    strength parameter epsilon
+            // p_1     [A]    size parameter sigma
+            // p_2/k_B [K]    (non-zero for a shifted potential)
+            fprintf(FilePtr,"%7s - %7s [LENNARD_JONES_CONTINUOUS_FRACTIONAL] p_0/k_B: %9.5lf [K], p_1: %7.5lf [A], shift/k_B: %12.8lf [K], tailcorrection: %s\n",
+              PseudoAtoms[i].Name,
+              PseudoAtoms[j].Name,
+              (double)PotentialParms[i][j][0]*ENERGY_TO_KELVIN,
+              (double)PotentialParms[i][j][1],
+              (double)PotentialParms[i][j][2]*ENERGY_TO_KELVIN,
+              TailCorrection[i][j]?"yes":"no");
+            break;
+          case LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED3:
+            // {4*p_0*((p_1/r)^12-(p_1/r)^6)}*S(r)
+            // ======================================================================================
+            // p_0/k_B [K]    strength parameter epsilon
+            // p_1     [A]    size parameter sigma
+            fprintf(FilePtr,"%7s - %7s [LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED3] p_0/k_B: %9.5lf [K], p_1: %7.5lf [A]\n",
+              PseudoAtoms[i].Name,
+              PseudoAtoms[j].Name,
+              (double)PotentialParms[i][j][0]*ENERGY_TO_KELVIN,
+              (double)PotentialParms[i][j][1]);
+            break;
+          case LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED5:
+            // {4*p_0*((p_1/r)^12-(p_1/r)^6)}*S(r)
+            // ======================================================================================
+            // p_0/k_B [K]    strength parameter epsilon
+            // p_1     [A]    size parameter sigma
+            fprintf(FilePtr,"%7s - %7s [LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED5] p_0/k_B: %9.5lf, p_1: %7.5lf [A]\n",
               PseudoAtoms[i].Name,
               PseudoAtoms[j].Name,
               (double)PotentialParms[i][j][0]*ENERGY_TO_KELVIN,
@@ -3713,12 +3734,12 @@ void PrintPreSimulationStatusCurrentSystem(int system)
       fprintf(FilePtr,"\t\tPercentage of CFCB swap lambda moves:           %lf\n",(double)(100.0*Components[i].FractionOfCFCBSwapLambdaMove));
       fprintf(FilePtr,"\t\tPercentage of Widom insertion moves:            %lf\n",(double)(100.0*Components[i].FractionOfWidomMove));
       fprintf(FilePtr,"\t\tPercentage of surface-area moves:               %lf\n",(double)(100.0*Components[i].FractionOfSurfaceAreaMove));
-      fprintf(FilePtr,"\t\tPercentage of Gibbs particle-transfer moves:    %lf\n",(double)(100.0*Components[i].FractionOfGibbsSwapChangeMove));
+      fprintf(FilePtr,"\t\tPercentage of Gibbs particle-transfer moves:    %lf\n",(double)(100.0*Components[i].FractionOfGibbsChangeMove));
       fprintf(FilePtr,"\t\tPercentage of Gibbs identity-change moves:      %lf\n",(double)(100.0*Components[i].FractionOfGibbsIdentityChangeMove));
       for(j=0;j<Components[i].NumberOfGibbsIdentityChanges;j++)
         fprintf(FilePtr,"\t\t\tmove %d    component %d => %d\n",j,i,Components[i].GibbsIdentityChanges[j]);
-      fprintf(FilePtr,"\t\tPercentage of CF Gibbs lambda-transfer moves:   %lf\n",(double)(100.0*Components[i].FractionOfCFGibbsSwapChangeMove));
-      fprintf(FilePtr,"\t\tPercentage of CBCF Gibbs lambda-transfer moves: %lf\n",(double)(100.0*Components[i].FractionOfCBCFGibbsSwapChangeMove));
+      fprintf(FilePtr,"\t\tPercentage of CF Gibbs lambda-transfer moves:   %lf\n",(double)(100.0*Components[i].FractionOfCFGibbsChangeMove));
+      fprintf(FilePtr,"\t\tPercentage of CBCF Gibbs lambda-transfer moves: %lf\n",(double)(100.0*Components[i].FractionOfCBCFGibbsChangeMove));
       fprintf(FilePtr,"\n");
 
       fprintf(FilePtr,"\tSystem Moves (percentage per cycle):\n");
@@ -6255,6 +6276,7 @@ void PrintPostSimulationStatus(void)
     PrintGibbsIdentityChangeStatistics(FilePtr);
     PrintCFSwapLambdaStatistics(FilePtr);
     PrintCFCBSwapLambdaStatistics(FilePtr);
+    PrintCFGibbsLambdaStatistics(FilePtr);
     fprintf(FilePtr,"\n\n");
 
     UHostHostRunning=UHostHost[CurrentSystem];
@@ -6823,7 +6845,7 @@ void PrintRestartFile(void)
   FILE *FilePtrOut;
   char buffer[1024];
   int index;
-  int k1,k2,k3,ncell;
+  int ncell;
 
   mkdir("Restart",S_IRWXU);
   sprintf(buffer,"Restart/System_%d",CurrentSystem);
@@ -6841,54 +6863,133 @@ void PrintRestartFile(void)
 
   FilePtrOut=fopen(buffer,"w");
 
-  fprintf(FilePtrOut,"Box:\n");
+  fprintf(FilePtrOut,"Cell info:\n");
   fprintf(FilePtrOut,"========================================================================\n");
-  fprintf(FilePtrOut,"%18.12f %18.12f %18.12f\n",(double)Box[CurrentSystem].ax,(double)Box[CurrentSystem].bx,(double)Box[CurrentSystem].cx);
-  fprintf(FilePtrOut,"%18.12f %18.12f %18.12f\n",(double)Box[CurrentSystem].ay,(double)Box[CurrentSystem].by,(double)Box[CurrentSystem].cy);
-  fprintf(FilePtrOut,"%18.12f %18.12f %18.12f\n",(double)Box[CurrentSystem].az,(double)Box[CurrentSystem].bz,(double)Box[CurrentSystem].cz);
+  fprintf(FilePtrOut,"number-of-unit-cells: %d %d %d\n",NumberOfUnitCells[CurrentSystem].x,NumberOfUnitCells[CurrentSystem].y,NumberOfUnitCells[CurrentSystem].z);
+  fprintf(FilePtrOut,"unit-cell-vector-a: %18.12f %18.12f %18.12f\n",(double)UnitCellBox[CurrentSystem].ax,(double)UnitCellBox[CurrentSystem].ay,(double)UnitCellBox[CurrentSystem].az);
+  fprintf(FilePtrOut,"unit-cell-vector-b: %18.12f %18.12f %18.12f\n",(double)UnitCellBox[CurrentSystem].bx,(double)UnitCellBox[CurrentSystem].by,(double)UnitCellBox[CurrentSystem].bz);
+  fprintf(FilePtrOut,"unit-cell-vector-c: %18.12f %18.12f %18.12f\n",(double)UnitCellBox[CurrentSystem].cx,(double)UnitCellBox[CurrentSystem].cy,(double)UnitCellBox[CurrentSystem].cz);
+  fprintf(FilePtrOut,"\n");
+  fprintf(FilePtrOut,"cell-vector-a: %18.12f %18.12f %18.12f\n",(double)Box[CurrentSystem].ax,(double)Box[CurrentSystem].ay,(double)Box[CurrentSystem].az);
+  fprintf(FilePtrOut,"cell-vector-b: %18.12f %18.12f %18.12f\n",(double)Box[CurrentSystem].bx,(double)Box[CurrentSystem].by,(double)Box[CurrentSystem].bz);
+  fprintf(FilePtrOut,"cell-vector-c: %18.12f %18.12f %18.12f\n",(double)Box[CurrentSystem].cx,(double)Box[CurrentSystem].cy,(double)Box[CurrentSystem].cz);
   fprintf(FilePtrOut,"\n");
 
-  fprintf(FilePtrOut,"InitialFrameworkCenterOfMass:\n");
-  fprintf(FilePtrOut,"========================================================================\n");
-  fprintf(FilePtrOut,"%18.12f %18.12f %18.12f\n",(double)Framework[CurrentSystem].IntialCenterOfMassPosition.x,
-    (double)Framework[CurrentSystem].IntialCenterOfMassPosition.y,(double)Framework[CurrentSystem].IntialCenterOfMassPosition.z);
-  fprintf(FilePtrOut,"\n");
+  fprintf(FilePtrOut,"cell-lengths: %18.12f %18.12f %18.12f\n",UnitCellSize[CurrentSystem].x,UnitCellSize[CurrentSystem].y,UnitCellSize[CurrentSystem].z);
+  fprintf(FilePtrOut,"cell-angles: %18.12f %18.12f %18.12f\n",AlphaAngle[CurrentSystem]*RAD2DEG,BetaAngle[CurrentSystem]*RAD2DEG,GammaAngle[CurrentSystem]*RAD2DEG);
+  fprintf(FilePtrOut,"\n\n");
+
+  if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+  {
+    fprintf(FilePtrOut,"Framework:\n");
+    fprintf(FilePtrOut,"========================================================================\n");
+    fprintf(FilePtrOut,"Initial-framework-center-of-mass: %18.12f %18.12f %18.12f\n",(double)Framework[CurrentSystem].IntialCenterOfMassPosition.x,
+      (double)Framework[CurrentSystem].IntialCenterOfMassPosition.y,(double)Framework[CurrentSystem].IntialCenterOfMassPosition.z);
+    for(j=0;j<Framework[CurrentSystem].NumberOfFrameworks;j++)
+    {
+      fprintf(FilePtrOut,"Maximum-translation-change framework %d: %lf\n", j,
+         (double)FrameworkMaximumTranslation[CurrentSystem][j]);
+      fprintf(FilePtrOut,"Maximum-translation-shift-change framework %d: %lf %lf %lf\n", j,
+         (double)FrameworkMaximumShiftTranslation[CurrentSystem][j].x,(double)FrameworkMaximumShiftTranslation[CurrentSystem][j].y,(double)FrameworkMaximumShiftTranslation[CurrentSystem][j].z);
+    }
+    fprintf(FilePtrOut,"\n\n");
+  }
 
   fprintf(FilePtrOut,"Maximum changes for MC-moves:\n");
   fprintf(FilePtrOut,"========================================================================\n");
-  fprintf(FilePtrOut,"Volume change, maximum: %lf\n",(double)MaximumVolumeChange[CurrentSystem]);
+  fprintf(FilePtrOut,"Maximum-volume-change: %lf\n",(double)MaximumVolumeChange[CurrentSystem]);
+  fprintf(FilePtrOut,"Maximum-Gibbs-volume-change: %lf\n",(double)MaximumGibbsVolumeChange[CurrentSystem]);
+  fprintf(FilePtrOut,"Maximum-box-shape-change: %lf %lf %lf, %lf %lf %lf, %lf %lf %lf\n",
+       (double)MaximumBoxShapeChange[CurrentSystem].ax,(double)MaximumBoxShapeChange[CurrentSystem].bx,(double)MaximumBoxShapeChange[CurrentSystem].cx,
+       (double)MaximumBoxShapeChange[CurrentSystem].ay,(double)MaximumBoxShapeChange[CurrentSystem].by,(double)MaximumBoxShapeChange[CurrentSystem].cy,
+       (double)MaximumBoxShapeChange[CurrentSystem].az,(double)MaximumBoxShapeChange[CurrentSystem].bz,(double)MaximumBoxShapeChange[CurrentSystem].cz);
   fprintf(FilePtrOut,"\n\n");
 
+  fprintf(FilePtrOut,"Acceptance targets for MC-moves:\n");
+  fprintf(FilePtrOut,"========================================================================\n");
+  fprintf(FilePtrOut,"Target-volume-change: %lf\n",(double)TargetAccRatioVolumeChange);
+  fprintf(FilePtrOut,"Target-box-shape-change: %lf\n",(double)TargetAccRatioBoxShapeChange);
+  fprintf(FilePtrOut,"Target-Gibbs-volume-change: %lf\n",(double)TargetAccRatioGibbsVolumeChange);
+  fprintf(FilePtrOut,"\n\n");
+
+
   fprintf(FilePtrOut,"Components: %d\n",NumberOfComponents);
-  fprintf(FilePtrOut,"========================================================================\n\n");
+  fprintf(FilePtrOut,"========================================================================\n");
   for(j=0;j<NumberOfComponents;j++)
   {
-    fprintf(FilePtrOut,"Translation change component %d [ %s ], maximum: %lf,%lf,%lf\n",
-       j,Components[j].Name,
+    fprintf(FilePtrOut,"Component %d (%s)\n",j,Components[j].Name);
+    fprintf(FilePtrOut,"\tFractional-molecule-id component %d: %d\n",j,Components[j].FractionalMolecule[CurrentSystem]);
+    fprintf(FilePtrOut,"\tMaximum-translation-change component %d: %lf,%lf,%lf\n",j,
        (double)MaximumTranslation[CurrentSystem][j].x,(double)MaximumTranslation[CurrentSystem][j].y,(double)MaximumTranslation[CurrentSystem][j].z);
+    fprintf(FilePtrOut,"\tMaximum-translation-in-plane-change component %d: %lf,%lf,%lf\n",j,
+       (double)MaximumTranslationInPlane[CurrentSystem][j].x,(double)MaximumTranslationInPlane[CurrentSystem][j].y,(double)MaximumTranslationInPlane[CurrentSystem][j].z);
+    fprintf(FilePtrOut,"\tMaximum-rotation-change component %d: %lf\n",j,(double)MaximumRotation[CurrentSystem][j]);
   }
   fprintf(FilePtrOut,"\n");
 
   if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
   {
+    fprintf(FilePtrOut,"Framework atomic positions\n");
+    fprintf(FilePtrOut,"========================================================================\n");
+
     for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
     {
       for(j=0;j<Framework[CurrentSystem].NumberOfAtoms[CurrentFramework];j++)
-        fprintf(FilePtrOut,"Framework Atom: %-5d %-2d Position: %24.20f %24.20f %24.20f  "
-                 "Velocity: %18.12f %18.12f %18.12f  Force: %18.12f %18.12f %18.12f  Charge: %18.14f Fixed: %d\n",
-                  j,
-                  CurrentFramework,
-                  (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Position.x,
-                  (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Position.y,
-                  (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Position.z,
-                  (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Velocity.x,
-                  (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Velocity.y,
-                  (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Velocity.z,
-                  (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Force.x,
-                  (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Force.y,
-                  (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Force.z,
-                  (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Charge,
-                  (int)Framework[CurrentSystem].Atoms[CurrentFramework][j].Fixed.x);
+        fprintf(FilePtrOut,"Framework-atom-position: %d %d %18.12f %18.12f %18.12f\n",
+          j,CurrentFramework,
+          (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Position.x,
+          (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Position.y,
+          (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Position.z);
+    }
+    fprintf(FilePtrOut,"\n");
+
+    fprintf(FilePtrOut,"Framework atomic velocities\n");
+    fprintf(FilePtrOut,"========================================================================\n");
+    for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
+    {
+      for(j=0;j<Framework[CurrentSystem].NumberOfAtoms[CurrentFramework];j++)
+        fprintf(FilePtrOut,"Framework-atom-velocity: %d %d %18.12f %18.12f %18.12f\n",
+          j,CurrentFramework,
+          (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Velocity.x,
+          (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Velocity.y,
+          (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Velocity.z);
+    }
+    fprintf(FilePtrOut,"\n");
+
+    fprintf(FilePtrOut,"Framework atomic forces\n");
+    fprintf(FilePtrOut,"========================================================================\n");
+    for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
+    {
+      for(j=0;j<Framework[CurrentSystem].NumberOfAtoms[CurrentFramework];j++)
+        fprintf(FilePtrOut,"Framework-atom-force:    %d %d %18.12f %18.12f %18.12f\n",
+          j,CurrentFramework,
+          (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Force.x,
+          (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Force.y,
+          (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Force.z);
+    }
+    fprintf(FilePtrOut,"\n");
+
+    fprintf(FilePtrOut,"Framework atomic charges\n");
+    fprintf(FilePtrOut,"========================================================================\n");
+    for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
+    {
+      for(j=0;j<Framework[CurrentSystem].NumberOfAtoms[CurrentFramework];j++)
+        fprintf(FilePtrOut,"Framework-atom-charge:   %d %d %18.12f\n",
+          j,CurrentFramework,
+          (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Charge);
+    }
+    fprintf(FilePtrOut,"\n");
+
+    fprintf(FilePtrOut,"Framework atomic fixed/free\n");
+    fprintf(FilePtrOut,"========================================================================\n");
+    for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
+    {
+      for(j=0;j<Framework[CurrentSystem].NumberOfAtoms[CurrentFramework];j++)
+        fprintf(FilePtrOut,"Framework-atom-fixed:    %d %d       %d %d %d\n",
+          j,CurrentFramework,
+          Framework[CurrentSystem].Atoms[CurrentFramework][j].Fixed.x,
+          Framework[CurrentSystem].Atoms[CurrentFramework][j].Fixed.y,
+          Framework[CurrentSystem].Atoms[CurrentFramework][j].Fixed.z);
     }
     fprintf(FilePtrOut,"\n");
   }
@@ -6902,54 +7003,149 @@ void PrintRestartFile(void)
       Components[j].Name);
     fprintf(FilePtrOut,"------------------------------------------------------------------------\n");
 
-      if(Components[j].ExtraFrameworkMolecule)
+    if(Components[j].ExtraFrameworkMolecule)
+    {
+      for(k=0;k<NumberOfCationMolecules[CurrentSystem];k++)
       {
-        for(k=0;k<NumberOfCationMolecules[CurrentSystem];k++)
+        if(Cations[CurrentSystem][k].Type==j)
         {
-          if(Cations[CurrentSystem][k].Type==j)
-          {
-            for(l=0;l<Components[j].NumberOfAtoms;l++)
-              fprintf(FilePtrOut,"Molecule: %-5d  Atom: %-5d  Position: %18.12f %18.12f %18.12f  "
-                  "Velocity: %18.12f %18.12f %18.12f  Force: %18.12f %18.10f %18.12f  Charge: %18.14f\n",
-                k,
-                l,
-                (double)Cations[CurrentSystem][k].Atoms[l].Position.x,
-                (double)Cations[CurrentSystem][k].Atoms[l].Position.y,
-                (double)Cations[CurrentSystem][k].Atoms[l].Position.z,
-                (double)Cations[CurrentSystem][k].Atoms[l].Velocity.x,
-                (double)Cations[CurrentSystem][k].Atoms[l].Velocity.y,
-                (double)Cations[CurrentSystem][k].Atoms[l].Velocity.z,
-                (double)Cations[CurrentSystem][k].Atoms[l].Force.x,
-                (double)Cations[CurrentSystem][k].Atoms[l].Force.y,
-                (double)Cations[CurrentSystem][k].Atoms[l].Force.z,
-                (double)Cations[CurrentSystem][k].Atoms[l].Charge);
-          }
+          for(l=0;l<Components[j].NumberOfAtoms;l++)
+            fprintf(FilePtrOut,"Cation-atom-position: %d %d %18.12f %18.12f %18.12f\n",
+              k,l,
+              (double)Cations[CurrentSystem][k].Atoms[l].Position.x,
+              (double)Cations[CurrentSystem][k].Atoms[l].Position.y,
+              (double)Cations[CurrentSystem][k].Atoms[l].Position.z);
         }
       }
-      else
+      for(k=0;k<NumberOfCationMolecules[CurrentSystem];k++)
       {
-        for(k=0;k<NumberOfAdsorbateMolecules[CurrentSystem];k++)
+        if(Cations[CurrentSystem][k].Type==j)
         {
-          if(Adsorbates[CurrentSystem][k].Type==j)
-          {
-            for(l=0;l<Components[j].NumberOfAtoms;l++)
-              fprintf(FilePtrOut,"Molecule: %-5d  Atom: %-5d  Position: %18.12f %18.12f %18.12f  "
-                          "Velocity: %18.12f %18.12f %18.12f  Force: %18.12f %18.12f %18.12f  Charge: %18.14f\n",
-                k,
-                l,
-                (double)Adsorbates[CurrentSystem][k].Atoms[l].Position.x,
-                (double)Adsorbates[CurrentSystem][k].Atoms[l].Position.y,
-                (double)Adsorbates[CurrentSystem][k].Atoms[l].Position.z,
-                (double)Adsorbates[CurrentSystem][k].Atoms[l].Velocity.x,
-                (double)Adsorbates[CurrentSystem][k].Atoms[l].Velocity.y,
-                (double)Adsorbates[CurrentSystem][k].Atoms[l].Velocity.z,
-                (double)Adsorbates[CurrentSystem][k].Atoms[l].Force.x,
-                (double)Adsorbates[CurrentSystem][k].Atoms[l].Force.y,
-                (double)Adsorbates[CurrentSystem][k].Atoms[l].Force.z,
-                (double)Adsorbates[CurrentSystem][k].Atoms[l].Charge);
-          }
+          for(l=0;l<Components[j].NumberOfAtoms;l++)
+            fprintf(FilePtrOut,"Cation-atom-velocity: %d %d %18.12f %18.12f %18.12f\n",
+              k,l,
+              (double)Cations[CurrentSystem][k].Atoms[l].Velocity.x,
+              (double)Cations[CurrentSystem][k].Atoms[l].Velocity.y,
+              (double)Cations[CurrentSystem][k].Atoms[l].Velocity.z);
         }
       }
+      for(k=0;k<NumberOfCationMolecules[CurrentSystem];k++)
+      {
+        if(Cations[CurrentSystem][k].Type==j)
+        {
+          for(l=0;l<Components[j].NumberOfAtoms;l++)
+            fprintf(FilePtrOut,"Cation-atom-force:    %d %d %18.12f %18.12f %18.12f\n",
+              k,l,
+              (double)Cations[CurrentSystem][k].Atoms[l].Force.x,
+              (double)Cations[CurrentSystem][k].Atoms[l].Force.y,
+              (double)Cations[CurrentSystem][k].Atoms[l].Force.z);
+        }
+      }
+      for(k=0;k<NumberOfCationMolecules[CurrentSystem];k++)
+      {
+        if(Cations[CurrentSystem][k].Type==j)
+        {
+          for(l=0;l<Components[j].NumberOfAtoms;l++)
+            fprintf(FilePtrOut,"Cation-atom-charge:   %d %d %18.12f\n",
+              k,l,
+              (double)Cations[CurrentSystem][k].Atoms[l].Charge);
+        }
+      }
+      for(k=0;k<NumberOfCationMolecules[CurrentSystem];k++)
+      {
+        if(Cations[CurrentSystem][k].Type==j)
+        {
+          for(l=0;l<Components[j].NumberOfAtoms;l++)
+            fprintf(FilePtrOut,"Cation-atom-scaling:  %d %d %18.12f\n",
+              k,l,
+              (double)Cations[CurrentSystem][k].Atoms[l].CFVDWScalingParameter);
+        }
+      }
+      for(k=0;k<NumberOfCationMolecules[CurrentSystem];k++)
+      {
+        if(Cations[CurrentSystem][k].Type==j)
+        {
+          for(l=0;l<Components[j].NumberOfAtoms;l++)
+            fprintf(FilePtrOut,"Cation-atom-fixed:    %d %d       %d %d %d\n",
+              k,l,
+              Cations[CurrentSystem][k].Atoms[l].Fixed.x,
+              Cations[CurrentSystem][k].Atoms[l].Fixed.y,
+              Cations[CurrentSystem][k].Atoms[l].Fixed.z);
+        }
+      }
+    }
+    else
+    {
+      for(k=0;k<NumberOfAdsorbateMolecules[CurrentSystem];k++)
+      {
+        if(Adsorbates[CurrentSystem][k].Type==j)
+        {
+          for(l=0;l<Components[j].NumberOfAtoms;l++)
+            fprintf(FilePtrOut,"Adsorbate-atom-position: %d %d %18.12f %18.12f %18.12f\n",
+              k,l,
+              (double)Adsorbates[CurrentSystem][k].Atoms[l].Position.x,
+              (double)Adsorbates[CurrentSystem][k].Atoms[l].Position.y,
+              (double)Adsorbates[CurrentSystem][k].Atoms[l].Position.z);
+        }
+      }
+      for(k=0;k<NumberOfAdsorbateMolecules[CurrentSystem];k++)
+      {
+        if(Adsorbates[CurrentSystem][k].Type==j)
+        {
+          for(l=0;l<Components[j].NumberOfAtoms;l++)
+            fprintf(FilePtrOut,"Adsorbate-atom-velocity: %d %d %18.12f %18.12f %18.12f\n",
+              k,l,
+              (double)Adsorbates[CurrentSystem][k].Atoms[l].Velocity.x,
+              (double)Adsorbates[CurrentSystem][k].Atoms[l].Velocity.y,
+              (double)Adsorbates[CurrentSystem][k].Atoms[l].Velocity.z);
+        }
+      }
+      for(k=0;k<NumberOfAdsorbateMolecules[CurrentSystem];k++)
+      {
+        if(Adsorbates[CurrentSystem][k].Type==j)
+        {
+          for(l=0;l<Components[j].NumberOfAtoms;l++)
+            fprintf(FilePtrOut,"Adsorbate-atom-force:    %d %d %18.12f %18.12f %18.12f\n",
+              k,l,
+              (double)Adsorbates[CurrentSystem][k].Atoms[l].Force.x,
+              (double)Adsorbates[CurrentSystem][k].Atoms[l].Force.y,
+              (double)Adsorbates[CurrentSystem][k].Atoms[l].Force.z);
+        }
+      }
+      for(k=0;k<NumberOfAdsorbateMolecules[CurrentSystem];k++)
+      {
+        if(Adsorbates[CurrentSystem][k].Type==j)
+        {
+          for(l=0;l<Components[j].NumberOfAtoms;l++)
+            fprintf(FilePtrOut,"Adsorbate-atom-charge:   %d %d %18.12f\n",
+              k,l,
+              (double)Adsorbates[CurrentSystem][k].Atoms[l].Charge);
+        }
+      }
+      for(k=0;k<NumberOfAdsorbateMolecules[CurrentSystem];k++)
+      {
+        if(Adsorbates[CurrentSystem][k].Type==j)
+        {
+          for(l=0;l<Components[j].NumberOfAtoms;l++)
+            fprintf(FilePtrOut,"Adsorbate-atom-scaling:  %d %d %18.12f\n",
+              k,l,
+              (double)Adsorbates[CurrentSystem][k].Atoms[l].CFVDWScalingParameter);
+        }
+      }
+      for(k=0;k<NumberOfAdsorbateMolecules[CurrentSystem];k++)
+      {
+        if(Adsorbates[CurrentSystem][k].Type==j)
+        {
+          for(l=0;l<Components[j].NumberOfAtoms;l++)
+            fprintf(FilePtrOut,"Adsorbate-atom-fixed:    %d %d       %d %d %d\n",
+              k,l,
+              Adsorbates[CurrentSystem][k].Atoms[l].Fixed.x,
+              Adsorbates[CurrentSystem][k].Atoms[l].Fixed.y,
+              Adsorbates[CurrentSystem][k].Atoms[l].Fixed.z);
+        }
+      }
+    }
+    
     fprintf(FilePtrOut,"\n");
   }
   fprintf(FilePtrOut,"\n");
@@ -6966,27 +7162,54 @@ void PrintRestartFile(void)
 
     FilePtrOut=fopen(buffer,"w");
 
-    fprintf(FilePtrOut,"Box:\n");
+    fprintf(FilePtrOut,"Cell info:\n");
     fprintf(FilePtrOut,"========================================================================\n");
-    fprintf(FilePtrOut,"%18.12f %18.12f %18.12f\n",(double)ReplicaBox[CurrentSystem].ax,(double)ReplicaBox[CurrentSystem].bx,(double)ReplicaBox[CurrentSystem].cx);
-    fprintf(FilePtrOut,"%18.12f %18.12f %18.12f\n",(double)ReplicaBox[CurrentSystem].ay,(double)ReplicaBox[CurrentSystem].by,(double)ReplicaBox[CurrentSystem].cy);
-    fprintf(FilePtrOut,"%18.12f %18.12f %18.12f\n",(double)ReplicaBox[CurrentSystem].az,(double)ReplicaBox[CurrentSystem].bz,(double)ReplicaBox[CurrentSystem].cz);
+    fprintf(FilePtrOut,"number-of-unit-cells: %d %d %d\n",NumberOfUnitCells[CurrentSystem].x,NumberOfUnitCells[CurrentSystem].y,NumberOfUnitCells[CurrentSystem].z);
+    fprintf(FilePtrOut,"unit-cell-vector-a: %18.12f %18.12f %18.12f\n",(double)UnitCellBox[CurrentSystem].ax,(double)UnitCellBox[CurrentSystem].ay,(double)UnitCellBox[CurrentSystem].az);
+    fprintf(FilePtrOut,"unit-cell-vector-b: %18.12f %18.12f %18.12f\n",(double)UnitCellBox[CurrentSystem].bx,(double)UnitCellBox[CurrentSystem].by,(double)UnitCellBox[CurrentSystem].bz);
+    fprintf(FilePtrOut,"unit-cell-vector-c: %18.12f %18.12f %18.12f\n",(double)UnitCellBox[CurrentSystem].cx,(double)UnitCellBox[CurrentSystem].cy,(double)UnitCellBox[CurrentSystem].cz);
+    fprintf(FilePtrOut,"\n");
+    fprintf(FilePtrOut,"cell-vector-a: %18.12f %18.12f %18.12f\n",(double)ReplicaBox[CurrentSystem].ax,(double)ReplicaBox[CurrentSystem].ay,(double)ReplicaBox[CurrentSystem].az);
+    fprintf(FilePtrOut,"cell-vector-b: %18.12f %18.12f %18.12f\n",(double)ReplicaBox[CurrentSystem].bx,(double)ReplicaBox[CurrentSystem].by,(double)ReplicaBox[CurrentSystem].bz);
+    fprintf(FilePtrOut,"cell-vector-c: %18.12f %18.12f %18.12f\n",(double)ReplicaBox[CurrentSystem].cx,(double)ReplicaBox[CurrentSystem].cy,(double)ReplicaBox[CurrentSystem].cz);
+    fprintf(FilePtrOut,"\n");
+
+    fprintf(FilePtrOut,"cell-lengths: %18.12f %18.12f %18.12f\n",UnitCellSize[CurrentSystem].x,UnitCellSize[CurrentSystem].y,UnitCellSize[CurrentSystem].z);
+    fprintf(FilePtrOut,"cell-angles: %18.12f %18.12f %18.12f\n",AlphaAngle[CurrentSystem]*RAD2DEG,BetaAngle[CurrentSystem]*RAD2DEG,GammaAngle[CurrentSystem]*RAD2DEG);
     fprintf(FilePtrOut,"\n\n");
+
+    if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+    {
+      fprintf(FilePtrOut,"Framework:\n");
+      fprintf(FilePtrOut,"========================================================================\n");
+      fprintf(FilePtrOut,"Initial-framework-center-of-mass: %18.12f %18.12f %18.12f\n",(double)Framework[CurrentSystem].IntialCenterOfMassPosition.x,
+        (double)Framework[CurrentSystem].IntialCenterOfMassPosition.y,(double)Framework[CurrentSystem].IntialCenterOfMassPosition.z);
+      for(j=0;j<Framework[CurrentSystem].NumberOfFrameworks;j++)
+      {
+        fprintf(FilePtrOut,"Maximum-translation-change framework %d: %lf\n", j,
+           (double)FrameworkMaximumTranslation[CurrentSystem][j]);
+        fprintf(FilePtrOut,"Maximum-translation-shift-change framework %d: %lf %lf %lf\n", j,
+           (double)FrameworkMaximumShiftTranslation[CurrentSystem][j].x,(double)FrameworkMaximumShiftTranslation[CurrentSystem][j].y,(double)FrameworkMaximumShiftTranslation[CurrentSystem][j].z);
+      }
+      fprintf(FilePtrOut,"\n\n");
+    }
 
     fprintf(FilePtrOut,"Maximum changes for MC-moves:\n");
     fprintf(FilePtrOut,"========================================================================\n");
-    fprintf(FilePtrOut,"Volume change, maximum: %lf\n",(double)MaximumVolumeChange[CurrentSystem]);
+    fprintf(FilePtrOut,"Maximum-volume-change: %lf\n",(double)MaximumVolumeChange[CurrentSystem]);
+    fprintf(FilePtrOut,"Maximum-Gibbs-volume-change: %lf\n",(double)MaximumGibbsVolumeChange[CurrentSystem]);
+    fprintf(FilePtrOut,"Maximum-box-shape-change: %lf %lf %lf, %lf %lf %lf, %lf %lf %lf\n",
+         (double)MaximumBoxShapeChange[CurrentSystem].ax,(double)MaximumBoxShapeChange[CurrentSystem].bx,(double)MaximumBoxShapeChange[CurrentSystem].cx,
+         (double)MaximumBoxShapeChange[CurrentSystem].ay,(double)MaximumBoxShapeChange[CurrentSystem].by,(double)MaximumBoxShapeChange[CurrentSystem].cy,
+         (double)MaximumBoxShapeChange[CurrentSystem].az,(double)MaximumBoxShapeChange[CurrentSystem].bz,(double)MaximumBoxShapeChange[CurrentSystem].cz);
     fprintf(FilePtrOut,"\n\n");
 
-    fprintf(FilePtrOut,"Components: %d\n",NumberOfComponents);
-    fprintf(FilePtrOut,"========================================================================\n\n");
-    for(j=0;j<NumberOfComponents;j++)
-    {
-      fprintf(FilePtrOut,"Translation change component %d [ %s ], maximum: %lf,%lf,%lf\n",
-         j,Components[j].Name,
-         (double)MaximumTranslation[CurrentSystem][j].x,(double)MaximumTranslation[CurrentSystem][j].y,(double)MaximumTranslation[CurrentSystem][j].z);
-    }
-    fprintf(FilePtrOut,"\n");
+    fprintf(FilePtrOut,"Acceptance targets for MC-moves:\n");
+    fprintf(FilePtrOut,"========================================================================\n");
+    fprintf(FilePtrOut,"Target-volume-change: %lf\n",(double)TargetAccRatioVolumeChange);
+    fprintf(FilePtrOut,"Target-box-shape-change: %lf\n",(double)TargetAccRatioBoxShapeChange);
+    fprintf(FilePtrOut,"Target-Gibbs-volume-change: %lf\n",(double)TargetAccRatioGibbsVolumeChange);
+    fprintf(FilePtrOut,"\n\n");
 
     if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
     {
@@ -6995,29 +7218,33 @@ void PrintRestartFile(void)
       {
         for(j=0;j<Framework[CurrentSystem].NumberOfAtoms[CurrentFramework];j++)
         {
-          ncell=0;
-          for(k1=0;k1<NumberOfReplicaCells[CurrentSystem].x;k1++)
-            for(k2=0;k2<NumberOfReplicaCells[CurrentSystem].y;k2++)
-              for(k3=0;k3<NumberOfReplicaCells[CurrentSystem].z;k3++)
-              {
-                fprintf(FilePtrOut,"Framework Atom: %-5d %-2d Position: %24.20f %24.20f %24.20f  "
-                    "Velocity: %18.12f %18.12f %18.12f  Force: %18.12f %18.12f %18.12f  Charge %18.14f  Fixed: %d\n",
-                    index,
-                    CurrentFramework,
-                    (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Position.x+ReplicaShift[ncell].x,
-                    (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Position.y+ReplicaShift[ncell].y,
-                    (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Position.z+ReplicaShift[ncell].z,
-                    (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Velocity.x,
-                    (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Velocity.y,
-                    (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Velocity.z,
-                    (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Force.x,
-                    (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Force.y,
-                    (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Force.z,
-                    (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Charge,
-                    (int)Framework[CurrentSystem].Atoms[CurrentFramework][j].Fixed.x);
-                ncell++;
-                index=0;
-              }
+          for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
+          {
+            fprintf(FilePtrOut,"Framework-atom-position: %d %d %18.12f %18.12f %18.12f\n",
+              index,CurrentFramework,
+              (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Position.x+ReplicaShift[ncell].x,
+              (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Position.y+ReplicaShift[ncell].y,
+              (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Position.z+ReplicaShift[ncell].z);
+            fprintf(FilePtrOut,"Framework-atom-velocity: %d %d %18.12f %18.12f %18.12f\n",
+              index,CurrentFramework,
+              (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Velocity.x,
+              (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Velocity.y,
+              (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Velocity.z);
+            fprintf(FilePtrOut,"Framework-atom-force:    %d %d %18.12f %18.12f %18.12f\n",
+              index,CurrentFramework,
+              (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Force.x,
+              (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Force.y,
+              (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Force.z);
+            fprintf(FilePtrOut,"Framework-atom-charge:   %d %d %18.12f\n",
+              index,CurrentFramework,
+              (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Charge);
+            fprintf(FilePtrOut,"Framework-atom-fixed:    %d %d       %d %d %d\n",
+              index,CurrentFramework,
+              Framework[CurrentSystem].Atoms[CurrentFramework][j].Fixed.x,
+              Framework[CurrentSystem].Atoms[CurrentFramework][j].Fixed.y,
+              Framework[CurrentSystem].Atoms[CurrentFramework][j].Fixed.z);
+          }
+          index++;
         }
       }
       fprintf(FilePtrOut,"\n");
@@ -7033,70 +7260,92 @@ void PrintRestartFile(void)
         Components[j].Name);
       fprintf(FilePtrOut,"------------------------------------------------------------------------\n");
 
-        if(Components[j].ExtraFrameworkMolecule)
+      if(Components[j].ExtraFrameworkMolecule)
+      {
+        index=0;
+        for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
         {
-          ncell=0;
-          for(k1=0;k1<NumberOfReplicaCells[CurrentSystem].x;k1++)
-            for(k2=0;k2<NumberOfReplicaCells[CurrentSystem].y;k2++)
-              for(k3=0;k3<NumberOfReplicaCells[CurrentSystem].z;k3++)
+          for(k=0;k<NumberOfCationMolecules[CurrentSystem];k++)
+          {
+            if(Cations[CurrentSystem][k].Type==j)
+            {
+              for(l=0;l<Components[j].NumberOfAtoms;l++)
               {
-                for(k=0;k<NumberOfCationMolecules[CurrentSystem];k++)
-                {
-                  if(Cations[CurrentSystem][k].Type==j)
-                  {
-                    for(l=0;l<Components[j].NumberOfAtoms;l++)
-                      fprintf(FilePtrOut,"Molecule: %-5d  Atom: %-5d  Position: %18.12f %18.12f %18.12f  "
-                           "Velocity: %18.12f %18.12f %18.12f  Force: %18.12f %18.10f %18.12f  Charge: %18.14f\n",
-                        index,
-                        l,
-                        (double)Cations[CurrentSystem][k].Atoms[l].Position.x+ReplicaShift[ncell].x,
-                        (double)Cations[CurrentSystem][k].Atoms[l].Position.y+ReplicaShift[ncell].y,
-                        (double)Cations[CurrentSystem][k].Atoms[l].Position.z+ReplicaShift[ncell].z,
-                        (double)Cations[CurrentSystem][k].Atoms[l].Velocity.x,
-                        (double)Cations[CurrentSystem][k].Atoms[l].Velocity.y,
-                        (double)Cations[CurrentSystem][k].Atoms[l].Velocity.z,
-                        (double)Cations[CurrentSystem][k].Atoms[l].Force.x,
-                        (double)Cations[CurrentSystem][k].Atoms[l].Force.y,
-                        (double)Cations[CurrentSystem][k].Atoms[l].Force.z,
-                        (double)Cations[CurrentSystem][k].Atoms[l].Charge);
-                    index++;
-                  }
-                }
-                ncell++;
+                fprintf(FilePtrOut,"Cation-atom-position: %d %d %18.12f %18.12f %18.12f\n",
+                  index,l,
+                  (double)Cations[CurrentSystem][k].Atoms[l].Position.x+ReplicaShift[ncell].x,
+                  (double)Cations[CurrentSystem][k].Atoms[l].Position.y+ReplicaShift[ncell].y,
+                  (double)Cations[CurrentSystem][k].Atoms[l].Position.z+ReplicaShift[ncell].z);
+                fprintf(FilePtrOut,"Cation-atom-velocity: %d %d %18.12f %18.12f %18.12f\n",
+                  index,l,
+                  (double)Cations[CurrentSystem][k].Atoms[l].Velocity.x,
+                  (double)Cations[CurrentSystem][k].Atoms[l].Velocity.y,
+                  (double)Cations[CurrentSystem][k].Atoms[l].Velocity.z);
+                fprintf(FilePtrOut,"Cation-atom-force:    %d %d %18.12f %18.12f %18.12f\n",
+                  index,l,
+                  (double)Cations[CurrentSystem][k].Atoms[l].Force.x,
+                  (double)Cations[CurrentSystem][k].Atoms[l].Force.y,
+                  (double)Cations[CurrentSystem][k].Atoms[l].Force.z);
+                fprintf(FilePtrOut,"Cation-atom-charge:   %d %d %18.12f\n",
+                  index,l,
+                  (double)Cations[CurrentSystem][k].Atoms[l].Charge);
+                fprintf(FilePtrOut,"Cation-atom-scaling:  %d %d %18.12f\n",
+                  index,l,
+                  (double)Cations[CurrentSystem][k].Atoms[l].CFVDWScalingParameter);
+                fprintf(FilePtrOut,"Cation-atom-fixed:    %d %d       %d %d %d\n",
+                  index,l,
+                  Cations[CurrentSystem][k].Atoms[l].Fixed.x,
+                  Cations[CurrentSystem][k].Atoms[l].Fixed.y,
+                  Cations[CurrentSystem][k].Atoms[l].Fixed.z);
               }
+              index++;
+            }
+          }
         }
-        else
+      }
+      else
+      {
+        index=0;
+        for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
         {
-          ncell=0;
-          for(k1=0;k1<NumberOfReplicaCells[CurrentSystem].x;k1++)
-            for(k2=0;k2<NumberOfReplicaCells[CurrentSystem].y;k2++)
-              for(k3=0;k3<NumberOfReplicaCells[CurrentSystem].z;k3++)
+          for(k=0;k<NumberOfAdsorbateMolecules[CurrentSystem];k++)
+          {
+            if(Adsorbates[CurrentSystem][k].Type==j)
+            {
+              for(l=0;l<Components[j].NumberOfAtoms;l++)
               {
-                for(k=0;k<NumberOfAdsorbateMolecules[CurrentSystem];k++)
-                {
-                  if(Adsorbates[CurrentSystem][k].Type==j)
-                  {
-                    for(l=0;l<Components[j].NumberOfAtoms;l++)
-                      fprintf(FilePtrOut,"Molecule: %-5d  Atom: %-5d  Position: %18.12f %18.12f %18.12f  "
-                         "Velocity: %18.12f %18.12f %18.12f  Force: %18.12f %18.12f %18.12f Charge: %18.14f\n",
-                        index,
-                        l,
-                        (double)Adsorbates[CurrentSystem][k].Atoms[l].Position.x+ReplicaShift[ncell].x,
-                        (double)Adsorbates[CurrentSystem][k].Atoms[l].Position.y+ReplicaShift[ncell].y,
-                        (double)Adsorbates[CurrentSystem][k].Atoms[l].Position.z+ReplicaShift[ncell].z,
-                        (double)Adsorbates[CurrentSystem][k].Atoms[l].Velocity.x,
-                        (double)Adsorbates[CurrentSystem][k].Atoms[l].Velocity.y,
-                        (double)Adsorbates[CurrentSystem][k].Atoms[l].Velocity.z,
-                        (double)Adsorbates[CurrentSystem][k].Atoms[l].Force.x,
-                        (double)Adsorbates[CurrentSystem][k].Atoms[l].Force.y,
-                        (double)Adsorbates[CurrentSystem][k].Atoms[l].Force.z,
-                        (double)Adsorbates[CurrentSystem][k].Atoms[l].Charge);
-                    index++;
-                  }
-                }
-                ncell++;
+                fprintf(FilePtrOut,"Adsorbate-atom-position: %d %d %18.12f %18.12f %18.12f\n",
+                  index,l,
+                  (double)Adsorbates[CurrentSystem][k].Atoms[l].Position.x+ReplicaShift[ncell].x,
+                  (double)Adsorbates[CurrentSystem][k].Atoms[l].Position.y+ReplicaShift[ncell].y,
+                  (double)Adsorbates[CurrentSystem][k].Atoms[l].Position.z+ReplicaShift[ncell].z);
+                fprintf(FilePtrOut,"Adsorbate-atom-velocity: %d %d %18.12f %18.12f %18.12f\n",
+                  index,l,
+                  (double)Adsorbates[CurrentSystem][k].Atoms[l].Velocity.x,
+                  (double)Adsorbates[CurrentSystem][k].Atoms[l].Velocity.y,
+                  (double)Adsorbates[CurrentSystem][k].Atoms[l].Velocity.z);
+                fprintf(FilePtrOut,"Adsorbate-atom-force:    %d %d %18.12f %18.12f %18.12f\n",
+                  index,l,
+                  (double)Adsorbates[CurrentSystem][k].Atoms[l].Force.x,
+                  (double)Adsorbates[CurrentSystem][k].Atoms[l].Force.y,
+                  (double)Adsorbates[CurrentSystem][k].Atoms[l].Force.z);
+                fprintf(FilePtrOut,"Adsorbate-atom-charge:   %d %d %18.12f\n",
+                  index,l,
+                  (double)Adsorbates[CurrentSystem][k].Atoms[l].Charge);
+                fprintf(FilePtrOut,"Adsorbate-atom-scaling:  %d %d %18.12f\n",
+                  index,l,
+                  (double)Adsorbates[CurrentSystem][k].Atoms[l].CFVDWScalingParameter);
+                fprintf(FilePtrOut,"Adsorbate-atom-fixed:    %d %d       %d %d %d\n",
+                  index,l,
+                  Adsorbates[CurrentSystem][k].Atoms[l].Fixed.x,
+                  Adsorbates[CurrentSystem][k].Atoms[l].Fixed.y,
+                  Adsorbates[CurrentSystem][k].Atoms[l].Fixed.z);
               }
+              index++;
+            }
+          }
         }
+      }
       fprintf(FilePtrOut,"\n");
     }
     fprintf(FilePtrOut,"\n");
