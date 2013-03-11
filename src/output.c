@@ -6234,6 +6234,17 @@ void PrintPreSimulationStatusCurrentSystem(int system)
 void PrintPostSimulationStatus(void)
 {
   FILE *FilePtr;
+  time_t curtime;
+  struct tm *loctime;
+  char buffer[256];
+
+  /* Get the current time.  */
+  curtime = time (NULL);
+
+  /* Convert it to local time representation.  */
+  loctime = localtime (&curtime);
+
+
 
   for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
   {
@@ -6419,7 +6430,16 @@ void PrintPostSimulationStatus(void)
 
     PrintAverageTotalSystemEnergiesMC(FilePtr);
 
-    fprintf(FilePtr,"\nSimulation finished,  %d warnings\n",NumberOfWarnings[CurrentSystem]);
+    fprintf(FilePtr,"\nSimulation finished,  %d warnings\n\n",NumberOfWarnings[CurrentSystem]);
+
+    /* Print out the date and time in the standard format.  */
+    fprintf(FilePtr,"%s",asctime(loctime));
+
+    /* Print it out in a nice format.  */
+    strftime (buffer, 256, "Simulation finished on %A, %B %d.", loctime);
+    fprintf(FilePtr,"%s\n",buffer);
+    strftime (buffer, 256, "The end time was %I:%M %p.", loctime);
+    fprintf(FilePtr,"%s\n\n",buffer);
   }
 }
 
