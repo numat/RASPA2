@@ -13958,6 +13958,8 @@ int CFSwapLambaAdsorbateMove(void)
   // store the Lambda of the current fractional molecule
   LambdaOldFractionalMoleculeStored=Adsorbates[CurrentSystem][FractionalMolecule].Atoms[0].CFVDWScalingParameter;
 
+  SelectedRetraceMolecule=-1;
+
   switch(MoveType)
   {
     case CF_INSERT_MOVE:
@@ -14629,8 +14631,11 @@ int CFSwapLambaAdsorbateMove(void)
       Adsorbates[CurrentSystem][FractionalMolecule].Atoms[i].CFChargeScalingParameter=pow(LambdaOldFractionalMoleculeStored,5);
       if(MoveType==CF_DELETE_MOVE)
       {
-        Adsorbates[CurrentSystem][SelectedRetraceMolecule].Atoms[i].CFVDWScalingParameter=LambdaNewFractionalMoleculeStored;
-        Adsorbates[CurrentSystem][SelectedRetraceMolecule].Atoms[i].CFChargeScalingParameter=pow(LambdaNewFractionalMoleculeStored,5);
+        if(SelectedRetraceMolecule>=0)
+        {
+          Adsorbates[CurrentSystem][SelectedRetraceMolecule].Atoms[i].CFVDWScalingParameter=LambdaNewFractionalMoleculeStored;
+          Adsorbates[CurrentSystem][SelectedRetraceMolecule].Atoms[i].CFChargeScalingParameter=pow(LambdaNewFractionalMoleculeStored,5);
+        }
       }
     }
   }
@@ -14715,6 +14720,8 @@ int CFSwapLambaCationMove(void)
 
   // store the Lambda of the current fractional molecule
   LambdaOldFractionalMoleculeStored=Cations[CurrentSystem][FractionalMolecule].Atoms[0].CFVDWScalingParameter;
+
+  SelectedRetraceMolecule=-1;
 
   switch(MoveType)
   {
@@ -15378,8 +15385,11 @@ int CFSwapLambaCationMove(void)
       Cations[CurrentSystem][FractionalMolecule].Atoms[i].CFChargeScalingParameter=pow(LambdaOldFractionalMoleculeStored,5);
       if(MoveType==CF_DELETE_MOVE)
       {
-        Cations[CurrentSystem][SelectedRetraceMolecule].Atoms[i].CFVDWScalingParameter=LambdaNewFractionalMoleculeStored;
-        Cations[CurrentSystem][SelectedRetraceMolecule].Atoms[i].CFChargeScalingParameter=pow(LambdaNewFractionalMoleculeStored,5);
+        if(SelectedRetraceMolecule>=0)
+        {
+          Cations[CurrentSystem][SelectedRetraceMolecule].Atoms[i].CFVDWScalingParameter=LambdaNewFractionalMoleculeStored;
+          Cations[CurrentSystem][SelectedRetraceMolecule].Atoms[i].CFChargeScalingParameter=pow(LambdaNewFractionalMoleculeStored,5);
+        }
       }
     }
   }
@@ -15633,6 +15643,9 @@ int CFGibbsParticleTransferAdsorbateMove(void)
   // get the fractional molecules for box A and B (for the current component)
   FractionalMoleculeA=Components[CurrentComponent].FractionalMolecule[A];
   FractionalMoleculeB=Components[CurrentComponent].FractionalMolecule[B];
+
+  SelectedRetraceMoleculeA=-1;
+  SelectedRetraceMoleculeB=-1;
 
   // get the Lambda's for the fractional molecules in box A and B (for the current component)
   LambdaOldA=Adsorbates[A][FractionalMoleculeA].Atoms[0].CFVDWScalingParameter;
@@ -16092,8 +16105,6 @@ int CFGibbsParticleTransferAdsorbateMove(void)
       // a newly selected fractional particle will get these lambdas
       for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
       {
-        //Adsorbates[CurrentSystem][SelectedRetraceMoleculeB].Atoms[i].CFVDWScalingParameter=1.0;
-        //Adsorbates[CurrentSystem][SelectedRetraceMoleculeB].Atoms[i].CFChargeScalingParameter=1.0;
         CFVDWScaling[i]=LambdaNewB;
         CFChargeScaling[i]=pow(LambdaNewB,5);
       }
@@ -16189,8 +16200,6 @@ int CFGibbsParticleTransferAdsorbateMove(void)
       // a newly selected fractional particle will get these lambdas
       for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
       {
-        //Adsorbates[CurrentSystem][SelectedRetraceMoleculeA].Atoms[i].CFVDWScalingParameter=1.0;
-        //Adsorbates[CurrentSystem][SelectedRetraceMoleculeA].Atoms[i].CFChargeScalingParameter=1.0;
         CFVDWScaling[i]=LambdaNewA;
         CFChargeScaling[i]=pow(LambdaNewA,5);
       }
@@ -17038,8 +17047,11 @@ int CFGibbsParticleTransferAdsorbateMove(void)
       Adsorbates[CurrentSystem][FractionalMoleculeA].Atoms[i].CFChargeScalingParameter=pow(LambdaOldA,5);
       if(MoveTypeA==CF_DELETE_MOVE)
       {
-        Adsorbates[CurrentSystem][SelectedRetraceMoleculeA].Atoms[i].CFVDWScalingParameter=LambdaOldRetraceMoleculeA;
-        Adsorbates[CurrentSystem][SelectedRetraceMoleculeA].Atoms[i].CFChargeScalingParameter=pow(LambdaOldRetraceMoleculeA,5);
+        if(SelectedRetraceMoleculeA>=0)
+        {
+          Adsorbates[CurrentSystem][SelectedRetraceMoleculeA].Atoms[i].CFVDWScalingParameter=LambdaOldRetraceMoleculeA;
+          Adsorbates[CurrentSystem][SelectedRetraceMoleculeA].Atoms[i].CFChargeScalingParameter=pow(LambdaOldRetraceMoleculeA,5);
+        }
       }
     }
 
@@ -17050,8 +17062,11 @@ int CFGibbsParticleTransferAdsorbateMove(void)
       Adsorbates[CurrentSystem][FractionalMoleculeB].Atoms[i].CFChargeScalingParameter=pow(LambdaOldB,5);
       if(MoveTypeB==CF_DELETE_MOVE)
       {
-        Adsorbates[CurrentSystem][SelectedRetraceMoleculeB].Atoms[i].CFVDWScalingParameter=LambdaOldRetraceMoleculeB;
-        Adsorbates[CurrentSystem][SelectedRetraceMoleculeB].Atoms[i].CFChargeScalingParameter=pow(LambdaOldRetraceMoleculeB,5);
+        if(SelectedRetraceMoleculeB>=0)
+        {
+          Adsorbates[CurrentSystem][SelectedRetraceMoleculeB].Atoms[i].CFVDWScalingParameter=LambdaOldRetraceMoleculeB;
+          Adsorbates[CurrentSystem][SelectedRetraceMoleculeB].Atoms[i].CFChargeScalingParameter=pow(LambdaOldRetraceMoleculeB,5);
+        }
       }
     }
     CurrentSystem=CurrentSystemStored;
@@ -17116,6 +17131,10 @@ int CFGibbsParticleTransferCationMove(void)
   // get the fractional molecules for box A and B (for the current component)
   FractionalMoleculeA=Components[CurrentComponent].FractionalMolecule[A];
   FractionalMoleculeB=Components[CurrentComponent].FractionalMolecule[B];
+
+
+  SelectedRetraceMoleculeA=-1;
+  SelectedRetraceMoleculeB=-1;
 
   // get the Lambda's for the fractional molecules in box A and B (for the current component)
   LambdaOldA=Cations[A][FractionalMoleculeA].Atoms[0].CFVDWScalingParameter;
@@ -18515,8 +18534,11 @@ int CFGibbsParticleTransferCationMove(void)
       Cations[CurrentSystem][FractionalMoleculeA].Atoms[i].CFChargeScalingParameter=pow(LambdaOldA,5);
       if(MoveTypeA==CF_DELETE_MOVE)
       {
-        Cations[CurrentSystem][SelectedRetraceMoleculeA].Atoms[i].CFVDWScalingParameter=LambdaOldRetraceMoleculeA;
-        Cations[CurrentSystem][SelectedRetraceMoleculeA].Atoms[i].CFChargeScalingParameter=pow(LambdaOldRetraceMoleculeA,5);
+        if(SelectedRetraceMoleculeA>=0) 
+        {
+          Cations[CurrentSystem][SelectedRetraceMoleculeA].Atoms[i].CFVDWScalingParameter=LambdaOldRetraceMoleculeA;
+          Cations[CurrentSystem][SelectedRetraceMoleculeA].Atoms[i].CFChargeScalingParameter=pow(LambdaOldRetraceMoleculeA,5);
+        }
       }
     }
 
@@ -18527,8 +18549,11 @@ int CFGibbsParticleTransferCationMove(void)
       Cations[CurrentSystem][FractionalMoleculeB].Atoms[i].CFChargeScalingParameter=pow(LambdaOldB,5);
       if(MoveTypeB==CF_DELETE_MOVE)
       {
-        Cations[CurrentSystem][SelectedRetraceMoleculeB].Atoms[i].CFVDWScalingParameter=LambdaOldRetraceMoleculeB;
-        Cations[CurrentSystem][SelectedRetraceMoleculeB].Atoms[i].CFChargeScalingParameter=pow(LambdaOldRetraceMoleculeB,5);
+        if(SelectedRetraceMoleculeB>=0)
+        {
+          Cations[CurrentSystem][SelectedRetraceMoleculeB].Atoms[i].CFVDWScalingParameter=LambdaOldRetraceMoleculeB;
+          Cations[CurrentSystem][SelectedRetraceMoleculeB].Atoms[i].CFChargeScalingParameter=pow(LambdaOldRetraceMoleculeB,5);
+        }
       }
     }
     CurrentSystem=CurrentSystemStored;
