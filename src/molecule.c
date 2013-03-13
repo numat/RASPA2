@@ -2706,17 +2706,28 @@ void InsertAdsorbateMolecule(void)
   InitializeVelocityAdsorbate(NewMolecule);
 
   // modify the degrees of freedom
-  DegreesOfFreedom[CurrentSystem]+=Components[CurrentComponent].DegreesOfFreedom;
-  DegreesOfFreedomRotation[CurrentSystem]+=Components[CurrentComponent].RotationalDegreesOfFreedom;
-  DegreesOfFreedomTranslation[CurrentSystem]+=Components[CurrentComponent].TranslationalDegreesOfFreedom;
-  DegreesOfFreedomVibration[CurrentSystem]+=Components[CurrentComponent].VibrationalDegreesOfFreedom;
-  DegreesOfFreedomConstraint[CurrentSystem]+=Components[CurrentComponent].ConstraintDegreesOfFreedom;
+  for(i=0;i<Components[CurrentComponent].NumberOfGroups;i++)
+  {
+    if(Components[CurrentComponent].Groups[i].Rigid)
+    {
+      DegreesOfFreedomAdsorbates[CurrentSystem]+=3;
+      DegreesOfFreedomTranslation[CurrentSystem]+=3;
+      DegreesOfFreedomTranslationalAdsorbates[CurrentSystem]+=3;
+      DegreesOfFreedom[CurrentSystem]+=3;
 
-  DegreesOfFreedomAdsorbates[CurrentSystem]+=Components[CurrentComponent].DegreesOfFreedom;
-  DegreesOfFreedomRotationalAdsorbates[CurrentSystem]+=Components[CurrentComponent].RotationalDegreesOfFreedom;
-  DegreesOfFreedomTranslationalAdsorbates[CurrentSystem]+=Components[CurrentComponent].TranslationalDegreesOfFreedom;
-  DegreesOfFreedomVibrationalAdsorbates[CurrentSystem]+=Components[CurrentComponent].VibrationalDegreesOfFreedom;
-  DegreesOfFreedomConstraintAdsorbates[CurrentSystem]+=Components[CurrentComponent].ConstraintDegreesOfFreedom;
+      DegreesOfFreedomRotation[CurrentSystem]+=Components[CurrentComponent].Groups[i].RotationalDegreesOfFreedom;
+      DegreesOfFreedomAdsorbates[CurrentSystem]+=Components[CurrentComponent].Groups[i].RotationalDegreesOfFreedom;
+      DegreesOfFreedomRotationalAdsorbates[CurrentSystem]+=Components[CurrentComponent].Groups[i].RotationalDegreesOfFreedom;
+      DegreesOfFreedom[CurrentSystem]+=Components[CurrentComponent].Groups[i].RotationalDegreesOfFreedom;
+    }
+    else
+    {
+      DegreesOfFreedomTranslation[CurrentSystem]+=3*Components[CurrentComponent].Groups[i].NumberOfGroupAtoms;
+      DegreesOfFreedomAdsorbates[CurrentSystem]+=3*Components[CurrentComponent].Groups[i].NumberOfGroupAtoms;
+      DegreesOfFreedomTranslationalAdsorbates[CurrentSystem]+=3*Components[CurrentComponent].Groups[i].NumberOfGroupAtoms;
+      DegreesOfFreedom[CurrentSystem]+=3*Components[CurrentComponent].Groups[i].NumberOfGroupAtoms;
+    }
+  }
   //InitializeNoseHooverCurrentSystem();
 }
 
@@ -2766,17 +2777,28 @@ void RemoveAdsorbateMolecule(void)
 
 
   // modify the degrees of freedom
-  DegreesOfFreedom[CurrentSystem]-=Components[CurrentComponent].DegreesOfFreedom;
-  DegreesOfFreedomRotation[CurrentSystem]-=Components[CurrentComponent].RotationalDegreesOfFreedom;
-  DegreesOfFreedomTranslation[CurrentSystem]-=Components[CurrentComponent].TranslationalDegreesOfFreedom;
-  DegreesOfFreedomVibration[CurrentSystem]-=Components[CurrentComponent].VibrationalDegreesOfFreedom;
-  DegreesOfFreedomConstraint[CurrentSystem]-=Components[CurrentComponent].ConstraintDegreesOfFreedom;
+  for(i=0;i<Components[CurrentComponent].NumberOfGroups;i++)
+  {
+    if(Components[CurrentComponent].Groups[i].Rigid)
+    {
+      DegreesOfFreedomAdsorbates[CurrentSystem]-=3;
+      DegreesOfFreedomTranslation[CurrentSystem]-=3;
+      DegreesOfFreedomTranslationalAdsorbates[CurrentSystem]-=3;
+      DegreesOfFreedom[CurrentSystem]-=3;
 
-  DegreesOfFreedomAdsorbates[CurrentSystem]-=Components[CurrentComponent].DegreesOfFreedom;
-  DegreesOfFreedomRotationalAdsorbates[CurrentSystem]-=Components[CurrentComponent].RotationalDegreesOfFreedom;
-  DegreesOfFreedomTranslationalAdsorbates[CurrentSystem]-=Components[CurrentComponent].TranslationalDegreesOfFreedom;
-  DegreesOfFreedomVibrationalAdsorbates[CurrentSystem]-=Components[CurrentComponent].VibrationalDegreesOfFreedom;
-  DegreesOfFreedomConstraintAdsorbates[CurrentSystem]-=Components[CurrentComponent].ConstraintDegreesOfFreedom;
+      DegreesOfFreedomRotation[CurrentSystem]-=Components[CurrentComponent].Groups[i].RotationalDegreesOfFreedom;
+      DegreesOfFreedomAdsorbates[CurrentSystem]-=Components[CurrentComponent].Groups[i].RotationalDegreesOfFreedom;
+      DegreesOfFreedomRotationalAdsorbates[CurrentSystem]-=Components[CurrentComponent].Groups[i].RotationalDegreesOfFreedom;
+      DegreesOfFreedom[CurrentSystem]-=Components[CurrentComponent].Groups[i].RotationalDegreesOfFreedom;
+    }
+    else
+    {
+      DegreesOfFreedomTranslation[CurrentSystem]-=3*Components[CurrentComponent].Groups[i].NumberOfGroupAtoms;
+      DegreesOfFreedomAdsorbates[CurrentSystem]-=3*Components[CurrentComponent].Groups[i].NumberOfGroupAtoms;
+      DegreesOfFreedomTranslationalAdsorbates[CurrentSystem]-=3*Components[CurrentComponent].Groups[i].NumberOfGroupAtoms;
+      DegreesOfFreedom[CurrentSystem]-=3*Components[CurrentComponent].Groups[i].NumberOfGroupAtoms;
+    }
+  }
   //InitializeNoseHooverCurrentSystem();
 }
 
@@ -2888,17 +2910,28 @@ void InsertCationMolecule(void)
   InitializeVelocityCation(NewMolecule);
 
   // modify the degrees of freedom
-  DegreesOfFreedom[CurrentSystem]+=Components[CurrentComponent].DegreesOfFreedom;
-  DegreesOfFreedomRotation[CurrentSystem]+=Components[CurrentComponent].RotationalDegreesOfFreedom;
-  DegreesOfFreedomTranslation[CurrentSystem]+=Components[CurrentComponent].TranslationalDegreesOfFreedom;
-  DegreesOfFreedomVibration[CurrentSystem]+=Components[CurrentComponent].VibrationalDegreesOfFreedom;
-  DegreesOfFreedomConstraint[CurrentSystem]+=Components[CurrentComponent].ConstraintDegreesOfFreedom;
+  for(i=0;i<Components[CurrentComponent].NumberOfGroups;i++)
+  {
+    if(Components[CurrentComponent].Groups[i].Rigid)
+    {
+      DegreesOfFreedomCations[CurrentSystem]+=3;
+      DegreesOfFreedomTranslation[CurrentSystem]+=3;
+      DegreesOfFreedomTranslationalCations[CurrentSystem]+=3;
+      DegreesOfFreedom[CurrentSystem]+=3;
 
-  DegreesOfFreedomCations[CurrentSystem]+=Components[CurrentComponent].DegreesOfFreedom;
-  DegreesOfFreedomRotationalCations[CurrentSystem]+=Components[CurrentComponent].RotationalDegreesOfFreedom;
-  DegreesOfFreedomTranslationalCations[CurrentSystem]+=Components[CurrentComponent].TranslationalDegreesOfFreedom;
-  DegreesOfFreedomVibrationalCations[CurrentSystem]+=Components[CurrentComponent].VibrationalDegreesOfFreedom;
-  DegreesOfFreedomConstraintCations[CurrentSystem]+=Components[CurrentComponent].ConstraintDegreesOfFreedom;
+      DegreesOfFreedomRotation[CurrentSystem]+=Components[CurrentComponent].Groups[i].RotationalDegreesOfFreedom;
+      DegreesOfFreedomCations[CurrentSystem]+=Components[CurrentComponent].Groups[i].RotationalDegreesOfFreedom;
+      DegreesOfFreedomRotationalCations[CurrentSystem]+=Components[CurrentComponent].Groups[i].RotationalDegreesOfFreedom;
+      DegreesOfFreedom[CurrentSystem]+=Components[CurrentComponent].Groups[i].RotationalDegreesOfFreedom;
+    }
+    else
+    {
+      DegreesOfFreedomTranslation[CurrentSystem]+=3*Components[CurrentComponent].Groups[i].NumberOfGroupAtoms;
+      DegreesOfFreedomCations[CurrentSystem]+=3*Components[CurrentComponent].Groups[i].NumberOfGroupAtoms;
+      DegreesOfFreedomTranslationalCations[CurrentSystem]+=3*Components[CurrentComponent].Groups[i].NumberOfGroupAtoms;
+      DegreesOfFreedom[CurrentSystem]+=3*Components[CurrentComponent].Groups[i].NumberOfGroupAtoms;
+    }
+  }
 
   //InitializeNoseHooverCurrentSystem();
 }
@@ -2948,17 +2981,29 @@ void RemoveCationMolecule(void)
   }
 
   // modify the degrees of freedom
-  DegreesOfFreedom[CurrentSystem]-=Components[CurrentComponent].DegreesOfFreedom;
-  DegreesOfFreedomRotation[CurrentSystem]-=Components[CurrentComponent].RotationalDegreesOfFreedom;
-  DegreesOfFreedomTranslation[CurrentSystem]-=Components[CurrentComponent].TranslationalDegreesOfFreedom;
-  DegreesOfFreedomVibration[CurrentSystem]-=Components[CurrentComponent].VibrationalDegreesOfFreedom;
-  DegreesOfFreedomConstraint[CurrentSystem]-=Components[CurrentComponent].ConstraintDegreesOfFreedom;
+  for(i=0;i<Components[CurrentComponent].NumberOfGroups;i++)
+  {
+    if(Components[CurrentComponent].Groups[i].Rigid)
+    {
+      DegreesOfFreedomCations[CurrentSystem]-=3;
+      DegreesOfFreedomTranslation[CurrentSystem]-=3;
+      DegreesOfFreedomTranslationalCations[CurrentSystem]-=3;
+      DegreesOfFreedom[CurrentSystem]-=3;
 
-  DegreesOfFreedomCations[CurrentSystem]-=Components[CurrentComponent].DegreesOfFreedom;
-  DegreesOfFreedomRotationalCations[CurrentSystem]-=Components[CurrentComponent].RotationalDegreesOfFreedom;
-  DegreesOfFreedomTranslationalCations[CurrentSystem]-=Components[CurrentComponent].TranslationalDegreesOfFreedom;
-  DegreesOfFreedomVibrationalCations[CurrentSystem]-=Components[CurrentComponent].VibrationalDegreesOfFreedom;
-  DegreesOfFreedomConstraintCations[CurrentSystem]-=Components[CurrentComponent].ConstraintDegreesOfFreedom;
+      DegreesOfFreedomRotation[CurrentSystem]-=Components[CurrentComponent].Groups[i].RotationalDegreesOfFreedom;
+      DegreesOfFreedomCations[CurrentSystem]-=Components[CurrentComponent].Groups[i].RotationalDegreesOfFreedom;
+      DegreesOfFreedomRotationalCations[CurrentSystem]-=Components[CurrentComponent].Groups[i].RotationalDegreesOfFreedom;
+      DegreesOfFreedom[CurrentSystem]-=Components[CurrentComponent].Groups[i].RotationalDegreesOfFreedom;
+    }
+    else
+    {
+      DegreesOfFreedomTranslation[CurrentSystem]-=3*Components[CurrentComponent].Groups[i].NumberOfGroupAtoms;
+      DegreesOfFreedomCations[CurrentSystem]-=3*Components[CurrentComponent].Groups[i].NumberOfGroupAtoms;
+      DegreesOfFreedomTranslationalCations[CurrentSystem]-=3*Components[CurrentComponent].Groups[i].NumberOfGroupAtoms;
+      DegreesOfFreedom[CurrentSystem]-=3*Components[CurrentComponent].Groups[i].NumberOfGroupAtoms;
+    }
+  }
+
   //InitializeNoseHooverCurrentSystem();
 }
 
@@ -4632,7 +4677,7 @@ void RemoveVelocityDrift(void)
     switch(Framework[CurrentSystem].FrameworkModel)
     {
       case NONE:
-        if(NumberOfAdsorbateMolecules[CurrentSystem]+NumberOfAdsorbateMolecules[CurrentSystem]>1)
+        if(NumberOfAdsorbateMolecules[CurrentSystem]+NumberOfCationMolecules[CurrentSystem]>1)
         {
           DegreesOfFreedom[CurrentSystem]-=3;
           DegreesOfFreedomTranslation[CurrentSystem]-=3;

@@ -1563,11 +1563,9 @@ void PrintIntervalStatusInit(long long CurrentCycle,long long NumberOfCycles,FIL
       fprintf(FilePtr,"----------------------------------------------------------------------------------------------------------------------------------------------------\n");
     }
   }
-  
-  fprintf(FilePtr,"Degrees of freedom:        %6d (trans: %d, rot: %d, vibr: %d, constr: %d)\n",
-           DegreesOfFreedom[CurrentSystem],
-           DegreesOfFreedomTranslation[CurrentSystem],DegreesOfFreedomRotation[CurrentSystem],
-           DegreesOfFreedomVibration[CurrentSystem],DegreesOfFreedomConstraint[CurrentSystem]);
+ 
+  fprintf(FilePtr,"Degrees of freedom: %d %d %d %d\n",DegreesOfFreedom[CurrentSystem],DegreesOfFreedomFramework[CurrentSystem],
+          DegreesOfFreedomAdsorbates[CurrentSystem],DegreesOfFreedomCations[CurrentSystem]); 
   fprintf(FilePtr,"Number of Framework-atoms: %6d\n",Framework[CurrentSystem].TotalNumberOfAtoms);
   if(NumberOfFractionalAdsorbateMolecules[CurrentSystem]>0)
     fprintf(FilePtr,"Number of Adsorbates:      %6d (%d integer, %d fractional)\n",
@@ -1793,10 +1791,8 @@ void PrintIntervalStatusEquilibration(long long CurrentCycle,long long NumberOfC
       fprintf(FilePtr,"----------------------------------------------------------------------------------------------------------------------------------------------------\n");
     }
   }
-  fprintf(FilePtr,"Degrees of freedom:        %6d (trans: %d, rot: %d, vibr: %d, constr: %d)\n",
-           DegreesOfFreedom[CurrentSystem],
-           DegreesOfFreedomTranslation[CurrentSystem],DegreesOfFreedomRotation[CurrentSystem],
-           DegreesOfFreedomVibration[CurrentSystem],DegreesOfFreedomConstraint[CurrentSystem]);
+  fprintf(FilePtr,"Degrees of freedom: %d %d %d %d\n",DegreesOfFreedom[CurrentSystem],DegreesOfFreedomFramework[CurrentSystem],
+          DegreesOfFreedomAdsorbates[CurrentSystem],DegreesOfFreedomCations[CurrentSystem]);
   fprintf(FilePtr,"Number of Framework-atoms: %6d\n",Framework[CurrentSystem].TotalNumberOfAtoms);
   if(NumberOfFractionalAdsorbateMolecules[CurrentSystem]>0)
     fprintf(FilePtr,"Number of Adsorbates:      %6d (%d integer, %d fractional)\n",
@@ -1834,8 +1830,6 @@ void PrintIntervalStatusEquilibration(long long CurrentCycle,long long NumberOfC
       fprintf(FilePtr,"Temperature Cations:    % 22.10lf\n",
         (double)(2.0*UCationKinetic[CurrentSystem]/(K_B*DegreesOfFreedomCations[CurrentSystem])));
     fprintf(FilePtr,"Cell temperature: % 8.3lf\n",GetCellTemperature());
-    fprintf(FilePtr,"Degrees of freedom: %d %d %d %d\n",DegreesOfFreedom[CurrentSystem],DegreesOfFreedomFramework[CurrentSystem],
-            DegreesOfFreedomAdsorbates[CurrentSystem],DegreesOfFreedomCations[CurrentSystem]);
     fprintf(FilePtr,"Current total kinetic energy:       % 22.10lf [K]\n",(double)UKinetic[CurrentSystem]);
     fprintf(FilePtr,"Current total Nose-Hoover energy:   % 22.10lf [K]\n",(double)UNoseHoover[CurrentSystem]);
   }
@@ -2656,10 +2650,8 @@ void PrintIntervalStatus(long long CurrentCycle,long long NumberOfCycles, FILE *
     fprintf(FilePtr,"----------------------------------------------------------------------------------------------------------------------------------------------------\n");
   }
 
-  fprintf(FilePtr,"Degrees of freedom:        %6d (trans: %d, rot: %d, vibr: %d, constr: %d)\n",
-           DegreesOfFreedom[CurrentSystem],
-           DegreesOfFreedomTranslation[CurrentSystem],DegreesOfFreedomRotation[CurrentSystem],
-           DegreesOfFreedomVibration[CurrentSystem],DegreesOfFreedomConstraint[CurrentSystem]);
+  fprintf(FilePtr,"Degrees of freedom: %d %d %d %d\n",DegreesOfFreedom[CurrentSystem],DegreesOfFreedomFramework[CurrentSystem],
+          DegreesOfFreedomAdsorbates[CurrentSystem],DegreesOfFreedomCations[CurrentSystem]);
   fprintf(FilePtr,"Number of Framework-atoms: %6d\n",Framework[CurrentSystem].TotalNumberOfAtoms);
   if(NumberOfFractionalAdsorbateMolecules[CurrentSystem]>0)
     fprintf(FilePtr,"Number of Adsorbates:      %6d (%d integer, %d fractional)\n",
@@ -2706,8 +2698,6 @@ void PrintIntervalStatus(long long CurrentCycle,long long NumberOfCycles, FILE *
         (double)(2.0*UCationKinetic[CurrentSystem]/(K_B*DegreesOfFreedomCations[CurrentSystem])),
         (double)GetAverageProperty(TemperatureCationsAverage));
     fprintf(FilePtr,"Cell temperature: % 8.3lf (avg. % 8.3lf)\n",GetCellTemperature(),GetAverageCellTemperature());
-    fprintf(FilePtr,"Degrees of freedom: %d %d %d %d\n",DegreesOfFreedom[CurrentSystem],DegreesOfFreedomFramework[CurrentSystem],
-            DegreesOfFreedomAdsorbates[CurrentSystem],DegreesOfFreedomCations[CurrentSystem]);
     fprintf(FilePtr,"Current total kinetic energy:       % 22.10lf [K]\n",(double)UKinetic[CurrentSystem]);
     fprintf(FilePtr,"Current total Nose-Hoover energy:   % 22.10lf [K]\n",(double)UNoseHoover[CurrentSystem]);
   }
