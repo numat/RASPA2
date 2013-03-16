@@ -751,6 +751,7 @@ int PrecomputeFixedEwaldContributions(void)
   PAIR pair;
   REAL *kfactor,ksqr,recip_cutoff;
   int considered_charged;
+  REAL scaling;
 
   // return immediately if the Ewald summation is not used
   if(ChargeMethod!=EWALD) return 0;
@@ -806,7 +807,9 @@ int PrecomputeFixedEwaldContributions(void)
       {
         type=Adsorbates[CurrentSystem][i].Atoms[j].Type;
         charge=Adsorbates[CurrentSystem][i].Atoms[j].Charge;
+        scaling=Adsorbates[CurrentSystem][i].Atoms[j].CFChargeScalingParameter;
         considered_charged=(fabs(charge)>1e-10)||(PseudoAtoms[type].IsPolarizable);
+        charge*=scaling;
         if(considered_charged&&(Adsorbates[CurrentSystem][i].Atoms[j].Fixed.x||Adsorbates[CurrentSystem][i].Atoms[j].Fixed.y||Adsorbates[CurrentSystem][i].Atoms[j].Fixed.z))
         {
           Charge[nr_of_coulombic_sites]=charge;
@@ -828,8 +831,10 @@ int PrecomputeFixedEwaldContributions(void)
       for(j=0;j<nr_atoms;j++)
       {
         type=Cations[CurrentSystem][i].Atoms[j].Type;
+        scaling=Cations[CurrentSystem][i].Atoms[j].CFChargeScalingParameter;
         charge=Cations[CurrentSystem][i].Atoms[j].Charge;
         considered_charged=(fabs(charge)>1e-10)||(PseudoAtoms[type].IsPolarizable);
+        charge*=scaling;
         if(considered_charged&&(Cations[CurrentSystem][i].Atoms[j].Fixed.x||Cations[CurrentSystem][i].Atoms[j].Fixed.y||Cations[CurrentSystem][i].Atoms[j].Fixed.z))
         {
           Charge[nr_of_coulombic_sites]=Cations[CurrentSystem][i].Atoms[j].Charge;
@@ -1290,6 +1295,7 @@ int PrecomputeTotalEwaldContributions(void)
   ATOM *atom_pointer;
   PAIR pair;
   int considered_charged;
+  REAL scaling;
 
   // return immediately if the Ewald summation is not used
   if(ChargeMethod!=EWALD) return 0;
@@ -1340,8 +1346,10 @@ int PrecomputeTotalEwaldContributions(void)
       for(j=0;j<nr_atoms;j++)
       {
         type=Adsorbates[CurrentSystem][i].Atoms[j].Type;
+        scaling=Adsorbates[CurrentSystem][i].Atoms[j].CFChargeScalingParameter;
         charge=Adsorbates[CurrentSystem][i].Atoms[j].Charge;
         considered_charged=(fabs(charge)>1e-10)||(PseudoAtoms[type].IsPolarizable);
+        charge*=scaling;
         if(considered_charged)
         {
           Charge[nr_of_coulombic_sites]=charge;
@@ -1365,7 +1373,9 @@ int PrecomputeTotalEwaldContributions(void)
       {
         type=Cations[CurrentSystem][i].Atoms[j].Type;
         charge=Cations[CurrentSystem][i].Atoms[j].Charge;
+        scaling=Cations[CurrentSystem][i].Atoms[j].CFChargeScalingParameter;
         considered_charged=(fabs(charge)>1e-10)||(PseudoAtoms[type].IsPolarizable);
+        charge*=scaling;
         if(considered_charged)
         {
           Charge[nr_of_coulombic_sites]=charge;
