@@ -2350,6 +2350,12 @@ void PrintPreSimulationStatusCurrentSystem(int system)
               PseudoAtoms[i].Name,
               PseudoAtoms[j].Name);
             break;
+          case HARD_SPHERE:
+            fprintf(FilePtr,"%7s - %7s [HARD_SPHERE] radius: %9.5lf\n",
+              PseudoAtoms[i].Name,
+              PseudoAtoms[j].Name,
+              (double)PotentialParms[i][j][0]);
+            break;
           case LENNARD_JONES:
             // 4*p_0*((p_1/r)^12-(p_1/r)^6)
             // ======================================================================================

@@ -194,6 +194,14 @@ void ParseForceFieldSelfParameters(char *Arguments,int i,char *PotentialName)
   if((strcasecmp(PotentialName,"NONE")==0)||(strcasecmp(PotentialName,"ZERO_POTENTIAL")==0))
     PotentialType[i][i]=ZERO_POTENTIAL;
 
+  if((strcasecmp(PotentialName,"HARD_SPHERE")==0)||(strcasecmp(PotentialName,"HARD-SPHERE")==0))
+  {
+    PotentialType[i][i]=HARD_SPHERE;
+    sscanf(Arguments,"%lf",&arg1);
+    PotentialParms[i][i][0]=arg1;
+    PotentialParms[i][i][1]=(REAL)0.0;
+  }
+
   // 4*p_0*((p_1/r)^12-(p_1/r)^6)
   // ======================================================================================
   // p_0/k_B [K]    strength parameter epsilon
@@ -1323,6 +1331,16 @@ void ParseForceFieldBinaryParameters(char *Arguments,int i,int j,char *Potential
   {
     PotentialType[i][j]=ZERO_POTENTIAL;
     PotentialType[j][i]=ZERO_POTENTIAL;
+  }
+  if((strcasecmp(PotentialName,"HARD_SPHERE")==0)||(strcasecmp(PotentialName,"HARD-SPHERE")==0))
+  {
+    PotentialType[i][j]=HARD_SPHERE;
+    PotentialType[j][i]=HARD_SPHERE;
+    sscanf(Arguments,"%lf %lf",&arg1,&arg2);
+    PotentialParms[j][i][0]=arg1;
+    PotentialParms[i][j][0]=arg1;
+    PotentialParms[j][i][1]=(REAL)0.0;
+    PotentialParms[i][j][1]=(REAL)0.0;
   }
   // 4*p_0*((p_1/r)^12-(p_1/r)^6)
   // ======================================================================================
@@ -2918,6 +2936,20 @@ void ReadForceFieldDefinitionsMixingRules(void)
           PotentialType[i][j]=ZERO_POTENTIAL;
           PotentialType[j][i]=ZERO_POTENTIAL;
         }
+        if(PotentialType[i][i]==HARD_SPHERE)
+        {
+          PotentialType[i][j]=HARD_SPHERE;
+          PotentialType[j][i]=HARD_SPHERE;
+          PotentialParms[i][j][0]=PotentialParms[i][i][0];
+          PotentialParms[j][i][0]=PotentialParms[i][i][0];
+        }
+        if(PotentialType[j][j]==HARD_SPHERE)
+        {
+          PotentialType[i][j]=HARD_SPHERE;
+          PotentialType[j][i]=HARD_SPHERE;
+          PotentialParms[i][j][0]=PotentialParms[j][j][0];
+          PotentialParms[j][i][0]=PotentialParms[j][j][0];
+        }
         if((PotentialType[i][i]==LENNARD_JONES)&&(PotentialType[j][j]==LENNARD_JONES))
         {
           PotentialType[i][j]=LENNARD_JONES;
@@ -3487,6 +3519,20 @@ void ReadForceFieldDefinitionsMixingRules(void)
         {
           PotentialType[i][j]=ZERO_POTENTIAL;
           PotentialType[j][i]=ZERO_POTENTIAL;
+        }
+        if(PotentialType[i][i]==HARD_SPHERE)
+        {
+          PotentialType[i][j]=HARD_SPHERE;
+          PotentialType[j][i]=HARD_SPHERE;
+          PotentialParms[i][j][0]=PotentialParms[i][i][0];
+          PotentialParms[j][i][0]=PotentialParms[i][i][0];
+        }
+        if(PotentialType[j][j]==HARD_SPHERE)
+        {
+          PotentialType[i][j]=HARD_SPHERE;
+          PotentialType[j][i]=HARD_SPHERE;
+          PotentialParms[i][j][0]=PotentialParms[j][j][0];
+          PotentialParms[j][i][0]=PotentialParms[j][j][0];
         }
         if((PotentialType[i][i]==LENNARD_JONES)&&(PotentialType[j][j]==LENNARD_JONES))
         {
@@ -4196,6 +4242,12 @@ void ReadForceFieldDefinitions(void)
           PotentialType[i][j]=ZERO_POTENTIAL;
           PotentialType[j][i]=ZERO_POTENTIAL;
           break;
+        case HARD_SPHERE:
+          PotentialType[i][j]=HARD_SPHERE;
+          PotentialType[j][i]=HARD_SPHERE;
+          PotentialParms[i][j][0]=PotentialParms[i][i][0];
+          PotentialParms[j][i][0]=PotentialParms[i][i][0];
+          break;
         case LENNARD_JONES:
           PotentialType[i][j]=LENNARD_JONES;
           PotentialType[j][i]=LENNARD_JONES;
@@ -4588,6 +4640,12 @@ void ReadForceFieldDefinitions(void)
        case ZERO_POTENTIAL:
           PotentialType[i][j]=ZERO_POTENTIAL;
           PotentialType[j][i]=ZERO_POTENTIAL;
+          break;
+        case HARD_SPHERE:
+          PotentialType[i][j]=HARD_SPHERE;
+          PotentialType[j][i]=HARD_SPHERE;
+          PotentialParms[i][j][0]=PotentialParms[i][i][0];
+          PotentialParms[j][i][0]=PotentialParms[i][i][0];
           break;
         case LENNARD_JONES:
           PotentialType[i][j]=LENNARD_JONES;
@@ -4988,6 +5046,7 @@ void ComputePotentialShifts(void)
       {
         case UNDEFINED_POTENTIAL:
         case ZERO_POTENTIAL:
+        case HARD_SPHERE:
           TailCorrection[i][j]=FALSE;
           break;
         case LENNARD_JONES:
@@ -5559,6 +5618,12 @@ REAL PotentialValue(int typeA,int typeB,REAL rr,REAL scaling)
   {
     case UNDEFINED_POTENTIAL:
     case ZERO_POTENTIAL:
+      U=0.0;
+      fcVal=0.0;
+      break;
+    case HARD_SPHERE:
+      arg1=PotentialParms[typeA][typeB][0];
+      if(rr<SQR(arg1)) return 2.0*EnergyOverlapCriteria;
       U=0.0;
       fcVal=0.0;
       break;
@@ -6881,6 +6946,12 @@ void PotentialGradient(int typeA,int typeB,REAL rr,REAL *energy,REAL *force_fact
     case ZERO_POTENTIAL:
       U=0.0;
       fcVal=0.0;
+      break;
+    case HARD_SPHERE:
+      U=0.0;
+      fcVal=0.0;
+      arg1=PotentialParms[typeA][typeB][0];
+      if(rr<SQR(arg1)) U=2.0*EnergyOverlapCriteria;
       break;
     case LENNARD_JONES:
       // 4*p_0*((p_1/r)^12-(p_1/r)^6)
@@ -8493,6 +8564,13 @@ void PotentialSecondDerivative(int typeA,int typeB,REAL rr,REAL *energy,REAL *fa
       U=0.0;
       fcVal1=0.0;
       fcVal2=0.0;
+      break;
+    case HARD_SPHERE:
+      U=0.0;
+      fcVal1=0.0;
+      fcVal2=0.0;
+      arg1=PotentialParms[typeA][typeB][0];
+      if(rr<SQR(arg1)) U=2.0*EnergyOverlapCriteria;
       break;
     case LENNARD_JONES:
       // 4*p_0*((p_1/r)^12-(p_1/r)^6)
@@ -10344,6 +10422,7 @@ REAL PotentialCorrection(int typeA,int typeB,REAL r)
   {             
     case UNDEFINED_POTENTIAL:
     case ZERO_POTENTIAL:
+    case HARD_SPHERE:
       return 0.0;
     case LENNARD_JONES:
     case LENNARD_JONES_CONTINUOUS_FRACTIONAL:
@@ -10671,6 +10750,7 @@ REAL PotentialCorrectionPressure(int typeA,int typeB,REAL r)
   {
     case UNDEFINED_POTENTIAL:
     case ZERO_POTENTIAL:
+    case HARD_SPHERE:
       return 0.0;
     case LENNARD_JONES:
     case LENNARD_JONES_CONTINUOUS_FRACTIONAL:
