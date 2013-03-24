@@ -399,6 +399,8 @@ void ReadPseudoAtomsDefinitions(void)
       PseudoAtoms[i].PrintToPDB=FALSE;
 
     PseudoAtoms[i].ChargeDefinitionType=CHARGE_ATOM_FROM_PSEUDO_ATOM_DEFINITION;
+
+    PseudoAtoms[i].CF=FALSE;
   }
 }
 

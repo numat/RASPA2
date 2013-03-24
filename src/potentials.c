@@ -185,6 +185,33 @@ REAL SwitchingBondDipoleBondDipoleFactors7[8];
 int NumberOfPseudoAtomsWithoutVDWInteraction=0;
 char (*PseudoAtomsWithoutVDWInteraction)[32]=NULL;
 
+void ChangeVDWtoCFVDW(void)
+{
+  int i,j;
+
+  for(i=0;i<NumberOfPseudoAtoms;i++)
+    for(j=0;j<NumberOfPseudoAtoms;j++)
+    {
+      if(PseudoAtoms[i].CF||PseudoAtoms[j].CF)
+      {
+        switch(PotentialType[i][j])
+        {
+          case LENNARD_JONES:
+            PotentialType[i][j]=LENNARD_JONES_CONTINUOUS_FRACTIONAL;
+            break;
+          case LENNARD_JONES_SMOOTHED3:
+            PotentialType[i][j]=LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED3;
+            break;
+          case LENNARD_JONES_SMOOTHED5:
+            PotentialType[i][j]=LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED5;
+            break;
+          default:
+            break;
+        }
+      }
+    }
+}
+
 
 void ParseForceFieldSelfParameters(char *Arguments,int i,char *PotentialName)
 {

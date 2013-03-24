@@ -191,6 +191,8 @@ extern REAL SwitchingBondDipoleBondDipoleFactors7[8];
 extern int NumberOfPseudoAtomsWithoutVDWInteraction;
 extern char (*PseudoAtomsWithoutVDWInteraction)[32];
 
+void ChangeVDWtoCFVDW(void);
+
 void ReadForceFieldDefinitionsMixingRules(void);
 void ReadForceFieldDefinitions(void);
 void ComputePotentialShifts(void);

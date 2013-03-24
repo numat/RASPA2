@@ -132,6 +132,7 @@ typedef struct PseudoAtom
   int HasVDWInteraction;
   int CoreShell;
   int Swapable;
+  int CF;
   int ChargeDefinitionType;
 } PSEUDO_ATOM;
 

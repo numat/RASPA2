@@ -5201,8 +5201,6 @@ int ReadInputFile(char *inputfilename)
   // read pseudo-atoms definitions
   // Note these can be extended by atoms read from cif-files
   ReadPseudoAtomsDefinitions();
-  //ReadForceFieldDefinitionsMixingRules();
-  //ReadForceFieldDefinitions();
 
   // PrintEvery should be larger then zero
   if(PrintEvery<1) PrintEvery=5000;
@@ -7764,7 +7762,18 @@ int ReadInputFile(char *inputfilename)
       for(j=0;j<Components[i].NumberOfAtoms;j++)
         PseudoAtoms[Components[i].Type[j]].Swapable=TRUE;
     }
+    for(k=0;k<NumberOfSystems;k++)
+    {
+      if(Components[i].CFMoleculePresent[k])
+      {
+        for(j=0;j<Components[i].NumberOfAtoms;j++)
+          PseudoAtoms[Components[i].Type[j]].CF=TRUE;
+      }
+    }
   }
+
+  // if needed change the VDW potential to their CF-counterparts
+  ChangeVDWtoCFVDW();
 
   // compute the degrees of freedom
   ComputeDegreesOfFreedom();
