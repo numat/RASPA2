@@ -1921,7 +1921,9 @@ void FreeEnergyProfile3D(void)
     NewPosition[0][start].z=pos.z+shift.z;
     FirstBeadPosition.x=pos.x+shift.x;
     FirstBeadPosition.y=pos.y+shift.y;
-    FirstBeadPosition.z=pos.z+shift.z;
+    FirstBeadPosition.z=pos.z*0.75+0.25+shift.z;
+
+    NewPosition[CurrentSystem][start]=FirstBeadPosition;
 
     if(!BlockedPocket(FirstBeadPosition))
        value=GrowMolecule(CBMC_PARTIAL_INSERTION);

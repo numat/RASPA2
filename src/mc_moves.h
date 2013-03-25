@@ -113,6 +113,7 @@ int PartialReinsertionAdsorbateMove(void);
 
 void OptimizeTranslationAcceptence(void);
 void OptimizeTranslationInPlaneAcceptence(void);
+void OptimizeGibbsVolumeChangeAcceptence(void);
 void OptimizeVolumeChangeAcceptence(void);
 void OptimizeFrameworkChangeAcceptence(void);
 void OptimizeFrameworkShiftAcceptence(void);

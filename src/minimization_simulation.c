@@ -175,7 +175,7 @@ void MinimalizationSimulation(void)
 
       InitializesEnergiesCurrentSystem();
       CalculateEnergy();
-      PrintEnergyStatus(OutputFilePtr[CurrentSystem]);
+      PrintEnergyStatus(OutputFilePtr[CurrentSystem],"minimization full energy");
     }
 
     PrintRestartFile();

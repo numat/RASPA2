@@ -6228,7 +6228,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
     InitializesEnergiesCurrentSystem();
     CalculateEnergy();
   }
-  PrintEnergyStatus(FilePtr);
+  PrintEnergyStatus(FilePtr,"initial full energy");
 
   fprintf(FilePtr,"\n\n\n\n\n\n");
   fprintf(FilePtr,"+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
@@ -6261,7 +6261,7 @@ void PrintPostSimulationStatus(void)
     fprintf(FilePtr,"+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
     fprintf(FilePtr,"\n\n");
 
-    PrintEnergyStatus(FilePtr);
+    PrintEnergyStatus(FilePtr,"running energy");
 
     fprintf(FilePtr,"Monte-Carlo moves statistics\n");
     fprintf(FilePtr,"===========================================================================\n");
@@ -6431,7 +6431,7 @@ void PrintPostSimulationStatus(void)
     InitializeForces();
     CalculateForce();
 
-    PrintEnergyStatus(FilePtr);
+    PrintEnergyStatus(FilePtr,"full final energy");
     PrintEnergyDriftStatus(FilePtr);
 
     PrintAverageTotalSystemEnergiesMC(FilePtr);
@@ -6449,11 +6449,11 @@ void PrintPostSimulationStatus(void)
   }
 }
 
-void PrintEnergyStatus(FILE *FilePtr)
+void PrintEnergyStatus(FILE *FilePtr,char *string)
 {
   fprintf(FilePtr,"\n");
   fprintf(FilePtr,"\n");
-  fprintf(FilePtr,"Current (running) Energy Status\n");
+  fprintf(FilePtr,"Current (%s) Energy Status\n",string);
   fprintf(FilePtr,"===========================================================================\n");
   fprintf(FilePtr,"\n");
 

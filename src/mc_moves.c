@@ -222,6 +222,8 @@ REAL TargetAccRatioBoxShapeChange;
 static REAL *GibbsVolumeChangeAttempts;
 static REAL *GibbsVolumeChangeAccepted;
 REAL *MaximumGibbsVolumeChange;
+static REAL *TotalGibbsVolumeChangeAttempts;
+static REAL *TotalGibbsVolumeChangeAccepted;
 REAL TargetAccRatioGibbsVolumeChange;
 
 static REAL **GibbsSwapAttempts;
@@ -520,6 +522,8 @@ void InitializeMCMovesStatisticsAllSystems(void)
 
     GibbsVolumeChangeAttempts[j]=0.0;
     GibbsVolumeChangeAccepted[j]=0.0;
+    TotalGibbsVolumeChangeAttempts[j]=0.0;
+    TotalGibbsVolumeChangeAccepted[j]=0.0;
 
     HybridNVEDrift[j]=0.0;
     HybridNVEDriftCount[j]=0.0;
@@ -11039,6 +11043,30 @@ int GibbsVolumeMove(void)
   return 0;
 }
 
+void OptimizeGibbsVolumeChangeAcceptence(void)
+{
+  REAL ratio,vandr;
+
+  if(TotalGibbsVolumeChangeAttempts[CurrentSystem]>0.0)
+    ratio=TotalGibbsVolumeChangeAccepted[CurrentSystem]/TotalGibbsVolumeChangeAttempts[CurrentSystem];
+  else
+    ratio=0.0;
+
+  vandr=ratio/TargetAccRatioVolumeChange;
+  if(vandr>1.5) vandr=1.5;
+  else if(vandr<0.5) vandr=0.5;
+  MaximumGibbsVolumeChange[CurrentSystem]*=vandr;
+  if(MaximumGibbsVolumeChange[CurrentSystem]<0.0005)
+     MaximumGibbsVolumeChange[CurrentSystem]=0.0005;
+  if(MaximumGibbsVolumeChange[CurrentSystem]>0.5)
+     MaximumGibbsVolumeChange[CurrentSystem]=0.5;
+
+  TotalGibbsVolumeChangeAttempts[CurrentSystem]+=GibbsVolumeChangeAttempts[CurrentSystem];
+  TotalGibbsVolumeChangeAccepted[CurrentSystem]+=GibbsVolumeChangeAccepted[CurrentSystem];
+  GibbsVolumeChangeAttempts[CurrentSystem]=GibbsVolumeChangeAccepted[CurrentSystem]=0.0;
+}
+
+
 void PrintGibbsVolumeChangeStatistics(FILE *FilePtr)
 {
   if(ProbabilityGibbsVolumeChangeMove)
@@ -18792,6 +18820,8 @@ void WriteRestartMcMoves(FILE *FilePtr)
 
   fwrite(GibbsVolumeChangeAttempts,sizeof(REAL),NumberOfSystems,FilePtr);
   fwrite(GibbsVolumeChangeAccepted,sizeof(REAL),NumberOfSystems,FilePtr);
+  fwrite(TotalGibbsVolumeChangeAttempts,sizeof(REAL),NumberOfSystems,FilePtr);
+  fwrite(TotalGibbsVolumeChangeAccepted,sizeof(REAL),NumberOfSystems,FilePtr);
   fwrite(MaximumGibbsVolumeChange,sizeof(REAL),NumberOfSystems,FilePtr);
 
   for(i=0;i<NumberOfComponents;i++)
@@ -19156,6 +19186,8 @@ void AllocateMCMovesMemory(void)
 
   GibbsVolumeChangeAttempts=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
   GibbsVolumeChangeAccepted=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+  TotalGibbsVolumeChangeAttempts=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+  TotalGibbsVolumeChangeAccepted=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
   MaximumGibbsVolumeChange=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
 
   GibbsSwapAttempts=(REAL**)calloc(NumberOfComponents,sizeof(REAL*));
@@ -19410,6 +19442,8 @@ void ReadRestartMcMoves(FILE *FilePtr)
 
   fread(GibbsVolumeChangeAttempts,sizeof(REAL),NumberOfSystems,FilePtr);
   fread(GibbsVolumeChangeAccepted,sizeof(REAL),NumberOfSystems,FilePtr);
+  fread(TotalGibbsVolumeChangeAttempts,sizeof(REAL),NumberOfSystems,FilePtr);
+  fread(TotalGibbsVolumeChangeAccepted,sizeof(REAL),NumberOfSystems,FilePtr);
   fread(MaximumGibbsVolumeChange,sizeof(REAL),NumberOfSystems,FilePtr);
   
   for(i=0;i<NumberOfComponents;i++)

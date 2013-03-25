@@ -264,6 +264,7 @@ void MonteCarloSimulation(void)
         for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
         {
           OptimizeVolumeChangeAcceptence();
+          OptimizeGibbsVolumeChangeAcceptence();
           OptimizeTranslationAcceptence();
           if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
             OptimizeFrameworkChangeAcceptence();
@@ -442,6 +443,7 @@ void MonteCarloSimulation(void)
           for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
           {
             OptimizeVolumeChangeAcceptence();
+            OptimizeGibbsVolumeChangeAcceptence();
             OptimizeTranslationAcceptence();
             if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
               OptimizeFrameworkChangeAcceptence();
@@ -659,6 +661,7 @@ void MonteCarloSimulation(void)
         for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
         {
           OptimizeVolumeChangeAcceptence();
+          OptimizeGibbsVolumeChangeAcceptence();
           OptimizeTranslationAcceptence();
           if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
             OptimizeFrameworkChangeAcceptence();
