@@ -3,7 +3,7 @@ shifted
 # general rule tailcorrections
 no
 # number of defined interactions
-53
+55
 # type interaction, parameters.    IMPORTANT: define shortest matches first, so that more specific ones overwrites these
 O_             lennard-jones    48.1581   3.03315
 N_             lennard-jones    38.9492   3.26256
@@ -44,11 +44,13 @@ CH2_sp3        lennard-jones    56.0      3.96
 CH_sp3         lennard-jones    17.0      4.67
 C_sp3          lennard-jones     0.8      6.38
 H_com          lennard-jones    36.7      2.958
+H_h2           none
 O_co2          lennard-jones    79.0      3.05
 C_co2          lennard-jones    27.0      2.80
 C_benz         lennard-jones    30.70     3.60
 H_benz         lennard-jones    25.45     2.36
 N_n2           lennard-jones    36.0      3.31
+N_com          none
 Ow             lennard-jones    89.633    3.097
 N_dmf          lennard-jones    80.0      3.2
 Co_dmf         lennard-jones    50.0      3.7

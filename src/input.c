@@ -2375,6 +2375,8 @@ int ReadInputFile(char *inputfilename)
       if(strcasecmp("Triclinic",firstargument)==0) BoundaryCondition[CurrentSystem]=TRICLINIC;
     }
     if(strcasecmp("GibbsVolumeChangeProbability",keyword)==0) sscanf(arguments,"%lf",&ProbabilityGibbsVolumeChangeMove);
+    if(strcasecmp("MaximumGibbsVolumeChange",keyword)==0) 
+      sscanf(arguments,"system %d: %lf",&CurrentSystem,&MaximumGibbsVolumeChange[CurrentSystem]);
     if(strcasecmp("GibbsSwapProbability",keyword)==0) 
     {
       sscanf(arguments,"%lf",&Components[CurrentComponent].ProbabilityGibbsChangeMove);
