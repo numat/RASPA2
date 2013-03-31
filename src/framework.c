@@ -7217,21 +7217,18 @@ void WriteFrameworkDefinition(void)
     Type=Adsorbates[CurrentSystem][m].Type;
     for(l=0;l<Components[Type].NumberOfGroups;l++)
     {
-      if(Components[Type].Groups[l].Rigid) // rigid unit
+      for(k=0;k<Components[Type].Groups[l].NumberOfGroupAtoms;k++)
       {
-        for(k=0;k<Components[Type].Groups[l].NumberOfGroupAtoms;k++)
-        {
-          A=Components[Type].Groups[l].Atoms[k];
-          typeA=Adsorbates[CurrentSystem][m].Atoms[A].Type;
-          pos=Adsorbates[CurrentSystem][m].Atoms[A].Position;
-          vel=Adsorbates[CurrentSystem][m].Atoms[A].Velocity;
-          force=Adsorbates[CurrentSystem][m].Atoms[A].Force;
-          fprintf(FilePtr,"%8s%10d\n",PseudoAtoms[typeA].Name,index);
-          fprintf(FilePtr,"%20.10lf%20.10lf%20.10lf\n",pos.x,pos.y,pos.z);
-          fprintf(FilePtr,"%20.10lf%20.10lf%20.10lf\n",vel.x,vel.y,vel.z);
-          fprintf(FilePtr,"%20.10lf%20.10lf%20.10lf\n",force.x,force.y,force.z);
-          index++;
-        }
+        A=Components[Type].Groups[l].Atoms[k];
+        typeA=Adsorbates[CurrentSystem][m].Atoms[A].Type;
+        pos=Adsorbates[CurrentSystem][m].Atoms[A].Position;
+        vel=Adsorbates[CurrentSystem][m].Atoms[A].Velocity;
+        force=Adsorbates[CurrentSystem][m].Atoms[A].Force;
+        fprintf(FilePtr,"%8s%10d\n",PseudoAtoms[typeA].Name,index);
+        fprintf(FilePtr,"%20.10lf%20.10lf%20.10lf\n",pos.x,pos.y,pos.z);
+        fprintf(FilePtr,"%20.10lf%20.10lf%20.10lf\n",vel.x,vel.y,vel.z);
+        fprintf(FilePtr,"%20.10lf%20.10lf%20.10lf\n",force.x,force.y,force.z);
+        index++;
       }
     }
   }
@@ -7240,21 +7237,18 @@ void WriteFrameworkDefinition(void)
     Type=Cations[CurrentSystem][m].Type;
     for(l=0;l<Components[Type].NumberOfGroups;l++)
     {
-      if(Components[Type].Groups[l].Rigid) // rigid unit
+      for(k=0;k<Components[Type].Groups[l].NumberOfGroupAtoms;k++)
       {
-        for(k=0;k<Components[Type].Groups[l].NumberOfGroupAtoms;k++)
-        {
-          A=Components[Type].Groups[l].Atoms[k];
-          typeA=Cations[CurrentSystem][m].Atoms[A].Type;
-          pos=Cations[CurrentSystem][m].Atoms[A].Position;
-          vel=Cations[CurrentSystem][m].Atoms[A].Velocity;
-          force=Cations[CurrentSystem][m].Atoms[A].Force;
-          fprintf(FilePtr,"%8s%10d\n",PseudoAtoms[typeA].Name,index);
-          fprintf(FilePtr,"%20.10lf%20.10lf%20.10lf\n",pos.x,pos.y,pos.z);
-          fprintf(FilePtr,"%20.10lf%20.10lf%20.10lf\n",vel.x,vel.y,vel.z);
-          fprintf(FilePtr,"%20.10lf%20.10lf%20.10lf\n",force.x,force.y,force.z);
-          index++;
-        }
+        A=Components[Type].Groups[l].Atoms[k];
+        typeA=Cations[CurrentSystem][m].Atoms[A].Type;
+        pos=Cations[CurrentSystem][m].Atoms[A].Position;
+        vel=Cations[CurrentSystem][m].Atoms[A].Velocity;
+        force=Cations[CurrentSystem][m].Atoms[A].Force;
+        fprintf(FilePtr,"%8s%10d\n",PseudoAtoms[typeA].Name,index);
+        fprintf(FilePtr,"%20.10lf%20.10lf%20.10lf\n",pos.x,pos.y,pos.z);
+        fprintf(FilePtr,"%20.10lf%20.10lf%20.10lf\n",vel.x,vel.y,vel.z);
+        fprintf(FilePtr,"%20.10lf%20.10lf%20.10lf\n",force.x,force.y,force.z);
+        index++;
       }
     }
   }
@@ -7470,6 +7464,90 @@ void WriteFrameworkDefinition(void)
           mass=PseudoAtoms[typeA].Mass;
           charge=PseudoAtoms[typeA].Charge1;
           fprintf(FilePtr,"%-6s %12.6f %12.6f 1   0\n",PseudoAtoms[typeA].Name,mass,charge);
+        }
+      }
+
+      // print internal bonds
+      fprintf(FilePtr,"BONDS %d\n",Components[i].NumberOfBonds);
+      for(k=0;k<Components[i].NumberOfBonds;k++)
+      {
+        A=Components[i].Bonds[k].A;
+        B=Components[i].Bonds[k].B;
+
+        parms=Components[i].BondArguments[k];
+        switch(Components[i].BondType[k])
+        {
+          case RIGID_BOND:
+            break;
+          case HARMONIC_BOND:
+            // 0.5*p0*SQR(r-p1);
+            // ===============================================
+            // p_0/k_B [K/A^2]   force constant
+            // p_1     [A]       reference bond distance
+            fprintf(FilePtr,"harm        %5d %5d  %12.6f %12.6f\n",
+              A+1,B+1,parms[0]*ENERGY_TO_KELVIN,parms[1]);
+            break;
+          case MORSE_BOND:
+            // p_0*[(1.0-{exp(-p_1*(r-p_2))})^2-1.0]
+            // ===============================================
+            // p_0/k_B [K]       force constant
+            // p_1     [A^-1]    parameter
+            // p_2     [A]       reference bond distance
+            fprintf(FilePtr,"morse       %5d %5d  %12.6f %12.6f %12.6f\n",
+               A+1,B+1,parms[0]*ENERGY_TO_KELVIN,parms[2],parms[1]);
+            break;
+        }
+      }
+
+      // print internal bends
+      fprintf(FilePtr,"ANGLES %d\n",Components[i].NumberOfBends);
+      for(k=0;k<Components[i].NumberOfBends;k++)
+      {
+        A=Components[i].Bends[k].A;
+        B=Components[i].Bends[k].B;
+        C=Components[i].Bends[k].C;
+
+        parms=Components[i].BendArguments[k];
+        switch(Components[i].BendType[k])
+        {
+          case HARMONIC_BEND:
+             // (1/2)p_0*(theta-p_1)^2
+             // ===============================================
+             // p_0/k_B [K/rad^2]
+             // p_1     [degrees]
+           fprintf(FilePtr,"harm        %5d %5d %5d  %12.6f %12.6f\n",
+             A+1,B+1,C+1,parms[0]*ENERGY_TO_KELVIN,parms[1]*RAD2DEG);
+           break;
+        }
+      }
+
+      // print internal dihedral
+      fprintf(FilePtr,"DIHEDRALS %d\n",Components[i].NumberOfTorsions);
+      for(k=0;k<Components[i].NumberOfTorsions;k++)
+      {
+        A=Components[i].Torsions[k].A;
+        B=Components[i].Torsions[k].B;
+        C=Components[i].Torsions[k].C;
+        D=Components[i].Torsions[k].D;
+
+        parms=Components[i].TorsionArguments[k];
+        switch(Components[i].TorsionType[k])
+        {
+          case TRAPPE_DIHEDRAL:
+            // p_0[0]+p_1*(1+cos(phi))+p_2*(1-cos(2*phi))+p_3*(1+cos(3*phi))
+            // =============================================================
+            // p_0/k_B [K]
+            // p_1/k_B [K]
+            // p_2/k_B [K]
+            // p_3/k_B [K]
+            fprintf(FilePtr,"cos3        %5d %5d %5d %5d  %12.6f %12.6f %12.6f %12.6f %12.6f\n",
+              A+1,B+1,C+1,D+1,
+              2.0*parms[1]*ENERGY_TO_KELVIN,
+              2.0*parms[2]*ENERGY_TO_KELVIN,
+              2.0*parms[3]*ENERGY_TO_KELVIN,
+              parms[7],
+              parms[6]);
+            break;
         }
       }
 

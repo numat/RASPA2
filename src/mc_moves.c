@@ -5305,9 +5305,9 @@ int IdentityChangeAdsorbateMove(void)
 
   // acceptance-rule
   if(RandomNumber()<PreFactor*((RosenbluthNew/RosenbluthIdealNew)*PartialFugacityNew*
-                    (REAL)Components[OldComponent].NumberOfMolecules[CurrentSystem]/
+                    (REAL)(Components[OldComponent].NumberOfMolecules[CurrentSystem]-(Components[OldComponent].CFMoleculePresent[CurrentSystem]?1:0))/
                    ((RosenbluthOld/RosenbluthIdealOld)*PartialFugacityOld*
-                    ((REAL)Components[NewComponent].NumberOfMolecules[CurrentSystem]+(REAL)1.0))))
+                    ((REAL)Components[NewComponent].NumberOfMolecules[CurrentSystem]-(Components[NewComponent].CFMoleculePresent[CurrentSystem]?1:0)+(REAL)1.0))))
   {
     // register an succesfull growth/retrace after acceptance
     IdentityChangeAccepted[CurrentSystem][OldComponent][NewComponent][1]+=1.0;
@@ -5607,9 +5607,9 @@ int IdentityChangeCationMove(void)
 
   // acceptance-rule
   if(RandomNumber()<PreFactor*((RosenbluthNew/RosenbluthIdealNew)*PartialFugacityNew*
-                               (REAL)Components[OldComponent].NumberOfMolecules[CurrentSystem]/
+                               (REAL)(Components[OldComponent].NumberOfMolecules[CurrentSystem]-(Components[OldComponent].CFMoleculePresent[CurrentSystem]?1:0))/
                               ((RosenbluthOld/RosenbluthIdealOld)*PartialFugacityOld*
-                               ((REAL)Components[NewComponent].NumberOfMolecules[CurrentSystem]+(REAL)1.0))))
+                               ((REAL)Components[NewComponent].NumberOfMolecules[CurrentSystem]-(Components[NewComponent].CFMoleculePresent[CurrentSystem]?1:0)+(REAL)1.0))))
   {
     // register an succesfull growth/retrace after acceptance
     IdentityChangeAccepted[CurrentSystem][OldComponent][NewComponent][1]+=1.0;

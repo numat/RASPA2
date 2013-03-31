@@ -2143,6 +2143,8 @@ void WriteSnapshotTinker(char *string)
   int *AtomId;
   VECTOR r;
   int count;
+  int A,B,C,D;
+  REAL *parms;
 
   AtomId=(int*)calloc(NumberOfPseudoAtoms,sizeof(int));
   mkdir("Tinker",S_IRWXU);
@@ -2199,7 +2201,7 @@ void WriteSnapshotTinker(char *string)
         {
           r=Adsorbates[CurrentSystem][i].Atoms[j].Position;
           sprintf(AtomName,"%3s",PseudoAtoms[Adsorbates[CurrentSystem][i].Atoms[j].Type].PrintToPDBName);
-          fprintf(FilePtr,"%6d%3s %12.6lf %12.6lf %12.6lf %6d",
+          fprintf(FilePtr,"%6d%3s %18.12lf %18.12lf %18.12lf %6d",
                   SerialNumber++,AtomName,(double)r.x,(double)r.y,(double)r.z,Adsorbates[CurrentSystem][i].Atoms[j].Type+1);
           for(k=0;k<Components[Type].Connectivity[j];k++)
             fprintf(FilePtr," %4d",
@@ -2208,6 +2210,178 @@ void WriteSnapshotTinker(char *string)
         }
       }
       count+=Adsorbates[CurrentSystem][i].NumberOfAtoms;
+    }
+
+    fclose(FilePtr);
+
+    sprintf(buffer,"Tinker/System_%d/RASPA%s.key",CurrentSystem,FileNameAppend);
+    FilePtr=fopen(buffer,"w");
+    fprintf(FilePtr,"bondunit                %18.12lf\n",1.0);
+    fprintf(FilePtr,"angleunit               %18.12lf\n",SQR(M_PI/180.0));
+    fprintf(FilePtr,"torsionunit             %18.12lf\n",1.0);
+    fprintf(FilePtr,"imptorunit              %18.12lf\n",1.0);
+    fprintf(FilePtr,"vdw-14-scale            0.0\n");
+    fprintf(FilePtr,"chg-14-scale            0.0\n");
+    fprintf(FilePtr,"electric                332.06\n");
+    fprintf(FilePtr,"dielectric              1.0\n");
+    fprintf(FilePtr,"\n");
+    fprintf(FilePtr,"ewald\n");
+    fprintf(FilePtr,"ewald-alpha 0.3\n");
+    fprintf(FilePtr,"ewald-cutoff 9.0\n");
+    fprintf(FilePtr,"\n");
+    fprintf(FilePtr,"vdw-cutoff     12.0\n");
+    fprintf(FilePtr,"vdw-taper      12.0\n");
+    fprintf(FilePtr,"radiustype     SIGMA\n");
+    fprintf(FilePtr,"\n");
+    fprintf(FilePtr,"a-axis         25.0\n");
+    fprintf(FilePtr,"b-axis         25.0\n");
+    fprintf(FilePtr,"c-axis         25.0\n");
+    fprintf(FilePtr,"alpha          90.0\n");
+    fprintf(FilePtr,"beta           90.0\n");
+    fprintf(FilePtr,"gamma          90.0\n");
+    for(i=0;i<NumberOfPseudoAtoms;i++)
+    {
+      fprintf(FilePtr,"atom         %d    %s    %s    %d    %lf     %d\n",
+          i+1,
+          PseudoAtoms[i].ChemicalElement,
+          PseudoAtoms[i].Name,
+          i+1,
+          PseudoAtoms[i].Mass,
+          PseudoAtoms[i].Connectivity);
+    }
+    fprintf(FilePtr,"\n");
+
+    for(i=0;i<NumberOfComponents;i++)
+    {
+      for(k=0;k<Components[i].NumberOfBonds;k++)
+      {
+        A=Components[i].Bonds[k].A;
+        B=Components[i].Bonds[k].B;
+
+        parms=Components[i].BondArguments[k];
+        switch(Components[i].BondType[k])
+        {
+          case RIGID_BOND:
+            break;
+          case HARMONIC_BOND:
+            // 0.5*p0*SQR(r-p1);
+            // ===============================================
+            // p_0/k_B [K/A^2]   force constant
+            // p_1     [A]       reference bond distance
+            fprintf(FilePtr,"bond %d %d %lg %lg\n",
+              Components[i].Type[A]+1,Components[i].Type[B]+1,0.5*parms[0]*ENERGY_TO_KELVIN,parms[1]);
+            break;
+          case MORSE_BOND:
+            // p_0*[(1.0-{exp(-p_1*(r-p_2))})^2-1.0]
+            // ===============================================
+            // p_0/k_B [K]       force constant
+            // p_1     [A^-1]    parameter
+            // p_2     [A]       reference bond distance
+            fprintf(FilePtr,"bond %d %d %lg %lg %lg\n",
+               Components[i].Type[A]+1,Components[i].Type[B]+1,parms[0]*ENERGY_TO_KELVIN,parms[2],parms[1]);
+            break;
+        }
+      }
+    }
+
+    for(i=0;i<NumberOfComponents;i++)
+    {
+      for(k=0;k<Components[i].NumberOfBends;k++)
+      {
+        A=Components[i].Bends[k].A;
+        B=Components[i].Bends[k].B;
+        C=Components[i].Bends[k].C;
+
+        parms=Components[i].BendArguments[k];
+        switch(Components[i].BendType[k])
+        {
+          case HARMONIC_BEND:
+            // 0.5*p0*SQR(r-p1);
+            // ===============================================
+            // p_0/k_B [K/A^2]   force constant
+            // p_1     [A]       reference bond distance
+            fprintf(FilePtr,"angle %d %d %d %lg %lg 0.0 0.0\n",
+              Components[i].Type[A]+1,Components[i].Type[B]+1,Components[i].Type[C]+1,0.5*parms[0]*ENERGY_TO_KELVIN,parms[1]*RAD2DEG);
+            break;
+        }
+      }
+    }
+
+    for(i=0;i<NumberOfComponents;i++)
+    {
+      for(k=0;k<Components[i].NumberOfTorsions;k++)
+      {
+        A=Components[i].Torsions[k].A;
+        B=Components[i].Torsions[k].B;
+        C=Components[i].Torsions[k].C;
+        D=Components[i].Torsions[k].D;
+
+        parms=Components[i].TorsionArguments[k];
+        switch(Components[i].TorsionType[k])
+        {
+          case TRAPPE_DIHEDRAL:
+            // p_0[0]+p_1*(1+cos(phi))+p_2*(1-cos(2*phi))+p_3*(1+cos(3*phi))
+            // =============================================================
+            // p_0/k_B [K]
+            // p_1/k_B [K]
+            // p_2/k_B [K]
+            // p_3/k_B [K]
+            fprintf(FilePtr,"torsion %d %d %d %d %lg %lg %d %lg %lg %d %lg %lg %d\n",
+              Components[i].Type[A]+1,Components[i].Type[B]+1,Components[i].Type[C]+1,Components[i].Type[D]+1,
+              parms[1]*ENERGY_TO_KELVIN,
+              0.0,
+              1,
+              parms[2]*ENERGY_TO_KELVIN,
+              180.0,
+              2,
+              parms[3]*ENERGY_TO_KELVIN,
+              0.0,
+              3);
+            break;
+        }
+      }
+    }
+
+    for(i=0;i<NumberOfPseudoAtoms;i++)
+    {
+      if(NumberOfPseudoAtomsType[CurrentSystem][i]>0)
+      {
+        for(j=i;j<NumberOfPseudoAtoms;j++)
+        {
+          if(NumberOfPseudoAtomsType[CurrentSystem][j]>0)
+          {
+            //if(!((PseudoAtoms[i].FrameworkAtom)&&(PseudoAtoms[j].FrameworkAtom)))
+            {
+              switch(PotentialType[i][j])
+              {
+                case ZERO_POTENTIAL:
+                  break;
+                case LENNARD_JONES:
+                  // 4*p_0*((p_1/r)^12-(p_1/r)^6)
+                  // ======================================================================================
+                  // p_0/k_B [K]    strength parameter epsilon
+                  // p_1     [A]    size parameter sigma
+                  // p_2/k_B [K]    (non-zero for a shifted potential)
+                  fprintf(FilePtr,"vdwpr %d %d %lg %lg\n",
+                    i+1,
+                    j+1,
+                    (double)PotentialParms[i][j][1],
+                    (double)PotentialParms[i][j][0]*ENERGY_TO_KELVIN);
+                  break;
+
+              }
+            }
+          }
+        }
+      }
+    }
+
+    for(i=0;i<NumberOfPseudoAtoms;i++)
+    {
+      if(NumberOfPseudoAtomsType[CurrentSystem][i]>0)
+      {
+        fprintf(FilePtr,"charge %d %lg\n",i+1,PseudoAtoms[i].Charge1);
+      }
     }
 
     fclose(FilePtr);
