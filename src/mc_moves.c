@@ -14138,6 +14138,13 @@ int CFSwapLambaAdsorbateMove(void)
 
       GrowReservoirMolecule();
 
+      // move blocked pocket to cbmc.c!
+      for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
+      {
+        if(BlockedPocket(NewPosition[CurrentSystem][i]))
+          goto label_CFSwapLambaMove_rejected;
+      }
+
       for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
       {
         CFVDWScaling[i]=LambdaNew;
@@ -14147,12 +14154,6 @@ int CFSwapLambaAdsorbateMove(void)
         Adsorbates[CurrentSystem][FractionalMolecule].Atoms[i].CFChargeScalingParameter=1.0;
       }
 
-      // move blocked pocket to cbmc.c!
-      for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
-      {
-        if(BlockedPocket(NewPosition[CurrentSystem][i]))
-          return 0;
-      }
 
       CurrentAdsorbateMolecule=NumberOfAdsorbateMolecules[CurrentSystem];
 
@@ -14669,7 +14670,6 @@ int CFSwapLambaAdsorbateMove(void)
   }
 
   return 0;
-
 }
 
 /*********************************************************************************************************
@@ -14901,6 +14901,13 @@ int CFSwapLambaCationMove(void)
 
       GrowReservoirMolecule();
 
+      // move blocked pocket to cbmc.c!
+      for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
+      {
+        if(BlockedPocket(NewPosition[CurrentSystem][i]))
+          goto label_CFSwapLambaMove_rejected;
+      }
+
       for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
       {
         CFVDWScaling[i]=LambdaNew;
@@ -14910,12 +14917,6 @@ int CFSwapLambaCationMove(void)
         Cations[CurrentSystem][FractionalMolecule].Atoms[i].CFChargeScalingParameter=1.0;
       }
 
-      // move blocked pocket to cbmc.c!
-      for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
-      {
-        if(BlockedPocket(NewPosition[CurrentSystem][i]))
-          return 0;
-      }
 
       CurrentCationMolecule=NumberOfCationMolecules[CurrentSystem];
 
