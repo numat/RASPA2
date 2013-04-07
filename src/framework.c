@@ -85,6 +85,7 @@ int Remove13NeighboursFromBondDipoleBondDipoleInteraction; // remove 1-3 neighbo
 int Remove14NeighboursFromBondDipoleBondDipoleInteraction; // remove 1-4 neighbor interaction from bonddipole-bonddipole interaction
 
 int InternalFrameworkLennardJonesInteractions;
+int ImproperTorsionScanType;
 
 int NumberOfSingleSubstitutionRules;
 char (*SubstitutionSingleFrameworkAtom)[3][256];
@@ -9358,30 +9359,37 @@ int ReadFrameworkDefinition(void)
                       if((D!=A)&&(D!=C)&&(CurrentTypeD==TypeD))
                       {
                         present=FALSE;
-                        for(n=0;n<index;n++)
-                          if(((Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].A==A)&&(Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].B==B)&&
-                             (Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].C==C)&&(Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].D==D))||
-                             ((Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].A==A)&&(Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].B==B)&&
-                             (Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].C==D)&&(Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].D==C))||
-                             ((Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].A==C)&&(Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].B==B)&&
-                             (Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].C==A)&&(Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].D==D))||
-                             ((Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].A==C)&&(Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].B==B)&&
-                             (Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].C==D)&&(Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].D==A))||
-                             ((Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].A==D)&&(Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].B==B)&&
-                             (Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].C==A)&&(Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].D==C))||
-                             ((Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].A==D)&&(Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].B==B)&&
-                             (Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].C==C)&&(Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].D==A)))
+
+                        switch(ImproperTorsionScanType)
+                        {
+                          case IMPROPER_TORSION_SCAN_GENERAL:
+                            for(n=0;n<index;n++)
+                              if(((Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].A==A)&&(Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].B==B)&&
+                                 (Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].C==C)&&(Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].D==D))||
+                                 ((Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].A==A)&&(Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].B==B)&&
+                                 (Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].C==D)&&(Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].D==C))||
+                                 ((Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].A==C)&&(Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].B==B)&&
+                                 (Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].C==A)&&(Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].D==D))||
+                                 ((Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].A==C)&&(Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].B==B)&&
+                                 (Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].C==D)&&(Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].D==A))||
+                                 ((Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].A==D)&&(Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].B==B)&&
+                                 (Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].C==A)&&(Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].D==C))||
+                                 ((Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].A==D)&&(Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].B==B)&&
+                                 (Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].C==C)&&(Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].D==A)))
+                                   present=TRUE;
+                            break;
+                          case IMPROPER_TORSION_SCAN_UNIQUE:
+                            if(((Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].A==A)&&(Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].B==B)&&
+                               (Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].C==C)&&(Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].D==D))&&
+                               (Framework[CurrentSystem].ImproperTorsionType[CurrentFramework][n]==ImproperTorsionType))
+                            {
                                present=TRUE;
-/*
-                          if(((Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].A==A)&&(Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].B==B)&&
-                             (Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].C==C)&&(Framework[CurrentSystem].ImproperTorsions[CurrentFramework][n].D==D))&&
-                             (Framework[CurrentSystem].ImproperTorsionType[CurrentFramework][n]==ImproperTorsionType))
-                          {
-                             present=TRUE;
-                             for(j=0;j<ImproperTorsionTypes[ImproperTorsionType].nr_args;j++)
-                               present=present&&(fabs(Framework[CurrentSystem].ImproperTorsionArguments[CurrentFramework][n][j]-arguments[j])<1e-5);
-                          }
-*/
+                               for(j=0;j<ImproperTorsionTypes[ImproperTorsionType].nr_args;j++)
+                                 present=present&&(fabs(Framework[CurrentSystem].ImproperTorsionArguments[CurrentFramework][n][j]-arguments[j])<1e-5);
+                            }
+                            break;
+                        }
+
                         if(!present)
                         {
                           Framework[CurrentSystem].ImproperTorsions[CurrentFramework][index].A=A;
@@ -11725,6 +11733,8 @@ void WriteRestartFramework(FILE *FilePtr)
   fwrite(&Remove13NeighboursFromBondDipoleBondDipoleInteraction,sizeof(int),1,FilePtr);
   fwrite(&Remove14NeighboursFromBondDipoleBondDipoleInteraction,sizeof(int),1,FilePtr);
 
+  fwrite(&ImproperTorsionScanType,sizeof(int),1,FilePtr);
+
   fwrite(&InternalFrameworkLennardJonesInteractions,sizeof(int),1,FilePtr);
 
   for(i=0;i<NumberOfSystems;i++)
@@ -12219,6 +12229,8 @@ void ReadRestartFramework(FILE *FilePtr)
   fread(&Remove12NeighboursFromBondDipoleBondDipoleInteraction,sizeof(int),1,FilePtr);
   fread(&Remove13NeighboursFromBondDipoleBondDipoleInteraction,sizeof(int),1,FilePtr);
   fread(&Remove14NeighboursFromBondDipoleBondDipoleInteraction,sizeof(int),1,FilePtr);
+
+  fread(&ImproperTorsionScanType,sizeof(int),1,FilePtr);
 
   fread(&InternalFrameworkLennardJonesInteractions,sizeof(int),1,FilePtr);
 

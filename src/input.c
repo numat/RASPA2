@@ -420,6 +420,8 @@ int ReadInputFile(char *inputfilename)
   Remove13NeighboursFromBondDipoleBondDipoleInteraction=FALSE;
   Remove14NeighboursFromBondDipoleBondDipoleInteraction=FALSE;
 
+  ImproperTorsionScanType=IMPROPER_TORSION_SCAN_GENERAL;
+
   InternalFrameworkLennardJonesInteractions=TRUE;
 
   ComputePowderDiffractionPattern=FALSE;
@@ -1622,6 +1624,11 @@ int ReadInputFile(char *inputfilename)
     {
       if(strcasecmp("yes",firstargument)==0) InternalFrameworkLennardJonesInteractions=TRUE;
       if(strcasecmp("no",firstargument)==0) InternalFrameworkLennardJonesInteractions=FALSE;
+    }
+    if(strcasecmp("ImproperTorsionScanType",keyword)==0)
+    {
+      if(strcasecmp("general",firstargument)==0) ImproperTorsionScanType=IMPROPER_TORSION_SCAN_GENERAL;
+      if(strcasecmp("unique",firstargument)==0) ImproperTorsionScanType=IMPROPER_TORSION_SCAN_UNIQUE;
     }
 
     if((strcasecmp("Substitute",keyword)==0)||(strcasecmp("Modify",keyword)==0))

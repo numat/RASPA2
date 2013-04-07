@@ -24,6 +24,8 @@
 
 enum {FLEXIBLE_FILE_TYPE_RASPA,FLEXIBLE_FILE_TYPE_DLPOLY};
 
+enum {IMPROPER_TORSION_SCAN_GENERAL,IMPROPER_TORSION_SCAN_UNIQUE};
+
 extern int CorrectNetChargeOnPseudoAtom;
 extern REAL CorrectNetChargeOnPseudoAtomValue;
 
@@ -151,6 +153,8 @@ extern int Remove14NeighboursFromChargeBondDipoleInteraction;
 extern int Remove12NeighboursFromBondDipoleBondDipoleInteraction;
 extern int Remove13NeighboursFromBondDipoleBondDipoleInteraction;
 extern int Remove14NeighboursFromBondDipoleBondDipoleInteraction;
+
+extern int ImproperTorsionScanType;
 
 extern int InternalFrameworkLennardJonesInteractions;
 
