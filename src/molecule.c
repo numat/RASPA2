@@ -846,43 +846,39 @@ void ReadComponentDefinition(int comp)
 
   Components[comp].RMCMOL=(VECTOR*)calloc(Components[comp].NumberOfAtoms,sizeof(VECTOR));
 
-  Components[comp].RMAX0=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
-  Components[comp].RMAX1=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
-  Components[comp].RMAX2=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
-  Components[comp].ACNBOND=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
-  Components[comp].ACSBOND=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
-  Components[comp].ACNBEND=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
-  Components[comp].ACSBEND=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
-  Components[comp].ACNTRS=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
-  Components[comp].ACSTRS=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
-  Components[comp].ACNALL=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
-  Components[comp].ACSALL=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
-  Components[comp].acn0=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
-  Components[comp].acn1=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
-  Components[comp].acn2=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
-  Components[comp].acs0=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
-  Components[comp].acs1=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
-  Components[comp].acs2=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
+  Components[comp].MaximumCBMCChangeBondLength=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
+  Components[comp].MaximumCBMCChangeBendAngle=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
+  Components[comp].MaximumCBMCRotationOnCone=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
+  Components[comp].CBMCChangeBondLengthAttempts=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
+  Components[comp].CBMCChangeBondLengthAccepted=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
+  Components[comp].CBMCChangeBendAngleAttempts=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
+  Components[comp].CBMCChangeBendAngleAccepted=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
+  Components[comp].CBMCRotationOnConeAttempts=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
+  Components[comp].CBMCRotationOnConeAccepted=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
+  Components[comp].TotalCBMCChangeBondLengthAttempts=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
+  Components[comp].TotalCBMCChangeBendAngleAttempts=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
+  Components[comp].TotalCBMCRotationOnConeAttempts=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
+  Components[comp].TotalCBMCChangeBondLengthAccepted=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
+  Components[comp].TotalCBMCChangeBendAngleAccepted=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
+  Components[comp].TotalCBMCRotationOnConeAccepted=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
 
   for(i=0;i<NumberOfSystems;i++)
   {
-    Components[comp].RMAX0[i]=(REAL*)calloc(Components[comp].NumberOfAtoms,sizeof(REAL));
-    Components[comp].RMAX1[i]=(REAL*)calloc(Components[comp].NumberOfAtoms,sizeof(REAL));
-    Components[comp].RMAX2[i]=(REAL*)calloc(Components[comp].NumberOfAtoms,sizeof(REAL));
-    Components[comp].ACNBOND[i]=(REAL*)calloc(Components[comp].NumberOfAtoms,sizeof(REAL));
-    Components[comp].ACSBOND[i]=(REAL*)calloc(Components[comp].NumberOfAtoms,sizeof(REAL));
-    Components[comp].ACNBEND[i]=(REAL*)calloc(Components[comp].NumberOfAtoms,sizeof(REAL));
-    Components[comp].ACSBEND[i]=(REAL*)calloc(Components[comp].NumberOfAtoms,sizeof(REAL));
-    Components[comp].ACNTRS[i]=(REAL*)calloc(Components[comp].NumberOfAtoms,sizeof(REAL));
-    Components[comp].ACSTRS[i]=(REAL*)calloc(Components[comp].NumberOfAtoms,sizeof(REAL));
-    Components[comp].ACNALL[i]=(REAL*)calloc(Components[comp].NumberOfAtoms,sizeof(REAL));
-    Components[comp].ACSALL[i]=(REAL*)calloc(Components[comp].NumberOfAtoms,sizeof(REAL));
-    Components[comp].acn0[i]=(REAL*)calloc(Components[comp].NumberOfAtoms,sizeof(REAL));
-    Components[comp].acn1[i]=(REAL*)calloc(Components[comp].NumberOfAtoms,sizeof(REAL));
-    Components[comp].acn2[i]=(REAL*)calloc(Components[comp].NumberOfAtoms,sizeof(REAL));
-    Components[comp].acs0[i]=(REAL*)calloc(Components[comp].NumberOfAtoms,sizeof(REAL));
-    Components[comp].acs1[i]=(REAL*)calloc(Components[comp].NumberOfAtoms,sizeof(REAL));
-    Components[comp].acs2[i]=(REAL*)calloc(Components[comp].NumberOfAtoms,sizeof(REAL));
+    Components[comp].MaximumCBMCChangeBondLength[i]=(REAL*)calloc(Components[comp].NumberOfAtoms,sizeof(REAL));
+    Components[comp].MaximumCBMCChangeBendAngle[i]=(REAL*)calloc(Components[comp].NumberOfAtoms,sizeof(REAL));
+    Components[comp].MaximumCBMCRotationOnCone[i]=(REAL*)calloc(Components[comp].NumberOfAtoms,sizeof(REAL));
+    Components[comp].CBMCChangeBondLengthAttempts[i]=(REAL*)calloc(Components[comp].NumberOfAtoms,sizeof(REAL));
+    Components[comp].CBMCChangeBondLengthAccepted[i]=(REAL*)calloc(Components[comp].NumberOfAtoms,sizeof(REAL));
+    Components[comp].CBMCChangeBendAngleAttempts[i]=(REAL*)calloc(Components[comp].NumberOfAtoms,sizeof(REAL));
+    Components[comp].CBMCChangeBendAngleAccepted[i]=(REAL*)calloc(Components[comp].NumberOfAtoms,sizeof(REAL));
+    Components[comp].CBMCRotationOnConeAttempts[i]=(REAL*)calloc(Components[comp].NumberOfAtoms,sizeof(REAL));
+    Components[comp].CBMCRotationOnConeAccepted[i]=(REAL*)calloc(Components[comp].NumberOfAtoms,sizeof(REAL));
+    Components[comp].TotalCBMCChangeBondLengthAttempts[i]=(REAL*)calloc(Components[comp].NumberOfAtoms,sizeof(REAL));
+    Components[comp].TotalCBMCChangeBendAngleAttempts[i]=(REAL*)calloc(Components[comp].NumberOfAtoms,sizeof(REAL));
+    Components[comp].TotalCBMCRotationOnConeAttempts[i]=(REAL*)calloc(Components[comp].NumberOfAtoms,sizeof(REAL));
+    Components[comp].TotalCBMCChangeBondLengthAccepted[i]=(REAL*)calloc(Components[comp].NumberOfAtoms,sizeof(REAL));
+    Components[comp].TotalCBMCChangeBendAngleAccepted[i]=(REAL*)calloc(Components[comp].NumberOfAtoms,sizeof(REAL));
+    Components[comp].TotalCBMCRotationOnConeAccepted[i]=(REAL*)calloc(Components[comp].NumberOfAtoms,sizeof(REAL));
   }
 
   ReadLine(line,1024,FilePtr);  // skip line
@@ -2536,13 +2532,13 @@ void ReadComponentDefinition(int comp)
   {
     for(k=0;k<NumberOfSystems;k++)
     {
-      Components[comp].RMAX0[k][i]=0.3;
-      Components[comp].RMAX1[k][i]=0.3;
-      Components[comp].RMAX2[k][i]=0.3;
-      Components[comp].ACNBEND[k][i]=0.0;
-      Components[comp].ACSBEND[k][i]=0.0;
-      Components[comp].ACNTRS[k][i]=0.0;
-      Components[comp].ACSTRS[k][i]=0.0;
+      Components[comp].MaximumCBMCChangeBondLength[k][i]=0.3;
+      Components[comp].MaximumCBMCChangeBendAngle[k][i]=0.3;
+      Components[comp].MaximumCBMCRotationOnCone[k][i]=0.3;
+      Components[comp].CBMCChangeBendAngleAttempts[k][i]=0.0;
+      Components[comp].CBMCChangeBendAngleAccepted[k][i]=0.0;
+      Components[comp].CBMCRotationOnConeAttempts[k][i]=0.0;
+      Components[comp].CBMCRotationOnConeAccepted[k][i]=0.0;
     }
   }
 
@@ -5902,23 +5898,21 @@ void WriteRestartComponent(FILE *FilePtr)
       fwrite(Components[i].BlockDistance[j],sizeof(REAL),Components[i].NumberOfBlockCenters[j],FilePtr);
       fwrite(Components[i].BlockCenters[j],sizeof(VECTOR),Components[i].NumberOfBlockCenters[j],FilePtr);
 
-      fwrite(Components[i].RMAX0[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
-      fwrite(Components[i].RMAX1[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
-      fwrite(Components[i].RMAX2[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
-      fwrite(Components[i].ACNBOND[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
-      fwrite(Components[i].ACSBOND[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
-      fwrite(Components[i].ACNBEND[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
-      fwrite(Components[i].ACSBEND[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
-      fwrite(Components[i].ACNTRS[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
-      fwrite(Components[i].ACSTRS[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
-      fwrite(Components[i].ACNALL[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
-      fwrite(Components[i].ACSALL[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
-      fwrite(Components[i].acn0[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
-      fwrite(Components[i].acn1[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
-      fwrite(Components[i].acn2[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
-      fwrite(Components[i].acs0[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
-      fwrite(Components[i].acs1[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
-      fwrite(Components[i].acs2[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
+      fwrite(Components[i].MaximumCBMCChangeBondLength[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
+      fwrite(Components[i].MaximumCBMCChangeBendAngle[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
+      fwrite(Components[i].MaximumCBMCRotationOnCone[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
+      fwrite(Components[i].CBMCChangeBondLengthAttempts[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
+      fwrite(Components[i].CBMCChangeBondLengthAccepted[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
+      fwrite(Components[i].CBMCChangeBendAngleAttempts[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
+      fwrite(Components[i].CBMCChangeBendAngleAccepted[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
+      fwrite(Components[i].CBMCRotationOnConeAttempts[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
+      fwrite(Components[i].CBMCRotationOnConeAccepted[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
+      fwrite(Components[i].TotalCBMCChangeBondLengthAttempts[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
+      fwrite(Components[i].TotalCBMCChangeBendAngleAttempts[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
+      fwrite(Components[i].TotalCBMCRotationOnConeAttempts[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
+      fwrite(Components[i].TotalCBMCChangeBondLengthAccepted[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
+      fwrite(Components[i].TotalCBMCChangeBendAngleAccepted[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
+      fwrite(Components[i].TotalCBMCRotationOnConeAccepted[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
 
       fwrite(Components[i].CFBiasingFactors[j],sizeof(REAL),Components[i].CFLambdaHistogramSize,FilePtr);
     }
@@ -6191,23 +6185,21 @@ void ReadRestartComponent(FILE *FilePtr)
 
     fread(Components[i].RMCMOL,sizeof(VECTOR),Components[i].NumberOfAtoms,FilePtr);
 
-    Components[i].RMAX0=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
-    Components[i].RMAX1=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
-    Components[i].RMAX2=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
-    Components[i].ACNBOND=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
-    Components[i].ACSBOND=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
-    Components[i].ACNBEND=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
-    Components[i].ACSBEND=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
-    Components[i].ACNTRS=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
-    Components[i].ACSTRS=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
-    Components[i].ACNALL=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
-    Components[i].ACSALL=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
-    Components[i].acn0=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
-    Components[i].acn1=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
-    Components[i].acn2=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
-    Components[i].acs0=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
-    Components[i].acs1=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
-    Components[i].acs2=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
+    Components[i].MaximumCBMCChangeBondLength=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
+    Components[i].MaximumCBMCChangeBendAngle=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
+    Components[i].MaximumCBMCRotationOnCone=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
+    Components[i].CBMCChangeBondLengthAttempts=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
+    Components[i].CBMCChangeBondLengthAccepted=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
+    Components[i].CBMCChangeBendAngleAttempts=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
+    Components[i].CBMCChangeBendAngleAccepted=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
+    Components[i].CBMCRotationOnConeAttempts=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
+    Components[i].CBMCRotationOnConeAccepted=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
+    Components[i].TotalCBMCChangeBondLengthAttempts=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
+    Components[i].TotalCBMCChangeBendAngleAttempts=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
+    Components[i].TotalCBMCRotationOnConeAttempts=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
+    Components[i].TotalCBMCChangeBondLengthAccepted=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
+    Components[i].TotalCBMCChangeBendAngleAccepted=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
+    Components[i].TotalCBMCRotationOnConeAccepted=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
 
     Components[i].FractionalMolecule=(int*)calloc(NumberOfSystems,sizeof(int));
     Components[i].CFMoleculePresent=(int*)calloc(NumberOfSystems,sizeof(int));
@@ -6225,41 +6217,37 @@ void ReadRestartComponent(FILE *FilePtr)
       fread(Components[i].BlockDistance[j],sizeof(REAL),Components[i].NumberOfBlockCenters[j],FilePtr);
       fread(Components[i].BlockCenters[j],sizeof(VECTOR),Components[i].NumberOfBlockCenters[j],FilePtr);
 
-      Components[i].RMAX0[j]=(REAL*)calloc(Components[i].NumberOfAtoms,sizeof(REAL));
-      Components[i].RMAX1[j]=(REAL*)calloc(Components[i].NumberOfAtoms,sizeof(REAL));
-      Components[i].RMAX2[j]=(REAL*)calloc(Components[i].NumberOfAtoms,sizeof(REAL));
-      Components[i].ACNBOND[j]=(REAL*)calloc(Components[i].NumberOfAtoms,sizeof(REAL));
-      Components[i].ACSBOND[j]=(REAL*)calloc(Components[i].NumberOfAtoms,sizeof(REAL));
-      Components[i].ACNBEND[j]=(REAL*)calloc(Components[i].NumberOfAtoms,sizeof(REAL));
-      Components[i].ACSBEND[j]=(REAL*)calloc(Components[i].NumberOfAtoms,sizeof(REAL));
-      Components[i].ACNTRS[j]=(REAL*)calloc(Components[i].NumberOfAtoms,sizeof(REAL));
-      Components[i].ACSTRS[j]=(REAL*)calloc(Components[i].NumberOfAtoms,sizeof(REAL));
-      Components[i].ACNALL[j]=(REAL*)calloc(Components[i].NumberOfAtoms,sizeof(REAL));
-      Components[i].ACSALL[j]=(REAL*)calloc(Components[i].NumberOfAtoms,sizeof(REAL));
-      Components[i].acn0[j]=(REAL*)calloc(Components[i].NumberOfAtoms,sizeof(REAL));
-      Components[i].acn1[j]=(REAL*)calloc(Components[i].NumberOfAtoms,sizeof(REAL));
-      Components[i].acn2[j]=(REAL*)calloc(Components[i].NumberOfAtoms,sizeof(REAL));
-      Components[i].acs0[j]=(REAL*)calloc(Components[i].NumberOfAtoms,sizeof(REAL));
-      Components[i].acs1[j]=(REAL*)calloc(Components[i].NumberOfAtoms,sizeof(REAL));
-      Components[i].acs2[j]=(REAL*)calloc(Components[i].NumberOfAtoms,sizeof(REAL));
+      Components[i].MaximumCBMCChangeBondLength[j]=(REAL*)calloc(Components[i].NumberOfAtoms,sizeof(REAL));
+      Components[i].MaximumCBMCChangeBendAngle[j]=(REAL*)calloc(Components[i].NumberOfAtoms,sizeof(REAL));
+      Components[i].MaximumCBMCRotationOnCone[j]=(REAL*)calloc(Components[i].NumberOfAtoms,sizeof(REAL));
+      Components[i].CBMCChangeBondLengthAttempts[j]=(REAL*)calloc(Components[i].NumberOfAtoms,sizeof(REAL));
+      Components[i].CBMCChangeBondLengthAccepted[j]=(REAL*)calloc(Components[i].NumberOfAtoms,sizeof(REAL));
+      Components[i].CBMCChangeBendAngleAttempts[j]=(REAL*)calloc(Components[i].NumberOfAtoms,sizeof(REAL));
+      Components[i].CBMCChangeBendAngleAccepted[j]=(REAL*)calloc(Components[i].NumberOfAtoms,sizeof(REAL));
+      Components[i].CBMCRotationOnConeAttempts[j]=(REAL*)calloc(Components[i].NumberOfAtoms,sizeof(REAL));
+      Components[i].CBMCRotationOnConeAccepted[j]=(REAL*)calloc(Components[i].NumberOfAtoms,sizeof(REAL));
+      Components[i].TotalCBMCChangeBondLengthAttempts[j]=(REAL*)calloc(Components[i].NumberOfAtoms,sizeof(REAL));
+      Components[i].TotalCBMCChangeBendAngleAttempts[j]=(REAL*)calloc(Components[i].NumberOfAtoms,sizeof(REAL));
+      Components[i].TotalCBMCRotationOnConeAttempts[j]=(REAL*)calloc(Components[i].NumberOfAtoms,sizeof(REAL));
+      Components[i].TotalCBMCChangeBondLengthAccepted[j]=(REAL*)calloc(Components[i].NumberOfAtoms,sizeof(REAL));
+      Components[i].TotalCBMCChangeBendAngleAccepted[j]=(REAL*)calloc(Components[i].NumberOfAtoms,sizeof(REAL));
+      Components[i].TotalCBMCRotationOnConeAccepted[j]=(REAL*)calloc(Components[i].NumberOfAtoms,sizeof(REAL));
 
-      fread(Components[i].RMAX0[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
-      fread(Components[i].RMAX1[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
-      fread(Components[i].RMAX2[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
-      fread(Components[i].ACNBOND[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
-      fread(Components[i].ACSBOND[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
-      fread(Components[i].ACNBEND[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
-      fread(Components[i].ACSBEND[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
-      fread(Components[i].ACNTRS[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
-      fread(Components[i].ACSTRS[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
-      fread(Components[i].ACNALL[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
-      fread(Components[i].ACSALL[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
-      fread(Components[i].acn0[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
-      fread(Components[i].acn1[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
-      fread(Components[i].acn2[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
-      fread(Components[i].acs0[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
-      fread(Components[i].acs1[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
-      fread(Components[i].acs2[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
+      fread(Components[i].MaximumCBMCChangeBondLength[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
+      fread(Components[i].MaximumCBMCChangeBendAngle[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
+      fread(Components[i].MaximumCBMCRotationOnCone[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
+      fread(Components[i].CBMCChangeBondLengthAttempts[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
+      fread(Components[i].CBMCChangeBondLengthAccepted[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
+      fread(Components[i].CBMCChangeBendAngleAttempts[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
+      fread(Components[i].CBMCChangeBendAngleAccepted[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
+      fread(Components[i].CBMCRotationOnConeAttempts[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
+      fread(Components[i].CBMCRotationOnConeAccepted[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
+      fread(Components[i].TotalCBMCChangeBondLengthAttempts[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
+      fread(Components[i].TotalCBMCChangeBendAngleAttempts[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
+      fread(Components[i].TotalCBMCRotationOnConeAttempts[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
+      fread(Components[i].TotalCBMCChangeBondLengthAccepted[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
+      fread(Components[i].TotalCBMCChangeBendAngleAccepted[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
+      fread(Components[i].TotalCBMCRotationOnConeAccepted[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
 
       Components[i].CFBiasingFactors[j]=(REAL*)calloc(Components[i].CFLambdaHistogramSize,sizeof(REAL));
       fread(Components[i].CFBiasingFactors[j],sizeof(REAL),Components[i].CFLambdaHistogramSize,FilePtr);

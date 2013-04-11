@@ -1890,6 +1890,7 @@ void OptimizeTranslationAcceptence(void)
 void PrintTranslationStatistics(FILE *FilePtr)
 {
   int i,MoveUsed;
+  VECTOR Attempts,Accepted;
 
   MoveUsed=FALSE;
   for(i=0;i<NumberOfComponents;i++)
@@ -1907,23 +1908,22 @@ void PrintTranslationStatistics(FILE *FilePtr)
     fprintf(FilePtr,"======================================\n");
     for(i=0;i<NumberOfComponents;i++)
     {
+      Attempts.x=MAX2(TotalTranslationAttempts[CurrentSystem][i].x,TranslationAttempts[CurrentSystem][i].x);
+      Attempts.y=MAX2(TotalTranslationAttempts[CurrentSystem][i].y,TranslationAttempts[CurrentSystem][i].y);
+      Attempts.z=MAX2(TotalTranslationAttempts[CurrentSystem][i].z,TranslationAttempts[CurrentSystem][i].z);
+
+      Accepted.x=MAX2(TotalTranslationAccepted[CurrentSystem][i].x,TranslationAccepted[CurrentSystem][i].x);
+      Accepted.y=MAX2(TotalTranslationAccepted[CurrentSystem][i].y,TranslationAccepted[CurrentSystem][i].y);
+      Accepted.z=MAX2(TotalTranslationAccepted[CurrentSystem][i].z,TranslationAccepted[CurrentSystem][i].z);
+
       fprintf(FilePtr,"Component %d [%s]\n",i,Components[i].Name);
-      fprintf(FilePtr,"\ttotal        %f %f %f\n",
-        (double)TotalTranslationAttempts[CurrentSystem][i].x,
-        (double)TotalTranslationAttempts[CurrentSystem][i].y,
-        (double)TotalTranslationAttempts[CurrentSystem][i].z);
-      fprintf(FilePtr,"\tsuccesfull   %f %f %f\n",
-        (double)TotalTranslationAccepted[CurrentSystem][i].x,
-        (double)TotalTranslationAccepted[CurrentSystem][i].y,
-        (double)TotalTranslationAccepted[CurrentSystem][i].z);
+      fprintf(FilePtr,"\ttotal        %f %f %f\n",(double)Attempts.x,(double)Attempts.y,(double)Attempts.z);
+      fprintf(FilePtr,"\tsuccesfull   %f %f %f\n",(double)Accepted.x,(double)Accepted.y,(double)Accepted.z);
 
       fprintf(FilePtr,"\taccepted   %f %f %f\n",
-        (double)(TotalTranslationAttempts[CurrentSystem][i].x>(REAL)0.0?
-           TotalTranslationAccepted[CurrentSystem][i].x/TotalTranslationAttempts[CurrentSystem][i].x:(REAL)0.0),
-        (double)(TotalTranslationAttempts[CurrentSystem][i].y>(REAL)0.0?
-            TotalTranslationAccepted[CurrentSystem][i].y/TotalTranslationAttempts[CurrentSystem][i].y:(REAL)0.0),
-        (double)(TotalTranslationAttempts[CurrentSystem][i].z>(REAL)0.0?
-            TotalTranslationAccepted[CurrentSystem][i].z/TotalTranslationAttempts[CurrentSystem][i].z:(REAL)0.0));
+        (double)(Attempts.x>(REAL)0.0?Accepted.x/Attempts.x:(REAL)0.0),
+        (double)(Attempts.y>(REAL)0.0?Accepted.y/Attempts.y:(REAL)0.0),
+        (double)(Attempts.z>(REAL)0.0?Accepted.z/Attempts.z:(REAL)0.0));
       fprintf(FilePtr,"\tdisplacement %f %f %f\n",
         (double)MaximumTranslation[CurrentSystem][i].x,
         (double)MaximumTranslation[CurrentSystem][i].y,
@@ -8579,6 +8579,26 @@ int ParallelMolFractionMove(void)
     SWAP(UCationCationChargeBondDipoleFourier[SystemA],UCationCationChargeBondDipoleFourier[SystemB],temp_real);
     SWAP(UCationCationBondDipoleBondDipoleFourier[SystemA],UCationCationBondDipoleBondDipoleFourier[SystemB],temp_real);
     SWAP(UCationCationCoulomb[SystemA],UCationCationCoulomb[SystemB],temp_real);
+
+    SWAP(DegreesOfFreedom[SystemA],DegreesOfFreedom[SystemB],temp_real);
+    SWAP(DegreesOfFreedomTranslation[SystemA],DegreesOfFreedomTranslation[SystemB],temp_real);
+    SWAP(DegreesOfFreedomRotation[SystemA],DegreesOfFreedomRotation[SystemB],temp_real);
+    SWAP(DegreesOfFreedomVibration[SystemA],DegreesOfFreedomVibration[SystemB],temp_real);
+    SWAP(DegreesOfFreedomConstraint[SystemA],DegreesOfFreedomConstraint[SystemB],temp_real);
+
+    SWAP(DegreesOfFreedomFramework[SystemA],DegreesOfFreedomFramework[SystemB],temp_real);
+
+    SWAP(DegreesOfFreedomAdsorbates[SystemA],DegreesOfFreedomAdsorbates[SystemB],temp_real);
+    SWAP(DegreesOfFreedomTranslationalAdsorbates[SystemA],DegreesOfFreedomTranslationalAdsorbates[SystemB],temp_real);
+    SWAP(DegreesOfFreedomRotationalAdsorbates[SystemA],DegreesOfFreedomRotationalAdsorbates[SystemB],temp_real);
+    SWAP(DegreesOfFreedomVibrationalAdsorbates[SystemA],DegreesOfFreedomVibrationalAdsorbates[SystemB],temp_real);
+    SWAP(DegreesOfFreedomConstraintAdsorbates[SystemA],DegreesOfFreedomConstraintAdsorbates[SystemB],temp_real);
+
+    SWAP(DegreesOfFreedomCations[SystemA],DegreesOfFreedomCations[SystemB],temp_real);
+    SWAP(DegreesOfFreedomTranslationalCations[SystemA],DegreesOfFreedomTranslationalCations[SystemB],temp_real);
+    SWAP(DegreesOfFreedomRotationalCations[SystemA],DegreesOfFreedomRotationalCations[SystemB],temp_real);
+    SWAP(DegreesOfFreedomVibrationalCations[SystemA],DegreesOfFreedomVibrationalCations[SystemB],temp_real);
+    SWAP(DegreesOfFreedomConstraintCations[SystemA],DegreesOfFreedomConstraintCations[SystemB],temp_real);
   }
   return 0;
 }
@@ -12182,7 +12202,12 @@ void HybridNVEMove(void)
   REAL StoredUCationTranslationalKinetic,StoredUAdsorbateRotationalKinetic;
   REAL StoredUCationRotationalKinetic,StoredUAdsorbateKinetic,StoredUCationKinetic;
 
-  CurrentSystem=(int)(RandomNumber()*NumberOfSystems);
+  int NumberOfMolecules;
+
+  NumberOfMolecules=NumberOfAdsorbateMolecules[CurrentSystem]+NumberOfCationMolecules[CurrentSystem];
+  if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+    NumberOfMolecules+=Framework[CurrentSystem].TotalNumberOfAtoms;
+  if(NumberOfMolecules==0) return;
 
   HybridNVEAttempts[CurrentSystem]+=1.0;
 

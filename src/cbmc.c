@@ -1907,7 +1907,7 @@ int GenerateTrialOrientationsMCScheme(int Old)
  
               store[0]=TrialPositions[0][jjopen];
 
-              Components[CurrentComponent].ACNBOND[CurrentSystem][Bonds[jj]]+=1.0;
+              Components[CurrentComponent].CBMCChangeBondLengthAttempts[CurrentSystem][Bonds[jj]]+=1.0;
 
               vec.x=TrialPositions[0][jjopen].x-TrialPositions[0][CurrentBead].x;
               vec.y=TrialPositions[0][jjopen].y-TrialPositions[0][CurrentBead].y;
@@ -1915,7 +1915,7 @@ int GenerateTrialOrientationsMCScheme(int Old)
               BondLengthOld=sqrt(SQR(vec.x)+SQR(vec.y)+SQR(vec.z));
 
               BondLengthNew=BondLengthOld+(2.0*RandomNumber()-1.0)*
-                   Components[CurrentComponent].RMAX0[CurrentSystem][jjopen];
+                   Components[CurrentComponent].MaximumCBMCChangeBondLength[CurrentSystem][jjopen];
               TrialPositions[0][jjopen].x=TrialPositions[0][CurrentBead].x+(BondLengthNew/BondLengthOld)*vec.x;
               TrialPositions[0][jjopen].y=TrialPositions[0][CurrentBead].y+(BondLengthNew/BondLengthOld)*vec.y;
               TrialPositions[0][jjopen].z=TrialPositions[0][CurrentBead].z+(BondLengthNew/BondLengthOld)*vec.z;
@@ -1944,7 +1944,7 @@ int GenerateTrialOrientationsMCScheme(int Old)
 
               if(RandomNumber()<SQR(BondLengthNew/BondLengthOld)*exp(-Beta[CurrentSystem]*(newbond+newureybradley+newinversionbend+newimpropertorsion)))
               {
-                Components[CurrentComponent].ACSBOND[CurrentSystem][Bonds[jj]]+=1.0;
+                Components[CurrentComponent].CBMCChangeBondLengthAccepted[CurrentSystem][Bonds[jj]]+=1.0;
                 eobond[jj]=enbond[jj];
                 eoureybradley[jj]=enureybradley[jj];
                 for(j=0;j<NumberOfInversionBends;j++)
@@ -2001,10 +2001,10 @@ int GenerateTrialOrientationsMCScheme(int Old)
               SinusOld=sin(CalculateAngle2(PreviousBead,CurrentBead,CurrentGroup,0));
             }
 
-            Components[CurrentComponent].ACNBEND[CurrentSystem][CurrentBead]+=1.0;
+            Components[CurrentComponent].CBMCChangeBendAngleAttempts[CurrentSystem][CurrentBead]+=1.0;
 
             RotationAroundXYZAxis(perpen[jj],cord,NumberOfBranchAtoms[jj],(2.0*RandomNumber()-1.0)*
-                 Components[CurrentComponent].RMAX1[CurrentSystem][CurrentBead]);
+                 Components[CurrentComponent].MaximumCBMCChangeBendAngle[CurrentSystem][CurrentBead]);
 
             for(i=0;i<NumberOfBranchAtoms[jj];i++)
             {
@@ -2053,7 +2053,7 @@ int GenerateTrialOrientationsMCScheme(int Old)
 
             if(RandomNumber()<((SinusNew/SinusOld)*exp(-Beta[CurrentSystem]*(newbend+newureybradley+newinversionbend+newimpropertorsion))))
             {
-              Components[CurrentComponent].ACSBEND[CurrentSystem][CurrentBead]+=1.0;
+              Components[CurrentComponent].CBMCChangeBendAngleAccepted[CurrentSystem][CurrentBead]+=1.0;
 
               for(j=0;j<NumberOfBonds;j++)
                 eobond[jj]=enbond[jj];
@@ -2092,10 +2092,10 @@ int GenerateTrialOrientationsMCScheme(int Old)
               cord[i].z=TrialPositions[0][jjopen].z-TrialPositions[0][CurrentBead].z;
             }
 
-            Components[CurrentComponent].ACNTRS[CurrentSystem][CurrentBead]+=1.0;
+            Components[CurrentComponent].CBMCRotationOnConeAttempts[CurrentSystem][CurrentBead]+=1.0;
 
             RotationAroundXYZAxis(prev_vec,cord,NumberOfBranchAtoms[jj],(2.0*RandomNumber()-1.0)*
-                 Components[CurrentComponent].RMAX2[CurrentSystem][CurrentBead]);
+                 Components[CurrentComponent].MaximumCBMCRotationOnCone[CurrentSystem][CurrentBead]);
 
             for(i=0;i<NumberOfBranchAtoms[jj];i++)
             {
@@ -2137,7 +2137,7 @@ int GenerateTrialOrientationsMCScheme(int Old)
 
             if(RandomNumber()<exp(-Beta[CurrentSystem]*(newbend+newureybradley+newinversionbend+newimpropertorsion)))
             {
-              Components[CurrentComponent].ACSTRS[CurrentSystem][CurrentBead]+=1.0;
+              Components[CurrentComponent].CBMCRotationOnConeAccepted[CurrentSystem][CurrentBead]+=1.0;
 
               for(j=0;j<NumberOfBends;j++)
                 eobend[j]=enbend[j];
@@ -3399,53 +3399,53 @@ void RescaleMaximumRotationAnglesSmallMC(void)
   {
     for(j=0;j<Components[i].NumberOfAtoms;j++)
     {
-      if (Components[i].ACNBOND[CurrentSystem][j]>5000.0)
+      if(Components[i].CBMCChangeBondLengthAttempts[CurrentSystem][j]>5000.0)
       {
-        rm=(1.0/TargetAccRatioSmallMCScheme)*Components[i].ACSBOND[CurrentSystem][j]/
-           Components[i].ACNBOND[CurrentSystem][j];
+        rm=(1.0/TargetAccRatioSmallMCScheme)*Components[i].CBMCChangeBondLengthAccepted[CurrentSystem][j]/
+           Components[i].CBMCChangeBondLengthAttempts[CurrentSystem][j];
         if (rm>2.0) rm=2.0;
         else if (rm<0.5) rm=0.5;
-        Components[i].RMAX0[CurrentSystem][j]=rm*Components[i].RMAX0[CurrentSystem][j];
-        Components[i].acn0[CurrentSystem][j]+=Components[i].ACNBOND[CurrentSystem][j];
-        Components[i].acs0[CurrentSystem][j]+=Components[i].ACSBOND[CurrentSystem][j];
-        Components[i].ACNBOND[CurrentSystem][j]=0.0;
-        Components[i].ACSBOND[CurrentSystem][j]=0.0;
-        if(Components[i].RMAX0[CurrentSystem][j]>0.5) Components[i].RMAX0[CurrentSystem][j]=0.5;
-        if(Components[i].RMAX0[CurrentSystem][j]<0.01) Components[i].RMAX0[CurrentSystem][j]=0.01;
+        Components[i].MaximumCBMCChangeBondLength[CurrentSystem][j]=rm*Components[i].MaximumCBMCChangeBondLength[CurrentSystem][j];
+        Components[i].TotalCBMCChangeBondLengthAttempts[CurrentSystem][j]+=Components[i].CBMCChangeBondLengthAttempts[CurrentSystem][j];
+        Components[i].TotalCBMCChangeBondLengthAccepted[CurrentSystem][j]+=Components[i].CBMCChangeBondLengthAccepted[CurrentSystem][j];
+        Components[i].CBMCChangeBondLengthAttempts[CurrentSystem][j]=0.0;
+        Components[i].CBMCChangeBondLengthAccepted[CurrentSystem][j]=0.0;
+        if(Components[i].MaximumCBMCChangeBondLength[CurrentSystem][j]>0.5) Components[i].MaximumCBMCChangeBondLength[CurrentSystem][j]=0.5;
+        if(Components[i].MaximumCBMCChangeBondLength[CurrentSystem][j]<0.01) Components[i].MaximumCBMCChangeBondLength[CurrentSystem][j]=0.01;
       }
     }
 
     for(j=0;j<Components[i].NumberOfAtoms;j++)
     {
-      if (Components[i].ACNBEND[CurrentSystem][j]>5000.0)
+      if(Components[i].CBMCChangeBendAngleAttempts[CurrentSystem][j]>5000.0)
       {
-        rm=(1.0/TargetAccRatioSmallMCScheme)*Components[i].ACSBEND[CurrentSystem][j]/
-           Components[i].ACNBEND[CurrentSystem][j];
+        rm=(1.0/TargetAccRatioSmallMCScheme)*Components[i].CBMCChangeBendAngleAccepted[CurrentSystem][j]/
+           Components[i].CBMCChangeBendAngleAttempts[CurrentSystem][j];
         if (rm>2.0) rm=2.0;
         else if (rm<0.5) rm=0.5;
-        Components[i].RMAX1[CurrentSystem][j]=rm*Components[i].RMAX1[CurrentSystem][j];
-        Components[i].acn1[CurrentSystem][j]+=Components[i].ACNBEND[CurrentSystem][j];
-        Components[i].acs1[CurrentSystem][j]+=Components[i].ACSBEND[CurrentSystem][j];
-        Components[i].ACNBEND[CurrentSystem][j]=0.0;
-        Components[i].ACSBEND[CurrentSystem][j]=0.0;
-        if(Components[i].RMAX1[CurrentSystem][j]>M_PI) Components[i].RMAX1[CurrentSystem][j]=M_PI;
+        Components[i].MaximumCBMCChangeBendAngle[CurrentSystem][j]=rm*Components[i].MaximumCBMCChangeBendAngle[CurrentSystem][j];
+        Components[i].TotalCBMCChangeBendAngleAttempts[CurrentSystem][j]+=Components[i].CBMCChangeBendAngleAttempts[CurrentSystem][j];
+        Components[i].TotalCBMCChangeBendAngleAccepted[CurrentSystem][j]+=Components[i].CBMCChangeBendAngleAccepted[CurrentSystem][j];
+        Components[i].CBMCChangeBendAngleAttempts[CurrentSystem][j]=0.0;
+        Components[i].CBMCChangeBendAngleAccepted[CurrentSystem][j]=0.0;
+        if(Components[i].MaximumCBMCChangeBendAngle[CurrentSystem][j]>M_PI) Components[i].MaximumCBMCChangeBendAngle[CurrentSystem][j]=M_PI;
       }
     }
 
     for(j=0;j<Components[i].NumberOfAtoms;j++)
     {
-      if (Components[i].ACNTRS[CurrentSystem][j]>5000.0)
+      if(Components[i].CBMCRotationOnConeAttempts[CurrentSystem][j]>5000.0)
       {
-        rm=(1.0/TargetAccRatioSmallMCScheme)*Components[i].ACSTRS[CurrentSystem][j]/
-           Components[i].ACNTRS[CurrentSystem][j];
-        if (rm>2.0) rm = 2.0;
+        rm=(1.0/TargetAccRatioSmallMCScheme)*Components[i].CBMCRotationOnConeAccepted[CurrentSystem][j]/
+           Components[i].CBMCRotationOnConeAttempts[CurrentSystem][j];
+        if (rm>2.0) rm=2.0;
         else if(rm<0.5) rm=0.5;
-        Components[i].RMAX2[CurrentSystem][j]=rm*Components[i].RMAX2[CurrentSystem][j];
-        Components[i].acn2[CurrentSystem][j]+=Components[i].ACNTRS[CurrentSystem][j];
-        Components[i].acs2[CurrentSystem][j]+=Components[i].ACSTRS[CurrentSystem][j];
-        Components[i].ACNTRS[CurrentSystem][j]=0.0;
-        Components[i].ACSTRS[CurrentSystem][j]=0.0;
-        if(Components[i].RMAX2[CurrentSystem][j]>M_PI) Components[i].RMAX2[CurrentSystem][j]=M_PI;
+        Components[i].MaximumCBMCRotationOnCone[CurrentSystem][j]=rm*Components[i].MaximumCBMCRotationOnCone[CurrentSystem][j];
+        Components[i].TotalCBMCRotationOnConeAttempts[CurrentSystem][j]+=Components[i].CBMCRotationOnConeAttempts[CurrentSystem][j];
+        Components[i].TotalCBMCRotationOnConeAccepted[CurrentSystem][j]+=Components[i].CBMCRotationOnConeAccepted[CurrentSystem][j];
+        Components[i].CBMCRotationOnConeAttempts[CurrentSystem][j]=0.0;
+        Components[i].CBMCRotationOnConeAccepted[CurrentSystem][j]=0.0;
+        if(Components[i].MaximumCBMCRotationOnCone[CurrentSystem][j]>M_PI) Components[i].MaximumCBMCRotationOnCone[CurrentSystem][j]=M_PI;
       }
     }
   }
@@ -3459,28 +3459,29 @@ void InitializeSmallMCStatisticsAllSystems(void)
     for(j=0;j<Components[i].NumberOfAtoms;j++)
       for(k=0;k<NumberOfSystems;k++)
       {
-        Components[i].acn0[k][j]=0.0;
-        Components[i].acs0[k][j]=0.0;
-        Components[i].acn1[k][j]=0.0;
-        Components[i].acs1[k][j]=0.0;
-        Components[i].acn2[k][j]=0.0;
-        Components[i].acs2[k][j]=0.0;
-        Components[i].ACNALL[k][j]=0.0;
-        Components[i].ACSALL[k][j]=0.0; 
-        Components[i].ACNBOND[k][j]=0.0;
-        Components[i].ACSBOND[k][j]=0.0;
-        Components[i].ACNBEND[k][j]=0.0;
-        Components[i].ACSBEND[k][j]=0.0;
-        Components[i].ACNTRS[k][j]=0.0;
-        Components[i].ACSTRS[k][j]=0.0;
+        Components[i].TotalCBMCChangeBondLengthAttempts[k][j]=0.0;
+        Components[i].TotalCBMCChangeBondLengthAccepted[k][j]=0.0;
+        Components[i].TotalCBMCChangeBendAngleAttempts[k][j]=0.0;
+        Components[i].TotalCBMCChangeBendAngleAccepted[k][j]=0.0;
+        Components[i].TotalCBMCRotationOnConeAttempts[k][j]=0.0;
+        Components[i].TotalCBMCRotationOnConeAccepted[k][j]=0.0;
+        Components[i].CBMCChangeBondLengthAttempts[k][j]=0.0;
+        Components[i].CBMCChangeBondLengthAccepted[k][j]=0.0;
+        Components[i].CBMCChangeBendAngleAttempts[k][j]=0.0;
+        Components[i].CBMCChangeBendAngleAccepted[k][j]=0.0;
+        Components[i].CBMCRotationOnConeAttempts[k][j]=0.0;
+        Components[i].CBMCRotationOnConeAccepted[k][j]=0.0;
       }
 }
 
 void PrintSmallMCAddStatistics(FILE *FilePtr)
 {
   int i,j;
+  REAL LengthChangeAcceptance;
+  REAL BendAngleChangeAcceptance;
+  REAL RotationOnConeChangeAcceptance;
 
-  fprintf(FilePtr,"Performance of the small-mc scheme\n");
+  fprintf(FilePtr,"Performance of the small-MC scheme\n");
   fprintf(FilePtr,"==================================\n");
   fprintf(FilePtr,"\n");
   for(i=0;i<NumberOfComponents;i++)
@@ -3489,38 +3490,37 @@ void PrintSmallMCAddStatistics(FILE *FilePtr)
     fprintf(FilePtr,"----------------------------------------------\n");
     for(j=0;j<Components[i].NumberOfAtoms;j++)
     {
-      if(Components[i].acn0[CurrentSystem][j]>0.5)
-        Components[i].acn0[CurrentSystem][j]=100.0*Components[i].acs0[CurrentSystem][j]/
-                                             Components[i].acn0[CurrentSystem][j];
+      if(Components[i].TotalCBMCChangeBondLengthAttempts[CurrentSystem][j]>0.5)
+        LengthChangeAcceptance=100.0*Components[i].TotalCBMCChangeBondLengthAccepted[CurrentSystem][j]/Components[i].TotalCBMCChangeBondLengthAttempts[CurrentSystem][j];
       else
-        Components[i].acn0[CurrentSystem][j]=0.0;
+        LengthChangeAcceptance=0.0;
 
-      if(Components[i].acn1[CurrentSystem][j]>0.5)
-        Components[i].acn1[CurrentSystem][j]=100.0*Components[i].acs1[CurrentSystem][j]/
-                                             Components[i].acn1[CurrentSystem][j];
+      if(Components[i].TotalCBMCChangeBendAngleAttempts[CurrentSystem][j]>0.5)
+        BendAngleChangeAcceptance=100.0*Components[i].TotalCBMCChangeBendAngleAccepted[CurrentSystem][j]/Components[i].TotalCBMCChangeBendAngleAttempts[CurrentSystem][j];
       else
-        Components[i].acn1[CurrentSystem][j]=0.0;
+        BendAngleChangeAcceptance=0.0;
 
-      if(Components[i].acn2[CurrentSystem][j]>0.5)
-        Components[i].acn2[CurrentSystem][j]=100.0*Components[i].acs2[CurrentSystem][j]/
-                                             Components[i].acn2[CurrentSystem][j];
+      if(Components[i].TotalCBMCRotationOnConeAttempts[CurrentSystem][j]>0.5)
+        RotationOnConeChangeAcceptance=100.0*Components[i].TotalCBMCRotationOnConeAccepted[CurrentSystem][j]/Components[i].TotalCBMCRotationOnConeAttempts[CurrentSystem][j];
       else
-        Components[i].acn2[CurrentSystem][j]=0.0;
-
-      if(Components[i].ACNALL[CurrentSystem][j]>0.5)
-        Components[i].ACNALL[CurrentSystem][j]=100.0*Components[i].ACSALL[CurrentSystem][j]/
-                                               Components[i].ACNALL[CurrentSystem][j];
-      else
-        Components[i].ACNALL[CurrentSystem][j]=0.0;
+        RotationOnConeChangeAcceptance=0.0;
 
       fprintf(FilePtr,"Bead: %d\n",j);
-      fprintf(FilePtr,"\tmaximum length change                         : %lf\n",(double)Components[i].RMAX0[CurrentSystem][j]);
-      fprintf(FilePtr,"\tmaximum rotation angle for cone angle         : %lf\n",(double)Components[i].RMAX1[CurrentSystem][j]);
-      fprintf(FilePtr,"\tmaximum rotation angle for position on a cone : %lf\n",(double)Components[i].RMAX2[CurrentSystem][j]);
-      fprintf(FilePtr,"\tlength change acceptence ratio                : %lf [%%]\n",(double)Components[i].acn0[CurrentSystem][j]);
-      fprintf(FilePtr,"\trotation cone angle acceptence ratio          : %lf [%%]\n",(double)Components[i].acn1[CurrentSystem][j]);
-      fprintf(FilePtr,"\trotation angle cone position acceptence ratio : %lf [%%]\n",(double)Components[i].acn2[CurrentSystem][j]);
-      fprintf(FilePtr,"\toverall acceptence ratio                      : %lf [%%]\n",(double)Components[i].ACNALL[CurrentSystem][j]);
+      if(Components[i].Connectivity[j]>0)
+      {
+        fprintf(FilePtr,"\tmaximum bond length change          : %lf\n",(double)Components[i].MaximumCBMCChangeBondLength[CurrentSystem][j]);
+        fprintf(FilePtr,"\tbond length change acceptence       : %lf [%%]\n",(double)LengthChangeAcceptance);
+      }
+      if(Components[i].Connectivity[j]>=2)
+      {
+        fprintf(FilePtr,"\tmaximum change bend angle           : %lf\n",(double)Components[i].MaximumCBMCChangeBendAngle[CurrentSystem][j]);
+        fprintf(FilePtr,"\tchange bend angle acceptence        : %lf [%%]\n",(double)BendAngleChangeAcceptance);
+      }
+      if(Components[i].Connectivity[j]>2)
+      {
+        fprintf(FilePtr,"\tmaximum rotation on a cone angle    : %lf\n",(double)Components[i].MaximumCBMCRotationOnCone[CurrentSystem][j]);
+        fprintf(FilePtr,"\trotation on a cone angle acceptence : %lf [%%]\n",(double)RotationOnConeChangeAcceptance);
+      }
       fprintf(FilePtr,"\n");
     }
   }

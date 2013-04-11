@@ -281,6 +281,8 @@ REAL PotentialValueCoulombic(REAL chargeA,REAL chargeB,REAL r);
 REAL PotentialValueChargeBondDipole(REAL chargeA,VECTOR dipoleB,VECTOR dr,REAL r);
 REAL PotentialValueBondDipoleBondDipole(VECTOR dipoleA,VECTOR dipoleB,VECTOR dr,REAL r);
 
+void PotentialGradientCoulombic(REAL chargeA,REAL chargeB,REAL rr,REAL *energy,REAL *force_factor);
+
 void WriteTinkerParameterFile(void);
 void WriteTinkerKeyFile(void);
 

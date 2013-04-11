@@ -566,23 +566,21 @@ typedef struct Component
   int LMCMOL;
   VECTOR *RMCMOL;
 
-  REAL **RMAX0;       // maximum rotation angle for cone angle
-  REAL **RMAX1;       // maximum rotation angle for cone angle
-  REAL **RMAX2;       // maximum rotation angle for position on a cone
-  REAL **ACNBOND;     // performance for choise=0
-  REAL **ACSBOND;     // performance for choise=0
-  REAL **ACNBEND;     // performance for choise=1
-  REAL **ACSBEND;     // performance for choise=1
-  REAL **ACNTRS;      // performance for choise=2
-  REAL **ACSTRS;      // performance for choise=2
-  REAL **ACNALL;      // performance for choise=3
-  REAL **ACSALL;      // performance for choise=3
-  REAL **acn0;
-  REAL **acn1;
-  REAL **acn2;
-  REAL **acs0;
-  REAL **acs1;
-  REAL **acs2;
+  REAL **MaximumCBMCChangeBondLength;       // maximum rotation angle for cone angle
+  REAL **MaximumCBMCChangeBendAngle;       // maximum rotation angle for cone angle
+  REAL **MaximumCBMCRotationOnCone;       // maximum rotation angle for position on a cone
+  REAL **CBMCChangeBondLengthAttempts;     // performance for choise=0
+  REAL **CBMCChangeBondLengthAccepted;     // performance for choise=0
+  REAL **CBMCChangeBendAngleAttempts;     // performance for choise=1
+  REAL **CBMCChangeBendAngleAccepted;     // performance for choise=1
+  REAL **CBMCRotationOnConeAttempts;      // performance for choise=2
+  REAL **CBMCRotationOnConeAccepted;      // performance for choise=2
+  REAL **TotalCBMCChangeBondLengthAttempts;
+  REAL **TotalCBMCChangeBendAngleAttempts;
+  REAL **TotalCBMCRotationOnConeAttempts;
+  REAL **TotalCBMCChangeBondLengthAccepted;
+  REAL **TotalCBMCChangeBendAngleAccepted;
+  REAL **TotalCBMCRotationOnConeAccepted;
 } COMPONENT;
 
 extern int NumberOfComponents;

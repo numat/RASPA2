@@ -942,12 +942,10 @@ int CalculateTotalInterChargeChargeCoulombForce(void)
 {
   int i,j,k,l;
   int typeA,typeB;
-  REAL r,rr;
+  REAL rr;
   REAL chargeA,chargeB;
   REAL U,force_factor;
   VECTOR posA,posB,dr,f;
-  REAL SwitchingValueDerivative,SwitchingValue;
-  REAL TranslationValue,TranslationValueDerivative;
   REAL UWolfCorrection,NetChargeB;
   REAL scalingA,scalingB;
 
@@ -984,71 +982,15 @@ int CalculateTotalInterChargeChargeCoulombForce(void)
 
             if(rr<CutOffChargeChargeSquared)
             {
-              r=sqrt(rr);
               typeB=Adsorbates[CurrentSystem][j].Atoms[l].Type;
               scalingB=Adsorbates[CurrentSystem][j].Atoms[l].CFChargeScalingParameter;
               chargeB=scalingB*Adsorbates[CurrentSystem][j].Atoms[l].Charge;
 
-              switch(ChargeMethod)
-              {
-                case NONE:
-                  force_factor=0.0;
-                  break;
-                case TRUNCATED_COULOMB:
-                  UAdsorbateAdsorbateChargeChargeReal[CurrentSystem]+=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB/r;
-                  force_factor=-COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB/(rr*r);
-                  break;
-                case SHIFTED_COULOMB:
-                  UAdsorbateAdsorbateChargeChargeReal[CurrentSystem]+=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-InverseCutOffChargeCharge);
-                  force_factor=-COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB/(rr*r);
-                  break;
-                case SMOOTHED_COULOMB:
-                  U=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-2.0/(CutOffChargeChargeSwitch+CutOffChargeCharge));
-                  force_factor=-COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB/rr;
-                  if(rr>CutOffChargeChargeSwitchSquared)
-                  {
-                    SwitchingValue=SwitchingChargeChargeFactors5[5]*(rr*rr*r)+SwitchingChargeChargeFactors5[4]*(rr*rr)+SwitchingChargeChargeFactors5[3]*(rr*r)+
-                                   SwitchingChargeChargeFactors5[2]*rr+SwitchingChargeChargeFactors5[1]*r+SwitchingChargeChargeFactors5[0];
-                    SwitchingValueDerivative=5.0*SwitchingChargeChargeFactors5[5]*rr*rr+4.0*SwitchingChargeChargeFactors5[4]*rr*r+3.0*SwitchingChargeChargeFactors5[3]*rr+
-                                             2.0*SwitchingChargeChargeFactors5[2]*r+SwitchingChargeChargeFactors5[1];
 
-                    TranslationValue=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*
-                                   (SwitchingChargeChargeFactors7[7]*(rr*rr*rr*r)+SwitchingChargeChargeFactors7[6]*(rr*rr*rr)+
-                                    SwitchingChargeChargeFactors7[5]*(rr*rr*r)+SwitchingChargeChargeFactors7[4]*(rr*rr)+SwitchingChargeChargeFactors7[3]*(rr*r)+
-                                    SwitchingChargeChargeFactors7[2]*rr+SwitchingChargeChargeFactors7[1]*r+SwitchingChargeChargeFactors7[0]);
-                    TranslationValueDerivative=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*
-                                             (7.0*SwitchingChargeChargeFactors7[7]*rr*rr*rr+6.0*SwitchingChargeChargeFactors7[6]*rr*rr*r+
-                                              5.0*SwitchingChargeChargeFactors7[5]*rr*rr+4.0*SwitchingChargeChargeFactors7[4]*rr*r+3.0*SwitchingChargeChargeFactors7[3]*rr+
-                                              2.0*SwitchingChargeChargeFactors7[2]*r+SwitchingChargeChargeFactors7[1]);
-                    force_factor=U*SwitchingValueDerivative+force_factor*SwitchingValue+TranslationValueDerivative;
-                    U=U*SwitchingValue+TranslationValue;
-                  }
-                  UAdsorbateAdsorbateChargeChargeReal[CurrentSystem]+=U;
-                  force_factor/=r;
-                  break;
-                case WOLFS_METHOD_DAMPED_FG:
-                  UAdsorbateAdsorbateChargeChargeReal[CurrentSystem]+=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(erfc(Alpha[CurrentSystem]*r)/r
-                           -erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*InverseCutOffChargeCharge+
-                            (r-CutOffChargeCharge)*(erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*SQR(InverseCutOffChargeCharge)+
-                            (2.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*CutOffChargeChargeSquared)*M_1_SQRTPI*InverseCutOffChargeCharge)));
-                  force_factor=-COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(erfc(Alpha[CurrentSystem]*r)/rr+
-                                 2.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*rr)*M_1_SQRTPI/r
-                                -(erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*SQR(InverseCutOffChargeCharge)+
-                                  2.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*CutOffChargeChargeSquared)*M_1_SQRTPI*InverseCutOffChargeCharge))/r;
-                  break;
-                case EWALD:
-                  UAdsorbateAdsorbateChargeChargeReal[CurrentSystem]+=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*
-                                          (erfc(Alpha[CurrentSystem]*r)/r);
+              PotentialGradientCoulombic(chargeA,chargeB,rr,&U,&force_factor);
 
-                  force_factor=-COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*
-                        (erfc(Alpha[CurrentSystem]*r)+2.0*Alpha[CurrentSystem]*r*exp(-SQR(Alpha[CurrentSystem])*rr)/sqrt(M_PI))/
-                        (r*rr);
-                  break;
-                default:
-                  printf("Unknown charge-method in 'CalculateTotalInterChargeChargeCoulombForce'\n");
-                  exit(0);
-                  break;
-              }
+              // add energy
+              UAdsorbateAdsorbateChargeChargeReal[CurrentSystem]+=U;
 
               // forces
               f.x=force_factor*dr.x;
@@ -1099,68 +1041,10 @@ int CalculateTotalInterChargeChargeCoulombForce(void)
               scalingB=Cations[CurrentSystem][j].Atoms[l].CFChargeScalingParameter;
               chargeB=scalingB*Cations[CurrentSystem][j].Atoms[l].Charge;
 
-              r=sqrt(rr);
+              PotentialGradientCoulombic(chargeA,chargeB,rr,&U,&force_factor);
 
-              switch(ChargeMethod)
-              {
-                case NONE:
-                  force_factor=0.0;
-                  break;
-                case TRUNCATED_COULOMB:
-                  UAdsorbateCationChargeChargeReal[CurrentSystem]+=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB/r;
-                  force_factor=-COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB/(rr*r);
-                  break;
-                case SHIFTED_COULOMB:
-                  UAdsorbateCationChargeChargeReal[CurrentSystem]+=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-InverseCutOffChargeCharge);
-                  force_factor=-COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB/(rr*r);
-                  break;
-                case SMOOTHED_COULOMB:
-                  U=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-2.0/(CutOffChargeChargeSwitch+CutOffChargeCharge));
-                  force_factor=-COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB/rr;
-                  if(rr>CutOffChargeChargeSwitchSquared)
-                  {
-                    SwitchingValue=SwitchingChargeChargeFactors5[5]*(rr*rr*r)+SwitchingChargeChargeFactors5[4]*(rr*rr)+SwitchingChargeChargeFactors5[3]*(rr*r)+
-                                   SwitchingChargeChargeFactors5[2]*rr+SwitchingChargeChargeFactors5[1]*r+SwitchingChargeChargeFactors5[0];
-                    SwitchingValueDerivative=5.0*SwitchingChargeChargeFactors5[5]*rr*rr+4.0*SwitchingChargeChargeFactors5[4]*rr*r+3.0*SwitchingChargeChargeFactors5[3]*rr+
-                                             2.0*SwitchingChargeChargeFactors5[2]*r+SwitchingChargeChargeFactors5[1];
-
-                    TranslationValue=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*
-                                   (SwitchingChargeChargeFactors7[7]*(rr*rr*rr*r)+SwitchingChargeChargeFactors7[6]*(rr*rr*rr)+
-                                    SwitchingChargeChargeFactors7[5]*(rr*rr*r)+SwitchingChargeChargeFactors7[4]*(rr*rr)+SwitchingChargeChargeFactors7[3]*(rr*r)+
-                                    SwitchingChargeChargeFactors7[2]*rr+SwitchingChargeChargeFactors7[1]*r+SwitchingChargeChargeFactors7[0]);
-                    TranslationValueDerivative=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*
-                                             (7.0*SwitchingChargeChargeFactors7[7]*rr*rr*rr+6.0*SwitchingChargeChargeFactors7[6]*rr*rr*r+
-                                              5.0*SwitchingChargeChargeFactors7[5]*rr*rr+4.0*SwitchingChargeChargeFactors7[4]*rr*r+3.0*SwitchingChargeChargeFactors7[3]*rr+
-                                              2.0*SwitchingChargeChargeFactors7[2]*r+SwitchingChargeChargeFactors7[1]);
-                    force_factor=U*SwitchingValueDerivative+force_factor*SwitchingValue+TranslationValueDerivative;
-                    U=U*SwitchingValue+TranslationValue;
-                  }
-                  UAdsorbateCationChargeChargeReal[CurrentSystem]+=U;
-                  force_factor/=r;
-                  break;
-                case WOLFS_METHOD_DAMPED_FG:
-                  UAdsorbateCationChargeChargeReal[CurrentSystem]+=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(erfc(Alpha[CurrentSystem]*r)/r
-                           -erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*InverseCutOffChargeCharge+
-                            (r-CutOffChargeCharge)*(erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*SQR(InverseCutOffChargeCharge)+
-                            (2.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*CutOffChargeChargeSquared)*M_1_SQRTPI*InverseCutOffChargeCharge)));
-                  force_factor=-COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(erfc(Alpha[CurrentSystem]*r)/rr+
-                                 2.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*rr)*M_1_SQRTPI/r
-                                -(erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*SQR(InverseCutOffChargeCharge)+
-                                  2.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*CutOffChargeChargeSquared)*M_1_SQRTPI*InverseCutOffChargeCharge))/r;
-                  break;
-                case EWALD:
-                  UAdsorbateCationChargeChargeReal[CurrentSystem]+=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*
-                                       (erfc(Alpha[CurrentSystem]*r)/r);
-
-                  force_factor=-COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*
-                         (erfc(Alpha[CurrentSystem]*r)+2.0*Alpha[CurrentSystem]*r*exp(-SQR(Alpha[CurrentSystem])*rr)/sqrt(M_PI))/
-                         (r*rr);
-                 break;
-               default:
-                 printf("Unknown charge-method in 'CalculateTotalInterChargeChargeCoulombForce'\n");
-                 exit(0);
-                 break;
-              }
+              // add energy
+              UAdsorbateCationChargeChargeReal[CurrentSystem]+=U;
 
               // forces
               f.x=force_factor*dr.x;
@@ -1223,67 +1107,10 @@ int CalculateTotalInterChargeChargeCoulombForce(void)
               scalingB=Cations[CurrentSystem][j].Atoms[l].CFChargeScalingParameter;
               chargeB=scalingB*Cations[CurrentSystem][j].Atoms[l].Charge;
 
-              r=sqrt(rr);
+              PotentialGradientCoulombic(chargeA,chargeB,rr,&U,&force_factor);
 
-              switch(ChargeMethod)
-              {
-                case NONE:
-                  force_factor=0.0;
-                  break;
-                case TRUNCATED_COULOMB:
-                  UCationCationChargeChargeReal[CurrentSystem]+=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB/r;
-                  force_factor=-COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB/(rr*r);
-                  break;
-                case SHIFTED_COULOMB:
-                  UCationCationChargeChargeReal[CurrentSystem]+=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-InverseCutOffChargeCharge);
-                  force_factor=-COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB/(rr*r);
-                  break;
-                case SMOOTHED_COULOMB:
-                  U=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-2.0/(CutOffChargeChargeSwitch+CutOffChargeCharge));
-                  force_factor=-COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB/rr;
-                  if(rr>CutOffChargeChargeSwitchSquared)
-                  {
-                    SwitchingValue=SwitchingChargeChargeFactors5[5]*(rr*rr*r)+SwitchingChargeChargeFactors5[4]*(rr*rr)+SwitchingChargeChargeFactors5[3]*(rr*r)+
-                                   SwitchingChargeChargeFactors5[2]*rr+SwitchingChargeChargeFactors5[1]*r+SwitchingChargeChargeFactors5[0];
-                    SwitchingValueDerivative=5.0*SwitchingChargeChargeFactors5[5]*rr*rr+4.0*SwitchingChargeChargeFactors5[4]*rr*r+3.0*SwitchingChargeChargeFactors5[3]*rr+
-                                             2.0*SwitchingChargeChargeFactors5[2]*r+SwitchingChargeChargeFactors5[1];
-
-                    TranslationValue=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*
-                                   (SwitchingChargeChargeFactors7[7]*(rr*rr*rr*r)+SwitchingChargeChargeFactors7[6]*(rr*rr*rr)+
-                                    SwitchingChargeChargeFactors7[5]*(rr*rr*r)+SwitchingChargeChargeFactors7[4]*(rr*rr)+SwitchingChargeChargeFactors7[3]*(rr*r)+
-                                    SwitchingChargeChargeFactors7[2]*rr+SwitchingChargeChargeFactors7[1]*r+SwitchingChargeChargeFactors7[0]);
-                    TranslationValueDerivative=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*
-                                             (7.0*SwitchingChargeChargeFactors7[7]*rr*rr*rr+6.0*SwitchingChargeChargeFactors7[6]*rr*rr*r+
-                                              5.0*SwitchingChargeChargeFactors7[5]*rr*rr+4.0*SwitchingChargeChargeFactors7[4]*rr*r+3.0*SwitchingChargeChargeFactors7[3]*rr+
-                                              2.0*SwitchingChargeChargeFactors7[2]*r+SwitchingChargeChargeFactors7[1]);
-                    force_factor=U*SwitchingValueDerivative+force_factor*SwitchingValue+TranslationValueDerivative;
-                    U=U*SwitchingValue+TranslationValue;
-                  }
-                  UCationCationChargeChargeReal[CurrentSystem]+=U;
-                  force_factor/=r;
-                  break;
-                case WOLFS_METHOD_DAMPED_FG:
-                  UCationCationChargeChargeReal[CurrentSystem]+=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(erfc(Alpha[CurrentSystem]*r)/r
-                           -erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*InverseCutOffChargeCharge+
-                            (r-CutOffChargeCharge)*(erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*SQR(InverseCutOffChargeCharge)+
-                            (2.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*CutOffChargeChargeSquared)*M_1_SQRTPI*InverseCutOffChargeCharge)));
-                  force_factor=-COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(erfc(Alpha[CurrentSystem]*r)/rr+
-                                 2.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*rr)*M_1_SQRTPI/r
-                                -(erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*SQR(InverseCutOffChargeCharge)+
-                                  2.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*CutOffChargeChargeSquared)*M_1_SQRTPI*InverseCutOffChargeCharge))/r;
-                  break;
-                case EWALD:
-                  UCationCationChargeChargeReal[CurrentSystem]+=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*
-                                       (erfc(Alpha[CurrentSystem]*r)/r);
-                  force_factor=-COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*
-                        (erfc(Alpha[CurrentSystem]*r)+2.0*Alpha[CurrentSystem]*r*exp(-SQR(Alpha[CurrentSystem])*rr)/sqrt(M_PI))/
-                        (r*rr);
-                  break;
-                default:
-                  printf("Unknown charge-method in 'CalculateTotalInterChargeChargeCoulombForce'\n");
-                  exit(0);
-                  break;
-              }
+              // add energy
+              UCationCationChargeChargeReal[CurrentSystem]+=U;
 
               // forces
               f.x=force_factor*dr.x;

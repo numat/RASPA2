@@ -11914,6 +11914,81 @@ REAL PotentialValueBondDipoleBondDipole(VECTOR dipoleA,VECTOR dipoleB,VECTOR dr,
   return SwitchingValue*COULOMBIC_CONVERSION_FACTOR*(Bt1*cosAB-Bt2*cosA*cosB);
 }
 
+void PotentialGradientCoulombic(REAL chargeA,REAL chargeB,REAL rr,REAL *energy,REAL *force_factor)
+{
+  REAL fcVal;
+  REAL r,U;
+  REAL SwitchingValueDerivative,SwitchingValue;
+  REAL TranslationValue,TranslationValueDerivative;
+
+  switch(ChargeMethod)
+  {
+    case NONE:
+      U=0.0;
+      fcVal=0.0;
+      break;
+    case TRUNCATED_COULOMB:
+      r=sqrt(rr);
+      U=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB/r;
+      fcVal=-COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB/(rr*r);
+      break;
+    case SHIFTED_COULOMB:
+      r=sqrt(rr);
+      U=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-InverseCutOffChargeCharge);
+      fcVal=-COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB/(rr*r);
+      break;
+    case SMOOTHED_COULOMB:
+      r=sqrt(rr);
+      U=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-2.0/(CutOffChargeChargeSwitch+CutOffChargeCharge));
+      fcVal=-COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB/rr;
+      if(rr>CutOffChargeChargeSwitchSquared)
+      {
+        SwitchingValue=SwitchingChargeChargeFactors5[5]*(rr*rr*r)+SwitchingChargeChargeFactors5[4]*(rr*rr)+SwitchingChargeChargeFactors5[3]*(rr*r)+
+                       SwitchingChargeChargeFactors5[2]*rr+SwitchingChargeChargeFactors5[1]*r+SwitchingChargeChargeFactors5[0];
+        SwitchingValueDerivative=5.0*SwitchingChargeChargeFactors5[5]*rr*rr+4.0*SwitchingChargeChargeFactors5[4]*rr*r+3.0*SwitchingChargeChargeFactors5[3]*rr+
+                                 2.0*SwitchingChargeChargeFactors5[2]*r+SwitchingChargeChargeFactors5[1];
+
+        TranslationValue=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*
+                       (SwitchingChargeChargeFactors7[7]*(rr*rr*rr*r)+SwitchingChargeChargeFactors7[6]*(rr*rr*rr)+
+                        SwitchingChargeChargeFactors7[5]*(rr*rr*r)+SwitchingChargeChargeFactors7[4]*(rr*rr)+SwitchingChargeChargeFactors7[3]*(rr*r)+
+                        SwitchingChargeChargeFactors7[2]*rr+SwitchingChargeChargeFactors7[1]*r+SwitchingChargeChargeFactors7[0]);
+        TranslationValueDerivative=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*
+                                 (7.0*SwitchingChargeChargeFactors7[7]*rr*rr*rr+6.0*SwitchingChargeChargeFactors7[6]*rr*rr*r+
+                                  5.0*SwitchingChargeChargeFactors7[5]*rr*rr+4.0*SwitchingChargeChargeFactors7[4]*rr*r+3.0*SwitchingChargeChargeFactors7[3]*rr+
+                                  2.0*SwitchingChargeChargeFactors7[2]*r+SwitchingChargeChargeFactors7[1]);
+        fcVal=U*SwitchingValueDerivative+fcVal*SwitchingValue+TranslationValueDerivative;
+        U=U*SwitchingValue+TranslationValue;
+      }
+      fcVal/=r;
+      break;
+    case WOLFS_METHOD_DAMPED_FG:
+      r=sqrt(rr);
+      U=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(erfc(Alpha[CurrentSystem]*r)/r
+               -erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*InverseCutOffChargeCharge+
+                (r-CutOffChargeCharge)*(erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*SQR(InverseCutOffChargeCharge)+
+                (2.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*CutOffChargeChargeSquared)*M_1_SQRTPI*InverseCutOffChargeCharge)));
+      fcVal=-COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(erfc(Alpha[CurrentSystem]*r)/rr+
+             2.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*rr)*M_1_SQRTPI/r
+             -(erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*SQR(InverseCutOffChargeCharge)+
+             2.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*CutOffChargeChargeSquared)*M_1_SQRTPI*InverseCutOffChargeCharge))/r;
+      break;
+    case EWALD:
+      r=sqrt(rr);
+      U=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(erfc(Alpha[CurrentSystem]*r)/r);
+      fcVal=-COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*
+             (erfc(Alpha[CurrentSystem]*r)+2.0*Alpha[CurrentSystem]*r*exp(-SQR(Alpha[CurrentSystem])*rr)/sqrt(M_PI))/
+             (r*rr);
+     break;
+   default:
+     printf("Unknown charge-method in 'PotentialGradientCoulombic' (potentials.c)\n");
+     exit(0);
+     break;
+  }
+
+  *energy=U;
+  *force_factor=fcVal;
+}
+
 void WriteTinkerParameterFile(void)
 {
   int i,j;

@@ -337,10 +337,12 @@ QUATERNION RotationalMatrixToQuaternion(REAL_MATRIX3x3 R)
 
 void ComputeQuaternionAdsorbate(int m)
 {
+/*
   int k;
   int Type,A,B,C;
   REAL_MATRIX3x3 rot,aa,bb;
   REAL rotmin,rsq;
+  VECTOR dr;
 
   Type=Adsorbates[CurrentSystem][m].Type;
   for(k=0;k<Components[Type].NumberOfGroups;k++)
@@ -356,16 +358,24 @@ void ComputeQuaternionAdsorbate(int m)
       aa.ax=aa.ay=aa.cy=aa.by=0.0;
 
       // first row vector is A-B in space-fixed coordinates
-      aa.ax=Adsorbates[CurrentSystem][m].Atoms[A].Position.x-Adsorbates[CurrentSystem][m].Atoms[B].Position.x;
-      aa.bx=Adsorbates[CurrentSystem][m].Atoms[A].Position.y-Adsorbates[CurrentSystem][m].Atoms[B].Position.y;
-      aa.cx=Adsorbates[CurrentSystem][m].Atoms[A].Position.z-Adsorbates[CurrentSystem][m].Atoms[B].Position.z;
+      dr.x=Adsorbates[CurrentSystem][m].Atoms[A].Position.x-Adsorbates[CurrentSystem][m].Atoms[B].Position.x;
+      dr.y=Adsorbates[CurrentSystem][m].Atoms[A].Position.y-Adsorbates[CurrentSystem][m].Atoms[B].Position.y;
+      dr.z=Adsorbates[CurrentSystem][m].Atoms[A].Position.z-Adsorbates[CurrentSystem][m].Atoms[B].Position.z;
+      dr=ApplyBoundaryCondition(dr);
+      aa.ax=dr.x;
+      aa.bx=dr.y;
+      aa.cx=dr.z;
 
       // second row vector is A-C in space-fixed coordinates
       if(rotmin>1.0e-5)
       {
-        aa.ay=Adsorbates[CurrentSystem][m].Atoms[A].Position.x-Adsorbates[CurrentSystem][m].Atoms[C].Position.x;
-        aa.by=Adsorbates[CurrentSystem][m].Atoms[A].Position.y-Adsorbates[CurrentSystem][m].Atoms[C].Position.y;
-        aa.cy=Adsorbates[CurrentSystem][m].Atoms[A].Position.z-Adsorbates[CurrentSystem][m].Atoms[C].Position.z;
+        dr.x=Adsorbates[CurrentSystem][m].Atoms[A].Position.x-Adsorbates[CurrentSystem][m].Atoms[C].Position.x;
+        dr.y=Adsorbates[CurrentSystem][m].Atoms[A].Position.y-Adsorbates[CurrentSystem][m].Atoms[C].Position.y;
+        dr.z=Adsorbates[CurrentSystem][m].Atoms[A].Position.z-Adsorbates[CurrentSystem][m].Atoms[C].Position.z;
+        dr=ApplyBoundaryCondition(dr);
+        aa.ay=dr.x;
+        aa.by=dr.y;
+        aa.cy=dr.z;
       }
       else
       {
@@ -419,6 +429,122 @@ void ComputeQuaternionAdsorbate(int m)
       Adsorbates[CurrentSystem][m].Groups[k].Quaternion=RotationalMatrixToQuaternion(rot);
     }
   }
+*/
+  int k;
+  int Type,A,B,C;
+  REAL_MATRIX3x3 rot,aa,bb;
+  REAL rotmin,rsq;
+  REAL aq,bq,cq,dq,eq,fq,gq,hq;
+  QUATERNION q;
+
+  Type=Adsorbates[CurrentSystem][m].Type;
+  for(k=0;k<Components[Type].NumberOfGroups;k++)
+  {
+    if(Components[Type].Groups[k].Rigid)
+    {
+      rotmin=Components[Type].Groups[k].rot_min;
+      A=Components[Type].Groups[k].orientation.A;
+      B=Components[Type].Groups[k].orientation.B;
+      C=Components[Type].Groups[k].orientation.C;
+
+      aa.ax=aa.ay=aa.cy=aa.by=0.0;
+      aa.ax=Adsorbates[CurrentSystem][m].Atoms[A].Position.x-Adsorbates[CurrentSystem][m].Atoms[B].Position.x;
+      aa.bx=Adsorbates[CurrentSystem][m].Atoms[A].Position.y-Adsorbates[CurrentSystem][m].Atoms[B].Position.y;
+      aa.cx=Adsorbates[CurrentSystem][m].Atoms[A].Position.z-Adsorbates[CurrentSystem][m].Atoms[B].Position.z;
+
+      if(rotmin>1.0e-5)
+      {
+        aa.ay=Adsorbates[CurrentSystem][m].Atoms[A].Position.x-Adsorbates[CurrentSystem][m].Atoms[C].Position.x;
+        aa.by=Adsorbates[CurrentSystem][m].Atoms[A].Position.y-Adsorbates[CurrentSystem][m].Atoms[C].Position.y;
+        aa.cy=Adsorbates[CurrentSystem][m].Atoms[A].Position.z-Adsorbates[CurrentSystem][m].Atoms[C].Position.z;
+      }
+      else
+      {
+        rsq=sqrt(SQR(aa.ax)+SQR(aa.bx)+SQR(aa.cx));
+        if(fabs(aa.cx/rsq)>0.5)
+        {
+          rsq=sqrt(SQR(aa.bx)+SQR(aa.cx));
+          aa.ay=0.0;
+          aa.by=aa.cx/rsq;
+          aa.cy=-aa.bx/rsq;
+        }
+        else if(fabs(aa.bx/rsq)>0.5)
+        {
+          rsq=sqrt(SQR(aa.bx)+SQR(aa.ax));
+          aa.ay=-aa.bx/rsq;
+          aa.by=aa.ax/rsq;
+          aa.cy=0.0;
+        }
+        else if(fabs(aa.ax/rsq)>0.5)
+        {
+          rsq=sqrt(SQR(aa.ax)+SQR(aa.cx));
+          aa.ay=-aa.cx/rsq;
+          aa.by=0.0;
+          aa.cy=aa.ax/rsq;
+        }
+      }
+      aa.az=aa.bx*aa.cy-aa.cx*aa.by;
+      aa.bz=aa.cx*aa.ay-aa.ax*aa.cy;
+      aa.cz=aa.ax*aa.by-aa.bx*aa.ay;
+
+          // group rotational matrix
+      bb=Components[Type].Groups[k].InverseOriginalCoordinateSystem;
+      rot.ax=bb.ax*aa.ax+bb.bx*aa.ay+bb.cx*aa.az;
+      rot.ay=bb.ay*aa.ax+bb.by*aa.ay+bb.cy*aa.az;
+      rot.az=bb.az*aa.ax+bb.bz*aa.ay+bb.cz*aa.az;
+
+      rot.bx=bb.ax*aa.bx+bb.bx*aa.by+bb.cx*aa.bz;
+      rot.by=bb.ay*aa.bx+bb.by*aa.by+bb.cy*aa.bz;
+      rot.bz=bb.az*aa.bx+bb.bz*aa.by+bb.cz*aa.bz;
+
+      rot.cx=bb.ax*aa.cx+bb.bx*aa.cy+bb.cx*aa.cz;
+      rot.cy=bb.ay*aa.cx+bb.by*aa.cy+bb.cy*aa.cz;
+      rot.cz=bb.az*aa.cx+bb.bz*aa.cy+bb.cz*aa.cz;
+
+      // determine quaternions from rotational matrix
+      aq=rot.ax+rot.by;
+      bq=rot.ay-rot.bx;
+      cq=rot.bz-rot.cy;
+      dq=rot.ay+rot.bx;
+      eq=rot.az+rot.cx;
+      fq=rot.bz+rot.cy;
+      gq=rot.az-rot.cx;
+      hq=rot.ax-rot.by;
+
+      q.r=0.5*sqrt(aq+sqrt(aq*aq+bq*bq));
+
+      if(q.r>1.0e-4)
+      {
+        q.i=-0.25*cq/q.r;
+        q.j=0.25*gq/q.r;
+        q.k=-0.25*bq/q.r;
+      }
+      else
+      {
+        q.i=0.5*sqrt(hq+sqrt(hq*hq+dq*dq));
+        if(q.i>1.0e-4)
+        {
+          q.j=0.25*dq/q.i;
+          q.k=0.25*eq/q.i;
+        }
+        else
+        {
+          q.j=0.5*sqrt(-hq+sqrt(hq*hq+dq*dq));
+          if(q.j>1.0e-4)
+            q.k=0.25*fq/q.j;
+          else
+            q.k=1.0;
+        }
+      }
+
+      // normalise quaternions
+      rsq=sqrt(SQR(q.r)+SQR(q.i)+SQR(q.j)+SQR(q.k));
+      q.r/=rsq; q.i/=rsq;
+      q.j/=rsq; q.k/=rsq;
+      Adsorbates[CurrentSystem][m].Groups[k].Quaternion=q;
+    }
+  }
+
 }
 
 
@@ -432,10 +558,12 @@ void ComputeQuaternionAdsorbate(int m)
 
 void ComputeQuaternionCation(int m)
 {
+/*
   int k;
   int Type,A,B,C;
   REAL_MATRIX3x3 rot,aa,bb;
   REAL rotmin,rsq;
+  VECTOR dr;
 
   Type=Cations[CurrentSystem][m].Type;
   for(k=0;k<Components[Type].NumberOfGroups;k++)
@@ -451,15 +579,24 @@ void ComputeQuaternionCation(int m)
       aa.ax=aa.ay=aa.cy=aa.by=0.0;
 
       // first row vector is A-B in space-fixed coordinates
-      aa.ax=Cations[CurrentSystem][m].Atoms[A].Position.x-Cations[CurrentSystem][m].Atoms[B].Position.x;
-      aa.bx=Cations[CurrentSystem][m].Atoms[A].Position.y-Cations[CurrentSystem][m].Atoms[B].Position.y;
-      aa.cx=Cations[CurrentSystem][m].Atoms[A].Position.z-Cations[CurrentSystem][m].Atoms[B].Position.z;
+      dr.x=Cations[CurrentSystem][m].Atoms[A].Position.x-Cations[CurrentSystem][m].Atoms[B].Position.x;
+      dr.y=Cations[CurrentSystem][m].Atoms[A].Position.y-Cations[CurrentSystem][m].Atoms[B].Position.y;
+      dr.z=Cations[CurrentSystem][m].Atoms[A].Position.z-Cations[CurrentSystem][m].Atoms[B].Position.z;
+      dr=ApplyBoundaryCondition(dr);
+      aa.ax=dr.x;
+      aa.bx=dr.y;
+      aa.cx=dr.z;
+
       // second row vector is A-C in space-fixed coordinates
       if(rotmin>1.0e-5)
       {
-        aa.ay=Cations[CurrentSystem][m].Atoms[A].Position.x-Cations[CurrentSystem][m].Atoms[C].Position.x;
-        aa.by=Cations[CurrentSystem][m].Atoms[A].Position.y-Cations[CurrentSystem][m].Atoms[C].Position.y;
-        aa.cy=Cations[CurrentSystem][m].Atoms[A].Position.z-Cations[CurrentSystem][m].Atoms[C].Position.z;
+        dr.x=Cations[CurrentSystem][m].Atoms[A].Position.x-Cations[CurrentSystem][m].Atoms[C].Position.x;
+        dr.y=Cations[CurrentSystem][m].Atoms[A].Position.y-Cations[CurrentSystem][m].Atoms[C].Position.y;
+        dr.z=Cations[CurrentSystem][m].Atoms[A].Position.z-Cations[CurrentSystem][m].Atoms[C].Position.z;
+        dr=ApplyBoundaryCondition(dr);
+        aa.ay=dr.x;
+        aa.by=dr.y;
+        aa.cy=dr.z;
       }
       else
       {
@@ -511,6 +648,120 @@ void ComputeQuaternionCation(int m)
 
       // transform the rotation matrix to a quaternion
       Cations[CurrentSystem][m].Groups[k].Quaternion=RotationalMatrixToQuaternion(rot);
+    }
+  }
+*/
+  int k;
+  int Type,A,B,C;
+  REAL_MATRIX3x3 rot,aa,bb;
+  REAL rotmin,rsq;
+  REAL aq,bq,cq,dq,eq,fq,gq,hq;
+  QUATERNION q;
+
+  Type=Cations[CurrentSystem][m].Type;
+  for(k=0;k<Components[Type].NumberOfGroups;k++)
+  {
+    if(Components[Type].Groups[k].Rigid)
+    {
+      rotmin=Components[Type].Groups[k].rot_min;
+      A=Components[Type].Groups[k].orientation.A;
+      B=Components[Type].Groups[k].orientation.B;
+      C=Components[Type].Groups[k].orientation.C;
+
+      aa.ax=aa.ay=aa.cy=aa.by=0.0;
+      aa.ax=Cations[CurrentSystem][m].Atoms[A].Position.x-Cations[CurrentSystem][m].Atoms[B].Position.x;
+      aa.bx=Cations[CurrentSystem][m].Atoms[A].Position.y-Cations[CurrentSystem][m].Atoms[B].Position.y;
+      aa.cx=Cations[CurrentSystem][m].Atoms[A].Position.z-Cations[CurrentSystem][m].Atoms[B].Position.z;
+      if(rotmin>1.0e-5)
+      {
+        aa.ay=Cations[CurrentSystem][m].Atoms[A].Position.x-Cations[CurrentSystem][m].Atoms[C].Position.x;
+        aa.by=Cations[CurrentSystem][m].Atoms[A].Position.y-Cations[CurrentSystem][m].Atoms[C].Position.y;
+        aa.cy=Cations[CurrentSystem][m].Atoms[A].Position.z-Cations[CurrentSystem][m].Atoms[C].Position.z;
+      }
+      else
+      {
+        rsq=sqrt(SQR(aa.ax)+SQR(aa.bx)+SQR(aa.cx));
+        if(fabs(aa.cx/rsq)>0.5)
+        {
+          rsq=sqrt(SQR(aa.bx)+SQR(aa.cx));
+          aa.ay=0.0;
+          aa.by=aa.cx/rsq;
+          aa.cy=-aa.bx/rsq;
+        }
+        else if(fabs(aa.bx/rsq)>0.5)
+        {
+          rsq=sqrt(SQR(aa.bx)+SQR(aa.ax));
+          aa.ay=-aa.bx/rsq;
+          aa.by=aa.ax/rsq;
+          aa.cy=0.0;
+        }
+        else if(fabs(aa.ax/rsq)>0.5)
+        {
+          rsq=sqrt(SQR(aa.ax)+SQR(aa.cx));
+          aa.ay=-aa.cx/rsq;
+          aa.by=0.0;
+          aa.cy=aa.ax/rsq;
+        }
+      }
+      aa.az=aa.bx*aa.cy-aa.cx*aa.by;
+      aa.bz=aa.cx*aa.ay-aa.ax*aa.cy;
+      aa.cz=aa.ax*aa.by-aa.bx*aa.ay;
+
+          // group rotational matrix
+      bb=Components[Type].Groups[k].InverseOriginalCoordinateSystem;
+      rot.ax=bb.ax*aa.ax+bb.bx*aa.ay+bb.cx*aa.az;
+      rot.ay=bb.ay*aa.ax+bb.by*aa.ay+bb.cy*aa.az;
+      rot.az=bb.az*aa.ax+bb.bz*aa.ay+bb.cz*aa.az;
+
+      rot.bx=bb.ax*aa.bx+bb.bx*aa.by+bb.cx*aa.bz;
+      rot.by=bb.ay*aa.bx+bb.by*aa.by+bb.cy*aa.bz;
+      rot.bz=bb.az*aa.bx+bb.bz*aa.by+bb.cz*aa.bz;
+
+      rot.cx=bb.ax*aa.cx+bb.bx*aa.cy+bb.cx*aa.cz;
+      rot.cy=bb.ay*aa.cx+bb.by*aa.cy+bb.cy*aa.cz;
+      rot.cz=bb.az*aa.cx+bb.bz*aa.cy+bb.cz*aa.cz;
+
+      // determine quaternions from rotational matrix
+      aq=rot.ax+rot.by;
+      bq=rot.ay-rot.bx;
+      cq=rot.bz-rot.cy;
+      dq=rot.ay+rot.bx;
+      eq=rot.az+rot.cx;
+      fq=rot.bz+rot.cy;
+      gq=rot.az-rot.cx;
+      hq=rot.ax-rot.by;
+
+      q.r=0.5*sqrt(aq+sqrt(aq*aq+bq*bq));
+
+      if(q.r>1.0e-4)
+      {
+        q.i=-0.25*cq/q.r;
+        q.j=0.25*gq/q.r;
+        q.k=-0.25*bq/q.r;
+      }
+      else
+      {
+        q.i=0.5*sqrt(hq+sqrt(hq*hq+dq*dq));
+        if(q.i>1.0e-4)
+        {
+          q.j=0.25*dq/q.i;
+          q.k=0.25*eq/q.i;
+        }
+        else
+        {
+          q.j=0.5*sqrt(-hq+sqrt(hq*hq+dq*dq));
+          if(q.j>1.0e-4)
+            q.k=0.25*fq/q.j;
+          else
+            q.k=1.0;
+        }
+      }
+
+      // normalise quaternions
+      rsq=sqrt(SQR(q.r)+SQR(q.i)+SQR(q.j)+SQR(q.k));
+      q.r/=rsq; q.i/=rsq;
+      q.j/=rsq; q.k/=rsq;
+      Cations[CurrentSystem][m].Groups[k].Quaternion=q;
     }
   }
 }
