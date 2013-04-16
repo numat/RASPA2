@@ -555,8 +555,6 @@ void VibrationalAnalysis(void)
   // compute the generalized Hessian
   ComputeDerivativesSpectra(NumberOfPositionVariables,NumberOfBoxVariables,Positions,&Energy,Gradients,GeneralizedHessianMatrix,&StrainDerivativeTensor);
 
-  //ProjectConstraintsFromHessianMatrix(NumberOfPositionVariables,NumberOfBoxVariables,Gradients,GeneralizedHessianMatrix);
-
   RemoveShellInteractionsFromHessian(GeneralizedHessianMatrix,&ReducedGeneralizedHessianMatrix);
 
   MassWeightHessianMatrix(CoreSize,ReducedGeneralizedHessianMatrix,Weights);
@@ -564,7 +562,6 @@ void VibrationalAnalysis(void)
   ProjectConstraintsFromHessianMatrixMassWeighted(CoreSize,0,Gradients,ReducedGeneralizedHessianMatrix,Weights);
 
   SolveEigenValuesAndVectorsHessian(ReducedGeneralizedHessianMatrix,Frequencies);
-
 
   // unweight the eigenvectors
   for(i=0;i<CoreSize;i++)

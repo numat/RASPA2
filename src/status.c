@@ -3131,7 +3131,7 @@ REAL PrintChargeChargeEnergyStatus(int nr,char *string,REAL chargeA,REAL chargeB
 
       break;
     case SHIFTED_COULOMB:
-      energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-InverseCutOffChargeCharge);
+      energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-InverseCutOffChargeCharge[CurrentSystem]);
       fprintf(OutputFilePtr[CurrentSystem],"%4d SHIFTED_COULOMB %s, Charge: %8.5f, Charge: %8.5f, Distance %8.5f [A], Energy: %10.5f [K] %8.5f [kJ/mol] %8.5f [kcal/mol]\n",
           nr,string,chargeA,chargeB,r,
           energy*ENERGY_TO_KELVIN,
@@ -3139,8 +3139,8 @@ REAL PrintChargeChargeEnergyStatus(int nr,char *string,REAL chargeA,REAL chargeB
           energy*ENERGY_TO_KCAL_PER_MOL);
       break;
     case SMOOTHED_COULOMB:
-      energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-2.0/(CutOffChargeChargeSwitch+CutOffChargeCharge));
-      if(rr>CutOffChargeChargeSwitchSquared)
+      energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-2.0/(CutOffChargeChargeSwitch[CurrentSystem]+CutOffChargeCharge[CurrentSystem]));
+      if(rr>CutOffChargeChargeSwitchSquared[CurrentSystem])
       {
         SwitchingValue=SwitchingChargeChargeFactors5[5]*(rr*rr*r)+SwitchingChargeChargeFactors5[4]*(rr*rr)+SwitchingChargeChargeFactors5[3]*(rr*r)+
                        SwitchingChargeChargeFactors5[2]*rr+SwitchingChargeChargeFactors5[1]*r+SwitchingChargeChargeFactors5[0];
@@ -3167,9 +3167,9 @@ REAL PrintChargeChargeEnergyStatus(int nr,char *string,REAL chargeA,REAL chargeB
       break;
     case WOLFS_METHOD_DAMPED_FG:
       energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(erfc(Alpha[CurrentSystem]*r)/r
-               -erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*InverseCutOffChargeCharge+
-                (r-CutOffChargeCharge)*(erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*SQR(InverseCutOffChargeCharge)+
-                (2.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*CutOffChargeChargeSquared)*M_1_SQRTPI*InverseCutOffChargeCharge)));
+               -erfc(Alpha[CurrentSystem]*CutOffChargeCharge[CurrentSystem])*InverseCutOffChargeCharge[CurrentSystem]+
+                (r-CutOffChargeCharge[CurrentSystem])*(erfc(Alpha[CurrentSystem]*CutOffChargeCharge[CurrentSystem])*SQR(InverseCutOffChargeCharge[CurrentSystem])+
+                (2.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*CutOffChargeChargeSquared[CurrentSystem])*M_1_SQRTPI*InverseCutOffChargeCharge[CurrentSystem])));
       fprintf(OutputFilePtr[CurrentSystem],"%4d WOLFS_METHOD_DAMPED_FG %s, Charge: %8.5f, Charge: %8.5f, Distance %8.5f [A], Energy: %10.5f [K] %8.5f [kJ/mol] %8.5f [kcal/mol]\n",
           nr,string,chargeA,chargeB,r,
           energy*ENERGY_TO_KELVIN,
@@ -4516,7 +4516,7 @@ void PrintFrameworkIntraChargeChargeEnergyStatus(void)
             dr=ApplyBoundaryCondition(dr);
             rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
 
-            if(rr<CutOffChargeChargeSquared)
+            if(rr<CutOffChargeChargeSquared[CurrentSystem])
             {
               r=sqrt(rr);
               chargeB=Framework[CurrentSystem].Atoms[f2][j].Charge;
@@ -7414,7 +7414,7 @@ void PrintInterChargeChargeEnergyStatus(void)
             dr=ApplyBoundaryCondition(dr);
             r2=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
 
-            if(r2<CutOffChargeChargeSquared)
+            if(r2<CutOffChargeChargeSquared[CurrentSystem])
             {
               r=sqrt(r2);
               typeB=Adsorbates[CurrentSystem][j].Atoms[l].Type;
@@ -7440,7 +7440,7 @@ void PrintInterChargeChargeEnergyStatus(void)
           dr.z=posA.z-posB.z;
           dr=ApplyBoundaryCondition(dr);
           r2=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-          if(r2<CutOffChargeChargeSquared)
+          if(r2<CutOffChargeChargeSquared[CurrentSystem])
           {
             r=sqrt(r2);
             typeB=Cations[CurrentSystem][j].Atoms[l].Type;
@@ -7478,7 +7478,7 @@ void PrintInterChargeChargeEnergyStatus(void)
             dr.z=posA.z-posB.z;
             dr=ApplyBoundaryCondition(dr);
             r2=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-            if(r2<CutOffChargeChargeSquared)
+            if(r2<CutOffChargeChargeSquared[CurrentSystem])
             {
               r=sqrt(r2);
               typeB=Cations[CurrentSystem][j].Atoms[l].Type;
@@ -7508,7 +7508,7 @@ void PrintInterChargeChargeEnergyStatus(void)
           chargeA=Adsorbates[CurrentSystem][i].Atoms[j].Charge;
           NetChargeB+=chargeA;
         }
-        UWolfCorrection-=0.5*COULOMBIC_CONVERSION_FACTOR*SQR(NetChargeB)*InverseCutOffChargeCharge;
+        UWolfCorrection-=0.5*COULOMBIC_CONVERSION_FACTOR*SQR(NetChargeB)*InverseCutOffChargeCharge[CurrentSystem];
       }
       UAdsorbateAdsorbateChargeChargeReal+=UWolfCorrection;
 
@@ -7522,7 +7522,7 @@ void PrintInterChargeChargeEnergyStatus(void)
           chargeA=Cations[CurrentSystem][i].Atoms[j].Charge;
           NetChargeB+=chargeA;
         }
-        UWolfCorrection-=0.5*COULOMBIC_CONVERSION_FACTOR*SQR(NetChargeB)*InverseCutOffChargeCharge;
+        UWolfCorrection-=0.5*COULOMBIC_CONVERSION_FACTOR*SQR(NetChargeB)*InverseCutOffChargeCharge[CurrentSystem];
       }
       UCationCationChargeChargeReal+=UWolfCorrection;
       break;
@@ -7539,7 +7539,7 @@ void PrintInterChargeChargeEnergyStatus(void)
           NetChargeB+=chargeA;
         }
         UWolfCorrection-=COULOMBIC_CONVERSION_FACTOR*SQR(NetChargeB)*
-             (0.5*erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*InverseCutOffChargeCharge+
+             (0.5*erfc(Alpha[CurrentSystem]*CutOffChargeCharge[CurrentSystem])*InverseCutOffChargeCharge[CurrentSystem]+
               Alpha[CurrentSystem]*M_1_SQRTPI);
       }
       UAdsorbateAdsorbateChargeChargeReal+=UWolfCorrection;
@@ -7555,7 +7555,7 @@ void PrintInterChargeChargeEnergyStatus(void)
           NetChargeB+=chargeA;
         }
         UWolfCorrection-=COULOMBIC_CONVERSION_FACTOR*SQR(NetChargeB)*
-             (0.5*erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*InverseCutOffChargeCharge+
+             (0.5*erfc(Alpha[CurrentSystem]*CutOffChargeCharge[CurrentSystem])*InverseCutOffChargeCharge[CurrentSystem]+
               Alpha[CurrentSystem]*M_1_SQRTPI);
       }
       UCationCationChargeChargeReal+=UWolfCorrection;
@@ -8125,7 +8125,7 @@ void PrintFrameworkAdsorbateChargeChargeEnergyStatus(void)
           dr=ApplyBoundaryCondition(dr);
           rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
 
-          if(rr<CutOffChargeChargeSquared)
+          if(rr<CutOffChargeChargeSquared[CurrentSystem])
           {
             r=sqrt(rr);
             chargeB=Framework[CurrentSystem].Atoms[f1][k].Charge;
@@ -8483,7 +8483,7 @@ void PrintFrameworkCationChargeChargeEnergyStatus(void)
           dr=ApplyBoundaryCondition(dr);
           rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
 
-          if(rr<CutOffChargeChargeSquared)
+          if(rr<CutOffChargeChargeSquared[CurrentSystem])
           {
             r=sqrt(rr);
             chargeB=Framework[CurrentSystem].Atoms[f1][k].Charge;

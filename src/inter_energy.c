@@ -159,10 +159,9 @@ REAL CalculateInterChargeChargeSelfEnergyCorrectionNew(void)
   int j,k;
   int typeA,typeB;
   REAL UChargeChargeCorrection,chargeA,chargeB;
-  REAL SwitchingValue,TranslationValue;
   REAL scalingA,scalingB;
   VECTOR posA,posB,dr;
-  REAL rr,r,energy;
+  REAL rr,energy;
   int ncell;
 
   UChargeChargeCorrection=0.0;
@@ -189,57 +188,10 @@ REAL CalculateInterChargeChargeSelfEnergyCorrectionNew(void)
           dr.z=posA.z-(posB.z+ReplicaShift[ncell].z);
           dr=ApplyReplicaBoundaryCondition(dr);
           rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-          if(rr<CutOffChargeChargeSquared)
+          if(rr<CutOffChargeChargeSquared[CurrentSystem])
           {
-            r=sqrt(rr);
-            switch(ChargeMethod)
-            {
-              case NONE:
-                energy=0.0;
-                break;
-              case TRUNCATED_COULOMB:
-                energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB/r;
-                break;
-              case SHIFTED_COULOMB:
-                energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-InverseCutOffChargeCharge);
-                break;
-              case WOLFS_METHOD:
-                energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-InverseCutOffChargeCharge);
-                break;
-              case WOLFS_METHOD_DAMPED:
-                energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(erfc(Alpha[CurrentSystem]*r)/r
-                            -erfc(Alpha[CurrentSystem]*CutOffChargeChargeSquared)*InverseCutOffChargeCharge);
-                break;
-              case SMOOTHED_COULOMB:
-                energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-2.0/(CutOffChargeChargeSwitch+CutOffChargeCharge));
-                if(rr>CutOffChargeChargeSwitchSquared)
-                {
-                  SwitchingValue=SwitchingChargeChargeFactors5[5]*(rr*rr*r)+SwitchingChargeChargeFactors5[4]*(rr*rr)+SwitchingChargeChargeFactors5[3]*(rr*r)+
-                                 SwitchingChargeChargeFactors5[2]*rr+SwitchingChargeChargeFactors5[1]*r+SwitchingChargeChargeFactors5[0];
+            energy=PotentialValueCoulombic(chargeA,chargeB,sqrt(rr));
 
-                  TranslationValue=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*
-                                   (SwitchingChargeChargeFactors7[7]*(rr*rr*rr*r)+SwitchingChargeChargeFactors7[6]*(rr*rr*rr)+
-                                    SwitchingChargeChargeFactors7[5]*(rr*rr*r)+SwitchingChargeChargeFactors7[4]*(rr*rr)+SwitchingChargeChargeFactors7[3]*(rr*r)+
-                                    SwitchingChargeChargeFactors7[2]*rr+SwitchingChargeChargeFactors7[1]*r+SwitchingChargeChargeFactors7[0]);
-                  energy=energy*SwitchingValue+TranslationValue;
-                }
-                break;
-              case WOLFS_METHOD_DAMPED_FG:
-                energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(erfc(Alpha[CurrentSystem]*r)/r
-                             -erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*InverseCutOffChargeCharge+
-                              (r-CutOffChargeCharge)*(erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*SQR(InverseCutOffChargeCharge)+
-                              (2.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*CutOffChargeChargeSquared)*M_1_SQRTPI*InverseCutOffChargeCharge)));
-                break;
-              case EWALD:
-                energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*
-                                     (erfc(Alpha[CurrentSystem]*r)/r);
-                break;
-              default:
-                printf("Unknown charge-method in 'CalculateInterChargeChargeEnergyDifferenceAdsorbate'\n");
-                exit(0);
-                break;
-
-            }
             UChargeChargeCorrection+=0.5*energy;
           }
 
@@ -255,10 +207,9 @@ REAL CalculateInterChargeChargeSelfEnergyCorrectionAdsorbateOld(int mol)
   int j,k;
   int typeA,typeB;
   REAL UChargeChargeCorrection,chargeA,chargeB;
-  REAL SwitchingValue,TranslationValue;
   REAL scalingA,scalingB;
   VECTOR posA,posB,dr;
-  REAL rr,r,energy;
+  REAL rr,energy;
   int ncell;
 
   UChargeChargeCorrection=0.0;
@@ -285,57 +236,10 @@ REAL CalculateInterChargeChargeSelfEnergyCorrectionAdsorbateOld(int mol)
           dr.z=posA.z-(posB.z+ReplicaShift[ncell].z);
           dr=ApplyReplicaBoundaryCondition(dr);
           rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-          if(rr<CutOffChargeChargeSquared)
+          if(rr<CutOffChargeChargeSquared[CurrentSystem])
           {
-            r=sqrt(rr);
-            switch(ChargeMethod)
-            {
-              case NONE:
-                energy=0.0;
-                break;
-              case TRUNCATED_COULOMB:
-                energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB/r;
-                break;
-              case SHIFTED_COULOMB:
-                energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-InverseCutOffChargeCharge);
-                break;
-              case WOLFS_METHOD:
-                energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-InverseCutOffChargeCharge);
-                break;
-              case WOLFS_METHOD_DAMPED:
-                energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(erfc(Alpha[CurrentSystem]*r)/r
-                            -erfc(Alpha[CurrentSystem]*CutOffChargeChargeSquared)*InverseCutOffChargeCharge);
-                break;
-              case SMOOTHED_COULOMB:
-                energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-2.0/(CutOffChargeChargeSwitch+CutOffChargeCharge));
-                if(rr>CutOffChargeChargeSwitchSquared)
-                {
-                  SwitchingValue=SwitchingChargeChargeFactors5[5]*(rr*rr*r)+SwitchingChargeChargeFactors5[4]*(rr*rr)+SwitchingChargeChargeFactors5[3]*(rr*r)+
-                                 SwitchingChargeChargeFactors5[2]*rr+SwitchingChargeChargeFactors5[1]*r+SwitchingChargeChargeFactors5[0];
+            energy=PotentialValueCoulombic(chargeA,chargeB,sqrt(rr));
 
-                  TranslationValue=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*
-                                   (SwitchingChargeChargeFactors7[7]*(rr*rr*rr*r)+SwitchingChargeChargeFactors7[6]*(rr*rr*rr)+
-                                    SwitchingChargeChargeFactors7[5]*(rr*rr*r)+SwitchingChargeChargeFactors7[4]*(rr*rr)+SwitchingChargeChargeFactors7[3]*(rr*r)+
-                                    SwitchingChargeChargeFactors7[2]*rr+SwitchingChargeChargeFactors7[1]*r+SwitchingChargeChargeFactors7[0]);
-                  energy=energy*SwitchingValue+TranslationValue;
-                }
-                break;
-              case WOLFS_METHOD_DAMPED_FG:
-                energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(erfc(Alpha[CurrentSystem]*r)/r
-                             -erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*InverseCutOffChargeCharge+
-                              (r-CutOffChargeCharge)*(erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*SQR(InverseCutOffChargeCharge)+
-                              (2.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*CutOffChargeChargeSquared)*M_1_SQRTPI*InverseCutOffChargeCharge)));
-                break;
-              case EWALD:
-                energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*
-                                     (erfc(Alpha[CurrentSystem]*r)/r);
-                break;
-              default:
-                printf("Unknown charge-method in 'CalculateInterChargeChargeEnergyDifferenceAdsorbate'\n");
-                exit(0);
-                break;
-
-            }
             UChargeChargeCorrection+=0.5*energy;
           }
 
@@ -351,10 +255,9 @@ REAL CalculateInterChargeChargeSelfEnergyCorrectionCationOld(int mol)
   int j,k;
   int typeA,typeB;
   REAL UChargeChargeCorrection,chargeA,chargeB;
-  REAL SwitchingValue,TranslationValue;
   REAL scalingA,scalingB;
   VECTOR posA,posB,dr;
-  REAL rr,r,energy;
+  REAL rr,energy;
   int ncell;
 
   UChargeChargeCorrection=0.0;
@@ -381,57 +284,10 @@ REAL CalculateInterChargeChargeSelfEnergyCorrectionCationOld(int mol)
           dr.z=posA.z-(posB.z+ReplicaShift[ncell].z);
           dr=ApplyReplicaBoundaryCondition(dr);
           rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-          if(rr<CutOffChargeChargeSquared)
+          if(rr<CutOffChargeChargeSquared[CurrentSystem])
           {
-            r=sqrt(rr);
-            switch(ChargeMethod)
-            {
-              case NONE:
-                energy=0.0;
-                break;
-              case TRUNCATED_COULOMB:
-                energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB/r;
-                break;
-              case SHIFTED_COULOMB:
-                energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-InverseCutOffChargeCharge);
-                break;
-              case WOLFS_METHOD:
-                energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-InverseCutOffChargeCharge);
-                break;
-              case WOLFS_METHOD_DAMPED:
-                energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(erfc(Alpha[CurrentSystem]*r)/r
-                            -erfc(Alpha[CurrentSystem]*CutOffChargeChargeSquared)*InverseCutOffChargeCharge);
-                break;
-              case SMOOTHED_COULOMB:
-                energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-2.0/(CutOffChargeChargeSwitch+CutOffChargeCharge));
-                if(rr>CutOffChargeChargeSwitchSquared)
-                {
-                  SwitchingValue=SwitchingChargeChargeFactors5[5]*(rr*rr*r)+SwitchingChargeChargeFactors5[4]*(rr*rr)+SwitchingChargeChargeFactors5[3]*(rr*r)+
-                                 SwitchingChargeChargeFactors5[2]*rr+SwitchingChargeChargeFactors5[1]*r+SwitchingChargeChargeFactors5[0];
+            energy=PotentialValueCoulombic(chargeA,chargeB,sqrt(rr));
 
-                  TranslationValue=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*
-                                   (SwitchingChargeChargeFactors7[7]*(rr*rr*rr*r)+SwitchingChargeChargeFactors7[6]*(rr*rr*rr)+
-                                    SwitchingChargeChargeFactors7[5]*(rr*rr*r)+SwitchingChargeChargeFactors7[4]*(rr*rr)+SwitchingChargeChargeFactors7[3]*(rr*r)+
-                                    SwitchingChargeChargeFactors7[2]*rr+SwitchingChargeChargeFactors7[1]*r+SwitchingChargeChargeFactors7[0]);
-                  energy=energy*SwitchingValue+TranslationValue;
-                }
-                break;
-              case WOLFS_METHOD_DAMPED_FG:
-                energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(erfc(Alpha[CurrentSystem]*r)/r
-                             -erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*InverseCutOffChargeCharge+
-                              (r-CutOffChargeCharge)*(erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*SQR(InverseCutOffChargeCharge)+
-                              (2.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*CutOffChargeChargeSquared)*M_1_SQRTPI*InverseCutOffChargeCharge)));
-                break;
-              case EWALD:
-                energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*
-                                     (erfc(Alpha[CurrentSystem]*r)/r);
-                break;
-              default:
-                printf("Unknown charge-method in 'CalculateInterChargeChargeEnergyDifferenceCation'\n");
-                exit(0);
-                break;
-
-            }
             UChargeChargeCorrection+=0.5*energy;
           }
 
@@ -519,13 +375,12 @@ int CalculateInterChargeEnergyAdsorbateAtPosition(POINT posA,int typeA,REAL *UCh
 {
   int i,j,l,typeB,B1,B2,TypeB;
   POINT posB;
-  REAL r,rr;
+  REAL rr;
   REAL chargeA,chargeB;
-  REAL Bt1;
   VECTOR dr,dipoleB;
   VECTOR posB1,posB2;
-  REAL DipoleMagnitudeB,temp,cosB;
-  REAL SwitchingValue,TranslationValue,energy;
+  REAL DipoleMagnitudeB,temp;
+  REAL energy;
   REAL scalingB;
   int ncell;
 
@@ -557,51 +412,10 @@ int CalculateInterChargeEnergyAdsorbateAtPosition(POINT posA,int typeA,REAL *UCh
             dr=ApplyReplicaBoundaryCondition(dr);
             rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
  
-            if(rr<CutOffChargeChargeSquared)
+            if(rr<CutOffChargeChargeSquared[CurrentSystem])
             {
-              r=sqrt(rr);
-              switch(ChargeMethod)
-              {
-                case NONE:
-                  energy=0.0;
-                  break;
-                case TRUNCATED_COULOMB:
-                  energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB/r;
-                  break;
-                case SHIFTED_COULOMB:
-                  energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-InverseCutOffChargeCharge);
-                  break;
-                case SMOOTHED_COULOMB:
-                  energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-2.0/(CutOffChargeChargeSwitch+CutOffChargeCharge));
-                  if(rr>CutOffChargeChargeSwitchSquared)
-                  {
-                    SwitchingValue=SwitchingChargeChargeFactors5[5]*(rr*rr*r)+SwitchingChargeChargeFactors5[4]*(rr*rr)+SwitchingChargeChargeFactors5[3]*(rr*r)+
-                                   SwitchingChargeChargeFactors5[2]*rr+SwitchingChargeChargeFactors5[1]*r+SwitchingChargeChargeFactors5[0];
- 
-                    TranslationValue=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*
-                                    (SwitchingChargeChargeFactors7[7]*(rr*rr*rr*r)+SwitchingChargeChargeFactors7[6]*(rr*rr*rr)+
-                                     SwitchingChargeChargeFactors7[5]*(rr*rr*r)+SwitchingChargeChargeFactors7[4]*(rr*rr)+SwitchingChargeChargeFactors7[3]*(rr*r)+
-                                     SwitchingChargeChargeFactors7[2]*rr+SwitchingChargeChargeFactors7[1]*r+SwitchingChargeChargeFactors7[0]);
-                    energy=energy*SwitchingValue+TranslationValue;
-                  }
-                  break;
-                case WOLFS_METHOD:
-                  energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-InverseCutOffChargeCharge);
-                  break;
-                case WOLFS_METHOD_DAMPED_FG:
-                  energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(erfc(Alpha[CurrentSystem]*r)/r
-                         -erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*InverseCutOffChargeCharge+
-                          (r-CutOffChargeCharge)*(erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*SQR(InverseCutOffChargeCharge)+
-                          (2.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*CutOffChargeChargeSquared)*M_1_SQRTPI*InverseCutOffChargeCharge)));
-                  break;
-                case EWALD:
-                  energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(erfc(Alpha[CurrentSystem]*r)/r);
-                  break;
-                default:
-                  printf("Unknown charge-method in 'CalculateInterChargeEnergyAdsorbateAtPosition'\n");
-                  exit(0);
-                  break;
-              }
+              energy=PotentialValueCoulombic(chargeA,chargeB,sqrt(rr));
+
               (*UChargeCharge)+=energy;
             }
           }
@@ -633,39 +447,7 @@ int CalculateInterChargeEnergyAdsorbateAtPosition(POINT posA,int typeA,REAL *UCh
             rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
  
             if(rr<CutOffChargeBondDipoleSquared)
-            {
-              r=sqrt(rr);
-              SwitchingValue=1.0;
-              switch(ChargeMethod)
-              {
-                case NONE:
-                  Bt1=0.0;
-                  break;
-                case TRUNCATED_COULOMB:
-                  Bt1=1.0/(r*rr);
-                  break;
-                case SHIFTED_COULOMB:
-                  Bt1=1.0/(r*rr);
-                  break;
-                case SMOOTHED_COULOMB:
-                  Bt1=1.0/(r*rr);
-                  if(rr>CutOffChargeBondDipoleSwitchSquared)
-                     SwitchingValue=SwitchingChargeBondDipoleFactors5[5]*(rr*rr*r)+SwitchingChargeBondDipoleFactors5[4]*(rr*rr)+SwitchingChargeBondDipoleFactors5[3]*(rr*r)+
-                             SwitchingChargeBondDipoleFactors5[2]*rr+SwitchingChargeBondDipoleFactors5[1]*r+SwitchingChargeBondDipoleFactors5[0];
-                  break;
-                case EWALD:
-                  Bt1=2.0*Alpha[CurrentSystem]*exp(-SQR(-Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                      erfc(Alpha[CurrentSystem]*r)/(rr*r);
-                  break;
-                default:
-                  printf("Unknown charge-method in 'CalculateInterChargeEnergyAdsorbateAtPosition'\n");
-                  exit(0);
-                  break;
-              }
- 
-              cosB=dipoleB.x*dr.x+dipoleB.y*dr.y+dipoleB.z*dr.z;
-              (*UChargeBondDipole)+=SwitchingValue*COULOMBIC_CONVERSION_FACTOR*(Bt1*chargeA*cosB);
-            }
+              (*UChargeBondDipole)+=PotentialValueChargeBondDipole(chargeA,dipoleB,dr,sqrt(rr));
           }
         }
       }
@@ -690,51 +472,10 @@ int CalculateInterChargeEnergyAdsorbateAtPosition(POINT posA,int typeA,REAL *UCh
 
           rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
 
-          if(rr<CutOffChargeChargeSquared)
+          if(rr<CutOffChargeChargeSquared[CurrentSystem])
           {
-            r=sqrt(rr);
-            switch(ChargeMethod)
-            {
-              case NONE:
-                energy=0.0;
-                break;
-              case TRUNCATED_COULOMB:
-                energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB/r;
-                break;
-              case SHIFTED_COULOMB:
-                energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-InverseCutOffChargeCharge);
-                break;
-              case SMOOTHED_COULOMB:
-                energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-2.0/(CutOffChargeChargeSwitch+CutOffChargeCharge));
-                if(rr>CutOffChargeChargeSwitchSquared)
-                {
-                  SwitchingValue=SwitchingChargeChargeFactors5[5]*(rr*rr*r)+SwitchingChargeChargeFactors5[4]*(rr*rr)+SwitchingChargeChargeFactors5[3]*(rr*r)+
-                                 SwitchingChargeChargeFactors5[2]*rr+SwitchingChargeChargeFactors5[1]*r+SwitchingChargeChargeFactors5[0];
+            energy=PotentialValueCoulombic(chargeA,chargeB,sqrt(rr));
 
-                  TranslationValue=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*
-                                   (SwitchingChargeChargeFactors7[7]*(rr*rr*rr*r)+SwitchingChargeChargeFactors7[6]*(rr*rr*rr)+
-                                    SwitchingChargeChargeFactors7[5]*(rr*rr*r)+SwitchingChargeChargeFactors7[4]*(rr*rr)+SwitchingChargeChargeFactors7[3]*(rr*r)+
-                                    SwitchingChargeChargeFactors7[2]*rr+SwitchingChargeChargeFactors7[1]*r+SwitchingChargeChargeFactors7[0]);
-                  energy=energy*SwitchingValue+TranslationValue;
-                }
-                break;
-              case WOLFS_METHOD:
-                energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-InverseCutOffChargeCharge);
-                break;
-              case WOLFS_METHOD_DAMPED_FG:
-                energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(erfc(Alpha[CurrentSystem]*r)/r
-                             -erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*InverseCutOffChargeCharge+
-                              (r-CutOffChargeCharge)*(erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*SQR(InverseCutOffChargeCharge)+
-                              (2.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*CutOffChargeChargeSquared)*M_1_SQRTPI*InverseCutOffChargeCharge)));
-                break;
-              case EWALD:
-                energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(erfc(Alpha[CurrentSystem]*r)/r);
-                break;
-              default:
-                printf("Unknown charge-method in 'CalculateInterChargeEnergyAdsorbateAtPosition'\n");
-                exit(0);
-                break;
-            }
             (*UChargeCharge)+=energy;
           }
         }
@@ -763,39 +504,7 @@ int CalculateInterChargeEnergyAdsorbateAtPosition(POINT posA,int typeA,REAL *UCh
           rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
 
           if(rr<CutOffChargeBondDipoleSquared)
-          {
-            r=sqrt(rr);
-            SwitchingValue=1.0;
-            switch(ChargeMethod)
-            {
-              case NONE:
-                Bt1=0.0;
-                break;
-              case TRUNCATED_COULOMB:
-                Bt1=1.0/(r*rr);
-                break;
-              case SHIFTED_COULOMB:
-                Bt1=1.0/(r*rr);
-                break;
-              case SMOOTHED_COULOMB:
-                Bt1=1.0/(r*rr);
-                if(rr>CutOffChargeBondDipoleSwitchSquared)
-                  SwitchingValue=SwitchingChargeBondDipoleFactors5[5]*(rr*rr*r)+SwitchingChargeBondDipoleFactors5[4]*(rr*rr)+SwitchingChargeBondDipoleFactors5[3]*(rr*r)+
-                                 SwitchingChargeBondDipoleFactors5[2]*rr+SwitchingChargeBondDipoleFactors5[1]*r+SwitchingChargeBondDipoleFactors5[0];
-                break;
-              case EWALD:
-                Bt1=2.0*Alpha[CurrentSystem]*exp(-SQR(-Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                    erfc(Alpha[CurrentSystem]*r)/(rr*r);
-                break;
-              default:
-                printf("Unknown charge-method in 'CalculateInterChargeEnergyAdsorbateAtPosition'\n");
-                exit(0);
-                break;
-            }
-
-            cosB=dipoleB.x*dr.x+dipoleB.y*dr.y+dipoleB.z*dr.z;
-            (*UChargeBondDipole)+=SwitchingValue*COULOMBIC_CONVERSION_FACTOR*(Bt1*chargeA*cosB);
-          }
+            (*UChargeBondDipole)+=PotentialValueChargeBondDipole(chargeA,dipoleB,dr,sqrt(rr));
         }
       }
     }
@@ -876,13 +585,12 @@ int CalculateInterChargeEnergyCationAtPosition(POINT posA,int typeA,REAL *UCharg
 {
   int i,j,l,typeB,B1,B2,TypeB;
   POINT posB;
-  REAL r,rr;
+  REAL rr;
   REAL chargeA,chargeB;
-  REAL Bt1;
   VECTOR dr,dipoleB;
   VECTOR posB1,posB2;
-  REAL DipoleMagnitudeB,temp,cosB;
-  REAL SwitchingValue,TranslationValue,energy;
+  REAL DipoleMagnitudeB,temp;
+  REAL energy;
   REAL scalingB;
   int ncell;
 
@@ -914,51 +622,10 @@ int CalculateInterChargeEnergyCationAtPosition(POINT posA,int typeA,REAL *UCharg
             dr=ApplyReplicaBoundaryCondition(dr);
             rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
     
-            if(rr<CutOffChargeChargeSquared)
+            if(rr<CutOffChargeChargeSquared[CurrentSystem])
             {
-              r=sqrt(rr);
-              switch(ChargeMethod)
-              {
-                case NONE:
-                  energy=0.0;
-                  break;
-                case TRUNCATED_COULOMB:
-                  energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB/r;
-                  break;
-                case SHIFTED_COULOMB:
-                  energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-InverseCutOffChargeCharge);
-                  break;
-                case WOLFS_METHOD:
-                  energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-InverseCutOffChargeCharge);
-                  break;
-                case SMOOTHED_COULOMB:
-                  energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-2.0/(CutOffChargeChargeSwitch+CutOffChargeCharge));
-                  if(rr>CutOffChargeChargeSwitchSquared)
-                  {
-                    SwitchingValue=SwitchingChargeChargeFactors5[5]*(rr*rr*r)+SwitchingChargeChargeFactors5[4]*(rr*rr)+SwitchingChargeChargeFactors5[3]*(rr*r)+
-                                   SwitchingChargeChargeFactors5[2]*rr+SwitchingChargeChargeFactors5[1]*r+SwitchingChargeChargeFactors5[0];
-    
-                    TranslationValue=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*
-                                     (SwitchingChargeChargeFactors7[7]*(rr*rr*rr*r)+SwitchingChargeChargeFactors7[6]*(rr*rr*rr)+
-                                      SwitchingChargeChargeFactors7[5]*(rr*rr*r)+SwitchingChargeChargeFactors7[4]*(rr*rr)+SwitchingChargeChargeFactors7[3]*(rr*r)+
-                                      SwitchingChargeChargeFactors7[2]*rr+SwitchingChargeChargeFactors7[1]*r+SwitchingChargeChargeFactors7[0]);
-                    energy=energy*SwitchingValue+TranslationValue;
-                  }
-                  break;
-                case WOLFS_METHOD_DAMPED_FG:
-                  energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(erfc(Alpha[CurrentSystem]*r)/r
-                               -erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*InverseCutOffChargeCharge+
-                                (r-CutOffChargeCharge)*(erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*SQR(InverseCutOffChargeCharge)+
-                                (2.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*CutOffChargeChargeSquared)*M_1_SQRTPI*InverseCutOffChargeCharge)));
-                  break;
-                case EWALD:
-                  energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(erfc(Alpha[CurrentSystem]*r)/r);
-                  break;
-                default:
-                  printf("Unknown charge-method in 'CalculateInterChargeEnergyCationAtPosition'\n");
-                  exit(0);
-                  break;
-              }
+              energy=PotentialValueCoulombic(chargeA,chargeB,sqrt(rr));
+
               (*UChargeCharge)+=energy;
             }
           }
@@ -990,41 +657,7 @@ int CalculateInterChargeEnergyCationAtPosition(POINT posA,int typeA,REAL *UCharg
             rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
     
             if(rr<CutOffChargeBondDipoleSquared)
-            {
-              r=sqrt(rr);
-              SwitchingValue=1.0;
-              switch(ChargeMethod)
-              {
-                case NONE:
-                  Bt1=0.0;
-                  break;
-                case TRUNCATED_COULOMB:
-                  Bt1=1.0/(r*rr);
-                  break;
-                case SHIFTED_COULOMB:
-                  Bt1=1.0/(r*rr);
-                  break;
-                case SMOOTHED_COULOMB:
-                  Bt1=1.0/(r*rr);
-                  if(rr>CutOffChargeBondDipoleSwitchSquared)
-                  {
-                    SwitchingValue=SwitchingChargeBondDipoleFactors5[5]*(rr*rr*r)+SwitchingChargeBondDipoleFactors5[4]*(rr*rr)+SwitchingChargeBondDipoleFactors5[3]*(rr*r)+
-                                   SwitchingChargeBondDipoleFactors5[2]*rr+SwitchingChargeBondDipoleFactors5[1]*r+SwitchingChargeBondDipoleFactors5[0];
-                  }
-                  break;
-                case EWALD:
-                  Bt1=2.0*Alpha[CurrentSystem]*exp(-SQR(-Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                      erfc(Alpha[CurrentSystem]*r)/(rr*r);
-                  break;
-                default:
-                  printf("Unknown charge-method in 'CalculateInterChargeEnergyCationAtPosition'\n");
-                  exit(0);
-                  break;
-              }
-    
-              cosB=dipoleB.x*dr.x+dipoleB.y*dr.y+dipoleB.z*dr.z;
-              (*UChargeBondDipole)+=SwitchingValue*COULOMBIC_CONVERSION_FACTOR*(Bt1*chargeA*cosB);
-            }
+              (*UChargeBondDipole)+=PotentialValueChargeBondDipole(chargeA,dipoleB,dr,sqrt(rr));
           }
         }
       }
@@ -1049,51 +682,10 @@ int CalculateInterChargeEnergyCationAtPosition(POINT posA,int typeA,REAL *UCharg
   
           rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
   
-          if(rr<CutOffChargeChargeSquared)
+          if(rr<CutOffChargeChargeSquared[CurrentSystem])
           {
-            r=sqrt(rr);
-            switch(ChargeMethod)
-            {
-              case NONE:
-                energy=0.0;
-                break;
-              case TRUNCATED_COULOMB:
-                energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB/r;
-                break;
-              case SHIFTED_COULOMB:
-                energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-InverseCutOffChargeCharge);
-                break;
-              case WOLFS_METHOD:
-                energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-InverseCutOffChargeCharge);
-                break;
-              case SMOOTHED_COULOMB:
-                energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-2.0/(CutOffChargeChargeSwitch+CutOffChargeCharge));
-                if(rr>CutOffChargeChargeSwitchSquared)
-                {
-                  SwitchingValue=SwitchingChargeChargeFactors5[5]*(rr*rr*r)+SwitchingChargeChargeFactors5[4]*(rr*rr)+SwitchingChargeChargeFactors5[3]*(rr*r)+
-                                 SwitchingChargeChargeFactors5[2]*rr+SwitchingChargeChargeFactors5[1]*r+SwitchingChargeChargeFactors5[0];
-  
-                  TranslationValue=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*
-                                   (SwitchingChargeChargeFactors7[7]*(rr*rr*rr*r)+SwitchingChargeChargeFactors7[6]*(rr*rr*rr)+
-                                    SwitchingChargeChargeFactors7[5]*(rr*rr*r)+SwitchingChargeChargeFactors7[4]*(rr*rr)+SwitchingChargeChargeFactors7[3]*(rr*r)+
-                                    SwitchingChargeChargeFactors7[2]*rr+SwitchingChargeChargeFactors7[1]*r+SwitchingChargeChargeFactors7[0]);
-                  energy=energy*SwitchingValue+TranslationValue;
-                }
-                break;
-              case WOLFS_METHOD_DAMPED_FG:
-                energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(erfc(Alpha[CurrentSystem]*r)/r
-                             -erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*InverseCutOffChargeCharge+
-                              (r-CutOffChargeCharge)*(erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*SQR(InverseCutOffChargeCharge)+
-                              (2.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*CutOffChargeChargeSquared)*M_1_SQRTPI*InverseCutOffChargeCharge)));
-                break;
-              case EWALD:
-                energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(erfc(Alpha[CurrentSystem]*r)/r);
-                break;
-              default:
-                printf("Unknown charge-method in 'CalculateInterChargeEnergyCationAtPosition'\n");
-                exit(0);
-                break;
-            }
+            energy=PotentialValueCoulombic(chargeA,chargeB,sqrt(rr));
+
             (*UChargeCharge)+=energy;
           }
         }
@@ -1122,41 +714,7 @@ int CalculateInterChargeEnergyCationAtPosition(POINT posA,int typeA,REAL *UCharg
           rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
   
           if(rr<CutOffChargeBondDipoleSquared)
-          {
-            r=sqrt(rr);
-            SwitchingValue=1.0;
-            switch(ChargeMethod)
-            {
-              case NONE:
-                Bt1=0.0;
-                break;
-              case TRUNCATED_COULOMB:
-                Bt1=1.0/(r*rr);
-                break;
-              case SHIFTED_COULOMB:
-                Bt1=1.0/(r*rr);
-                break;
-              case SMOOTHED_COULOMB:
-                Bt1=1.0/(r*rr);
-                if(rr>CutOffChargeBondDipoleSwitchSquared)
-                {
-                  SwitchingValue=SwitchingChargeBondDipoleFactors5[5]*(rr*rr*r)+SwitchingChargeBondDipoleFactors5[4]*(rr*rr)+SwitchingChargeBondDipoleFactors5[3]*(rr*r)+
-                                 SwitchingChargeBondDipoleFactors5[2]*rr+SwitchingChargeBondDipoleFactors5[1]*r+SwitchingChargeBondDipoleFactors5[0];
-                }
-                break;
-              case EWALD:
-                Bt1=2.0*Alpha[CurrentSystem]*exp(-SQR(-Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                    erfc(Alpha[CurrentSystem]*r)/(rr*r);
-                break;
-              default:
-                printf("Unknown charge-method in 'CalculateInterChargeEnergyCationAtPosition'\n");
-                exit(0);
-                break;
-            }
-  
-            cosB=dipoleB.x*dr.x+dipoleB.y*dr.y+dipoleB.z*dr.z;
-            (*UChargeBondDipole)+=SwitchingValue*COULOMBIC_CONVERSION_FACTOR*(Bt1*chargeA*cosB);
-          }
+            (*UChargeBondDipole)+=PotentialValueChargeBondDipole(chargeA,dipoleB,dr,sqrt(rr));
         }
       }
     }
@@ -1169,13 +727,10 @@ int CalculateInterBondDipoleEnergyAdsorbateAtPosition(POINT posA1,POINT posA2,RE
   int i,j,l;
   int B1,B2;
   int TypeB;
-  REAL r;
   VECTOR posA,posB,posB1,posB2,dr;
-  REAL energy,DipoleMagnitudeB,ChargeB;
+  REAL DipoleMagnitudeB,chargeB;
   REAL ri2,rr,length,temp;
   VECTOR dipoleA,dipoleB;
-  REAL cosAB,cosA,cosB;
-  REAL Bt0,Bt1,Bt2,SwitchingValue;
   int ncell;
 
  (*UChargeBondDipole)=0.0;
@@ -1205,7 +760,7 @@ int CalculateInterBondDipoleEnergyAdsorbateAtPosition(POINT posA1,POINT posA2,RE
         {
           posB=Adsorbates[CurrentSystem][j].Atoms[i].Position;
           TypeB=Adsorbates[CurrentSystem][j].Atoms[i].Type;
-          ChargeB=Adsorbates[CurrentSystem][j].Atoms[i].Charge;
+          chargeB=Adsorbates[CurrentSystem][j].Atoms[i].Charge;
 
           for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
           {
@@ -1217,52 +772,7 @@ int CalculateInterBondDipoleEnergyAdsorbateAtPosition(POINT posA1,POINT posA2,RE
             rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
     
             if(rr<CutOffChargeBondDipoleSquared)
-            {
-              r=sqrt(rr);
-              SwitchingValue=1.0;
-              switch(ChargeMethod)
-              {
-                case NONE:
-                  Bt0=Bt1=Bt2=0.0;
-                  break;
-                case TRUNCATED_COULOMB:
-                  Bt0=1.0/(r);
-                  Bt1=1.0/(r*rr);
-                  Bt2=3.0/(r*rr*rr);
-                  break;
-                case SHIFTED_COULOMB:
-                  Bt0=1.0/(r);
-                  Bt1=1.0/(r*rr);
-                  Bt2=3.0/(r*rr*rr);
-                  break;
-                case SMOOTHED_COULOMB:
-                  Bt0=1.0/(r);
-                  Bt1=1.0/(r*rr);
-                  Bt2=3.0/(r*rr*rr);
-                  if(rr>CutOffChargeBondDipoleSwitchSquared)
-                  {
-                    SwitchingValue=SwitchingChargeBondDipoleFactors5[5]*(rr*rr*r)+SwitchingChargeBondDipoleFactors5[4]*(rr*rr)+SwitchingChargeBondDipoleFactors5[3]*(rr*r)+
-                                   SwitchingChargeBondDipoleFactors5[2]*rr+SwitchingChargeBondDipoleFactors5[1]*r+SwitchingChargeBondDipoleFactors5[0];
-                  }
-                  break;
-                case EWALD:
-                  Bt0=erfc(Alpha[CurrentSystem]*r)/r;
-                  Bt1=2.0*Alpha[CurrentSystem]*exp(-SQR(-Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                      erfc(Alpha[CurrentSystem]*r)/(rr*r);
-                  Bt2=6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
-                      4.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                      3.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*r);
-                  break;
-                default:
-                  printf("Unknown charge-method in 'CalculateInterBondDipoleEnergyAdsorbateAtPosition'\n");
-                  exit(0);
-                  break;
-              }
-    
-              cosA=dipoleA.x*dr.x+dipoleA.y*dr.y+dipoleA.z*dr.z;
-              energy=SwitchingValue*COULOMBIC_CONVERSION_FACTOR*(Bt1*ChargeB*cosA);
-              (*UChargeBondDipole)-=energy;
-            }
+              (*UChargeBondDipole)-=PotentialValueChargeBondDipole(chargeB,dipoleA,dr,sqrt(rr));
           }
         }
   
@@ -1292,55 +802,7 @@ int CalculateInterBondDipoleEnergyAdsorbateAtPosition(POINT posA1,POINT posA2,RE
             rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
     
             if(rr<CutOffBondDipoleBondDipoleSquared)
-            {
-              r=sqrt(rr);
-              SwitchingValue=1.0;
-              switch(ChargeMethod)
-              {
-                case NONE:
-                  Bt0=Bt1=Bt2=0.0;
-                  break;
-                case TRUNCATED_COULOMB:
-                  Bt0=1.0/(r);
-                  Bt1=1.0/(r*rr);
-                  Bt2=3.0/(r*rr*rr);
-                  break;
-                case SHIFTED_COULOMB:
-                  Bt0=1.0/(r);
-                  Bt1=1.0/(r*rr);
-                  Bt2=3.0/(r*rr*rr);
-                  break;
-                case SMOOTHED_COULOMB:
-                  Bt0=1.0/(r);
-                  Bt1=1.0/(r*rr);
-                  Bt2=3.0/(r*rr*rr);
-                  if(rr>CutOffBondDipoleBondDipoleSwitchSquared)
-                  {
-                    SwitchingValue=SwitchingBondDipoleBondDipoleFactors5[5]*(rr*rr*r)+SwitchingBondDipoleBondDipoleFactors5[4]*(rr*rr)+SwitchingBondDipoleBondDipoleFactors5[3]*(rr*r)+
-                                   SwitchingBondDipoleBondDipoleFactors5[2]*rr+SwitchingBondDipoleBondDipoleFactors5[1]*r+SwitchingBondDipoleBondDipoleFactors5[0];
-                  }
-                  break;
-                case EWALD:
-                  Bt0=erfc(Alpha[CurrentSystem]*r)/r;
-                  Bt1=2.0*Alpha[CurrentSystem]*exp(-SQR(-Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                      erfc(Alpha[CurrentSystem]*r)/(rr*r);
-                  Bt2=6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
-                      4.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                      3.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*r);
-                   break;
-                default:
-                  printf("Unknown charge-method in 'CalculateInterBondDipoleEnergyAdsorbateAtPosition'\n");
-                  exit(0);
-                  break;
-              }
-    
-              cosAB=dipoleA.x*dipoleB.x+dipoleA.y*dipoleB.y+dipoleA.z*dipoleB.z;
-              cosA=dipoleA.x*dr.x+dipoleA.y*dr.y+dipoleA.z*dr.z;
-              cosB=dipoleB.x*dr.x+dipoleB.y*dr.y+dipoleB.z*dr.z;
-              energy=SwitchingValue*COULOMBIC_CONVERSION_FACTOR*(Bt1*cosAB-Bt2*cosA*cosB);
-              (*UBondDipoleBondDipole)+=energy;
-    
-            }
+              (*UBondDipoleBondDipole)+=PotentialValueBondDipoleBondDipole(dipoleA,dipoleB,dr,sqrt(rr));
           }
         }
       }
@@ -1356,7 +818,7 @@ int CalculateInterBondDipoleEnergyAdsorbateAtPosition(POINT posA1,POINT posA2,RE
         {
           posB=Adsorbates[CurrentSystem][j].Atoms[i].Position;
           TypeB=Adsorbates[CurrentSystem][j].Atoms[i].Type;
-          ChargeB=Adsorbates[CurrentSystem][j].Atoms[i].Charge;
+          chargeB=Adsorbates[CurrentSystem][j].Atoms[i].Charge;
           dr.x=posA.x-posB.x;
           dr.y=posA.y-posB.y;
           dr.z=posA.z-posB.z;
@@ -1365,52 +827,7 @@ int CalculateInterBondDipoleEnergyAdsorbateAtPosition(POINT posA1,POINT posA2,RE
           rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
   
           if(rr<CutOffChargeBondDipoleSquared)
-          {
-            r=sqrt(rr);
-            SwitchingValue=1.0;
-            switch(ChargeMethod)
-            {
-              case NONE:
-                Bt0=Bt1=Bt2=0.0;
-                break;
-              case TRUNCATED_COULOMB:
-                Bt0=1.0/(r);
-                Bt1=1.0/(r*rr);
-                Bt2=3.0/(r*rr*rr);
-                break;
-              case SHIFTED_COULOMB:
-                Bt0=1.0/(r);
-                Bt1=1.0/(r*rr);
-                Bt2=3.0/(r*rr*rr);
-                break;
-              case SMOOTHED_COULOMB:
-                Bt0=1.0/(r);
-                Bt1=1.0/(r*rr);
-                Bt2=3.0/(r*rr*rr);
-                if(rr>CutOffChargeBondDipoleSwitchSquared)
-                {
-                  SwitchingValue=SwitchingChargeBondDipoleFactors5[5]*(rr*rr*r)+SwitchingChargeBondDipoleFactors5[4]*(rr*rr)+SwitchingChargeBondDipoleFactors5[3]*(rr*r)+
-                                 SwitchingChargeBondDipoleFactors5[2]*rr+SwitchingChargeBondDipoleFactors5[1]*r+SwitchingChargeBondDipoleFactors5[0];
-                }
-                break;
-              case EWALD:
-                Bt0=erfc(Alpha[CurrentSystem]*r)/r;
-                Bt1=2.0*Alpha[CurrentSystem]*exp(-SQR(-Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                    erfc(Alpha[CurrentSystem]*r)/(rr*r);
-                Bt2=6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
-                    4.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                    3.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*r);
-                break;
-              default:
-                printf("Unknown charge-method in 'CalculateInterBondDipoleEnergyAdsorbateAtPosition'\n");
-                exit(0);
-                break;
-            }
-  
-            cosA=dipoleA.x*dr.x+dipoleA.y*dr.y+dipoleA.z*dr.z;
-            energy=SwitchingValue*COULOMBIC_CONVERSION_FACTOR*(Bt1*ChargeB*cosA);
-            (*UChargeBondDipole)-=energy;
-          }
+            (*UChargeBondDipole)-=PotentialValueChargeBondDipole(chargeB,dipoleA,dr,sqrt(rr));
         }
   
         TypeB=Adsorbates[CurrentSystem][j].Type;
@@ -1437,55 +854,7 @@ int CalculateInterBondDipoleEnergyAdsorbateAtPosition(POINT posA1,POINT posA2,RE
           rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
   
           if(rr<CutOffBondDipoleBondDipoleSquared)
-          {
-            r=sqrt(rr);
-            SwitchingValue=1.0;
-            switch(ChargeMethod)
-            {
-              case NONE:
-                Bt0=Bt1=Bt2=0.0;
-                break;
-              case TRUNCATED_COULOMB:
-                Bt0=1.0/(r);
-                Bt1=1.0/(r*rr);
-                Bt2=3.0/(r*rr*rr);
-                break;
-              case SHIFTED_COULOMB:
-                Bt0=1.0/(r);
-                Bt1=1.0/(r*rr);
-                Bt2=3.0/(r*rr*rr);
-                break;
-              case SMOOTHED_COULOMB:
-                Bt0=1.0/(r);
-                Bt1=1.0/(r*rr);
-                Bt2=3.0/(r*rr*rr);
-                if(rr>CutOffBondDipoleBondDipoleSwitchSquared)
-                {
-                  SwitchingValue=SwitchingBondDipoleBondDipoleFactors5[5]*(rr*rr*r)+SwitchingBondDipoleBondDipoleFactors5[4]*(rr*rr)+SwitchingBondDipoleBondDipoleFactors5[3]*(rr*r)+
-                                 SwitchingBondDipoleBondDipoleFactors5[2]*rr+SwitchingBondDipoleBondDipoleFactors5[1]*r+SwitchingBondDipoleBondDipoleFactors5[0];
-                }
-                break;
-              case EWALD:
-                Bt0=erfc(Alpha[CurrentSystem]*r)/r;
-                Bt1=2.0*Alpha[CurrentSystem]*exp(-SQR(-Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                    erfc(Alpha[CurrentSystem]*r)/(rr*r);
-                Bt2=6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
-                    4.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                    3.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*r);
-                 break;
-              default:
-                printf("Unknown charge-method in 'CalculateInterBondDipoleEnergyAdsorbateAtPosition'\n");
-                exit(0);
-                break;
-            }
-  
-            cosAB=dipoleA.x*dipoleB.x+dipoleA.y*dipoleB.y+dipoleA.z*dipoleB.z;
-            cosA=dipoleA.x*dr.x+dipoleA.y*dr.y+dipoleA.z*dr.z;
-            cosB=dipoleB.x*dr.x+dipoleB.y*dr.y+dipoleB.z*dr.z;
-            energy=SwitchingValue*COULOMBIC_CONVERSION_FACTOR*(Bt1*cosAB-Bt2*cosA*cosB);
-            (*UBondDipoleBondDipole)+=energy;
-  
-          }
+            (*UBondDipoleBondDipole)+=PotentialValueBondDipoleBondDipole(dipoleA,dipoleB,dr,sqrt(rr));
         }
       }
     }
@@ -1498,13 +867,10 @@ int CalculateInterBondDipoleEnergyCationAtPosition(POINT posA1,POINT posA2,REAL 
   int i,j,l;
   int B1,B2;
   int TypeB,typeB;
-  REAL r;
   VECTOR posA,posB,posB1,posB2,dr;
-  REAL energy,DipoleMagnitudeB,ChargeB;
+  REAL DipoleMagnitudeB,chargeB;
   REAL ri2,rr,length,temp;
   VECTOR dipoleA,dipoleB;
-  REAL cosAB,cosA,cosB;
-  REAL Bt0,Bt1,Bt2,SwitchingValue;
   int ncell;
 
  (*UChargeBondDipole)=0.0;
@@ -1534,7 +900,7 @@ int CalculateInterBondDipoleEnergyCationAtPosition(POINT posA1,POINT posA2,REAL 
         {
           posB=Cations[CurrentSystem][j].Atoms[i].Position;
           typeB=Cations[CurrentSystem][j].Atoms[i].Type;
-          ChargeB=Cations[CurrentSystem][j].Atoms[i].Charge;
+          chargeB=Cations[CurrentSystem][j].Atoms[i].Charge;
 
           for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
           {
@@ -1545,52 +911,7 @@ int CalculateInterBondDipoleEnergyCationAtPosition(POINT posA1,POINT posA2,REAL 
             rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
     
             if(rr<CutOffChargeBondDipoleSquared)
-            {
-              r=sqrt(rr);
-              SwitchingValue=1.0;
-              switch(ChargeMethod)
-              {
-                case NONE:
-                  Bt0=Bt1=Bt2=0.0;
-                  break;
-                case TRUNCATED_COULOMB:
-                  Bt0=1.0/(r);
-                  Bt1=1.0/(r*rr);
-                  Bt2=3.0/(r*rr*rr);
-                  break;
-                case SHIFTED_COULOMB:
-                  Bt0=1.0/(r);
-                  Bt1=1.0/(r*rr);
-                  Bt2=3.0/(r*rr*rr);
-                  break;
-                case SMOOTHED_COULOMB:
-                  Bt0=1.0/(r);
-                  Bt1=1.0/(r*rr);
-                  Bt2=3.0/(r*rr*rr);
-                  if(rr>CutOffChargeBondDipoleSwitchSquared)
-                  {
-                    SwitchingValue=SwitchingChargeBondDipoleFactors5[5]*(rr*rr*r)+SwitchingChargeBondDipoleFactors5[4]*(rr*rr)+SwitchingChargeBondDipoleFactors5[3]*(rr*r)+
-                                   SwitchingChargeBondDipoleFactors5[2]*rr+SwitchingChargeBondDipoleFactors5[1]*r+SwitchingChargeBondDipoleFactors5[0];
-                  }
-                  break;
-                case EWALD:
-                  Bt0=erfc(Alpha[CurrentSystem]*r)/r;
-                  Bt1=2.0*Alpha[CurrentSystem]*exp(-SQR(-Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                      erfc(Alpha[CurrentSystem]*r)/(rr*r);
-                  Bt2=6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
-                      4.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                      3.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*r);
-                  break;
-                default:
-                  printf("Unknown charge-method in 'CalculateInterBondDipoleEnergyCationAtPosition'\n");
-                  exit(0);
-                  break;
-              }
-    
-              cosA=dipoleA.x*dr.x+dipoleA.y*dr.y+dipoleA.z*dr.z;
-              energy=SwitchingValue*COULOMBIC_CONVERSION_FACTOR*(Bt1*ChargeB*cosA);
-              (*UChargeBondDipole)-=energy;
-            }
+              (*UChargeBondDipole)-=PotentialValueChargeBondDipole(chargeB,dipoleA,dr,sqrt(rr));
           }
         }
   
@@ -1620,48 +941,7 @@ int CalculateInterBondDipoleEnergyCationAtPosition(POINT posA1,POINT posA2,REAL 
             rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
     
             if(rr<CutOffBondDipoleBondDipoleSquared)
-            {
-              r=sqrt(rr);
-              SwitchingValue=1.0;
-              switch(ChargeMethod)
-              {
-                case NONE:
-                  Bt0=Bt1=Bt2=0.0;
-                  break;
-                case TRUNCATED_COULOMB:
-                case SHIFTED_COULOMB:
-                  Bt0=1.0/(r);
-                  Bt1=1.0/(r*rr);
-                  Bt2=3.0/(r*rr*rr);
-                  break;
-                case SMOOTHED_COULOMB:
-                  Bt0=1.0/(r);
-                  Bt1=1.0/(r*rr);
-                  Bt2=3.0/(r*rr*rr);
-                  if(rr>CutOffBondDipoleBondDipoleSwitchSquared)
-                    SwitchingValue=SwitchingBondDipoleBondDipoleFactors5[5]*(rr*rr*r)+SwitchingBondDipoleBondDipoleFactors5[4]*(rr*rr)+SwitchingBondDipoleBondDipoleFactors5[3]*(rr*r)+
-                                   SwitchingBondDipoleBondDipoleFactors5[2]*rr+SwitchingBondDipoleBondDipoleFactors5[1]*r+SwitchingBondDipoleBondDipoleFactors5[0];
-                  break;
-                case EWALD:
-                  Bt0=erfc(Alpha[CurrentSystem]*r)/r;
-                  Bt1=2.0*Alpha[CurrentSystem]*exp(-SQR(-Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                      erfc(Alpha[CurrentSystem]*r)/(rr*r);
-                  Bt2=6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
-                      4.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                      3.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*r);
-                   break;
-                default:
-                  printf("Unknown charge-method in 'CalculateInterBondDipoleEnergyCationAtPosition'\n");
-                  exit(0);
-                  break;
-              }
-    
-              cosAB=dipoleA.x*dipoleB.x+dipoleA.y*dipoleB.y+dipoleA.z*dipoleB.z;
-              cosA=dipoleA.x*dr.x+dipoleA.y*dr.y+dipoleA.z*dr.z;
-              cosB=dipoleB.x*dr.x+dipoleB.y*dr.y+dipoleB.z*dr.z;
-              energy=SwitchingValue*COULOMBIC_CONVERSION_FACTOR*(Bt1*cosAB-Bt2*cosA*cosB);
-              (*UBondDipoleBondDipole)+=energy;
-            }
+              (*UBondDipoleBondDipole)+=PotentialValueBondDipoleBondDipole(dipoleA,dipoleB,dr,sqrt(rr));
           }
         }
       }
@@ -1677,7 +957,7 @@ int CalculateInterBondDipoleEnergyCationAtPosition(POINT posA1,POINT posA2,REAL 
         {
           posB=Cations[CurrentSystem][j].Atoms[i].Position;
           typeB=Cations[CurrentSystem][j].Atoms[i].Type;
-          ChargeB=Cations[CurrentSystem][j].Atoms[i].Charge;
+          chargeB=Cations[CurrentSystem][j].Atoms[i].Charge;
           dr.x=posA.x-posB.x;
           dr.y=posA.y-posB.y;
           dr.z=posA.z-posB.z;
@@ -1686,52 +966,7 @@ int CalculateInterBondDipoleEnergyCationAtPosition(POINT posA1,POINT posA2,REAL 
           rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
   
           if(rr<CutOffChargeBondDipoleSquared)
-          {
-            r=sqrt(rr);
-            SwitchingValue=1.0;
-            switch(ChargeMethod)
-            {
-              case NONE:
-                Bt0=Bt1=Bt2=0.0;
-                break;
-              case TRUNCATED_COULOMB:
-                Bt0=1.0/(r);
-                Bt1=1.0/(r*rr);
-                Bt2=3.0/(r*rr*rr);
-                break;
-              case SHIFTED_COULOMB:
-                Bt0=1.0/(r);
-                Bt1=1.0/(r*rr);
-                Bt2=3.0/(r*rr*rr);
-                break;
-              case SMOOTHED_COULOMB:
-                Bt0=1.0/(r);
-                Bt1=1.0/(r*rr);
-                Bt2=3.0/(r*rr*rr);
-                if(rr>CutOffChargeBondDipoleSwitchSquared)
-                {
-                  SwitchingValue=SwitchingChargeBondDipoleFactors5[5]*(rr*rr*r)+SwitchingChargeBondDipoleFactors5[4]*(rr*rr)+SwitchingChargeBondDipoleFactors5[3]*(rr*r)+
-                                 SwitchingChargeBondDipoleFactors5[2]*rr+SwitchingChargeBondDipoleFactors5[1]*r+SwitchingChargeBondDipoleFactors5[0];
-                }
-                break;
-              case EWALD:
-                Bt0=erfc(Alpha[CurrentSystem]*r)/r;
-                Bt1=2.0*Alpha[CurrentSystem]*exp(-SQR(-Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                    erfc(Alpha[CurrentSystem]*r)/(rr*r);
-                Bt2=6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
-                    4.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                    3.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*r);
-                break;
-              default:
-                printf("Unknown charge-method in 'CalculateInterBondDipoleEnergyCationAtPosition'\n");
-                exit(0);
-                break;
-            }
-  
-            cosA=dipoleA.x*dr.x+dipoleA.y*dr.y+dipoleA.z*dr.z;
-            energy=SwitchingValue*COULOMBIC_CONVERSION_FACTOR*(Bt1*ChargeB*cosA);
-            (*UChargeBondDipole)-=energy;
-          }
+            (*UChargeBondDipole)-=PotentialValueChargeBondDipole(chargeB,dipoleA,dr,sqrt(rr));
         }
   
         TypeB=Cations[CurrentSystem][j].Type;
@@ -1758,48 +993,7 @@ int CalculateInterBondDipoleEnergyCationAtPosition(POINT posA1,POINT posA2,REAL 
           rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
   
           if(rr<CutOffBondDipoleBondDipoleSquared)
-          {
-            r=sqrt(rr);
-            SwitchingValue=1.0;
-            switch(ChargeMethod)
-            {
-              case NONE:
-                Bt0=Bt1=Bt2=0.0;
-                break;
-              case TRUNCATED_COULOMB:
-              case SHIFTED_COULOMB:
-                Bt0=1.0/(r);
-                Bt1=1.0/(r*rr);
-                Bt2=3.0/(r*rr*rr);
-                break;
-              case SMOOTHED_COULOMB:
-                Bt0=1.0/(r);
-                Bt1=1.0/(r*rr);
-                Bt2=3.0/(r*rr*rr);
-                if(rr>CutOffBondDipoleBondDipoleSwitchSquared)
-                  SwitchingValue=SwitchingBondDipoleBondDipoleFactors5[5]*(rr*rr*r)+SwitchingBondDipoleBondDipoleFactors5[4]*(rr*rr)+SwitchingBondDipoleBondDipoleFactors5[3]*(rr*r)+
-                                 SwitchingBondDipoleBondDipoleFactors5[2]*rr+SwitchingBondDipoleBondDipoleFactors5[1]*r+SwitchingBondDipoleBondDipoleFactors5[0];
-                break;
-              case EWALD:
-                Bt0=erfc(Alpha[CurrentSystem]*r)/r;
-                Bt1=2.0*Alpha[CurrentSystem]*exp(-SQR(-Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                    erfc(Alpha[CurrentSystem]*r)/(rr*r);
-                Bt2=6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
-                    4.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                    3.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*r);
-                 break;
-              default:
-                printf("Unknown charge-method in 'CalculateInterBondDipoleEnergyCationAtPosition'\n");
-                exit(0);
-                break;
-            }
-  
-            cosAB=dipoleA.x*dipoleB.x+dipoleA.y*dipoleB.y+dipoleA.z*dipoleB.z;
-            cosA=dipoleA.x*dr.x+dipoleA.y*dr.y+dipoleA.z*dr.z;
-            cosB=dipoleB.x*dr.x+dipoleB.y*dr.y+dipoleB.z*dr.z;
-            energy=SwitchingValue*COULOMBIC_CONVERSION_FACTOR*(Bt1*cosAB-Bt2*cosA*cosB);
-            (*UBondDipoleBondDipole)+=energy;
-          }
+            (*UBondDipoleBondDipole)+=PotentialValueBondDipoleBondDipole(dipoleA,dipoleB,dr,sqrt(rr));
         }
       }
     }
@@ -2051,9 +1245,9 @@ int CalculateTotalInterChargeChargeCoulombEnergy(void)
   int typeA,typeB;
   REAL r,r2;
   REAL chargeA,chargeB;
-  REAL energy,SwitchingValue,TranslationValue;
+  REAL energy;
   VECTOR posA,posB,dr;
-  REAL NetChargeB,UWolfCorrection;
+  REAL NetchargeB,UWolfCorrection;
   REAL scalingA,scalingB;
   int ncell,start;
 
@@ -2093,53 +1287,14 @@ int CalculateTotalInterChargeChargeCoulombEnergy(void)
                 dr=ApplyReplicaBoundaryCondition(dr);
                 r2=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
 
-                if(r2<CutOffChargeChargeSquared)
+                if(r2<CutOffChargeChargeSquared[CurrentSystem])
                 {
                   r=sqrt(r2);
                   typeB=Adsorbates[CurrentSystem][j].Atoms[l].Type;
                   scalingB=Adsorbates[CurrentSystem][j].Atoms[l].CFChargeScalingParameter;
                   chargeB=scalingB*Adsorbates[CurrentSystem][j].Atoms[l].Charge;
 
-                  switch(ChargeMethod)
-                  {
-                    case NONE:
-                      energy=0.0;
-                      break;
-                    case SHIFTED_COULOMB:
-                      energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-InverseCutOffChargeCharge);
-                      break;
-                    case TRUNCATED_COULOMB:
-                      energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB/r;
-                      break;
-                    case SMOOTHED_COULOMB:
-                      energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-2.0/(CutOffChargeChargeSwitch+CutOffChargeCharge));
-                      if(r2>CutOffChargeChargeSwitchSquared)
-                      {
-                        SwitchingValue=SwitchingChargeChargeFactors5[5]*(r2*r2*r)+SwitchingChargeChargeFactors5[4]*(r2*r2)+SwitchingChargeChargeFactors5[3]*(r2*r)+
-                                       SwitchingChargeChargeFactors5[2]*r2+SwitchingChargeChargeFactors5[1]*r+SwitchingChargeChargeFactors5[0];
-
-                        TranslationValue=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*
-                                        (SwitchingChargeChargeFactors7[7]*(r2*r2*r2*r)+SwitchingChargeChargeFactors7[6]*(r2*r2*r2)+
-                                         SwitchingChargeChargeFactors7[5]*(r2*r2*r)+SwitchingChargeChargeFactors7[4]*(r2*r2)+SwitchingChargeChargeFactors7[3]*(r2*r)+
-                                         SwitchingChargeChargeFactors7[2]*r2+SwitchingChargeChargeFactors7[1]*r+SwitchingChargeChargeFactors7[0]);
-                        energy=energy*SwitchingValue+TranslationValue;
-                      }
-                      break;
-                    case WOLFS_METHOD_DAMPED_FG:
-                      energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(erfc(Alpha[CurrentSystem]*r)/r
-                               -erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*InverseCutOffChargeCharge+
-                               (r-CutOffChargeCharge)*(erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*SQR(InverseCutOffChargeCharge)+
-                               (2.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*CutOffChargeChargeSquared)*M_1_SQRTPI*InverseCutOffChargeCharge)));
-                     break;
-                    case EWALD:
-                      energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*
-                              (erfc(Alpha[CurrentSystem]*r)/r);
-                      break;
-                    default:
-                      printf("Unknown charge-method in 'CalculateTotalInterReplicaChargeChargeCoulombEnergy'\n");
-                      exit(0);
-                      break;
-                  }
+                  energy=PotentialValueCoulombic(chargeA,chargeB,sqrt(r2));
 
                   if(ncell==0)
                     UAdsorbateAdsorbateChargeChargeReal[CurrentSystem]+=energy;
@@ -2167,54 +1322,13 @@ int CalculateTotalInterChargeChargeCoulombEnergy(void)
                 dr=ApplyReplicaBoundaryCondition(dr);
                 r2=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
 
-                if(r2<CutOffChargeChargeSquared)
+                if(r2<CutOffChargeChargeSquared[CurrentSystem])
                 {
                   typeB=Cations[CurrentSystem][j].Atoms[l].Type;
                   scalingB=Cations[CurrentSystem][j].Atoms[l].CFChargeScalingParameter;
                   chargeB=scalingB*Cations[CurrentSystem][j].Atoms[l].Charge;
 
-                  r=sqrt(r2);
-
-                  switch(ChargeMethod)
-                  {
-                    case NONE:
-                      energy=0.0;
-                      break;
-                    case SHIFTED_COULOMB:
-                      energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-InverseCutOffChargeCharge);
-                      break;
-                    case TRUNCATED_COULOMB:
-                      energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB/r;
-                      break;
-                    case SMOOTHED_COULOMB:
-                      energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-2.0/(CutOffChargeChargeSwitch+CutOffChargeCharge));
-                      if(r2>CutOffChargeChargeSwitchSquared)
-                      {
-                        SwitchingValue=SwitchingChargeChargeFactors5[5]*(r2*r2*r)+SwitchingChargeChargeFactors5[4]*(r2*r2)+SwitchingChargeChargeFactors5[3]*(r2*r)+
-                                       SwitchingChargeChargeFactors5[2]*r2+SwitchingChargeChargeFactors5[1]*r+SwitchingChargeChargeFactors5[0];
-
-                        TranslationValue=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*
-                                        (SwitchingChargeChargeFactors7[7]*(r2*r2*r2*r)+SwitchingChargeChargeFactors7[6]*(r2*r2*r2)+
-                                         SwitchingChargeChargeFactors7[5]*(r2*r2*r)+SwitchingChargeChargeFactors7[4]*(r2*r2)+SwitchingChargeChargeFactors7[3]*(r2*r)+
-                                         SwitchingChargeChargeFactors7[2]*r2+SwitchingChargeChargeFactors7[1]*r+SwitchingChargeChargeFactors7[0]);
-                        energy=energy*SwitchingValue+TranslationValue;
-                      }
-                      break;
-                    case WOLFS_METHOD_DAMPED_FG:
-                      energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(erfc(Alpha[CurrentSystem]*r)/r
-                                -erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*InverseCutOffChargeCharge+
-                                 (r-CutOffChargeCharge)*(erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*SQR(InverseCutOffChargeCharge)+
-                                 (2.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*CutOffChargeChargeSquared)*M_1_SQRTPI*InverseCutOffChargeCharge)));
-                      break;
-                    case EWALD:
-                      energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*
-                             (erfc(Alpha[CurrentSystem]*r)/r);
-                      break;
-                    default:
-                      printf("Unknown charge-method in 'CalculateTotalInterReplicaChargeChargeCoulombEnergy'\n");
-                      exit(0);
-                      break;
-                  }
+                  energy=PotentialValueCoulombic(chargeA,chargeB,sqrt(r2));
 
                   UAdsorbateCationChargeChargeReal[CurrentSystem]+=energy;
                 }
@@ -2252,54 +1366,13 @@ int CalculateTotalInterChargeChargeCoulombEnergy(void)
                 dr.z=posA.z-(posB.z+ReplicaShift[ncell].z);
                 dr=ApplyReplicaBoundaryCondition(dr);
                 r2=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-                if(r2<CutOffChargeChargeSquared)
+                if(r2<CutOffChargeChargeSquared[CurrentSystem])
                 {
                   typeB=Cations[CurrentSystem][j].Atoms[l].Type;
                   scalingB=Cations[CurrentSystem][j].Atoms[l].CFChargeScalingParameter;
                   chargeB=scalingB*Cations[CurrentSystem][j].Atoms[l].Charge;
 
-                  r=sqrt(r2);
-
-                  switch(ChargeMethod)
-                  {
-                    case NONE:
-                      energy=0.0;
-                      break;
-                    case SHIFTED_COULOMB:
-                      energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-InverseCutOffChargeCharge);
-                      break;
-                    case TRUNCATED_COULOMB:
-                      energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB/r;
-                      break;
-                    case SMOOTHED_COULOMB:
-                      energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-2.0/(CutOffChargeChargeSwitch+CutOffChargeCharge));
-                      if(r2>CutOffChargeChargeSwitchSquared)
-                      {
-                        SwitchingValue=SwitchingChargeChargeFactors5[5]*(r2*r2*r)+SwitchingChargeChargeFactors5[4]*(r2*r2)+SwitchingChargeChargeFactors5[3]*(r2*r)+
-                                       SwitchingChargeChargeFactors5[2]*r2+SwitchingChargeChargeFactors5[1]*r+SwitchingChargeChargeFactors5[0];
-
-                        TranslationValue=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*
-                                        (SwitchingChargeChargeFactors7[7]*(r2*r2*r2*r)+SwitchingChargeChargeFactors7[6]*(r2*r2*r2)+
-                                         SwitchingChargeChargeFactors7[5]*(r2*r2*r)+SwitchingChargeChargeFactors7[4]*(r2*r2)+SwitchingChargeChargeFactors7[3]*(r2*r)+
-                                         SwitchingChargeChargeFactors7[2]*r2+SwitchingChargeChargeFactors7[1]*r+SwitchingChargeChargeFactors7[0]);
-                        energy=energy*SwitchingValue+TranslationValue;
-                      }
-                      break;
-                    case WOLFS_METHOD_DAMPED_FG:
-                      energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(erfc(Alpha[CurrentSystem]*r)/r
-                                 -erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*InverseCutOffChargeCharge+
-                                  (r-CutOffChargeCharge)*(erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*SQR(InverseCutOffChargeCharge)+
-                                  (2.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*CutOffChargeChargeSquared)*M_1_SQRTPI*InverseCutOffChargeCharge)));
-                      break;
-                    case EWALD:
-                      energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*
-                             (erfc(Alpha[CurrentSystem]*r)/r);
-                      break;
-                    default:
-                      printf("Unknown charge-method in 'CalculateTotalInterReplicaChargeChargeCoulombEnergy'\n");
-                      exit(0);
-                      break;
-                  }
+                  energy=PotentialValueCoulombic(chargeA,chargeB,sqrt(r2));
 
                   if(ncell==0)
                     UCationCationChargeChargeReal[CurrentSystem]+=energy;
@@ -2339,60 +1412,14 @@ int CalculateTotalInterChargeChargeCoulombEnergy(void)
               dr=ApplyBoundaryCondition(dr);
               r2=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
   
-              if(r2<CutOffChargeChargeSquared)
+              if(r2<CutOffChargeChargeSquared[CurrentSystem])
               {
                 typeB=Adsorbates[CurrentSystem][j].Atoms[l].Type;
                 scalingB=Adsorbates[CurrentSystem][j].Atoms[l].CFChargeScalingParameter;
                 chargeB=scalingB*Adsorbates[CurrentSystem][j].Atoms[l].Charge;
+
+                energy=PotentialValueCoulombic(chargeA,chargeB,sqrt(r2));
   
-                r=sqrt(r2);
-                switch(ChargeMethod)
-                {
-                  case NONE:
-                    energy=0.0;
-                    break;
-                  case TRUNCATED_COULOMB:
-                    energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB/r;
-                    break;
-                  case SHIFTED_COULOMB:
-                    energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-InverseCutOffChargeCharge);
-                    break;
-                  case SMOOTHED_COULOMB:
-                    energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-2.0/(CutOffChargeChargeSwitch+CutOffChargeCharge));
-                    if(r2>CutOffChargeChargeSwitchSquared)
-                    {
-                      SwitchingValue=SwitchingChargeChargeFactors5[5]*(r2*r2*r)+SwitchingChargeChargeFactors5[4]*(r2*r2)+SwitchingChargeChargeFactors5[3]*(r2*r)+
-                                     SwitchingChargeChargeFactors5[2]*r2+SwitchingChargeChargeFactors5[1]*r+SwitchingChargeChargeFactors5[0];
-   
-                      TranslationValue=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*
-                                       (SwitchingChargeChargeFactors7[7]*(r2*r2*r2*r)+SwitchingChargeChargeFactors7[6]*(r2*r2*r2)+
-                                        SwitchingChargeChargeFactors7[5]*(r2*r2*r)+SwitchingChargeChargeFactors7[4]*(r2*r2)+SwitchingChargeChargeFactors7[3]*(r2*r)+
-                                        SwitchingChargeChargeFactors7[2]*r2+SwitchingChargeChargeFactors7[1]*r+SwitchingChargeChargeFactors7[0]);
-                      energy=energy*SwitchingValue+TranslationValue;
-                    }
-                    break;
-                  case WOLFS_METHOD:
-                    energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-InverseCutOffChargeCharge);
-                    break;
-                  case WOLFS_METHOD_DAMPED:
-                    energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(erfc(Alpha[CurrentSystem]*r)/r
-                                -erfc(Alpha[CurrentSystem]*CutOffChargeChargeSquared)*InverseCutOffChargeCharge);
-                    break;
-                  case WOLFS_METHOD_DAMPED_FG:
-                    energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(erfc(Alpha[CurrentSystem]*r)/r
-                           -erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*InverseCutOffChargeCharge+
-                           (r-CutOffChargeCharge)*(erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*SQR(InverseCutOffChargeCharge)+
-                           (2.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*CutOffChargeChargeSquared)*M_1_SQRTPI*InverseCutOffChargeCharge)));
-                    break;
-                  case EWALD:
-                    energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*
-                                         (erfc(Alpha[CurrentSystem]*r)/r);
-                    break;
-                  default:
-                    printf("Unknown charge-method in 'CalculateTotalInterChargeChargeCoulombEnergy'\n");
-                    exit(0);
-                    break;
-                }
                 UAdsorbateAdsorbateChargeChargeReal[CurrentSystem]+=energy;
               }
             }
@@ -2412,54 +1439,14 @@ int CalculateTotalInterChargeChargeCoulombEnergy(void)
               dr.z=posA.z-posB.z;
               dr=ApplyBoundaryCondition(dr);
               r2=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-              if(r2<CutOffChargeChargeSquared)
+              if(r2<CutOffChargeChargeSquared[CurrentSystem])
               {
                 typeB=Cations[CurrentSystem][j].Atoms[l].Type;
                 scalingB=Cations[CurrentSystem][j].Atoms[l].CFChargeScalingParameter;
                 chargeB=scalingB*Cations[CurrentSystem][j].Atoms[l].Charge;
+
+                energy=PotentialValueCoulombic(chargeA,chargeB,sqrt(r2));
   
-                r=sqrt(r2);
-                switch(ChargeMethod)
-                {
-                  case NONE:
-                    energy=0.0;
-                    break;
-                  case TRUNCATED_COULOMB:
-                    energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB/r;
-                    break;
-                  case SHIFTED_COULOMB:
-                    energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-InverseCutOffChargeCharge);
-                    break;
-                  case SMOOTHED_COULOMB:
-                    energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-2.0/(CutOffChargeChargeSwitch+CutOffChargeCharge));
-                    if(r2>CutOffChargeChargeSwitchSquared)
-                    {
-                      SwitchingValue=SwitchingChargeChargeFactors5[5]*(r2*r2*r)+SwitchingChargeChargeFactors5[4]*(r2*r2)+SwitchingChargeChargeFactors5[3]*(r2*r)+
-                                     SwitchingChargeChargeFactors5[2]*r2+SwitchingChargeChargeFactors5[1]*r+SwitchingChargeChargeFactors5[0];
-  
-                      TranslationValue=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*
-                                       (SwitchingChargeChargeFactors7[7]*(r2*r2*r2*r)+SwitchingChargeChargeFactors7[6]*(r2*r2*r2)+
-                                        SwitchingChargeChargeFactors7[5]*(r2*r2*r)+SwitchingChargeChargeFactors7[4]*(r2*r2)+SwitchingChargeChargeFactors7[3]*(r2*r)+
-                                        SwitchingChargeChargeFactors7[2]*r2+SwitchingChargeChargeFactors7[1]*r+SwitchingChargeChargeFactors7[0]);
-                      energy=energy*SwitchingValue+TranslationValue;
-                    }
-                    break;
-                  case WOLFS_METHOD_DAMPED_FG:
-                      energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(erfc(Alpha[CurrentSystem]*r)/r
-                             -erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*InverseCutOffChargeCharge+
-                             (r-CutOffChargeCharge)*(erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*SQR(InverseCutOffChargeCharge)+
-                             (2.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*CutOffChargeChargeSquared)*M_1_SQRTPI*InverseCutOffChargeCharge)));
-                    break;
-                  case EWALD:
-                    energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*
-                                         (erfc(Alpha[CurrentSystem]*r)/r);
-                    break;
-                  default:
-                    printf("Unknown charge-method in 'CalculateTotalInterChargeChargeCoulombEnergy'\n");
-                    exit(0);
-                    break;
-  
-                }
                 UAdsorbateCationChargeChargeReal[CurrentSystem]+=energy;
               }
             }
@@ -2491,54 +1478,14 @@ int CalculateTotalInterChargeChargeCoulombEnergy(void)
               dr.z=posA.z-posB.z;
               dr=ApplyBoundaryCondition(dr);
               r2=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-              if(r2<CutOffChargeChargeSquared)
+              if(r2<CutOffChargeChargeSquared[CurrentSystem])
               {
                 typeB=Cations[CurrentSystem][j].Atoms[l].Type;
                 scalingB=Cations[CurrentSystem][j].Atoms[l].CFChargeScalingParameter;
                 chargeB=scalingB*Cations[CurrentSystem][j].Atoms[l].Charge;
+
+                energy=PotentialValueCoulombic(chargeA,chargeB,sqrt(r2));
   
-                r=sqrt(r2);
-                switch(ChargeMethod)
-                {
-                  case NONE:
-                    energy=0.0;
-                    break;
-                  case TRUNCATED_COULOMB:
-                    energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB/r;
-                    break;
-                  case SHIFTED_COULOMB:
-                    energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-InverseCutOffChargeCharge);
-                    break;
-                  case SMOOTHED_COULOMB:
-                    energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-2.0/(CutOffChargeChargeSwitch+CutOffChargeCharge));
-                    if(r2>CutOffChargeChargeSwitchSquared)
-                    {
-                      SwitchingValue=SwitchingChargeChargeFactors5[5]*(r2*r2*r)+SwitchingChargeChargeFactors5[4]*(r2*r2)+SwitchingChargeChargeFactors5[3]*(r2*r)+
-                                     SwitchingChargeChargeFactors5[2]*r2+SwitchingChargeChargeFactors5[1]*r+SwitchingChargeChargeFactors5[0];
-  
-                      TranslationValue=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*
-                                       (SwitchingChargeChargeFactors7[7]*(r2*r2*r2*r)+SwitchingChargeChargeFactors7[6]*(r2*r2*r2)+
-                                        SwitchingChargeChargeFactors7[5]*(r2*r2*r)+SwitchingChargeChargeFactors7[4]*(r2*r2)+SwitchingChargeChargeFactors7[3]*(r2*r)+
-                                        SwitchingChargeChargeFactors7[2]*r2+SwitchingChargeChargeFactors7[1]*r+SwitchingChargeChargeFactors7[0]);
-                      energy=energy*SwitchingValue+TranslationValue;
-                    }
-                    break;
-                  case WOLFS_METHOD_DAMPED_FG:
-                    energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(erfc(Alpha[CurrentSystem]*r)/r
-                           -erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*InverseCutOffChargeCharge+
-                           (r-CutOffChargeCharge)*(erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*SQR(InverseCutOffChargeCharge)+
-                           (2.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*CutOffChargeChargeSquared)*M_1_SQRTPI*InverseCutOffChargeCharge)));
-                    break;
-                  case EWALD:
-                    energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*
-                                         (erfc(Alpha[CurrentSystem]*r)/r);
-                    break;
-                  default:
-                    printf("Unknown charge-method in 'CalculateTotalInterChargeChargeCoulombEnergy'\n");
-                    exit(0);
-                    break;
-  
-                }
                 UCationCationChargeChargeReal[CurrentSystem]+=energy;
               }
             }
@@ -2554,28 +1501,28 @@ int CalculateTotalInterChargeChargeCoulombEnergy(void)
       UWolfCorrection=0.0;
       for(i=0;i<NumberOfAdsorbateMolecules[CurrentSystem];i++)
       {
-        NetChargeB=0.0;
+        NetchargeB=0.0;
         for(j=0;j<Adsorbates[CurrentSystem][i].NumberOfAtoms;j++)
         {
           typeA=Adsorbates[CurrentSystem][i].Atoms[j].Type;
           chargeA=Adsorbates[CurrentSystem][i].Atoms[j].Charge;
-          NetChargeB+=chargeA;
+          NetchargeB+=chargeA;
         }
-        UWolfCorrection-=0.5*COULOMBIC_CONVERSION_FACTOR*SQR(NetChargeB)*InverseCutOffChargeCharge;
+        UWolfCorrection-=0.5*COULOMBIC_CONVERSION_FACTOR*SQR(NetchargeB)*InverseCutOffChargeCharge[CurrentSystem];
       }
       UAdsorbateAdsorbateChargeChargeReal[CurrentSystem]+=UWolfCorrection;
 
       UWolfCorrection=0.0;
       for(i=0;i<NumberOfCationMolecules[CurrentSystem];i++)
       {
-        NetChargeB=0.0;
+        NetchargeB=0.0;
         for(j=0;j<Cations[CurrentSystem][i].NumberOfAtoms;j++)
         {
           typeA=Cations[CurrentSystem][i].Atoms[j].Type;
           chargeA=Cations[CurrentSystem][i].Atoms[j].Charge;
-          NetChargeB+=chargeA;
+          NetchargeB+=chargeA;
         }
-        UWolfCorrection-=0.5*COULOMBIC_CONVERSION_FACTOR*SQR(NetChargeB)*InverseCutOffChargeCharge;
+        UWolfCorrection-=0.5*COULOMBIC_CONVERSION_FACTOR*SQR(NetchargeB)*InverseCutOffChargeCharge[CurrentSystem];
       }
       UCationCationChargeChargeReal[CurrentSystem]+=UWolfCorrection;
       break;
@@ -2584,15 +1531,15 @@ int CalculateTotalInterChargeChargeCoulombEnergy(void)
       UWolfCorrection=0.0;
       for(i=0;i<NumberOfAdsorbateMolecules[CurrentSystem];i++)
       {
-        NetChargeB=0.0;
+        NetchargeB=0.0;
         for(j=0;j<Adsorbates[CurrentSystem][i].NumberOfAtoms;j++)
         {
           typeA=Adsorbates[CurrentSystem][i].Atoms[j].Type;
           chargeA=Adsorbates[CurrentSystem][i].Atoms[j].Charge;
-          NetChargeB+=chargeA;
+          NetchargeB+=chargeA;
         }
-        UWolfCorrection-=COULOMBIC_CONVERSION_FACTOR*SQR(NetChargeB)*
-             (0.5*erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*InverseCutOffChargeCharge+
+        UWolfCorrection-=COULOMBIC_CONVERSION_FACTOR*SQR(NetchargeB)*
+             (0.5*erfc(Alpha[CurrentSystem]*CutOffChargeCharge[CurrentSystem])*InverseCutOffChargeCharge[CurrentSystem]+
               Alpha[CurrentSystem]*M_1_SQRTPI);
       }
       UAdsorbateAdsorbateChargeChargeReal[CurrentSystem]+=UWolfCorrection;
@@ -2600,15 +1547,15 @@ int CalculateTotalInterChargeChargeCoulombEnergy(void)
       UWolfCorrection=0.0;
       for(i=0;i<NumberOfCationMolecules[CurrentSystem];i++)
       {
-        NetChargeB=0.0;
+        NetchargeB=0.0;
         for(j=0;j<Cations[CurrentSystem][i].NumberOfAtoms;j++)
         {
           typeA=Cations[CurrentSystem][i].Atoms[j].Type;
           chargeA=Cations[CurrentSystem][i].Atoms[j].Charge;
-          NetChargeB+=chargeA;
+          NetchargeB+=chargeA;
         }
-        UWolfCorrection-=COULOMBIC_CONVERSION_FACTOR*SQR(NetChargeB)*
-             (0.5*erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*InverseCutOffChargeCharge+
+        UWolfCorrection-=COULOMBIC_CONVERSION_FACTOR*SQR(NetchargeB)*
+             (0.5*erfc(Alpha[CurrentSystem]*CutOffChargeCharge[CurrentSystem])*InverseCutOffChargeCharge[CurrentSystem]+
               Alpha[CurrentSystem]*M_1_SQRTPI);
       }
       UCationCationChargeChargeReal[CurrentSystem]+=UWolfCorrection;
@@ -2626,10 +1573,10 @@ int CalculateTotalInterChargeBondDipoleCoulombEnergy(void)
   int A1,A2;
   int Type,TypeA;
   VECTOR posA,posB,posA1,posA2,dr;
-  REAL r,rr,ri2,cosA,energy,temp,length,ChargeB;
+  REAL rr,ri2,energy,temp,length,chargeB;
   VECTOR dipoleA;
   REAL Bt0,Bt1,Bt2;
-  REAL DipoleMagnitudeA,SwitchingValue;
+  REAL DipoleMagnitudeA;
   int start,ncell;
 
   UAdsorbateAdsorbateChargeBondDipoleReal[CurrentSystem]=0.0;
@@ -2679,7 +1626,7 @@ int CalculateTotalInterChargeBondDipoleCoulombEnergy(void)
                   if(PseudoAtoms[Type].HasCharges)
                   {
                     posB=Adsorbates[CurrentSystem][k].Atoms[l].Position;
-                    ChargeB=Adsorbates[CurrentSystem][k].Atoms[l].Charge;
+                    chargeB=Adsorbates[CurrentSystem][k].Atoms[l].Charge;
     
                     dr.x=posA.x-(posB.x+ReplicaShift[ncell].x);
                     dr.y=posA.y-(posB.y+ReplicaShift[ncell].y);
@@ -2689,49 +1636,7 @@ int CalculateTotalInterChargeBondDipoleCoulombEnergy(void)
      
                     if(rr<CutOffChargeBondDipoleSquared)
                     {
-                      r=sqrt(rr);
-                      SwitchingValue=1.0;
-                      switch(ChargeMethod)
-                      {
-                        case NONE:
-                          Bt0=Bt1=Bt2=0.0;  
-                          break;
-                        case TRUNCATED_COULOMB:
-                          Bt0=1.0/(r);
-                          Bt1=1.0/(r*rr);
-                          Bt2=3.0/(r*rr*rr);
-                          break;
-                        case SHIFTED_COULOMB:
-                          Bt0=1.0/(r);
-                          Bt1=1.0/(r*rr);
-                          Bt2=3.0/(r*rr*rr);
-                          break;
-                        case SMOOTHED_COULOMB:
-                          Bt0=1.0/(r);
-                          Bt1=1.0/(r*rr);
-                          Bt2=3.0/(r*rr*rr);
-                          if(rr>CutOffChargeBondDipoleSwitchSquared)
-                          {
-                            SwitchingValue=SwitchingChargeBondDipoleFactors5[5]*(rr*rr*r)+SwitchingChargeBondDipoleFactors5[4]*(rr*rr)+SwitchingChargeBondDipoleFactors5[3]*(rr*r)+
-                                           SwitchingChargeBondDipoleFactors5[2]*rr+SwitchingChargeBondDipoleFactors5[1]*r+SwitchingChargeBondDipoleFactors5[0];
-                          }
-                          break;
-                        case EWALD:
-                          Bt0=erfc(Alpha[CurrentSystem]*r)/r;
-                          Bt1=2.0*Alpha[CurrentSystem]*exp(-SQR(-Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                              erfc(Alpha[CurrentSystem]*r)/(rr*r);
-                          Bt2=6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
-                              4.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                              3.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*r);
-                          break;
-                        default:
-                          printf("Unknown charge-method in 'CalculateTotalInterChargeBondDipoleCoulombEnergy'\n");
-                          exit(0);
-                          break;
-                      }
-    
-                      cosA=dipoleA.x*dr.x+dipoleA.y*dr.y+dipoleA.z*dr.z;
-                      energy=SwitchingValue*COULOMBIC_CONVERSION_FACTOR*(Bt1*ChargeB*cosA);
+                      energy=PotentialValueChargeBondDipole(chargeB,dipoleA,dr,sqrt(rr));
                       if(ncell==0)
                         UAdsorbateAdsorbateChargeBondDipoleReal[CurrentSystem]-=energy;
                       else
@@ -2756,7 +1661,7 @@ int CalculateTotalInterChargeBondDipoleCoulombEnergy(void)
                 if(PseudoAtoms[Type].HasCharges)
                 {
                   posB=Cations[CurrentSystem][k].Atoms[l].Position;
-                  ChargeB=Cations[CurrentSystem][k].Atoms[l].Charge;
+                  chargeB=Cations[CurrentSystem][k].Atoms[l].Charge;
       
                   dr.x=posA.x-(posB.x+ReplicaShift[ncell].x);
                   dr.y=posA.y-(posB.y+ReplicaShift[ncell].y);
@@ -2765,52 +1670,7 @@ int CalculateTotalInterChargeBondDipoleCoulombEnergy(void)
                   rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
     
                   if(rr<CutOffChargeBondDipoleSquared)
-                  {
-                    r=sqrt(rr);
-                    SwitchingValue=1.0;
-                    switch(ChargeMethod)
-                    {
-                      case NONE:
-                        Bt0=Bt1=Bt2=0.0;  
-                        break;
-                      case TRUNCATED_COULOMB:
-                        Bt0=1.0/(r);
-                        Bt1=1.0/(r*rr);
-                        Bt2=3.0/(r*rr*rr);
-                        break;
-                      case SHIFTED_COULOMB:
-                        Bt0=1.0/(r);
-                        Bt1=1.0/(r*rr);
-                        Bt2=3.0/(r*rr*rr);
-                        break;
-                      case SMOOTHED_COULOMB:
-                        Bt0=1.0/(r);
-                        Bt1=1.0/(r*rr);
-                        Bt2=3.0/(r*rr*rr);
-                        if(rr>CutOffChargeBondDipoleSwitchSquared)
-                        {
-                           SwitchingValue=SwitchingChargeBondDipoleFactors5[5]*(rr*rr*r)+SwitchingChargeBondDipoleFactors5[4]*(rr*rr)+SwitchingChargeBondDipoleFactors5[3]*(rr*r)+
-                                          SwitchingChargeBondDipoleFactors5[2]*rr+SwitchingChargeBondDipoleFactors5[1]*r+SwitchingChargeBondDipoleFactors5[0];
-                        }
-                        break;
-                      case EWALD:
-                        Bt0=erfc(Alpha[CurrentSystem]*r)/r;
-                        Bt1=2.0*Alpha[CurrentSystem]*exp(-SQR(-Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                            erfc(Alpha[CurrentSystem]*r)/(rr*r);
-                        Bt2=6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
-                            4.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                            3.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*r);
-                        break;
-                      default:
-                        printf("Unknown charge-method in 'CalculateTotalInterChargeBondDipoleCoulombEnergy'\n");
-                        exit(0);
-                        break;
-                    }
-    
-                    cosA=dipoleA.x*dr.x+dipoleA.y*dr.y+dipoleA.z*dr.z;
-                    energy=SwitchingValue*COULOMBIC_CONVERSION_FACTOR*(Bt1*ChargeB*cosA);
-                    UAdsorbateCationChargeBondDipoleReal[CurrentSystem]-=energy;
-                  }
+                    UAdsorbateCationChargeBondDipoleReal[CurrentSystem]-=PotentialValueChargeBondDipole(chargeB,dipoleA,dr,sqrt(rr));
                 }
               }
             }
@@ -2856,7 +1716,7 @@ int CalculateTotalInterChargeBondDipoleCoulombEnergy(void)
                   if(PseudoAtoms[Type].HasCharges)
                   {
                     posB=Cations[CurrentSystem][k].Atoms[l].Position;
-                    ChargeB=Cations[CurrentSystem][k].Atoms[l].Charge;
+                    chargeB=Cations[CurrentSystem][k].Atoms[l].Charge;
       
                     dr.x=posA.x-(posB.x+ReplicaShift[ncell].x);
                     dr.y=posA.y-(posB.y+ReplicaShift[ncell].y);
@@ -2866,49 +1726,7 @@ int CalculateTotalInterChargeBondDipoleCoulombEnergy(void)
     
                     if(rr<CutOffChargeBondDipoleSquared)
                     {
-                      r=sqrt(rr);
-                      SwitchingValue=1.0;
-                      switch(ChargeMethod)
-                      {
-                        case NONE:
-                          Bt0=Bt1=Bt2=0.0;  
-                          break;
-                        case TRUNCATED_COULOMB:
-                          Bt0=1.0/(r);
-                          Bt1=1.0/(r*rr);
-                          Bt2=3.0/(r*rr*rr);
-                          break;
-                        case SHIFTED_COULOMB:
-                          Bt0=1.0/(r);
-                          Bt1=1.0/(r*rr);
-                          Bt2=3.0/(r*rr*rr);
-                          break;
-                        case SMOOTHED_COULOMB:
-                          Bt0=1.0/(r);
-                          Bt1=1.0/(r*rr);
-                          Bt2=3.0/(r*rr*rr);
-                          if(rr>CutOffChargeBondDipoleSwitchSquared)
-                          {
-                            SwitchingValue=SwitchingChargeBondDipoleFactors5[5]*(rr*rr*r)+SwitchingChargeBondDipoleFactors5[4]*(rr*rr)+SwitchingChargeBondDipoleFactors5[3]*(rr*r)+
-                                           SwitchingChargeBondDipoleFactors5[2]*rr+SwitchingChargeBondDipoleFactors5[1]*r+SwitchingChargeBondDipoleFactors5[0];
-                          }
-                          break;
-                        case EWALD:
-                          Bt0=erfc(Alpha[CurrentSystem]*r)/r;
-                          Bt1=2.0*Alpha[CurrentSystem]*exp(-SQR(-Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                              erfc(Alpha[CurrentSystem]*r)/(rr*r);
-                          Bt2=6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
-                              4.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                              3.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*r);
-                          break;
-                        default:
-                          printf("Unknown charge-method in 'CalculateTotalInterChargeBondDipoleCoulombEnergy'\n");
-                          exit(0);
-                          break;
-                      }
-    
-                      cosA=dipoleA.x*dr.x+dipoleA.y*dr.y+dipoleA.z*dr.z;
-                      energy=SwitchingValue*COULOMBIC_CONVERSION_FACTOR*(Bt1*ChargeB*cosA);
+                      energy=PotentialValueChargeBondDipole(chargeB,dipoleA,dr,sqrt(rr));
                       if(ncell==0)
                         UCationCationChargeBondDipoleReal[CurrentSystem]-=energy;
                       else
@@ -2931,7 +1749,7 @@ int CalculateTotalInterChargeBondDipoleCoulombEnergy(void)
               if(PseudoAtoms[Type].HasCharges)
               {
                 posB=Adsorbates[CurrentSystem][k].Atoms[l].Position;
-                ChargeB=Adsorbates[CurrentSystem][k].Atoms[l].Charge;
+                chargeB=Adsorbates[CurrentSystem][k].Atoms[l].Charge;
     
                 for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
                 {
@@ -2942,52 +1760,7 @@ int CalculateTotalInterChargeBondDipoleCoulombEnergy(void)
                   rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
     
                   if(rr<CutOffChargeBondDipoleSquared)
-                  {
-                    r=sqrt(rr);
-                    SwitchingValue=1.0;
-                    switch(ChargeMethod)
-                    {
-                      case NONE:
-                        Bt0=Bt1=Bt2=0.0;  
-                        break;
-                      case TRUNCATED_COULOMB:
-                        Bt0=1.0/(r);
-                        Bt1=1.0/(r*rr);
-                        Bt2=3.0/(r*rr*rr);
-                        break;
-                      case SHIFTED_COULOMB:
-                        Bt0=1.0/(r);
-                        Bt1=1.0/(r*rr);
-                        Bt2=3.0/(r*rr*rr);
-                        break;
-                      case SMOOTHED_COULOMB:
-                        Bt0=1.0/(r);
-                        Bt1=1.0/(r*rr);
-                        Bt2=3.0/(r*rr*rr);
-                        if(rr>CutOffChargeBondDipoleSwitchSquared)
-                        {
-                          SwitchingValue=SwitchingChargeBondDipoleFactors5[5]*(rr*rr*r)+SwitchingChargeBondDipoleFactors5[4]*(rr*rr)+SwitchingChargeBondDipoleFactors5[3]*(rr*r)+
-                                         SwitchingChargeBondDipoleFactors5[2]*rr+SwitchingChargeBondDipoleFactors5[1]*r+SwitchingChargeBondDipoleFactors5[0];
-                        }
-                        break;
-                      case EWALD:
-                        Bt0=erfc(Alpha[CurrentSystem]*r)/r;
-                        Bt1=2.0*Alpha[CurrentSystem]*exp(-SQR(-Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                            erfc(Alpha[CurrentSystem]*r)/(rr*r);
-                        Bt2=6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
-                            4.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                            3.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*r);
-                        break;
-                      default:
-                        printf("Unknown charge-method in 'CalculateTotalInterChargeBondDipoleCoulombEnergy'\n");
-                        exit(0);
-                        break;
-                    }
-    
-                    cosA=dipoleA.x*dr.x+dipoleA.y*dr.y+dipoleA.z*dr.z;
-                    energy=SwitchingValue*COULOMBIC_CONVERSION_FACTOR*(Bt1*ChargeB*cosA);
-                    UAdsorbateCationChargeBondDipoleReal[CurrentSystem]-=energy;
-                  }
+                    UAdsorbateCationChargeBondDipoleReal[CurrentSystem]-=PotentialValueChargeBondDipole(chargeB,dipoleA,dr,sqrt(rr));
                 }
               }
             }
@@ -3031,7 +1804,7 @@ int CalculateTotalInterChargeBondDipoleCoulombEnergy(void)
                 if(PseudoAtoms[Type].HasCharges)
                 {
                   posB=Adsorbates[CurrentSystem][k].Atoms[l].Position;
-                  ChargeB=Adsorbates[CurrentSystem][k].Atoms[l].Charge;
+                  chargeB=Adsorbates[CurrentSystem][k].Atoms[l].Charge;
   
                   dr.x=posA.x-posB.x;
                   dr.y=posA.y-posB.y;
@@ -3040,52 +1813,7 @@ int CalculateTotalInterChargeBondDipoleCoulombEnergy(void)
                   rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
    
                   if(rr<CutOffChargeBondDipoleSquared)
-                  {
-                    r=sqrt(rr);
-                    SwitchingValue=1.0;
-                    switch(ChargeMethod)
-                    {
-                      case NONE:
-                        Bt0=Bt1=Bt2=0.0;  
-                        break;
-                      case TRUNCATED_COULOMB:
-                        Bt0=1.0/(r);
-                        Bt1=1.0/(r*rr);
-                        Bt2=3.0/(r*rr*rr);
-                        break;
-                      case SHIFTED_COULOMB:
-                        Bt0=1.0/(r);
-                        Bt1=1.0/(r*rr);
-                        Bt2=3.0/(r*rr*rr);
-                        break;
-                      case SMOOTHED_COULOMB:
-                        Bt0=1.0/(r);
-                        Bt1=1.0/(r*rr);
-                        Bt2=3.0/(r*rr*rr);
-                        if(rr>CutOffChargeBondDipoleSwitchSquared)
-                        {
-                          SwitchingValue=SwitchingChargeBondDipoleFactors5[5]*(rr*rr*r)+SwitchingChargeBondDipoleFactors5[4]*(rr*rr)+SwitchingChargeBondDipoleFactors5[3]*(rr*r)+
-                                         SwitchingChargeBondDipoleFactors5[2]*rr+SwitchingChargeBondDipoleFactors5[1]*r+SwitchingChargeBondDipoleFactors5[0];
-                        }
-                        break;
-                      case EWALD:
-                        Bt0=erfc(Alpha[CurrentSystem]*r)/r;
-                        Bt1=2.0*Alpha[CurrentSystem]*exp(-SQR(-Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                            erfc(Alpha[CurrentSystem]*r)/(rr*r);
-                        Bt2=6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
-                            4.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                            3.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*r);
-                        break;
-                      default:
-                        printf("Unknown charge-method in 'CalculateTotalInterChargeBondDipoleCoulombEnergy'\n");
-                        exit(0);
-                        break;
-                    }
-  
-                    cosA=dipoleA.x*dr.x+dipoleA.y*dr.y+dipoleA.z*dr.z;
-                    energy=SwitchingValue*COULOMBIC_CONVERSION_FACTOR*(Bt1*ChargeB*cosA);
-                    UAdsorbateAdsorbateChargeBondDipoleReal[CurrentSystem]-=energy;
-                  }
+                    UAdsorbateAdsorbateChargeBondDipoleReal[CurrentSystem]-=PotentialValueChargeBondDipole(chargeB,dipoleA,dr,sqrt(rr));
                 }
               }
             }
@@ -3102,7 +1830,7 @@ int CalculateTotalInterChargeBondDipoleCoulombEnergy(void)
               if(PseudoAtoms[Type].HasCharges)
               {
                 posB=Cations[CurrentSystem][k].Atoms[l].Position;
-                ChargeB=Cations[CurrentSystem][k].Atoms[l].Charge;
+                chargeB=Cations[CurrentSystem][k].Atoms[l].Charge;
     
                 dr.x=posA.x-posB.x;
                 dr.y=posA.y-posB.y;
@@ -3111,52 +1839,7 @@ int CalculateTotalInterChargeBondDipoleCoulombEnergy(void)
                 rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
   
                 if(rr<CutOffChargeBondDipoleSquared)
-                {
-                  r=sqrt(rr);
-                  SwitchingValue=1.0;
-                  switch(ChargeMethod)
-                  {
-                    case NONE:
-                      Bt0=Bt1=Bt2=0.0;  
-                      break;
-                    case TRUNCATED_COULOMB:
-                      Bt0=1.0/(r);
-                      Bt1=1.0/(r*rr);
-                      Bt2=3.0/(r*rr*rr);
-                      break;
-                    case SHIFTED_COULOMB:
-                      Bt0=1.0/(r);
-                      Bt1=1.0/(r*rr);
-                      Bt2=3.0/(r*rr*rr);
-                      break;
-                    case SMOOTHED_COULOMB:
-                      Bt0=1.0/(r);
-                      Bt1=1.0/(r*rr);
-                      Bt2=3.0/(r*rr*rr);
-                      if(rr>CutOffChargeBondDipoleSwitchSquared)
-                      {
-                         SwitchingValue=SwitchingChargeBondDipoleFactors5[5]*(rr*rr*r)+SwitchingChargeBondDipoleFactors5[4]*(rr*rr)+SwitchingChargeBondDipoleFactors5[3]*(rr*r)+
-                                        SwitchingChargeBondDipoleFactors5[2]*rr+SwitchingChargeBondDipoleFactors5[1]*r+SwitchingChargeBondDipoleFactors5[0];
-                      }
-                      break;
-                    case EWALD:
-                      Bt0=erfc(Alpha[CurrentSystem]*r)/r;
-                      Bt1=2.0*Alpha[CurrentSystem]*exp(-SQR(-Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                          erfc(Alpha[CurrentSystem]*r)/(rr*r);
-                      Bt2=6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
-                          4.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                          3.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*r);
-                      break;
-                    default:
-                      printf("Unknown charge-method in 'CalculateTotalInterChargeBondDipoleCoulombEnergy'\n");
-                      exit(0);
-                      break;
-                  }
-  
-                  cosA=dipoleA.x*dr.x+dipoleA.y*dr.y+dipoleA.z*dr.z;
-                  energy=SwitchingValue*COULOMBIC_CONVERSION_FACTOR*(Bt1*ChargeB*cosA);
-                  UAdsorbateCationChargeBondDipoleReal[CurrentSystem]-=energy;
-                }
+                  UAdsorbateCationChargeBondDipoleReal[CurrentSystem]-=PotentialValueChargeBondDipole(chargeB,dipoleA,dr,sqrt(rr));
               }
             }
           }
@@ -3197,7 +1880,7 @@ int CalculateTotalInterChargeBondDipoleCoulombEnergy(void)
                 if(PseudoAtoms[Type].HasCharges)
                 {
                   posB=Cations[CurrentSystem][k].Atoms[l].Position;
-                  ChargeB=Cations[CurrentSystem][k].Atoms[l].Charge;
+                  chargeB=Cations[CurrentSystem][k].Atoms[l].Charge;
     
                   dr.x=posA.x-posB.x;
                   dr.y=posA.y-posB.y;
@@ -3206,52 +1889,7 @@ int CalculateTotalInterChargeBondDipoleCoulombEnergy(void)
                   rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
   
                   if(rr<CutOffChargeBondDipoleSquared)
-                  {
-                    r=sqrt(rr);
-                    SwitchingValue=1.0;
-                    switch(ChargeMethod)
-                    {
-                      case NONE:
-                        Bt0=Bt1=Bt2=0.0;  
-                        break;
-                      case TRUNCATED_COULOMB:
-                        Bt0=1.0/(r);
-                        Bt1=1.0/(r*rr);
-                        Bt2=3.0/(r*rr*rr);
-                        break;
-                      case SHIFTED_COULOMB:
-                        Bt0=1.0/(r);
-                        Bt1=1.0/(r*rr);
-                        Bt2=3.0/(r*rr*rr);
-                        break;
-                      case SMOOTHED_COULOMB:
-                        Bt0=1.0/(r);
-                        Bt1=1.0/(r*rr);
-                        Bt2=3.0/(r*rr*rr);
-                        if(rr>CutOffChargeBondDipoleSwitchSquared)
-                        {
-                          SwitchingValue=SwitchingChargeBondDipoleFactors5[5]*(rr*rr*r)+SwitchingChargeBondDipoleFactors5[4]*(rr*rr)+SwitchingChargeBondDipoleFactors5[3]*(rr*r)+
-                                         SwitchingChargeBondDipoleFactors5[2]*rr+SwitchingChargeBondDipoleFactors5[1]*r+SwitchingChargeBondDipoleFactors5[0];
-                        }
-                        break;
-                      case EWALD:
-                        Bt0=erfc(Alpha[CurrentSystem]*r)/r;
-                        Bt1=2.0*Alpha[CurrentSystem]*exp(-SQR(-Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                            erfc(Alpha[CurrentSystem]*r)/(rr*r);
-                        Bt2=6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
-                            4.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                            3.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*r);
-                        break;
-                      default:
-                        printf("Unknown charge-method in 'CalculateTotalInterChargeBondDipoleCoulombEnergy'\n");
-                        exit(0);
-                        break;
-                    }
-  
-                    cosA=dipoleA.x*dr.x+dipoleA.y*dr.y+dipoleA.z*dr.z;
-                    energy=SwitchingValue*COULOMBIC_CONVERSION_FACTOR*(Bt1*ChargeB*cosA);
-                    UCationCationChargeBondDipoleReal[CurrentSystem]-=energy;
-                  }
+                    UCationCationChargeBondDipoleReal[CurrentSystem]-=PotentialValueChargeBondDipole(chargeB,dipoleA,dr,sqrt(rr));
                 }
               }
             }
@@ -3268,7 +1906,7 @@ int CalculateTotalInterChargeBondDipoleCoulombEnergy(void)
               if(PseudoAtoms[Type].HasCharges)
               {
                 posB=Adsorbates[CurrentSystem][k].Atoms[l].Position;
-                ChargeB=Adsorbates[CurrentSystem][k].Atoms[l].Charge;
+                chargeB=Adsorbates[CurrentSystem][k].Atoms[l].Charge;
     
                 dr.x=posA.x-posB.x;
                 dr.y=posA.y-posB.y;
@@ -3277,52 +1915,7 @@ int CalculateTotalInterChargeBondDipoleCoulombEnergy(void)
                 rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
   
                 if(rr<CutOffChargeBondDipoleSquared)
-                {
-                  r=sqrt(rr);
-                  SwitchingValue=1.0;
-                  switch(ChargeMethod)
-                  {
-                    case NONE:
-                      Bt0=Bt1=Bt2=0.0;  
-                      break;
-                    case TRUNCATED_COULOMB:
-                      Bt0=1.0/(r);
-                      Bt1=1.0/(r*rr);
-                      Bt2=3.0/(r*rr*rr);
-                      break;
-                    case SHIFTED_COULOMB:
-                      Bt0=1.0/(r);
-                      Bt1=1.0/(r*rr);
-                      Bt2=3.0/(r*rr*rr);
-                      break;
-                    case SMOOTHED_COULOMB:
-                      Bt0=1.0/(r);
-                      Bt1=1.0/(r*rr);
-                      Bt2=3.0/(r*rr*rr);
-                      if(rr>CutOffChargeBondDipoleSwitchSquared)
-                      {
-                        SwitchingValue=SwitchingChargeBondDipoleFactors5[5]*(rr*rr*r)+SwitchingChargeBondDipoleFactors5[4]*(rr*rr)+SwitchingChargeBondDipoleFactors5[3]*(rr*r)+
-                                       SwitchingChargeBondDipoleFactors5[2]*rr+SwitchingChargeBondDipoleFactors5[1]*r+SwitchingChargeBondDipoleFactors5[0];
-                      }
-                      break;
-                    case EWALD:
-                      Bt0=erfc(Alpha[CurrentSystem]*r)/r;
-                      Bt1=2.0*Alpha[CurrentSystem]*exp(-SQR(-Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                          erfc(Alpha[CurrentSystem]*r)/(rr*r);
-                      Bt2=6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
-                          4.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                          3.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*r);
-                      break;
-                    default:
-                      printf("Unknown charge-method in 'CalculateTotalInterChargeBondDipoleCoulombEnergy'\n");
-                      exit(0);
-                      break;
-                  }
-  
-                  cosA=dipoleA.x*dr.x+dipoleA.y*dr.y+dipoleA.z*dr.z;
-                  energy=SwitchingValue*COULOMBIC_CONVERSION_FACTOR*(Bt1*ChargeB*cosA);
-                  UAdsorbateCationChargeBondDipoleReal[CurrentSystem]-=energy;
-                }
+                  UAdsorbateCationChargeBondDipoleReal[CurrentSystem]-=PotentialValueChargeBondDipole(chargeB,dipoleA,dr,sqrt(rr));
               }
             }
           }
@@ -3340,13 +1933,11 @@ int CalculateTotalInterBondDipoleBondDipoleCoulombEnergy(void)
   int A1,A2,B1,B2;
   int TypeA,TypeB;
   VECTOR posA,posB,posA1,posA2,posB1,posB2,dr;
-  REAL r,rr,ri2,rk2,cosAB,cosA,cosB,energy,temp,length;
+  REAL rr,ri2,rk2,temp,length,energy;
   VECTOR dipoleA,dipoleB;
-  REAL Bt0,Bt1,Bt2,SwitchingValue;
   REAL DipoleMagnitudeA,DipoleMagnitudeB;
   int ncell,start;
 
-  Bt0=Bt1=Bt2=0.0;  
   UAdsorbateAdsorbateBondDipoleBondDipoleReal[CurrentSystem]=0.0;
   UAdsorbateCationBondDipoleBondDipoleReal[CurrentSystem]=0.0;
   UCationCationBondDipoleBondDipoleReal[CurrentSystem]=0.0;
@@ -3412,49 +2003,7 @@ int CalculateTotalInterBondDipoleBondDipoleCoulombEnergy(void)
     
                 if(rr<CutOffBondDipoleBondDipoleSquared)
                 {
-                  r=sqrt(rr);
-                  SwitchingValue=1.0;
-                  switch(ChargeMethod)
-                  {
-                    case NONE:
-                      Bt0=Bt1=Bt2=0.0;  
-                      break;
-                    case TRUNCATED_COULOMB:
-                      Bt0=1.0/(r);
-                      Bt1=1.0/(r*rr);
-                      Bt2=3.0/(r*rr*rr);
-                      break;
-                    case SHIFTED_COULOMB:
-                      Bt0=1.0/(r);
-                      Bt1=1.0/(r*rr);
-                      Bt2=3.0/(r*rr*rr);
-                      break;
-                    case SMOOTHED_COULOMB:
-                      Bt0=1.0/(r);
-                      Bt1=1.0/(r*rr);
-                      Bt2=3.0/(r*rr*rr);
-                      if(rr>CutOffBondDipoleBondDipoleSwitchSquared)
-                        SwitchingValue=SwitchingBondDipoleBondDipoleFactors5[5]*(rr*rr*r)+SwitchingBondDipoleBondDipoleFactors5[4]*(rr*rr)+SwitchingBondDipoleBondDipoleFactors5[3]*(rr*r)+
-                                       SwitchingBondDipoleBondDipoleFactors5[2]*rr+SwitchingBondDipoleBondDipoleFactors5[1]*r+SwitchingBondDipoleBondDipoleFactors5[0];
-                      break;
-                    case EWALD:
-                      Bt0=erfc(Alpha[CurrentSystem]*r)/r;
-                      Bt1=2.0*Alpha[CurrentSystem]*exp(-SQR(-Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                          erfc(Alpha[CurrentSystem]*r)/(rr*r);
-                      Bt2=6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
-                          4.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                          3.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*r);
-                      break;
-                    default:
-                      printf("Unknown charge-method in 'CalculateTotalInterBondDipoleBondDipoleCoulombEnergy'\n");
-                      exit(0);
-                      break;
-                  }
-    
-                  cosAB=dipoleA.x*dipoleB.x+dipoleA.y*dipoleB.y+dipoleA.z*dipoleB.z;
-                  cosA=dipoleA.x*dr.x+dipoleA.y*dr.y+dipoleA.z*dr.z;
-                  cosB=dipoleB.x*dr.x+dipoleB.y*dr.y+dipoleB.z*dr.z;
-                  energy=SwitchingValue*COULOMBIC_CONVERSION_FACTOR*(Bt1*cosAB-Bt2*cosA*cosB);
+                  energy=PotentialValueBondDipoleBondDipole(dipoleA,dipoleB,dr,sqrt(rr));
                   if(ncell==0)
                     UAdsorbateAdsorbateBondDipoleBondDipoleReal[CurrentSystem]+=energy;
                   else
@@ -3497,53 +2046,7 @@ int CalculateTotalInterBondDipoleBondDipoleCoulombEnergy(void)
                 rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
     
                 if(rr<CutOffBondDipoleBondDipoleSquared)
-                {
-                  r=sqrt(rr);
-                  SwitchingValue=1.0;
-                  switch(ChargeMethod)
-                  {
-                    case NONE:
-                      Bt0=Bt1=Bt2=0.0;  
-                      break;
-                    case TRUNCATED_COULOMB:
-                      Bt0=1.0/(r);
-                      Bt1=1.0/(r*rr);
-                      Bt2=3.0/(r*rr*rr);
-                      break;
-                    case SHIFTED_COULOMB:
-                      Bt0=1.0/(r);
-                      Bt1=1.0/(r*rr);
-                      Bt2=3.0/(r*rr*rr);
-                      break;
-                    case SMOOTHED_COULOMB:
-                      Bt0=1.0/(r);
-                      Bt1=1.0/(r*rr);
-                      Bt2=3.0/(r*rr*rr);
-                      if(rr>CutOffBondDipoleBondDipoleSwitchSquared)
-                        SwitchingValue=SwitchingBondDipoleBondDipoleFactors5[5]*(rr*rr*r)+SwitchingBondDipoleBondDipoleFactors5[4]*(rr*rr)+SwitchingBondDipoleBondDipoleFactors5[3]*(rr*r)+
-                                       SwitchingBondDipoleBondDipoleFactors5[2]*rr+SwitchingBondDipoleBondDipoleFactors5[1]*r+SwitchingBondDipoleBondDipoleFactors5[0];
-                      break;
-                    case EWALD:
-                      Bt0=erfc(Alpha[CurrentSystem]*r)/r;
-                      Bt1=2.0*Alpha[CurrentSystem]*exp(-SQR(-Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                          erfc(Alpha[CurrentSystem]*r)/(rr*r);
-                      Bt2=6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
-                          4.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                          3.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*r);
-                      break;
-                    default:
-                      printf("Unknown charge-method in 'CalculateTotalInterBondDipoleBondDipoleCoulombEnergy'\n");
-                      exit(0);
-                      break;
-                  }
-    
-                  cosAB=dipoleA.x*dipoleB.x+dipoleA.y*dipoleB.y+dipoleA.z*dipoleB.z;
-                  cosA=dipoleA.x*dr.x+dipoleA.y*dr.y+dipoleA.z*dr.z;
-                  cosB=dipoleB.x*dr.x+dipoleB.y*dr.y+dipoleB.z*dr.z;
-                  energy=SwitchingValue*COULOMBIC_CONVERSION_FACTOR*(Bt1*cosAB-Bt2*cosA*cosB);
-    
-                  UAdsorbateCationBondDipoleBondDipoleReal[CurrentSystem]+=energy;
-                }
+                  UAdsorbateCationBondDipoleBondDipoleReal[CurrentSystem]+=PotentialValueBondDipoleBondDipole(dipoleA,dipoleB,dr,sqrt(rr));
               }
             }
           }
@@ -3607,49 +2110,7 @@ int CalculateTotalInterBondDipoleBondDipoleCoulombEnergy(void)
     
                 if(rr<CutOffBondDipoleBondDipoleSquared)
                 {
-                  r=sqrt(rr);
-                  SwitchingValue=1.0;
-                  switch(ChargeMethod)
-                  {
-                    case NONE:
-                      Bt0=Bt1=Bt2=0.0;  
-                      break;
-                    case TRUNCATED_COULOMB:
-                      Bt0=1.0/(r);
-                      Bt1=1.0/(r*rr);
-                      Bt2=3.0/(r*rr*rr);
-                      break;
-                    case SHIFTED_COULOMB:
-                      Bt0=1.0/(r);
-                      Bt1=1.0/(r*rr);
-                      Bt2=3.0/(r*rr*rr);
-                      break;
-                    case SMOOTHED_COULOMB:
-                      Bt0=1.0/(r);
-                      Bt1=1.0/(r*rr);
-                      Bt2=3.0/(r*rr*rr);
-                      if(rr>CutOffBondDipoleBondDipoleSwitchSquared)
-                        SwitchingValue=SwitchingBondDipoleBondDipoleFactors5[5]*(rr*rr*r)+SwitchingBondDipoleBondDipoleFactors5[4]*(rr*rr)+SwitchingBondDipoleBondDipoleFactors5[3]*(rr*r)+
-                                       SwitchingBondDipoleBondDipoleFactors5[2]*rr+SwitchingBondDipoleBondDipoleFactors5[1]*r+SwitchingBondDipoleBondDipoleFactors5[0];
-                      break;
-                    case EWALD:
-                      Bt0=erfc(Alpha[CurrentSystem]*r)/r;
-                      Bt1=2.0*Alpha[CurrentSystem]*exp(-SQR(-Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                          erfc(Alpha[CurrentSystem]*r)/(rr*r);
-                      Bt2=6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
-                          4.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                          3.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*r);
-                      break;
-                    default:
-                      printf("Unknown charge-method in 'CalculateTotalInterBondDipoleBondDipoleCoulombEnergy'\n");
-                      exit(0);
-                      break;
-                  }
-    
-                  cosAB=dipoleA.x*dipoleB.x+dipoleA.y*dipoleB.y+dipoleA.z*dipoleB.z;
-                  cosA=dipoleA.x*dr.x+dipoleA.y*dr.y+dipoleA.z*dr.z;
-                  cosB=dipoleB.x*dr.x+dipoleB.y*dr.y+dipoleB.z*dr.z;
-                  energy=SwitchingValue*COULOMBIC_CONVERSION_FACTOR*(Bt1*cosAB-Bt2*cosA*cosB);
+                  energy=PotentialValueBondDipoleBondDipole(dipoleA,dipoleB,dr,sqrt(rr));
    
                   if(ncell==0) 
                     UCationCationBondDipoleBondDipoleReal[CurrentSystem]+=energy;
@@ -3716,52 +2177,7 @@ int CalculateTotalInterBondDipoleBondDipoleCoulombEnergy(void)
               rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
   
               if(rr<CutOffBondDipoleBondDipoleSquared)
-              {
-                r=sqrt(rr);
-                SwitchingValue=1.0;
-                switch(ChargeMethod)
-                {
-                  case NONE:
-                    Bt0=Bt1=Bt2=0.0;  
-                    break;
-                  case TRUNCATED_COULOMB:
-                    Bt0=1.0/(r);
-                    Bt1=1.0/(r*rr);
-                    Bt2=3.0/(r*rr*rr);
-                    break;
-                  case SHIFTED_COULOMB:
-                    Bt0=1.0/(r);
-                    Bt1=1.0/(r*rr);
-                    Bt2=3.0/(r*rr*rr);
-                    break;
-                  case SMOOTHED_COULOMB:
-                    Bt0=1.0/(r);
-                    Bt1=1.0/(r*rr);
-                    Bt2=3.0/(r*rr*rr);
-                    if(rr>CutOffBondDipoleBondDipoleSwitchSquared)
-                      SwitchingValue=SwitchingBondDipoleBondDipoleFactors5[5]*(rr*rr*r)+SwitchingBondDipoleBondDipoleFactors5[4]*(rr*rr)+SwitchingBondDipoleBondDipoleFactors5[3]*(rr*r)+
-                                     SwitchingBondDipoleBondDipoleFactors5[2]*rr+SwitchingBondDipoleBondDipoleFactors5[1]*r+SwitchingBondDipoleBondDipoleFactors5[0];
-                    break;
-                  case EWALD:
-                    Bt0=erfc(Alpha[CurrentSystem]*r)/r;
-                    Bt1=2.0*Alpha[CurrentSystem]*exp(-SQR(-Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                        erfc(Alpha[CurrentSystem]*r)/(rr*r);
-                    Bt2=6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
-                        4.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                        3.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*r);
-                    break;
-                  default:
-                    printf("Unknown charge-method in 'CalculateTotalInterBondDipoleBondDipoleCoulombEnergy'\n");
-                    exit(0);
-                    break;
-                }
-  
-                cosAB=dipoleA.x*dipoleB.x+dipoleA.y*dipoleB.y+dipoleA.z*dipoleB.z;
-                cosA=dipoleA.x*dr.x+dipoleA.y*dr.y+dipoleA.z*dr.z;
-                cosB=dipoleB.x*dr.x+dipoleB.y*dr.y+dipoleB.z*dr.z;
-                energy=SwitchingValue*COULOMBIC_CONVERSION_FACTOR*(Bt1*cosAB-Bt2*cosA*cosB);
-                UAdsorbateAdsorbateBondDipoleBondDipoleReal[CurrentSystem]+=energy;
-              }
+                UAdsorbateAdsorbateBondDipoleBondDipoleReal[CurrentSystem]+=PotentialValueBondDipoleBondDipole(dipoleA,dipoleB,dr,sqrt(rr));
             }
           }
         }
@@ -3796,53 +2212,7 @@ int CalculateTotalInterBondDipoleBondDipoleCoulombEnergy(void)
               rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
   
               if(rr<CutOffBondDipoleBondDipoleSquared)
-              {
-                r=sqrt(rr);
-                SwitchingValue=1.0;
-                switch(ChargeMethod)
-                {
-                  case NONE:
-                    Bt0=Bt1=Bt2=0.0;  
-                    break;
-                  case TRUNCATED_COULOMB:
-                    Bt0=1.0/(r);
-                    Bt1=1.0/(r*rr);
-                    Bt2=3.0/(r*rr*rr);
-                    break;
-                  case SHIFTED_COULOMB:
-                    Bt0=1.0/(r);
-                    Bt1=1.0/(r*rr);
-                    Bt2=3.0/(r*rr*rr);
-                    break;
-                  case SMOOTHED_COULOMB:
-                    Bt0=1.0/(r);
-                    Bt1=1.0/(r*rr);
-                    Bt2=3.0/(r*rr*rr);
-                    if(rr>CutOffBondDipoleBondDipoleSwitchSquared)
-                      SwitchingValue=SwitchingBondDipoleBondDipoleFactors5[5]*(rr*rr*r)+SwitchingBondDipoleBondDipoleFactors5[4]*(rr*rr)+SwitchingBondDipoleBondDipoleFactors5[3]*(rr*r)+
-                                     SwitchingBondDipoleBondDipoleFactors5[2]*rr+SwitchingBondDipoleBondDipoleFactors5[1]*r+SwitchingBondDipoleBondDipoleFactors5[0];
-                    break;
-                  case EWALD:
-                    Bt0=erfc(Alpha[CurrentSystem]*r)/r;
-                    Bt1=2.0*Alpha[CurrentSystem]*exp(-SQR(-Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                        erfc(Alpha[CurrentSystem]*r)/(rr*r);
-                    Bt2=6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
-                        4.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                        3.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*r);
-                    break;
-                  default:
-                    printf("Unknown charge-method in 'CalculateTotalInterBondDipoleBondDipoleCoulombEnergy'\n");
-                    exit(0);
-                    break;
-                }
-  
-                cosAB=dipoleA.x*dipoleB.x+dipoleA.y*dipoleB.y+dipoleA.z*dipoleB.z;
-                cosA=dipoleA.x*dr.x+dipoleA.y*dr.y+dipoleA.z*dr.z;
-                cosB=dipoleB.x*dr.x+dipoleB.y*dr.y+dipoleB.z*dr.z;
-                energy=SwitchingValue*COULOMBIC_CONVERSION_FACTOR*(Bt1*cosAB-Bt2*cosA*cosB);
-  
-                UAdsorbateCationBondDipoleBondDipoleReal[CurrentSystem]+=energy;
-              }
+                UAdsorbateCationBondDipoleBondDipoleReal[CurrentSystem]+=PotentialValueBondDipoleBondDipole(dipoleA,dipoleB,dr,sqrt(rr));
             }
           }
         }
@@ -3900,53 +2270,7 @@ int CalculateTotalInterBondDipoleBondDipoleCoulombEnergy(void)
               rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
   
               if(rr<CutOffBondDipoleBondDipoleSquared)
-              {
-                r=sqrt(rr);
-                SwitchingValue=1.0;
-                switch(ChargeMethod)
-                {
-                  case NONE:
-                    Bt0=Bt1=Bt2=0.0;  
-                    break;
-                  case TRUNCATED_COULOMB:
-                    Bt0=1.0/(r);
-                    Bt1=1.0/(r*rr);
-                    Bt2=3.0/(r*rr*rr);
-                    break;
-                  case SHIFTED_COULOMB:
-                    Bt0=1.0/(r);
-                    Bt1=1.0/(r*rr);
-                    Bt2=3.0/(r*rr*rr);
-                    break;
-                  case SMOOTHED_COULOMB:
-                    Bt0=1.0/(r);
-                    Bt1=1.0/(r*rr);
-                    Bt2=3.0/(r*rr*rr);
-                    if(rr>CutOffBondDipoleBondDipoleSwitchSquared)
-                      SwitchingValue=SwitchingBondDipoleBondDipoleFactors5[5]*(rr*rr*r)+SwitchingBondDipoleBondDipoleFactors5[4]*(rr*rr)+SwitchingBondDipoleBondDipoleFactors5[3]*(rr*r)+
-                                     SwitchingBondDipoleBondDipoleFactors5[2]*rr+SwitchingBondDipoleBondDipoleFactors5[1]*r+SwitchingBondDipoleBondDipoleFactors5[0];
-                    break;
-                  case EWALD:
-                    Bt0=erfc(Alpha[CurrentSystem]*r)/r;
-                    Bt1=2.0*Alpha[CurrentSystem]*exp(-SQR(-Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                        erfc(Alpha[CurrentSystem]*r)/(rr*r);
-                    Bt2=6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
-                        4.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                        3.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*r);
-                    break;
-                  default:
-                    printf("Unknown charge-method in 'CalculateTotalInterBondDipoleBondDipoleCoulombEnergy'\n");
-                    exit(0);
-                    break;
-                }
-  
-                cosAB=dipoleA.x*dipoleB.x+dipoleA.y*dipoleB.y+dipoleA.z*dipoleB.z;
-                cosA=dipoleA.x*dr.x+dipoleA.y*dr.y+dipoleA.z*dr.z;
-                cosB=dipoleB.x*dr.x+dipoleB.y*dr.y+dipoleB.z*dr.z;
-                energy=SwitchingValue*COULOMBIC_CONVERSION_FACTOR*(Bt1*cosAB-Bt2*cosA*cosB);
-  
-                UCationCationBondDipoleBondDipoleReal[CurrentSystem]+=energy;
-              }
+                UCationCationBondDipoleBondDipoleReal[CurrentSystem]+=PotentialValueBondDipoleBondDipole(dipoleA,dipoleB,dr,sqrt(rr));
             }
           }
         }
@@ -4605,7 +2929,7 @@ int CalculateInterChargeChargeEnergyDifferenceAdsorbate(int m,int comp,int New,i
               dr.z=posA_new.z-(posB.z+ReplicaShift[ncell].z);
               dr=ApplyReplicaBoundaryCondition(dr);
               r2=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-              if(r2<CutOffChargeChargeSquared)
+              if(r2<CutOffChargeChargeSquared[CurrentSystem])
               {
                 energy=0.5*PotentialValueCoulombic(chargeA_new,chargeB,sqrt(r2));
                 if(energy>=EnergyOverlapCriteria) return OVERLAP=TRUE;
@@ -4624,7 +2948,7 @@ int CalculateInterChargeChargeEnergyDifferenceAdsorbate(int m,int comp,int New,i
               dr.z=posA_old.z-(posB.z+ReplicaShift[ncell].z);
               dr=ApplyReplicaBoundaryCondition(dr);
               r2=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-              if(r2<CutOffChargeChargeSquared)
+              if(r2<CutOffChargeChargeSquared[CurrentSystem])
                 UAdsorbateChargeChargeRealDelta[CurrentSystem]-=0.5*PotentialValueCoulombic(chargeA_old,chargeB,sqrt(r2));
             }
           }
@@ -4649,7 +2973,7 @@ int CalculateInterChargeChargeEnergyDifferenceAdsorbate(int m,int comp,int New,i
                   dr.z=posA_new.z-(posB.z+ReplicaShift[ncell].z);
                   dr=ApplyReplicaBoundaryCondition(dr);
                   r2=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-                  if(r2<CutOffChargeChargeSquared)
+                  if(r2<CutOffChargeChargeSquared[CurrentSystem])
                   {
                     energy=PotentialValueCoulombic(chargeA_new,chargeB,sqrt(r2));
                     if(energy>=EnergyOverlapCriteria) return OVERLAP=TRUE;
@@ -4667,7 +2991,7 @@ int CalculateInterChargeChargeEnergyDifferenceAdsorbate(int m,int comp,int New,i
                   dr.z=posA_old.z-(posB.z+ReplicaShift[ncell].z);
                   dr=ApplyReplicaBoundaryCondition(dr);
                   r2=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-                  if(r2<CutOffChargeChargeSquared)
+                  if(r2<CutOffChargeChargeSquared[CurrentSystem])
                     UAdsorbateChargeChargeRealDelta[CurrentSystem]-=PotentialValueCoulombic(chargeA_old,chargeB,sqrt(r2));
                 }
               }
@@ -4692,7 +3016,7 @@ int CalculateInterChargeChargeEnergyDifferenceAdsorbate(int m,int comp,int New,i
               dr.z=posA_new.z-(posB.z+ReplicaShift[ncell].z);
               dr=ApplyReplicaBoundaryCondition(dr);
               r2=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-              if(r2<CutOffChargeChargeSquared)
+              if(r2<CutOffChargeChargeSquared[CurrentSystem])
               {
                 energy=PotentialValueCoulombic(chargeA_new,chargeB,sqrt(r2));
                 if(energy>=EnergyOverlapCriteria) return OVERLAP=TRUE;
@@ -4710,7 +3034,7 @@ int CalculateInterChargeChargeEnergyDifferenceAdsorbate(int m,int comp,int New,i
               dr.z=posA_old.z-(posB.z+ReplicaShift[ncell].z);
               dr=ApplyReplicaBoundaryCondition(dr);
               r2=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-              if(r2<CutOffChargeChargeSquared)
+              if(r2<CutOffChargeChargeSquared[CurrentSystem])
                 UCationChargeChargeRealDelta[CurrentSystem]-=PotentialValueCoulombic(chargeA_old,chargeB,sqrt(r2));
             }
           }
@@ -4752,7 +3076,7 @@ int CalculateInterChargeChargeEnergyDifferenceAdsorbate(int m,int comp,int New,i
                 dr.z=posA_new.z-posB.z;
                 dr=ApplyBoundaryCondition(dr);
                 r2=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-                if(r2<CutOffChargeChargeSquared)
+                if(r2<CutOffChargeChargeSquared[CurrentSystem])
                 {
                   energy=PotentialValueCoulombic(chargeA_new,chargeB,sqrt(r2));
                   if(energy>=EnergyOverlapCriteria) return OVERLAP=TRUE;
@@ -4767,7 +3091,7 @@ int CalculateInterChargeChargeEnergyDifferenceAdsorbate(int m,int comp,int New,i
                 dr.z=posA_old.z-posB.z;
                 dr=ApplyBoundaryCondition(dr);
                 r2=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-                if(r2<CutOffChargeChargeSquared)
+                if(r2<CutOffChargeChargeSquared[CurrentSystem])
                   UAdsorbateChargeChargeRealDelta[CurrentSystem]-=PotentialValueCoulombic(chargeA_old,chargeB,sqrt(r2));
               }
             }
@@ -4789,7 +3113,7 @@ int CalculateInterChargeChargeEnergyDifferenceAdsorbate(int m,int comp,int New,i
             dr.z=posA_new.z-posB.z;
             dr=ApplyBoundaryCondition(dr);
             r2=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-            if(r2<CutOffChargeChargeSquared)
+            if(r2<CutOffChargeChargeSquared[CurrentSystem])
             {
               energy=PotentialValueCoulombic(chargeA_new,chargeB,sqrt(r2));
               if(energy>=EnergyOverlapCriteria) return OVERLAP=TRUE;
@@ -4804,7 +3128,7 @@ int CalculateInterChargeChargeEnergyDifferenceAdsorbate(int m,int comp,int New,i
             dr.z=posA_old.z-posB.z;
             dr=ApplyBoundaryCondition(dr);
             r2=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-            if(r2<CutOffChargeChargeSquared)
+            if(r2<CutOffChargeChargeSquared[CurrentSystem])
               UCationChargeChargeRealDelta[CurrentSystem]-=PotentialValueCoulombic(chargeA_old,chargeB,sqrt(r2));
           }
         }
@@ -4884,7 +3208,7 @@ int CalculateInterChargeChargeEnergyDifferenceCation(int m,int comp,int New,int 
               dr.z=posA_new.z-(posB.z+ReplicaShift[ncell].z);
               dr=ApplyReplicaBoundaryCondition(dr);
               r2=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-              if(r2<CutOffChargeChargeSquared)
+              if(r2<CutOffChargeChargeSquared[CurrentSystem])
                 UCationChargeChargeRealDelta[CurrentSystem]+=0.5*PotentialValueCoulombic(chargeA_new,chargeB,sqrt(r2));
             }
           }
@@ -4899,7 +3223,7 @@ int CalculateInterChargeChargeEnergyDifferenceCation(int m,int comp,int New,int 
               dr.z=posA_old.z-(posB.z+ReplicaShift[ncell].z);
               dr=ApplyReplicaBoundaryCondition(dr);
               r2=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-              if(r2<CutOffChargeChargeSquared)
+              if(r2<CutOffChargeChargeSquared[CurrentSystem])
                 UCationChargeChargeRealDelta[CurrentSystem]-=0.5*PotentialValueCoulombic(chargeA_old,chargeB,sqrt(r2));
             }
           }
@@ -4924,7 +3248,7 @@ int CalculateInterChargeChargeEnergyDifferenceCation(int m,int comp,int New,int 
                   dr.z=posA_new.z-(posB.z+ReplicaShift[ncell].z);
                   dr=ApplyReplicaBoundaryCondition(dr);
                   r2=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-                  if(r2<CutOffChargeChargeSquared)
+                  if(r2<CutOffChargeChargeSquared[CurrentSystem])
                     UCationChargeChargeRealDelta[CurrentSystem]+=PotentialValueCoulombic(chargeA_new,chargeB,sqrt(r2));
                 }
               }
@@ -4938,7 +3262,7 @@ int CalculateInterChargeChargeEnergyDifferenceCation(int m,int comp,int New,int 
                   dr.z=posA_old.z-(posB.z+ReplicaShift[ncell].z);
                   dr=ApplyReplicaBoundaryCondition(dr);
                   r2=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-                  if(r2<CutOffChargeChargeSquared)
+                  if(r2<CutOffChargeChargeSquared[CurrentSystem])
                     UCationChargeChargeRealDelta[CurrentSystem]-=PotentialValueCoulombic(chargeA_old,chargeB,sqrt(r2));
                 }
               }
@@ -4963,7 +3287,7 @@ int CalculateInterChargeChargeEnergyDifferenceCation(int m,int comp,int New,int 
               dr.z=posA_new.z-(posB.z+ReplicaShift[ncell].z);
               dr=ApplyReplicaBoundaryCondition(dr);
               r2=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-              if(r2<CutOffChargeChargeSquared)
+              if(r2<CutOffChargeChargeSquared[CurrentSystem])
                 UAdsorbateChargeChargeRealDelta[CurrentSystem]+=PotentialValueCoulombic(chargeA_new,chargeB,sqrt(r2));
             }
           }
@@ -4977,7 +3301,7 @@ int CalculateInterChargeChargeEnergyDifferenceCation(int m,int comp,int New,int 
               dr.z=posA_old.z-(posB.z+ReplicaShift[ncell].z);
               dr=ApplyReplicaBoundaryCondition(dr);
               r2=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-              if(r2<CutOffChargeChargeSquared)
+              if(r2<CutOffChargeChargeSquared[CurrentSystem])
                 UAdsorbateChargeChargeRealDelta[CurrentSystem]-=PotentialValueCoulombic(chargeA_old,chargeB,sqrt(r2));
             }
           }
@@ -5019,7 +3343,7 @@ int CalculateInterChargeChargeEnergyDifferenceCation(int m,int comp,int New,int 
                 dr.z=posA_new.z-posB.z;
                 dr=ApplyBoundaryCondition(dr);
                 r2=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-                if(r2<CutOffChargeChargeSquared)
+                if(r2<CutOffChargeChargeSquared[CurrentSystem])
                   UCationChargeChargeRealDelta[CurrentSystem]+=PotentialValueCoulombic(chargeA_new,chargeB,sqrt(r2));
               }
  
@@ -5030,7 +3354,7 @@ int CalculateInterChargeChargeEnergyDifferenceCation(int m,int comp,int New,int 
                 dr.z=posA_old.z-posB.z;
                 dr=ApplyBoundaryCondition(dr);
                 r2=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-                if(r2<CutOffChargeChargeSquared)
+                if(r2<CutOffChargeChargeSquared[CurrentSystem])
                   UCationChargeChargeRealDelta[CurrentSystem]-=PotentialValueCoulombic(chargeA_old,chargeB,sqrt(r2));
               }
             }
@@ -5052,7 +3376,7 @@ int CalculateInterChargeChargeEnergyDifferenceCation(int m,int comp,int New,int 
             dr.z=posA_new.z-posB.z;
             dr=ApplyBoundaryCondition(dr);
             r2=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-            if(r2<CutOffChargeChargeSquared)
+            if(r2<CutOffChargeChargeSquared[CurrentSystem])
               UAdsorbateChargeChargeRealDelta[CurrentSystem]+=PotentialValueCoulombic(chargeA_new,chargeB,sqrt(r2));
           }
  
@@ -5063,7 +3387,7 @@ int CalculateInterChargeChargeEnergyDifferenceCation(int m,int comp,int New,int 
             dr.z=posA_old.z-posB.z;
             dr=ApplyBoundaryCondition(dr);
             r2=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-            if(r2<CutOffChargeChargeSquared)
+            if(r2<CutOffChargeChargeSquared[CurrentSystem])
               UAdsorbateChargeChargeRealDelta[CurrentSystem]-=PotentialValueCoulombic(chargeA_old,chargeB,sqrt(r2));
           }
         }
@@ -6914,11 +5238,10 @@ REAL CalculateInterChargeElectrostaticPotential(POINT posA)
 {
   int i,j,typeB;
   POINT posB;
-  REAL r,r2;
+  REAL r2;
   REAL chargeB;
   VECTOR dr;
   REAL UElectrostaticPotential,energy;
-  REAL SwitchingValue,TranslationValue;
 
   UElectrostaticPotential=0;
 
@@ -6938,49 +5261,10 @@ REAL CalculateInterChargeElectrostaticPotential(POINT posA)
 
       r2=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
 
-      if(r2<CutOffChargeChargeSquared)
+      if(r2<CutOffChargeChargeSquared[CurrentSystem])
       {
-        r=sqrt(r2);
-        switch(ChargeMethod)
-        {
-          case NONE:
-            energy=0.0;
-            break;
-          case TRUNCATED_COULOMB:
-            energy=COULOMBIC_CONVERSION_FACTOR*chargeB/r;
-            break;
-          case SHIFTED_COULOMB:
-            energy=COULOMBIC_CONVERSION_FACTOR*chargeB*(1.0/r-InverseCutOffChargeCharge);
-            break;
-          case SMOOTHED_COULOMB:
-            energy=COULOMBIC_CONVERSION_FACTOR*chargeB*(1.0/r-2.0/(CutOffChargeChargeSwitch+CutOffChargeCharge));
-            if(r2>CutOffChargeChargeSwitchSquared)
-            {
-               SwitchingValue=SwitchingChargeChargeFactors5[5]*(r2*r2*r)+SwitchingChargeChargeFactors5[4]*(r2*r2)+SwitchingChargeChargeFactors5[3]*(r2*r)+
-                              SwitchingChargeChargeFactors5[2]*r2+SwitchingChargeChargeFactors5[1]*r+SwitchingChargeChargeFactors5[0];
+        energy=PotentialValueCoulombic(1.0,1.0,sqrt(r2));
 
-               TranslationValue=COULOMBIC_CONVERSION_FACTOR*chargeB*
-                                (SwitchingChargeChargeFactors7[7]*(r2*r2*r2*r)+SwitchingChargeChargeFactors7[6]*(r2*r2*r2)+
-                                 SwitchingChargeChargeFactors7[5]*(r2*r2*r)+SwitchingChargeChargeFactors7[4]*(r2*r2)+SwitchingChargeChargeFactors7[3]*(r2*r)+
-                                 SwitchingChargeChargeFactors7[2]*r2+SwitchingChargeChargeFactors7[1]*r+SwitchingChargeChargeFactors7[0]);
-               energy=energy*SwitchingValue+TranslationValue;
-             }
-             break;
-          case WOLFS_METHOD_DAMPED_FG:
-            energy=COULOMBIC_CONVERSION_FACTOR*chargeB*(erfc(Alpha[CurrentSystem]*r)/r
-                         -erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*InverseCutOffChargeCharge+
-                          (r-CutOffChargeCharge)*(erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*SQR(InverseCutOffChargeCharge)+
-                          (2.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*CutOffChargeChargeSquared)*M_1_SQRTPI*InverseCutOffChargeCharge)));
-            break;
-          case EWALD:
-            energy=COULOMBIC_CONVERSION_FACTOR*chargeB*
-                                 (erfc(Alpha[CurrentSystem]*r)/r);
-            break;
-          default:
-            printf("Unknown charge-method in 'CalculateInterChargeElectrostaticPotential'\n");
-            exit(0);
-            break;
-        }
         UElectrostaticPotential+=energy;
       }
     }
@@ -7000,49 +5284,10 @@ REAL CalculateInterChargeElectrostaticPotential(POINT posA)
 
       r2=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
 
-      if(r2<CutOffChargeChargeSquared)
+      if(r2<CutOffChargeChargeSquared[CurrentSystem])
       {
-        r=sqrt(r2);
-        switch(ChargeMethod)
-        {
-          case NONE:
-            energy=0.0;
-            break;
-          case TRUNCATED_COULOMB:
-            energy=COULOMBIC_CONVERSION_FACTOR*chargeB/r;
-            break;
-          case SHIFTED_COULOMB:
-            energy=COULOMBIC_CONVERSION_FACTOR*chargeB*(1.0/r-InverseCutOffChargeCharge);
-            break;
-          case SMOOTHED_COULOMB:
-            energy=COULOMBIC_CONVERSION_FACTOR*chargeB*(1.0/r-2.0/(CutOffChargeChargeSwitch+CutOffChargeCharge));
-            if(r2>CutOffChargeChargeSwitchSquared)
-            {
-               SwitchingValue=SwitchingChargeChargeFactors5[5]*(r2*r2*r)+SwitchingChargeChargeFactors5[4]*(r2*r2)+SwitchingChargeChargeFactors5[3]*(r2*r)+
-                              SwitchingChargeChargeFactors5[2]*r2+SwitchingChargeChargeFactors5[1]*r+SwitchingChargeChargeFactors5[0];
+        energy=PotentialValueCoulombic(1.0,1.0,sqrt(r2));
 
-               TranslationValue=COULOMBIC_CONVERSION_FACTOR*chargeB*
-                                (SwitchingChargeChargeFactors7[7]*(r2*r2*r2*r)+SwitchingChargeChargeFactors7[6]*(r2*r2*r2)+
-                                 SwitchingChargeChargeFactors7[5]*(r2*r2*r)+SwitchingChargeChargeFactors7[4]*(r2*r2)+SwitchingChargeChargeFactors7[3]*(r2*r)+
-                                 SwitchingChargeChargeFactors7[2]*r2+SwitchingChargeChargeFactors7[1]*r+SwitchingChargeChargeFactors7[0]);
-               energy=energy*SwitchingValue+TranslationValue;
-            }
-            break;
-          case WOLFS_METHOD_DAMPED_FG:
-            energy=COULOMBIC_CONVERSION_FACTOR*chargeB*(erfc(Alpha[CurrentSystem]*r)/r
-                         -erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*InverseCutOffChargeCharge+
-                          (r-CutOffChargeCharge)*(erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*SQR(InverseCutOffChargeCharge)+
-                          (2.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*CutOffChargeChargeSquared)*M_1_SQRTPI*InverseCutOffChargeCharge)));
-            break;
-          case EWALD:
-            energy=COULOMBIC_CONVERSION_FACTOR*chargeB*
-                                 (erfc(Alpha[CurrentSystem]*r)/r);
-            break;
-          default:
-            printf("Unknown charge-method in 'CalculateInterChargeElectrostaticPotential'\n");
-            exit(0);
-            break;
-        }
         UElectrostaticPotential+=energy;
       }
     }

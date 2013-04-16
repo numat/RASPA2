@@ -250,7 +250,7 @@ extern VECTOR ApplyBoundaryConditionUnitCell(VECTOR dr);
 
 extern REAL PotentialValue(int a,int b,REAL rr,REAL scaling);
 void PotentialGradient(int a,int b,REAL rr,REAL *energy,REAL *force_factor,REAL scaling);
-void PotentialSecondDerivative(int typeA,int typeB,REAL rr,REAL *energy,REAL *factor1,REAL *factor2);
+void PotentialSecondDerivative(int typeA,int typeB,REAL rr,REAL *energy,REAL *factor1,REAL *factor2,REAL scaling);
 void PotentialThirdDerivative(int typeA,int typeB,REAL rr,REAL *energy,REAL *factor1,REAL *factor2,REAL *factor3);
 
 REAL PotentialCorrection(int a,int b,REAL r);
@@ -278,10 +278,20 @@ void ComputeDampingCoefficients(REAL r, REAL b,REAL *f6,REAL *f8,REAL *f10);
 void ComputeSwitchingFactors(void);
 
 REAL PotentialValueCoulombic(REAL chargeA,REAL chargeB,REAL r);
-REAL PotentialValueChargeBondDipole(REAL chargeA,VECTOR dipoleB,VECTOR dr,REAL r);
-REAL PotentialValueBondDipoleBondDipole(VECTOR dipoleA,VECTOR dipoleB,VECTOR dr,REAL r);
-
 void PotentialGradientCoulombic(REAL chargeA,REAL chargeB,REAL rr,REAL *energy,REAL *force_factor);
+void PotentialSecondDerivativeCoulombic(REAL chargeA,REAL chargeB,REAL rr,REAL *energy,REAL *force_factor1,REAL *force_factor2);
+
+REAL PotentialValueChargeBondDipole(REAL chargeA,VECTOR dipoleB,VECTOR dr,REAL r);
+void PotentialGradientChargeBondDipole(REAL chargeB,REAL DipoleMagnitudeA,REAL length,VECTOR dipoleA,VECTOR dr,REAL rr,
+                                       REAL *energy,VECTOR *fa1,VECTOR *fa2,VECTOR *fb1,VECTOR *term);
+
+REAL PotentialValueBondDipoleBondDipole(VECTOR dipoleA,VECTOR dipoleB,VECTOR dr,REAL r);
+void PotentialGradientBondDipoleBondDipole(REAL DipoleMagnitudeA,REAL ri2,VECTOR dipoleA,REAL DipoleMagnitudeB,REAL rk2,VECTOR dipoleB,VECTOR dr,REAL rr,
+                                           REAL *energy,VECTOR *fa1,VECTOR *fa2,VECTOR *fb1,VECTOR *fb2,VECTOR *term);
+
+
+void PotentialElectricFieldBondDipoleBondDipole(VECTOR dipoleA,VECTOR dipoleB,VECTOR dr,REAL rr,VECTOR *termA,VECTOR *termB);
+void PotentialGradientInducedDipoleInducedDipole(VECTOR dipoleA,VECTOR dipoleB,VECTOR dr,REAL rr,REAL *energy,VECTOR *term);
 
 void WriteTinkerParameterFile(void);
 void WriteTinkerKeyFile(void);

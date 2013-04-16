@@ -138,11 +138,11 @@ extern REAL CutOffVDWSwitch;
 extern REAL CutOffVDWSwitchSquared;
 extern REAL InverseCutOffVDW;
 
-extern REAL CutOffChargeCharge;
-extern REAL CutOffChargeChargeSquared;
-extern REAL CutOffChargeChargeSwitch;
-extern REAL CutOffChargeChargeSwitchSquared;
-extern REAL InverseCutOffChargeCharge;
+extern REAL *CutOffChargeCharge;
+extern REAL *CutOffChargeChargeSquared;
+extern REAL *CutOffChargeChargeSwitch;
+extern REAL *CutOffChargeChargeSwitchSquared;
+extern REAL *InverseCutOffChargeCharge;
 
 extern REAL CutOffChargeBondDipole;
 extern REAL CutOffChargeBondDipoleSquared;

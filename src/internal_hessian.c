@@ -8714,6 +8714,7 @@ void CalculateAdsorbateIntraVDWHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX H
   INT_VECTOR3 index_i2,index_j2;
   int index1,index2;
   int RigidI,RigidJ;
+  REAL scalingA,scalingB;
 
   for(m=0;m<NumberOfAdsorbateMolecules[CurrentSystem];m++)
   {
@@ -8764,7 +8765,10 @@ void CalculateAdsorbateIntraVDWHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX H
         typeA=Adsorbates[CurrentSystem][m].Atoms[A].Type;
         typeB=Adsorbates[CurrentSystem][m].Atoms[B].Type;
 
-        PotentialSecondDerivative(typeA,typeB,rr,&energy,&DF,&DDF);
+        scalingA=Adsorbates[CurrentSystem][m].Atoms[A].CFVDWScalingParameter;
+        scalingB=Adsorbates[CurrentSystem][m].Atoms[B].CFVDWScalingParameter;
+
+        PotentialSecondDerivative(typeA,typeB,rr,&energy,&DF,&DDF,scalingA*scalingB);
         energy*=Scaling;
         DF*=Scaling;
         DDF*=Scaling;
@@ -8847,6 +8851,7 @@ void CalculateCationIntraVDWHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX Hess
   INT_VECTOR3 index_i2,index_j2;
   int index1,index2;
   int RigidI,RigidJ;
+  REAL scalingA,scalingB;
 
   for(m=0;m<NumberOfCationMolecules[CurrentSystem];m++)
   {
@@ -8897,7 +8902,10 @@ void CalculateCationIntraVDWHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX Hess
         typeA=Cations[CurrentSystem][m].Atoms[A].Type;
         typeB=Cations[CurrentSystem][m].Atoms[B].Type;
 
-        PotentialSecondDerivative(typeA,typeB,rr,&energy,&DF,&DDF);
+        scalingA=Adsorbates[CurrentSystem][m].Atoms[A].CFVDWScalingParameter;
+        scalingB=Adsorbates[CurrentSystem][m].Atoms[B].CFVDWScalingParameter;
+
+        PotentialSecondDerivative(typeA,typeB,rr,&energy,&DF,&DDF,scalingA*scalingB);
         energy*=Scaling;
         DF*=Scaling;
         DDF*=Scaling;

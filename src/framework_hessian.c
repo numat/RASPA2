@@ -117,7 +117,7 @@ void CalculateDerivativesAtPositionReal(VECTOR pos,int typeA,REAL *value,VECTOR 
       dr.z=pos.z-Framework[CurrentSystem].Atoms[f][i].Position.z;
       dr=ApplyBoundaryCondition(dr);
       rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-      if(rr<CutOffChargeChargeSquared)
+      if(rr<CutOffChargeChargeSquared[CurrentSystem])
       {
         r=sqrt(rr);
 
@@ -2097,6 +2097,7 @@ void ComputeFrameworkAdsorbateVDWHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX
   VECTOR pos,comB;
   REAL r,temp1,temp2,temp3;
   int ncell,k1,k2,k3;
+  REAL scalingB;
 
   f1=f2=0.0;
   index2=0;
@@ -2157,7 +2158,9 @@ void ComputeFrameworkAdsorbateVDWHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX
 
                   if(rr<CutOffVDWSquared)
                   {
-                    PotentialSecondDerivative(typeA,typeB,rr,&energy,&f1,&f2);
+                    scalingB=Adsorbates[CurrentSystem][J].Atoms[j].CFVDWScalingParameter;
+
+                    PotentialSecondDerivative(typeA,typeB,rr,&energy,&f1,&f2,scalingB);
 
                     // add contribution to the energy
                     *Energy+=energy;
@@ -2262,7 +2265,7 @@ void ComputeFrameworkAdsorbateChargeChargeHessian(REAL *Energy,REAL* Gradient,RE
   int J,i,j,jg,ja,fr;
   int typeA,typeB;
   int TypeMolB;
-  REAL rr;
+  REAL rr,U;
   REAL f1,f2;
   VECTOR posA,posB,dr;
   INT_VECTOR3 index_i,index_j,index_j2;
@@ -2271,6 +2274,7 @@ void ComputeFrameworkAdsorbateChargeChargeHessian(REAL *Energy,REAL* Gradient,RE
   VECTOR comB;
   REAL r,temp1,temp2,temp3;
   int ncell,k1,k2,k3;
+  REAL scalingB;
 
   f1=f2=0.0;
   index2=0;
@@ -2315,7 +2319,6 @@ void ComputeFrameworkAdsorbateChargeChargeHessian(REAL *Energy,REAL* Gradient,RE
 
                   typeB=Adsorbates[CurrentSystem][J].Atoms[j].Type;
                   posB=Adsorbates[CurrentSystem][J].Atoms[j].Position;
-                  ChargeB=Adsorbates[CurrentSystem][J].Atoms[j].Charge;
 
                   posB.x+=ReplicaShift[ncell].x;
                   posB.y+=ReplicaShift[ncell].y;
@@ -2328,40 +2331,15 @@ void ComputeFrameworkAdsorbateChargeChargeHessian(REAL *Energy,REAL* Gradient,RE
                   rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
                   r=sqrt(rr);
 
-                  if(rr<CutOffChargeChargeSquared)
+                  if(rr<CutOffChargeChargeSquared[CurrentSystem])
                   {
-                    switch(ChargeMethod)
-                    {
-                      case NONE:
-                        f1=f2=0.0;
-                        break;
-                      case SHIFTED_COULOMB:
-                        *Energy+=COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB*(1.0/r-InverseCutOffChargeCharge);
-                        f1=-COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB/(rr*r);
-                        f2=3.0*COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB/(SQR(rr)*r);
-                        break;
-                      case TRUNCATED_COULOMB:
-                        *Energy+=COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB*(1.0/r);
-                        f1=-COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB/(rr*r);
-                        f2=3.0*COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB/(SQR(rr)*r);
-                        break;
-                      case EWALD:
-                      default:
-                        *Energy+=COULOMBIC_CONVERSION_FACTOR*erfc(Alpha[CurrentSystem]*r)*
-                                                ChargeA*ChargeB/r;
-                        f1=-COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB*
-                            (erfc(Alpha[CurrentSystem]*r)+2.0*Alpha[CurrentSystem]*r*exp(-SQR(Alpha[CurrentSystem])*rr)/sqrt(M_PI))/
-                            (r*rr);
+                    scalingB=Adsorbates[CurrentSystem][J].Atoms[j].CFChargeScalingParameter;
+                    ChargeB=scalingB*Adsorbates[CurrentSystem][J].Atoms[j].Charge;
 
-                        f2=ChargeA*ChargeB*COULOMBIC_CONVERSION_FACTOR*
-                           (((3.0*erfc(Alpha[CurrentSystem]*r)/(r*rr))+
-                           (4.0*CUBE(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem])*rr)/sqrt(M_PI))+
-                           (6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*rr)/(sqrt(M_PI)*rr)))/(rr));
-                        break;
-                    }
+                    PotentialSecondDerivativeCoulombic(ChargeA,ChargeB,rr,&U,&f1,&f2);
 
-                    //if((index_i<0)&&(index_j<0)) continue;
-
+                    *Energy+=U;
+                    
                     StrainDerivative->ax+=f1*dr.x*dr.x;
                     StrainDerivative->bx+=f1*dr.x*dr.y;
                     StrainDerivative->cx+=f1*dr.x*dr.z;
@@ -2464,6 +2442,7 @@ void ComputeFrameworkCationVDWHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX He
   VECTOR pos,comB;
   REAL r,temp1,temp2,temp3;
   int ncell,k1,k2,k3;
+  REAL scalingB;
 
   f1=f2=0.0;
   index2=0;
@@ -2524,7 +2503,9 @@ void ComputeFrameworkCationVDWHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX He
 
                   if(rr<CutOffVDWSquared)
                   {
-                    PotentialSecondDerivative(typeA,typeB,rr,&energy,&f1,&f2);
+                    scalingB=Cations[CurrentSystem][J].Atoms[j].CFVDWScalingParameter;
+
+                    PotentialSecondDerivative(typeA,typeB,rr,&energy,&f1,&f2,scalingB);
 
                     // add contribution to the energy
                     *Energy+=energy;
@@ -2627,7 +2608,7 @@ void ComputeFrameworkCationChargeChargeHessian(REAL *Energy,REAL* Gradient,REAL_
   int J,i,j,jg,ja,fr;
   int typeA,typeB;
   int TypeMolB;
-  REAL rr;
+  REAL rr,U;
   REAL f1,f2;
   VECTOR posA,posB,dr;
   INT_VECTOR3 index_i,index_j,index_j2;
@@ -2636,6 +2617,7 @@ void ComputeFrameworkCationChargeChargeHessian(REAL *Energy,REAL* Gradient,REAL_
   VECTOR comB;
   REAL r,temp1,temp2,temp3;
   int ncell,k1,k2,k3;
+  REAL scalingB;
 
   f1=f2=0.0;
   index2=0;
@@ -2678,7 +2660,6 @@ void ComputeFrameworkCationChargeChargeHessian(REAL *Energy,REAL* Gradient,REAL_
 
                   typeB=Cations[CurrentSystem][J].Atoms[j].Type;
                   posB=Cations[CurrentSystem][J].Atoms[j].Position;
-                  ChargeB=Cations[CurrentSystem][J].Atoms[j].Charge;
 
                   posB.x+=ReplicaShift[ncell].x;
                   posB.y+=ReplicaShift[ncell].y;
@@ -2691,39 +2672,14 @@ void ComputeFrameworkCationChargeChargeHessian(REAL *Energy,REAL* Gradient,REAL_
                   rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
                   r=sqrt(rr);
 
-                  if(rr<CutOffChargeChargeSquared)
+                  if(rr<CutOffChargeChargeSquared[CurrentSystem])
                   {
-                    switch(ChargeMethod)
-                    {
-                      case NONE:
-                        f1=f2=0.0;
-                        break;
-                      case SHIFTED_COULOMB:
-                        *Energy+=COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB*(1.0/r-InverseCutOffChargeCharge);
-                        f1=-COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB/(rr*r);
-                        f2=3.0*COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB/(SQR(rr)*r);
-                        break;
-                      case TRUNCATED_COULOMB:
-                        *Energy+=COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB*(1.0/r);
-                        f1=-COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB/(rr*r);
-                        f2=3.0*COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB/(SQR(rr)*r);
-                        break;
-                      case EWALD:
-                      default:
-                        *Energy+=COULOMBIC_CONVERSION_FACTOR*erfc(Alpha[CurrentSystem]*r)*
-                                                ChargeA*ChargeB/r;
-                        f1=-COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB*
-                            (erfc(Alpha[CurrentSystem]*r)+2.0*Alpha[CurrentSystem]*r*exp(-SQR(Alpha[CurrentSystem])*rr)/sqrt(M_PI))/
-                            (r*rr);
+                    scalingB=Adsorbates[CurrentSystem][J].Atoms[j].CFChargeScalingParameter;
+                    ChargeB=scalingB*Cations[CurrentSystem][J].Atoms[j].Charge;
 
-                        f2=ChargeA*ChargeB*COULOMBIC_CONVERSION_FACTOR*
-                           (((3.0*erfc(Alpha[CurrentSystem]*r)/(r*rr))+
-                           (4.0*CUBE(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem])*rr)/sqrt(M_PI))+
-                           (6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*rr)/(sqrt(M_PI)*rr)))/(rr));
-                        break;
-                    }
+                    PotentialSecondDerivativeCoulombic(ChargeA,ChargeB,rr,&U,&f1,&f2);
 
-                    //if((index_j<0)&&(index_j2<0)) continue;
+                    *Energy+=U;
 
                     StrainDerivative->ax+=f1*dr.x*dr.x;
                     StrainDerivative->bx+=f1*dr.x*dr.y;
@@ -2869,12 +2825,10 @@ void ComputeFrameworkIntraVDWHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX Hes
                     if(ncell==0) ReplicaFactor=1.0;
                     else ReplicaFactor=0.5;
 
-                    PotentialSecondDerivative(typeA,typeB,rr,&energy,&DF,&DDF);
+                    PotentialSecondDerivative(typeA,typeB,rr,&energy,&DF,&DDF,1.0);
 
                     // add contribution to the energy
                     *Energy+=ReplicaFactor*energy;
-
-                    //if((index_i<0)&&(index_j)<0) continue;
 
                     if(ComputeGradient)
                     {
@@ -2951,7 +2905,7 @@ void ComputeFrameworkIntraVDWHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX Hes
           dr=ApplyBoundaryCondition(dr);
           rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
 
-          PotentialSecondDerivative(typeA,typeB,rr,&energy,&DF,&DDF);
+          PotentialSecondDerivative(typeA,typeB,rr,&energy,&DF,&DDF,1.0);
 
           energy*=parms[6];
           DF*=parms[6];
@@ -2959,8 +2913,6 @@ void ComputeFrameworkIntraVDWHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX Hes
 
           // add contribution to the energy
           *Energy+=energy;
-
-          //if((index_i<0)&&(index_j)<0) continue;
 
           if(ComputeGradient)
           {
@@ -3007,7 +2959,7 @@ void ComputeFrameworkIntraChargeChargeHessian(REAL *Energy,REAL* Gradient,REAL_M
 {
   int i,j,typeA,typeB,f1,f2,start;
   REAL ChargeA,ChargeB,DF,DDF;
-  REAL rr,r;
+  REAL rr,r,U;
   VECTOR posA,posB,dr;
   INT_VECTOR3 index_i,index_j;
   int A,B;
@@ -3056,42 +3008,14 @@ void ComputeFrameworkIntraChargeChargeHessian(REAL *Energy,REAL* Gradient,REAL_M
                   rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
                   r=sqrt(rr);
 
-                  if(rr<CutOffChargeChargeSquared)
+                  if(rr<CutOffChargeChargeSquared[CurrentSystem])
                   {
                     if(ncell==0) ReplicaFactor=1.0;
                     else ReplicaFactor=0.5;
 
-                    switch(ChargeMethod)
-                    {
-                      case NONE:
-                        DF=DDF=0.0;
-                        break;
-                      case SHIFTED_COULOMB:
-                        *Energy+=ReplicaFactor*COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB*(1.0/r-InverseCutOffChargeCharge);
-                        DF=-COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB/(rr*r);
-                        DDF=3.0*COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB/(SQR(rr)*r);
-                        break;
-                      case TRUNCATED_COULOMB:
-                        *Energy+=ReplicaFactor*COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB*(1.0/r);
-                        DF=-COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB/(rr*r);
-                        DDF=3.0*COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB/(SQR(rr)*r);
-                        break;
-                      case EWALD:
-                      default:
-                        *Energy+=ReplicaFactor*COULOMBIC_CONVERSION_FACTOR*erfc(Alpha[CurrentSystem]*r)*
-                                                ChargeA*ChargeB/r;
-                        DF=-COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB*
-                            (erfc(Alpha[CurrentSystem]*r)+2.0*Alpha[CurrentSystem]*r*exp(-SQR(Alpha[CurrentSystem])*rr)/sqrt(M_PI))/
-                            (r*rr);
+                    PotentialSecondDerivativeCoulombic(ChargeA,ChargeB,rr,&U,&DF,&DDF);
 
-                        DDF=ChargeA*ChargeB*COULOMBIC_CONVERSION_FACTOR*
-                            (((3.0*erfc(Alpha[CurrentSystem]*r)/(r*rr))+
-                             (4.0*CUBE(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem])*rr)/sqrt(M_PI))+
-                             (6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*rr)/(sqrt(M_PI)*rr)))/(rr));
-                        break;
-                    }
-
-                    //if((index_i<0)&&(index_j)<0) continue;
+                    *Energy+=ReplicaFactor*U;
 
                     if(ComputeGradient)
                     {
@@ -3218,7 +3142,6 @@ void ComputeFrameworkIntraChargeChargeHessian(REAL *Energy,REAL* Gradient,REAL_M
     }
   }
 }
-
 
 
 void ComputeFrameworkBondHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX HessianMatrix,REAL_MATRIX3x3 *StrainDerivative,int ComputeGradient,int ComputeHessian)
@@ -3383,6 +3306,211 @@ void ComputeFrameworkBondHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX Hessian
           break;
         default:
           printf("Undefined Bond potential in routine 'CalculateFrameworkBondHessian' ('framework_hessian.c')\n");
+          exit(0);
+          break;
+      }
+
+      // add contribution to the energy
+      *Energy+=U;
+
+      //if((index_i<0)&&(index_j<0)) continue;
+
+      if(ComputeGradient)
+      {
+        // add contribution to the first derivatives
+        if(index_i.x>=0) Gradient[index_i.x]+=DF*dr.x;
+        if(index_i.y>=0) Gradient[index_i.y]+=DF*dr.y;
+        if(index_i.z>=0) Gradient[index_i.z]+=DF*dr.z;
+
+        if(index_j.x>=0) Gradient[index_j.x]-=DF*dr.x;
+        if(index_j.y>=0) Gradient[index_j.y]-=DF*dr.y;
+        if(index_j.z>=0) Gradient[index_j.z]-=DF*dr.z;
+
+        GradientStrain(Gradient,DF,dr);
+      }
+
+      // add contribution to the strain derivative tensor
+      StrainDerivative->ax+=dr.x*DF*dr.x;
+      StrainDerivative->bx+=dr.y*DF*dr.x;
+      StrainDerivative->cx+=dr.z*DF*dr.x;
+
+      StrainDerivative->ay+=dr.x*DF*dr.y;
+      StrainDerivative->by+=dr.y*DF*dr.y;
+      StrainDerivative->cy+=dr.z*DF*dr.y;
+
+      StrainDerivative->az+=dr.x*DF*dr.z;
+      StrainDerivative->bz+=dr.y*DF*dr.z;
+      StrainDerivative->cz+=dr.z*DF*dr.z;
+
+      if(ComputeHessian)
+      {
+        // add contribution to the second derivatives (Hessian matrix)
+        HessianAtomicPositionPosition(HessianMatrix,index_i,index_j,DF,DDF,dr,1.0);
+        HessianAtomicPositionStrain(HessianMatrix,index_i,index_j,DF,DDF,dr);
+        HessianAtomicStrainStrain(HessianMatrix,DF,DDF,dr);
+      }
+    }
+  }
+}
+
+
+void ComputeFrameworkUreyBradleyHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX HessianMatrix,REAL_MATRIX3x3 *StrainDerivative,int ComputeGradient,int ComputeHessian)
+{
+  int i;   // loop variable
+  int f1;  // loop over all frameworks
+  REAL r;  // distance
+  REAL rr; // distance squared
+  REAL temp,temp2; // temporary
+  REAL exp_term;   // temporary
+  REAL U;  // energy of a specific interaction
+  REAL DF; // first derivative
+  REAL DDF;  // second derivative
+  VECTOR dr; // atoms separation vector
+  int A,C;   // atom-indices
+  INT_VECTOR3 index_i,index_j; // indices of the Hessian
+  REAL *parms;  // pointer to potential parameter
+
+  for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
+  {
+    for(i=0;i<Framework[CurrentSystem].NumberOfUreyBradleys[f1];i++)
+    {
+      A=Framework[CurrentSystem].UreyBradleys[f1][i].A;
+      C=Framework[CurrentSystem].UreyBradleys[f1][i].C;
+
+      index_i=Framework[CurrentSystem].Atoms[f1][A].HessianIndex;
+      index_j=Framework[CurrentSystem].Atoms[f1][C].HessianIndex;
+
+      dr.x=Framework[CurrentSystem].Atoms[f1][A].Position.x-
+           Framework[CurrentSystem].Atoms[f1][C].Position.x;
+      dr.y=Framework[CurrentSystem].Atoms[f1][A].Position.y-
+           Framework[CurrentSystem].Atoms[f1][C].Position.y;
+      dr.z=Framework[CurrentSystem].Atoms[f1][A].Position.z-
+           Framework[CurrentSystem].Atoms[f1][C].Position.z;
+
+      // apply boundary condition
+      dr=ApplyBoundaryCondition(dr);
+
+      rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
+      r=sqrt(rr);
+
+      parms=(REAL*)&Framework[CurrentSystem].UreyBradleyArguments[f1][i];
+
+      switch(Framework[CurrentSystem].UreyBradleyType[f1][i])
+      {
+        case HARMONIC_UREYBRADLEY:
+          // 0.5*p0*SQR(r-p1);
+          // ===============================================
+          // p_0/k_B [K/A^2]   force constant
+          // p_1     [A]       reference bond distance
+          U=0.5*parms[0]*SQR(r-parms[1]);
+          DF=parms[0]*(r-parms[1])/r;
+          DDF=(parms[0]*parms[1])/(r*rr);
+          //DDF=(parms[0]/r-DF)/rr;
+          break;
+        case MORSE_UREYBRADLEY:
+          // p_0*[(1.0-{exp(-p_1*(r-p_2))})^2-1.0]
+          // ===============================================
+          // p_0/k_B [K]       force constant
+          // p_1     [A^-1]    parameter
+          // p_2     [A]       reference bond distance
+          temp=exp(parms[1]*(parms[2]-r));
+          U=parms[0]*(SQR(1.0-temp)-1.0);
+          DF=2.0*parms[0]*parms[1]*(1.0-temp)*temp/r;
+          DDF=2.0*parms[0]*parms[1]*temp*((1.0+2.0*parms[1]*r)*temp-parms[1]*r-1.0)/(r*rr);
+          break;
+        case LJ_12_6_UREYBRADLEY:
+          // A/r_ij^12-B/r_ij^6
+          // ===============================================
+          // p_0/k_B [K A^12]
+          // p_1/k_B [K A^6]
+          temp=CUBE(1.0/rr);
+          U=parms[0]*SQR(temp)-parms[1]*temp;
+          DF=6.0*(parms[1]*temp-2.0*parms[0]*SQR(temp))/rr;
+          DDF=24.0*(7.0*parms[0]*SQR(temp)-2.0*parms[1]*temp)/SQR(rr);
+          break;
+        case LENNARD_JONES_UREYBRADLEY:
+          // 4*p_0*((p_1/r)^12-(p_1/r)^6)
+          // ===============================================
+          // p_0/k_B [K]
+          // p_1     [A]
+          temp=CUBE(parms[1]/rr);
+          U=4.0*parms[0]*(temp*(temp-1.0));
+          DF=24.0*parms[0]*(temp*(1.0-2.0*temp))/rr;
+          DDF=96.0*parms[0]*(temp*(7.0*temp-2.0))/SQR(rr);
+          break;
+        case BUCKINGHAM_UREYBRADLEY:
+          // p_0*exp(-p_1 r)-p_2/r^6
+          // ===============================================
+          // p_0/k_B [K]
+          // p_1     [A^-1]
+          // p_2/k_B [K A^6]
+          temp=parms[2]*CUBE(1.0/rr);
+          exp_term=parms[0]*exp(-parms[1]*r);
+          U=-temp+exp_term;
+          DF=(6.0/rr)*temp-parms[1]*exp_term/r;
+          DDF=(-48.0*temp/rr+parms[1]*(1.0+parms[1]*r)*exp_term/r)/rr;
+          break;
+        case RESTRAINED_HARMONIC_UREYBRADLEY:
+          // 0.5*p_0*(r-p_1)^2                   |r-p_1|<=p_2
+          // 0.5*p_0*p_2^2+p_0*p_2*(|r-p_1|-p_2) |r-p_1|>p_2
+          // ===============================================
+          // p_0/k_B [K/A^2]
+          // p_1     [A]
+          // p_2     [A]
+          temp=r-parms[1];
+          U=0.5*parms[0]*SQR(MIN2(fabs(temp),parms[2]))
+                +parms[0]*parms[2]*MAX2(fabs(temp)-parms[2],(REAL)0.0);
+          DF=-parms[0]*(SIGN(MIN2(fabs(temp),parms[2]),temp))/r;
+          DDF=fabs(temp)<parms[2]?-parms[0]*parms[1]/(r*rr):parms[0]*SIGN(parms[2],temp)/(r*rr);
+          break;
+        case QUARTIC_UREYBRADLEY:
+          // (1/2)*p_0*(r-p_1)^2+(1/3)*p_2*(r-p_1)^3+(1/4)*p_3*(r-p_1)^4
+          // ===========================================================
+          // p_0/k_B [K/A^2]
+          // p_1     [A]
+          // p_2/k_B [K/A^3]
+          // p_3/k_B [K/A^4]
+          temp=r-parms[1];
+          temp2=SQR(r-parms[1]);
+          U=0.5*parms[0]*temp2+(1.0/3.0)*parms[2]*temp*temp2+0.25*parms[3]*SQR(temp2);
+          DF=temp*(parms[0]+parms[2]*temp+parms[3]*temp2)/r;
+          DDF=2.0*parms[3]+(parms[2]-3.0*parms[1]*parms[3])/r+(parms[1]*(parms[0]+parms[1]*(parms[1]*parms[3]-parms[2])))/(r*rr);
+          break;
+        case CFF_QUARTIC_UREYBRADLEY:
+          // p_0*(r-p_1)^2+p_2*(r-p_1)^3+p_3*(r-p_1)^4
+          // ===============================================
+          // p_0/k_B [K/A^2]
+          // p_1     [A]
+          // p_2/k_B [K/A^3]
+          // p_3/k_B [K/A^4]
+          temp=r-parms[1];
+          temp2=SQR(r-parms[1]);
+          U=parms[0]*temp2+parms[2]*temp*temp2+parms[3]*SQR(temp2);
+          DF=temp*(2.0*parms[0]+3.0*parms[2]*temp+4.0*parms[3]*temp2)/r;
+          DDF=8.0*parms[3]+(3.0*parms[2]-3.0*parms[1]*4.0*parms[3])/r+(parms[1]*(2.0*parms[0]+parms[1]*(parms[1]*4.0*parms[3]-3.0*parms[2])))/(r*rr);
+          break;
+        case MM3_UREYBRADLEY:
+          // p_0*(r-p_1)^2*(1.0-2.55*(r-p_1)+(7.0/12.0)*2.55^2*(r-p_1)^2)
+          // =================================================================
+          // p_0     [mdyne/A molecule]
+          // p_1     [A]
+          temp=r-parms[1];
+          temp2=SQR(temp);
+          U=parms[0]*temp2*(1.0-2.55*temp+(7.0/12.0)*SQR(2.55)*temp2);
+          DF=parms[0]*(2.0+2.55*(4.0*2.55*(7.0/12.0)*temp-3.0)*temp)*temp/r;
+          DDF=(parms[0]*(SQR(2.55)*4.0*7.0*temp2*(parms[1]+2.0*r)+12.0*(2.0*parms[1]+2.55*3.0*(SQR(parms[1])-SQR(r)))))/(12.0*SQR(r)*r);
+          break;
+        case RIGID_UREYBRADLEY:
+          U=DF=DDF=0.0;
+          break;
+        case FIXED_UREYBRADLEY:
+          U=DF=DDF=0.0;
+          break;
+        case MEASURE_UREYBRADLEY:
+          U=DF=DDF=0.0;
+          break;
+        default:
+          printf("Undefined UreyBradley potential in routine 'CalculateFrameworkUreyBradleyHessian' ('framework_hessian.c')\n");
           exit(0);
           break;
       }
@@ -5524,8 +5652,6 @@ void CalculateFrameworkInversionBendForces(int f1,int i,VECTOR posA,VECTOR posB,
 }
 
 
-//void CalculateFrameworkInversionBendHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX3x3 *StrainDerivativeTensor,REAL_MATRIX HessianMatrix,REAL_MATRIX CrossTerm)
-
 void ComputeFrameworkInversionBendHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX HessianMatrix,REAL_MATRIX3x3 *StrainDerivativeTensor,int ComputeGradient,int ComputeHessian)
 {
   int i,f1;
@@ -5560,8 +5686,6 @@ void ComputeFrameworkInversionBendHessian(REAL *Energy,REAL* Gradient,REAL_MATRI
       CalculateFrameworkInversionBendForces(f1,i,posA0,posB0,posC0,posD0,&U,&fa0,&fb0,&fc0,&fd0,&strain_derivative);
 
       *Energy+=U;
-
-      //if((index_i<0)&&(index_j<0)&&(index_k<0)&&(index_l<0)) continue;
 
       StrainDerivativeTensor->ax+=strain_derivative.ax;
       StrainDerivativeTensor->ay+=strain_derivative.ay;
@@ -6005,6 +6129,797 @@ void ComputeFrameworkInversionBendHessian(REAL *Energy,REAL* Gradient,REAL_MATRI
         posA=posA0; posB=posB0; posC=posC0; posD=posD0;
         posD.z-=Delta;
         CalculateFrameworkInversionBendForces(f1,i,posA,posB,posC,posD,&U,&fa[3],&fb[3],&fc[3],&fd[3],&strain_derivative);
+
+        if(index_l.z>=0)
+        {
+          if(index_i.x>=0) HessianMatrix.element[index_l.z][index_i.x]-=(-fa[0].x+8.0*fa[1].x-8.0*fa[2].x+fa[3].x)/(6.0*Delta);
+          if(index_i.y>=0) HessianMatrix.element[index_l.z][index_i.y]-=(-fa[0].y+8.0*fa[1].y-8.0*fa[2].y+fa[3].y)/(6.0*Delta);
+          if(index_i.z>=0) HessianMatrix.element[index_l.z][index_i.z]-=(-fa[0].z+8.0*fa[1].z-8.0*fa[2].z+fa[3].z)/(6.0*Delta);
+
+          if(index_j.x>=0) HessianMatrix.element[index_l.z][index_j.x]-=(-fb[0].x+8.0*fb[1].x-8.0*fb[2].x+fb[3].x)/(6.0*Delta);
+          if(index_j.y>=0) HessianMatrix.element[index_l.z][index_j.y]-=(-fb[0].y+8.0*fb[1].y-8.0*fb[2].y+fb[3].y)/(6.0*Delta);
+          if(index_j.z>=0) HessianMatrix.element[index_l.z][index_j.z]-=(-fb[0].z+8.0*fb[1].z-8.0*fb[2].z+fb[3].z)/(6.0*Delta);
+
+          if(index_k.x>=0) HessianMatrix.element[index_l.z][index_k.x]-=(-fc[0].x+8.0*fc[1].x-8.0*fc[2].x+fc[3].x)/(6.0*Delta);
+          if(index_k.y>=0) HessianMatrix.element[index_l.z][index_k.y]-=(-fc[0].y+8.0*fc[1].y-8.0*fc[2].y+fc[3].y)/(6.0*Delta);
+          if(index_k.z>=0) HessianMatrix.element[index_l.z][index_k.z]-=(-fc[0].z+8.0*fc[1].z-8.0*fc[2].z+fc[3].z)/(6.0*Delta);
+
+          if(index_l.x>=0) HessianMatrix.element[index_l.z][index_l.x]-=(-fd[0].x+8.0*fd[1].x-8.0*fd[2].x+fd[3].x)/(6.0*Delta);
+          if(index_l.y>=0) HessianMatrix.element[index_l.z][index_l.y]-=(-fd[0].y+8.0*fd[1].y-8.0*fd[2].y+fd[3].y)/(6.0*Delta);
+          if(index_l.z>=0) HessianMatrix.element[index_l.z][index_l.z]-=(-fd[0].z+8.0*fd[1].z-8.0*fd[2].z+fd[3].z)/(6.0*Delta);
+        }
+      }
+    }
+  }
+}
+
+void CalculateFrameworkBendTorsionForces(int f1,int i,VECTOR posA,VECTOR posB,VECTOR posC,VECTOR posD,REAL *Energy,VECTOR *fan,VECTOR *fbn,VECTOR *fcn,VECTOR *fdn,REAL_MATRIX3x3 *strain_derivativen)
+{
+  REAL d,e, energy,rab,rbc,rcd;
+  VECTOR Dab,Dbc,Dcd,dr,ds;
+  REAL dot_ab,dot_cd,r,s;
+  REAL CosPhi,CosPhi2,DCos;
+  VECTOR dtA,dtB,dtC,dtD,Pb,Pc;
+  REAL CosTheta1,CosTheta2,Theta1,Theta2,SinTheta1,SinTheta2;
+  REAL DTheta1,DTheta2,sign,Phi,SinPhi;
+  REAL *parms;
+  VECTOR fa,fb,fc,fd;
+
+  fan->x=fbn->x=fcn->x=fdn->x=0.0;
+  fan->y=fbn->y=fcn->y=fdn->y=0.0;
+  fan->z=fbn->z=fcn->z=fdn->z=0.0;
+
+  strain_derivativen->ax=strain_derivativen->bx=strain_derivativen->cx=0.0;
+  strain_derivativen->ay=strain_derivativen->by=strain_derivativen->cy=0.0;
+  strain_derivativen->az=strain_derivativen->bz=strain_derivativen->cz=0.0;
+
+  parms=(REAL*)&Framework[CurrentSystem].BendTorsionArguments[f1][i];
+
+  Dab.x=posA.x-posB.x;
+  Dab.y=posA.y-posB.y;
+  Dab.z=posA.z-posB.z;
+  Dab=ApplyBoundaryCondition(Dab);
+  rab=sqrt(SQR(Dab.x)+SQR(Dab.y)+SQR(Dab.z));
+
+  Dbc.x=posC.x-posB.x;
+  Dbc.y=posC.y-posB.y;
+  Dbc.z=posC.z-posB.z;
+  Dbc=ApplyBoundaryCondition(Dbc);
+  rbc=sqrt(SQR(Dbc.x)+SQR(Dbc.y)+SQR(Dbc.z));
+  Dbc.x/=rbc; Dbc.y/=rbc; Dbc.z/=rbc;
+
+  Dcd.x=posD.x-posC.x;
+  Dcd.y=posD.y-posC.y;
+  Dcd.z=posD.z-posC.z;
+  Dcd=ApplyBoundaryCondition(Dcd);
+  rcd=sqrt(SQR(Dcd.x)+SQR(Dcd.y)+SQR(Dcd.z));
+
+
+ 
+  dot_ab=Dab.x*Dbc.x+Dab.y*Dbc.y+Dab.z*Dbc.z;
+  CosTheta1=dot_ab/rab;
+  CosTheta1=MAX2(MIN2(CosTheta1,(REAL)1.0),-1.0);
+  Theta1=acos(CosTheta1);
+  SinTheta1=MAX2((REAL)1.0e-8,sqrt(1.0-SQR(CosTheta1)));
+
+  dot_cd=Dcd.x*Dbc.x+Dcd.y*Dbc.y+Dcd.z*Dbc.z;
+  CosTheta2=-dot_cd/rcd;
+  CosTheta2=MAX2(MIN2(CosTheta2,(REAL)1.0),-1.0);
+  Theta2=acos(CosTheta2);
+  SinTheta2=MAX2((REAL)1.0e-8,sqrt(1.0-SQR(CosTheta2)));
+
+  dr.x=Dab.x-dot_ab*Dbc.x;
+  dr.y=Dab.y-dot_ab*Dbc.y;
+  dr.z=Dab.z-dot_ab*Dbc.z;
+  r=MAX2((REAL)1.0e-8,sqrt(SQR(dr.x)+SQR(dr.y)+SQR(dr.z)));
+  dr.x/=r; dr.y/=r; dr.z/=r;
+
+  ds.x=Dcd.x-dot_cd*Dbc.x;
+  ds.y=Dcd.y-dot_cd*Dbc.y;
+  ds.z=Dcd.z-dot_cd*Dbc.z;
+  s=MAX2((REAL)1.0e-8,sqrt(SQR(ds.x)+SQR(ds.y)+SQR(ds.z)));
+  ds.x/=s; ds.y/=s; ds.z/=s;
+
+  // compute Cos(Phi)
+  // Phi is defined in protein convention Phi(trans)=Pi
+  CosPhi=dr.x*ds.x+dr.y*ds.y+dr.z*ds.z;
+
+  // Ensure CosPhi is between -1 and 1.
+  CosPhi=SIGN(MIN2(fabs(CosPhi),(REAL)1.0),CosPhi);
+  CosPhi2=SQR(CosPhi);
+
+  switch(Framework[CurrentSystem].BendTorsionType[f1][i])
+  {
+    case CVFF_BEND_TORSION_CROSS:
+    case CFF_BEND_TORSION_CROSS:
+      // p_0*(Theta1-p_1)*(Theta2-p_2)*cos(Phi)
+      // =====================================================================================
+      // p_0/k_B [K/rad^3]
+      // p_1     [degrees]
+      // p_2     [degrees]
+      energy=parms[0]*(Theta1-parms[1])*(Theta2-parms[2])*CosPhi;
+      DCos=parms[0]*(Theta1-parms[1])*(Theta2-parms[2]);
+      DTheta1=parms[0]*(Theta2-parms[2])*CosPhi/SinTheta1;
+      DTheta2=parms[0]*(Theta1-parms[1])*CosPhi/SinTheta2;
+      break;
+    case SMOOTHED_DIHEDRAL:
+      // S(Theta1)*[p_0(1+cos(p_1*Phi-p_2)]*S(Theta2)
+      // ======================================================================================
+      // p_0/k_B [K/rad^2]
+      // p_1     [-]
+      // p_2     [degrees]
+      Pb.x=Dab.z*Dbc.y-Dab.y*Dbc.z;
+      Pb.y=Dab.x*Dbc.z-Dab.z*Dbc.x;
+      Pb.z=Dab.y*Dbc.x-Dab.x*Dbc.y;
+      Pc.x=Dbc.y*Dcd.z-Dbc.z*Dcd.y;
+      Pc.y=Dbc.z*Dcd.x-Dbc.x*Dcd.z;
+      Pc.z=Dbc.x*Dcd.y-Dbc.y*Dcd.x;
+      sign=(Dbc.x*(Pc.z*Pb.y-Pc.y*Pb.z)+Dbc.y*(Pb.z*Pc.x-Pb.x*Pc.z)
+            +Dbc.z*(Pc.y*Pb.x-Pc.x*Pb.y));
+      Phi=SIGN(acos(CosPhi),sign);
+      SinPhi=sin(Phi);
+      SinPhi=SIGN(MAX2((REAL)1.0e-8,fabs(SinPhi)),SinPhi);  // remove singularity
+      energy=parms[0]*(1.0+cos(parms[1]*Phi-parms[2]))*Smoothing(Theta1)*Smoothing(Theta2);
+      DCos=(parms[0]*parms[1]*sin(parms[1]*Phi-parms[2]))*Smoothing(Theta1)*Smoothing(Theta2)/SinPhi;
+      DTheta1=parms[0]*(1.0+cos(parms[1]*Phi-parms[2]))*SmoothingDerivative(Theta1)*Smoothing(Theta2)/SinTheta1;
+      DTheta2=parms[0]*(1.0+cos(parms[1]*Phi-parms[2]))*Smoothing(Theta1)*SmoothingDerivative(Theta2)/SinTheta2;
+      break;
+    case SMOOTHED_THREE_COSINE_DIHEDRAL:
+      // S(Theta1)*[(1/2)*(1+cos(Phi))+(1/2)*p_1*(1-cos(2*Phi))+(1/2)*(1+cos(3*Phi))]*S(Theta2)
+      // ======================================================================================
+      // p_0/k_B [K]
+      // p_1/k_B [K]
+      // p_2/k_B [K]
+      energy=(0.5*parms[0]*(1.0+CosPhi)+parms[1]*(1.0-CosPhi2)+0.5*parms[2]*(1.0-3.0*CosPhi+4.0*CosPhi*CosPhi2))*
+             Smoothing(Theta1)*Smoothing(Theta2);
+      DCos=0.5*parms[0]-2.0*parms[1]*CosPhi+1.5*parms[2]*(4.0*CosPhi2-1.0)*Smoothing(Theta1)*Smoothing(Theta2);
+      DTheta1=(0.5*parms[0]*(1.0+CosPhi)+parms[1]*(1.0-CosPhi2)+0.5*parms[2]*(1.0-3.0*CosPhi+4.0*CosPhi*CosPhi2))*
+               SmoothingDerivative(Theta1)*Smoothing(Theta2)/SinTheta1;
+      DTheta2=(0.5*parms[0]*(1.0+CosPhi)+parms[1]*(1.0-CosPhi2)+0.5*parms[2]*(1.0-3.0*CosPhi+4.0*CosPhi*CosPhi2))*
+               SmoothingDerivative(Theta2)*Smoothing(Theta1)/SinTheta2;
+      break;
+    case NICHOLAS_DIHEDRAL:
+      // S(Theta1)*[(1/2)*(1+cos(Phi))+(1/2)*p_1*(1-cos(2*Phi))+(1/2)*(1+cos(3*Phi))]*S(Theta2)
+      // ======================================================================================
+      // p_0/k_B [K]
+      // p_1/k_B [K]
+      // p_2/k_B [K]
+      energy=(0.5*parms[0]*(1.0+CosPhi)+parms[1]*(1.0-CosPhi2)+0.5*parms[2]*(1.0-3.0*CosPhi+4.0*CosPhi*CosPhi2))*
+             Smoothing(Theta1);
+      DCos=0.5*parms[0]-2.0*parms[1]*CosPhi+1.5*parms[2]*(4.0*CosPhi2-1.0)*Smoothing(Theta1);
+      DTheta1=(0.5*parms[0]*(1.0+CosPhi)+parms[1]*(1.0-CosPhi2)+0.5*parms[2]*(1.0-3.0*CosPhi+4.0*CosPhi*CosPhi2))*
+              SmoothingDerivative(Theta1)/SinTheta1;
+      DTheta2=0.0;
+      break;
+    case SMOOTHED_CFF_DIHEDRAL:
+      // S(Theta1)*[(1-cos(Phi))+p_1*(1-cos(2*Phi))+(1-cos(3*Phi))]*S(Theta2)
+      // ======================================================================================
+      // p_0/k_B [K]
+      // p_1/k_B [K]
+      // p_2/k_B [K]
+      energy=(parms[0]*(1.0-CosPhi)+2.0*parms[1]*(1.0-CosPhi2)+parms[2]*(1.0+3.0*CosPhi-4.0*CosPhi*CosPhi2))*Smoothing(Theta1)*Smoothing(Theta2);
+      DCos=(-parms[0]-4.0*parms[1]*CosPhi+3.0*parms[2]*(1.0-4.0*CosPhi2))*Smoothing(Theta1)*Smoothing(Theta2);
+      DTheta1=(parms[0]*(1.0-CosPhi)+2.0*parms[1]*(1.0-CosPhi2)+parms[2]*(1.0+3.0*CosPhi-4.0*CosPhi*CosPhi2))*
+              SmoothingDerivative(Theta1)*Smoothing(Theta2)/SinTheta1;
+      DTheta2=(parms[0]*(1.0-CosPhi)+2.0*parms[1]*(1.0-CosPhi2)+parms[2]*(1.0+3.0*CosPhi-4.0*CosPhi*CosPhi2))*
+              Smoothing(Theta1)*SmoothingDerivative(Theta2)/SinTheta2;
+      break;
+    case SMOOTHED_CFF_DIHEDRAL2:
+      // S(Theta1)*[(1+cos(Phi))+p_1*(1+cos(2*Phi))+(1+cos(3*Phi))]*S(Theta2)
+      // ======================================================================================
+      // p_0/k_B [K]
+      // p_1/k_B [K]
+      // p_2/k_B [K]
+      energy=(parms[0]*(1.0+CosPhi)+parms[2]+CosPhi*(-3.0*parms[2]+2.0*CosPhi*(parms[1]+2.0*parms[2]*CosPhi)))*Smoothing(Theta1)*Smoothing(Theta2);
+      DCos=(parms[0]-3.0*parms[2]+4.0*CosPhi*(parms[1]+3.0*parms[2]*CosPhi))*Smoothing(Theta1)*Smoothing(Theta2);
+      DTheta1=(parms[0]*(1.0+CosPhi)+parms[2]+CosPhi*(-3.0*parms[2]+2.0*CosPhi*(parms[1]+2.0*parms[2]*CosPhi)))*
+              SmoothingDerivative(Theta1)*Smoothing(Theta2)/SinTheta1;
+      DTheta2=(parms[0]*(1.0+CosPhi)+parms[2]+CosPhi*(-3.0*parms[2]+2.0*CosPhi*(parms[1]+2.0*parms[2]*CosPhi)))*
+              Smoothing(Theta1)*SmoothingDerivative(Theta2)/SinTheta2;
+      break;
+    case SMOOTHED_CFF_BEND_TORSION_CROSS:
+      // S(Theta1)*[p_0*(Theta1-p_1)*(Theta2-p_2)*cos(Phi)]*S(Theta2)
+      // ======================================================================================
+      // p_0/k_B [K/rad^3]
+      // p_1     [degrees]
+      // p_2     [degrees]
+      energy=parms[0]*(Theta1-parms[1])*(Theta2-parms[2])*CosPhi*Smoothing(Theta1)*Smoothing(Theta2);
+      DCos=parms[0]*(Theta1-parms[1])*(Theta2-parms[2])*Smoothing(Theta1)*Smoothing(Theta2);
+      DTheta1=CosPhi*parms[0]*(Theta2-parms[2])*Smoothing(Theta2)*(Smoothing(Theta1)+(Theta1-parms[1])*SmoothingDerivative(Theta1))/SinTheta1;
+      DTheta2=CosPhi*parms[0]*(Theta1-parms[1])*Smoothing(Theta1)*(Smoothing(Theta2)+(Theta2-parms[2])*SmoothingDerivative(Theta2))/SinTheta2;
+      break;
+    default:
+      printf("Undefined Bend-Torsion potential in routine 'CalculateFrameworkBendTorsionForce' ('framework_force.c')\n");
+      exit(0);
+      break;
+  }
+ 
+  // energy
+  *Energy=energy;
+ 
+  // Calculate the first derivative vectors.
+  d=dot_ab/rbc;
+  e=dot_cd/rbc;
+ 
+  dtA.x=(ds.x-CosPhi*dr.x)/r;
+  dtA.y=(ds.y-CosPhi*dr.y)/r;
+  dtA.z=(ds.z-CosPhi*dr.z)/r;
+ 
+  dtD.x=(dr.x-CosPhi*ds.x)/s;
+  dtD.y=(dr.y-CosPhi*ds.y)/s;
+  dtD.z=(dr.z-CosPhi*ds.z)/s;
+
+  dtB.x=dtA.x*(d-1.0)+e*dtD.x;
+  dtB.y=dtA.y*(d-1.0)+e*dtD.y;
+  dtB.z=dtA.z*(d-1.0)+e*dtD.z;
+
+  dtC.x=-dtD.x*(e+1.0)-d*dtA.x;
+  dtC.y=-dtD.y*(e+1.0)-d*dtA.y;
+  dtC.z=-dtD.z*(e+1.0)-d*dtA.z;
+
+  // forces torsion are oppositely directed to the gradient
+  fa.x=-DCos*dtA.x;
+  fa.y=-DCos*dtA.y;
+  fa.z=-DCos*dtA.z;
+
+  fb.x=-DCos*dtB.x;
+  fb.y=-DCos*dtB.y;
+  fb.z=-DCos*dtB.z;
+ 
+  fc.x=-DCos*dtC.x;
+  fc.y=-DCos*dtC.y;
+  fc.z=-DCos*dtC.z;
+ 
+  fd.x=-DCos*dtD.x;
+  fd.y=-DCos*dtD.y;
+  fd.z=-DCos*dtD.z;
+
+  fan->x+=fa.x; fan->y+=fa.y; fan->z+=fa.z;
+  fbn->x+=fb.x; fbn->y+=fb.y; fbn->z+=fb.z;
+  fcn->x+=fc.x; fcn->y+=fc.y; fcn->z+=fc.z;
+  fdn->x+=fd.x; fdn->y+=fd.y; fdn->z+=fd.z;
+ 
+  // add contribution to the stress tensor
+  // Note: rbc is here because the vector was normalized before
+  strain_derivativen->ax-=Dab.x*fa.x+Dbc.x*rbc*(fc.x+fd.x)+Dcd.x*fd.x;
+  strain_derivativen->bx-=Dab.y*fa.x+Dbc.y*rbc*(fc.x+fd.x)+Dcd.y*fd.x;
+  strain_derivativen->cx-=Dab.z*fa.x+Dbc.z*rbc*(fc.x+fd.x)+Dcd.z*fd.x;
+ 
+  strain_derivativen->ay-=Dab.x*fa.y+Dbc.x*rbc*(fc.y+fd.y)+Dcd.x*fd.y;
+  strain_derivativen->by-=Dab.y*fa.y+Dbc.y*rbc*(fc.y+fd.y)+Dcd.y*fd.y;
+  strain_derivativen->cy-=Dab.z*fa.y+Dbc.z*rbc*(fc.y+fd.y)+Dcd.z*fd.y;
+ 
+  strain_derivativen->az-=Dab.x*fa.z+Dbc.x*rbc*(fc.z+fd.z)+Dcd.x*fd.z;
+  strain_derivativen->bz-=Dab.y*fa.z+Dbc.y*rbc*(fc.z+fd.z)+Dcd.y*fd.z;
+  strain_derivativen->cz-=Dab.z*fa.z+Dbc.z*rbc*(fc.z+fd.z)+Dcd.z*fd.z;
+ 
+  Dab.x/=rab; Dab.y/=rab; Dab.z/=rab;
+  Dcd.x/=rcd; Dcd.y/=rcd; Dcd.z/=rcd;
+ 
+  // forces bends
+  fa.x=DTheta1*(Dbc.x-Dab.x*CosTheta1)/rab;
+  fa.y=DTheta1*(Dbc.y-Dab.y*CosTheta1)/rab;
+  fa.z=DTheta1*(Dbc.z-Dab.z*CosTheta1)/rab;
+ 
+  fb.x=DTheta2*(Dcd.x+Dbc.x*CosTheta2)/rbc;
+  fb.y=DTheta2*(Dcd.y+Dbc.y*CosTheta2)/rbc;
+  fb.z=DTheta2*(Dcd.z+Dbc.z*CosTheta2)/rbc;
+
+  fc.x=DTheta1*(Dab.x-Dbc.x*CosTheta1)/rbc;
+  fc.y=DTheta1*(Dab.y-Dbc.y*CosTheta1)/rbc;
+  fc.z=DTheta1*(Dab.z-Dbc.z*CosTheta1)/rbc;
+
+  fd.x=DTheta2*(-Dbc.x-Dcd.x*CosTheta2)/rcd;
+  fd.y=DTheta2*(-Dbc.y-Dcd.y*CosTheta2)/rcd;
+  fd.z=DTheta2*(-Dbc.z-Dcd.z*CosTheta2)/rcd;
+
+  fan->x+=fa.x;
+  fan->y+=fa.y;
+  fan->z+=fa.z;
+
+  fbn->x+=fb.x-fa.x-fc.x;
+  fbn->y+=fb.y-fa.y-fc.y;
+  fbn->z+=fb.z-fa.z-fc.z;
+
+  fcn->x+=fc.x-fb.x-fd.x;
+  fcn->y+=fc.y-fb.y-fd.y;
+  fcn->z+=fc.z-fb.z-fd.z;
+
+  fdn->x+=fd.x;
+  fdn->y+=fd.y;
+  fdn->z+=fd.z;
+
+  strain_derivativen->ax-=rab*Dab.x*fa.x+rbc*Dbc.x*fc.x+rbc*Dbc.x*fb.x+rcd*Dcd.x*fd.x;
+  strain_derivativen->bx-=rab*Dab.y*fa.x+rbc*Dbc.y*fc.x+rbc*Dbc.y*fb.x+rcd*Dcd.y*fd.x;
+  strain_derivativen->cx-=rab*Dab.z*fa.x+rbc*Dbc.z*fc.x+rbc*Dbc.z*fb.x+rcd*Dcd.z*fd.x;
+ 
+  strain_derivativen->ay-=rab*Dab.x*fa.y+rbc*Dbc.x*fc.y+rbc*Dbc.x*fb.y+rcd*Dcd.x*fd.y;
+  strain_derivativen->by-=rab*Dab.y*fa.y+rbc*Dbc.y*fc.y+rbc*Dbc.y*fb.y+rcd*Dcd.y*fd.y;
+  strain_derivativen->cy-=rab*Dab.z*fa.y+rbc*Dbc.z*fc.y+rbc*Dbc.z*fb.y+rcd*Dcd.z*fd.y;
+ 
+  strain_derivativen->az-=rab*Dab.x*fa.z+rbc*Dbc.x*fc.z+rbc*Dbc.x*fb.z+rcd*Dcd.x*fd.z;
+  strain_derivativen->bz-=rab*Dab.y*fa.z+rbc*Dbc.y*fc.z+rbc*Dbc.y*fb.z+rcd*Dcd.y*fd.z;
+  strain_derivativen->cz-=rab*Dab.z*fa.z+rbc*Dbc.z*fc.z+rbc*Dbc.z*fb.z+rcd*Dcd.z*fd.z;
+
+}
+
+void ComputeFrameworkBendTorsionHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX HessianMatrix,REAL_MATRIX3x3 *StrainDerivativeTensor,int ComputeGradient,int ComputeHessian)
+{
+  int i,f1;
+  int A,B,C,D;
+  const REAL Delta=1e-7;
+  VECTOR posA0,posB0,posC0,posD0;
+  VECTOR posA,posB,posC,posD;
+  VECTOR fa0,fb0,fc0,fd0,fa[4],fb[4],fc[4],fd[4];
+  INT_VECTOR3 index_i,index_j,index_k,index_l;
+  REAL U;
+  REAL_MATRIX3x3 strain_derivative;
+
+  for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
+  {
+    for(i=0;i<Framework[CurrentSystem].NumberOfBendTorsions[f1];i++)
+    {
+      A=Framework[CurrentSystem].BendTorsions[f1][i].A;
+      B=Framework[CurrentSystem].BendTorsions[f1][i].B;
+      C=Framework[CurrentSystem].BendTorsions[f1][i].C;
+      D=Framework[CurrentSystem].BendTorsions[f1][i].D;
+
+      index_i=Framework[CurrentSystem].Atoms[f1][A].HessianIndex;
+      index_j=Framework[CurrentSystem].Atoms[f1][B].HessianIndex;
+      index_k=Framework[CurrentSystem].Atoms[f1][C].HessianIndex;
+      index_l=Framework[CurrentSystem].Atoms[f1][D].HessianIndex;
+
+      posA0=Framework[CurrentSystem].Atoms[f1][A].Position;
+      posB0=Framework[CurrentSystem].Atoms[f1][B].Position;
+      posC0=Framework[CurrentSystem].Atoms[f1][C].Position;
+      posD0=Framework[CurrentSystem].Atoms[f1][D].Position;
+
+      CalculateFrameworkBendTorsionForces(f1,i,posA0,posB0,posC0,posD0,&U,&fa0,&fb0,&fc0,&fd0,&strain_derivative);
+
+      *Energy+=U;
+
+      StrainDerivativeTensor->ax+=strain_derivative.ax;
+      StrainDerivativeTensor->ay+=strain_derivative.ay;
+      StrainDerivativeTensor->az+=strain_derivative.az;
+
+      StrainDerivativeTensor->bx+=strain_derivative.bx;
+      StrainDerivativeTensor->by+=strain_derivative.by;
+      StrainDerivativeTensor->bz+=strain_derivative.bz;
+
+      StrainDerivativeTensor->cx+=strain_derivative.cx;
+      StrainDerivativeTensor->cy+=strain_derivative.cy;
+      StrainDerivativeTensor->cz+=strain_derivative.cz;
+      
+      // add contribution to the first derivatives
+      if(ComputeGradient)
+      {
+        if(index_i.x>=0) Gradient[index_i.x]-=fa0.x;
+        if(index_i.y>=0) Gradient[index_i.y]-=fa0.y;
+        if(index_i.z>=0) Gradient[index_i.z]-=fa0.z;
+
+        if(index_j.x>=0) Gradient[index_j.x]-=fb0.x;
+        if(index_j.y>=0) Gradient[index_j.y]-=fb0.y;
+        if(index_j.z>=0) Gradient[index_j.z]-=fb0.z;
+
+        if(index_k.x>=0) Gradient[index_k.x]-=fc0.x;
+        if(index_k.y>=0) Gradient[index_k.y]-=fc0.y;
+        if(index_k.z>=0) Gradient[index_k.z]-=fc0.z;
+
+        if(index_l.x>=0) Gradient[index_l.x]-=fd0.x;
+        if(index_l.y>=0) Gradient[index_l.y]-=fd0.y;
+        if(index_l.z>=0) Gradient[index_l.z]-=fd0.z;
+      }
+
+      if(ComputeHessian)
+      {
+        // Atom A
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posA.x+=Delta;
+        CalculateFrameworkBendTorsionForces(f1,i,posA,posB,posC,posD,&U,&fa[0],&fb[0],&fc[0],&fd[0],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posA.x+=0.5*Delta;
+        CalculateFrameworkBendTorsionForces(f1,i,posA,posB,posC,posD,&U,&fa[1],&fb[1],&fc[1],&fd[1],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posA.x-=0.5*Delta;
+        CalculateFrameworkBendTorsionForces(f1,i,posA,posB,posC,posD,&U,&fa[2],&fb[2],&fc[2],&fd[2],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posA.x-=Delta;
+        CalculateFrameworkBendTorsionForces(f1,i,posA,posB,posC,posD,&U,&fa[3],&fb[3],&fc[3],&fd[3],&strain_derivative);
+
+        if(index_i.x>=0)
+        {
+          if(index_i.x>=0) HessianMatrix.element[index_i.x][index_i.x]-=(-fa[0].x+8.0*fa[1].x-8.0*fa[2].x+fa[3].x)/(6.0*Delta);
+          if(index_i.y>=0) HessianMatrix.element[index_i.x][index_i.y]-=(-fa[0].y+8.0*fa[1].y-8.0*fa[2].y+fa[3].y)/(6.0*Delta);
+          if(index_i.z>=0) HessianMatrix.element[index_i.x][index_i.z]-=(-fa[0].z+8.0*fa[1].z-8.0*fa[2].z+fa[3].z)/(6.0*Delta);
+
+          if(index_j.x>=0) HessianMatrix.element[index_i.x][index_j.x]-=(-fb[0].x+8.0*fb[1].x-8.0*fb[2].x+fb[3].x)/(6.0*Delta);
+          if(index_j.y>=0) HessianMatrix.element[index_i.x][index_j.y]-=(-fb[0].y+8.0*fb[1].y-8.0*fb[2].y+fb[3].y)/(6.0*Delta);
+          if(index_j.z>=0) HessianMatrix.element[index_i.x][index_j.z]-=(-fb[0].z+8.0*fb[1].z-8.0*fb[2].z+fb[3].z)/(6.0*Delta);
+
+          if(index_k.x>=0) HessianMatrix.element[index_i.x][index_k.x]-=(-fc[0].x+8.0*fc[1].x-8.0*fc[2].x+fc[3].x)/(6.0*Delta);
+          if(index_k.y>=0) HessianMatrix.element[index_i.x][index_k.y]-=(-fc[0].y+8.0*fc[1].y-8.0*fc[2].y+fc[3].y)/(6.0*Delta);
+          if(index_k.z>=0) HessianMatrix.element[index_i.x][index_k.z]-=(-fc[0].z+8.0*fc[1].z-8.0*fc[2].z+fc[3].z)/(6.0*Delta);
+
+          if(index_l.x>=0) HessianMatrix.element[index_i.x][index_l.x]-=(-fd[0].x+8.0*fd[1].x-8.0*fd[2].x+fd[3].x)/(6.0*Delta);
+          if(index_l.y>=0) HessianMatrix.element[index_i.x][index_l.y]-=(-fd[0].y+8.0*fd[1].y-8.0*fd[2].y+fd[3].y)/(6.0*Delta);
+          if(index_l.z>=0) HessianMatrix.element[index_i.x][index_l.z]-=(-fd[0].z+8.0*fd[1].z-8.0*fd[2].z+fd[3].z)/(6.0*Delta);
+        }
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posA.y+=Delta;
+        CalculateFrameworkBendTorsionForces(f1,i,posA,posB,posC,posD,&U,&fa[0],&fb[0],&fc[0],&fd[0],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posA.y+=0.5*Delta;
+        CalculateFrameworkBendTorsionForces(f1,i,posA,posB,posC,posD,&U,&fa[1],&fb[1],&fc[1],&fd[1],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posA.y-=0.5*Delta;
+        CalculateFrameworkBendTorsionForces(f1,i,posA,posB,posC,posD,&U,&fa[2],&fb[2],&fc[2],&fd[2],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posA.y-=Delta;
+        CalculateFrameworkBendTorsionForces(f1,i,posA,posB,posC,posD,&U,&fa[3],&fb[3],&fc[3],&fd[3],&strain_derivative);
+
+        if(index_i.y>=0)
+        {
+          if(index_i.x>=0) HessianMatrix.element[index_i.y][index_i.x]-=(-fa[0].x+8.0*fa[1].x-8.0*fa[2].x+fa[3].x)/(6.0*Delta);
+          if(index_i.y>=0) HessianMatrix.element[index_i.y][index_i.y]-=(-fa[0].y+8.0*fa[1].y-8.0*fa[2].y+fa[3].y)/(6.0*Delta);
+          if(index_i.z>=0) HessianMatrix.element[index_i.y][index_i.z]-=(-fa[0].z+8.0*fa[1].z-8.0*fa[2].z+fa[3].z)/(6.0*Delta);
+
+          if(index_j.x>=0) HessianMatrix.element[index_i.y][index_j.x]-=(-fb[0].x+8.0*fb[1].x-8.0*fb[2].x+fb[3].x)/(6.0*Delta);
+          if(index_j.y>=0) HessianMatrix.element[index_i.y][index_j.y]-=(-fb[0].y+8.0*fb[1].y-8.0*fb[2].y+fb[3].y)/(6.0*Delta);
+          if(index_j.z>=0) HessianMatrix.element[index_i.y][index_j.z]-=(-fb[0].z+8.0*fb[1].z-8.0*fb[2].z+fb[3].z)/(6.0*Delta);
+
+          if(index_k.x>=0) HessianMatrix.element[index_i.y][index_k.x]-=(-fc[0].x+8.0*fc[1].x-8.0*fc[2].x+fc[3].x)/(6.0*Delta);
+          if(index_k.y>=0) HessianMatrix.element[index_i.y][index_k.y]-=(-fc[0].y+8.0*fc[1].y-8.0*fc[2].y+fc[3].y)/(6.0*Delta);
+          if(index_k.z>=0) HessianMatrix.element[index_i.y][index_k.z]-=(-fc[0].z+8.0*fc[1].z-8.0*fc[2].z+fc[3].z)/(6.0*Delta);
+
+          if(index_l.x>=0) HessianMatrix.element[index_i.y][index_l.x]-=(-fd[0].x+8.0*fd[1].x-8.0*fd[2].x+fd[3].x)/(6.0*Delta);
+          if(index_l.y>=0) HessianMatrix.element[index_i.y][index_l.y]-=(-fd[0].y+8.0*fd[1].y-8.0*fd[2].y+fd[3].y)/(6.0*Delta);
+          if(index_l.z>=0) HessianMatrix.element[index_i.y][index_l.z]-=(-fd[0].z+8.0*fd[1].z-8.0*fd[2].z+fd[3].z)/(6.0*Delta);
+        }
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posA.z+=Delta;
+        CalculateFrameworkBendTorsionForces(f1,i,posA,posB,posC,posD,&U,&fa[0],&fb[0],&fc[0],&fd[0],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posA.z+=0.5*Delta;
+        CalculateFrameworkBendTorsionForces(f1,i,posA,posB,posC,posD,&U,&fa[1],&fb[1],&fc[1],&fd[1],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posA.z-=0.5*Delta;
+        CalculateFrameworkBendTorsionForces(f1,i,posA,posB,posC,posD,&U,&fa[2],&fb[2],&fc[2],&fd[2],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posA.z-=Delta;
+        CalculateFrameworkBendTorsionForces(f1,i,posA,posB,posC,posD,&U,&fa[3],&fb[3],&fc[3],&fd[3],&strain_derivative);
+
+        if(index_i.z>=0)
+        {
+          if(index_i.x>=0) HessianMatrix.element[index_i.z][index_i.x]-=(-fa[0].x+8.0*fa[1].x-8.0*fa[2].x+fa[3].x)/(6.0*Delta);
+          if(index_i.y>=0) HessianMatrix.element[index_i.z][index_i.y]-=(-fa[0].y+8.0*fa[1].y-8.0*fa[2].y+fa[3].y)/(6.0*Delta);
+          if(index_i.z>=0) HessianMatrix.element[index_i.z][index_i.z]-=(-fa[0].z+8.0*fa[1].z-8.0*fa[2].z+fa[3].z)/(6.0*Delta);
+
+          if(index_j.x>=0) HessianMatrix.element[index_i.z][index_j.x]-=(-fb[0].x+8.0*fb[1].x-8.0*fb[2].x+fb[3].x)/(6.0*Delta);
+          if(index_j.y>=0) HessianMatrix.element[index_i.z][index_j.y]-=(-fb[0].y+8.0*fb[1].y-8.0*fb[2].y+fb[3].y)/(6.0*Delta);
+          if(index_j.z>=0) HessianMatrix.element[index_i.z][index_j.z]-=(-fb[0].z+8.0*fb[1].z-8.0*fb[2].z+fb[3].z)/(6.0*Delta);
+
+          if(index_k.x>=0) HessianMatrix.element[index_i.z][index_k.x]-=(-fc[0].x+8.0*fc[1].x-8.0*fc[2].x+fc[3].x)/(6.0*Delta);
+          if(index_k.y>=0) HessianMatrix.element[index_i.z][index_k.y]-=(-fc[0].y+8.0*fc[1].y-8.0*fc[2].y+fc[3].y)/(6.0*Delta);
+          if(index_k.z>=0) HessianMatrix.element[index_i.z][index_k.z]-=(-fc[0].z+8.0*fc[1].z-8.0*fc[2].z+fc[3].z)/(6.0*Delta);
+
+          if(index_l.x>=0) HessianMatrix.element[index_i.z][index_l.x]-=(-fd[0].x+8.0*fd[1].x-8.0*fd[2].x+fd[3].x)/(6.0*Delta);
+          if(index_l.y>=0) HessianMatrix.element[index_i.z][index_l.y]-=(-fd[0].y+8.0*fd[1].y-8.0*fd[2].y+fd[3].y)/(6.0*Delta);
+          if(index_l.z>=0) HessianMatrix.element[index_i.z][index_l.z]-=(-fd[0].z+8.0*fd[1].z-8.0*fd[2].z+fd[3].z)/(6.0*Delta);
+        }
+
+        // Atom B
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posB.x+=Delta;
+        CalculateFrameworkBendTorsionForces(f1,i,posA,posB,posC,posD,&U,&fa[0],&fb[0],&fc[0],&fd[0],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posB.x+=0.5*Delta;
+        CalculateFrameworkBendTorsionForces(f1,i,posA,posB,posC,posD,&U,&fa[1],&fb[1],&fc[1],&fd[1],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posB.x-=0.5*Delta;
+        CalculateFrameworkBendTorsionForces(f1,i,posA,posB,posC,posD,&U,&fa[2],&fb[2],&fc[2],&fd[2],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posB.x-=Delta;
+        CalculateFrameworkBendTorsionForces(f1,i,posA,posB,posC,posD,&U,&fa[3],&fb[3],&fc[3],&fd[3],&strain_derivative);
+
+        if(index_j.x>=0)
+        {
+          if(index_i.x>=0) HessianMatrix.element[index_j.x][index_i.x]-=(-fa[0].x+8.0*fa[1].x-8.0*fa[2].x+fa[3].x)/(6.0*Delta);
+          if(index_i.y>=0) HessianMatrix.element[index_j.x][index_i.y]-=(-fa[0].y+8.0*fa[1].y-8.0*fa[2].y+fa[3].y)/(6.0*Delta);
+          if(index_i.z>=0) HessianMatrix.element[index_j.x][index_i.z]-=(-fa[0].z+8.0*fa[1].z-8.0*fa[2].z+fa[3].z)/(6.0*Delta);
+
+          if(index_j.x>=0) HessianMatrix.element[index_j.x][index_j.x]-=(-fb[0].x+8.0*fb[1].x-8.0*fb[2].x+fb[3].x)/(6.0*Delta);
+          if(index_j.y>=0) HessianMatrix.element[index_j.x][index_j.y]-=(-fb[0].y+8.0*fb[1].y-8.0*fb[2].y+fb[3].y)/(6.0*Delta);
+          if(index_j.z>=0) HessianMatrix.element[index_j.x][index_j.z]-=(-fb[0].z+8.0*fb[1].z-8.0*fb[2].z+fb[3].z)/(6.0*Delta);
+
+          if(index_k.x>=0) HessianMatrix.element[index_j.x][index_k.x]-=(-fc[0].x+8.0*fc[1].x-8.0*fc[2].x+fc[3].x)/(6.0*Delta);
+          if(index_k.y>=0) HessianMatrix.element[index_j.x][index_k.y]-=(-fc[0].y+8.0*fc[1].y-8.0*fc[2].y+fc[3].y)/(6.0*Delta);
+          if(index_k.z>=0) HessianMatrix.element[index_j.x][index_k.z]-=(-fc[0].z+8.0*fc[1].z-8.0*fc[2].z+fc[3].z)/(6.0*Delta);
+
+          if(index_l.x>=0) HessianMatrix.element[index_j.x][index_l.x]-=(-fd[0].x+8.0*fd[1].x-8.0*fd[2].x+fd[3].x)/(6.0*Delta);
+          if(index_l.y>=0) HessianMatrix.element[index_j.x][index_l.y]-=(-fd[0].y+8.0*fd[1].y-8.0*fd[2].y+fd[3].y)/(6.0*Delta);
+          if(index_l.z>=0) HessianMatrix.element[index_j.x][index_l.z]-=(-fd[0].z+8.0*fd[1].z-8.0*fd[2].z+fd[3].z)/(6.0*Delta);
+        }
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posB.y+=Delta;
+        CalculateFrameworkBendTorsionForces(f1,i,posA,posB,posC,posD,&U,&fa[0],&fb[0],&fc[0],&fd[0],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posB.y+=0.5*Delta;
+        CalculateFrameworkBendTorsionForces(f1,i,posA,posB,posC,posD,&U,&fa[1],&fb[1],&fc[1],&fd[1],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posB.y-=0.5*Delta;
+        CalculateFrameworkBendTorsionForces(f1,i,posA,posB,posC,posD,&U,&fa[2],&fb[2],&fc[2],&fd[2],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posB.y-=Delta;
+        CalculateFrameworkBendTorsionForces(f1,i,posA,posB,posC,posD,&U,&fa[3],&fb[3],&fc[3],&fd[3],&strain_derivative);
+
+        if(index_j.y>=0)
+        {
+          if(index_i.x>=0) HessianMatrix.element[index_j.y][index_i.x]-=(-fa[0].x+8.0*fa[1].x-8.0*fa[2].x+fa[3].x)/(6.0*Delta);
+          if(index_i.y>=0) HessianMatrix.element[index_j.y][index_i.y]-=(-fa[0].y+8.0*fa[1].y-8.0*fa[2].y+fa[3].y)/(6.0*Delta);
+          if(index_i.z>=0) HessianMatrix.element[index_j.y][index_i.z]-=(-fa[0].z+8.0*fa[1].z-8.0*fa[2].z+fa[3].z)/(6.0*Delta);
+
+          if(index_j.x>=0) HessianMatrix.element[index_j.y][index_j.x]-=(-fb[0].x+8.0*fb[1].x-8.0*fb[2].x+fb[3].x)/(6.0*Delta);
+          if(index_j.y>=0) HessianMatrix.element[index_j.y][index_j.y]-=(-fb[0].y+8.0*fb[1].y-8.0*fb[2].y+fb[3].y)/(6.0*Delta);
+          if(index_j.z>=0) HessianMatrix.element[index_j.y][index_j.z]-=(-fb[0].z+8.0*fb[1].z-8.0*fb[2].z+fb[3].z)/(6.0*Delta);
+
+          if(index_k.x>=0) HessianMatrix.element[index_j.y][index_k.x]-=(-fc[0].x+8.0*fc[1].x-8.0*fc[2].x+fc[3].x)/(6.0*Delta);
+          if(index_k.y>=0) HessianMatrix.element[index_j.y][index_k.y]-=(-fc[0].y+8.0*fc[1].y-8.0*fc[2].y+fc[3].y)/(6.0*Delta);
+          if(index_k.z>=0) HessianMatrix.element[index_j.y][index_k.z]-=(-fc[0].z+8.0*fc[1].z-8.0*fc[2].z+fc[3].z)/(6.0*Delta);
+
+          if(index_l.x>=0) HessianMatrix.element[index_j.y][index_l.x]-=(-fd[0].x+8.0*fd[1].x-8.0*fd[2].x+fd[3].x)/(6.0*Delta);
+          if(index_l.y>=0) HessianMatrix.element[index_j.y][index_l.y]-=(-fd[0].y+8.0*fd[1].y-8.0*fd[2].y+fd[3].y)/(6.0*Delta);
+          if(index_l.z>=0) HessianMatrix.element[index_j.y][index_l.z]-=(-fd[0].z+8.0*fd[1].z-8.0*fd[2].z+fd[3].z)/(6.0*Delta);
+        }
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posB.z+=Delta;
+        CalculateFrameworkBendTorsionForces(f1,i,posA,posB,posC,posD,&U,&fa[0],&fb[0],&fc[0],&fd[0],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posB.z+=0.5*Delta;
+        CalculateFrameworkBendTorsionForces(f1,i,posA,posB,posC,posD,&U,&fa[1],&fb[1],&fc[1],&fd[1],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posB.z-=0.5*Delta;
+        CalculateFrameworkBendTorsionForces(f1,i,posA,posB,posC,posD,&U,&fa[2],&fb[2],&fc[2],&fd[2],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posB.z-=Delta;
+        CalculateFrameworkBendTorsionForces(f1,i,posA,posB,posC,posD,&U,&fa[3],&fb[3],&fc[3],&fd[3],&strain_derivative);
+
+        if(index_j.z>=0)
+        {
+          if(index_i.x>=0) HessianMatrix.element[index_j.z][index_i.x]-=(-fa[0].x+8.0*fa[1].x-8.0*fa[2].x+fa[3].x)/(6.0*Delta);
+          if(index_i.y>=0) HessianMatrix.element[index_j.z][index_i.y]-=(-fa[0].y+8.0*fa[1].y-8.0*fa[2].y+fa[3].y)/(6.0*Delta);
+          if(index_i.z>=0) HessianMatrix.element[index_j.z][index_i.z]-=(-fa[0].z+8.0*fa[1].z-8.0*fa[2].z+fa[3].z)/(6.0*Delta);
+
+          if(index_j.x>=0) HessianMatrix.element[index_j.z][index_j.x]-=(-fb[0].x+8.0*fb[1].x-8.0*fb[2].x+fb[3].x)/(6.0*Delta);
+          if(index_j.y>=0) HessianMatrix.element[index_j.z][index_j.y]-=(-fb[0].y+8.0*fb[1].y-8.0*fb[2].y+fb[3].y)/(6.0*Delta);
+          if(index_j.z>=0) HessianMatrix.element[index_j.z][index_j.z]-=(-fb[0].z+8.0*fb[1].z-8.0*fb[2].z+fb[3].z)/(6.0*Delta);
+
+          if(index_k.x>=0) HessianMatrix.element[index_j.z][index_k.x]-=(-fc[0].x+8.0*fc[1].x-8.0*fc[2].x+fc[3].x)/(6.0*Delta);
+          if(index_k.y>=0) HessianMatrix.element[index_j.z][index_k.y]-=(-fc[0].y+8.0*fc[1].y-8.0*fc[2].y+fc[3].y)/(6.0*Delta);
+          if(index_k.z>=0) HessianMatrix.element[index_j.z][index_k.z]-=(-fc[0].z+8.0*fc[1].z-8.0*fc[2].z+fc[3].z)/(6.0*Delta);
+
+          if(index_l.x>=0) HessianMatrix.element[index_j.z][index_l.x]-=(-fd[0].x+8.0*fd[1].x-8.0*fd[2].x+fd[3].x)/(6.0*Delta);
+          if(index_l.y>=0) HessianMatrix.element[index_j.z][index_l.y]-=(-fd[0].y+8.0*fd[1].y-8.0*fd[2].y+fd[3].y)/(6.0*Delta);
+          if(index_l.z>=0) HessianMatrix.element[index_j.z][index_l.z]-=(-fd[0].z+8.0*fd[1].z-8.0*fd[2].z+fd[3].z)/(6.0*Delta);
+        }
+
+        // Atom C
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posC.x+=Delta;
+        CalculateFrameworkBendTorsionForces(f1,i,posA,posB,posC,posD,&U,&fa[0],&fb[0],&fc[0],&fd[0],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posC.x+=0.5*Delta;
+        CalculateFrameworkBendTorsionForces(f1,i,posA,posB,posC,posD,&U,&fa[1],&fb[1],&fc[1],&fd[1],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posC.x-=0.5*Delta;
+        CalculateFrameworkBendTorsionForces(f1,i,posA,posB,posC,posD,&U,&fa[2],&fb[2],&fc[2],&fd[2],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posC.x-=Delta;
+        CalculateFrameworkBendTorsionForces(f1,i,posA,posB,posC,posD,&U,&fa[3],&fb[3],&fc[3],&fd[3],&strain_derivative);
+
+        if(index_k.x>=0)
+        {
+          if(index_i.x>=0) HessianMatrix.element[index_k.x][index_i.x]-=(-fa[0].x+8.0*fa[1].x-8.0*fa[2].x+fa[3].x)/(6.0*Delta);
+          if(index_i.y>=0) HessianMatrix.element[index_k.x][index_i.y]-=(-fa[0].y+8.0*fa[1].y-8.0*fa[2].y+fa[3].y)/(6.0*Delta);
+          if(index_i.z>=0) HessianMatrix.element[index_k.x][index_i.z]-=(-fa[0].z+8.0*fa[1].z-8.0*fa[2].z+fa[3].z)/(6.0*Delta);
+
+          if(index_j.x>=0) HessianMatrix.element[index_k.x][index_j.x]-=(-fb[0].x+8.0*fb[1].x-8.0*fb[2].x+fb[3].x)/(6.0*Delta);
+          if(index_j.y>=0) HessianMatrix.element[index_k.x][index_j.y]-=(-fb[0].y+8.0*fb[1].y-8.0*fb[2].y+fb[3].y)/(6.0*Delta);
+          if(index_j.z>=0) HessianMatrix.element[index_k.x][index_j.z]-=(-fb[0].z+8.0*fb[1].z-8.0*fb[2].z+fb[3].z)/(6.0*Delta);
+
+          if(index_k.x>=0) HessianMatrix.element[index_k.x][index_k.x]-=(-fc[0].x+8.0*fc[1].x-8.0*fc[2].x+fc[3].x)/(6.0*Delta);
+          if(index_k.y>=0) HessianMatrix.element[index_k.x][index_k.y]-=(-fc[0].y+8.0*fc[1].y-8.0*fc[2].y+fc[3].y)/(6.0*Delta);
+          if(index_k.z>=0) HessianMatrix.element[index_k.x][index_k.z]-=(-fc[0].z+8.0*fc[1].z-8.0*fc[2].z+fc[3].z)/(6.0*Delta);
+
+          if(index_l.x>=0) HessianMatrix.element[index_k.x][index_l.x]-=(-fd[0].x+8.0*fd[1].x-8.0*fd[2].x+fd[3].x)/(6.0*Delta);
+          if(index_l.y>=0) HessianMatrix.element[index_k.x][index_l.y]-=(-fd[0].y+8.0*fd[1].y-8.0*fd[2].y+fd[3].y)/(6.0*Delta);
+          if(index_l.z>=0) HessianMatrix.element[index_k.x][index_l.z]-=(-fd[0].z+8.0*fd[1].z-8.0*fd[2].z+fd[3].z)/(6.0*Delta);
+        }
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posC.y+=Delta;
+        CalculateFrameworkBendTorsionForces(f1,i,posA,posB,posC,posD,&U,&fa[0],&fb[0],&fc[0],&fd[0],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posC.y+=0.5*Delta;
+        CalculateFrameworkBendTorsionForces(f1,i,posA,posB,posC,posD,&U,&fa[1],&fb[1],&fc[1],&fd[1],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posC.y-=0.5*Delta;
+        CalculateFrameworkBendTorsionForces(f1,i,posA,posB,posC,posD,&U,&fa[2],&fb[2],&fc[2],&fd[2],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posC.y-=Delta;
+        CalculateFrameworkBendTorsionForces(f1,i,posA,posB,posC,posD,&U,&fa[3],&fb[3],&fc[3],&fd[3],&strain_derivative);
+
+        if(index_k.y>=0)
+        {
+          if(index_i.x>=0) HessianMatrix.element[index_k.y][index_i.x]-=(-fa[0].x+8.0*fa[1].x-8.0*fa[2].x+fa[3].x)/(6.0*Delta);
+          if(index_i.y>=0) HessianMatrix.element[index_k.y][index_i.y]-=(-fa[0].y+8.0*fa[1].y-8.0*fa[2].y+fa[3].y)/(6.0*Delta);
+          if(index_i.z>=0) HessianMatrix.element[index_k.y][index_i.z]-=(-fa[0].z+8.0*fa[1].z-8.0*fa[2].z+fa[3].z)/(6.0*Delta);
+
+          if(index_j.x>=0) HessianMatrix.element[index_k.y][index_j.x]-=(-fb[0].x+8.0*fb[1].x-8.0*fb[2].x+fb[3].x)/(6.0*Delta);
+          if(index_j.y>=0) HessianMatrix.element[index_k.y][index_j.y]-=(-fb[0].y+8.0*fb[1].y-8.0*fb[2].y+fb[3].y)/(6.0*Delta);
+          if(index_j.z>=0) HessianMatrix.element[index_k.y][index_j.z]-=(-fb[0].z+8.0*fb[1].z-8.0*fb[2].z+fb[3].z)/(6.0*Delta);
+
+          if(index_k.x>=0) HessianMatrix.element[index_k.y][index_k.x]-=(-fc[0].x+8.0*fc[1].x-8.0*fc[2].x+fc[3].x)/(6.0*Delta);
+          if(index_k.y>=0) HessianMatrix.element[index_k.y][index_k.y]-=(-fc[0].y+8.0*fc[1].y-8.0*fc[2].y+fc[3].y)/(6.0*Delta);
+          if(index_k.z>=0) HessianMatrix.element[index_k.y][index_k.z]-=(-fc[0].z+8.0*fc[1].z-8.0*fc[2].z+fc[3].z)/(6.0*Delta);
+
+          if(index_l.x>=0) HessianMatrix.element[index_k.y][index_l.x]-=(-fd[0].x+8.0*fd[1].x-8.0*fd[2].x+fd[3].x)/(6.0*Delta);
+          if(index_l.y>=0) HessianMatrix.element[index_k.y][index_l.y]-=(-fd[0].y+8.0*fd[1].y-8.0*fd[2].y+fd[3].y)/(6.0*Delta);
+          if(index_l.z>=0) HessianMatrix.element[index_k.y][index_l.z]-=(-fd[0].z+8.0*fd[1].z-8.0*fd[2].z+fd[3].z)/(6.0*Delta);
+        }
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posC.z+=Delta;
+        CalculateFrameworkBendTorsionForces(f1,i,posA,posB,posC,posD,&U,&fa[0],&fb[0],&fc[0],&fd[0],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posC.z+=0.5*Delta;
+        CalculateFrameworkBendTorsionForces(f1,i,posA,posB,posC,posD,&U,&fa[1],&fb[1],&fc[1],&fd[1],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posC.z-=0.5*Delta;
+        CalculateFrameworkBendTorsionForces(f1,i,posA,posB,posC,posD,&U,&fa[2],&fb[2],&fc[2],&fd[2],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posC.z-=Delta;
+        CalculateFrameworkBendTorsionForces(f1,i,posA,posB,posC,posD,&U,&fa[3],&fb[3],&fc[3],&fd[3],&strain_derivative);
+
+        if(index_k.z>=0)
+        {
+          if(index_i.x>=0) HessianMatrix.element[index_k.z][index_i.x]-=(-fa[0].x+8.0*fa[1].x-8.0*fa[2].x+fa[3].x)/(6.0*Delta);
+          if(index_i.y>=0) HessianMatrix.element[index_k.z][index_i.y]-=(-fa[0].y+8.0*fa[1].y-8.0*fa[2].y+fa[3].y)/(6.0*Delta);
+          if(index_i.z>=0) HessianMatrix.element[index_k.z][index_i.z]-=(-fa[0].z+8.0*fa[1].z-8.0*fa[2].z+fa[3].z)/(6.0*Delta);
+
+          if(index_j.x>=0) HessianMatrix.element[index_k.z][index_j.x]-=(-fb[0].x+8.0*fb[1].x-8.0*fb[2].x+fb[3].x)/(6.0*Delta);
+          if(index_j.y>=0) HessianMatrix.element[index_k.z][index_j.y]-=(-fb[0].y+8.0*fb[1].y-8.0*fb[2].y+fb[3].y)/(6.0*Delta);
+          if(index_j.z>=0) HessianMatrix.element[index_k.z][index_j.z]-=(-fb[0].z+8.0*fb[1].z-8.0*fb[2].z+fb[3].z)/(6.0*Delta);
+
+          if(index_k.x>=0) HessianMatrix.element[index_k.z][index_k.x]-=(-fc[0].x+8.0*fc[1].x-8.0*fc[2].x+fc[3].x)/(6.0*Delta);
+          if(index_k.y>=0) HessianMatrix.element[index_k.z][index_k.y]-=(-fc[0].y+8.0*fc[1].y-8.0*fc[2].y+fc[3].y)/(6.0*Delta);
+          if(index_k.z>=0) HessianMatrix.element[index_k.z][index_k.z]-=(-fc[0].z+8.0*fc[1].z-8.0*fc[2].z+fc[3].z)/(6.0*Delta);
+
+          if(index_l.x>=0) HessianMatrix.element[index_k.z][index_l.x]-=(-fd[0].x+8.0*fd[1].x-8.0*fd[2].x+fd[3].x)/(6.0*Delta);
+          if(index_l.y>=0) HessianMatrix.element[index_k.z][index_l.y]-=(-fd[0].y+8.0*fd[1].y-8.0*fd[2].y+fd[3].y)/(6.0*Delta);
+          if(index_l.z>=0) HessianMatrix.element[index_k.z][index_l.z]-=(-fd[0].z+8.0*fd[1].z-8.0*fd[2].z+fd[3].z)/(6.0*Delta);
+        }
+
+        // Atom D
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posD.x+=Delta;
+        CalculateFrameworkBendTorsionForces(f1,i,posA,posB,posC,posD,&U,&fa[0],&fb[0],&fc[0],&fd[0],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posD.x+=0.5*Delta;
+        CalculateFrameworkBendTorsionForces(f1,i,posA,posB,posC,posD,&U,&fa[1],&fb[1],&fc[1],&fd[1],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posD.x-=0.5*Delta;
+        CalculateFrameworkBendTorsionForces(f1,i,posA,posB,posC,posD,&U,&fa[2],&fb[2],&fc[2],&fd[2],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posD.x-=Delta;
+        CalculateFrameworkBendTorsionForces(f1,i,posA,posB,posC,posD,&U,&fa[3],&fb[3],&fc[3],&fd[3],&strain_derivative);
+
+        if(index_l.x>=0)
+        {
+          if(index_i.x>=0) HessianMatrix.element[index_l.x][index_i.x]-=(-fa[0].x+8.0*fa[1].x-8.0*fa[2].x+fa[3].x)/(6.0*Delta);
+          if(index_i.y>=0) HessianMatrix.element[index_l.x][index_i.y]-=(-fa[0].y+8.0*fa[1].y-8.0*fa[2].y+fa[3].y)/(6.0*Delta);
+          if(index_i.z>=0) HessianMatrix.element[index_l.x][index_i.z]-=(-fa[0].z+8.0*fa[1].z-8.0*fa[2].z+fa[3].z)/(6.0*Delta);
+
+          if(index_j.x>=0) HessianMatrix.element[index_l.x][index_j.x]-=(-fb[0].x+8.0*fb[1].x-8.0*fb[2].x+fb[3].x)/(6.0*Delta);
+          if(index_j.y>=0) HessianMatrix.element[index_l.x][index_j.y]-=(-fb[0].y+8.0*fb[1].y-8.0*fb[2].y+fb[3].y)/(6.0*Delta);
+          if(index_j.z>=0) HessianMatrix.element[index_l.x][index_j.z]-=(-fb[0].z+8.0*fb[1].z-8.0*fb[2].z+fb[3].z)/(6.0*Delta);
+
+          if(index_k.x>=0) HessianMatrix.element[index_l.x][index_k.x]-=(-fc[0].x+8.0*fc[1].x-8.0*fc[2].x+fc[3].x)/(6.0*Delta);
+          if(index_k.y>=0) HessianMatrix.element[index_l.x][index_k.y]-=(-fc[0].y+8.0*fc[1].y-8.0*fc[2].y+fc[3].y)/(6.0*Delta);
+          if(index_k.z>=0) HessianMatrix.element[index_l.x][index_k.z]-=(-fc[0].z+8.0*fc[1].z-8.0*fc[2].z+fc[3].z)/(6.0*Delta);
+
+          if(index_l.x>=0) HessianMatrix.element[index_l.x][index_l.x]-=(-fd[0].x+8.0*fd[1].x-8.0*fd[2].x+fd[3].x)/(6.0*Delta);
+          if(index_l.y>=0) HessianMatrix.element[index_l.x][index_l.y]-=(-fd[0].y+8.0*fd[1].y-8.0*fd[2].y+fd[3].y)/(6.0*Delta);
+          if(index_l.z>=0) HessianMatrix.element[index_l.x][index_l.z]-=(-fd[0].z+8.0*fd[1].z-8.0*fd[2].z+fd[3].z)/(6.0*Delta);
+        }
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posD.y+=Delta;
+        CalculateFrameworkBendTorsionForces(f1,i,posA,posB,posC,posD,&U,&fa[0],&fb[0],&fc[0],&fd[0],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posD.y+=0.5*Delta;
+        CalculateFrameworkBendTorsionForces(f1,i,posA,posB,posC,posD,&U,&fa[1],&fb[1],&fc[1],&fd[1],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posD.y-=0.5*Delta;
+        CalculateFrameworkBendTorsionForces(f1,i,posA,posB,posC,posD,&U,&fa[2],&fb[2],&fc[2],&fd[2],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posD.y-=Delta;
+        CalculateFrameworkBendTorsionForces(f1,i,posA,posB,posC,posD,&U,&fa[3],&fb[3],&fc[3],&fd[3],&strain_derivative);
+
+        if(index_l.y>=0)
+        {
+          if(index_i.x>=0) HessianMatrix.element[index_l.y][index_i.x]-=(-fa[0].x+8.0*fa[1].x-8.0*fa[2].x+fa[3].x)/(6.0*Delta);
+          if(index_i.y>=0) HessianMatrix.element[index_l.y][index_i.y]-=(-fa[0].y+8.0*fa[1].y-8.0*fa[2].y+fa[3].y)/(6.0*Delta);
+          if(index_i.z>=0) HessianMatrix.element[index_l.y][index_i.z]-=(-fa[0].z+8.0*fa[1].z-8.0*fa[2].z+fa[3].z)/(6.0*Delta);
+
+          if(index_j.x>=0) HessianMatrix.element[index_l.y][index_j.x]-=(-fb[0].x+8.0*fb[1].x-8.0*fb[2].x+fb[3].x)/(6.0*Delta);
+          if(index_j.y>=0) HessianMatrix.element[index_l.y][index_j.y]-=(-fb[0].y+8.0*fb[1].y-8.0*fb[2].y+fb[3].y)/(6.0*Delta);
+          if(index_j.z>=0) HessianMatrix.element[index_l.y][index_j.z]-=(-fb[0].z+8.0*fb[1].z-8.0*fb[2].z+fb[3].z)/(6.0*Delta);
+
+          if(index_k.x>=0) HessianMatrix.element[index_l.y][index_k.x]-=(-fc[0].x+8.0*fc[1].x-8.0*fc[2].x+fc[3].x)/(6.0*Delta);
+          if(index_k.y>=0) HessianMatrix.element[index_l.y][index_k.y]-=(-fc[0].y+8.0*fc[1].y-8.0*fc[2].y+fc[3].y)/(6.0*Delta);
+          if(index_k.z>=0) HessianMatrix.element[index_l.y][index_k.z]-=(-fc[0].z+8.0*fc[1].z-8.0*fc[2].z+fc[3].z)/(6.0*Delta);
+
+          if(index_l.x>=0) HessianMatrix.element[index_l.y][index_l.x]-=(-fd[0].x+8.0*fd[1].x-8.0*fd[2].x+fd[3].x)/(6.0*Delta);
+          if(index_l.y>=0) HessianMatrix.element[index_l.y][index_l.y]-=(-fd[0].y+8.0*fd[1].y-8.0*fd[2].y+fd[3].y)/(6.0*Delta);
+          if(index_l.z>=0) HessianMatrix.element[index_l.y][index_l.z]-=(-fd[0].z+8.0*fd[1].z-8.0*fd[2].z+fd[3].z)/(6.0*Delta);
+        }
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posD.z+=Delta;
+        CalculateFrameworkBendTorsionForces(f1,i,posA,posB,posC,posD,&U,&fa[0],&fb[0],&fc[0],&fd[0],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posD.z+=0.5*Delta;
+        CalculateFrameworkBendTorsionForces(f1,i,posA,posB,posC,posD,&U,&fa[1],&fb[1],&fc[1],&fd[1],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posD.z-=0.5*Delta;
+        CalculateFrameworkBendTorsionForces(f1,i,posA,posB,posC,posD,&U,&fa[2],&fb[2],&fc[2],&fd[2],&strain_derivative);
+
+        posA=posA0; posB=posB0; posC=posC0; posD=posD0;
+        posD.z-=Delta;
+        CalculateFrameworkBendTorsionForces(f1,i,posA,posB,posC,posD,&U,&fa[3],&fb[3],&fc[3],&fd[3],&strain_derivative);
 
         if(index_l.z>=0)
         {

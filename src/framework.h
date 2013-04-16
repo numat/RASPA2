@@ -411,10 +411,6 @@ typedef struct FrameworkComponent
   int *MaxNumberOfExcludedIntraChargeCharge;
   PAIR **ExcludedIntraChargeCharge;
 
-  int *NumberOfExcludedIntra14ScalingChargeCharge;
-  int *MaxNumberOfExcludedIntra14ScalingChargeCharge;
-  PAIR **ExcludedIntra14ScalingChargeCharge;
-
   int *NumberOfExcludedIntraChargeBondDipole;
   int *MaxNumberOfExcludedIntraChargeBondDipole;
   PAIR **ExcludedIntraChargeBondDipole;

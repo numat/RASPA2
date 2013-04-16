@@ -10922,6 +10922,8 @@ int GibbsVolumeMove(void)
     for(i=0;i<NumberOfCationMolecules[CurrentSystem];i++)
       UpdateGroupCenterOfMassCation(i);
 
+    EwaldEnergyIon();
+
     CurrentSystem=B;
 /*
     if(MIN3(BoxProperties[CurrentSystem].cx,BoxProperties[CurrentSystem].cy,
@@ -10944,6 +10946,8 @@ int GibbsVolumeMove(void)
 
     for(i=0;i<NumberOfCationMolecules[CurrentSystem];i++)
       UpdateGroupCenterOfMassCation(i);
+
+    EwaldEnergyIon();
   }
   else
   {
@@ -12148,7 +12152,8 @@ void PrintGibbsIdentityChangeStatistics(FILE *FilePtr)
 
 void HybridNVEMove(void)
 {
-  int i;
+  int i,f1,m;
+  int Type;
   REAL Drift;
   REAL ReferenceEnergy;
 
@@ -12328,9 +12333,28 @@ void HybridNVEMove(void)
 
 
   // store the positions of the framework
-  SaveFrameworkPositionsToReferenceValues();
-  SaveAdsorbateAtomPositionsToReferenceValues();
-  SaveCationAtomPositionsToReferenceValues();
+  for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
+    for(i=0;i<Framework[CurrentSystem].NumberOfAtoms[f1];i++)
+      Framework[CurrentSystem].Atoms[f1][i].ReferencePosition=Framework[CurrentSystem].Atoms[f1][i].Position;
+
+  for(m=0;m<NumberOfAdsorbateMolecules[CurrentSystem];m++)
+  {
+    Type=Adsorbates[CurrentSystem][m].Type;
+    for(i=0;i<Components[Type].NumberOfGroups;i++)
+      Adsorbates[CurrentSystem][m].Groups[i].CenterOfMassReferencePosition=Adsorbates[CurrentSystem][m].Groups[i].CenterOfMassPosition;
+    for(i=0;i<Adsorbates[CurrentSystem][m].NumberOfAtoms;i++)
+      Adsorbates[CurrentSystem][m].Atoms[i].ReferencePosition=Adsorbates[CurrentSystem][m].Atoms[i].Position;
+  }   
+
+  for(m=0;m<NumberOfCationMolecules[CurrentSystem];m++)
+  {
+    Type=Cations[CurrentSystem][m].Type;
+    for(i=0;i<Components[Type].NumberOfGroups;i++)
+      Cations[CurrentSystem][m].Groups[i].CenterOfMassReferencePosition=Cations[CurrentSystem][m].Groups[i].CenterOfMassPosition;
+    for(i=0;i<Cations[CurrentSystem][m].NumberOfAtoms;i++)
+      Cations[CurrentSystem][m].Atoms[i].ReferencePosition=Cations[CurrentSystem][m].Atoms[i].Position;
+  }   
+  
 
   // store the structure-factors for the Ewald-summations
   if((ChargeMethod==EWALD)&&(!OmitEwaldFourier))
@@ -12582,14 +12606,31 @@ void HybridNVEMove(void)
     UTailCorrection[CurrentSystem]=StoredUTailCorrection;
 
     // restore all the positions to the Old state
-    PlaceFrameworkInBoxFromReferenceValues();
-    PlaceAdsorbateAtomsInBoxFromReferenceValues();
-    PlaceCationAtomsInBoxFromReferenceValues();
+    for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
+      for(i=0;i<Framework[CurrentSystem].NumberOfAtoms[f1];i++)
+        Framework[CurrentSystem].Atoms[f1][i].Position=Framework[CurrentSystem].Atoms[f1][i].ReferencePosition;
+
+    for(m=0;m<NumberOfAdsorbateMolecules[CurrentSystem];m++)
+    {
+      Type=Adsorbates[CurrentSystem][m].Type;
+      for(i=0;i<Components[Type].NumberOfGroups;i++)
+        Adsorbates[CurrentSystem][m].Groups[i].CenterOfMassPosition=Adsorbates[CurrentSystem][m].Groups[i].CenterOfMassReferencePosition;
+      for(i=0;i<Adsorbates[CurrentSystem][m].NumberOfAtoms;i++)
+        Adsorbates[CurrentSystem][m].Atoms[i].Position=Adsorbates[CurrentSystem][m].Atoms[i].ReferencePosition;
+    }
+
+    for(m=0;m<NumberOfCationMolecules[CurrentSystem];m++)
+    {
+      Type=Cations[CurrentSystem][m].Type;
+      for(i=0;i<Components[Type].NumberOfGroups;i++)
+        Cations[CurrentSystem][m].Groups[i].CenterOfMassPosition=Cations[CurrentSystem][m].Groups[i].CenterOfMassReferencePosition;
+      for(i=0;i<Cations[CurrentSystem][m].NumberOfAtoms;i++)
+        Cations[CurrentSystem][m].Atoms[i].Position=Cations[CurrentSystem][m].Atoms[i].ReferencePosition;
+    }
 
     if((ChargeMethod==EWALD)&&(!OmitEwaldFourier))
       RetrieveStoredEwaldStructureFactors(0,CurrentSystem);
 
-    //ADDED
     CalculateAnisotropicSites();
   }
 }
@@ -15693,6 +15734,8 @@ int CFGibbsParticleTransferAdsorbateMove(void)
     A=1;
     B=0;
   }
+    A=0;
+    B=1;
 
   // get the fractional molecules for box A and B (for the current component)
   FractionalMoleculeA=Components[CurrentComponent].FractionalMolecule[A];

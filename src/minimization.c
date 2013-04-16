@@ -722,11 +722,11 @@ void SetWeights(int np,REAL *Weights,REAL *Charges)
           switch(Dimension)
           {
             case 3:
-              Weights[index.z]=1.0/sqrt(Mass);
+              if(index.z>=0) Weights[index.z]=1.0/sqrt(Mass);
             case 2:
-              Weights[index.y]=1.0/sqrt(Mass);
+              if(index.y>=0) Weights[index.y]=1.0/sqrt(Mass);
             case 1:
-              Weights[index.x]=1.0/sqrt(Mass);
+              if(index.x>=0) Weights[index.x]=1.0/sqrt(Mass);
               break;
           }
         }
@@ -745,33 +745,28 @@ void SetWeights(int np,REAL *Weights,REAL *Charges)
         index2=Adsorbates[CurrentSystem][m].Groups[l].HessianIndexOrientation;
 
         Mass=Components[MolType].Groups[l].Mass;
-        //if(index>=0)
+        switch(Dimension)
         {
-          switch(Dimension)
-          {
-            case 3:
-              Weights[index.z]=1.0/sqrt(Mass);
-            case 2:
-              Weights[index.y]=1.0/sqrt(Mass);
-            case 1:
-              Weights[index.x]=1.0/sqrt(Mass);
-              break;
-          }
+          case 3:
+            if(index.z>=0) Weights[index.z]=1.0/sqrt(Mass);
+          case 2:
+            if(index.y>=0) Weights[index.y]=1.0/sqrt(Mass);
+          case 1:
+            if(index.x>=0) Weights[index.x]=1.0/sqrt(Mass);
+            break;
         }
 
-        //if(index2>=0)
+        switch(Dimension)
         {
-          switch(Dimension)
-          {
-            case 3:
-              Weights[index2.z]=1.0/sqrt(Mass);
-            case 2:
-              Weights[index2.y]=1.0/sqrt(Mass);
-            case 1:
-              Weights[index2.x]=1.0/sqrt(Mass);
-              break;
-          }
+          case 3:
+            if(index2.z>=0) Weights[index2.z]=1.0/sqrt(Mass);
+          case 2:
+            if(index2.y>=0) Weights[index2.y]=1.0/sqrt(Mass);
+          case 1:
+            if(index2.x>=0) Weights[index2.x]=1.0/sqrt(Mass);
+            break;
         }
+        
       }
       else // flexible unit
       {
@@ -783,18 +778,15 @@ void SetWeights(int np,REAL *Weights,REAL *Charges)
           Mass=PseudoAtoms[AtomType].Mass;
           if(PseudoAtoms[AtomType].CoreShell==CORE)
           {
-            //if(index>=0)
+            switch(Dimension)
             {
-              switch(Dimension)
-              {
-                case 3:
-                  Weights[index.z]=1.0/sqrt(Mass);
-                case 2:
-                  Weights[index.y]=1.0/sqrt(Mass);
-                case 1:
-                  Weights[index.x]=1.0/sqrt(Mass);
-                  break;
-              }
+              case 3:
+                if(index.z>=0) Weights[index.z]=1.0/sqrt(Mass);
+              case 2:
+                if(index.y>=0) Weights[index.y]=1.0/sqrt(Mass);
+              case 1:
+                if(index.x>=0) Weights[index.x]=1.0/sqrt(Mass);
+                break;
             }
           }
         }
@@ -813,33 +805,29 @@ void SetWeights(int np,REAL *Weights,REAL *Charges)
         index2=Cations[CurrentSystem][m].Groups[l].HessianIndexOrientation;
 
         Mass=Components[MolType].Groups[l].Mass;
-        //if(index>=0)
+        switch(Dimension)
         {
-          switch(Dimension)
-          {
-            case 3:
-              Weights[index.z]=1.0/sqrt(Mass);
-            case 2:
-              Weights[index.y]=1.0/sqrt(Mass);
-            case 1:
-              Weights[index.x]=1.0/sqrt(Mass);
-              break;
-          }
+          case 3:
+            if(index.z>=0) Weights[index.z]=1.0/sqrt(Mass);
+          case 2:
+            if(index.y>=0) Weights[index.y]=1.0/sqrt(Mass);
+          case 1:
+            if(index.x>=0) Weights[index.x]=1.0/sqrt(Mass);
+            break;
         }
+        
 
-        //if(index2>=0)
+        switch(Dimension)
         {
-          switch(Dimension)
-          {
-            case 3:
-              Weights[index2.z]=1.0/sqrt(Mass);
-            case 2:
-              Weights[index2.y]=1.0/sqrt(Mass);
-            case 1:
-              Weights[index2.x]=1.0/sqrt(Mass);
-              break;
-          }
+          case 3:
+            if(index2.z>=0) Weights[index2.z]=1.0/sqrt(Mass);
+          case 2:
+            if(index2.y>=0) Weights[index2.y]=1.0/sqrt(Mass);
+          case 1:
+            if(index2.x>=0) Weights[index2.x]=1.0/sqrt(Mass);
+            break;
         }
+        
       }
       else // flexible unit
       {
@@ -851,18 +839,15 @@ void SetWeights(int np,REAL *Weights,REAL *Charges)
           Mass=PseudoAtoms[AtomType].Mass;
           if(PseudoAtoms[AtomType].CoreShell==CORE)
           {
-            //if(index>=0)
+            switch(Dimension)
             {
-              switch(Dimension)
-              {
-                case 3:
-                  Weights[index.z]=1.0/sqrt(Mass);
-                case 2:
-                  Weights[index.y]=1.0/sqrt(Mass);
-                case 1:
-                  Weights[index.x]=1.0/sqrt(Mass);
-                  break;
-              }
+              case 3:
+                if(index.z>=0) Weights[index.z]=1.0/sqrt(Mass);
+              case 2:
+                if(index.y>=0) Weights[index.y]=1.0/sqrt(Mass);
+              case 1:
+                if(index.x>=0) Weights[index.x]=1.0/sqrt(Mass);
+                break;
             }
           }
         }
@@ -1411,7 +1396,6 @@ int OrderNumberOfMinimiationVariables(void)
 
   // put the shells last
   // ===================
-/*
   if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
   {
     for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
@@ -1421,25 +1405,30 @@ int OrderNumberOfMinimiationVariables(void)
         AtomType=Framework[CurrentSystem].Atoms[f1][i].Type;
         if(PseudoAtoms[AtomType].CoreShell==SHELL)
         {
-          if(Framework[CurrentSystem].Atoms[f1][i].Fixed)
-            Framework[CurrentSystem].Atoms[f1][i].HessianIndex=-1;
-          else
+          switch(Dimension)
           {
-            Framework[CurrentSystem].Atoms[f1][i].HessianIndex=index;
-            index+=Dimension;
-            NumberOfMinimizationVariables+=Dimension;
-            NumberOfPositionalMinimizationVariables+=Dimension;
-            NumberOfCoordinatesMinimizationVariables+=Dimension;
+            case 3:
+              Framework[CurrentSystem].Atoms[f1][i].HessianIndex.x=index++;
+              Framework[CurrentSystem].Atoms[f1][i].HessianIndex.y=index++;
+              Framework[CurrentSystem].Atoms[f1][i].HessianIndex.z=index++;
+              break;
+            case 2:
+              Framework[CurrentSystem].Atoms[f1][i].HessianIndex.x=index++;
+              Framework[CurrentSystem].Atoms[f1][i].HessianIndex.y=index++;
+              break;
+            case 1:
+              Framework[CurrentSystem].Atoms[f1][i].HessianIndex.x=index++;
+              break;
           }
+          NumberOfMinimizationVariables+=Dimension;
+          NumberOfPositionalMinimizationVariables+=Dimension;
+          NumberOfCoordinatesMinimizationVariables+=Dimension;
         }
       }
     }
   }
 
-  // If Adsorbate/Cations shells are added then these two routines needs to be added here
-
   ShellSize=index-ShellIndex;
-*/
 
   atomic_index=0;
   if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
@@ -2313,10 +2302,13 @@ void EvaluateDerivatives(int n,REAL *Energy,REAL* Gradient,REAL_MATRIX Hessian,R
   if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
   {
     ComputeFrameworkBondHessian(Energy,Gradient,Hessian,StrainFirstDerivative,ComputeGradient,ComputeHessian);
+    ComputeFrameworkUreyBradleyHessian(Energy,Gradient,Hessian,StrainFirstDerivative,ComputeGradient,ComputeHessian);
     ComputeFrameworkBendHessian(Energy,Gradient,Hessian,StrainFirstDerivative,ComputeGradient,ComputeHessian);
     ComputeFrameworkInversionBendHessian(Energy,Gradient,Hessian,StrainFirstDerivative,ComputeGradient,ComputeHessian);
     ComputeFrameworkTorsionHessian(Energy,Gradient,Hessian,StrainFirstDerivative,ComputeGradient,ComputeHessian);
     ComputeFrameworkImproperTorsionHessian(Energy,Gradient,Hessian,StrainFirstDerivative,ComputeGradient,ComputeHessian);
+
+    ComputeFrameworkBendTorsionHessian(Energy,Gradient,Hessian,StrainFirstDerivative,ComputeGradient,ComputeHessian);
 
     ComputeFrameworkIntraVDWHessian(Energy,Gradient,Hessian,StrainFirstDerivative,ComputeGradient,ComputeHessian);
     ComputeFrameworkIntraChargeChargeHessian(Energy,Gradient,Hessian,StrainFirstDerivative,ComputeGradient,ComputeHessian);
@@ -2734,7 +2726,6 @@ void EvaluateDerivatives(int n,REAL *Energy,REAL* Gradient,REAL_MATRIX Hessian,R
         }
     }
   }
-
 }
 
 void ComputeDerivative(int np,int nb,REAL *x,REAL* Energy,REAL *Gradient,REAL_MATRIX3x3 *StrainFirstDerivative)

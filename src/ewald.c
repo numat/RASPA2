@@ -200,12 +200,14 @@ void InitializeEwald(REAL precision,int Automatic)
   {
     // compute the alpha-parameter and max k-vectors from the relative precision
     eps=MIN2(fabs(precision),(REAL)0.5);
-    tol=sqrt(fabs(log(eps*CutOffChargeCharge)));
 
     for(i=0;i<NumberOfSystems;i++)
     {
-      Alpha[i]=sqrt(fabs(log(eps*CutOffChargeCharge*tol)))/CutOffChargeCharge;
-      tol1=sqrt(-log(eps*CutOffChargeCharge*SQR(2.0*tol*Alpha[i])));
+      tol=sqrt(fabs(log(eps*CutOffChargeCharge[i])));
+
+      printf("i: %d %g\n",i,CutOffChargeCharge[i]);
+      Alpha[i]=sqrt(fabs(log(eps*CutOffChargeCharge[i]*tol)))/CutOffChargeCharge[i];
+      tol1=sqrt(-log(eps*CutOffChargeCharge[i]*SQR(2.0*tol*Alpha[i])));
 
       kvec[i].x=(int)NINT((REAL)0.25+BoxProperties[i].ax*Alpha[i]*tol1/M_PI);
       kvec[i].y=(int)NINT((REAL)0.25+BoxProperties[i].ay*Alpha[i]*tol1/M_PI);
@@ -3809,7 +3811,7 @@ int EwaldFourierForce(void)
 
         }
         else // if r->0 compute limiting value to avoid divergence when shell overlaps with core in core-shell models
-          energy_framework_excluded+=chargeA*chargeB*alpha*(2.0/sqrt(M_PI));
+          energy_framework_excluded+=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*alpha*(2.0/sqrt(M_PI));
       }
     }
   }
@@ -5883,7 +5885,7 @@ COULOMBIC_CONVERSION_FACTOR*(4.0*M_PI/volume)*exp((-0.25/SQR(alpha))*rksqr)/rksq
         }
         else // if r->0 compute limiting value to avoid divergence when shell overlaps with core in core-shell models
         {
-          energy_framework_excluded+=chargeA*chargeB*alpha*(2.0/sqrt(M_PI));
+          energy_framework_excluded+=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*alpha*(2.0/sqrt(M_PI));
           DF=-COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*4.0*CUBE(Alpha[CurrentSystem])/(3.0*sqrt(M_PI));
           DDF=-COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*8.0*CUBE(Alpha[CurrentSystem])*SQR(Alpha[CurrentSystem])/(5.0*sqrt(M_PI));
           AddContributionToBornTerm(DDF,DF,dr);
@@ -17113,7 +17115,7 @@ int CalculateEwaldFourierDerivatives(REAL *Energy,REAL* Gradient,REAL_MATRIX Hes
             considered_charged=(fabs(charge)>1e-10)||(PseudoAtoms[type].IsPolarizable);
             if(considered_charged)
             {
-              Charge[nr_of_coulombic_sites]=charge;
+              Charge[nr_of_coulombic_sites]=charge*Adsorbates[CurrentSystem][m].Atoms[A].CFChargeScalingParameter;
               Positions[nr_of_coulombic_sites]=ConvertFromXYZtoABC(Adsorbates[CurrentSystem][m].Atoms[A].Position);
               Positions[nr_of_coulombic_sites].x*=TWO_PI; Positions[nr_of_coulombic_sites].y*=TWO_PI; Positions[nr_of_coulombic_sites].z*=TWO_PI;
               nr_of_coulombic_sites++;
@@ -17131,7 +17133,7 @@ int CalculateEwaldFourierDerivatives(REAL *Energy,REAL* Gradient,REAL_MATRIX Hes
           considered_charged=(fabs(charge)>1e-10)||(PseudoAtoms[type].IsPolarizable);
           if(considered_charged&&(!(Adsorbates[CurrentSystem][m].Atoms[A].Fixed.x&&Adsorbates[CurrentSystem][m].Atoms[A].Fixed.y&&Adsorbates[CurrentSystem][m].Atoms[A].Fixed.z)))
           {
-            Charge[nr_of_coulombic_sites]=charge;
+            Charge[nr_of_coulombic_sites]=charge*Adsorbates[CurrentSystem][m].Atoms[A].CFChargeScalingParameter;
             Positions[nr_of_coulombic_sites]=ConvertFromXYZtoABC(Adsorbates[CurrentSystem][m].Atoms[A].Position);
             Positions[nr_of_coulombic_sites].x*=TWO_PI; Positions[nr_of_coulombic_sites].y*=TWO_PI; Positions[nr_of_coulombic_sites].z*=TWO_PI;
             nr_of_coulombic_sites++;
@@ -17160,7 +17162,7 @@ int CalculateEwaldFourierDerivatives(REAL *Energy,REAL* Gradient,REAL_MATRIX Hes
             considered_charged=(fabs(charge)>1e-10)||(PseudoAtoms[type].IsPolarizable);
             if(considered_charged)
             {
-              Charge[nr_of_coulombic_sites]=charge;
+              Charge[nr_of_coulombic_sites]=charge*Cations[CurrentSystem][m].Atoms[A].CFChargeScalingParameter;
               Positions[nr_of_coulombic_sites]=ConvertFromXYZtoABC(Cations[CurrentSystem][m].Atoms[A].Position);
               Positions[nr_of_coulombic_sites].x*=TWO_PI; Positions[nr_of_coulombic_sites].y*=TWO_PI; Positions[nr_of_coulombic_sites].z*=TWO_PI;
               nr_of_coulombic_sites++;
@@ -17178,7 +17180,7 @@ int CalculateEwaldFourierDerivatives(REAL *Energy,REAL* Gradient,REAL_MATRIX Hes
           considered_charged=(fabs(charge)>1e-10)||(PseudoAtoms[type].IsPolarizable);
           if(considered_charged&&(!(Cations[CurrentSystem][m].Atoms[A].Fixed.x&&Cations[CurrentSystem][m].Atoms[A].Fixed.y&&Cations[CurrentSystem][m].Atoms[A].Fixed.z)))
           {
-            Charge[nr_of_coulombic_sites]=charge;
+            Charge[nr_of_coulombic_sites]=charge*Cations[CurrentSystem][m].Atoms[A].CFChargeScalingParameter;
             Positions[nr_of_coulombic_sites]=ConvertFromXYZtoABC(Cations[CurrentSystem][m].Atoms[A].Position);
             Positions[nr_of_coulombic_sites].x*=TWO_PI; Positions[nr_of_coulombic_sites].y*=TWO_PI; Positions[nr_of_coulombic_sites].z*=TWO_PI;
             nr_of_coulombic_sites++;
@@ -18663,11 +18665,13 @@ int CalculateEwaldFourierDerivatives(REAL *Energy,REAL* Gradient,REAL_MATRIX Hes
         considered_charged=(fabs(ChargeA)>1e-10)||(PseudoAtoms[TypeA].IsPolarizable);
         if(considered_charged)
         {
+          ChargeA*=Adsorbates[CurrentSystem][m].Atoms[A].CFChargeScalingParameter;
           TypeB=Adsorbates[CurrentSystem][m].Atoms[B].Type;
           ChargeB=Adsorbates[CurrentSystem][m].Atoms[B].Charge;
           considered_charged=(fabs(ChargeB)>1e-10)||(PseudoAtoms[TypeB].IsPolarizable);
           if(considered_charged)
           {
+            ChargeB*=Adsorbates[CurrentSystem][m].Atoms[B].CFChargeScalingParameter;
             comA=posA=Adsorbates[CurrentSystem][m].Atoms[A].Position;
             comB=posB=Adsorbates[CurrentSystem][m].Atoms[B].Position;
 
@@ -18811,11 +18815,13 @@ int CalculateEwaldFourierDerivatives(REAL *Energy,REAL* Gradient,REAL_MATRIX Hes
         considered_charged=(fabs(ChargeA)>1e-10)||(PseudoAtoms[TypeA].IsPolarizable);
         if(considered_charged)
         {
+          ChargeA*=Adsorbates[CurrentSystem][m].Atoms[A].CFChargeScalingParameter;
           TypeB=Cations[CurrentSystem][m].Atoms[B].Type;
           ChargeB=Cations[CurrentSystem][m].Atoms[B].Charge;
           considered_charged=(fabs(ChargeB)>1e-10)||(PseudoAtoms[TypeB].IsPolarizable);
           if(considered_charged)
           {
+            ChargeB*=Adsorbates[CurrentSystem][m].Atoms[B].CFChargeScalingParameter;
             comA=posA=Cations[CurrentSystem][m].Atoms[A].Position;
             comB=posB=Cations[CurrentSystem][m].Atoms[B].Position;
 
@@ -18953,11 +18959,11 @@ int CalculateEwaldFourierDerivatives(REAL *Energy,REAL* Gradient,REAL_MATRIX Hes
 
   for(i=0;i<NumberOfAdsorbateMolecules[CurrentSystem];i++)
     for(j=0;j<Adsorbates[CurrentSystem][i].NumberOfAtoms;j++)
-      Uself_sum+=SQR(Adsorbates[CurrentSystem][i].Atoms[j].Charge);
+      Uself_sum+=SQR(Adsorbates[CurrentSystem][i].Atoms[j].Charge*Adsorbates[CurrentSystem][i].Atoms[j].CFChargeScalingParameter);
 
   for(i=0;i<NumberOfCationMolecules[CurrentSystem];i++)
     for(j=0;j<Cations[CurrentSystem][i].NumberOfAtoms;j++)
-      Uself_sum+=SQR(Cations[CurrentSystem][i].Atoms[j].Charge);
+      Uself_sum+=SQR(Cations[CurrentSystem][i].Atoms[j].Charge*Cations[CurrentSystem][i].Atoms[j].CFChargeScalingParameter);
 
   Uself_sum*=Alpha[CurrentSystem]/sqrt(M_PI);
 

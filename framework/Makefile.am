@@ -4,6 +4,9 @@ SUBDIRS = Dubbeldam2007FlexibleIRMOF-1 \
           CoreShellCatlow \
           CoreShellSchroderSauer \
           CoreShellSastreGale2005 \
+          Demontis \
+          DemontisModified \
+          Nicholas \
           NicholasModified \
           AmirjalayerSchmid \
           McKendrick2012FlexibleMIL-53

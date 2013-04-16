@@ -4366,13 +4366,13 @@ void CheckStatusNumerically(void)
     TestEnergyForcesHessian();
 
   for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
-    TestStressTensorNumerically();
+    TestForcesNumerically();
 
   for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
     TestGradientsNumerically();
 
   for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
-    TestForcesNumerically();
+    TestStressTensorNumerically();
 
   for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
     TestStrainSecondDerivativeNumerically();

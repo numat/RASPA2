@@ -8576,7 +8576,7 @@ void PotentialGradient(int typeA,int typeB,REAL rr,REAL *energy,REAL *force_fact
  * Note       | The square is passed to avoid a sqrt when possible (e.g. Lennard-Jones)    *
  *******************************************************************************************/
 
-void PotentialSecondDerivative(int typeA,int typeB,REAL rr,REAL *energy,REAL *factor1,REAL *factor2)
+void PotentialSecondDerivative(int typeA,int typeB,REAL rr,REAL *energy,REAL *factor1,REAL *factor2,REAL scaling)
 {
   REAL fcVal1,fcVal2,r,r3,r4,r5,U,rri3,ri6,ri9,rri3_2;
   REAL arg1,arg2,arg3,arg4,arg5,arg6,arg7;
@@ -8670,6 +8670,71 @@ void PotentialSecondDerivative(int typeA,int typeB,REAL rr,REAL *energy,REAL *fa
         fcVal1=U*SwitchingValueDerivative/r+fcVal1*SwitchingValue;
         U*=SwitchingValue;
       }
+      break;
+    case LENNARD_JONES_CONTINUOUS_FRACTIONAL:
+      // 4*p_0*((p_1/r)^12-(p_1/r)^6)
+      // ======================================================================================
+      // p_0/k_B [K]    strength parameter epsilon
+      // p_1     [A]    size parameter sigma
+      // p_3/k_B [K]    (non-zero for a shifted potential)
+      arg1=PotentialParms[typeA][typeB][0];
+      arg2=SQR(PotentialParms[typeA][typeB][1]);
+      arg3=PotentialParms[typeA][typeB][2];
+      rri3=1.0/(CUBE(rr/arg2)+0.5*SQR(1.0-scaling));
+      U=scaling*(4.0*arg1*(rri3*(rri3-1.0))-arg3);
+      term1=0.5*SQR(scaling-1.0)*pow(arg2,3);
+      fcVal1=(24*arg1*scaling*SQR(rr)*pow(arg2,3)*(pow(rr,3)+(term1-2.0*pow(arg2,3))))/pow(pow(rr,3)+term1,3);
+      fcVal2=0.0;
+      if(rr<1.0) U=2.0*EnergyOverlapCriteria;
+      break;
+    case LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED3:
+      // {4*p_0*((p_1/r)^12-(p_1/r)^6)}*S(r)
+      // ======================================================================================
+      // p_0/k_B [K]    strength parameter epsilon
+      // p_1     [A]    size parameter sigma
+      arg1=PotentialParms[typeA][typeB][0];
+      arg2=SQR(PotentialParms[typeA][typeB][1]);
+      rri3=1.0/(CUBE(rr/arg2)+0.5*SQR(1.0-scaling));
+      U=scaling*4.0*arg1*(rri3*(rri3-1.0));
+      term1=0.5*SQR(scaling-1.0)*pow(arg2,3);
+      fcVal1=(24*arg1*scaling*SQR(rr)*pow(arg2,3)*(pow(rr,3)+(term1-2.0*pow(arg2,3))))/pow(pow(rr,3)+term1,3);
+      fcVal2=0.0;
+      if(rr>CutOffVDWSwitchSquared)
+      {
+        r=sqrt(rr);
+        SwitchingValue=(SwitchingVDWFactors3[3]*(rr*r)+SwitchingVDWFactors3[2]*rr+
+                        SwitchingVDWFactors3[1]*r+SwitchingVDWFactors3[0]);
+        SwitchingValueDerivative=(3.0*SwitchingVDWFactors3[3]*rr+2.0*SwitchingVDWFactors3[2]*r+SwitchingVDWFactors3[1]);
+        fcVal1=U*SwitchingValueDerivative/r+fcVal1*SwitchingValue;
+        fcVal2=0.0;
+        U*=SwitchingValue;
+      }
+      if(rr<1.0) U=2.0*EnergyOverlapCriteria;
+      break;
+    case LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED5:
+      // {4*p_0*((p_1/r)^12-(p_1/r)^6)}*S(r)
+      // ======================================================================================
+      // p_0/k_B [K]    strength parameter epsilon
+      // p_1     [A]    size parameter sigma
+      arg1=PotentialParms[typeA][typeB][0];
+      arg2=SQR(PotentialParms[typeA][typeB][1]);
+      rri3=1.0/(CUBE(rr/arg2)+0.5*SQR(1.0-scaling));
+      U=scaling*4.0*arg1*(rri3*(rri3-1.0));
+      term1=0.5*SQR(scaling-1.0)*pow(arg2,3);
+      fcVal1=(24*arg1*scaling*SQR(rr)*pow(arg2,3)*(pow(rr,3)+(term1-2.0*pow(arg2,3))))/pow(pow(rr,3)+term1,3);
+      fcVal2=0.0;
+      if(rr>CutOffVDWSwitchSquared)
+      {
+        r=sqrt(rr);
+        SwitchingValue=SwitchingVDWFactors5[5]*(rr*rr*r)+SwitchingVDWFactors5[4]*(rr*rr)+SwitchingVDWFactors5[3]*(rr*r)+
+                       SwitchingVDWFactors5[2]*rr+SwitchingVDWFactors5[1]*r+SwitchingVDWFactors5[0];
+        SwitchingValueDerivative=5.0*SwitchingVDWFactors5[5]*rr*rr+4.0*SwitchingVDWFactors5[4]*rr*r+3.0*SwitchingVDWFactors5[3]*rr+
+                                 2.0*SwitchingVDWFactors5[2]*r+SwitchingVDWFactors5[1];
+        fcVal1=U*SwitchingValueDerivative/r+fcVal1*SwitchingValue;
+        fcVal2=0.0;
+        U*=SwitchingValue;
+      }
+      if(rr<1.0) U=2.0*EnergyOverlapCriteria;
       break;
     case WCA:
       // 4*p_0*((p_1/r)^12-(p_1/r)^6)
@@ -11636,7 +11701,7 @@ void ComputeSwitchingFactors(void)
   SwitchingVDWFactors7[6]=(36.0*cut+139.0*off)/temp;
   SwitchingVDWFactors7[7]=-25.0/temp;
 
-  off=CutOffChargeCharge;
+  off=CutOffChargeCharge[CurrentSystem];
   off2=SQR(off);
   off3=off2*off;
   off4=off3*off;
@@ -11644,7 +11709,7 @@ void ComputeSwitchingFactors(void)
   off6=off5*off;
   off7=off6*off;
 
-  cut=CutOffChargeChargeSwitch;
+  cut=CutOffChargeChargeSwitch[CurrentSystem];
   cut2=SQR(cut);
   cut3=cut2*cut;
   cut4=cut3*cut;
@@ -11783,18 +11848,18 @@ REAL PotentialValueCoulombic(REAL chargeA,REAL chargeB,REAL r)
     case TRUNCATED_COULOMB:
       return COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB/r;
     case SHIFTED_COULOMB:
-      return COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-InverseCutOffChargeCharge);
+      return COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-InverseCutOffChargeCharge[CurrentSystem]);
     case WOLFS_METHOD:
-      return COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-InverseCutOffChargeCharge);
+      return COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-InverseCutOffChargeCharge[CurrentSystem]);
       break;
     case WOLFS_METHOD_DAMPED:
       return COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(erfc(Alpha[CurrentSystem]*r)/r
-                  -erfc(Alpha[CurrentSystem]*CutOffChargeChargeSquared)*InverseCutOffChargeCharge);
+                  -erfc(Alpha[CurrentSystem]*CutOffChargeChargeSquared[CurrentSystem])*InverseCutOffChargeCharge[CurrentSystem]);
       break;
     case SMOOTHED_COULOMB:
-      energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-2.0/(CutOffChargeChargeSwitch+CutOffChargeCharge));
+      energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-2.0/(CutOffChargeChargeSwitch[CurrentSystem]+CutOffChargeCharge[CurrentSystem]));
       r2=r*r;
-      if(r2>CutOffChargeChargeSwitchSquared)
+      if(r2>CutOffChargeChargeSwitchSquared[CurrentSystem])
       {
         SwitchingValue=SwitchingChargeChargeFactors5[5]*(r2*r2*r)+SwitchingChargeChargeFactors5[4]*(r2*r2)+SwitchingChargeChargeFactors5[3]*(r2*r)+
                        SwitchingChargeChargeFactors5[2]*r2+SwitchingChargeChargeFactors5[1]*r+SwitchingChargeChargeFactors5[0];
@@ -11808,9 +11873,9 @@ REAL PotentialValueCoulombic(REAL chargeA,REAL chargeB,REAL r)
       return energy;
     case WOLFS_METHOD_DAMPED_FG:
       return COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(erfc(Alpha[CurrentSystem]*r)/r
-                   -erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*InverseCutOffChargeCharge+
-                    (r-CutOffChargeCharge)*(erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*SQR(InverseCutOffChargeCharge)+
-                    (2.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*CutOffChargeChargeSquared)*M_1_SQRTPI*InverseCutOffChargeCharge)));
+                   -erfc(Alpha[CurrentSystem]*CutOffChargeCharge[CurrentSystem])*InverseCutOffChargeCharge[CurrentSystem]+
+                    (r-CutOffChargeCharge[CurrentSystem])*(erfc(Alpha[CurrentSystem]*CutOffChargeCharge[CurrentSystem])*SQR(InverseCutOffChargeCharge[CurrentSystem])+
+                    (2.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*CutOffChargeChargeSquared[CurrentSystem])*M_1_SQRTPI*InverseCutOffChargeCharge[CurrentSystem])));
     case EWALD:
       return COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(erfc(Alpha[CurrentSystem]*r)/r);
     default:
@@ -11914,6 +11979,7 @@ REAL PotentialValueBondDipoleBondDipole(VECTOR dipoleA,VECTOR dipoleB,VECTOR dr,
   return SwitchingValue*COULOMBIC_CONVERSION_FACTOR*(Bt1*cosAB-Bt2*cosA*cosB);
 }
 
+
 void PotentialGradientCoulombic(REAL chargeA,REAL chargeB,REAL rr,REAL *energy,REAL *force_factor)
 {
   REAL fcVal;
@@ -11934,14 +12000,14 @@ void PotentialGradientCoulombic(REAL chargeA,REAL chargeB,REAL rr,REAL *energy,R
       break;
     case SHIFTED_COULOMB:
       r=sqrt(rr);
-      U=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-InverseCutOffChargeCharge);
+      U=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-InverseCutOffChargeCharge[CurrentSystem]);
       fcVal=-COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB/(rr*r);
       break;
     case SMOOTHED_COULOMB:
       r=sqrt(rr);
-      U=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-2.0/(CutOffChargeChargeSwitch+CutOffChargeCharge));
+      U=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-2.0/(CutOffChargeChargeSwitch[CurrentSystem]+CutOffChargeCharge[CurrentSystem]));
       fcVal=-COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB/rr;
-      if(rr>CutOffChargeChargeSwitchSquared)
+      if(rr>CutOffChargeChargeSwitchSquared[CurrentSystem])
       {
         SwitchingValue=SwitchingChargeChargeFactors5[5]*(rr*rr*r)+SwitchingChargeChargeFactors5[4]*(rr*rr)+SwitchingChargeChargeFactors5[3]*(rr*r)+
                        SwitchingChargeChargeFactors5[2]*rr+SwitchingChargeChargeFactors5[1]*r+SwitchingChargeChargeFactors5[0];
@@ -11964,13 +12030,13 @@ void PotentialGradientCoulombic(REAL chargeA,REAL chargeB,REAL rr,REAL *energy,R
     case WOLFS_METHOD_DAMPED_FG:
       r=sqrt(rr);
       U=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(erfc(Alpha[CurrentSystem]*r)/r
-               -erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*InverseCutOffChargeCharge+
-                (r-CutOffChargeCharge)*(erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*SQR(InverseCutOffChargeCharge)+
-                (2.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*CutOffChargeChargeSquared)*M_1_SQRTPI*InverseCutOffChargeCharge)));
+               -erfc(Alpha[CurrentSystem]*CutOffChargeCharge[CurrentSystem])*InverseCutOffChargeCharge[CurrentSystem]+
+                (r-CutOffChargeCharge[CurrentSystem])*(erfc(Alpha[CurrentSystem]*CutOffChargeCharge[CurrentSystem])*SQR(InverseCutOffChargeCharge[CurrentSystem])+
+                (2.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*CutOffChargeChargeSquared[CurrentSystem])*M_1_SQRTPI*InverseCutOffChargeCharge[CurrentSystem])));
       fcVal=-COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(erfc(Alpha[CurrentSystem]*r)/rr+
              2.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*rr)*M_1_SQRTPI/r
-             -(erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*SQR(InverseCutOffChargeCharge)+
-             2.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*CutOffChargeChargeSquared)*M_1_SQRTPI*InverseCutOffChargeCharge))/r;
+             -(erfc(Alpha[CurrentSystem]*CutOffChargeCharge[CurrentSystem])*SQR(InverseCutOffChargeCharge[CurrentSystem])+
+             2.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*CutOffChargeChargeSquared[CurrentSystem])*M_1_SQRTPI*InverseCutOffChargeCharge[CurrentSystem]))/r;
       break;
     case EWALD:
       r=sqrt(rr);
@@ -11988,6 +12054,486 @@ void PotentialGradientCoulombic(REAL chargeA,REAL chargeB,REAL rr,REAL *energy,R
   *energy=U;
   *force_factor=fcVal;
 }
+
+void PotentialGradientChargeBondDipole(REAL chargeB,REAL DipoleMagnitudeA,REAL length,VECTOR dipoleA,VECTOR dr,REAL rr,
+                                       REAL *energy,VECTOR *fa1,VECTOR *fa2,VECTOR *fb1,VECTOR *term)
+{
+  REAL r;
+  REAL U,Bt0,Bt1,Bt2;
+  REAL cosA,fac1,fac2;
+  REAL SwitchingValue,SwitchingValueDerivative;
+
+  r=sqrt(rr);
+  switch(ChargeMethod)
+  {
+    case NONE:
+      Bt0=Bt1=Bt2=0.0;
+      break;
+    case TRUNCATED_COULOMB:
+      Bt0=1.0/(r);
+      Bt1=1.0/(r*rr);
+      Bt2=3.0/(r*rr*rr);
+      break;
+    case SHIFTED_COULOMB:
+      Bt0=1.0/(r);
+      Bt1=1.0/(r*rr);
+      Bt2=3.0/(r*rr*rr);
+      break;
+    case SMOOTHED_COULOMB:
+      Bt0=1.0/(r);
+      Bt1=1.0/(r*rr);
+      Bt2=3.0/(r*rr*rr);
+      break;
+    case EWALD:
+      Bt0=erfc(Alpha[CurrentSystem]*r)/r;
+      Bt1=2.0*Alpha[CurrentSystem]*exp(-SQR(-Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
+          erfc(Alpha[CurrentSystem]*r)/(rr*r);
+      Bt2=6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
+          4.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
+          3.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*r);
+      break;
+    default:
+      printf("Unknown charge-method in 'CalculateTotalInterChargeBondDipoleCoulombForce'\n");
+      exit(0);
+      break;
+  }
+  cosA=dipoleA.x*dr.x+dipoleA.y*dr.y+dipoleA.z*dr.z;
+  U=COULOMBIC_CONVERSION_FACTOR*(Bt1*chargeB*cosA);
+
+  term->x=COULOMBIC_CONVERSION_FACTOR*chargeB*(Bt2*cosA*dr.x-Bt1*dipoleA.x);
+  term->y=COULOMBIC_CONVERSION_FACTOR*chargeB*(Bt2*cosA*dr.y-Bt1*dipoleA.y);
+  term->z=COULOMBIC_CONVERSION_FACTOR*chargeB*(Bt2*cosA*dr.z-Bt1*dipoleA.z);
+
+  fb1->x=term->x;
+  fb1->y=term->y;
+  fb1->z=term->z;
+
+  fac1=COULOMBIC_CONVERSION_FACTOR*chargeB*Bt1*DipoleMagnitudeA/length;
+  fac2=COULOMBIC_CONVERSION_FACTOR*chargeB*Bt1*cosA/(DipoleMagnitudeA*length);
+
+  fa1->x=-0.5*term->x-fac1*dr.x+fac2*dipoleA.x;
+  fa1->y=-0.5*term->y-fac1*dr.y+fac2*dipoleA.y;
+  fa1->z=-0.5*term->z-fac1*dr.z+fac2*dipoleA.z;
+
+  fa2->x=-0.5*term->x+fac1*dr.x-fac2*dipoleA.x;
+  fa2->y=-0.5*term->y+fac1*dr.y-fac2*dipoleA.y;
+  fa2->z=-0.5*term->z+fac1*dr.z-fac2*dipoleA.z;
+
+  switch(ChargeMethod)
+  {
+    case SMOOTHED_COULOMB:
+      if(rr>CutOffChargeBondDipoleSwitchSquared)
+      {
+        SwitchingValue=SwitchingChargeBondDipoleFactors5[5]*(rr*rr*r)+SwitchingChargeBondDipoleFactors5[4]*(rr*rr)+SwitchingChargeBondDipoleFactors5[3]*(rr*r)+
+                       SwitchingChargeBondDipoleFactors5[2]*rr+SwitchingChargeBondDipoleFactors5[1]*r+SwitchingChargeBondDipoleFactors5[0];
+        SwitchingValueDerivative=5.0*SwitchingChargeBondDipoleFactors5[5]*rr*rr+4.0*SwitchingChargeBondDipoleFactors5[4]*rr*r+3.0*SwitchingChargeBondDipoleFactors5[3]*rr+
+                                   2.0*SwitchingChargeBondDipoleFactors5[2]*r+SwitchingChargeBondDipoleFactors5[1];
+
+        SwitchingValueDerivative*=-U/r;
+
+        U*=SwitchingValue;
+
+        term->x=term->x*SwitchingValue+SwitchingValueDerivative*dr.x;
+        term->y=term->y*SwitchingValue+SwitchingValueDerivative*dr.y;
+        term->z=term->z*SwitchingValue+SwitchingValueDerivative*dr.z;
+
+        fa1->x=fa1->x*SwitchingValue-0.5*SwitchingValueDerivative*dr.x;
+        fa1->y=fa1->y*SwitchingValue-0.5*SwitchingValueDerivative*dr.y;
+        fa1->z=fa1->z*SwitchingValue-0.5*SwitchingValueDerivative*dr.z;
+
+        fa2->x=fa2->x*SwitchingValue-0.5*SwitchingValueDerivative*dr.x;
+        fa2->y=fa2->y*SwitchingValue-0.5*SwitchingValueDerivative*dr.y;
+        fa2->z=fa2->z*SwitchingValue-0.5*SwitchingValueDerivative*dr.z;
+
+        fb1->x=fb1->x*SwitchingValue+SwitchingValueDerivative*dr.x;
+        fb1->y=fb1->y*SwitchingValue+SwitchingValueDerivative*dr.y;
+        fb1->z=fb1->z*SwitchingValue+SwitchingValueDerivative*dr.z;
+      }
+      break;
+  }
+
+  *energy=U;
+}
+
+void PotentialGradientBondDipoleBondDipole(REAL DipoleMagnitudeA,REAL ri2,VECTOR dipoleA,REAL DipoleMagnitudeB,REAL rk2,VECTOR dipoleB,VECTOR dr,REAL rr,
+                                           REAL *energy,VECTOR *fa1,VECTOR *fa2,VECTOR *fb1,VECTOR *fb2,VECTOR *term)
+{
+  REAL r;
+  REAL U,Bt0,Bt1,Bt2,Bt3;
+  REAL cosA,cosB,cosAB;
+  REAL SwitchingValue,SwitchingValueDerivative;
+  VECTOR termA,termB;
+
+  switch(ChargeMethod)
+  {
+    case NONE:
+      Bt0=Bt1=Bt2=Bt3=0.0;
+      break;
+    case TRUNCATED_COULOMB:
+      Bt0=1.0/(r);
+      Bt1=1.0/(r*rr);
+      Bt2=3.0/(r*rr*rr);
+      Bt3=15.0/(r*rr*rr*rr);
+      break;
+    case SHIFTED_COULOMB:
+      Bt0=1.0/(r);
+      Bt1=1.0/(r*rr);
+      Bt2=3.0/(r*rr*rr);
+      Bt3=15.0/(r*rr*rr*rr);
+      break;
+    case SMOOTHED_COULOMB:
+      Bt0=1.0/(r);
+      Bt1=1.0/(r*rr);
+      Bt2=3.0/(r*rr*rr);
+      Bt3=15.0/(r*rr*rr*rr);
+      break;
+    case EWALD:
+      Bt0=erfc(Alpha[CurrentSystem]*r)/r;
+      Bt1=2.0*Alpha[CurrentSystem]*exp(-SQR(-Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
+          erfc(Alpha[CurrentSystem]*r)/(rr*r);
+      Bt2=6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
+          4.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
+          3.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*r);
+      Bt3=30.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr*rr)+
+          20.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
+          8.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
+          15.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*rr*r);
+      break;
+    default:
+      printf("Unknown charge-method in 'CalculateTotalInterBondDipoleBondDipoleCoulombForce'\n");
+      exit(0);
+      break;
+  }
+  cosAB=dipoleA.x*dipoleB.x+dipoleA.y*dipoleB.y+dipoleA.z*dipoleB.z;
+  cosA=dipoleA.x*dr.x+dipoleA.y*dr.y+dipoleA.z*dr.z;
+  cosB=dipoleB.x*dr.x+dipoleB.y*dr.y+dipoleB.z*dr.z;
+  U=COULOMBIC_CONVERSION_FACTOR*(Bt1*cosAB-Bt2*cosA*cosB);
+
+  term->x=COULOMBIC_CONVERSION_FACTOR*(Bt3*(cosA*cosB)*dr.x-Bt2*(cosAB*dr.x+cosB*dipoleA.x+cosA*dipoleB.x));
+  term->y=COULOMBIC_CONVERSION_FACTOR*(Bt3*(cosA*cosB)*dr.y-Bt2*(cosAB*dr.y+cosB*dipoleA.y+cosA*dipoleB.y));
+  term->z=COULOMBIC_CONVERSION_FACTOR*(Bt3*(cosA*cosB)*dr.z-Bt2*(cosAB*dr.z+cosB*dipoleA.z+cosA*dipoleB.z));
+
+  termA.x=COULOMBIC_CONVERSION_FACTOR*(
+          Bt1*cosAB*dipoleA.x/(sqrt(ri2)*DipoleMagnitudeA)
+          -Bt2*cosA*cosB*dipoleA.x/(sqrt(ri2)*DipoleMagnitudeA)
+          -Bt1*DipoleMagnitudeA*dipoleB.x/sqrt(ri2)
+          +Bt2*DipoleMagnitudeA*cosB*dr.x/sqrt(ri2));
+
+  termA.y=COULOMBIC_CONVERSION_FACTOR*(
+          Bt1*cosAB*dipoleA.y/(sqrt(ri2)*DipoleMagnitudeA)
+          -Bt2*cosA*cosB*dipoleA.y/(sqrt(ri2)*DipoleMagnitudeA)
+          -Bt1*DipoleMagnitudeA*dipoleB.y/sqrt(ri2)
+          +Bt2*DipoleMagnitudeA*cosB*dr.y/sqrt(ri2));
+
+  termA.z=COULOMBIC_CONVERSION_FACTOR*(
+          Bt1*cosAB*dipoleA.z/(sqrt(ri2)*DipoleMagnitudeA)
+          -Bt2*cosA*cosB*dipoleA.z/(sqrt(ri2)*DipoleMagnitudeA)
+          -Bt1*DipoleMagnitudeA*dipoleB.z/sqrt(ri2)
+          +Bt2*DipoleMagnitudeA*cosB*dr.z/sqrt(ri2));
+
+  termB.x=COULOMBIC_CONVERSION_FACTOR*(
+          Bt1*cosAB*dipoleB.x/(sqrt(rk2)*DipoleMagnitudeB)
+          -Bt2*cosA*cosB*dipoleB.x/(sqrt(rk2)*DipoleMagnitudeB)
+          -Bt1*DipoleMagnitudeB*dipoleA.x/sqrt(rk2)
+          +Bt2*DipoleMagnitudeB*cosA*dr.x/sqrt(rk2));
+
+  termB.y=COULOMBIC_CONVERSION_FACTOR*(
+          Bt1*cosAB*dipoleB.y/(sqrt(rk2)*DipoleMagnitudeB)
+          -Bt2*cosA*cosB*dipoleB.y/(sqrt(rk2)*DipoleMagnitudeB)
+          -Bt1*DipoleMagnitudeB*dipoleA.y/sqrt(rk2)
+          +Bt2*DipoleMagnitudeB*cosA*dr.y/sqrt(rk2));
+
+  termB.z=COULOMBIC_CONVERSION_FACTOR*(
+          Bt1*cosAB*dipoleB.z/(sqrt(rk2)*DipoleMagnitudeB)
+          -Bt2*cosA*cosB*dipoleB.z/(sqrt(rk2)*DipoleMagnitudeB)
+          -Bt1*DipoleMagnitudeB*dipoleA.z/sqrt(rk2)
+          +Bt2*DipoleMagnitudeB*cosA*dr.z/sqrt(rk2));
+
+  fa1->x=-0.5*term->x-termA.x;
+  fa1->y=-0.5*term->y-termA.y;
+  fa1->z=-0.5*term->z-termA.z;
+  fa2->x=-0.5*term->x+termA.x;
+  fa2->y=-0.5*term->y+termA.y;
+  fa2->z=-0.5*term->z+termA.z;
+
+  fb1->x=0.5*term->x-termB.x;
+  fb1->y=0.5*term->y-termB.y;
+  fb1->z=0.5*term->z-termB.z;
+  fb2->x=0.5*term->x+termB.x;
+  fb2->y=0.5*term->y+termB.y;
+  fb2->z=0.5*term->z+termB.z;
+
+  switch(ChargeMethod)
+  {
+    case SMOOTHED_COULOMB:
+      if(rr>CutOffBondDipoleBondDipoleSwitchSquared)
+      {
+        SwitchingValue=SwitchingBondDipoleBondDipoleFactors5[5]*(rr*rr*r)+SwitchingBondDipoleBondDipoleFactors5[4]*(rr*rr)+SwitchingBondDipoleBondDipoleFactors5[3]*(rr*r)+
+                       SwitchingBondDipoleBondDipoleFactors5[2]*rr+SwitchingBondDipoleBondDipoleFactors5[1]*r+SwitchingBondDipoleBondDipoleFactors5[0];
+        SwitchingValueDerivative=5.0*SwitchingBondDipoleBondDipoleFactors5[5]*rr*rr+4.0*SwitchingBondDipoleBondDipoleFactors5[4]*rr*r+3.0*SwitchingBondDipoleBondDipoleFactors5[3]*rr+
+                                 2.0*SwitchingBondDipoleBondDipoleFactors5[2]*r+SwitchingBondDipoleBondDipoleFactors5[1];
+
+        SwitchingValueDerivative*=U/r;
+
+        U*=SwitchingValue;
+
+        term->x=term->x*SwitchingValue+SwitchingValueDerivative*dr.x;
+        term->y=term->y*SwitchingValue+SwitchingValueDerivative*dr.y;
+        term->z=term->z*SwitchingValue+SwitchingValueDerivative*dr.z;
+
+        fa1->x=fa1->x*SwitchingValue-0.5*SwitchingValueDerivative*dr.x;
+        fa1->y=fa1->y*SwitchingValue-0.5*SwitchingValueDerivative*dr.y;
+        fa1->z=fa1->z*SwitchingValue-0.5*SwitchingValueDerivative*dr.z;
+        fa2->x=fa2->x*SwitchingValue-0.5*SwitchingValueDerivative*dr.x;
+        fa2->y=fa2->y*SwitchingValue-0.5*SwitchingValueDerivative*dr.y;
+        fa2->z=fa2->z*SwitchingValue-0.5*SwitchingValueDerivative*dr.z;
+
+        fb1->x=fb1->x*SwitchingValue+0.5*SwitchingValueDerivative*dr.x;
+        fb1->y=fb1->y*SwitchingValue+0.5*SwitchingValueDerivative*dr.y;
+        fb1->z=fb1->z*SwitchingValue+0.5*SwitchingValueDerivative*dr.z;
+        fb2->x=fb2->x*SwitchingValue+0.5*SwitchingValueDerivative*dr.x;
+        fb2->y=fb2->y*SwitchingValue+0.5*SwitchingValueDerivative*dr.y;
+        fb2->z=fb2->z*SwitchingValue+0.5*SwitchingValueDerivative*dr.z;
+        break;
+    }
+  }
+
+  *energy=U;
+}
+
+void PotentialSecondDerivativeCoulombic(REAL chargeA,REAL chargeB,REAL rr,REAL *energy,REAL *force_factor1,REAL *force_factor2)
+{
+  REAL U,f1,f2;
+  REAL r;
+  REAL SwitchingValueDerivative,SwitchingValue,SwitchingValueSecondDerivative;
+  REAL TranslationValue,TranslationValueDerivative,TranslationValueSecondDerivative;
+
+  r=sqrt(rr);
+
+  switch(ChargeMethod)
+  {
+    case NONE:
+      U=f1=f2=0.0;
+      break;
+    case TRUNCATED_COULOMB:
+      U=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r);
+      f1=-COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB/(rr*r);
+      f2=3.0*COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB/(SQR(rr)*r);
+      break;
+    case SHIFTED_COULOMB:
+      U=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-InverseCutOffChargeCharge[CurrentSystem]);
+      f1=-COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB/(rr*r);
+      f2=3.0*COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB/(SQR(rr)*r);
+      break;
+    case SMOOTHED_COULOMB:
+      U=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-2.0/(CutOffChargeChargeSwitch[CurrentSystem]+CutOffChargeCharge[CurrentSystem]));
+      f1=-COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB/rr;
+      f2=2.0*COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB/(rr*r);
+      if(rr>CutOffChargeChargeSwitchSquared[CurrentSystem])
+      {
+        SwitchingValue=SwitchingChargeChargeFactors5[5]*(rr*rr*r)+SwitchingChargeChargeFactors5[4]*(rr*rr)+SwitchingChargeChargeFactors5[3]*(rr*r)+
+                       SwitchingChargeChargeFactors5[2]*rr+SwitchingChargeChargeFactors5[1]*r+SwitchingChargeChargeFactors5[0];
+        SwitchingValueDerivative=5.0*SwitchingChargeChargeFactors5[5]*rr*rr+4.0*SwitchingChargeChargeFactors5[4]*rr*r+3.0*SwitchingChargeChargeFactors5[3]*rr+
+                                 2.0*SwitchingChargeChargeFactors5[2]*r+SwitchingChargeChargeFactors5[1];
+        SwitchingValueSecondDerivative=20.0*SwitchingChargeChargeFactors5[5]*(rr*r)+12.0*SwitchingChargeChargeFactors5[4]*(rr)+
+                                       6.0*SwitchingChargeChargeFactors5[3]*r+2.0*SwitchingChargeChargeFactors5[2];
+
+
+        TranslationValue=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*
+                        (SwitchingChargeChargeFactors7[7]*(rr*rr*rr*r)+SwitchingChargeChargeFactors7[6]*(rr*rr*rr)+
+                         SwitchingChargeChargeFactors7[5]*(rr*rr*r)+SwitchingChargeChargeFactors7[4]*(rr*rr)+SwitchingChargeChargeFactors7[3]*(rr*r)+
+                         SwitchingChargeChargeFactors7[2]*rr+SwitchingChargeChargeFactors7[1]*r+SwitchingChargeChargeFactors7[0]);
+        TranslationValueDerivative=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*
+                                  (7.0*SwitchingChargeChargeFactors7[7]*rr*rr*rr+6.0*SwitchingChargeChargeFactors7[6]*rr*rr*r+
+                                   5.0*SwitchingChargeChargeFactors7[5]*rr*rr+4.0*SwitchingChargeChargeFactors7[4]*rr*r+3.0*SwitchingChargeChargeFactors7[3]*rr+
+                                   2.0*SwitchingChargeChargeFactors7[2]*r+SwitchingChargeChargeFactors7[1]);
+        TranslationValueSecondDerivative=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*
+                                  (42.0*SwitchingChargeChargeFactors7[7]*rr*rr*r+30.0*SwitchingChargeChargeFactors7[6]*rr*rr+
+                                   20.0*SwitchingChargeChargeFactors7[5]*rr*r+12.0*SwitchingChargeChargeFactors7[4]*rr+6.0*SwitchingChargeChargeFactors7[3]*r+
+                                   2.0*SwitchingChargeChargeFactors7[2]);
+        f2=U*SwitchingValueSecondDerivative+2.0*f1*SwitchingValueDerivative+f2*SwitchingValue+TranslationValueSecondDerivative;
+        f1=U*SwitchingValueDerivative+f1*SwitchingValue+TranslationValueDerivative;
+        U=U*SwitchingValue+TranslationValue;
+      }
+      f2=(f2*r-f1)/CUBE(r);
+      f1/=r;
+      break;
+    case EWALD:
+    default:
+      U=COULOMBIC_CONVERSION_FACTOR*erfc(Alpha[CurrentSystem]*r)*chargeA*chargeB/r;
+
+      f1=-COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*
+          (erfc(Alpha[CurrentSystem]*r)+
+          2.0*Alpha[CurrentSystem]*r*exp(-SQR(Alpha[CurrentSystem])*rr)/sqrt(M_PI))/
+          (r*rr);
+
+      f2=chargeA*chargeB*COULOMBIC_CONVERSION_FACTOR*
+          (((3.0*erfc(Alpha[CurrentSystem]*r)/(r*rr))+
+          (4.0*CUBE(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem])*rr)/sqrt(M_PI))+
+          (6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*rr)/(sqrt(M_PI)*rr)))/(rr));
+      break;
+  }
+  *energy=U;
+  *force_factor1=f1;
+  *force_factor2=f2;
+}
+
+void PotentialElectricFieldBondDipoleBondDipole(VECTOR dipoleA,VECTOR dipoleB,VECTOR dr,REAL rr,VECTOR *termA,VECTOR *termB)
+{
+  REAL r;
+  REAL U,Bt0,Bt1,Bt2;
+  REAL cosA,cosB;
+  REAL SwitchingValue,SwitchingValueDerivative;
+
+  switch(ChargeMethod)
+  {
+    case NONE:
+      Bt0=Bt1=Bt2=0.0;
+      break;
+    case TRUNCATED_COULOMB:
+      Bt0=1.0/(r);
+      Bt1=1.0/(r*rr);
+      Bt2=3.0/(r*rr*rr);
+      break;
+    case SHIFTED_COULOMB:
+      Bt0=1.0/(r);
+      Bt1=1.0/(r*rr);
+      Bt2=3.0/(r*rr*rr);
+      break;
+    case SMOOTHED_COULOMB:
+      Bt0=1.0/(r);
+      Bt1=1.0/(r*rr);
+      Bt2=3.0/(r*rr*rr);
+      break;
+    case EWALD:
+      Bt0=erfc(Alpha[CurrentSystem]*r)/r;
+      Bt1=2.0*Alpha[CurrentSystem]*exp(-SQR(-Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
+          erfc(Alpha[CurrentSystem]*r)/(rr*r);
+      Bt2=6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
+          4.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
+          3.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*r);
+      break;
+    default:
+      printf("Unknown charge-method in 'PotentialElectricFieldBondDipoleBondDipole'\n");
+      exit(0);
+      break;
+  }
+
+  cosA=dipoleA.x*dr.x+dipoleA.y*dr.y+dipoleA.z*dr.z;
+  termA->x=COULOMBIC_CONVERSION_FACTOR*(Bt2*cosA*dr.x-Bt1*dipoleA.x);
+  termA->y=COULOMBIC_CONVERSION_FACTOR*(Bt2*cosA*dr.y-Bt1*dipoleA.y);
+  termA->z=COULOMBIC_CONVERSION_FACTOR*(Bt2*cosA*dr.z-Bt1*dipoleA.z);
+
+  cosB=dipoleB.x*dr.x+dipoleB.y*dr.y+dipoleB.z*dr.z;
+  termB->x=COULOMBIC_CONVERSION_FACTOR*(Bt2*cosB*dr.x-Bt1*dipoleB.x);
+  termB->y=COULOMBIC_CONVERSION_FACTOR*(Bt2*cosB*dr.y-Bt1*dipoleB.y);
+  termB->z=COULOMBIC_CONVERSION_FACTOR*(Bt2*cosB*dr.z-Bt1*dipoleB.z);
+
+  switch(ChargeMethod)
+  {
+    case SMOOTHED_COULOMB:
+      if(rr>CutOffBondDipoleBondDipoleSwitchSquared)
+      {
+        SwitchingValue=SwitchingBondDipoleBondDipoleFactors5[5]*(rr*rr*r)+SwitchingBondDipoleBondDipoleFactors5[4]*(rr*rr)+SwitchingBondDipoleBondDipoleFactors5[3]*(rr*r)+
+                       SwitchingBondDipoleBondDipoleFactors5[2]*rr+SwitchingBondDipoleBondDipoleFactors5[1]*r+SwitchingBondDipoleBondDipoleFactors5[0];
+        SwitchingValueDerivative=5.0*SwitchingBondDipoleBondDipoleFactors5[5]*rr*rr+4.0*SwitchingBondDipoleBondDipoleFactors5[4]*rr*r+3.0*SwitchingBondDipoleBondDipoleFactors5[3]*rr+
+                                 2.0*SwitchingBondDipoleBondDipoleFactors5[2]*r+SwitchingBondDipoleBondDipoleFactors5[1];
+
+        SwitchingValueDerivative*=U/r;
+
+        termA->x=termA->x*SwitchingValue+SwitchingValueDerivative*dr.x;
+        termA->y=termA->y*SwitchingValue+SwitchingValueDerivative*dr.y;
+        termA->z=termA->z*SwitchingValue+SwitchingValueDerivative*dr.z;
+
+        termB->x=termB->x*SwitchingValue+SwitchingValueDerivative*dr.x;
+        termB->y=termB->y*SwitchingValue+SwitchingValueDerivative*dr.y;
+        termB->z=termB->z*SwitchingValue+SwitchingValueDerivative*dr.z;
+        break;
+    }
+  }
+}
+
+void PotentialGradientInducedDipoleInducedDipole(VECTOR dipoleA,VECTOR dipoleB,VECTOR dr,REAL rr,REAL *energy,VECTOR *term)
+{
+  REAL r;
+  REAL U,Bt0,Bt1,Bt2,Bt3;
+  REAL cosA,cosB,cosAB;
+  REAL SwitchingValue,SwitchingValueDerivative;
+  VECTOR termA,termB;
+
+  switch(ChargeMethod)
+  {
+    case NONE:
+      Bt0=Bt1=Bt2=Bt3=0.0;
+      break;
+    case TRUNCATED_COULOMB:
+      Bt0=1.0/(r);
+      Bt1=1.0/(r*rr);
+      Bt2=3.0/(r*rr*rr);
+      Bt3=15.0/(r*rr*rr*rr);
+      break;
+    case SHIFTED_COULOMB:
+      Bt0=1.0/(r);
+      Bt1=1.0/(r*rr);
+      Bt2=3.0/(r*rr*rr);
+      Bt3=15.0/(r*rr*rr*rr);
+      break;
+    case SMOOTHED_COULOMB:
+      Bt0=1.0/(r);
+      Bt1=1.0/(r*rr);
+      Bt2=3.0/(r*rr*rr);
+      Bt3=15.0/(r*rr*rr*rr);
+      break;
+    case EWALD:
+      Bt0=erfc(Alpha[CurrentSystem]*r)/r;
+      Bt1=2.0*Alpha[CurrentSystem]*exp(-SQR(-Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
+          erfc(Alpha[CurrentSystem]*r)/(rr*r);
+      Bt2=6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
+          4.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
+          3.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*r);
+      Bt3=30.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr*rr)+
+          20.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
+          8.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
+          15.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*rr*r);
+      break;
+    default:
+      printf("Unknown charge-method in 'CalculateTotalInterBondDipoleBondDipoleCoulombForce'\n");
+      exit(0);
+      break;
+  }
+  cosAB=dipoleA.x*dipoleB.x+dipoleA.y*dipoleB.y+dipoleA.z*dipoleB.z;
+  cosA=dipoleA.x*dr.x+dipoleA.y*dr.y+dipoleA.z*dr.z;
+  cosB=dipoleB.x*dr.x+dipoleB.y*dr.y+dipoleB.z*dr.z;
+  U=COULOMBIC_CONVERSION_FACTOR*(Bt1*cosAB-Bt2*cosA*cosB);
+
+  term->x=COULOMBIC_CONVERSION_FACTOR*(Bt3*(cosA*cosB)*dr.x-Bt2*(cosAB*dr.x+cosB*dipoleA.x+cosA*dipoleB.x));
+  term->y=COULOMBIC_CONVERSION_FACTOR*(Bt3*(cosA*cosB)*dr.y-Bt2*(cosAB*dr.y+cosB*dipoleA.y+cosA*dipoleB.y));
+  term->z=COULOMBIC_CONVERSION_FACTOR*(Bt3*(cosA*cosB)*dr.z-Bt2*(cosAB*dr.z+cosB*dipoleA.z+cosA*dipoleB.z));
+
+  switch(ChargeMethod)
+  {
+    case SMOOTHED_COULOMB:
+      if(rr>CutOffBondDipoleBondDipoleSwitchSquared)
+      {
+        SwitchingValue=SwitchingBondDipoleBondDipoleFactors5[5]*(rr*rr*r)+SwitchingBondDipoleBondDipoleFactors5[4]*(rr*rr)+SwitchingBondDipoleBondDipoleFactors5[3]*(rr*r)+
+                       SwitchingBondDipoleBondDipoleFactors5[2]*rr+SwitchingBondDipoleBondDipoleFactors5[1]*r+SwitchingBondDipoleBondDipoleFactors5[0];
+        SwitchingValueDerivative=5.0*SwitchingBondDipoleBondDipoleFactors5[5]*rr*rr+4.0*SwitchingBondDipoleBondDipoleFactors5[4]*rr*r+3.0*SwitchingBondDipoleBondDipoleFactors5[3]*rr+
+                                 2.0*SwitchingBondDipoleBondDipoleFactors5[2]*r+SwitchingBondDipoleBondDipoleFactors5[1];
+
+        SwitchingValueDerivative*=U/r;
+
+        U*=SwitchingValue;
+
+        term->x=term->x*SwitchingValue+SwitchingValueDerivative*dr.x;
+        term->y=term->y*SwitchingValue+SwitchingValueDerivative*dr.y;
+        term->z=term->z*SwitchingValue+SwitchingValueDerivative*dr.z;
+        break;
+    }
+  }
+
+  *energy=U;
+}
+
 
 void WriteTinkerParameterFile(void)
 {
@@ -12089,7 +12635,7 @@ void WriteTinkerKeyFile(void)
 
     fprintf(FilePtr,"ewald\n");
     fprintf(FilePtr,"ewald-alpha             %g\n",Alpha[CurrentSystem]);
-    fprintf(FilePtr,"ewald-cutoff            %g\n",CutOffChargeCharge);
+    fprintf(FilePtr,"ewald-cutoff            %g\n",CutOffChargeCharge[CurrentSystem]);
     fprintf(FilePtr,"\n");
    
     fprintf(FilePtr,"vdw-cutoff              %g\n",CutOffVDW);

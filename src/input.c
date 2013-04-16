@@ -295,8 +295,6 @@ int ReadInputFile(char *inputfilename)
   InverseCutOffVDW=1.0/CutOffVDW;
   CutOffVDWSquared=SQR(CutOffVDW);
 
-  CutOffChargeCharge=12.0;
-  CutOffChargeChargeSquared=SQR(CutOffChargeCharge);
 
   CutOffChargeBondDipole=12.0;
   CutOffChargeBondDipoleSquared=SQR(CutOffChargeBondDipole);
@@ -307,7 +305,6 @@ int ReadInputFile(char *inputfilename)
   CutOffIons=2.0;
 
   CutOffVDWSwitch=0.0;
-  CutOffChargeChargeSwitch=0.0;
   CutOffChargeBondDipoleSwitch=0.0;
   CutOffBondDipoleBondDipoleSwitch=0.0;
 
@@ -406,6 +403,10 @@ int ReadInputFile(char *inputfilename)
   RemoveBondNeighboursFromLongRangeInteraction=TRUE;
   RemoveBendNeighboursFromLongRangeInteraction=TRUE;
   RemoveTorsionNeighboursFromLongRangeInteraction=FALSE;
+
+  Remove12NeighboursFromVDWInteraction=FALSE;
+  Remove13NeighboursFromVDWInteraction=FALSE;
+  Remove14NeighboursFromVDWInteraction=FALSE;
 
   Remove12NeighboursFromChargeChargeInteraction=FALSE;
   Remove13NeighboursFromChargeChargeInteraction=FALSE;
@@ -685,6 +686,13 @@ int ReadInputFile(char *inputfilename)
     Framework[i].SurfaceAreaSamplingPointsPerShere=5;
     strcpy(Framework[i].SurfaceAreaProbeAtom,"N_n2");
     Framework[i].SurfaceAreaProbeDistance=pow(2.0,1.0/6.0);
+  }
+
+  for(i=0;i<NumberOfSystems;i++)
+  {
+    CutOffChargeCharge[i]=12.0;
+    CutOffChargeChargeSquared[i]=SQR(CutOffChargeCharge[i]);
+    CutOffChargeChargeSwitch[i]=0.0;
   }
 
   UnitCellSize=(VECTOR*)calloc(NumberOfSystems,sizeof(VECTOR));
@@ -1239,10 +1247,6 @@ int ReadInputFile(char *inputfilename)
       Framework[i].MaxNumberOfExcludedIntraChargeCharge=(int*)calloc(Framework[i].NumberOfFrameworks,sizeof(int));
       Framework[i].ExcludedIntraChargeCharge=(PAIR**)calloc(Framework[i].NumberOfFrameworks,sizeof(PAIR*));
 
-      Framework[i].NumberOfExcludedIntra14ScalingChargeCharge=(int*)calloc(Framework[i].NumberOfFrameworks,sizeof(int));
-      Framework[i].MaxNumberOfExcludedIntra14ScalingChargeCharge=(int*)calloc(Framework[i].NumberOfFrameworks,sizeof(int));
-      Framework[i].ExcludedIntra14ScalingChargeCharge=(PAIR**)calloc(Framework[i].NumberOfFrameworks,sizeof(PAIR*));
-
       Framework[i].NumberOfExcludedIntraChargeBondDipole=(int*)calloc(Framework[i].NumberOfFrameworks,sizeof(int));
       Framework[i].MaxNumberOfExcludedIntraChargeBondDipole=(int*)calloc(Framework[i].NumberOfFrameworks,sizeof(int));
       Framework[i].ExcludedIntraChargeBondDipole=(PAIR**)calloc(Framework[i].NumberOfFrameworks,sizeof(PAIR*));
@@ -1370,10 +1374,10 @@ int ReadInputFile(char *inputfilename)
     if(strcasecmp("CutOff",keyword)==0) sscanf(arguments,"%lf",&CutOffVDW);
     if(strcasecmp("CutOffVDW",keyword)==0) sscanf(arguments,"%lf",&CutOffVDW);
     if(strcasecmp("CutOffVDWSwitch",keyword)==0) sscanf(arguments,"%lf",&CutOffVDWSwitch);
-    if(strcasecmp("CutOffCoulomb",keyword)==0) sscanf(arguments,"%lf",&CutOffChargeCharge);
-    if(strcasecmp("CutOffCoulombSwitch",keyword)==0) sscanf(arguments,"%lf",&CutOffChargeChargeSwitch);
-    if(strcasecmp("CutOffChargeCharge",keyword)==0) sscanf(arguments,"%lf",&CutOffChargeCharge);
-    if(strcasecmp("CutOffChargeChargeSwitch",keyword)==0) sscanf(arguments,"%lf",&CutOffChargeChargeSwitch);
+    if(strcasecmp("CutOffCoulomb",keyword)==0) sscanf(arguments,"%lf",&CutOffChargeCharge[CurrentSystem]);
+    if(strcasecmp("CutOffCoulombSwitch",keyword)==0) sscanf(arguments,"%lf",&CutOffChargeChargeSwitch[CurrentSystem]);
+    if(strcasecmp("CutOffChargeCharge",keyword)==0) sscanf(arguments,"%lf",&CutOffChargeCharge[CurrentSystem]);
+    if(strcasecmp("CutOffChargeChargeSwitch",keyword)==0) sscanf(arguments,"%lf",&CutOffChargeChargeSwitch[CurrentSystem]);
     if(strcasecmp("CutOffChargeBondDipole",keyword)==0) sscanf(arguments,"%lf",&CutOffChargeBondDipole);
     if(strcasecmp("CutOffChargeBondDipoleSwitch",keyword)==0) sscanf(arguments,"%lf",&CutOffChargeBondDipoleSwitch);
     if(strcasecmp("CutOffBondDipoleBondDipole",keyword)==0) sscanf(arguments,"%lf",&CutOffBondDipoleBondDipole);
@@ -5151,16 +5155,20 @@ int ReadInputFile(char *inputfilename)
   {
     CutOffVDW=DBL_MAX;
     CutOffVDWSquared=DBL_MAX;
-    CutOffChargeCharge=DBL_MAX;
-    CutOffChargeChargeSquared=DBL_MAX;
+
+    for(i=0;i<NumberOfSystems;i++)
+    {
+      CutOffChargeCharge[i]=DBL_MAX;
+      CutOffChargeChargeSquared[i]=DBL_MAX;
+      CutOffChargeChargeSwitch[i]=DBL_MAX;
+      CutOffChargeChargeSwitchSquared[i]=DBL_MAX;
+    }
     CutOffChargeBondDipole=DBL_MAX;
     CutOffChargeBondDipoleSquared=DBL_MAX;
     CutOffBondDipoleBondDipole=DBL_MAX;
     CutOffBondDipoleBondDipoleSquared=DBL_MAX;
     CutOffVDWSwitch=DBL_MAX;
     CutOffVDWSwitchSquared=DBL_MAX;
-    CutOffChargeChargeSwitch=DBL_MAX;
-    CutOffChargeChargeSwitchSquared=DBL_MAX;
     CutOffChargeBondDipoleSwitch=DBL_MAX;
     CutOffChargeBondDipoleSwitchSquared=DBL_MAX;
     CutOffBondDipoleBondDipoleSwitch=DBL_MAX;
@@ -5175,20 +5183,24 @@ int ReadInputFile(char *inputfilename)
   {
     // Calculate cutoff-related values
     CutOffVDWSquared=SQR(CutOffVDW);
-    CutOffChargeChargeSquared=SQR(CutOffChargeCharge);
+    for(i=0;i<NumberOfSystems;i++)
+    {
+      CutOffChargeChargeSquared[i]=SQR(CutOffChargeCharge[i]);
+      InverseCutOffChargeCharge[i]=1.0/CutOffChargeCharge[i];
+
+      if(CutOffChargeChargeSwitch[i]<=0.0)
+        CutOffChargeChargeSwitch[i]=0.65*CutOffChargeCharge[i];
+      CutOffChargeChargeSwitchSquared[i]=SQR(CutOffChargeChargeSwitch[i]);
+    }
     CutOffChargeBondDipoleSquared=SQR(CutOffChargeBondDipole);
     CutOffBondDipoleBondDipoleSquared=SQR(CutOffBondDipoleBondDipole);
 
     InverseCutOffVDW=1.0/CutOffVDW;
-    InverseCutOffChargeCharge=1.0/CutOffChargeCharge;
 
     if(CutOffVDWSwitch<=0)
       CutOffVDWSwitch=0.9*CutOffVDW;
     CutOffVDWSwitchSquared=SQR(CutOffVDWSwitch);
 
-    if(CutOffChargeChargeSwitch<=0.0)
-      CutOffChargeChargeSwitch=0.65*CutOffChargeCharge;
-    CutOffChargeChargeSwitchSquared=SQR(CutOffChargeChargeSwitch);
 
     if(CutOffChargeBondDipoleSwitch<=0.0)
       CutOffChargeBondDipoleSwitch=0.7*CutOffChargeBondDipole;
@@ -7844,7 +7856,6 @@ void ReadRestartFile(void)
   char ExtraFrameworkMoleculeRead[256];
   int NumberOfMoleculesRead;
   char ComponentNameRead[256];
-  VECTOR tmp;
   REAL temp1,temp2,temp3;
   int int_temp1,int_temp2,int_temp3,int_temp4,int_temp5;
 

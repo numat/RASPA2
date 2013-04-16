@@ -6270,7 +6270,7 @@ void CalculateConstraintsExclusionEnergy(void)
     rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
     r=sqrt(rr);
 
-    if(rr<CutOffChargeChargeSquared)
+    if(rr<CutOffChargeChargeSquared[CurrentSystem])
     {
       switch(ChargeMethod)
       {
@@ -6278,7 +6278,7 @@ void CalculateConstraintsExclusionEnergy(void)
            energy=0.0;
            break;
          case SHIFTED_COULOMB:
-           energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-InverseCutOffChargeCharge);
+           energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-InverseCutOffChargeCharge[CurrentSystem]);
            break;
          case TRUNCATED_COULOMB:
            energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB/r;
@@ -6380,7 +6380,7 @@ void CalculateConstraintsExclusionForce(void)
     rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
     r=sqrt(rr);
 
-    if(rr<CutOffChargeChargeSquared)
+    if(rr<CutOffChargeChargeSquared[CurrentSystem])
     {
       switch(ChargeMethod)
       {
@@ -6389,7 +6389,7 @@ void CalculateConstraintsExclusionForce(void)
           force_factor=0.0;
           break;
         case SHIFTED_COULOMB:
-          energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-InverseCutOffChargeCharge);
+          energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-InverseCutOffChargeCharge[CurrentSystem]);
           force_factor=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB/(rr*r);
           break;
         case TRUNCATED_COULOMB:

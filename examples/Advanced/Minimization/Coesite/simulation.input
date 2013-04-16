@@ -27,9 +27,9 @@ RemoveAtomNumberCodeFromLabel yes
 UnitCells 1 1 1
 ReplicaUnitCells 5 3 5
 ExternalTemperature 77.0
-ExternalPressure    0e9
+ExternalPressure    0
 Movies yes
-WriteMoviesEvery 10
+WriteMoviesEvery 1
 
 FlexibleFramework                yes
 FrameworkDefinitions             CoreShellCatlow

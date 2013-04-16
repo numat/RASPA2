@@ -58,6 +58,9 @@ framework/Dubbeldam2007FlexibleIRMOF-16/Makefile \
 framework/CoreShellCatlow/Makefile \
 framework/CoreShellSchroderSauer/Makefile \
 framework/CoreShellSastreGale2005/Makefile \
+framework/Demontis/Makefile \
+framework/DemontisModified/Makefile \
+framework/Nicholas/Makefile \
 framework/NicholasModified/Makefile \
 framework/AmirjalayerSchmid/Makefile \
 framework/McKendrick2012FlexibleMIL-53/Makefile \

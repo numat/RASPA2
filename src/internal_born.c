@@ -4130,7 +4130,7 @@ void CalculateAdsorbateIntraVDWBornTerm(void)
         typeA=Adsorbates[CurrentSystem][m].Atoms[A].Type;
         typeB=Adsorbates[CurrentSystem][m].Atoms[B].Type;
 
-        PotentialSecondDerivative(typeA,typeB,rr,&energy,&DF,&DDF);
+        PotentialSecondDerivative(typeA,typeB,rr,&energy,&DF,&DDF,1.0);
         energy*=Scaling;
         DF*=Scaling;
         DDF*=Scaling;
@@ -4199,7 +4199,7 @@ void CalculateCationIntraVDWBornTerm(void)
         typeA=Cations[CurrentSystem][m].Atoms[A].Type;
         typeB=Cations[CurrentSystem][m].Atoms[B].Type;
 
-        PotentialSecondDerivative(typeA,typeB,rr,&energy,&DF,&DDF);
+        PotentialSecondDerivative(typeA,typeB,rr,&energy,&DF,&DDF,1.0);
         energy*=Scaling;
         DF*=Scaling;
         DDF*=Scaling;

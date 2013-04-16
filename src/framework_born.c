@@ -2122,12 +2122,12 @@ void CalculateFrameworkImproperTorsionBornTerm(void)
 int CalculateFrameworkIntraVDWBornTerm(void)
 {
   int i,j,typeA,typeB,start;
-  REAL ChargeA,ChargeB,energy,force_factor,DF,DDF;
+  REAL chargeA,chargeB,energy,DF,DDF;
   REAL rr;
   VECTOR posA,posB,dr,f;
   int f1,f2;
 
-  // Framework-Adsorbate energy
+  // Framework-Framework energy
   UHostHostVDW[CurrentSystem]=0.0;
 
   if(!InternalFrameworkLennardJonesInteractions) return 0;
@@ -2140,7 +2140,7 @@ int CalculateFrameworkIntraVDWBornTerm(void)
       {
         typeA=Framework[CurrentSystem].Atoms[f1][i].Type;
         posA=Framework[CurrentSystem].Atoms[f1][i].Position;
-        ChargeA=Framework[CurrentSystem].Atoms[f1][i].Charge;
+        chargeA=Framework[CurrentSystem].Atoms[f1][i].Charge;
 
         if(f1==f2) start=i+1;
         else start=0;
@@ -2150,7 +2150,7 @@ int CalculateFrameworkIntraVDWBornTerm(void)
           {
             typeB=Framework[CurrentSystem].Atoms[f2][j].Type;
             posB=Framework[CurrentSystem].Atoms[f2][j].Position;
-            ChargeB=Framework[CurrentSystem].Atoms[f2][j].Charge;
+            chargeB=Framework[CurrentSystem].Atoms[f2][j].Charge;
 
             dr.x=posA.x-posB.x;
             dr.y=posA.y-posB.y;
@@ -2160,11 +2160,10 @@ int CalculateFrameworkIntraVDWBornTerm(void)
 
             if(rr<CutOffVDWSquared)
             {
-              PotentialGradient(typeA,typeB,rr,&energy,&force_factor,1.0);
+              PotentialSecondDerivative(typeA,typeB,rr,&energy,&DF,&DDF,1.0);
 
               UHostHostVDW[CurrentSystem]+=energy;
 
-              PotentialSecondDerivative(typeA,typeB,rr,&energy,&DF,&DDF);
 
               f.x=DF*dr.x;
               f.y=DF*dr.y;
@@ -2205,8 +2204,8 @@ int CalculateFrameworkIntraVDWBornTerm(void)
 int CalculateFrameworkIntraChargeChargeBornTerm(void)
 {
   int i,j,typeA,typeB,start;
-  REAL ChargeA,ChargeB,DF,DDF;
-  REAL r,rr;
+  REAL chargeA,chargeB,DF,DDF;
+  REAL rr,energy;
   VECTOR posA,posB,dr,f;
   int f1,f2;
 
@@ -2222,17 +2221,17 @@ int CalculateFrameworkIntraChargeChargeBornTerm(void)
       {
         typeA=Framework[CurrentSystem].Atoms[f1][i].Type;
         posA=Framework[CurrentSystem].Atoms[f1][i].Position;
-        ChargeA=Framework[CurrentSystem].Atoms[f1][i].Charge;
+        chargeA=Framework[CurrentSystem].Atoms[f1][i].Charge;
 
         if(f1==f2) start=i+1;
         else start=0;
         for(j=start;j<Framework[CurrentSystem].NumberOfAtoms[f2];j++)
         {
-          if(f1!=f2?TRUE:!BITVAL(Framework[CurrentSystem].ExclusionMatrix[f1][i][j],0))
+          if(f1!=f2?TRUE:!BITVAL(Framework[CurrentSystem].ExclusionMatrix[f1][i][j],1))
           {
             typeB=Framework[CurrentSystem].Atoms[f2][j].Type;
             posB=Framework[CurrentSystem].Atoms[f2][j].Position;
-            ChargeB=Framework[CurrentSystem].Atoms[f2][j].Charge;
+            chargeB=Framework[CurrentSystem].Atoms[f2][j].Charge;
 
             dr.x=posA.x-posB.x;
             dr.y=posA.y-posB.y;
@@ -2240,56 +2239,38 @@ int CalculateFrameworkIntraChargeChargeBornTerm(void)
             dr=ApplyBoundaryCondition(dr);
             rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
 
-            if(rr<CutOffChargeChargeSquared)
+            if(rr<CutOffChargeChargeSquared[CurrentSystem])
             {
-              switch(ChargeMethod)
-              {
-                case NONE:
-                  DF=DDF=0.0;
-                  break;
-                case EWALD:
-                default:
-                  r=sqrt(rr);
-                  UHostHostChargeChargeReal[CurrentSystem]+=COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB*
-                                   (erfc(Alpha[CurrentSystem]*r)/r);
+              PotentialSecondDerivativeCoulombic(chargeA,chargeB,rr,&energy,&DF,&DDF);
 
-                  DF=-COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB*
-                       (erfc(Alpha[CurrentSystem]*r)+2.0*Alpha[CurrentSystem]*r*exp(-SQR(Alpha[CurrentSystem])*rr)/sqrt(M_PI))/
-                       (r*rr);
-
-                  DDF=ChargeA*ChargeB*COULOMBIC_CONVERSION_FACTOR*
-                      (((3.0*erfc(Alpha[CurrentSystem]*r)/(r*rr))+
-                      (4.0*CUBE(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem])*rr)/sqrt(M_PI))+
-                      (6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*rr)/(sqrt(M_PI)*rr)))/(rr));
-                  break;
-              }
+              UHostHostChargeChargeReal[CurrentSystem]+=energy;
 
               // add contribution to the energy
-              f.x=-DF*dr.x;
-              f.y=-DF*dr.y;
-              f.z=-DF*dr.z;
+              f.x=DF*dr.x;
+              f.y=DF*dr.y;
+              f.z=DF*dr.z;
 
               // forces
-              Framework[CurrentSystem].Atoms[f1][i].Force.x+=f.x;
-              Framework[CurrentSystem].Atoms[f1][i].Force.y+=f.y;
-              Framework[CurrentSystem].Atoms[f1][i].Force.z+=f.z;
+              Framework[CurrentSystem].Atoms[f1][i].Force.x-=f.x;
+              Framework[CurrentSystem].Atoms[f1][i].Force.y-=f.y;
+              Framework[CurrentSystem].Atoms[f1][i].Force.z-=f.z;
 
-              Framework[CurrentSystem].Atoms[f2][j].Force.x-=f.x;
-              Framework[CurrentSystem].Atoms[f2][j].Force.y-=f.y;
-              Framework[CurrentSystem].Atoms[f2][j].Force.z-=f.z;
+              Framework[CurrentSystem].Atoms[f2][j].Force.x+=f.x;
+              Framework[CurrentSystem].Atoms[f2][j].Force.y+=f.y;
+              Framework[CurrentSystem].Atoms[f2][j].Force.z+=f.z;
 
               // add contribution to the strain derivative tensor
-              StrainDerivativeTensor[CurrentSystem].ax-=f.x*dr.x;
-              StrainDerivativeTensor[CurrentSystem].bx-=f.y*dr.x;
-              StrainDerivativeTensor[CurrentSystem].cx-=f.z*dr.x;
+              StrainDerivativeTensor[CurrentSystem].ax+=f.x*dr.x;
+              StrainDerivativeTensor[CurrentSystem].bx+=f.y*dr.x;
+              StrainDerivativeTensor[CurrentSystem].cx+=f.z*dr.x;
 
-              StrainDerivativeTensor[CurrentSystem].ay-=f.x*dr.y;
-              StrainDerivativeTensor[CurrentSystem].by-=f.y*dr.y;
-              StrainDerivativeTensor[CurrentSystem].cy-=f.z*dr.y;
+              StrainDerivativeTensor[CurrentSystem].ay+=f.x*dr.y;
+              StrainDerivativeTensor[CurrentSystem].by+=f.y*dr.y;
+              StrainDerivativeTensor[CurrentSystem].cy+=f.z*dr.y;
 
-              StrainDerivativeTensor[CurrentSystem].az-=f.x*dr.z;
-              StrainDerivativeTensor[CurrentSystem].bz-=f.y*dr.z;
-              StrainDerivativeTensor[CurrentSystem].cz-=f.z*dr.z;
+              StrainDerivativeTensor[CurrentSystem].az+=f.x*dr.z;
+              StrainDerivativeTensor[CurrentSystem].bz+=f.y*dr.z;
+              StrainDerivativeTensor[CurrentSystem].cz+=f.z*dr.z;
 
               // add contribution to the born term
               AddContributionToBornTerm(DDF,DF,dr);
@@ -2309,6 +2290,7 @@ void FrameworkAdsorbateVDWBornTerm(void)
   REAL rr;
   REAL energy,DF,DDF;
   VECTOR posA,posB,dr,f;
+  REAL scalingA;
 
   UHostAdsorbateVDW[CurrentSystem]=0.0;
   for(i=0;i<NumberOfAdsorbateMolecules[CurrentSystem];i++)
@@ -2317,6 +2299,7 @@ void FrameworkAdsorbateVDWBornTerm(void)
     {
       typeA=Adsorbates[CurrentSystem][i].Atoms[j].Type;
       posA=Adsorbates[CurrentSystem][i].Atoms[j].Position;
+      scalingA=Adsorbates[CurrentSystem][i].Atoms[j].CFVDWScalingParameter;
 
       // energy
       for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
@@ -2333,7 +2316,7 @@ void FrameworkAdsorbateVDWBornTerm(void)
           if(rr<CutOffVDWSquared)
           {
             typeB=Framework[CurrentSystem].Atoms[f1][k].Type;
-            PotentialSecondDerivative(typeA,typeB,rr,&energy,&DF,&DDF);
+            PotentialSecondDerivative(typeA,typeB,rr,&energy,&DF,&DDF,scalingA);
 
             // energy
             UHostAdsorbateVDW[CurrentSystem]+=energy;
@@ -2383,6 +2366,7 @@ void FrameworkCationVDWBornTerm(void)
   REAL rr;
   REAL energy,DF,DDF;
   VECTOR posA,posB,dr,f;
+  REAL scalingA;
 
   UHostCationVDW[CurrentSystem]=0.0;
   for(i=0;i<NumberOfCationMolecules[CurrentSystem];i++)
@@ -2391,6 +2375,7 @@ void FrameworkCationVDWBornTerm(void)
     {
       typeA=Cations[CurrentSystem][i].Atoms[j].Type;
       posA=Cations[CurrentSystem][i].Atoms[j].Position;
+      scalingA=Cations[CurrentSystem][i].Atoms[j].CFVDWScalingParameter;
 
       // energy
       for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
@@ -2407,7 +2392,7 @@ void FrameworkCationVDWBornTerm(void)
           if(rr<CutOffVDWSquared)
           {
             typeB=Framework[CurrentSystem].Atoms[f1][k].Type;
-            PotentialSecondDerivative(typeA,typeB,rr,&energy,&DF,&DDF);
+            PotentialSecondDerivative(typeA,typeB,rr,&energy,&DF,&DDF,scalingA);
 
             // energy
             UHostCationVDW[CurrentSystem]+=energy;
@@ -2454,7 +2439,7 @@ void FrameworkAdsorbateChargeChargeBornTerm(void)
 {
   int i,j,k,f1;
   int typeA,typeB;
-  REAL r,rr;
+  REAL rr;
   REAL chargeA,chargeB;
   REAL energy,DF,DDF;
   VECTOR posA,posB,dr,f;
@@ -2480,59 +2465,42 @@ void FrameworkAdsorbateChargeChargeBornTerm(void)
           dr=ApplyBoundaryCondition(dr);
 
           rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-          if(rr<CutOffVDWSquared)
+          if(rr<CutOffChargeChargeSquared[CurrentSystem])
           {
-            r=sqrt(rr);
             typeB=Framework[CurrentSystem].Atoms[f1][k].Type;
             chargeB=Framework[CurrentSystem].Atoms[f1][k].Charge;
 
-            switch(ChargeMethod)
-            {
-              default:
-              case EWALD:
-                energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*
-                                       (erfc(Alpha[CurrentSystem]*r)/r);
-
-                DF=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*
-                     (erfc(Alpha[CurrentSystem]*r)+2.0*Alpha[CurrentSystem]*r*exp(-SQR(Alpha[CurrentSystem])*rr)/sqrt(M_PI))/
-                     (r*rr);
-
-                DDF=chargeA*chargeB*COULOMBIC_CONVERSION_FACTOR*
-                  (((3.0*erfc(Alpha[CurrentSystem]*r)/(r*rr))+
-                  (4.0*CUBE(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem])*rr)/sqrt(M_PI))+
-                  (6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*rr)/(sqrt(M_PI)*rr)))/(rr));
-                break;
-            }
+            PotentialSecondDerivativeCoulombic(chargeA,chargeB,rr,&energy,&DF,&DDF);
 
             UHostAdsorbateChargeChargeReal[CurrentSystem]+=energy;
 
-            f.x=-DF*dr.x;
-            f.y=-DF*dr.y;
-            f.z=-DF*dr.z;
+            f.x=DF*dr.x;
+            f.y=DF*dr.y;
+            f.z=DF*dr.z;
 
-            Adsorbates[CurrentSystem][i].Atoms[j].Force.x+=f.x;
-            Adsorbates[CurrentSystem][i].Atoms[j].Force.y+=f.y;
-            Adsorbates[CurrentSystem][i].Atoms[j].Force.z+=f.z;
+            Adsorbates[CurrentSystem][i].Atoms[j].Force.x-=f.x;
+            Adsorbates[CurrentSystem][i].Atoms[j].Force.y-=f.y;
+            Adsorbates[CurrentSystem][i].Atoms[j].Force.z-=f.z;
 
             if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
             {
-              Framework[CurrentSystem].Atoms[f1][k].Force.x-=f.x;
-              Framework[CurrentSystem].Atoms[f1][k].Force.y-=f.y;
-              Framework[CurrentSystem].Atoms[f1][k].Force.z-=f.z;
+              Framework[CurrentSystem].Atoms[f1][k].Force.x+=f.x;
+              Framework[CurrentSystem].Atoms[f1][k].Force.y+=f.y;
+              Framework[CurrentSystem].Atoms[f1][k].Force.z+=f.z;
             }
 
             // add contribution to the strain derivative tensor
-            StrainDerivativeTensor[CurrentSystem].ax-=f.x*dr.x;
-            StrainDerivativeTensor[CurrentSystem].bx-=f.y*dr.x;
-            StrainDerivativeTensor[CurrentSystem].cx-=f.z*dr.x;
+            StrainDerivativeTensor[CurrentSystem].ax+=f.x*dr.x;
+            StrainDerivativeTensor[CurrentSystem].bx+=f.y*dr.x;
+            StrainDerivativeTensor[CurrentSystem].cx+=f.z*dr.x;
 
-            StrainDerivativeTensor[CurrentSystem].ay-=f.x*dr.y;
-            StrainDerivativeTensor[CurrentSystem].by-=f.y*dr.y;
-            StrainDerivativeTensor[CurrentSystem].cy-=f.z*dr.y;
+            StrainDerivativeTensor[CurrentSystem].ay+=f.x*dr.y;
+            StrainDerivativeTensor[CurrentSystem].by+=f.y*dr.y;
+            StrainDerivativeTensor[CurrentSystem].cy+=f.z*dr.y;
 
-            StrainDerivativeTensor[CurrentSystem].az-=f.x*dr.z;
-            StrainDerivativeTensor[CurrentSystem].bz-=f.y*dr.z;
-            StrainDerivativeTensor[CurrentSystem].cz-=f.z*dr.z;
+            StrainDerivativeTensor[CurrentSystem].az+=f.x*dr.z;
+            StrainDerivativeTensor[CurrentSystem].bz+=f.y*dr.z;
+            StrainDerivativeTensor[CurrentSystem].cz+=f.z*dr.z;
 
             // add contribution to the born term
             AddContributionToBornTerm(DDF,DF,dr);
@@ -2547,7 +2515,7 @@ void FrameworkCationChargeChargeBornTerm(void)
 {
   int i,j,k,f1;
   int typeA,typeB;
-  REAL r,rr;
+  REAL rr;
   REAL chargeA,chargeB;
   REAL energy,DF,DDF;
   VECTOR posA,posB,dr,f;
@@ -2573,59 +2541,42 @@ void FrameworkCationChargeChargeBornTerm(void)
           dr=ApplyBoundaryCondition(dr);
 
           rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-          if(rr<CutOffVDWSquared)
+          if(rr<CutOffChargeChargeSquared[CurrentSystem])
           {
-            r=sqrt(rr);
             typeB=Framework[CurrentSystem].Atoms[f1][k].Type;
             chargeB=Framework[CurrentSystem].Atoms[f1][k].Charge;
 
-            switch(ChargeMethod)
-            {
-              default:
-              case EWALD:
-                energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*
-                                       (erfc(Alpha[CurrentSystem]*r)/r);
-
-                DF=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*
-                     (erfc(Alpha[CurrentSystem]*r)+2.0*Alpha[CurrentSystem]*r*exp(-SQR(Alpha[CurrentSystem])*rr)/sqrt(M_PI))/
-                     (r*rr);
-
-                DDF=chargeA*chargeB*COULOMBIC_CONVERSION_FACTOR*
-                  (((3.0*erfc(Alpha[CurrentSystem]*r)/(r*rr))+
-                  (4.0*CUBE(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem])*rr)/sqrt(M_PI))+
-                  (6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*rr)/(sqrt(M_PI)*rr)))/(rr));
-                break;
-            }
+            PotentialSecondDerivativeCoulombic(chargeA,chargeB,rr,&energy,&DF,&DDF);
 
             UHostCationChargeChargeReal[CurrentSystem]+=energy;
 
-            f.x=-DF*dr.x;
-            f.y=-DF*dr.y;
-            f.z=-DF*dr.z;
+            f.x=DF*dr.x;
+            f.y=DF*dr.y;
+            f.z=DF*dr.z;
 
-            Cations[CurrentSystem][i].Atoms[j].Force.x+=f.x;
-            Cations[CurrentSystem][i].Atoms[j].Force.y+=f.y;
-            Cations[CurrentSystem][i].Atoms[j].Force.z+=f.z;
+            Cations[CurrentSystem][i].Atoms[j].Force.x-=f.x;
+            Cations[CurrentSystem][i].Atoms[j].Force.y-=f.y;
+            Cations[CurrentSystem][i].Atoms[j].Force.z-=f.z;
 
             if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
             {
-              Framework[CurrentSystem].Atoms[f1][k].Force.x-=f.x;
-              Framework[CurrentSystem].Atoms[f1][k].Force.y-=f.y;
-              Framework[CurrentSystem].Atoms[f1][k].Force.z-=f.z;
+              Framework[CurrentSystem].Atoms[f1][k].Force.x+=f.x;
+              Framework[CurrentSystem].Atoms[f1][k].Force.y+=f.y;
+              Framework[CurrentSystem].Atoms[f1][k].Force.z+=f.z;
             }
 
             // add contribution to the strain derivative tensor
-            StrainDerivativeTensor[CurrentSystem].ax-=f.x*dr.x;
-            StrainDerivativeTensor[CurrentSystem].bx-=f.y*dr.x;
-            StrainDerivativeTensor[CurrentSystem].cx-=f.z*dr.x;
+            StrainDerivativeTensor[CurrentSystem].ax+=f.x*dr.x;
+            StrainDerivativeTensor[CurrentSystem].bx+=f.y*dr.x;
+            StrainDerivativeTensor[CurrentSystem].cx+=f.z*dr.x;
 
-            StrainDerivativeTensor[CurrentSystem].ay-=f.x*dr.y;
-            StrainDerivativeTensor[CurrentSystem].by-=f.y*dr.y;
-            StrainDerivativeTensor[CurrentSystem].cy-=f.z*dr.y;
+            StrainDerivativeTensor[CurrentSystem].ay+=f.x*dr.y;
+            StrainDerivativeTensor[CurrentSystem].by+=f.y*dr.y;
+            StrainDerivativeTensor[CurrentSystem].cy+=f.z*dr.y;
 
-            StrainDerivativeTensor[CurrentSystem].az-=f.x*dr.z;
-            StrainDerivativeTensor[CurrentSystem].bz-=f.y*dr.z;
-            StrainDerivativeTensor[CurrentSystem].cz-=f.z*dr.z;
+            StrainDerivativeTensor[CurrentSystem].az+=f.x*dr.z;
+            StrainDerivativeTensor[CurrentSystem].bz+=f.y*dr.z;
+            StrainDerivativeTensor[CurrentSystem].cz+=f.z*dr.z;
 
             // add contribution to the born term
             AddContributionToBornTerm(DDF,DF,dr);
@@ -2639,13 +2590,13 @@ void FrameworkCationChargeChargeBornTerm(void)
 int CalculateFrameworkIntraReplicaVDWBornTerm(void)
 {
   int i,j,typeA,typeB,start;
-  REAL ChargeA,ChargeB,energy,force_factor,DF,DDF;
+  REAL chargeA,chargeB,energy,DF,DDF;
   REAL rr;
   VECTOR posA,posB,dr,f;
   int ncell,k1,k2,k3,index_j;
   int f1,f2;
 
-  // Framework-Adsorbate energy
+  // Framework-Framework energy
   UHostHostVDW[CurrentSystem]=0.0;
 
   if(!InternalFrameworkLennardJonesInteractions) return 0;
@@ -2658,7 +2609,7 @@ int CalculateFrameworkIntraReplicaVDWBornTerm(void)
       {
         typeA=Framework[CurrentSystem].Atoms[f1][i].Type;
         posA=Framework[CurrentSystem].Atoms[f1][i].Position;
-        ChargeA=Framework[CurrentSystem].Atoms[f1][i].Charge;
+        chargeA=Framework[CurrentSystem].Atoms[f1][i].Charge;
 
         ncell=0;
         for(k1=0;k1<NumberOfReplicaCells[CurrentSystem].x;k1++)
@@ -2674,7 +2625,7 @@ int CalculateFrameworkIntraReplicaVDWBornTerm(void)
                 {
                   typeB=Framework[CurrentSystem].Atoms[f2][j].Type;
                   posB=Framework[CurrentSystem].Atoms[f2][j].Position;
-                  ChargeB=Framework[CurrentSystem].Atoms[f2][j].Charge;
+                  chargeB=Framework[CurrentSystem].Atoms[f2][j].Charge;
 
                   posB.x+=ReplicaShift[ncell].x;
                   posB.y+=ReplicaShift[ncell].y;
@@ -2688,14 +2639,12 @@ int CalculateFrameworkIntraReplicaVDWBornTerm(void)
 
                   if(rr<CutOffVDWSquared)
                   {
-                    PotentialGradient(typeA,typeB,rr,&energy,&force_factor,1.0);
+                    PotentialSecondDerivative(typeA,typeB,rr,&energy,&DF,&DDF,1.0);
 
                     if(ncell==0)
                       UHostHostVDW[CurrentSystem]+=energy;
                     else
                       UHostHostVDW[CurrentSystem]+=0.5*energy;
-
-                    PotentialSecondDerivative(typeA,typeB,rr,&energy,&DF,&DDF);
 
                     f.x=DF*dr.x;
                     f.y=DF*dr.y;
@@ -2759,8 +2708,8 @@ int CalculateFrameworkIntraReplicaVDWBornTerm(void)
 int CalculateFrameworkIntraReplicaChargeChargeBornTerm(void)
 {
   int i,j,typeA,typeB,start;
-  REAL ChargeA,ChargeB,energy,DF,DDF;
-  REAL r,rr;
+  REAL chargeA,chargeB,energy,DF,DDF;
+  REAL rr;
   VECTOR posA,posB,dr,f;
   int f1,f2,ncell,k1,k2,k3,index_j;
 
@@ -2777,7 +2726,7 @@ int CalculateFrameworkIntraReplicaChargeChargeBornTerm(void)
       {
         typeA=Framework[CurrentSystem].Atoms[f1][i].Type;
         posA=Framework[CurrentSystem].Atoms[f1][i].Position;
-        ChargeA=Framework[CurrentSystem].Atoms[f1][i].Charge;
+        chargeA=Framework[CurrentSystem].Atoms[f1][i].Charge;
 
         ncell=0;
         for(k1=0;k1<NumberOfReplicaCells[CurrentSystem].x;k1++)
@@ -2789,11 +2738,11 @@ int CalculateFrameworkIntraReplicaChargeChargeBornTerm(void)
               for(j=start;j<Framework[CurrentSystem].NumberOfAtoms[f2];j++)
               {
                 index_j=j+ncell*Framework[CurrentSystem].NumberOfAtoms[f2];
-                if(f1!=f2?TRUE:!BITVAL(Framework[CurrentSystem].ExclusionMatrix[f1][i][index_j],0))
+                if(f1!=f2?TRUE:!BITVAL(Framework[CurrentSystem].ExclusionMatrix[f1][i][index_j],1))
                 {
                   typeB=Framework[CurrentSystem].Atoms[f2][j].Type;
                   posB=Framework[CurrentSystem].Atoms[f2][j].Position;
-                  ChargeB=Framework[CurrentSystem].Atoms[f2][j].Charge;
+                  chargeB=Framework[CurrentSystem].Atoms[f2][j].Charge;
 
                   posB.x+=ReplicaShift[ncell].x;
                   posB.y+=ReplicaShift[ncell].y;
@@ -2805,30 +2754,9 @@ int CalculateFrameworkIntraReplicaChargeChargeBornTerm(void)
                   dr=ApplyReplicaBoundaryCondition(dr);
                   rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
 
-                  if(rr<CutOffChargeChargeSquared)
+                  if(rr<CutOffChargeChargeSquared[CurrentSystem])
                   {
-                    switch(ChargeMethod)
-                    {
-                      case NONE:
-                        energy=0.0;
-                        DF=DDF=0.0;
-                        break;
-                      case EWALD:
-                      default:
-                        r=sqrt(rr);
-                        energy=COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB*
-                                   (erfc(Alpha[CurrentSystem]*r)/r);
-
-                        DF=-COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB*
-                           (erfc(Alpha[CurrentSystem]*r)+2.0*Alpha[CurrentSystem]*r*exp(-SQR(Alpha[CurrentSystem])*rr)/sqrt(M_PI))/
-                           (r*rr);
-
-                        DDF=ChargeA*ChargeB*COULOMBIC_CONVERSION_FACTOR*
-                            (((3.0*erfc(Alpha[CurrentSystem]*r)/(r*rr))+
-                            (4.0*CUBE(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem])*rr)/sqrt(M_PI))+
-                            (6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*rr)/(sqrt(M_PI)*rr)))/(rr));
-                        break;
-                    }
+                    PotentialSecondDerivativeCoulombic(chargeA,chargeB,rr,&energy,&DF,&DDF);
 
                     if(ncell==0)
                       UHostHostChargeChargeReal[CurrentSystem]+=energy;
@@ -2836,33 +2764,33 @@ int CalculateFrameworkIntraReplicaChargeChargeBornTerm(void)
                       UHostHostChargeChargeReal[CurrentSystem]+=0.5*energy;
 
                     // add contribution to the energy
-                    f.x=-DF*dr.x;
-                    f.y=-DF*dr.y;
-                    f.z=-DF*dr.z;
+                    f.x=DF*dr.x;
+                    f.y=DF*dr.y;
+                    f.z=DF*dr.z;
 
                     // forces
-                    Framework[CurrentSystem].Atoms[f1][i].Force.x+=f.x;
-                    Framework[CurrentSystem].Atoms[f1][i].Force.y+=f.y;
-                    Framework[CurrentSystem].Atoms[f1][i].Force.z+=f.z;
+                    Framework[CurrentSystem].Atoms[f1][i].Force.x-=f.x;
+                    Framework[CurrentSystem].Atoms[f1][i].Force.y-=f.y;
+                    Framework[CurrentSystem].Atoms[f1][i].Force.z-=f.z;
 
                     if(ncell==0)
                     { 
-                      Framework[CurrentSystem].Atoms[f2][j].Force.x-=f.x;
-                      Framework[CurrentSystem].Atoms[f2][j].Force.y-=f.y;
-                      Framework[CurrentSystem].Atoms[f2][j].Force.z-=f.z;
+                      Framework[CurrentSystem].Atoms[f2][j].Force.x+=f.x;
+                      Framework[CurrentSystem].Atoms[f2][j].Force.y+=f.y;
+                      Framework[CurrentSystem].Atoms[f2][j].Force.z+=f.z;
 
                       // add contribution to the strain derivative tensor
-                      StrainDerivativeTensor[CurrentSystem].ax-=f.x*dr.x;
-                      StrainDerivativeTensor[CurrentSystem].bx-=f.y*dr.x;
-                      StrainDerivativeTensor[CurrentSystem].cx-=f.z*dr.x;
+                      StrainDerivativeTensor[CurrentSystem].ax+=f.x*dr.x;
+                      StrainDerivativeTensor[CurrentSystem].bx+=f.y*dr.x;
+                      StrainDerivativeTensor[CurrentSystem].cx+=f.z*dr.x;
 
-                      StrainDerivativeTensor[CurrentSystem].ay-=f.x*dr.y;
-                      StrainDerivativeTensor[CurrentSystem].by-=f.y*dr.y;
-                      StrainDerivativeTensor[CurrentSystem].cy-=f.z*dr.y;
+                      StrainDerivativeTensor[CurrentSystem].ay+=f.x*dr.y;
+                      StrainDerivativeTensor[CurrentSystem].by+=f.y*dr.y;
+                      StrainDerivativeTensor[CurrentSystem].cy+=f.z*dr.y;
 
-                      StrainDerivativeTensor[CurrentSystem].az-=f.x*dr.z;
-                      StrainDerivativeTensor[CurrentSystem].bz-=f.y*dr.z;
-                      StrainDerivativeTensor[CurrentSystem].cz-=f.z*dr.z;
+                      StrainDerivativeTensor[CurrentSystem].az+=f.x*dr.z;
+                      StrainDerivativeTensor[CurrentSystem].bz+=f.y*dr.z;
+                      StrainDerivativeTensor[CurrentSystem].cz+=f.z*dr.z;
 
                       // add contribution to the born term
                       AddContributionToBornTerm(DDF,DF,dr);
@@ -2870,17 +2798,17 @@ int CalculateFrameworkIntraReplicaChargeChargeBornTerm(void)
                     else
                     {
                       // add contribution to the strain derivative tensor
-                      StrainDerivativeTensor[CurrentSystem].ax-=0.5*f.x*dr.x;
-                      StrainDerivativeTensor[CurrentSystem].bx-=0.5*f.y*dr.x;
-                      StrainDerivativeTensor[CurrentSystem].cx-=0.5*f.z*dr.x;
+                      StrainDerivativeTensor[CurrentSystem].ax+=0.5*f.x*dr.x;
+                      StrainDerivativeTensor[CurrentSystem].bx+=0.5*f.y*dr.x;
+                      StrainDerivativeTensor[CurrentSystem].cx+=0.5*f.z*dr.x;
 
-                      StrainDerivativeTensor[CurrentSystem].ay-=0.5*f.x*dr.y;
-                      StrainDerivativeTensor[CurrentSystem].by-=0.5*f.y*dr.y;
-                      StrainDerivativeTensor[CurrentSystem].cy-=0.5*f.z*dr.y;
+                      StrainDerivativeTensor[CurrentSystem].ay+=0.5*f.x*dr.y;
+                      StrainDerivativeTensor[CurrentSystem].by+=0.5*f.y*dr.y;
+                      StrainDerivativeTensor[CurrentSystem].cy+=0.5*f.z*dr.y;
 
-                      StrainDerivativeTensor[CurrentSystem].az-=0.5*f.x*dr.z;
-                      StrainDerivativeTensor[CurrentSystem].bz-=0.5*f.y*dr.z;
-                      StrainDerivativeTensor[CurrentSystem].cz-=0.5*f.z*dr.z;
+                      StrainDerivativeTensor[CurrentSystem].az+=0.5*f.x*dr.z;
+                      StrainDerivativeTensor[CurrentSystem].bz+=0.5*f.y*dr.z;
+                      StrainDerivativeTensor[CurrentSystem].cz+=0.5*f.z*dr.z;
 
                       // add contribution to the born term
                       AddContributionToBornTerm(0.5*DDF,0.5*DF,dr);
@@ -2905,6 +2833,7 @@ void FrameworkAdsorbateReplicaVDWBornTerm(void)
   REAL rr;
   REAL energy,DF,DDF;
   VECTOR posA,posB,dr,f;
+  REAL scalingA;
 
   UHostAdsorbateVDW[CurrentSystem]=0.0;
   for(i=0;i<NumberOfAdsorbateMolecules[CurrentSystem];i++)
@@ -2913,6 +2842,7 @@ void FrameworkAdsorbateReplicaVDWBornTerm(void)
     {
       typeA=Adsorbates[CurrentSystem][i].Atoms[j].Type;
       posA=Adsorbates[CurrentSystem][i].Atoms[j].Position;
+      scalingA=Adsorbates[CurrentSystem][i].Atoms[j].CFVDWScalingParameter;
 
       // energy
       ncell=0;
@@ -2938,39 +2868,39 @@ void FrameworkAdsorbateReplicaVDWBornTerm(void)
                 if(rr<CutOffVDWSquared)
                 {
                   typeB=Framework[CurrentSystem].Atoms[f1][k].Type;
-                  PotentialSecondDerivative(typeA,typeB,rr,&energy,&DF,&DDF);
+                  PotentialSecondDerivative(typeA,typeB,rr,&energy,&DF,&DDF,scalingA);
 
                   // energy
                   UHostAdsorbateVDW[CurrentSystem]+=energy;
 
-                  f.x=-DF*dr.x;
-                  f.y=-DF*dr.y;
-                  f.z=-DF*dr.z;
+                  f.x=DF*dr.x;
+                  f.y=DF*dr.y;
+                  f.z=DF*dr.z;
 
-                  Adsorbates[CurrentSystem][i].Atoms[j].Force.x+=f.x;
-                  Adsorbates[CurrentSystem][i].Atoms[j].Force.y+=f.y;
-                  Adsorbates[CurrentSystem][i].Atoms[j].Force.z+=f.z;
+                  Adsorbates[CurrentSystem][i].Atoms[j].Force.x-=f.x;
+                  Adsorbates[CurrentSystem][i].Atoms[j].Force.y-=f.y;
+                  Adsorbates[CurrentSystem][i].Atoms[j].Force.z-=f.z;
 
                   if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
                   {
-                    Framework[CurrentSystem].Atoms[f1][k].Force.x-=f.x;
-                    Framework[CurrentSystem].Atoms[f1][k].Force.y-=f.y;
-                    Framework[CurrentSystem].Atoms[f1][k].Force.z-=f.z;
+                    Framework[CurrentSystem].Atoms[f1][k].Force.x+=f.x;
+                    Framework[CurrentSystem].Atoms[f1][k].Force.y+=f.y;
+                    Framework[CurrentSystem].Atoms[f1][k].Force.z+=f.z;
                   }
 
   
                   // add contribution to the strain derivative tensor
-                  StrainDerivativeTensor[CurrentSystem].ax-=f.x*dr.x;
-                  StrainDerivativeTensor[CurrentSystem].bx-=f.y*dr.x;
-                  StrainDerivativeTensor[CurrentSystem].cx-=f.z*dr.x;
+                  StrainDerivativeTensor[CurrentSystem].ax+=f.x*dr.x;
+                  StrainDerivativeTensor[CurrentSystem].bx+=f.y*dr.x;
+                  StrainDerivativeTensor[CurrentSystem].cx+=f.z*dr.x;
 
-                  StrainDerivativeTensor[CurrentSystem].ay-=f.x*dr.y;
-                  StrainDerivativeTensor[CurrentSystem].by-=f.y*dr.y;
-                  StrainDerivativeTensor[CurrentSystem].cy-=f.z*dr.y;
+                  StrainDerivativeTensor[CurrentSystem].ay+=f.x*dr.y;
+                  StrainDerivativeTensor[CurrentSystem].by+=f.y*dr.y;
+                  StrainDerivativeTensor[CurrentSystem].cy+=f.z*dr.y;
 
-                  StrainDerivativeTensor[CurrentSystem].az-=f.x*dr.z;
-                  StrainDerivativeTensor[CurrentSystem].bz-=f.y*dr.z;
-                  StrainDerivativeTensor[CurrentSystem].cz-=f.z*dr.z;
+                  StrainDerivativeTensor[CurrentSystem].az+=f.x*dr.z;
+                  StrainDerivativeTensor[CurrentSystem].bz+=f.y*dr.z;
+                  StrainDerivativeTensor[CurrentSystem].cz+=f.z*dr.z;
 
                   // add contribution to the born term
                   AddContributionToBornTerm(DDF,DF,dr);
@@ -2991,6 +2921,7 @@ void FrameworkCationReplicaVDWBornTerm(void)
   REAL rr;
   REAL energy,DF,DDF;
   VECTOR posA,posB,dr,f;
+  REAL scalingA;
 
   UHostCationVDW[CurrentSystem]=0.0;
   for(i=0;i<NumberOfCationMolecules[CurrentSystem];i++)
@@ -2999,6 +2930,7 @@ void FrameworkCationReplicaVDWBornTerm(void)
     {
       typeA=Cations[CurrentSystem][i].Atoms[j].Type;
       posA=Cations[CurrentSystem][i].Atoms[j].Position;
+      scalingA=Cations[CurrentSystem][i].Atoms[j].CFVDWScalingParameter;
 
       // energy
       ncell=0;
@@ -3024,39 +2956,39 @@ void FrameworkCationReplicaVDWBornTerm(void)
                 if(rr<CutOffVDWSquared)
                 {
                   typeB=Framework[CurrentSystem].Atoms[f1][k].Type;
-                  PotentialSecondDerivative(typeA,typeB,rr,&energy,&DF,&DDF);
+                  PotentialSecondDerivative(typeA,typeB,rr,&energy,&DF,&DDF,scalingA);
 
                   // energy
                   UHostCationVDW[CurrentSystem]+=energy;
 
-                  f.x=-DF*dr.x;
-                  f.y=-DF*dr.y;
-                  f.z=-DF*dr.z;
+                  f.x=DF*dr.x;
+                  f.y=DF*dr.y;
+                  f.z=DF*dr.z;
 
-                  Cations[CurrentSystem][i].Atoms[j].Force.x+=f.x;
-                  Cations[CurrentSystem][i].Atoms[j].Force.y+=f.y;
-                  Cations[CurrentSystem][i].Atoms[j].Force.z+=f.z;
+                  Cations[CurrentSystem][i].Atoms[j].Force.x-=f.x;
+                  Cations[CurrentSystem][i].Atoms[j].Force.y-=f.y;
+                  Cations[CurrentSystem][i].Atoms[j].Force.z-=f.z;
 
                   if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
                   {
-                    Framework[CurrentSystem].Atoms[f1][k].Force.x-=f.x;
-                    Framework[CurrentSystem].Atoms[f1][k].Force.y-=f.y;
-                    Framework[CurrentSystem].Atoms[f1][k].Force.z-=f.z;
+                    Framework[CurrentSystem].Atoms[f1][k].Force.x+=f.x;
+                    Framework[CurrentSystem].Atoms[f1][k].Force.y+=f.y;
+                    Framework[CurrentSystem].Atoms[f1][k].Force.z+=f.z;
                   }
 
 
                   // add contribution to the strain derivative tensor
-                  StrainDerivativeTensor[CurrentSystem].ax-=f.x*dr.x;
-                  StrainDerivativeTensor[CurrentSystem].bx-=f.y*dr.x;
-                  StrainDerivativeTensor[CurrentSystem].cx-=f.z*dr.x;
+                  StrainDerivativeTensor[CurrentSystem].ax+=f.x*dr.x;
+                  StrainDerivativeTensor[CurrentSystem].bx+=f.y*dr.x;
+                  StrainDerivativeTensor[CurrentSystem].cx+=f.z*dr.x;
 
-                  StrainDerivativeTensor[CurrentSystem].ay-=f.x*dr.y;
-                  StrainDerivativeTensor[CurrentSystem].by-=f.y*dr.y;
-                  StrainDerivativeTensor[CurrentSystem].cy-=f.z*dr.y;
+                  StrainDerivativeTensor[CurrentSystem].ay+=f.x*dr.y;
+                  StrainDerivativeTensor[CurrentSystem].by+=f.y*dr.y;
+                  StrainDerivativeTensor[CurrentSystem].cy+=f.z*dr.y;
 
-                  StrainDerivativeTensor[CurrentSystem].az-=f.x*dr.z;
-                  StrainDerivativeTensor[CurrentSystem].bz-=f.y*dr.z;
-                  StrainDerivativeTensor[CurrentSystem].cz-=f.z*dr.z;
+                  StrainDerivativeTensor[CurrentSystem].az+=f.x*dr.z;
+                  StrainDerivativeTensor[CurrentSystem].bz+=f.y*dr.z;
+                  StrainDerivativeTensor[CurrentSystem].cz+=f.z*dr.z;
 
                   // add contribution to the born term
                   AddContributionToBornTerm(DDF,DF,dr);
@@ -3109,59 +3041,43 @@ void FrameworkAdsorbateReplicaChargeChargeBornTerm(void)
                 dr=ApplyReplicaBoundaryCondition(dr);
 
                 rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-                if(rr<CutOffChargeChargeSquared)
+                if(rr<CutOffChargeChargeSquared[CurrentSystem])
                 {
                   r=sqrt(rr);
                   typeB=Framework[CurrentSystem].Atoms[f1][k].Type;
                   chargeB=Framework[CurrentSystem].Atoms[f1][k].Charge;
 
-                  switch(ChargeMethod)
-                  {
-                    default:
-                    case EWALD:
-                      energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*
-                                       (erfc(Alpha[CurrentSystem]*r)/r);
-
-                      DF=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*
-                          (erfc(Alpha[CurrentSystem]*r)+2.0*Alpha[CurrentSystem]*r*exp(-SQR(Alpha[CurrentSystem])*rr)/sqrt(M_PI))/
-                          (r*rr);
-
-                      DDF=chargeA*chargeB*COULOMBIC_CONVERSION_FACTOR*
-                          (((3.0*erfc(Alpha[CurrentSystem]*r)/(r*rr))+
-                          (4.0*CUBE(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem])*rr)/sqrt(M_PI))+
-                          (6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*rr)/(sqrt(M_PI)*rr)))/(rr));
-                      break;
-                  }
+                  PotentialSecondDerivativeCoulombic(chargeA,chargeB,rr,&energy,&DF,&DDF);
 
                   UHostAdsorbateChargeChargeReal[CurrentSystem]+=energy;
 
-                  f.x=-DF*dr.x;
-                  f.y=-DF*dr.y;
-                  f.z=-DF*dr.z;
+                  f.x=DF*dr.x;
+                  f.y=DF*dr.y;
+                  f.z=DF*dr.z;
 
-                  Adsorbates[CurrentSystem][i].Atoms[j].Force.x+=f.x;
-                  Adsorbates[CurrentSystem][i].Atoms[j].Force.y+=f.y;
-                  Adsorbates[CurrentSystem][i].Atoms[j].Force.z+=f.z;
+                  Adsorbates[CurrentSystem][i].Atoms[j].Force.x-=f.x;
+                  Adsorbates[CurrentSystem][i].Atoms[j].Force.y-=f.y;
+                  Adsorbates[CurrentSystem][i].Atoms[j].Force.z-=f.z;
 
                   if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
                   {
-                    Framework[CurrentSystem].Atoms[f1][k].Force.x-=f.x;
-                    Framework[CurrentSystem].Atoms[f1][k].Force.y-=f.y;
-                    Framework[CurrentSystem].Atoms[f1][k].Force.z-=f.z;
+                    Framework[CurrentSystem].Atoms[f1][k].Force.x+=f.x;
+                    Framework[CurrentSystem].Atoms[f1][k].Force.y+=f.y;
+                    Framework[CurrentSystem].Atoms[f1][k].Force.z+=f.z;
                   }
 
                   // add contribution to the strain derivative tensor
-                  StrainDerivativeTensor[CurrentSystem].ax-=f.x*dr.x;
-                  StrainDerivativeTensor[CurrentSystem].bx-=f.y*dr.x;
-                  StrainDerivativeTensor[CurrentSystem].cx-=f.z*dr.x;
+                  StrainDerivativeTensor[CurrentSystem].ax+=f.x*dr.x;
+                  StrainDerivativeTensor[CurrentSystem].bx+=f.y*dr.x;
+                  StrainDerivativeTensor[CurrentSystem].cx+=f.z*dr.x;
 
-                  StrainDerivativeTensor[CurrentSystem].ay-=f.x*dr.y;
-                  StrainDerivativeTensor[CurrentSystem].by-=f.y*dr.y;
-                  StrainDerivativeTensor[CurrentSystem].cy-=f.z*dr.y;
+                  StrainDerivativeTensor[CurrentSystem].ay+=f.x*dr.y;
+                  StrainDerivativeTensor[CurrentSystem].by+=f.y*dr.y;
+                  StrainDerivativeTensor[CurrentSystem].cy+=f.z*dr.y;
 
-                  StrainDerivativeTensor[CurrentSystem].az-=f.x*dr.z;
-                  StrainDerivativeTensor[CurrentSystem].bz-=f.y*dr.z;
-                  StrainDerivativeTensor[CurrentSystem].cz-=f.z*dr.z;
+                  StrainDerivativeTensor[CurrentSystem].az+=f.x*dr.z;
+                  StrainDerivativeTensor[CurrentSystem].bz+=f.y*dr.z;
+                  StrainDerivativeTensor[CurrentSystem].cz+=f.z*dr.z;
 
                   // add contribution to the born term
                   AddContributionToBornTerm(DDF,DF,dr);
@@ -3179,7 +3095,7 @@ void FrameworkCationReplicaChargeChargeBornTerm(void)
   int i,j,k,f1;
   int typeA,typeB;
   int ncell,k1,k2,k3;
-  REAL r,rr;
+  REAL rr;
   REAL chargeA,chargeB;
   REAL energy,DF,DDF;
   VECTOR posA,posB,dr,f;
@@ -3214,59 +3130,42 @@ void FrameworkCationReplicaChargeChargeBornTerm(void)
                 dr=ApplyReplicaBoundaryCondition(dr);
 
                 rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-                if(rr<CutOffChargeChargeSquared)
+                if(rr<CutOffChargeChargeSquared[CurrentSystem])
                 {
-                  r=sqrt(rr);
                   typeB=Framework[CurrentSystem].Atoms[f1][k].Type;
                   chargeB=Framework[CurrentSystem].Atoms[f1][k].Charge;
 
-                  switch(ChargeMethod)
-                  {
-                    default:
-                    case EWALD:
-                      energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*
-                                       (erfc(Alpha[CurrentSystem]*r)/r);
-
-                      DF=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*
-                          (erfc(Alpha[CurrentSystem]*r)+2.0*Alpha[CurrentSystem]*r*exp(-SQR(Alpha[CurrentSystem])*rr)/sqrt(M_PI))/
-                          (r*rr);
-
-                      DDF=chargeA*chargeB*COULOMBIC_CONVERSION_FACTOR*
-                          (((3.0*erfc(Alpha[CurrentSystem]*r)/(r*rr))+
-                          (4.0*CUBE(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem])*rr)/sqrt(M_PI))+
-                          (6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*rr)/(sqrt(M_PI)*rr)))/(rr));
-                      break;
-                  }
+                  PotentialSecondDerivativeCoulombic(chargeA,chargeB,rr,&energy,&DF,&DDF);
 
                   UHostCationChargeChargeReal[CurrentSystem]+=energy;
 
-                  f.x=-DF*dr.x;
-                  f.y=-DF*dr.y;
-                  f.z=-DF*dr.z;
+                  f.x=DF*dr.x;
+                  f.y=DF*dr.y;
+                  f.z=DF*dr.z;
 
-                  Cations[CurrentSystem][i].Atoms[j].Force.x+=f.x;
-                  Cations[CurrentSystem][i].Atoms[j].Force.y+=f.y;
-                  Cations[CurrentSystem][i].Atoms[j].Force.z+=f.z;
+                  Cations[CurrentSystem][i].Atoms[j].Force.x-=f.x;
+                  Cations[CurrentSystem][i].Atoms[j].Force.y-=f.y;
+                  Cations[CurrentSystem][i].Atoms[j].Force.z-=f.z;
 
                   if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
                   {
-                    Framework[CurrentSystem].Atoms[f1][k].Force.x-=f.x;
-                    Framework[CurrentSystem].Atoms[f1][k].Force.y-=f.y;
-                    Framework[CurrentSystem].Atoms[f1][k].Force.z-=f.z;
+                    Framework[CurrentSystem].Atoms[f1][k].Force.x+=f.x;
+                    Framework[CurrentSystem].Atoms[f1][k].Force.y+=f.y;
+                    Framework[CurrentSystem].Atoms[f1][k].Force.z+=f.z;
                   }
 
                   // add contribution to the strain derivative tensor
-                  StrainDerivativeTensor[CurrentSystem].ax-=f.x*dr.x;
-                  StrainDerivativeTensor[CurrentSystem].bx-=f.y*dr.x;
-                  StrainDerivativeTensor[CurrentSystem].cx-=f.z*dr.x;
+                  StrainDerivativeTensor[CurrentSystem].ax+=f.x*dr.x;
+                  StrainDerivativeTensor[CurrentSystem].bx+=f.y*dr.x;
+                  StrainDerivativeTensor[CurrentSystem].cx+=f.z*dr.x;
 
-                  StrainDerivativeTensor[CurrentSystem].ay-=f.x*dr.y;
-                  StrainDerivativeTensor[CurrentSystem].by-=f.y*dr.y;
-                  StrainDerivativeTensor[CurrentSystem].cy-=f.z*dr.y;
+                  StrainDerivativeTensor[CurrentSystem].ay+=f.x*dr.y;
+                  StrainDerivativeTensor[CurrentSystem].by+=f.y*dr.y;
+                  StrainDerivativeTensor[CurrentSystem].cy+=f.z*dr.y;
 
-                  StrainDerivativeTensor[CurrentSystem].az-=f.x*dr.z;
-                  StrainDerivativeTensor[CurrentSystem].bz-=f.y*dr.z;
-                  StrainDerivativeTensor[CurrentSystem].cz-=f.z*dr.z;
+                  StrainDerivativeTensor[CurrentSystem].az+=f.x*dr.z;
+                  StrainDerivativeTensor[CurrentSystem].bz+=f.y*dr.z;
+                  StrainDerivativeTensor[CurrentSystem].cz+=f.z*dr.z;
 
                   // add contribution to the born term
                   AddContributionToBornTerm(DDF,DF,dr);

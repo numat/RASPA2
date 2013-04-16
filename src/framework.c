@@ -173,23 +173,6 @@ void MakeFrameworkCellList(void)
 }
 
 
-int GetNeighbour(int system,int f1,int A,int k)
-{
-  int B;
-
-  A%=Framework[system].NumberOfAtoms[f1];
-  B=Framework[system].Neighbours[f1][A][k]%Framework[system].NumberOfAtoms[f1];
-  return B;
-}
-
-int GetReplicaNeighbour(int system,int f1,int A,int k)
-{
-  int B;
-
-  B=Framework[system].Neighbours[f1][A][k];
-  return B;
-}
-
 
 void CheckFrameworkCharges(void)
 {
@@ -2249,13 +2232,11 @@ void WriteFrameworkDefinitionCIF(char * string)
             if(PseudoAtoms[i].OxidationState!=0)
               strcat(symbol,PseudoAtoms[i].OxidationStateString);
 
-            // HERE
-
             if(fabs(pos.x)<1e-10) pos.x=fabs(pos.x);
             if(fabs(pos.y)<1e-10) pos.y=fabs(pos.y);
             if(fabs(pos.z)<1e-10) pos.z=fabs(pos.z);
 
-            fprintf(FilePtr,"%-8s %-5s % -12g % -12g % -12g % -12g\n",
+            fprintf(FilePtr,"%-8s %-5s % -18.12f % -18.12f % -18.12f % -12g\n",
                     name,
                     symbol,
                     fabs(pos.x)<1e-12?0.0:pos.x,
@@ -2469,7 +2450,7 @@ void WriteFrameworkDefinitionCIF(char * string)
         if(PseudoAtoms[Type].OxidationState!=0)
           strcat(symbol,PseudoAtoms[Type].OxidationStateString);
 
-        fprintf(FilePtr,"%-8s %-5s % -12g % -12g % -12g % -12g\n",
+        fprintf(FilePtr,"%-8s %-5s % -18.12f % -18.12f % -18.12f % -12g\n",
                 name,
                 symbol,
                 fabs(pos.x)<1e-12?0.0:pos.x,
@@ -2684,7 +2665,7 @@ void WriteFrameworkDefinitionCIF(char * string)
           pos=Framework[CurrentSystem].AtomsAsymmetric[CurrentFramework][i].Position;
           
           //fprintf(FilePtr,"%-8s %-5s %-4s % -12g % -12g % -12g % -7g % -7g\n",
-          fprintf(FilePtr,"%-8s %-5s % -12g % -12g % -12g % -7g\n",
+          fprintf(FilePtr,"%-8s %-5s % -18.12f % -18.12f % -18.12f % -7g\n",
                   name,
                   //PseudoAtoms[Type].PrintToPDBName,
                   PseudoAtoms[Type].ChemicalElement,
@@ -4561,9 +4542,7 @@ void GenerateFramework(void)
 
   //Framework[CurrentSystem].NumberOfFrameworks=1;
   MakeConnectivityList();
-  PrintConnectivityList();
-  printf("Framework[CurrentSystem].NumberOfAtoms[0]: %d\n",Framework[CurrentSystem].NumberOfAtoms[0]);
-  printf("Framework[CurrentSystem].NumberOfAtoms[1]: %d\n",Framework[CurrentSystem].NumberOfAtoms[1]);
+  //PrintConnectivityList();
 
 
   // remove disorder of hydrogens
@@ -5139,12 +5118,59 @@ void FreeAllocateConnectivityList(void)
   }
 }
 
-// Two atoms are considered bonded when the distance between them is smaller 
-// than (the sum of their covalent radii plus 0.56 Angstroms).
+/*********************************************************************************************************
+ * Name       | GetNeighbour                                                                             *
+ * ----------------------------------------------------------------------------------------------------- *
+ * Function   | Returns the neighbor in the unit-cell                                                    *
+ * Note       | The Neighbours-list is made for the replica-cell and of size                             *
+ *            | 'TotalNumberOfReplicaCells[CurrentSystem]*Framework[CurrentSystem].NumberOfAtoms[f]'     *
+ *            | The first 'Framework[CurrentSystem].NumberOfAtoms[f]'-elements are the unit cell ones.   *
+ *            | The order is cell by cell and the atoms are ordered identically.                         *
+ *            | Therefore to get the neighbor in the unit cell the modules-operator is used.             *
+ *********************************************************************************************************/
+
+int GetNeighbour(int system,int f1,int A,int k)
+{
+  int B;
+
+  A%=Framework[system].NumberOfAtoms[f1];
+  B=Framework[system].Neighbours[f1][A][k]%Framework[system].NumberOfAtoms[f1];
+  return B;
+}
+
+/*********************************************************************************************************
+ * Name       | GetReplicaNeighbour                                                                      *
+ * ----------------------------------------------------------------------------------------------------- *
+ * Function   | Returns the neighbor in the replica-cell                                                 *
+ * Note       | The Neighbours-list is made for the replica-cell and of size                             *
+ *            | 'TotalNumberOfReplicaCells[CurrentSystem]*Framework[CurrentSystem].NumberOfAtoms[f]'     *
+ *            | The first 'Framework[CurrentSystem].NumberOfAtoms[f]'-elements are the unit cell ones.   *
+ *********************************************************************************************************/
+
+int GetReplicaNeighbour(int system,int f1,int A,int k)
+{
+  int B;
+
+  B=Framework[system].Neighbours[f1][A][k];
+  return B;
+}
+
+
+/*********************************************************************************************************
+ * Name       | MakeConnectivityList                                                                     *
+ * ----------------------------------------------------------------------------------------------------- *
+ * Function   | Creates a connectivity-list of the replica-cell                                          *
+ * Note       | The Neighbours-list is of size                                                           *
+ *            | 'TotalNumberOfReplicaCells[CurrentSystem]*Framework[CurrentSystem].NumberOfAtoms[f]'     *
+ *            | The first 'Framework[CurrentSystem].NumberOfAtoms[f]'-elements are the unit cell ones.   *
+ *            | The order is cell by cell and the atoms are ordered identically.                         *
+ *            | Two atoms are considered bonded when the distance between them is smaller than the sum   *
+ *            | of their covalent radii plus 0.56 Angstroms.                                             *
+ *********************************************************************************************************/
+
 void MakeConnectivityList(void)
 {
   int i,j,k,l,f;
-  int k1,k2,k3,l1,l2,l3;
   int typeA,typeB,ncell1,ncell2;
   REAL r,Bond_length;
   VECTOR dr,posA,posB;
@@ -5161,92 +5187,80 @@ void MakeConnectivityList(void)
 
   for(f=0;f<Framework[CurrentSystem].NumberOfFrameworks;f++)
   {
-    // make bond list
-    ncell1=0;
-    for(k1=0;k1<NumberOfReplicaCells[CurrentSystem].x;k1++)
-      for(k2=0;k2<NumberOfReplicaCells[CurrentSystem].y;k2++)
-        for(k3=0;k3<NumberOfReplicaCells[CurrentSystem].z;k3++)
+    for(ncell1=0;ncell1<TotalNumberOfReplicaCells[CurrentSystem];ncell1++)
+    {
+      for(i=0;i<Framework[CurrentSystem].NumberOfAtoms[f];i++)
+      {
+        index_i=i+ncell1*Framework[CurrentSystem].NumberOfAtoms[f];
+        Framework[CurrentSystem].Connectivity[f][index_i]=0;
+
+        posA=Framework[CurrentSystem].Atoms[f][i].Position;
+        typeA=Framework[CurrentSystem].Atoms[f][i].Type;
+        posA.x+=ReplicaShift[ncell1].x;
+        posA.y+=ReplicaShift[ncell1].y;
+        posA.z+=ReplicaShift[ncell1].z;
+
+        for(ncell2=0;ncell2<TotalNumberOfReplicaCells[CurrentSystem];ncell2++)
         {
-          for(i=0;i<Framework[CurrentSystem].NumberOfAtoms[f];i++)
+          for(j=0;j<Framework[CurrentSystem].NumberOfAtoms[f];j++)
           {
-            index_i=i+ncell1*Framework[CurrentSystem].NumberOfAtoms[f];
-            Framework[CurrentSystem].Connectivity[f][index_i]=0;
+            index_j=j+ncell2*Framework[CurrentSystem].NumberOfAtoms[f];
 
-            posA=Framework[CurrentSystem].Atoms[f][i].Position;
-            typeA=Framework[CurrentSystem].Atoms[f][i].Type;
-            posA.x+=ReplicaShift[ncell1].x;
-            posA.y+=ReplicaShift[ncell1].y;
-            posA.z+=ReplicaShift[ncell1].z;
+            posB=Framework[CurrentSystem].Atoms[f][j].Position;
+            typeB=Framework[CurrentSystem].Atoms[f][j].Type;
+            posB.x+=ReplicaShift[ncell2].x;
+            posB.y+=ReplicaShift[ncell2].y;
+            posB.z+=ReplicaShift[ncell2].z;
 
-            ncell2=0;
-            for(l1=0;l1<NumberOfReplicaCells[CurrentSystem].x;l1++)
-              for(l2=0;l2<NumberOfReplicaCells[CurrentSystem].y;l2++)
-                for(l3=0;l3<NumberOfReplicaCells[CurrentSystem].z;l3++)
-                {
-                  for(j=0;j<Framework[CurrentSystem].NumberOfAtoms[f];j++)
-                  {
-                    index_j=j+ncell2*Framework[CurrentSystem].NumberOfAtoms[f];
+            Bond_length=0.56+PseudoAtoms[typeA].Radius+PseudoAtoms[typeB].Radius;
+            dr.x=posA.x-posB.x;
+            dr.y=posA.y-posB.y;
+            dr.z=posA.z-posB.z;
+            dr=ApplyReplicaBoundaryCondition(dr);
+            r=sqrt(SQR(dr.x)+SQR(dr.y)+SQR(dr.z));
 
-                    posB=Framework[CurrentSystem].Atoms[f][j].Position;
-                    typeB=Framework[CurrentSystem].Atoms[f][j].Type;
-                    posB.x+=ReplicaShift[ncell2].x;
-                    posB.y+=ReplicaShift[ncell2].y;
-                    posB.z+=ReplicaShift[ncell2].z;
-
-                    Bond_length=0.56+PseudoAtoms[typeA].Radius+PseudoAtoms[typeB].Radius;
-                    dr.x=posA.x-posB.x;
-                    dr.y=posA.y-posB.y;
-                    dr.z=posA.z-posB.z;
-
-                    dr=ApplyReplicaBoundaryCondition(dr);
-                    r=sqrt(SQR(dr.x)+SQR(dr.y)+SQR(dr.z));
-                    if((index_i!=index_j)&&(r<Bond_length))
-                      Framework[CurrentSystem].Neighbours[f][index_i][Framework[CurrentSystem].Connectivity[f][index_i]++]=index_j;
-                  }
-                  ncell2++;
-                }
+            if((index_i!=index_j)&&(r<Bond_length))
+              Framework[CurrentSystem].Neighbours[f][index_i][Framework[CurrentSystem].Connectivity[f][index_i]++]=index_j;
           }
-          ncell1++;
         }
+      }
+    }
   }
 }
+
 
 void PrintConnectivityList(void)
 {
   int i;
-  int f,ncell1,k1,k2,k3,index_i;
+  int f,ncell,index_i;
 
   if(UseReplicas[CurrentSystem])
   {
     for(f=0;f<Framework[CurrentSystem].NumberOfFrameworks;f++)
     {
-      ncell1=0;
-      for(k1=0;k1<NumberOfReplicaCells[CurrentSystem].x;k1++)
-        for(k2=0;k2<NumberOfReplicaCells[CurrentSystem].y;k2++)
-          for(k3=0;k3<NumberOfReplicaCells[CurrentSystem].z;k3++)
-          {
-            for(i=0;i<Framework[CurrentSystem].NumberOfAtoms[f];i++)
-            {
-              index_i=i+ncell1*Framework[CurrentSystem].NumberOfAtoms[f];
+      for(i=0;i<Framework[CurrentSystem].NumberOfAtoms[f];i++)
+      {
+        for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
+        {
+          index_i=i+ncell*Framework[CurrentSystem].NumberOfAtoms[f];
 
-              printf("%d connectivity: %d type: %s %d %d %d %d %d %d %d %d %lf %lf %lf\n",
-                index_i,
-                Framework[CurrentSystem].Connectivity[f][index_i],
-                PseudoAtoms[Framework[CurrentSystem].Atoms[f][i].Type].Name,
-                Framework[CurrentSystem].Neighbours[f][index_i][0],
-                Framework[CurrentSystem].Neighbours[f][index_i][1],
-                Framework[CurrentSystem].Neighbours[f][index_i][2],
-                Framework[CurrentSystem].Neighbours[f][index_i][3],
-                Framework[CurrentSystem].Neighbours[f][index_i][4],
-                Framework[CurrentSystem].Neighbours[f][index_i][5],
-                Framework[CurrentSystem].Neighbours[f][index_i][6],
-                Framework[CurrentSystem].Neighbours[f][index_i][7],
-                (double)Framework[CurrentSystem].Atoms[f][i].Position.x+ReplicaShift[ncell1].x,
-                (double)Framework[CurrentSystem].Atoms[f][i].Position.y+ReplicaShift[ncell1].y,
-                (double)Framework[CurrentSystem].Atoms[f][i].Position.z+ReplicaShift[ncell1].z);
-            }
-            ncell1++;
-          }
+          printf("%d connectivity: %d type: %s %d %d %d %d %d %d %d %d %lf %lf %lf\n",
+            index_i,
+            Framework[CurrentSystem].Connectivity[f][index_i],
+            PseudoAtoms[Framework[CurrentSystem].Atoms[f][i].Type].Name,
+            Framework[CurrentSystem].Neighbours[f][index_i][0],
+            Framework[CurrentSystem].Neighbours[f][index_i][1],
+            Framework[CurrentSystem].Neighbours[f][index_i][2],
+            Framework[CurrentSystem].Neighbours[f][index_i][3],
+            Framework[CurrentSystem].Neighbours[f][index_i][4],
+            Framework[CurrentSystem].Neighbours[f][index_i][5],
+            Framework[CurrentSystem].Neighbours[f][index_i][6],
+            Framework[CurrentSystem].Neighbours[f][index_i][7],
+            (double)Framework[CurrentSystem].Atoms[f][i].Position.x+ReplicaShift[ncell].x,
+            (double)Framework[CurrentSystem].Atoms[f][i].Position.y+ReplicaShift[ncell].y,
+            (double)Framework[CurrentSystem].Atoms[f][i].Position.z+ReplicaShift[ncell].z);
+        }
+      }
     }
   }
   else
@@ -7781,12 +7795,11 @@ int ReadFrameworkDefinition(void)
           Framework[CurrentSystem].Atoms[f1][index].Position.x=Framework[CurrentSystem].Atoms[f1][A].Position.x+(RandomNumber()*0.1);
           Framework[CurrentSystem].Atoms[f1][index].Position.y=Framework[CurrentSystem].Atoms[f1][A].Position.y+(RandomNumber()*0.1);
           Framework[CurrentSystem].Atoms[f1][index].Position.z=Framework[CurrentSystem].Atoms[f1][A].Position.z+(RandomNumber()*0.1);
-          //Framework[CurrentSystem].Atoms[f1][index].Position.x=Framework[CurrentSystem].Atoms[f1][A].Position.x+0.02;
-          //Framework[CurrentSystem].Atoms[f1][index].Position.y=Framework[CurrentSystem].Atoms[f1][A].Position.y+0.03;
-          //Framework[CurrentSystem].Atoms[f1][index].Position.z=Framework[CurrentSystem].Atoms[f1][A].Position.z+0.04;
   
           Framework[CurrentSystem].CoreShellConnectivity[f1][index]=A;
           Framework[CurrentSystem].CoreShellConnectivity[f1][A]=index;
+
+          Framework[CurrentSystem].NumberOfCoreShellsPerType[i]++;
   
           index++;
           Framework[CurrentSystem].TotalNumberOfAtoms++;
@@ -10554,6 +10567,17 @@ int IsDefinedImproperTorsion(int system,int f1,int A,int B,int C,int D)
   return FALSE;
 }
 
+/*********************************************************************************************************
+ * Name       | MakeExclusionMatrix                                                                      *
+ * ----------------------------------------------------------------------------------------------------- *
+ * Function   | Creates a binary exclusion-matrix for VDW, charge, charge-bonddipole, and                *
+ *            | bonddipole-bondipole.                                                                    *
+ * Note       | Bit 0: 1 omit VDW interaction, 0 pair has VDW interaction                                *
+ *            | Bit 1: 1 omit charge-charge interaction, 0 pair has charge-charge interaction            *
+ *            | Bit 2: 1 omit charge-bonddipole interaction, 0 pair has charge-bonddipole interaction    *
+ *            | Bit 3: 1 omit bondipole-bonddipole interaction, 0 pair has bonddipole-bonddipole inter.  *
+ *            | Bit 4,5,6: same as 1,2,3 but for the unit cell (not the replica cell)                    *
+ *********************************************************************************************************/
 
 void MakeExclusionMatrix(int system)
 {
@@ -10562,6 +10586,7 @@ void MakeExclusionMatrix(int system)
   int index1,index2;
   int largest_size;
 
+  // allocate memory for the exclusion-matrix
   Framework[system].ExclusionMatrix=(char***)calloc(Framework[system].NumberOfFrameworks,sizeof(char**));
   for(f1=0;f1<Framework[system].NumberOfFrameworks;f1++)
   {
@@ -10576,6 +10601,88 @@ void MakeExclusionMatrix(int system)
     }
   }
 
+  // General: count all possible 1-2, 1-3, and 1-4 interactions in the unit cell
+  // ==============================================================================================
+  for(f1=0;f1<Framework[system].NumberOfFrameworks;f1++)
+  {
+    for(A=0;A<Framework[system].NumberOfAtoms[f1];A++)
+    {
+      for(k=0;k<Framework[system].Connectivity[f1][A];k++)
+      {
+        B=GetNeighbour(system,f1,A,k);
+
+        // always mark as a 1-2 interaction
+        SETBIT(Framework[system].ExclusionMatrix[f1][A][B],0);
+        if(B<Framework[system].NumberOfAtoms[f1])
+          SETBIT(Framework[system].ExclusionMatrix[f1][B][A],0);
+
+        for(l=0;l<Framework[system].Connectivity[f1][B];l++)
+        {
+          C=GetNeighbour(system,f1,B,l);
+          if(A!=C)
+          {
+            // always mark as a 1-3 interaction
+            SETBIT(Framework[system].ExclusionMatrix[f1][A][C],1);
+            if(C<Framework[system].NumberOfAtoms[f1])
+              SETBIT(Framework[system].ExclusionMatrix[f1][C][A],1);
+          }
+
+          for(m=0;m<Framework[system].Connectivity[f1][C];m++)
+          {
+            D=GetNeighbour(system,f1,C,m);
+            if((D!=B)&&(D!=A))
+            {
+              // always mark as a 1-4 interaction
+              SETBIT(Framework[system].ExclusionMatrix[f1][A][D],2);
+              if(D<Framework[system].NumberOfAtoms[f1])
+                SETBIT(Framework[system].ExclusionMatrix[f1][D][A],2);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  for(f1=0;f1<Framework[system].NumberOfFrameworks;f1++)
+  {
+    Framework[system].NumberOfIntra12Interactions=0;
+    Framework[system].NumberOfIntra13Interactions=0;
+    Framework[system].NumberOfIntra14Interactions=0;
+    Framework[system].NumberOfIntra123Interactions=0;
+    Framework[system].NumberOfIntra1234Interactions=0;
+    for(i=0;i<Framework[system].NumberOfAtoms[f1];i++)
+    {
+      for(j=i+1;j<Framework[system].NumberOfAtoms[f1];j++)
+      {
+        if(BITVAL(Framework[system].ExclusionMatrix[f1][i][j],0))
+          Framework[system].NumberOfIntra12Interactions++;
+        if(BITVAL(Framework[system].ExclusionMatrix[f1][i][j],1))
+          Framework[system].NumberOfIntra13Interactions++;
+        if(BITVAL(Framework[system].ExclusionMatrix[f1][i][j],2))
+          Framework[system].NumberOfIntra14Interactions++;
+        if((BITVAL(Framework[system].ExclusionMatrix[f1][i][j],0))||(BITVAL(Framework[system].ExclusionMatrix[f1][i][j],1)))
+          Framework[system].NumberOfIntra123Interactions++;
+        if((BITVAL(Framework[system].ExclusionMatrix[f1][i][j],0))||(BITVAL(Framework[system].ExclusionMatrix[f1][i][j],1))||
+           (BITVAL(Framework[system].ExclusionMatrix[f1][i][j],2)))
+          Framework[system].NumberOfIntra1234Interactions++;
+      }
+    }
+  }
+  for(f1=0;f1<Framework[system].NumberOfFrameworks;f1++)
+  {
+    for(i=0;i<Framework[system].NumberOfAtoms[f1];i++) 
+    {
+      for(j=0;j<Framework[system].NumberOfAtoms[f1];j++)
+      {
+        CLEARBIT(Framework[system].ExclusionMatrix[f1][i][j],0); 
+        CLEARBIT(Framework[system].ExclusionMatrix[f1][i][j],1); 
+        CLEARBIT(Framework[system].ExclusionMatrix[f1][i][j],2); 
+      }
+    }
+  }
+
+  // VDW-VDW
+  // ==============================================================================================
   // set general 1-2, 1-3, 1-4 exclusions for VDW
   // VDW is based on replica-method using 'GetReplicaNeighbour'
   for(f1=0;f1<Framework[system].NumberOfFrameworks;f1++)
@@ -10594,10 +10701,6 @@ void MakeExclusionMatrix(int system)
           if(B<Framework[system].NumberOfAtoms[f1])
             SETBIT(Framework[system].ExclusionMatrix[f1][B][A],0);
         }
-        // always mark as a 1-2 interaction
-        SETBIT(Framework[system].ExclusionMatrix[f1][A][B],4);
-        if(B<Framework[system].NumberOfAtoms[f1])
-          SETBIT(Framework[system].ExclusionMatrix[f1][B][A],4);
 
         for(l=0;l<Framework[system].Connectivity[f1][B];l++)
         {
@@ -10611,11 +10714,6 @@ void MakeExclusionMatrix(int system)
               if(C<Framework[system].NumberOfAtoms[f1])
                 SETBIT(Framework[system].ExclusionMatrix[f1][C][A],0);
             }
-
-            // always mark as a 1-3 interaction
-            SETBIT(Framework[system].ExclusionMatrix[f1][A][C],5);
-            if(C<Framework[system].NumberOfAtoms[f1])
-              SETBIT(Framework[system].ExclusionMatrix[f1][C][A],5);
           }
 
           for(m=0;m<Framework[system].Connectivity[f1][C];m++)
@@ -10630,11 +10728,6 @@ void MakeExclusionMatrix(int system)
                 if(D<Framework[system].NumberOfAtoms[f1])
                   SETBIT(Framework[system].ExclusionMatrix[f1][D][A],0);
               }
-
-              // always mark as a 1-4 interaction
-              SETBIT(Framework[system].ExclusionMatrix[f1][A][D],6);
-              if(D<Framework[system].NumberOfAtoms[f1])
-                SETBIT(Framework[system].ExclusionMatrix[f1][D][A],6);
             }
           }
         }
@@ -10642,7 +10735,11 @@ void MakeExclusionMatrix(int system)
     }
   }
 
+  // Charge-charge
+  // ==============================================================================================
+
   // set general 1-2, 1-3, 1-4 exclusions for charge-charge interactions
+  // charge-charge is based on replica-method using 'GetReplicaNeighbour'
   for(f1=0;f1<Framework[system].NumberOfFrameworks;f1++)
   {
     for(A=0;A<Framework[system].NumberOfAtoms[f1];A++)
@@ -10692,7 +10789,62 @@ void MakeExclusionMatrix(int system)
     }
   }
 
+  // set general 1-2, 1-3, 1-4 exclusions for charge-charge exclusion-list
+  // charge exclusion in Fourier-space is based on the unit-cell using 'GetNeighbour'
+  for(f1=0;f1<Framework[system].NumberOfFrameworks;f1++)
+  {
+    for(A=0;A<Framework[system].NumberOfAtoms[f1];A++)
+    {
+      SETBIT(Framework[system].ExclusionMatrix[f1][A][A],4);
+      for(k=0;k<Framework[system].Connectivity[f1][A];k++)
+      {
+        B=GetNeighbour(system,f1,A,k);
+
+        // we now have 2 connected atoms: A and B
+        if(Remove12NeighboursFromChargeChargeInteraction||(RemoveBondNeighboursFromLongRangeInteraction&&IsDefinedBond(system,f1,A,B)))
+        {
+          SETBIT(Framework[system].ExclusionMatrix[f1][A][B],4);
+          if(B<Framework[system].NumberOfAtoms[f1])
+            SETBIT(Framework[system].ExclusionMatrix[f1][B][A],4);
+        }
+        for(l=0;l<Framework[system].Connectivity[f1][B];l++)
+        {
+          C=GetNeighbour(system,f1,B,l);
+          if(A!=C)
+          {
+            // we now have 3 connected atoms: A, B and C
+            if(Remove13NeighboursFromChargeChargeInteraction||(RemoveBendNeighboursFromLongRangeInteraction&&IsDefinedBend(system,f1,A,B,C)))
+            {
+              SETBIT(Framework[system].ExclusionMatrix[f1][A][C],4);
+              if(C<Framework[system].NumberOfAtoms[f1])
+                SETBIT(Framework[system].ExclusionMatrix[f1][C][A],4);
+            }
+          }
+
+          for(m=0;m<Framework[system].Connectivity[f1][C];m++)
+          {
+            D=GetNeighbour(system,f1,C,m);
+            if((D!=B)&&(D!=A))
+            {
+              // we now have 4 connected atoms: A, B, C, D
+              if(Remove14NeighboursFromChargeChargeInteraction||(RemoveTorsionNeighboursFromLongRangeInteraction&&IsDefinedTorsion(system,f1,A,B,C,D)))
+              {
+                SETBIT(Framework[system].ExclusionMatrix[f1][A][D],4);
+                if(D<Framework[system].NumberOfAtoms[f1])
+                  SETBIT(Framework[system].ExclusionMatrix[f1][D][A],4);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Charge-bonddipole
+  // ==============================================================================================
+
   // set general 1-2, 1-3, 1-4 exclusions for charge-bonddipole interactions
+  // charge-bonddipole is based on replica-method using 'GetReplicaNeighbour'
   for(f1=0;f1<Framework[system].NumberOfFrameworks;f1++)
   {
     for(A=0;A<Framework[system].NumberOfAtoms[f1];A++)
@@ -10745,7 +10897,66 @@ void MakeExclusionMatrix(int system)
     }
   }
 
+  // set general 1-2, 1-3, 1-4 exclusions for charge-bonddipole exclusion-list
+  // charge-bonddipole exclusion in Fourier-space is based on the unit-cell using 'GetNeighbour'
+  for(f1=0;f1<Framework[system].NumberOfFrameworks;f1++)
+  {
+    for(A=0;A<Framework[system].NumberOfAtoms[f1];A++)
+    {
+      for(k=0;k<Framework[system].Connectivity[f1][A];k++)
+      {
+        B=GetNeighbour(system,f1,A,k);
+
+        // we now have 2 connected atoms: A and B
+        index1=ReturnDipoleIndex(f1,A,B);
+        if(Remove11NeighboursFromChargeBondDipoleInteraction&&(index1>=0))
+        {
+          SETBIT(Framework[system].ExclusionMatrix[f1][A][index1],5);
+          if(B<Framework[system].NumberOfAtoms[f1])
+            SETBIT(Framework[system].ExclusionMatrix[f1][B][index1],5);
+        }
+        for(l=0;l<Framework[system].Connectivity[f1][B];l++)
+        {
+          C=GetNeighbour(system,f1,B,l);
+          if(A!=C)
+          {
+            // we now have 3 connected atoms: A, B and C
+            index1=ReturnDipoleIndex(f1,A,B);
+            if(Remove12NeighboursFromChargeBondDipoleInteraction&&(index1>=0))
+            {
+              if(C<Framework[system].NumberOfAtoms[f1])
+                SETBIT(Framework[system].ExclusionMatrix[f1][C][index1],5);
+            }
+            index1=ReturnDipoleIndex(f1,B,C);
+            if(Remove12NeighboursFromChargeBondDipoleInteraction&&(index1>=0))
+              SETBIT(Framework[system].ExclusionMatrix[f1][A][index1],5);
+          }
+
+          for(m=0;m<Framework[system].Connectivity[f1][C];m++)
+          {
+            D=GetNeighbour(system,f1,C,m);
+            if((D!=B)&&(D!=A))
+            {
+              // we now have 4 connected atoms: A, B, C, D
+              index1=ReturnDipoleIndex(f1,A,B);
+              if(Remove13NeighboursFromChargeBondDipoleInteraction&&(index1>=0))
+                SETBIT(Framework[system].ExclusionMatrix[f1][D][index1],5);
+              index1=ReturnDipoleIndex(f1,C,D);
+              if(Remove13NeighboursFromChargeBondDipoleInteraction&&(index1>=0))
+                SETBIT(Framework[system].ExclusionMatrix[f1][A][index1],5);
+            }
+          }
+        }
+      }
+    }
+  }
+
+
+  // Bonddipole-bonddipole
+  // ==============================================================================================
+
   // set general 1-2, 1-3, 1-4 exclusions for bonddipole-bonddipole interactions
+  // bonddipole-bonddipole is based on replica-method using 'GetReplicaNeighbour'
   for(f1=0;f1<Framework[system].NumberOfFrameworks;f1++)
   {
     for(A=0;A<Framework[system].NumberOfAtoms[f1];A++)
@@ -10790,28 +11001,48 @@ void MakeExclusionMatrix(int system)
     }
   }
 
+  // set general 1-2, 1-3, 1-4 exclusions for bonddipole-bonddipole exclusion-list
+  // bonddipole-bonddipole exclusion in Fourier-space is based on the unit-cell using 'GetNeighbour'
   for(f1=0;f1<Framework[system].NumberOfFrameworks;f1++)
   {
-    Framework[system].NumberOfIntra12Interactions=0;
-    Framework[system].NumberOfIntra13Interactions=0;
-    Framework[system].NumberOfIntra14Interactions=0;
-    Framework[system].NumberOfIntra123Interactions=0;
-    Framework[system].NumberOfIntra1234Interactions=0;
-    for(i=0;i<Framework[system].NumberOfAtoms[f1];i++)
+    for(A=0;A<Framework[system].NumberOfAtoms[f1];A++)
     {
-      for(j=i+1;j<Framework[system].NumberOfAtoms[f1];j++)
+      SETBIT(Framework[system].ExclusionMatrix[f1][A][A],6);
+      for(k=0;k<Framework[system].Connectivity[f1][A];k++)
       {
-        if(BITVAL(Framework[system].ExclusionMatrix[f1][i][j],4))
-          Framework[system].NumberOfIntra12Interactions++;
-        if(BITVAL(Framework[system].ExclusionMatrix[f1][i][j],5))
-          Framework[system].NumberOfIntra13Interactions++;
-        if(BITVAL(Framework[system].ExclusionMatrix[f1][i][j],6))
-          Framework[system].NumberOfIntra14Interactions++;
-        if((BITVAL(Framework[system].ExclusionMatrix[f1][i][j],4))||(BITVAL(Framework[system].ExclusionMatrix[f1][i][j],5)))
-          Framework[system].NumberOfIntra123Interactions++;
-        if((BITVAL(Framework[system].ExclusionMatrix[f1][i][j],4))||(BITVAL(Framework[system].ExclusionMatrix[f1][i][j],5))||
-           (BITVAL(Framework[system].ExclusionMatrix[f1][i][j],6)))
-          Framework[system].NumberOfIntra1234Interactions++;
+        B=GetNeighbour(system,f1,A,k);
+
+        for(l=0;l<Framework[system].Connectivity[f1][B];l++)
+        {
+          C=GetNeighbour(system,f1,B,l);
+          if(A!=C)
+          {
+            // we now have 3 connected atoms: A, B and C
+            index1=ReturnDipoleIndex(f1,A,B);
+            index2=ReturnDipoleIndex(f1,B,C);
+            if(Remove12NeighboursFromBondDipoleBondDipoleInteraction&&(index1>=0)&&(index2>=0))
+            {
+              SETBIT(Framework[system].ExclusionMatrix[f1][index1][index2],6);
+              SETBIT(Framework[system].ExclusionMatrix[f1][index2][index1],6);
+            }
+          }
+
+          for(m=0;m<Framework[system].Connectivity[f1][C];m++)
+          {
+            D=GetNeighbour(system,f1,C,m);
+            if((D!=B)&&(D!=A))
+            {
+              // we now have 4 connected atoms: A, B, C, D
+              index1=ReturnDipoleIndex(f1,A,B);
+              index2=ReturnDipoleIndex(f1,C,D);
+              if(Remove13NeighboursFromBondDipoleBondDipoleInteraction&&(index1>=0)&&(index2>=0))
+              {
+                SETBIT(Framework[system].ExclusionMatrix[f1][index1][index2],6);
+                SETBIT(Framework[system].ExclusionMatrix[f1][index2][index1],6);
+              }
+            }
+          }
+        }
       }
     }
   }
@@ -10821,14 +11052,41 @@ void MakeExcludedInteractionLists(int system)
 {
   int i,j,f1;
   int index_excluded;
-  int index_excluded14;
   int TypeA,TypeB;
 
   // make lists for exclusion in the Ewald summation (subtraction using 'erf')
-  // count the amount of exclusions
+  // count the amount of interactions and exclusions
+
   for(f1=0;f1<Framework[system].NumberOfFrameworks;f1++)
   {
+    // VDW-VDW
+    // ==============================================================================================
 
+    // count the number of intra VDW pairs and excluded VDW pairs
+    Framework[system].NumberOfIntraVDW[f1]=0;
+    Framework[system].NumberOfExcludedIntraVDW[f1]=0.0;
+    for(i=0;i<Framework[system].NumberOfAtoms[f1];i++)
+      for(j=i+1;j<TotalNumberOfReplicaCells[system]*Framework[system].NumberOfAtoms[f1];j++)
+      {
+        if(!BITVAL(Framework[system].ExclusionMatrix[f1][i][j],0))
+          Framework[system].NumberOfIntraVDW[f1]++;
+        else
+          Framework[system].NumberOfExcludedIntraVDW[f1]++;
+      }
+
+    // Charge-charge
+    // ==============================================================================================
+
+    // count the number of intra charge-charge pairs
+    Framework[system].NumberOfIntraCharges[f1]=0;
+    for(i=0;i<Framework[system].NumberOfAtoms[f1];i++)
+      for(j=i+1;j<TotalNumberOfReplicaCells[system]*Framework[system].NumberOfAtoms[f1];j++)
+      {
+        if(!BITVAL(Framework[system].ExclusionMatrix[f1][i][j],1))
+          Framework[system].NumberOfIntraCharges[f1]++;
+      }
+
+    // count the number of Fourier excluded intra charge-charge pairs
     Framework[system].NumberOfExcludedIntraChargeCharge[f1]=0;
     for(i=0;i<Framework[system].NumberOfAtoms[f1];i++)
     {
@@ -10836,139 +11094,125 @@ void MakeExcludedInteractionLists(int system)
       for(j=i+1;j<Framework[system].NumberOfAtoms[f1];j++)
       {
         TypeB=Framework[system].Atoms[f1][j].Type;
-        if(Remove14NeighboursFromChargeChargeInteraction)
-        {
-          if(BITVAL(Framework[system].ExclusionMatrix[f1][i][j],1))
-            Framework[system].NumberOfExcludedIntraChargeCharge[f1]++;
-        }
-        else
-        {
-          if((BITVAL(Framework[system].ExclusionMatrix[f1][i][j],1)))
-            Framework[system].NumberOfExcludedIntraChargeCharge[f1]++;
-        }
+        if(BITVAL(Framework[system].ExclusionMatrix[f1][i][j],4))
+          Framework[system].NumberOfExcludedIntraChargeCharge[f1]++;
       }
     }
 
-    // allocate memory for charge-charge exclusion
+    // allocate memory for Fourier excluded intra charge-charge pairs
     Framework[system].ExcludedIntraChargeCharge[f1]=(PAIR*)calloc(
         Framework[system].NumberOfExcludedIntraChargeCharge[f1],sizeof(PAIR));
 
-    Framework[system].NumberOfExcludedIntra14ScalingChargeCharge[f1]=0;
 
-    // allocate memory for charge-charge exclusion
-    Framework[system].ExcludedIntra14ScalingChargeCharge[f1]=(PAIR*)calloc(
-        Framework[system].NumberOfExcludedIntra14ScalingChargeCharge[f1],sizeof(PAIR));
-
-
-    Framework[system].NumberOfIntraVDW[f1]=0;
-    Framework[system].NumberOfIntraCharges[f1]=0;
-    for(i=0;i<Framework[system].NumberOfAtoms[f1];i++)
-      for(j=i+1;j<TotalNumberOfReplicaCells[system]*Framework[system].NumberOfAtoms[f1];j++)
-      {
-        if(!BITVAL(Framework[system].ExclusionMatrix[f1][i][j],0))
-          Framework[system].NumberOfIntraVDW[f1]++;
-        else
-        {
-          Framework[system].NumberOfExcludedIntraVDW[f1]++;
-          Framework[system].NumberOfIntraCharges[f1]++;
-        }
-      }
-
-    // charge-charge exclusion
+    // create pair-list for Fourier excluded intra charge-charge pairs
     index_excluded=0;
-    index_excluded14=0;
-    Framework[system].NumberOfIntraCharges[f1]=0;
+    Framework[system].NumberOfExcludedIntraChargeCharge[f1]=0.0;
     for(i=0;i<Framework[system].NumberOfAtoms[f1];i++)
     {
       TypeA=Framework[system].Atoms[f1][i].Type;
       for(j=i+1;j<Framework[system].NumberOfAtoms[f1];j++)
       {
         TypeB=Framework[system].Atoms[f1][j].Type;
-        if(BITVAL(Framework[system].ExclusionMatrix[f1][i][j],1))
+        if(BITVAL(Framework[system].ExclusionMatrix[f1][i][j],4))
         {
           // store A and B with (A<B)
-          //if((PseudoAtoms[TypeA].HasCharges)&&(PseudoAtoms[TypeB].HasCharges))
-          {
-            Framework[system].ExcludedIntraChargeCharge[f1][index_excluded].A=i;
-            Framework[system].ExcludedIntraChargeCharge[f1][index_excluded].B=j;
-            index_excluded++;
-          }
+          Framework[system].ExcludedIntraChargeCharge[f1][index_excluded].A=i;
+          Framework[system].ExcludedIntraChargeCharge[f1][index_excluded].B=j;
+          Framework[system].NumberOfExcludedIntraChargeCharge[f1]++;
+          index_excluded++;
         }
       }
     }
-    printf("index_excluded: %d index_excluded14: %d\n",index_excluded,index_excluded14);
-    
 
-    // charge-bonddipole exclusion
+    // Charge-bonddipole
+    // ==============================================================================================
+
+    // count the number of intra charge-bondipole pairs
+    Framework[system].NumberOfIntraChargeBondDipoles[f1]=0;
+    for(i=0;i<Framework[system].NumberOfAtoms[f1];i++)
+    {
+      for(j=i+1;j<Framework[system].NumberOfBondDipoles[f1];j++)
+      {
+        if(!BITVAL(Framework[system].ExclusionMatrix[f1][i][j],2))
+          Framework[system].NumberOfIntraChargeBondDipoles[f1]++;
+      }
+    }
+
+    // count the number of Fourier excluded intra charge-bonddipole pairs
     Framework[system].NumberOfExcludedIntraChargeBondDipole[f1]=0;
     for(i=0;i<Framework[system].NumberOfAtoms[f1];i++)
     {
       TypeA=Framework[system].Atoms[f1][i].Type;
-      //if(PseudoAtoms[TypeA].HasCharges)
+      for(j=0;j<Framework[system].NumberOfBondDipoles[f1];j++)
       {
-        for(j=0;j<Framework[system].NumberOfBondDipoles[f1];j++)
-        {
-          if(BITVAL(Framework[system].ExclusionMatrix[f1][i][j],2))
-            Framework[system].NumberOfExcludedIntraChargeBondDipole[f1]++;
-        }
+        if(BITVAL(Framework[system].ExclusionMatrix[f1][i][j],5))
+          Framework[system].NumberOfExcludedIntraChargeBondDipole[f1]++;
       }
     }
 
-    // allocate memory for charge-bonddipole exclusion
+    // allocate memory for Fourier excluded intra charge-bonddipole pairs
     Framework[system].ExcludedIntraChargeBondDipole[f1]=(PAIR*)calloc(
         Framework[system].NumberOfExcludedIntraChargeBondDipole[f1],sizeof(PAIR));
 
+    // create pair-list for Fourier excluded intra charge-bonddipole pairs
     index_excluded=0;
     for(i=0;i<Framework[system].NumberOfAtoms[f1];i++)
     {
       TypeA=Framework[system].Atoms[f1][i].Type;
-      //if(PseudoAtoms[TypeA].HasCharges)
+      for(j=0;j<Framework[system].NumberOfBondDipoles[f1];j++)
       {
-        for(j=0;j<Framework[system].NumberOfBondDipoles[f1];j++)
-          if(BITVAL(Framework[system].ExclusionMatrix[f1][i][j],2))
-          {
-            // store A and B with (A<B)
-            Framework[system].ExcludedIntraChargeBondDipole[f1][index_excluded].A=i;
-            Framework[system].ExcludedIntraChargeBondDipole[f1][index_excluded].B=j;
-            index_excluded++;
-          }
+        if(BITVAL(Framework[system].ExclusionMatrix[f1][i][j],5))
+        {
+          // store A and B with (A<B)
+          Framework[system].ExcludedIntraChargeBondDipole[f1][index_excluded].A=i;
+          Framework[system].ExcludedIntraChargeBondDipole[f1][index_excluded].B=j;
+          index_excluded++;
+        }
       }
     }
 
-    // bonddipole-bonddipole exclusion
-    Framework[system].NumberOfExcludedIntraBondDipoleBondDipole[f1]=0;
-    for(i=0;i<Framework[system].NumberOfBondDipoles[f1];i++)
-    {
-      for(j=i+1;j<Framework[system].NumberOfBondDipoles[f1];j++)
-      {
-        if(BITVAL(Framework[system].ExclusionMatrix[f1][i][j],3))
-          Framework[system].NumberOfExcludedIntraBondDipoleBondDipole[f1]++;
-      }
+    // Bonddipole-bonddipole
+    // ==============================================================================================
 
-    }
-
-    // allocate memory for bonddipole-bonddipole exclusion
-    Framework[system].ExcludedIntraBondDipoleBondDipole[f1]=(PAIR*)calloc(
-        Framework[system].NumberOfExcludedIntraBondDipoleBondDipole[f1],sizeof(PAIR));
-
-
-    // bonddipole-bonddipole exclusion
-    index_excluded=0;
+    // count the number of intra bonddipole-bondipole pairs
     Framework[system].NumberOfIntraBondDipoles[f1]=0;
     for(i=0;i<Framework[system].NumberOfBondDipoles[f1];i++)
     {
       for(j=i+1;j<Framework[system].NumberOfBondDipoles[f1];j++)
       {
-        if(BITVAL(Framework[system].ExclusionMatrix[f1][i][j],3))
+        if(!BITVAL(Framework[system].ExclusionMatrix[f1][i][j],3))
+          Framework[system].NumberOfIntraBondDipoles[f1]++;
+      }
+    }
+
+    // count the number of Fourier excluded intra bonddipole-bonddipole pairs
+    Framework[system].NumberOfExcludedIntraBondDipoleBondDipole[f1]=0;
+    for(i=0;i<Framework[system].NumberOfBondDipoles[f1];i++)
+    {
+      for(j=i+1;j<Framework[system].NumberOfBondDipoles[f1];j++)
+      {
+        if(BITVAL(Framework[system].ExclusionMatrix[f1][i][j],6))
+          Framework[system].NumberOfExcludedIntraBondDipoleBondDipole[f1]++;
+      }
+    }
+
+    // allocate memory for Fourier excluded intra bonddipole-bonddipole pairs
+    Framework[system].ExcludedIntraBondDipoleBondDipole[f1]=(PAIR*)calloc(
+        Framework[system].NumberOfExcludedIntraBondDipoleBondDipole[f1],sizeof(PAIR));
+
+
+    // create pair-list for Fourier excluded intra bonddipole-bonddipole pairs
+    index_excluded=0;
+    for(i=0;i<Framework[system].NumberOfBondDipoles[f1];i++)
+    {
+      for(j=i+1;j<Framework[system].NumberOfBondDipoles[f1];j++)
+      {
+        if(BITVAL(Framework[system].ExclusionMatrix[f1][i][j],6))
         {
           // store A and B with (A<B)
           Framework[system].ExcludedIntraBondDipoleBondDipole[f1][index_excluded].A=i;
           Framework[system].ExcludedIntraBondDipoleBondDipole[f1][index_excluded].B=j;
           index_excluded++;
-        }
-        else
-        {
-          Framework[system].NumberOfIntraBondDipoles[f1]++;
         }
       }
     }

@@ -125,11 +125,11 @@ REAL CutOffVDWSwitch;
 REAL CutOffVDWSwitchSquared;
 REAL InverseCutOffVDW;
 
-REAL CutOffChargeCharge;
-REAL CutOffChargeChargeSquared;
-REAL CutOffChargeChargeSwitch;
-REAL CutOffChargeChargeSwitchSquared;
-REAL InverseCutOffChargeCharge;
+REAL *CutOffChargeCharge;
+REAL *CutOffChargeChargeSquared;
+REAL *CutOffChargeChargeSwitch;
+REAL *CutOffChargeChargeSwitchSquared;
+REAL *InverseCutOffChargeCharge;
 
 REAL CutOffChargeBondDipole;
 REAL CutOffChargeBondDipoleSquared;
@@ -825,11 +825,11 @@ void WriteRestartSimulation(FILE *FilePtr)
   fwrite(&CutOffVDWSwitchSquared,sizeof(CutOffVDWSwitchSquared),1,FilePtr);
   fwrite(&InverseCutOffVDW,sizeof(InverseCutOffVDW),1,FilePtr);
 
-  fwrite(&CutOffChargeCharge,sizeof(CutOffChargeCharge),1,FilePtr);
-  fwrite(&CutOffChargeChargeSquared,sizeof(CutOffChargeChargeSquared),1,FilePtr);
-  fwrite(&CutOffChargeChargeSwitch,sizeof(CutOffChargeChargeSwitch),1,FilePtr);
-  fwrite(&CutOffChargeChargeSwitchSquared,sizeof(CutOffChargeChargeSwitchSquared),1,FilePtr);
-  fwrite(&InverseCutOffChargeCharge,sizeof(InverseCutOffChargeCharge),1,FilePtr);
+  fwrite(CutOffChargeCharge,sizeof(REAL),NumberOfSystems,FilePtr);
+  fwrite(CutOffChargeChargeSquared,sizeof(REAL),NumberOfSystems,FilePtr);
+  fwrite(CutOffChargeChargeSwitch,sizeof(REAL),NumberOfSystems,FilePtr);
+  fwrite(CutOffChargeChargeSwitchSquared,sizeof(REAL),NumberOfSystems,FilePtr);
+  fwrite(InverseCutOffChargeCharge,sizeof(REAL),NumberOfSystems,FilePtr);
 
   fwrite(&CutOffChargeBondDipole,sizeof(CutOffChargeBondDipole),1,FilePtr);
   fwrite(&CutOffChargeBondDipoleSquared,sizeof(CutOffChargeBondDipoleSquared),1,FilePtr);
@@ -1101,6 +1101,13 @@ void AllocateSimulationMemory(void)
   Beta=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
   StrainDerivativeTailCorrection=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
   StrainDerivativeRigidCorrection=(REAL_MATRIX3x3*)calloc(NumberOfSystems,sizeof(REAL_MATRIX3x3));
+
+  CutOffChargeCharge=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+  CutOffChargeChargeSquared=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+  CutOffChargeChargeSwitch=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+  CutOffChargeChargeSwitchSquared=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+  InverseCutOffChargeCharge=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+
 
   //----------------------------------------------------------------------------------------
   // CFC-RXMC Parameters
@@ -1400,11 +1407,11 @@ void ReadRestartSimulation(FILE *FilePtr)
   fread(&CutOffVDWSwitchSquared,sizeof(CutOffVDWSwitchSquared),1,FilePtr);
   fread(&InverseCutOffVDW,sizeof(InverseCutOffVDW),1,FilePtr);
 
-  fread(&CutOffChargeCharge,sizeof(CutOffChargeCharge),1,FilePtr);
-  fread(&CutOffChargeChargeSquared,sizeof(CutOffChargeChargeSquared),1,FilePtr);
-  fread(&CutOffChargeChargeSwitch,sizeof(CutOffChargeChargeSwitch),1,FilePtr);
-  fread(&CutOffChargeChargeSwitchSquared,sizeof(CutOffChargeChargeSwitchSquared),1,FilePtr);
-  fread(&InverseCutOffChargeCharge,sizeof(InverseCutOffChargeCharge),1,FilePtr);
+  fread(CutOffChargeCharge,sizeof(REAL),NumberOfSystems,FilePtr);
+  fread(CutOffChargeChargeSquared,sizeof(REAL),NumberOfSystems,FilePtr);
+  fread(CutOffChargeChargeSwitch,sizeof(REAL),NumberOfSystems,FilePtr);
+  fread(CutOffChargeChargeSwitchSquared,sizeof(REAL),NumberOfSystems,FilePtr);
+  fread(InverseCutOffChargeCharge,sizeof(REAL),NumberOfSystems,FilePtr);
 
   fread(&CutOffChargeBondDipole,sizeof(CutOffChargeBondDipole),1,FilePtr);
   fread(&CutOffChargeBondDipoleSquared,sizeof(CutOffChargeBondDipoleSquared),1,FilePtr);

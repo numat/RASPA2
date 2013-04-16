@@ -3616,6 +3616,7 @@ void ComputeInterVDWMolecularHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX Hes
   int ncell,k1,k2,k3,start;
   REAL ReplicaFactor;
   int RigidI,RigidJ;
+  REAL scalingA,scalingB;
 
   f1=f2=0.0;
   index1=index2=0;
@@ -3648,6 +3649,7 @@ void ComputeInterVDWMolecularHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX Hes
 
         typeA=Adsorbates[CurrentSystem][I].Atoms[i].Type;
         posA=Adsorbates[CurrentSystem][I].Atoms[i].Position;
+        scalingA=Adsorbates[CurrentSystem][I].Atoms[i].CFVDWScalingParameter;
 
         // second loop over adsorbates
         ncell=0;
@@ -3707,7 +3709,9 @@ void ComputeInterVDWMolecularHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX Hes
                       if(ncell==0) ReplicaFactor=1.0;
                       else ReplicaFactor=0.5;
 
-                      PotentialSecondDerivative(typeA,typeB,rr,&energy,&f1,&f2);
+                      scalingB=Adsorbates[CurrentSystem][J].Atoms[j].CFVDWScalingParameter;
+
+                      PotentialSecondDerivative(typeA,typeB,rr,&energy,&f1,&f2,scalingA*scalingB);
 
                       *Energy+=ReplicaFactor*energy;
 
@@ -3863,7 +3867,9 @@ void ComputeInterVDWMolecularHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX Hes
 
                     if(rr<CutOffVDWSquared)
                     {
-                      PotentialSecondDerivative(typeA,typeB,rr,&energy,&f1,&f2);
+                      scalingB=Adsorbates[CurrentSystem][J].Atoms[j].CFVDWScalingParameter;
+
+                      PotentialSecondDerivative(typeA,typeB,rr,&energy,&f1,&f2,scalingA*scalingB);
 
                       *Energy+=energy;
 
@@ -4004,6 +4010,8 @@ void ComputeInterVDWMolecularHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX Hes
         typeA=Cations[CurrentSystem][I].Atoms[i].Type;
         posA=Cations[CurrentSystem][I].Atoms[i].Position;
 
+        scalingA=Cations[CurrentSystem][I].Atoms[j].CFVDWScalingParameter;
+
         // second loop over cations
         ncell=0;
         for(k1=0;k1<NumberOfReplicaCells[CurrentSystem].x;k1++)
@@ -4062,7 +4070,9 @@ void ComputeInterVDWMolecularHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX Hes
                       if(ncell==0) ReplicaFactor=1.0;
                       else ReplicaFactor=0.5;
 
-                      PotentialSecondDerivative(typeA,typeB,rr,&energy,&f1,&f2);
+                      scalingB=Adsorbates[CurrentSystem][J].Atoms[j].CFVDWScalingParameter;
+
+                      PotentialSecondDerivative(typeA,typeB,rr,&energy,&f1,&f2,scalingA*scalingB);
 
                       *Energy+=ReplicaFactor*energy;
 
@@ -4195,8 +4205,7 @@ void ComputeInterChargeChargeMolecularHessian(REAL *Energy,REAL* Gradient,REAL_M
   REAL ReplicaFactor;
   int index1,index2;
   int RigidI,RigidJ;
-  REAL SwitchingValue,SwitchingValueDerivative,SwitchingValueSecondDerivative;
-  REAL TranslationValue,TranslationValueDerivative,TranslationValueSecondDerivative;
+  REAL scalingA,scalingB;
 
   if(ChargeMethod==NONE) return;
 
@@ -4231,7 +4240,8 @@ void ComputeInterChargeChargeMolecularHessian(REAL *Energy,REAL* Gradient,REAL_M
 
         typeA=Adsorbates[CurrentSystem][I].Atoms[i].Type;
         posA=Adsorbates[CurrentSystem][I].Atoms[i].Position;
-        ChargeA=Adsorbates[CurrentSystem][I].Atoms[i].Charge;
+        scalingA=Adsorbates[CurrentSystem][I].Atoms[i].CFChargeScalingParameter;
+        ChargeA=scalingA*Adsorbates[CurrentSystem][I].Atoms[i].Charge;
 
         // second loop over adsorbates
         ncell=0;
@@ -4273,7 +4283,6 @@ void ComputeInterChargeChargeMolecularHessian(REAL *Energy,REAL* Gradient,REAL_M
 
                     typeB=Adsorbates[CurrentSystem][J].Atoms[j].Type;
                     posB=Adsorbates[CurrentSystem][J].Atoms[j].Position;
-                    ChargeB=Adsorbates[CurrentSystem][J].Atoms[j].Charge;
 
                     posB.x+=ReplicaShift[ncell].x;
                     posB.y+=ReplicaShift[ncell].y;
@@ -4286,78 +4295,17 @@ void ComputeInterChargeChargeMolecularHessian(REAL *Energy,REAL* Gradient,REAL_M
                     rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
                     r=sqrt(rr);
 
-                    if(rr<CutOffChargeChargeSquared)
+                    if(rr<CutOffChargeChargeSquared[CurrentSystem])
                     {
+                      scalingB=Adsorbates[CurrentSystem][J].Atoms[j].CFChargeScalingParameter;
+                      ChargeB=scalingB*Adsorbates[CurrentSystem][J].Atoms[j].Charge;
+
                       if(ncell==0) ReplicaFactor=1.0;
                       else ReplicaFactor=0.5;
 
-                      switch(ChargeMethod)
-                      {
-                        case NONE:
-                          U=f1=f2=0.0;
-                          break;
-                        case TRUNCATED_COULOMB:
-                          *Energy+=ReplicaFactor*COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB*(1.0/r);
-                          f1=-COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB/(rr*r);
-                          f2=3.0*COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB/(SQR(rr)*r);
-                          break;
-                        case SHIFTED_COULOMB:
-                          *Energy+=ReplicaFactor*COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB*(1.0/r-InverseCutOffChargeCharge);
-                          f1=-COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB/(rr*r);
-                          f2=3.0*COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB/(SQR(rr)*r);
-                          break;
-                        case SMOOTHED_COULOMB:
-                          U=ReplicaFactor*COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB*(1.0/r-2.0/(CutOffChargeChargeSwitch+CutOffChargeCharge));
-                          f1=-COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB/rr;
-                          f2=2.0*COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB/(rr*r);
-                          if(rr>CutOffChargeChargeSwitchSquared)
-                          {
-                            SwitchingValue=SwitchingChargeChargeFactors5[5]*(rr*rr*r)+SwitchingChargeChargeFactors5[4]*(rr*rr)+SwitchingChargeChargeFactors5[3]*(rr*r)+
-                                           SwitchingChargeChargeFactors5[2]*rr+SwitchingChargeChargeFactors5[1]*r+SwitchingChargeChargeFactors5[0];
-                            SwitchingValueDerivative=5.0*SwitchingChargeChargeFactors5[5]*rr*rr+4.0*SwitchingChargeChargeFactors5[4]*rr*r+3.0*SwitchingChargeChargeFactors5[3]*rr+
-                                                     2.0*SwitchingChargeChargeFactors5[2]*r+SwitchingChargeChargeFactors5[1];
-                            SwitchingValueSecondDerivative=20.0*SwitchingChargeChargeFactors5[5]*(rr*r)+12.0*SwitchingChargeChargeFactors5[4]*(rr)+
-                                                           6.0*SwitchingChargeChargeFactors5[3]*r+2.0*SwitchingChargeChargeFactors5[2];
+                      PotentialSecondDerivativeCoulombic(ChargeA,ChargeB,rr,&U,&f1,&f2);
 
-
-                            TranslationValue=COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB*
-                                            (SwitchingChargeChargeFactors7[7]*(rr*rr*rr*r)+SwitchingChargeChargeFactors7[6]*(rr*rr*rr)+
-                                             SwitchingChargeChargeFactors7[5]*(rr*rr*r)+SwitchingChargeChargeFactors7[4]*(rr*rr)+SwitchingChargeChargeFactors7[3]*(rr*r)+
-                                             SwitchingChargeChargeFactors7[2]*rr+SwitchingChargeChargeFactors7[1]*r+SwitchingChargeChargeFactors7[0]);
-                            TranslationValueDerivative=COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB*
-                                                      (7.0*SwitchingChargeChargeFactors7[7]*rr*rr*rr+6.0*SwitchingChargeChargeFactors7[6]*rr*rr*r+
-                                                       5.0*SwitchingChargeChargeFactors7[5]*rr*rr+4.0*SwitchingChargeChargeFactors7[4]*rr*r+3.0*SwitchingChargeChargeFactors7[3]*rr+
-                                                       2.0*SwitchingChargeChargeFactors7[2]*r+SwitchingChargeChargeFactors7[1]);
-                            TranslationValueSecondDerivative=COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB*
-                                                      (42.0*SwitchingChargeChargeFactors7[7]*rr*rr*r+30.0*SwitchingChargeChargeFactors7[6]*rr*rr+
-                                                       20.0*SwitchingChargeChargeFactors7[5]*rr*r+12.0*SwitchingChargeChargeFactors7[4]*rr+6.0*SwitchingChargeChargeFactors7[3]*r+
-                                                       2.0*SwitchingChargeChargeFactors7[2]);
-                            f2=U*SwitchingValueSecondDerivative+2.0*f1*SwitchingValueDerivative+f2*SwitchingValue+TranslationValueSecondDerivative;
-                            f1=U*SwitchingValueDerivative+f1*SwitchingValue+TranslationValueDerivative;
-                            U=U*SwitchingValue+TranslationValue;
-                          }
-                          *Energy+=U;
-                          f2=(f2*r-f1)/CUBE(r);
-                          f1/=r;
-                          break;
-                        case EWALD:
-                        default:
-                          *Energy+=ReplicaFactor*COULOMBIC_CONVERSION_FACTOR*erfc(Alpha[CurrentSystem]*r)*
-                                                    ChargeA*ChargeB/r;
-
-                          f1=-COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB*
-                              (erfc(Alpha[CurrentSystem]*r)+
-                              2.0*Alpha[CurrentSystem]*r*exp(-SQR(Alpha[CurrentSystem])*rr)/sqrt(M_PI))/
-                              (r*rr);
-
-                          f2=ChargeA*ChargeB*COULOMBIC_CONVERSION_FACTOR*
-                              (((3.0*erfc(Alpha[CurrentSystem]*r)/(r*rr))+
-                              (4.0*CUBE(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem])*rr)/sqrt(M_PI))+
-                              (6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*rr)/(sqrt(M_PI)*rr)))/(rr));
-                          break;
-                      }
-
-                      //if((index_i<0)&&(index_i2<0)&&(index_j<0)&&(index_j2<0)) continue;
+                      *Energy+=ReplicaFactor*U;
 
                       StrainDerivative->ax+=ReplicaFactor*f1*dr.x*dr.x;
                       StrainDerivative->ay+=ReplicaFactor*f1*dr.x*dr.y;
@@ -4495,7 +4443,6 @@ void ComputeInterChargeChargeMolecularHessian(REAL *Energy,REAL* Gradient,REAL_M
 
                     typeB=Cations[CurrentSystem][J].Atoms[j].Type;
                     posB=Cations[CurrentSystem][J].Atoms[j].Position;
-                    ChargeB=Cations[CurrentSystem][J].Atoms[j].Charge;
 
                     posB.x+=ReplicaShift[ncell].x;
                     posB.y+=ReplicaShift[ncell].y;
@@ -4508,41 +4455,14 @@ void ComputeInterChargeChargeMolecularHessian(REAL *Energy,REAL* Gradient,REAL_M
                     rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
                     r=sqrt(rr);
 
-                    if(rr<CutOffChargeChargeSquared)
+                    if(rr<CutOffChargeChargeSquared[CurrentSystem])
                     {
-                      switch(ChargeMethod)
-                      {
-                        case NONE:
-                          f1=f2=0.0;
-                          break;
-                        case SHIFTED_COULOMB:
-                          *Energy+=COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB*(1.0/r-InverseCutOffChargeCharge);
-                          f1=-COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB/(rr*r);
-                          f2=3.0*COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB/(SQR(rr)*r);
-                          break;
-                        case TRUNCATED_COULOMB:
-                          *Energy+=COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB*(1.0/r);
-                          f1=-COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB/(rr*r);
-                          f2=3.0*COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB/(SQR(rr)*r);
-                          break;
-                        case EWALD:
-                        default:
-                          *Energy+=COULOMBIC_CONVERSION_FACTOR*erfc(Alpha[CurrentSystem]*r)*
-                                                    ChargeA*ChargeB/r;
+                      scalingB=Cations[CurrentSystem][J].Atoms[j].CFChargeScalingParameter;
+                      ChargeB=scalingB*Cations[CurrentSystem][J].Atoms[j].Charge;
 
-                          f1=-COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB*
-                              (erfc(Alpha[CurrentSystem]*r)+
-                              2.0*Alpha[CurrentSystem]*r*exp(-SQR(Alpha[CurrentSystem])*rr)/sqrt(M_PI))/
-                              (r*rr);
+                      PotentialSecondDerivativeCoulombic(ChargeA,ChargeB,rr,&U,&f1,&f2);
 
-                          f2=ChargeA*ChargeB*COULOMBIC_CONVERSION_FACTOR*
-                              (((3.0*erfc(Alpha[CurrentSystem]*r)/(r*rr))+
-                              (4.0*CUBE(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem])*rr)/sqrt(M_PI))+
-                              (6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*rr)/(sqrt(M_PI)*rr)))/(rr));
-                          break;
-                      }
-
-                      //if((index_i<0)&&(index_i2<0)&&(index_j<0)&&(index_j2<0)) continue;
+                      *Energy+=U;
 
                       StrainDerivative->ax+=f1*dr.x*dr.x;
                       StrainDerivative->ay+=f1*dr.x*dr.y;
@@ -4681,7 +4601,8 @@ void ComputeInterChargeChargeMolecularHessian(REAL *Energy,REAL* Gradient,REAL_M
 
         typeA=Cations[CurrentSystem][I].Atoms[i].Type;
         posA=Cations[CurrentSystem][I].Atoms[i].Position;
-        ChargeA=Cations[CurrentSystem][I].Atoms[i].Charge;
+        scalingA=Cations[CurrentSystem][I].Atoms[i].CFChargeScalingParameter;
+        ChargeA=scalingA*Cations[CurrentSystem][I].Atoms[i].Charge;
 
         // second loop over adsorbates
         ncell=0;
@@ -4724,7 +4645,6 @@ void ComputeInterChargeChargeMolecularHessian(REAL *Energy,REAL* Gradient,REAL_M
 
                     typeB=Cations[CurrentSystem][J].Atoms[j].Type;
                     posB=Cations[CurrentSystem][J].Atoms[j].Position;
-                    ChargeB=Cations[CurrentSystem][J].Atoms[j].Charge;
 
                     posB.x+=ReplicaShift[ncell].x;
                     posB.y+=ReplicaShift[ncell].y;
@@ -4737,42 +4657,17 @@ void ComputeInterChargeChargeMolecularHessian(REAL *Energy,REAL* Gradient,REAL_M
                     rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
                     r=sqrt(rr);
 
-                    if(rr<CutOffChargeChargeSquared)
+                    if(rr<CutOffChargeChargeSquared[CurrentSystem])
                     {
                       if(ncell==0) ReplicaFactor=1.0;
                       else ReplicaFactor=0.5;
 
-                      switch(ChargeMethod)
-                      {
-                        case NONE:
-                          f1=f2=0.0;
-                          break;
-                        case SHIFTED_COULOMB:
-                          *Energy+=ReplicaFactor*COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB*(1.0/r-InverseCutOffChargeCharge);
-                          f1=-COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB/(rr*r);
-                          f2=3.0*COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB/(SQR(rr)*r);
-                          break;
-                        case TRUNCATED_COULOMB:
-                          *Energy+=ReplicaFactor*COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB*(1.0/r);
-                          f1=-COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB/(rr*r);
-                          f2=3.0*COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB/(SQR(rr)*r);
-                          break;
-                        case EWALD:
-                        default:
-                          *Energy+=ReplicaFactor*COULOMBIC_CONVERSION_FACTOR*erfc(Alpha[CurrentSystem]*r)*
-                                                    ChargeA*ChargeB/r;
+                      scalingB=Cations[CurrentSystem][J].Atoms[j].CFChargeScalingParameter;
+                      ChargeB=scalingB*Cations[CurrentSystem][J].Atoms[j].Charge;
 
-                          f1=-COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB*
-                              (erfc(Alpha[CurrentSystem]*r)+
-                              2.0*Alpha[CurrentSystem]*r*exp(-SQR(Alpha[CurrentSystem])*rr)/sqrt(M_PI))/
-                              (r*rr);
+                      PotentialSecondDerivativeCoulombic(ChargeA,ChargeB,rr,&U,&f1,&f2);
 
-                          f2=ChargeA*ChargeB*COULOMBIC_CONVERSION_FACTOR*
-                              (((3.0*erfc(Alpha[CurrentSystem]*r)/(r*rr))+
-                              (4.0*CUBE(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem])*rr)/sqrt(M_PI))+
-                              (6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*rr)/(sqrt(M_PI)*rr)))/(rr));
-                          break;
-                      }
+                      *Energy+=ReplicaFactor*U;
 
                       StrainDerivative->ax+=ReplicaFactor*f1*dr.x*dr.x;
                       StrainDerivative->ay+=ReplicaFactor*f1*dr.x*dr.y;
@@ -4934,7 +4829,7 @@ void CalculateBondConstraintExclusionHessian(REAL *Energy,REAL* Gradient,REAL_MA
             if(ncell==0) ReplicaFactor=1.0;
             else ReplicaFactor=0.5;
 
-            PotentialSecondDerivative(typeA,typeB,rr,&energy,&f1,&f2);
+            PotentialSecondDerivative(typeA,typeB,rr,&energy,&f1,&f2,1.0);
 
             (*Energy)-=ReplicaFactor*energy;
             f1=-f1;

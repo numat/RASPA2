@@ -946,7 +946,7 @@ int CalculateTotalInterChargeChargeCoulombForce(void)
   REAL chargeA,chargeB;
   REAL U,force_factor;
   VECTOR posA,posB,dr,f;
-  REAL UWolfCorrection,NetChargeB;
+  REAL UWolfCorrection,NetchargeB;
   REAL scalingA,scalingB;
 
   UAdsorbateAdsorbateChargeChargeReal[CurrentSystem]=0.0;
@@ -980,7 +980,7 @@ int CalculateTotalInterChargeChargeCoulombForce(void)
             dr=ApplyBoundaryCondition(dr);
             rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
 
-            if(rr<CutOffChargeChargeSquared)
+            if(rr<CutOffChargeChargeSquared[CurrentSystem])
             {
               typeB=Adsorbates[CurrentSystem][j].Atoms[l].Type;
               scalingB=Adsorbates[CurrentSystem][j].Atoms[l].CFChargeScalingParameter;
@@ -1035,7 +1035,7 @@ int CalculateTotalInterChargeChargeCoulombForce(void)
             dr.z=posA.z-posB.z;
             dr=ApplyBoundaryCondition(dr);
             rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-            if(rr<CutOffChargeChargeSquared)
+            if(rr<CutOffChargeChargeSquared[CurrentSystem])
             {
               typeB=Cations[CurrentSystem][j].Atoms[l].Type;
               scalingB=Cations[CurrentSystem][j].Atoms[l].CFChargeScalingParameter;
@@ -1101,7 +1101,7 @@ int CalculateTotalInterChargeChargeCoulombForce(void)
             dr.z=posA.z-posB.z;
             dr=ApplyBoundaryCondition(dr);
             rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-            if(rr<CutOffChargeChargeSquared)
+            if(rr<CutOffChargeChargeSquared[CurrentSystem])
             {
               typeB=Cations[CurrentSystem][j].Atoms[l].Type;
               scalingB=Cations[CurrentSystem][j].Atoms[l].CFChargeScalingParameter;
@@ -1150,28 +1150,28 @@ int CalculateTotalInterChargeChargeCoulombForce(void)
       UWolfCorrection=0.0;
       for(i=0;i<NumberOfAdsorbateMolecules[CurrentSystem];i++)
       {
-        NetChargeB=0.0;
+        NetchargeB=0.0;
         for(j=0;j<Adsorbates[CurrentSystem][i].NumberOfAtoms;j++)
         {
           typeA=Adsorbates[CurrentSystem][i].Atoms[j].Type;
           chargeA=Adsorbates[CurrentSystem][i].Atoms[j].Charge;
-          NetChargeB+=chargeA;
+          NetchargeB+=chargeA;
         }
-        UWolfCorrection-=0.5*COULOMBIC_CONVERSION_FACTOR*SQR(NetChargeB)*InverseCutOffChargeCharge;
+        UWolfCorrection-=0.5*COULOMBIC_CONVERSION_FACTOR*SQR(NetchargeB)*InverseCutOffChargeCharge[CurrentSystem];
       }
       UAdsorbateAdsorbateChargeChargeReal[CurrentSystem]+=UWolfCorrection;
 
       UWolfCorrection=0.0;
       for(i=0;i<NumberOfCationMolecules[CurrentSystem];i++)
       {
-        NetChargeB=0.0;
+        NetchargeB=0.0;
         for(j=0;j<Cations[CurrentSystem][i].NumberOfAtoms;j++)
         {
           typeA=Cations[CurrentSystem][i].Atoms[j].Type;
           chargeA=Cations[CurrentSystem][i].Atoms[j].Charge;
-          NetChargeB+=chargeA;
+          NetchargeB+=chargeA;
         }
-        UWolfCorrection-=0.5*COULOMBIC_CONVERSION_FACTOR*SQR(NetChargeB)*InverseCutOffChargeCharge;
+        UWolfCorrection-=0.5*COULOMBIC_CONVERSION_FACTOR*SQR(NetchargeB)*InverseCutOffChargeCharge[CurrentSystem];
       }
       UCationCationChargeChargeReal[CurrentSystem]+=UWolfCorrection;
       break;
@@ -1180,15 +1180,15 @@ int CalculateTotalInterChargeChargeCoulombForce(void)
       UWolfCorrection=0.0;
       for(i=0;i<NumberOfAdsorbateMolecules[CurrentSystem];i++)
       {
-        NetChargeB=0.0;
+        NetchargeB=0.0;
         for(j=0;j<Adsorbates[CurrentSystem][i].NumberOfAtoms;j++)
         {
           typeA=Adsorbates[CurrentSystem][i].Atoms[j].Type;
           chargeA=Adsorbates[CurrentSystem][i].Atoms[j].Charge;
-          NetChargeB+=chargeA;
+          NetchargeB+=chargeA;
         }
-        UWolfCorrection-=COULOMBIC_CONVERSION_FACTOR*SQR(NetChargeB)*
-             (0.5*erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*InverseCutOffChargeCharge+
+        UWolfCorrection-=COULOMBIC_CONVERSION_FACTOR*SQR(NetchargeB)*
+             (0.5*erfc(Alpha[CurrentSystem]*CutOffChargeCharge[CurrentSystem])*InverseCutOffChargeCharge[CurrentSystem]+
               Alpha[CurrentSystem]*M_1_SQRTPI);
       }
       UAdsorbateAdsorbateChargeChargeReal[CurrentSystem]+=UWolfCorrection;
@@ -1196,15 +1196,15 @@ int CalculateTotalInterChargeChargeCoulombForce(void)
       UWolfCorrection=0.0;
       for(i=0;i<NumberOfCationMolecules[CurrentSystem];i++)
       {
-        NetChargeB=0.0;
+        NetchargeB=0.0;
         for(j=0;j<Cations[CurrentSystem][i].NumberOfAtoms;j++)
         {
           typeA=Cations[CurrentSystem][i].Atoms[j].Type;
           chargeA=Cations[CurrentSystem][i].Atoms[j].Charge;
-          NetChargeB+=chargeA;
+          NetchargeB+=chargeA;
         }
-        UWolfCorrection-=COULOMBIC_CONVERSION_FACTOR*SQR(NetChargeB)*
-             (0.5*erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*InverseCutOffChargeCharge+
+        UWolfCorrection-=COULOMBIC_CONVERSION_FACTOR*SQR(NetchargeB)*
+             (0.5*erfc(Alpha[CurrentSystem]*CutOffChargeCharge[CurrentSystem])*InverseCutOffChargeCharge[CurrentSystem]+
               Alpha[CurrentSystem]*M_1_SQRTPI);
       }
       UCationCationChargeChargeReal[CurrentSystem]+=UWolfCorrection;
@@ -1222,13 +1222,11 @@ int CalculateTotalInterChargeBondDipoleCoulombForce(void)
   int A1,A2;
   int Type,TypeA;
   VECTOR posA,posB,posA1,posA2,dr;
-  REAL r,rr,ri2,cosA,energy,temp,length,ChargeB;
+  REAL rr,ri2,energy,temp,length,chargeB;
   VECTOR dipoleA,fb1,fa1,fa2,term;
-  REAL Bt0,Bt1,Bt2,fac1,fac2;
   REAL DipoleMagnitudeA;
   REAL_MATRIX3x3 v;
   VECTOR rabi;
-  REAL SwitchingValueDerivative,SwitchingValue;
 
   UAdsorbateAdsorbateChargeBondDipoleReal[CurrentSystem]=0.0;
   UAdsorbateCationChargeBondDipoleReal[CurrentSystem]=0.0;
@@ -1237,7 +1235,6 @@ int CalculateTotalInterChargeBondDipoleCoulombForce(void)
   if(ChargeMethod==NONE) return 0;
   if(OmitInterMolecularInteractions) return 0;
 
-  Bt0=Bt1=Bt2=0.0;  
   v.ax=v.bx=v.cx=0.0;
   v.ay=v.by=v.cy=0.0;
   v.az=v.bz=v.cz=0.0;
@@ -1280,104 +1277,17 @@ int CalculateTotalInterChargeBondDipoleCoulombForce(void)
               if(PseudoAtoms[Type].HasCharges)
               {
                 posB=Adsorbates[CurrentSystem][k].Atoms[l].Position;
-                ChargeB=Adsorbates[CurrentSystem][k].Atoms[l].Charge;
+                chargeB=Adsorbates[CurrentSystem][k].Atoms[l].Charge;
   
                 dr.x=posA.x-posB.x;
                 dr.y=posA.y-posB.y;
                 dr.z=posA.z-posB.z;
                 dr=ApplyBoundaryCondition(dr);
                 rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-                r=sqrt(rr);
 
                 if(rr<CutOffChargeBondDipoleSquared)
                 {
-                  switch(ChargeMethod)
-                  {
-                    case NONE:
-                      Bt0=Bt1=Bt2=0.0;  
-                      break;
-                    case TRUNCATED_COULOMB:
-                      Bt0=1.0/(r);
-                      Bt1=1.0/(r*rr);
-                      Bt2=3.0/(r*rr*rr);
-                      break;
-                    case SHIFTED_COULOMB:
-                      Bt0=1.0/(r);
-                      Bt1=1.0/(r*rr);
-                      Bt2=3.0/(r*rr*rr);
-                      break;
-                    case SMOOTHED_COULOMB:
-                      Bt0=1.0/(r);
-                      Bt1=1.0/(r*rr);
-                      Bt2=3.0/(r*rr*rr);
-                      break;
-                    case EWALD:
-                      Bt0=erfc(Alpha[CurrentSystem]*r)/r;
-                      Bt1=2.0*Alpha[CurrentSystem]*exp(-SQR(-Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                          erfc(Alpha[CurrentSystem]*r)/(rr*r);
-                      Bt2=6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
-                          4.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                          3.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*r);
-                      break;
-                    default:
-                      printf("Unknown charge-method in 'CalculateTotalInterChargeBondDipoleCoulombForce'\n");
-                      exit(0);
-                      break;
-                  }
-
-                  cosA=dipoleA.x*dr.x+dipoleA.y*dr.y+dipoleA.z*dr.z;
-                  energy=COULOMBIC_CONVERSION_FACTOR*(Bt1*ChargeB*cosA);
-
-                  term.x=COULOMBIC_CONVERSION_FACTOR*ChargeB*(Bt2*cosA*dr.x-Bt1*dipoleA.x);
-                  term.y=COULOMBIC_CONVERSION_FACTOR*ChargeB*(Bt2*cosA*dr.y-Bt1*dipoleA.y);
-                  term.z=COULOMBIC_CONVERSION_FACTOR*ChargeB*(Bt2*cosA*dr.z-Bt1*dipoleA.z);
-
-                  fb1.x=term.x;
-                  fb1.y=term.y;
-                  fb1.z=term.z;
-
-                  fac1=COULOMBIC_CONVERSION_FACTOR*ChargeB*Bt1*DipoleMagnitudeA/length;
-                  fac2=COULOMBIC_CONVERSION_FACTOR*ChargeB*Bt1*cosA/(DipoleMagnitudeA*length);
-
-                  fa1.x=-0.5*term.x-fac1*dr.x+fac2*dipoleA.x;
-                  fa1.y=-0.5*term.y-fac1*dr.y+fac2*dipoleA.y;
-                  fa1.z=-0.5*term.z-fac1*dr.z+fac2*dipoleA.z;
-
-                  fa2.x=-0.5*term.x+fac1*dr.x-fac2*dipoleA.x;
-                  fa2.y=-0.5*term.y+fac1*dr.y-fac2*dipoleA.y;
-                  fa2.z=-0.5*term.z+fac1*dr.z-fac2*dipoleA.z;
-
-                  switch(ChargeMethod)
-                  {
-                    case SMOOTHED_COULOMB:
-                      if(rr>CutOffChargeBondDipoleSwitchSquared)
-                      {
-                        SwitchingValue=SwitchingChargeBondDipoleFactors5[5]*(rr*rr*r)+SwitchingChargeBondDipoleFactors5[4]*(rr*rr)+SwitchingChargeBondDipoleFactors5[3]*(rr*r)+
-                                       SwitchingChargeBondDipoleFactors5[2]*rr+SwitchingChargeBondDipoleFactors5[1]*r+SwitchingChargeBondDipoleFactors5[0];
-                        SwitchingValueDerivative=5.0*SwitchingChargeBondDipoleFactors5[5]*rr*rr+4.0*SwitchingChargeBondDipoleFactors5[4]*rr*r+3.0*SwitchingChargeBondDipoleFactors5[3]*rr+
-                                                 2.0*SwitchingChargeBondDipoleFactors5[2]*r+SwitchingChargeBondDipoleFactors5[1];
-
-                        SwitchingValueDerivative*=-energy/r;
-
-                        energy*=SwitchingValue;
-
-                        term.x=term.x*SwitchingValue+SwitchingValueDerivative*dr.x;
-                        term.y=term.y*SwitchingValue+SwitchingValueDerivative*dr.y;
-                        term.z=term.z*SwitchingValue+SwitchingValueDerivative*dr.z;
-
-                        fa1.x=fa1.x*SwitchingValue-0.5*SwitchingValueDerivative*dr.x;
-                        fa1.y=fa1.y*SwitchingValue-0.5*SwitchingValueDerivative*dr.y;
-                        fa1.z=fa1.z*SwitchingValue-0.5*SwitchingValueDerivative*dr.z;
-                        fa2.x=fa2.x*SwitchingValue-0.5*SwitchingValueDerivative*dr.x;
-                        fa2.y=fa2.y*SwitchingValue-0.5*SwitchingValueDerivative*dr.y;
-                        fa2.z=fa2.z*SwitchingValue-0.5*SwitchingValueDerivative*dr.z;
-
-                        fb1.x=fb1.x*SwitchingValue+SwitchingValueDerivative*dr.x;
-                        fb1.y=fb1.y*SwitchingValue+SwitchingValueDerivative*dr.y;
-                        fb1.z=fb1.z*SwitchingValue+SwitchingValueDerivative*dr.z;
-                      }
-                      break;
-                  }
+                  PotentialGradientChargeBondDipole(chargeB,DipoleMagnitudeA,length,dipoleA,dr,rr,&energy,&fa1,&fa2,&fb1,&term);
 
                   UAdsorbateAdsorbateChargeBondDipoleReal[CurrentSystem]-=energy;
 
@@ -1436,104 +1346,17 @@ int CalculateTotalInterChargeBondDipoleCoulombForce(void)
             if(PseudoAtoms[Type].HasCharges)
             {
               posB=Cations[CurrentSystem][k].Atoms[l].Position;
-              ChargeB=Cations[CurrentSystem][k].Atoms[l].Charge;
+              chargeB=Cations[CurrentSystem][k].Atoms[l].Charge;
   
               dr.x=posA.x-posB.x;
               dr.y=posA.y-posB.y;
               dr.z=posA.z-posB.z;
               dr=ApplyBoundaryCondition(dr);
               rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-              r=sqrt(rr);
 
               if(rr<CutOffChargeBondDipoleSquared)
               {
-                switch(ChargeMethod)
-                {
-                  case NONE:
-                    Bt0=Bt1=Bt2=0.0;  
-                    break;
-                  case TRUNCATED_COULOMB:
-                    Bt0=1.0/(r);
-                    Bt1=1.0/(r*rr);
-                    Bt2=3.0/(r*rr*rr);
-                    break;
-                  case SHIFTED_COULOMB:
-                    Bt0=1.0/(r);
-                    Bt1=1.0/(r*rr);
-                    Bt2=3.0/(r*rr*rr);
-                    break;
-                  case SMOOTHED_COULOMB:
-                    Bt0=1.0/(r);
-                    Bt1=1.0/(r*rr);
-                    Bt2=3.0/(r*rr*rr);
-                    break;
-                  case EWALD:
-                    Bt0=erfc(Alpha[CurrentSystem]*r)/r;
-                    Bt1=2.0*Alpha[CurrentSystem]*exp(-SQR(-Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                        erfc(Alpha[CurrentSystem]*r)/(rr*r);
-                    Bt2=6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
-                        4.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                        3.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*r);
-                    break;
-                  default:
-                    printf("Unknown charge-method in 'CalculateTotalInterChargeBondDipoleCoulombForce'\n");
-                    exit(0);
-                    break;
-                }
-
-                cosA=dipoleA.x*dr.x+dipoleA.y*dr.y+dipoleA.z*dr.z;
-                energy=COULOMBIC_CONVERSION_FACTOR*(Bt1*ChargeB*cosA);
-
-                term.x=COULOMBIC_CONVERSION_FACTOR*ChargeB*(Bt2*cosA*dr.x-Bt1*dipoleA.x);
-                term.y=COULOMBIC_CONVERSION_FACTOR*ChargeB*(Bt2*cosA*dr.y-Bt1*dipoleA.y);
-                term.z=COULOMBIC_CONVERSION_FACTOR*ChargeB*(Bt2*cosA*dr.z-Bt1*dipoleA.z);
-
-                fb1.x=term.x;
-                fb1.y=term.y;
-                fb1.z=term.z;
-
-                fac1=COULOMBIC_CONVERSION_FACTOR*ChargeB*Bt1*DipoleMagnitudeA/length;
-                fac2=COULOMBIC_CONVERSION_FACTOR*ChargeB*Bt1*cosA/(DipoleMagnitudeA*length);
-
-                fa1.x=-0.5*term.x-fac1*dr.x+fac2*dipoleA.x;
-                fa1.y=-0.5*term.y-fac1*dr.y+fac2*dipoleA.y;
-                fa1.z=-0.5*term.z-fac1*dr.z+fac2*dipoleA.z;
-
-                fa2.x=-0.5*term.x+fac1*dr.x-fac2*dipoleA.x;
-                fa2.y=-0.5*term.y+fac1*dr.y-fac2*dipoleA.y;
-                fa2.z=-0.5*term.z+fac1*dr.z-fac2*dipoleA.z;
-
-                switch(ChargeMethod)
-                {
-                  case SMOOTHED_COULOMB:
-                    if(rr>CutOffChargeBondDipoleSwitchSquared)
-                    {
-                      SwitchingValue=SwitchingChargeBondDipoleFactors5[5]*(rr*rr*r)+SwitchingChargeBondDipoleFactors5[4]*(rr*rr)+SwitchingChargeBondDipoleFactors5[3]*(rr*r)+
-                                     SwitchingChargeBondDipoleFactors5[2]*rr+SwitchingChargeBondDipoleFactors5[1]*r+SwitchingChargeBondDipoleFactors5[0];
-                      SwitchingValueDerivative=5.0*SwitchingChargeBondDipoleFactors5[5]*rr*rr+4.0*SwitchingChargeBondDipoleFactors5[4]*rr*r+3.0*SwitchingChargeBondDipoleFactors5[3]*rr+
-                                               2.0*SwitchingChargeBondDipoleFactors5[2]*r+SwitchingChargeBondDipoleFactors5[1];
-
-                      SwitchingValueDerivative*=-energy/r;
-
-                      energy*=SwitchingValue;
-
-                      term.x=term.x*SwitchingValue+SwitchingValueDerivative*dr.x;
-                      term.y=term.y*SwitchingValue+SwitchingValueDerivative*dr.y;
-                      term.z=term.z*SwitchingValue+SwitchingValueDerivative*dr.z;
-
-                      fa1.x=fa1.x*SwitchingValue-0.5*SwitchingValueDerivative*dr.x;
-                      fa1.y=fa1.y*SwitchingValue-0.5*SwitchingValueDerivative*dr.y;
-                      fa1.z=fa1.z*SwitchingValue-0.5*SwitchingValueDerivative*dr.z;
-                      fa2.x=fa2.x*SwitchingValue-0.5*SwitchingValueDerivative*dr.x;
-                      fa2.y=fa2.y*SwitchingValue-0.5*SwitchingValueDerivative*dr.y;
-                      fa2.z=fa2.z*SwitchingValue-0.5*SwitchingValueDerivative*dr.z;
-
-                      fb1.x=fb1.x*SwitchingValue+SwitchingValueDerivative*dr.x;
-                      fb1.y=fb1.y*SwitchingValue+SwitchingValueDerivative*dr.y;
-                      fb1.z=fb1.z*SwitchingValue+SwitchingValueDerivative*dr.z;
-                    }
-                    break;
-                }
+                PotentialGradientChargeBondDipole(chargeB,DipoleMagnitudeA,length,dipoleA,dr,rr,&energy,&fa1,&fa2,&fb1,&term);
 
                 UAdsorbateCationChargeBondDipoleReal[CurrentSystem]-=energy;
 
@@ -1615,104 +1438,17 @@ int CalculateTotalInterChargeBondDipoleCoulombForce(void)
               if(PseudoAtoms[Type].HasCharges)
               {
                 posB=Cations[CurrentSystem][k].Atoms[l].Position;
-                ChargeB=Cations[CurrentSystem][k].Atoms[l].Charge;
+                chargeB=Cations[CurrentSystem][k].Atoms[l].Charge;
   
                 dr.x=posA.x-posB.x;
                 dr.y=posA.y-posB.y;
                 dr.z=posA.z-posB.z;
                 dr=ApplyBoundaryCondition(dr);
                 rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-                r=sqrt(rr);
 
                 if(rr<CutOffChargeBondDipoleSquared)
                 {
-                  switch(ChargeMethod)
-                  {
-                    case NONE:
-                      Bt0=Bt1=Bt2=0.0;  
-                      break;
-                    case TRUNCATED_COULOMB:
-                      Bt0=1.0/(r);
-                      Bt1=1.0/(r*rr);
-                      Bt2=3.0/(r*rr*rr);
-                      break;
-                    case SHIFTED_COULOMB:
-                      Bt0=1.0/(r);
-                      Bt1=1.0/(r*rr);
-                      Bt2=3.0/(r*rr*rr);
-                      break;
-                    case SMOOTHED_COULOMB:
-                      Bt0=1.0/(r);
-                      Bt1=1.0/(r*rr);
-                      Bt2=3.0/(r*rr*rr);
-                      break;
-                    case EWALD:
-                      Bt0=erfc(Alpha[CurrentSystem]*r)/r;
-                      Bt1=2.0*Alpha[CurrentSystem]*exp(-SQR(-Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                          erfc(Alpha[CurrentSystem]*r)/(rr*r);
-                      Bt2=6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
-                          4.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                          3.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*r);
-                      break;
-                    default:
-                      printf("Unknown charge-method in 'CalculateTotalInterChargeBondDipoleCoulombForce'\n");
-                      exit(0);
-                      break;
-                  }
-
-                  cosA=dipoleA.x*dr.x+dipoleA.y*dr.y+dipoleA.z*dr.z;
-                  energy=COULOMBIC_CONVERSION_FACTOR*(Bt1*ChargeB*cosA);
-
-                  term.x=COULOMBIC_CONVERSION_FACTOR*ChargeB*(Bt2*cosA*dr.x-Bt1*dipoleA.x);
-                  term.y=COULOMBIC_CONVERSION_FACTOR*ChargeB*(Bt2*cosA*dr.y-Bt1*dipoleA.y);
-                  term.z=COULOMBIC_CONVERSION_FACTOR*ChargeB*(Bt2*cosA*dr.z-Bt1*dipoleA.z);
-
-                  fb1.x=term.x;
-                  fb1.y=term.y;
-                  fb1.z=term.z;
-
-                  fac1=COULOMBIC_CONVERSION_FACTOR*ChargeB*Bt1*DipoleMagnitudeA/length;
-                  fac2=COULOMBIC_CONVERSION_FACTOR*ChargeB*Bt1*cosA/(DipoleMagnitudeA*length);
-
-                  fa1.x=-0.5*term.x-fac1*dr.x+fac2*dipoleA.x;
-                  fa1.y=-0.5*term.y-fac1*dr.y+fac2*dipoleA.y;
-                  fa1.z=-0.5*term.z-fac1*dr.z+fac2*dipoleA.z;
-
-                  fa2.x=-0.5*term.x+fac1*dr.x-fac2*dipoleA.x;
-                  fa2.y=-0.5*term.y+fac1*dr.y-fac2*dipoleA.y;
-                  fa2.z=-0.5*term.z+fac1*dr.z-fac2*dipoleA.z;
-
-                  switch(ChargeMethod)
-                  {
-                    case SMOOTHED_COULOMB:
-                      if(rr>CutOffChargeBondDipoleSwitchSquared)
-                      {
-                        SwitchingValue=SwitchingChargeBondDipoleFactors5[5]*(rr*rr*r)+SwitchingChargeBondDipoleFactors5[4]*(rr*rr)+SwitchingChargeBondDipoleFactors5[3]*(rr*r)+
-                                       SwitchingChargeBondDipoleFactors5[2]*rr+SwitchingChargeBondDipoleFactors5[1]*r+SwitchingChargeBondDipoleFactors5[0];
-                        SwitchingValueDerivative=5.0*SwitchingChargeBondDipoleFactors5[5]*rr*rr+4.0*SwitchingChargeBondDipoleFactors5[4]*rr*r+3.0*SwitchingChargeBondDipoleFactors5[3]*rr+
-                                                 2.0*SwitchingChargeBondDipoleFactors5[2]*r+SwitchingChargeBondDipoleFactors5[1];
-
-                        SwitchingValueDerivative*=-energy/r;
-
-                        energy*=SwitchingValue;
-  
-                        term.x=term.x*SwitchingValue+SwitchingValueDerivative*dr.x;
-                        term.y=term.y*SwitchingValue+SwitchingValueDerivative*dr.y;
-                        term.z=term.z*SwitchingValue+SwitchingValueDerivative*dr.z;
-
-                        fa1.x=fa1.x*SwitchingValue-0.5*SwitchingValueDerivative*dr.x;
-                        fa1.y=fa1.y*SwitchingValue-0.5*SwitchingValueDerivative*dr.y;
-                        fa1.z=fa1.z*SwitchingValue-0.5*SwitchingValueDerivative*dr.z;
-                        fa2.x=fa2.x*SwitchingValue-0.5*SwitchingValueDerivative*dr.x;
-                        fa2.y=fa2.y*SwitchingValue-0.5*SwitchingValueDerivative*dr.y;
-                        fa2.z=fa2.z*SwitchingValue-0.5*SwitchingValueDerivative*dr.z;
-
-                        fb1.x=fb1.x*SwitchingValue+SwitchingValueDerivative*dr.x;
-                        fb1.y=fb1.y*SwitchingValue+SwitchingValueDerivative*dr.y;
-                        fb1.z=fb1.z*SwitchingValue+SwitchingValueDerivative*dr.z;
-                      }
-                      break;
-                  }
+                  PotentialGradientChargeBondDipole(chargeB,DipoleMagnitudeA,length,dipoleA,dr,rr,&energy,&fa1,&fa2,&fb1,&term);
 
                   UCationCationChargeBondDipoleReal[CurrentSystem]-=energy;
 
@@ -1770,104 +1506,17 @@ int CalculateTotalInterChargeBondDipoleCoulombForce(void)
             if(PseudoAtoms[Type].HasCharges)
             {
               posB=Adsorbates[CurrentSystem][k].Atoms[l].Position;
-              ChargeB=Adsorbates[CurrentSystem][k].Atoms[l].Charge;
+              chargeB=Adsorbates[CurrentSystem][k].Atoms[l].Charge;
   
               dr.x=posA.x-posB.x;
               dr.y=posA.y-posB.y;
               dr.z=posA.z-posB.z;
               dr=ApplyBoundaryCondition(dr);
               rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-              r=sqrt(rr);
 
               if(rr<CutOffChargeBondDipoleSquared)
               {
-                switch(ChargeMethod)
-                {
-                  case NONE:
-                    Bt0=Bt1=Bt2=0.0;  
-                    break;
-                  case TRUNCATED_COULOMB:
-                    Bt0=1.0/(r);
-                    Bt1=1.0/(r*rr);
-                    Bt2=3.0/(r*rr*rr);
-                    break;
-                  case SHIFTED_COULOMB:
-                    Bt0=1.0/(r);
-                    Bt1=1.0/(r*rr);
-                    Bt2=3.0/(r*rr*rr);
-                    break;
-                  case SMOOTHED_COULOMB:
-                    Bt0=1.0/(r);
-                    Bt1=1.0/(r*rr);
-                    Bt2=3.0/(r*rr*rr);
-                    break;
-                  case EWALD:
-                    Bt0=erfc(Alpha[CurrentSystem]*r)/r;
-                    Bt1=2.0*Alpha[CurrentSystem]*exp(-SQR(-Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                        erfc(Alpha[CurrentSystem]*r)/(rr*r);
-                    Bt2=6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
-                        4.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                        3.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*r);
-                    break;
-                  default:
-                    printf("Unknown charge-method in 'CalculateTotalInterChargeBondDipoleCoulombForce'\n");
-                    exit(0);
-                    break;
-                }
-
-                cosA=dipoleA.x*dr.x+dipoleA.y*dr.y+dipoleA.z*dr.z;
-                energy=COULOMBIC_CONVERSION_FACTOR*(Bt1*ChargeB*cosA);
-
-                term.x=COULOMBIC_CONVERSION_FACTOR*ChargeB*(Bt2*cosA*dr.x-Bt1*dipoleA.x);
-                term.y=COULOMBIC_CONVERSION_FACTOR*ChargeB*(Bt2*cosA*dr.y-Bt1*dipoleA.y);
-                term.z=COULOMBIC_CONVERSION_FACTOR*ChargeB*(Bt2*cosA*dr.z-Bt1*dipoleA.z);
-
-                fb1.x=term.x;
-                fb1.y=term.y;
-                fb1.z=term.z;
-
-                fac1=COULOMBIC_CONVERSION_FACTOR*ChargeB*Bt1*DipoleMagnitudeA/length;
-                fac2=COULOMBIC_CONVERSION_FACTOR*ChargeB*Bt1*cosA/(DipoleMagnitudeA*length);
-
-                fa1.x=-0.5*term.x-fac1*dr.x+fac2*dipoleA.x;
-                fa1.y=-0.5*term.y-fac1*dr.y+fac2*dipoleA.y;
-                fa1.z=-0.5*term.z-fac1*dr.z+fac2*dipoleA.z;
-
-                fa2.x=-0.5*term.x+fac1*dr.x-fac2*dipoleA.x;
-                fa2.y=-0.5*term.y+fac1*dr.y-fac2*dipoleA.y;
-                fa2.z=-0.5*term.z+fac1*dr.z-fac2*dipoleA.z;
-
-                switch(ChargeMethod)
-                {
-                  case SMOOTHED_COULOMB:
-                    if(rr>CutOffChargeBondDipoleSwitchSquared)
-                    {
-                      SwitchingValue=SwitchingChargeBondDipoleFactors5[5]*(rr*rr*r)+SwitchingChargeBondDipoleFactors5[4]*(rr*rr)+SwitchingChargeBondDipoleFactors5[3]*(rr*r)+
-                                     SwitchingChargeBondDipoleFactors5[2]*rr+SwitchingChargeBondDipoleFactors5[1]*r+SwitchingChargeBondDipoleFactors5[0];
-                      SwitchingValueDerivative=5.0*SwitchingChargeBondDipoleFactors5[5]*rr*rr+4.0*SwitchingChargeBondDipoleFactors5[4]*rr*r+3.0*SwitchingChargeBondDipoleFactors5[3]*rr+
-                                               2.0*SwitchingChargeBondDipoleFactors5[2]*r+SwitchingChargeBondDipoleFactors5[1];
-
-                      SwitchingValueDerivative*=-energy/r;
-
-                      energy*=SwitchingValue;
-
-                      term.x=term.x*SwitchingValue+SwitchingValueDerivative*dr.x;
-                      term.y=term.y*SwitchingValue+SwitchingValueDerivative*dr.y;
-                      term.z=term.z*SwitchingValue+SwitchingValueDerivative*dr.z;
-
-                      fa1.x=fa1.x*SwitchingValue-0.5*SwitchingValueDerivative*dr.x;
-                      fa1.y=fa1.y*SwitchingValue-0.5*SwitchingValueDerivative*dr.y;
-                      fa1.z=fa1.z*SwitchingValue-0.5*SwitchingValueDerivative*dr.z;
-                      fa2.x=fa2.x*SwitchingValue-0.5*SwitchingValueDerivative*dr.x;
-                      fa2.y=fa2.y*SwitchingValue-0.5*SwitchingValueDerivative*dr.y;
-                      fa2.z=fa2.z*SwitchingValue-0.5*SwitchingValueDerivative*dr.z;
-
-                      fb1.x=fb1.x*SwitchingValue+SwitchingValueDerivative*dr.x;
-                      fb1.y=fb1.y*SwitchingValue+SwitchingValueDerivative*dr.y;
-                      fb1.z=fb1.z*SwitchingValue+SwitchingValueDerivative*dr.z;
-                    }
-                    break;
-                }
+                PotentialGradientChargeBondDipole(chargeB,DipoleMagnitudeA,length,dipoleA,dr,rr,&energy,&fa1,&fa2,&fb1,&term);
 
                 UAdsorbateCationChargeBondDipoleReal[CurrentSystem]-=energy;
 
@@ -1925,14 +1574,11 @@ int CalculateTotalInterBondDipoleBondDipoleCoulombForce(void)
   int A1,A2,B1,B2;
   int TypeA,TypeB;
   VECTOR posA,posB,posA1,posA2,posB1,posB2,dr;
-  REAL r,rr,ri2,rk2,cosAB,cosA,cosB,energy,temp,length;
-  VECTOR dipoleA,dipoleB,fb1,fb2,fa1,fa2,termA,termB,term;
-  REAL Bt0,Bt1,Bt2,Bt3;
+  REAL rr,ri2,rk2,energy,temp,length;
+  VECTOR dipoleA,dipoleB,fb1,fb2,fa1,fa2,term;
   REAL DipoleMagnitudeA,DipoleMagnitudeB;
   REAL_MATRIX3x3 v;
-  REAL SwitchingValue,SwitchingValueDerivative;
 
-  Bt0=Bt1=Bt2=Bt3=0.0;  
   v.ax=v.bx=v.cx=0.0;
   v.ay=v.by=v.cy=0.0;
   v.az=v.bz=v.cz=0.0;
@@ -1993,144 +1639,11 @@ int CalculateTotalInterBondDipoleBondDipoleCoulombForce(void)
             dr.z=posA.z-posB.z;
             dr=ApplyBoundaryCondition(dr);
             rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-            r=sqrt(rr);
 
             if(rr<CutOffBondDipoleBondDipoleSquared)
             {
-              switch(ChargeMethod)
-              {
-                case NONE:
-                  Bt0=Bt1=Bt2=Bt3=0.0;  
-                  break;
-                case TRUNCATED_COULOMB:
-                  Bt0=1.0/(r);
-                  Bt1=1.0/(r*rr);
-                  Bt2=3.0/(r*rr*rr);
-                  Bt3=15.0/(r*rr*rr*rr);
-                  break;
-                case SHIFTED_COULOMB:
-                  Bt0=1.0/(r);
-                  Bt1=1.0/(r*rr);
-                  Bt2=3.0/(r*rr*rr);
-                  Bt3=15.0/(r*rr*rr*rr);
-                  break;
-                case SMOOTHED_COULOMB:
-                  Bt0=1.0/(r);
-                  Bt1=1.0/(r*rr);
-                  Bt2=3.0/(r*rr*rr);
-                  Bt3=15.0/(r*rr*rr*rr);
-                  break;
-                case EWALD:
-                  Bt0=erfc(Alpha[CurrentSystem]*r)/r;
-                  Bt1=2.0*Alpha[CurrentSystem]*exp(-SQR(-Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                      erfc(Alpha[CurrentSystem]*r)/(rr*r);
-                  Bt2=6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
-                      4.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                      3.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*r);
-                  Bt3=30.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr*rr)+
-                      20.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
-                      8.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                      15.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*rr*r);
-                  break;
-                default:
-                  printf("Unknown charge-method in 'CalculateTotalInterBondDipoleBondDipoleCoulombForce'\n");
-                  exit(0);
-                  break;
-              }
-
-              cosAB=dipoleA.x*dipoleB.x+dipoleA.y*dipoleB.y+dipoleA.z*dipoleB.z;
-              cosA=dipoleA.x*dr.x+dipoleA.y*dr.y+dipoleA.z*dr.z;
-              cosB=dipoleB.x*dr.x+dipoleB.y*dr.y+dipoleB.z*dr.z;
-              energy=COULOMBIC_CONVERSION_FACTOR*(Bt1*cosAB-Bt2*cosA*cosB);
-
-              term.x=COULOMBIC_CONVERSION_FACTOR*(Bt3*(cosA*cosB)*dr.x-Bt2*(cosAB*dr.x+cosB*dipoleA.x+cosA*dipoleB.x));
-              term.y=COULOMBIC_CONVERSION_FACTOR*(Bt3*(cosA*cosB)*dr.y-Bt2*(cosAB*dr.y+cosB*dipoleA.y+cosA*dipoleB.y));
-              term.z=COULOMBIC_CONVERSION_FACTOR*(Bt3*(cosA*cosB)*dr.z-Bt2*(cosAB*dr.z+cosB*dipoleA.z+cosA*dipoleB.z));
-
-              termA.x=COULOMBIC_CONVERSION_FACTOR*(
-                      Bt1*cosAB*dipoleA.x/(sqrt(ri2)*DipoleMagnitudeA)
-                      -Bt2*cosA*cosB*dipoleA.x/(sqrt(ri2)*DipoleMagnitudeA)
-                      -Bt1*DipoleMagnitudeA*dipoleB.x/sqrt(ri2)
-                      +Bt2*DipoleMagnitudeA*cosB*dr.x/sqrt(ri2));
-
-              termA.y=COULOMBIC_CONVERSION_FACTOR*(
-                      Bt1*cosAB*dipoleA.y/(sqrt(ri2)*DipoleMagnitudeA)
-                      -Bt2*cosA*cosB*dipoleA.y/(sqrt(ri2)*DipoleMagnitudeA)
-                      -Bt1*DipoleMagnitudeA*dipoleB.y/sqrt(ri2)
-                      +Bt2*DipoleMagnitudeA*cosB*dr.y/sqrt(ri2));
-
-              termA.z=COULOMBIC_CONVERSION_FACTOR*(
-                      Bt1*cosAB*dipoleA.z/(sqrt(ri2)*DipoleMagnitudeA)
-                      -Bt2*cosA*cosB*dipoleA.z/(sqrt(ri2)*DipoleMagnitudeA)
-                      -Bt1*DipoleMagnitudeA*dipoleB.z/sqrt(ri2)
-                      +Bt2*DipoleMagnitudeA*cosB*dr.z/sqrt(ri2));
-
-              termB.x=COULOMBIC_CONVERSION_FACTOR*(
-                      Bt1*cosAB*dipoleB.x/(sqrt(rk2)*DipoleMagnitudeB)
-                      -Bt2*cosA*cosB*dipoleB.x/(sqrt(rk2)*DipoleMagnitudeB)
-                      -Bt1*DipoleMagnitudeB*dipoleA.x/sqrt(rk2)
-                      +Bt2*DipoleMagnitudeB*cosA*dr.x/sqrt(rk2));
-
-              termB.y=COULOMBIC_CONVERSION_FACTOR*(
-                      Bt1*cosAB*dipoleB.y/(sqrt(rk2)*DipoleMagnitudeB)
-                      -Bt2*cosA*cosB*dipoleB.y/(sqrt(rk2)*DipoleMagnitudeB)
-                      -Bt1*DipoleMagnitudeB*dipoleA.y/sqrt(rk2)
-                      +Bt2*DipoleMagnitudeB*cosA*dr.y/sqrt(rk2));
-
-              termB.z=COULOMBIC_CONVERSION_FACTOR*(
-                      Bt1*cosAB*dipoleB.z/(sqrt(rk2)*DipoleMagnitudeB)
-                      -Bt2*cosA*cosB*dipoleB.z/(sqrt(rk2)*DipoleMagnitudeB)
-                      -Bt1*DipoleMagnitudeB*dipoleA.z/sqrt(rk2)
-                      +Bt2*DipoleMagnitudeB*cosA*dr.z/sqrt(rk2));
-
-              fa1.x=-0.5*term.x-termA.x;
-              fa1.y=-0.5*term.y-termA.y;
-              fa1.z=-0.5*term.z-termA.z;
-              fa2.x=-0.5*term.x+termA.x;
-              fa2.y=-0.5*term.y+termA.y;
-              fa2.z=-0.5*term.z+termA.z;
-
-              fb1.x=0.5*term.x-termB.x;
-              fb1.y=0.5*term.y-termB.y;
-              fb1.z=0.5*term.z-termB.z;
-              fb2.x=0.5*term.x+termB.x;
-              fb2.y=0.5*term.y+termB.y;
-              fb2.z=0.5*term.z+termB.z;
-
-              switch(ChargeMethod)
-              {
-                case SMOOTHED_COULOMB:
-                  if(rr>CutOffBondDipoleBondDipoleSwitchSquared)
-                  {
-                    SwitchingValue=SwitchingBondDipoleBondDipoleFactors5[5]*(rr*rr*r)+SwitchingBondDipoleBondDipoleFactors5[4]*(rr*rr)+SwitchingBondDipoleBondDipoleFactors5[3]*(rr*r)+
-                                   SwitchingBondDipoleBondDipoleFactors5[2]*rr+SwitchingBondDipoleBondDipoleFactors5[1]*r+SwitchingBondDipoleBondDipoleFactors5[0];
-                    SwitchingValueDerivative=5.0*SwitchingBondDipoleBondDipoleFactors5[5]*rr*rr+4.0*SwitchingBondDipoleBondDipoleFactors5[4]*rr*r+3.0*SwitchingBondDipoleBondDipoleFactors5[3]*rr+
-                                             2.0*SwitchingBondDipoleBondDipoleFactors5[2]*r+SwitchingBondDipoleBondDipoleFactors5[1];
-
-                    SwitchingValueDerivative*=energy/r;
-
-                    energy*=SwitchingValue;
-
-                    term.x=term.x*SwitchingValue+SwitchingValueDerivative*dr.x;
-                    term.y=term.y*SwitchingValue+SwitchingValueDerivative*dr.y;
-                    term.z=term.z*SwitchingValue+SwitchingValueDerivative*dr.z;
-
-                    fa1.x=fa1.x*SwitchingValue-0.5*SwitchingValueDerivative*dr.x;
-                    fa1.y=fa1.y*SwitchingValue-0.5*SwitchingValueDerivative*dr.y;
-                    fa1.z=fa1.z*SwitchingValue-0.5*SwitchingValueDerivative*dr.z;
-                    fa2.x=fa2.x*SwitchingValue-0.5*SwitchingValueDerivative*dr.x;
-                    fa2.y=fa2.y*SwitchingValue-0.5*SwitchingValueDerivative*dr.y;
-                    fa2.z=fa2.z*SwitchingValue-0.5*SwitchingValueDerivative*dr.z;
-            
-                    fb1.x=fb1.x*SwitchingValue+0.5*SwitchingValueDerivative*dr.x;
-                    fb1.y=fb1.y*SwitchingValue+0.5*SwitchingValueDerivative*dr.y;
-                    fb1.z=fb1.z*SwitchingValue+0.5*SwitchingValueDerivative*dr.z;
-                    fb2.x=fb2.x*SwitchingValue+0.5*SwitchingValueDerivative*dr.x;
-                    fb2.y=fb2.y*SwitchingValue+0.5*SwitchingValueDerivative*dr.y;
-                    fb2.z=fb2.z*SwitchingValue+0.5*SwitchingValueDerivative*dr.z;
-                    break;
-                }
-              }
+              PotentialGradientBondDipoleBondDipole(DipoleMagnitudeA,ri2,dipoleA,DipoleMagnitudeB,rk2,dipoleB,dr,rr,
+                                                    &energy,&fa1,&fa2,&fb1,&fb2,&term);
 
               UAdsorbateAdsorbateBondDipoleBondDipoleReal[CurrentSystem]+=energy;
 
@@ -2210,144 +1723,11 @@ int CalculateTotalInterBondDipoleBondDipoleCoulombForce(void)
             dr.z=posA.z-posB.z;
             dr=ApplyBoundaryCondition(dr);
             rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-            r=sqrt(rr);
 
             if(rr<CutOffBondDipoleBondDipoleSquared)
             {
-              switch(ChargeMethod)
-              {
-                case NONE:
-                  Bt0=Bt1=Bt2=Bt3=0.0;  
-                  break;
-                case TRUNCATED_COULOMB:
-                  Bt0=1.0/(r);
-                  Bt1=1.0/(r*rr);
-                  Bt2=3.0/(r*rr*rr);
-                  Bt3=15.0/(r*rr*rr*rr);
-                  break;
-                case SHIFTED_COULOMB:
-                  Bt0=1.0/(r);
-                  Bt1=1.0/(r*rr);
-                  Bt2=3.0/(r*rr*rr);
-                  Bt3=15.0/(r*rr*rr*rr);
-                  break;
-                case SMOOTHED_COULOMB:
-                  Bt0=1.0/(r);
-                  Bt1=1.0/(r*rr);
-                  Bt2=3.0/(r*rr*rr);
-                  Bt3=15.0/(r*rr*rr*rr);
-                  break;
-                case EWALD:
-                  Bt0=erfc(Alpha[CurrentSystem]*r)/r;
-                  Bt1=2.0*Alpha[CurrentSystem]*exp(-SQR(-Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                      erfc(Alpha[CurrentSystem]*r)/(rr*r);
-                  Bt2=6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
-                      4.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                      3.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*r);
-                  Bt3=30.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr*rr)+
-                      20.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
-                      8.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                      15.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*rr*r);
-                  break;
-                default:
-                  printf("Unknown charge-method in 'CalculateTotalInterBondDipoleBondDipoleCoulombForce'\n");
-                  exit(0);
-                  break;
-              }
-
-              cosAB=dipoleA.x*dipoleB.x+dipoleA.y*dipoleB.y+dipoleA.z*dipoleB.z;
-              cosA=dipoleA.x*dr.x+dipoleA.y*dr.y+dipoleA.z*dr.z;
-              cosB=dipoleB.x*dr.x+dipoleB.y*dr.y+dipoleB.z*dr.z;
-              energy=COULOMBIC_CONVERSION_FACTOR*(Bt1*cosAB-Bt2*cosA*cosB);
-
-              term.x=COULOMBIC_CONVERSION_FACTOR*(Bt3*(cosA*cosB)*dr.x-Bt2*(cosAB*dr.x+cosB*dipoleA.x+cosA*dipoleB.x));
-              term.y=COULOMBIC_CONVERSION_FACTOR*(Bt3*(cosA*cosB)*dr.y-Bt2*(cosAB*dr.y+cosB*dipoleA.y+cosA*dipoleB.y));
-              term.z=COULOMBIC_CONVERSION_FACTOR*(Bt3*(cosA*cosB)*dr.z-Bt2*(cosAB*dr.z+cosB*dipoleA.z+cosA*dipoleB.z));
-
-              termA.x=COULOMBIC_CONVERSION_FACTOR*(
-                      Bt1*cosAB*dipoleA.x/(sqrt(ri2)*DipoleMagnitudeA)
-                      -Bt2*cosA*cosB*dipoleA.x/(sqrt(ri2)*DipoleMagnitudeA)
-                      -Bt1*DipoleMagnitudeA*dipoleB.x/sqrt(ri2)
-                      +Bt2*DipoleMagnitudeA*cosB*dr.x/sqrt(ri2));
-
-              termA.y=COULOMBIC_CONVERSION_FACTOR*(
-                      Bt1*cosAB*dipoleA.y/(sqrt(ri2)*DipoleMagnitudeA)
-                      -Bt2*cosA*cosB*dipoleA.y/(sqrt(ri2)*DipoleMagnitudeA)
-                      -Bt1*DipoleMagnitudeA*dipoleB.y/sqrt(ri2)
-                      +Bt2*DipoleMagnitudeA*cosB*dr.y/sqrt(ri2));
-
-              termA.z=COULOMBIC_CONVERSION_FACTOR*(
-                      Bt1*cosAB*dipoleA.z/(sqrt(ri2)*DipoleMagnitudeA)
-                      -Bt2*cosA*cosB*dipoleA.z/(sqrt(ri2)*DipoleMagnitudeA)
-                      -Bt1*DipoleMagnitudeA*dipoleB.z/sqrt(ri2)
-                      +Bt2*DipoleMagnitudeA*cosB*dr.z/sqrt(ri2));
-
-              termB.x=COULOMBIC_CONVERSION_FACTOR*(
-                      Bt1*cosAB*dipoleB.x/(sqrt(rk2)*DipoleMagnitudeB)
-                      -Bt2*cosA*cosB*dipoleB.x/(sqrt(rk2)*DipoleMagnitudeB)
-                      -Bt1*DipoleMagnitudeB*dipoleA.x/sqrt(rk2)
-                      +Bt2*DipoleMagnitudeB*cosA*dr.x/sqrt(rk2));
-
-              termB.y=COULOMBIC_CONVERSION_FACTOR*(
-                      Bt1*cosAB*dipoleB.y/(sqrt(rk2)*DipoleMagnitudeB)
-                      -Bt2*cosA*cosB*dipoleB.y/(sqrt(rk2)*DipoleMagnitudeB)
-                      -Bt1*DipoleMagnitudeB*dipoleA.y/sqrt(rk2)
-                      +Bt2*DipoleMagnitudeB*cosA*dr.y/sqrt(rk2));
-
-              termB.z=COULOMBIC_CONVERSION_FACTOR*(
-                      Bt1*cosAB*dipoleB.z/(sqrt(rk2)*DipoleMagnitudeB)
-                      -Bt2*cosA*cosB*dipoleB.z/(sqrt(rk2)*DipoleMagnitudeB)
-                      -Bt1*DipoleMagnitudeB*dipoleA.z/sqrt(rk2)
-                      +Bt2*DipoleMagnitudeB*cosA*dr.z/sqrt(rk2));
-
-              fa1.x=-0.5*term.x-termA.x;
-              fa1.y=-0.5*term.y-termA.y;
-              fa1.z=-0.5*term.z-termA.z;
-              fa2.x=-0.5*term.x+termA.x;
-              fa2.y=-0.5*term.y+termA.y;
-              fa2.z=-0.5*term.z+termA.z;
-
-              fb1.x=0.5*term.x-termB.x;
-              fb1.y=0.5*term.y-termB.y;
-              fb1.z=0.5*term.z-termB.z;
-              fb2.x=0.5*term.x+termB.x;
-              fb2.y=0.5*term.y+termB.y;
-              fb2.z=0.5*term.z+termB.z;
-
-              switch(ChargeMethod)
-              {
-                case SMOOTHED_COULOMB:
-                  if(rr>CutOffBondDipoleBondDipoleSwitchSquared)
-                  {
-                    SwitchingValue=SwitchingBondDipoleBondDipoleFactors5[5]*(rr*rr*r)+SwitchingBondDipoleBondDipoleFactors5[4]*(rr*rr)+SwitchingBondDipoleBondDipoleFactors5[3]*(rr*r)+
-                                   SwitchingBondDipoleBondDipoleFactors5[2]*rr+SwitchingBondDipoleBondDipoleFactors5[1]*r+SwitchingBondDipoleBondDipoleFactors5[0];
-                    SwitchingValueDerivative=5.0*SwitchingBondDipoleBondDipoleFactors5[5]*rr*rr+4.0*SwitchingBondDipoleBondDipoleFactors5[4]*rr*r+3.0*SwitchingBondDipoleBondDipoleFactors5[3]*rr+
-                                             2.0*SwitchingBondDipoleBondDipoleFactors5[2]*r+SwitchingBondDipoleBondDipoleFactors5[1];
-
-                    SwitchingValueDerivative*=energy/r;
-
-                    energy*=SwitchingValue;
-
-                    term.x=term.x*SwitchingValue+SwitchingValueDerivative*dr.x;
-                    term.y=term.y*SwitchingValue+SwitchingValueDerivative*dr.y;
-                    term.z=term.z*SwitchingValue+SwitchingValueDerivative*dr.z;
-
-                    fa1.x=fa1.x*SwitchingValue-0.5*SwitchingValueDerivative*dr.x;
-                    fa1.y=fa1.y*SwitchingValue-0.5*SwitchingValueDerivative*dr.y;
-                    fa1.z=fa1.z*SwitchingValue-0.5*SwitchingValueDerivative*dr.z;
-                    fa2.x=fa2.x*SwitchingValue-0.5*SwitchingValueDerivative*dr.x;
-                    fa2.y=fa2.y*SwitchingValue-0.5*SwitchingValueDerivative*dr.y;
-                    fa2.z=fa2.z*SwitchingValue-0.5*SwitchingValueDerivative*dr.z;
-
-                    fb1.x=fb1.x*SwitchingValue+0.5*SwitchingValueDerivative*dr.x;
-                    fb1.y=fb1.y*SwitchingValue+0.5*SwitchingValueDerivative*dr.y;
-                    fb1.z=fb1.z*SwitchingValue+0.5*SwitchingValueDerivative*dr.z;
-                    fb2.x=fb2.x*SwitchingValue+0.5*SwitchingValueDerivative*dr.x;
-                    fb2.y=fb2.y*SwitchingValue+0.5*SwitchingValueDerivative*dr.y;
-                    fb2.z=fb2.z*SwitchingValue+0.5*SwitchingValueDerivative*dr.z;
-                    break;
-                }
-              }
+              PotentialGradientBondDipoleBondDipole(DipoleMagnitudeA,ri2,dipoleA,DipoleMagnitudeB,rk2,dipoleB,dr,rr,
+                                                    &energy,&fa1,&fa2,&fb1,&fb2,&term);
 
               UAdsorbateCationBondDipoleBondDipoleReal[CurrentSystem]+=energy;
 
@@ -2450,144 +1830,11 @@ int CalculateTotalInterBondDipoleBondDipoleCoulombForce(void)
             dr.z=posA.z-posB.z;
             dr=ApplyBoundaryCondition(dr);
             rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-            r=sqrt(rr);
 
             if(rr<CutOffBondDipoleBondDipoleSquared)
             {
-              switch(ChargeMethod)
-              {
-                case NONE:
-                  Bt0=Bt1=Bt2=Bt3=0.0;  
-                  break;
-                case TRUNCATED_COULOMB:
-                  Bt0=1.0/(r);
-                  Bt1=1.0/(r*rr);
-                  Bt2=3.0/(r*rr*rr);
-                  Bt3=15.0/(r*rr*rr*rr);
-                  break;
-                case SHIFTED_COULOMB:
-                  Bt0=1.0/(r);
-                  Bt1=1.0/(r*rr);
-                  Bt2=3.0/(r*rr*rr);
-                  Bt3=15.0/(r*rr*rr*rr);
-                  break;
-                case SMOOTHED_COULOMB:
-                  Bt0=1.0/(r);
-                  Bt1=1.0/(r*rr);
-                  Bt2=3.0/(r*rr*rr);
-                  Bt3=15.0/(r*rr*rr*rr);
-                  break;
-                case EWALD:
-                  Bt0=erfc(Alpha[CurrentSystem]*r)/r;
-                  Bt1=2.0*Alpha[CurrentSystem]*exp(-SQR(-Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                      erfc(Alpha[CurrentSystem]*r)/(rr*r);
-                  Bt2=6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
-                      4.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                      3.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*r);
-                  Bt3=30.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr*rr)+
-                      20.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
-                      8.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                      15.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*rr*r);
-                  break;
-                default:
-                  printf("Unknown charge-method in 'CalculateTotalInterBondDipoleBondDipoleCoulombForce'\n");
-                  exit(0);
-                  break;
-              }
-
-              cosAB=dipoleA.x*dipoleB.x+dipoleA.y*dipoleB.y+dipoleA.z*dipoleB.z;
-              cosA=dipoleA.x*dr.x+dipoleA.y*dr.y+dipoleA.z*dr.z;
-              cosB=dipoleB.x*dr.x+dipoleB.y*dr.y+dipoleB.z*dr.z;
-              energy=COULOMBIC_CONVERSION_FACTOR*(Bt1*cosAB-Bt2*cosA*cosB);
-
-              term.x=COULOMBIC_CONVERSION_FACTOR*(Bt3*(cosA*cosB)*dr.x-Bt2*(cosAB*dr.x+cosB*dipoleA.x+cosA*dipoleB.x));
-              term.y=COULOMBIC_CONVERSION_FACTOR*(Bt3*(cosA*cosB)*dr.y-Bt2*(cosAB*dr.y+cosB*dipoleA.y+cosA*dipoleB.y));
-              term.z=COULOMBIC_CONVERSION_FACTOR*(Bt3*(cosA*cosB)*dr.z-Bt2*(cosAB*dr.z+cosB*dipoleA.z+cosA*dipoleB.z));
-
-              termA.x=COULOMBIC_CONVERSION_FACTOR*(
-                      Bt1*cosAB*dipoleA.x/(sqrt(ri2)*DipoleMagnitudeA)
-                      -Bt2*cosA*cosB*dipoleA.x/(sqrt(ri2)*DipoleMagnitudeA)
-                      -Bt1*DipoleMagnitudeA*dipoleB.x/sqrt(ri2)
-                      +Bt2*DipoleMagnitudeA*cosB*dr.x/sqrt(ri2));
-
-              termA.y=COULOMBIC_CONVERSION_FACTOR*(
-                      Bt1*cosAB*dipoleA.y/(sqrt(ri2)*DipoleMagnitudeA)
-                      -Bt2*cosA*cosB*dipoleA.y/(sqrt(ri2)*DipoleMagnitudeA)
-                      -Bt1*DipoleMagnitudeA*dipoleB.y/sqrt(ri2)
-                      +Bt2*DipoleMagnitudeA*cosB*dr.y/sqrt(ri2));
-
-              termA.z=COULOMBIC_CONVERSION_FACTOR*(
-                      Bt1*cosAB*dipoleA.z/(sqrt(ri2)*DipoleMagnitudeA)
-                      -Bt2*cosA*cosB*dipoleA.z/(sqrt(ri2)*DipoleMagnitudeA)
-                      -Bt1*DipoleMagnitudeA*dipoleB.z/sqrt(ri2)
-                      +Bt2*DipoleMagnitudeA*cosB*dr.z/sqrt(ri2));
-
-              termB.x=COULOMBIC_CONVERSION_FACTOR*(
-                      Bt1*cosAB*dipoleB.x/(sqrt(rk2)*DipoleMagnitudeB)
-                      -Bt2*cosA*cosB*dipoleB.x/(sqrt(rk2)*DipoleMagnitudeB)
-                      -Bt1*DipoleMagnitudeB*dipoleA.x/sqrt(rk2)
-                      +Bt2*DipoleMagnitudeB*cosA*dr.x/sqrt(rk2));
-
-              termB.y=COULOMBIC_CONVERSION_FACTOR*(
-                      Bt1*cosAB*dipoleB.y/(sqrt(rk2)*DipoleMagnitudeB)
-                      -Bt2*cosA*cosB*dipoleB.y/(sqrt(rk2)*DipoleMagnitudeB)
-                      -Bt1*DipoleMagnitudeB*dipoleA.y/sqrt(rk2)
-                      +Bt2*DipoleMagnitudeB*cosA*dr.y/sqrt(rk2));
-
-              termB.z=COULOMBIC_CONVERSION_FACTOR*(
-                      Bt1*cosAB*dipoleB.z/(sqrt(rk2)*DipoleMagnitudeB)
-                      -Bt2*cosA*cosB*dipoleB.z/(sqrt(rk2)*DipoleMagnitudeB)
-                      -Bt1*DipoleMagnitudeB*dipoleA.z/sqrt(rk2)
-                      +Bt2*DipoleMagnitudeB*cosA*dr.z/sqrt(rk2));
-
-              fa1.x=-0.5*term.x-termA.x;
-              fa1.y=-0.5*term.y-termA.y;
-              fa1.z=-0.5*term.z-termA.z;
-              fa2.x=-0.5*term.x+termA.x;
-              fa2.y=-0.5*term.y+termA.y;
-              fa2.z=-0.5*term.z+termA.z;
-
-              fb1.x=0.5*term.x-termB.x;
-              fb1.y=0.5*term.y-termB.y;
-              fb1.z=0.5*term.z-termB.z;
-              fb2.x=0.5*term.x+termB.x;
-              fb2.y=0.5*term.y+termB.y;
-              fb2.z=0.5*term.z+termB.z;
-
-              switch(ChargeMethod)
-              {
-                case SMOOTHED_COULOMB:
-                  if(rr>CutOffBondDipoleBondDipoleSwitchSquared)
-                  {
-                    SwitchingValue=SwitchingBondDipoleBondDipoleFactors5[5]*(rr*rr*r)+SwitchingBondDipoleBondDipoleFactors5[4]*(rr*rr)+SwitchingBondDipoleBondDipoleFactors5[3]*(rr*r)+
-                                   SwitchingBondDipoleBondDipoleFactors5[2]*rr+SwitchingBondDipoleBondDipoleFactors5[1]*r+SwitchingBondDipoleBondDipoleFactors5[0];
-                    SwitchingValueDerivative=5.0*SwitchingBondDipoleBondDipoleFactors5[5]*rr*rr+4.0*SwitchingBondDipoleBondDipoleFactors5[4]*rr*r+3.0*SwitchingBondDipoleBondDipoleFactors5[3]*rr+
-                                             2.0*SwitchingBondDipoleBondDipoleFactors5[2]*r+SwitchingBondDipoleBondDipoleFactors5[1];
-
-                    SwitchingValueDerivative*=energy/r;
-
-                    energy*=SwitchingValue;
-
-                    term.x=term.x*SwitchingValue+SwitchingValueDerivative*dr.x;
-                    term.y=term.y*SwitchingValue+SwitchingValueDerivative*dr.y;
-                    term.z=term.z*SwitchingValue+SwitchingValueDerivative*dr.z;
-
-                    fa1.x=fa1.x*SwitchingValue-0.5*SwitchingValueDerivative*dr.x;
-                    fa1.y=fa1.y*SwitchingValue-0.5*SwitchingValueDerivative*dr.y;
-                    fa1.z=fa1.z*SwitchingValue-0.5*SwitchingValueDerivative*dr.z;
-                    fa2.x=fa2.x*SwitchingValue-0.5*SwitchingValueDerivative*dr.x;
-                    fa2.y=fa2.y*SwitchingValue-0.5*SwitchingValueDerivative*dr.y;
-                    fa2.z=fa2.z*SwitchingValue-0.5*SwitchingValueDerivative*dr.z;
-
-                    fb1.x=fb1.x*SwitchingValue+0.5*SwitchingValueDerivative*dr.x;
-                    fb1.y=fb1.y*SwitchingValue+0.5*SwitchingValueDerivative*dr.y;
-                    fb1.z=fb1.z*SwitchingValue+0.5*SwitchingValueDerivative*dr.z;
-                    fb2.x=fb2.x*SwitchingValue+0.5*SwitchingValueDerivative*dr.x;
-                    fb2.y=fb2.y*SwitchingValue+0.5*SwitchingValueDerivative*dr.y;
-                    fb2.z=fb2.z*SwitchingValue+0.5*SwitchingValueDerivative*dr.z;
-                    break;
-                }
-              }
+              PotentialGradientBondDipoleBondDipole(DipoleMagnitudeA,ri2,dipoleA,DipoleMagnitudeB,rk2,dipoleB,dr,rr,
+                                                    &energy,&fa1,&fa2,&fb1,&fb2,&term);
 
               UCationCationBondDipoleBondDipoleReal[CurrentSystem]+=energy;
 
@@ -2649,7 +1896,7 @@ int CalculateTotalInterChargeChargeCoulombElectricFieldMC(int New,int excl_ads,i
   int typeA,typeB;
   REAL r,rr;
   REAL chargeA,chargeB;
-  REAL force_factor,force_factor_A,force_factor_B;
+  REAL energy,force_factor,force_factor_A,force_factor_B;
   VECTOR posA,posB,dr;
 
   if(ChargeMethod==NONE) return 0;
@@ -2681,34 +1928,13 @@ int CalculateTotalInterChargeChargeCoulombElectricFieldMC(int New,int excl_ads,i
                 dr=ApplyBoundaryCondition(dr);
                 rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
 
-                if(rr<CutOffChargeChargeSquared)
+                if(rr<CutOffChargeChargeSquared[CurrentSystem])
                 {
-                  r=sqrt(rr);
                   typeB=Adsorbates[CurrentSystem][j].Atoms[l].Type;
                   chargeB=Adsorbates[CurrentSystem][j].Atoms[l].Charge;
 
-                  switch(ChargeMethod)
-                  {
-                    case NONE:
-                      force_factor=0.0;
-                      break;
-                    case SHIFTED_COULOMB:
-                    case TRUNCATED_COULOMB:
-                      force_factor=-COULOMBIC_CONVERSION_FACTOR/(rr*r);
-                      break;
-                    case WOLFS_METHOD_DAMPED_FG:
-                      force_factor=-COULOMBIC_CONVERSION_FACTOR*(erfc(Alpha[CurrentSystem]*r)/rr+
-                                     2.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*rr)*M_1_SQRTPI/r
-                                    -(erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*SQR(InverseCutOffChargeCharge)+
-                                      2.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*CutOffChargeChargeSquared)*M_1_SQRTPI*InverseCutOffChargeCharge))/r;
-                      break;
-                    case EWALD:
-                    default:
-                      force_factor=-COULOMBIC_CONVERSION_FACTOR*
-                            (erfc(Alpha[CurrentSystem]*r)+2.0*Alpha[CurrentSystem]*r*exp(-SQR(Alpha[CurrentSystem])*rr)/sqrt(M_PI))/
-                            (r*rr);
-                      break;
-                  }
+                  PotentialGradientCoulombic(1.0,1.0,rr,&energy,&force_factor);
+
                   force_factor_A=force_factor*chargeB;
                   force_factor_B=force_factor*chargeA;
 
@@ -2741,35 +1967,13 @@ int CalculateTotalInterChargeChargeCoulombElectricFieldMC(int New,int excl_ads,i
                 dr.z=posA.z-posB.z;
                 dr=ApplyBoundaryCondition(dr);
                 rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-                if(rr<CutOffChargeChargeSquared)
+                if(rr<CutOffChargeChargeSquared[CurrentSystem])
                 {
                   typeB=Cations[CurrentSystem][j].Atoms[l].Type;
                   chargeB=Cations[CurrentSystem][j].Atoms[l].Charge;
 
-                  r=sqrt(rr);
+                  PotentialGradientCoulombic(1.0,1.0,rr,&energy,&force_factor);
 
-                  switch(ChargeMethod)
-                  {
-                    case NONE:
-                      force_factor=0.0;
-                      break;
-                    case SHIFTED_COULOMB:
-                    case TRUNCATED_COULOMB:
-                      force_factor=-COULOMBIC_CONVERSION_FACTOR/(rr*r);
-                      break;
-                    case WOLFS_METHOD_DAMPED_FG:
-                      force_factor=-COULOMBIC_CONVERSION_FACTOR*(erfc(Alpha[CurrentSystem]*r)/rr+
-                                     2.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*rr)*M_1_SQRTPI/r
-                                    -(erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*SQR(InverseCutOffChargeCharge)+
-                                      2.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*CutOffChargeChargeSquared)*M_1_SQRTPI*InverseCutOffChargeCharge))/r;
-                      break;
-                    case EWALD:
-                    default:
-                      force_factor=-COULOMBIC_CONVERSION_FACTOR*
-                            (erfc(Alpha[CurrentSystem]*r)+2.0*Alpha[CurrentSystem]*r*exp(-SQR(Alpha[CurrentSystem])*rr)/sqrt(M_PI))/
-                            (r*rr);
-                      break;
-                  }
                   force_factor_A=force_factor*chargeB;
                   force_factor_B=force_factor*chargeA;
 
@@ -2816,35 +2020,13 @@ int CalculateTotalInterChargeChargeCoulombElectricFieldMC(int New,int excl_ads,i
                 dr.z=posA.z-posB.z;
                 dr=ApplyBoundaryCondition(dr);
                 rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-                if(rr<CutOffChargeChargeSquared)
+                if(rr<CutOffChargeChargeSquared[CurrentSystem])
                 {
                   typeB=Cations[CurrentSystem][j].Atoms[l].Type;
                   chargeB=Cations[CurrentSystem][j].Atoms[l].Charge;
 
-                  r=sqrt(rr);
+                  PotentialGradientCoulombic(1.0,1.0,rr,&energy,&force_factor);
 
-                  switch(ChargeMethod)
-                  {
-                    case NONE:
-                      force_factor=0.0;
-                      break;
-                    case SHIFTED_COULOMB:
-                    case TRUNCATED_COULOMB:
-                      force_factor=-COULOMBIC_CONVERSION_FACTOR/(rr*r);
-                      break;
-                    case WOLFS_METHOD_DAMPED_FG:
-                      force_factor=-COULOMBIC_CONVERSION_FACTOR*(erfc(Alpha[CurrentSystem]*r)/rr+
-                                     2.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*rr)*M_1_SQRTPI/r
-                                    -(erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*SQR(InverseCutOffChargeCharge)+
-                                      2.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*CutOffChargeChargeSquared)*M_1_SQRTPI*InverseCutOffChargeCharge))/r;
-                      break;
-                    case EWALD:
-                    default:
-                      force_factor=-COULOMBIC_CONVERSION_FACTOR*
-                             (erfc(Alpha[CurrentSystem]*r)+2.0*Alpha[CurrentSystem]*r*exp(-SQR(Alpha[CurrentSystem])*rr)/sqrt(M_PI))/
-                             (r*rr);
-                      break;
-                  }
                   force_factor_A=force_factor*chargeB;
                   force_factor_B=force_factor*chargeA;
 
@@ -2891,34 +2073,13 @@ int CalculateTotalInterChargeChargeCoulombElectricFieldMC(int New,int excl_ads,i
               dr=ApplyBoundaryCondition(dr);
               rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
 
-              if(rr<CutOffChargeChargeSquared)
+              if(rr<CutOffChargeChargeSquared[CurrentSystem])
               {
-                r=sqrt(rr);
                 typeB=Adsorbates[CurrentSystem][j].Atoms[l].Type;
                 chargeB=Adsorbates[CurrentSystem][j].Atoms[l].Charge;
 
-                switch(ChargeMethod)
-                {
-                  case NONE:
-                    force_factor=0.0;
-                    break;
-                  case SHIFTED_COULOMB:
-                  case TRUNCATED_COULOMB:
-                    force_factor=-COULOMBIC_CONVERSION_FACTOR/(rr*r);
-                    break;
-                  case WOLFS_METHOD_DAMPED_FG:
-                    force_factor=-COULOMBIC_CONVERSION_FACTOR*(erfc(Alpha[CurrentSystem]*r)/rr+
-                                   2.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*rr)*M_1_SQRTPI/r
-                                  -(erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*SQR(InverseCutOffChargeCharge)+
-                                    2.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*CutOffChargeChargeSquared)*M_1_SQRTPI*InverseCutOffChargeCharge))/r;
-                    break;
-                  case EWALD:
-                  default:
-                    force_factor=-COULOMBIC_CONVERSION_FACTOR*
-                          (erfc(Alpha[CurrentSystem]*r)+2.0*Alpha[CurrentSystem]*r*exp(-SQR(Alpha[CurrentSystem])*rr)/sqrt(M_PI))/
-                          (r*rr);
-                    break;
-                }
+                PotentialGradientCoulombic(1.0,1.0,rr,&energy,&force_factor);
+
                 force_factor_A=force_factor*chargeB;
                 force_factor_B=force_factor*chargeA;
 
@@ -2954,34 +2115,14 @@ int CalculateTotalInterChargeChargeCoulombElectricFieldMC(int New,int excl_ads,i
               dr=ApplyBoundaryCondition(dr);
               rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
 
-              if(rr<CutOffChargeChargeSquared)
+              if(rr<CutOffChargeChargeSquared[CurrentSystem])
               {
                 r=sqrt(rr);
                 typeB=Cations[CurrentSystem][j].Atoms[l].Type;
                 chargeB=Cations[CurrentSystem][j].Atoms[l].Charge;
 
-                switch(ChargeMethod)
-                {
-                  case NONE:
-                    force_factor=0.0;
-                    break;
-                  case SHIFTED_COULOMB:
-                  case TRUNCATED_COULOMB:
-                    force_factor=-COULOMBIC_CONVERSION_FACTOR/(rr*r);
-                    break;
-                  case WOLFS_METHOD_DAMPED_FG:
-                    force_factor=-COULOMBIC_CONVERSION_FACTOR*(erfc(Alpha[CurrentSystem]*r)/rr+
-                                   2.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*rr)*M_1_SQRTPI/r
-                                  -(erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*SQR(InverseCutOffChargeCharge)+
-                                    2.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*CutOffChargeChargeSquared)*M_1_SQRTPI*InverseCutOffChargeCharge))/r;
-                    break;
-                  case EWALD:
-                  default:
-                    force_factor=-COULOMBIC_CONVERSION_FACTOR*
-                          (erfc(Alpha[CurrentSystem]*r)+2.0*Alpha[CurrentSystem]*r*exp(-SQR(Alpha[CurrentSystem])*rr)/sqrt(M_PI))/
-                          (r*rr);
-                    break;
-                }
+                PotentialGradientCoulombic(1.0,1.0,rr,&energy,&force_factor);
+
                 force_factor_A=force_factor*chargeB;
                 force_factor_B=force_factor*chargeA;
 
@@ -3009,12 +2150,11 @@ int CalculateInterElectricFieldFromInducedDipoles(void)
   int i,j,k,l;
   int TypeA,TypeB;
   VECTOR posA,posB,dr;
-  REAL r,rr,cosA,cosB;
-  VECTOR dipoleA,dipoleB,term;
-  REAL Bt0,Bt1,Bt2,Bt3;
+  REAL r,rr;
+  VECTOR dipoleA,dipoleB;
+  VECTOR termA,termB;
   REAL_MATRIX3x3 v;
 
-  Bt0=Bt1=Bt2=Bt3=0.0;  
   v.ax=v.bx=v.cx=0.0;
   v.ay=v.by=v.cy=0.0;
   v.az=v.bz=v.cz=0.0;
@@ -3046,57 +2186,17 @@ int CalculateInterElectricFieldFromInducedDipoles(void)
             rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
             r=sqrt(rr);
 
-            if(rr<CutOffChargeChargeSquared)
+            if(rr<CutOffChargeChargeSquared[CurrentSystem])
             {
-              switch(ChargeMethod)
-              {
-                case NONE:
-                  Bt0=Bt1=Bt2=Bt3=0.0;  
-                  break;
-                case TRUNCATED_COULOMB:
-                  Bt0=1.0/(r);
-                  Bt1=1.0/(r*rr);
-                  Bt2=3.0/(r*rr*rr);
-                  Bt3=15.0/(r*rr*rr*rr);
-                  break;
-                case SHIFTED_COULOMB:
-                  Bt0=1.0/(r);
-                  Bt1=1.0/(r*rr);
-                  Bt2=3.0/(r*rr*rr);
-                  Bt3=15.0/(r*rr*rr*rr);
-                  break;
-                case EWALD:
-                default:
-                  Bt0=erfc(Alpha[CurrentSystem]*r)/r;
-                  Bt1=2.0*Alpha[CurrentSystem]*exp(-SQR(-Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                      erfc(Alpha[CurrentSystem]*r)/(rr*r);
-                  Bt2=6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
-                      4.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                      3.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*r);
-                  Bt3=30.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr*rr)+
-                      20.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
-                      8.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                      15.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*rr*r);
-                  break;
-              }
+              PotentialElectricFieldBondDipoleBondDipole(dipoleA,dipoleB,dr,rr,&termA,&termB);
 
-              cosB=dipoleB.x*dr.x+dipoleB.y*dr.y+dipoleB.z*dr.z;
-              term.x=COULOMBIC_CONVERSION_FACTOR*(Bt2*cosB*dr.x-Bt1*dipoleB.x);
-              term.y=COULOMBIC_CONVERSION_FACTOR*(Bt2*cosB*dr.y-Bt1*dipoleB.y);
-              term.z=COULOMBIC_CONVERSION_FACTOR*(Bt2*cosB*dr.z-Bt1*dipoleB.z);
+              Adsorbates[CurrentSystem][i].Atoms[j].ElectricField.x+=termB.x;
+              Adsorbates[CurrentSystem][i].Atoms[j].ElectricField.y+=termB.y;
+              Adsorbates[CurrentSystem][i].Atoms[j].ElectricField.z+=termB.z;
 
-              Adsorbates[CurrentSystem][i].Atoms[j].ElectricField.x+=term.x;
-              Adsorbates[CurrentSystem][i].Atoms[j].ElectricField.y+=term.y;
-              Adsorbates[CurrentSystem][i].Atoms[j].ElectricField.z+=term.z;
-
-              cosA=dipoleA.x*dr.x+dipoleA.y*dr.y+dipoleA.z*dr.z;
-              term.x=COULOMBIC_CONVERSION_FACTOR*(Bt2*cosA*dr.x-Bt1*dipoleA.x);
-              term.y=COULOMBIC_CONVERSION_FACTOR*(Bt2*cosA*dr.y-Bt1*dipoleA.y);
-              term.z=COULOMBIC_CONVERSION_FACTOR*(Bt2*cosA*dr.z-Bt1*dipoleA.z);
-
-              Adsorbates[CurrentSystem][k].Atoms[l].ElectricField.x+=term.x;
-              Adsorbates[CurrentSystem][k].Atoms[l].ElectricField.y+=term.y;
-              Adsorbates[CurrentSystem][k].Atoms[l].ElectricField.z+=term.z;
+              Adsorbates[CurrentSystem][k].Atoms[l].ElectricField.x+=termA.x;
+              Adsorbates[CurrentSystem][k].Atoms[l].ElectricField.y+=termA.y;
+              Adsorbates[CurrentSystem][k].Atoms[l].ElectricField.z+=termA.z;
             }
           }
         }
@@ -3117,58 +2217,17 @@ int CalculateInterElectricFieldFromInducedDipoles(void)
           rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
           r=sqrt(rr);
 
-          if(rr<CutOffChargeChargeSquared)
+          if(rr<CutOffChargeChargeSquared[CurrentSystem])
           {
-            switch(ChargeMethod)
-            {
-              case NONE:
-                Bt0=Bt1=Bt2=Bt3=0.0;  
-                break;
-              case EWALD:
-                Bt0=erfc(Alpha[CurrentSystem]*r)/r;
-                Bt1=2.0*Alpha[CurrentSystem]*exp(-SQR(-Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                    erfc(Alpha[CurrentSystem]*r)/(rr*r);
-                Bt2=6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
-                    4.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                    3.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*r);
-                Bt3=30.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr*rr)+
-                    20.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
-                    8.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                    15.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*rr*r);
-                break;
-              case TRUNCATED_COULOMB:
-                Bt0=1.0/(r);
-                Bt1=1.0/(r*rr);
-                Bt2=3.0/(r*rr*rr);
-                Bt3=15.0/(r*rr*rr*rr);
-                break;
-              case SHIFTED_COULOMB:
-                Bt0=1.0/(r);
-                Bt1=1.0/(r*rr);
-                Bt2=3.0/(r*rr*rr);
-                Bt3=15.0/(r*rr*rr*rr);
-                break;
-            }
+            PotentialElectricFieldBondDipoleBondDipole(dipoleA,dipoleB,dr,rr,&termA,&termB);
 
-            cosA=dipoleA.x*dr.x+dipoleA.y*dr.y+dipoleA.z*dr.z;
+            Adsorbates[CurrentSystem][i].Atoms[j].ElectricField.x+=termB.x;
+            Adsorbates[CurrentSystem][i].Atoms[j].ElectricField.y+=termB.y;
+            Adsorbates[CurrentSystem][i].Atoms[j].ElectricField.z+=termB.z;
 
-            term.x=COULOMBIC_CONVERSION_FACTOR*(Bt2*cosA*dr.x-Bt1*dipoleA.x);
-            term.y=COULOMBIC_CONVERSION_FACTOR*(Bt2*cosA*dr.y-Bt1*dipoleA.y);
-            term.z=COULOMBIC_CONVERSION_FACTOR*(Bt2*cosA*dr.z-Bt1*dipoleA.z);
-
-            Adsorbates[CurrentSystem][i].Atoms[j].ElectricField.x+=term.x;
-            Adsorbates[CurrentSystem][i].Atoms[j].ElectricField.y+=term.y;
-            Adsorbates[CurrentSystem][i].Atoms[j].ElectricField.z+=term.z;
-
-            cosB=dipoleB.x*dr.x+dipoleB.y*dr.y+dipoleB.z*dr.z;
-
-            term.x=COULOMBIC_CONVERSION_FACTOR*(Bt2*cosB*dr.x-Bt1*dipoleB.x);
-            term.y=COULOMBIC_CONVERSION_FACTOR*(Bt2*cosB*dr.y-Bt1*dipoleB.y);
-            term.z=COULOMBIC_CONVERSION_FACTOR*(Bt2*cosB*dr.z-Bt1*dipoleB.z);
-
-            Cations[CurrentSystem][k].Atoms[l].ElectricField.x+=term.x;
-            Cations[CurrentSystem][k].Atoms[l].ElectricField.y+=term.y;
-            Cations[CurrentSystem][k].Atoms[l].ElectricField.z+=term.z;
+            Cations[CurrentSystem][k].Atoms[l].ElectricField.x+=termA.x;
+            Cations[CurrentSystem][k].Atoms[l].ElectricField.y+=termA.y;
+            Cations[CurrentSystem][k].Atoms[l].ElectricField.z+=termA.z;
           }
         }
       }
@@ -3200,58 +2259,17 @@ int CalculateInterElectricFieldFromInducedDipoles(void)
             rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
             r=sqrt(rr);
 
-            if(rr<CutOffChargeChargeSquared)
+            if(rr<CutOffChargeChargeSquared[CurrentSystem])
             {
-              switch(ChargeMethod)
-              {
-                case NONE:
-                  Bt0=Bt1=Bt2=Bt3=0.0;  
-                  break;
-                case EWALD:
-                  Bt0=erfc(Alpha[CurrentSystem]*r)/r;
-                  Bt1=2.0*Alpha[CurrentSystem]*exp(-SQR(-Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                      erfc(Alpha[CurrentSystem]*r)/(rr*r);
-                  Bt2=6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
-                      4.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                      3.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*r);
-                  Bt3=30.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr*rr)+
-                      20.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
-                      8.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                      15.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*rr*r);
-                  break;
-                case TRUNCATED_COULOMB:
-                  Bt0=1.0/(r);
-                  Bt1=1.0/(r*rr);
-                  Bt2=3.0/(r*rr*rr);
-                  Bt3=15.0/(r*rr*rr*rr);
-                  break;
-                case SHIFTED_COULOMB:
-                  Bt0=1.0/(r);
-                  Bt1=1.0/(r*rr);
-                  Bt2=3.0/(r*rr*rr);
-                  Bt3=15.0/(r*rr*rr*rr);
-                  break;
-              }
+              PotentialElectricFieldBondDipoleBondDipole(dipoleA,dipoleB,dr,rr,&termA,&termB);
 
-              cosA=dipoleA.x*dr.x+dipoleA.y*dr.y+dipoleA.z*dr.z;
-
-              term.x=COULOMBIC_CONVERSION_FACTOR*(Bt2*cosA*dr.x-Bt1*dipoleA.x);
-              term.y=COULOMBIC_CONVERSION_FACTOR*(Bt2*cosA*dr.y-Bt1*dipoleA.y);
-              term.z=COULOMBIC_CONVERSION_FACTOR*(Bt2*cosA*dr.z-Bt1*dipoleA.z);
-    
-              Cations[CurrentSystem][i].Atoms[j].ElectricField.x+=term.x;
-              Cations[CurrentSystem][i].Atoms[j].ElectricField.y+=term.y;
-              Cations[CurrentSystem][i].Atoms[j].ElectricField.z+=term.z;
+              Cations[CurrentSystem][i].Atoms[j].ElectricField.x+=termB.x;
+              Cations[CurrentSystem][i].Atoms[j].ElectricField.y+=termB.y;
+              Cations[CurrentSystem][i].Atoms[j].ElectricField.z+=termB.z;
   
-              cosB=dipoleB.x*dr.x+dipoleB.y*dr.y+dipoleB.z*dr.z;
-    
-              term.x=COULOMBIC_CONVERSION_FACTOR*(Bt2*cosB*dr.x-Bt1*dipoleB.x);
-              term.y=COULOMBIC_CONVERSION_FACTOR*(Bt2*cosB*dr.y-Bt1*dipoleB.y);
-              term.z=COULOMBIC_CONVERSION_FACTOR*(Bt2*cosB*dr.z-Bt1*dipoleB.z);
-
-              Cations[CurrentSystem][k].Atoms[l].ElectricField.x+=term.x;
-              Cations[CurrentSystem][k].Atoms[l].ElectricField.y+=term.y;
-              Cations[CurrentSystem][k].Atoms[l].ElectricField.z+=term.z;
+              Cations[CurrentSystem][k].Atoms[l].ElectricField.x+=termA.x;
+              Cations[CurrentSystem][k].Atoms[l].ElectricField.y+=termA.y;
+              Cations[CurrentSystem][k].Atoms[l].ElectricField.z+=termA.z;
             }
           }
         }
@@ -3269,15 +2287,9 @@ int CalculateInterElectricFieldFromInducedDipoleMC(int New,int excl_ads,int excl
   int i,j,k,l;
   int TypeA,TypeB;
   VECTOR posA,posB,dr;
-  REAL r,rr,cosA,cosB;
-  VECTOR dipoleA,dipoleB,term;
-  REAL Bt0,Bt1,Bt2,Bt3;
-  REAL_MATRIX3x3 v;
-
-  Bt0=Bt1=Bt2=Bt3=0.0;  
-  v.ax=v.bx=v.cx=0.0;
-  v.ay=v.by=v.cy=0.0;
-  v.az=v.bz=v.cz=0.0;
+  REAL rr;
+  VECTOR dipoleA,dipoleB;
+  VECTOR termA,termB;
 
   if(ChargeMethod==NONE) return 0;
 
@@ -3308,59 +2320,18 @@ int CalculateInterElectricFieldFromInducedDipoleMC(int New,int excl_ads,int excl
                 dr.z=posA.z-posB.z;
                 dr=ApplyBoundaryCondition(dr);
                 rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-                r=sqrt(rr);
 
-                if(rr<CutOffChargeChargeSquared)
+                if(rr<CutOffChargeChargeSquared[CurrentSystem])
                 {
-                  switch(ChargeMethod)
-                  {
-                    case NONE:
-                      Bt0=Bt1=Bt2=Bt3=0.0;  
-                      break;
-                    case TRUNCATED_COULOMB:
-                      Bt0=1.0/(r);
-                      Bt1=1.0/(r*rr);
-                      Bt2=3.0/(r*rr*rr);
-                      Bt3=15.0/(r*rr*rr*rr);
-                      break;
-                    case SHIFTED_COULOMB:
-                      Bt0=1.0/(r);
-                      Bt1=1.0/(r*rr);
-                      Bt2=3.0/(r*rr*rr);
-                      Bt3=15.0/(r*rr*rr*rr);
-                      break;
-                    case EWALD:
-                    default:
-                      Bt0=erfc(Alpha[CurrentSystem]*r)/r;
-                      Bt1=2.0*Alpha[CurrentSystem]*exp(-SQR(-Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                          erfc(Alpha[CurrentSystem]*r)/(rr*r);
-                      Bt2=6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
-                          4.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                          3.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*r);
-                      Bt3=30.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr*rr)+
-                          20.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
-                          8.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                          15.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*rr*r);
-                      break;
-                  }
+                  PotentialElectricFieldBondDipoleBondDipole(dipoleA,dipoleB,dr,rr,&termA,&termB);
 
-                  cosB=dipoleB.x*dr.x+dipoleB.y*dr.y+dipoleB.z*dr.z;
-                  term.x=COULOMBIC_CONVERSION_FACTOR*(Bt2*cosB*dr.x-Bt1*dipoleB.x);
-                  term.y=COULOMBIC_CONVERSION_FACTOR*(Bt2*cosB*dr.y-Bt1*dipoleB.y);
-                  term.z=COULOMBIC_CONVERSION_FACTOR*(Bt2*cosB*dr.z-Bt1*dipoleB.z);
+                  Adsorbates[CurrentSystem][i].Atoms[j].ElectricField.x+=termB.x;
+                  Adsorbates[CurrentSystem][i].Atoms[j].ElectricField.y+=termB.y;
+                  Adsorbates[CurrentSystem][i].Atoms[j].ElectricField.z+=termB.z;
 
-                  Adsorbates[CurrentSystem][i].Atoms[j].ElectricField.x+=term.x;
-                  Adsorbates[CurrentSystem][i].Atoms[j].ElectricField.y+=term.y;
-                  Adsorbates[CurrentSystem][i].Atoms[j].ElectricField.z+=term.z;
-
-                  cosA=dipoleA.x*dr.x+dipoleA.y*dr.y+dipoleA.z*dr.z;
-                  term.x=COULOMBIC_CONVERSION_FACTOR*(Bt2*cosA*dr.x-Bt1*dipoleA.x);
-                  term.y=COULOMBIC_CONVERSION_FACTOR*(Bt2*cosA*dr.y-Bt1*dipoleA.y);
-                  term.z=COULOMBIC_CONVERSION_FACTOR*(Bt2*cosA*dr.z-Bt1*dipoleA.z);
-
-                  Adsorbates[CurrentSystem][k].Atoms[l].ElectricField.x+=term.x;
-                  Adsorbates[CurrentSystem][k].Atoms[l].ElectricField.y+=term.y;
-                  Adsorbates[CurrentSystem][k].Atoms[l].ElectricField.z+=term.z;
+                  Adsorbates[CurrentSystem][k].Atoms[l].ElectricField.x+=termA.x;
+                  Adsorbates[CurrentSystem][k].Atoms[l].ElectricField.y+=termA.y;
+                  Adsorbates[CurrentSystem][k].Atoms[l].ElectricField.z+=termA.z;
                 }
               }
             }
@@ -3383,60 +2354,18 @@ int CalculateInterElectricFieldFromInducedDipoleMC(int New,int excl_ads,int excl
                   dr.z=posA.z-posB.z;
                   dr=ApplyBoundaryCondition(dr);
                   rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-                  r=sqrt(rr);
 
-                  if(rr<CutOffChargeChargeSquared)
+                  if(rr<CutOffChargeChargeSquared[CurrentSystem])
                   {
-                    switch(ChargeMethod)
-                    {
-                      case NONE:
-                        Bt0=Bt1=Bt2=Bt3=0.0;  
-                        break;
-                      case EWALD:
-                        Bt0=erfc(Alpha[CurrentSystem]*r)/r;
-                        Bt1=2.0*Alpha[CurrentSystem]*exp(-SQR(-Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                            erfc(Alpha[CurrentSystem]*r)/(rr*r);
-                        Bt2=6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
-                            4.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                            3.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*r);
-                        Bt3=30.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr*rr)+
-                            20.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
-                            8.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                            15.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*rr*r);
-                        break;
-                      case TRUNCATED_COULOMB:
-                        Bt0=1.0/(r);
-                        Bt1=1.0/(r*rr);
-                        Bt2=3.0/(r*rr*rr);
-                        Bt3=15.0/(r*rr*rr*rr);
-                        break;
-                      case SHIFTED_COULOMB:
-                        Bt0=1.0/(r);
-                        Bt1=1.0/(r*rr);
-                        Bt2=3.0/(r*rr*rr);
-                        Bt3=15.0/(r*rr*rr*rr);
-                        break;
-                    }
+                    PotentialElectricFieldBondDipoleBondDipole(dipoleA,dipoleB,dr,rr,&termA,&termB);
 
-                    cosA=dipoleA.x*dr.x+dipoleA.y*dr.y+dipoleA.z*dr.z;
+                    Adsorbates[CurrentSystem][i].Atoms[j].ElectricField.x+=termB.x;
+                    Adsorbates[CurrentSystem][i].Atoms[j].ElectricField.y+=termB.y;
+                    Adsorbates[CurrentSystem][i].Atoms[j].ElectricField.z+=termB.z;
 
-                    term.x=COULOMBIC_CONVERSION_FACTOR*(Bt2*cosA*dr.x-Bt1*dipoleA.x);
-                    term.y=COULOMBIC_CONVERSION_FACTOR*(Bt2*cosA*dr.y-Bt1*dipoleA.y);
-                    term.z=COULOMBIC_CONVERSION_FACTOR*(Bt2*cosA*dr.z-Bt1*dipoleA.z);
-
-                    Adsorbates[CurrentSystem][i].Atoms[j].ElectricField.x+=term.x;
-                    Adsorbates[CurrentSystem][i].Atoms[j].ElectricField.y+=term.y;
-                    Adsorbates[CurrentSystem][i].Atoms[j].ElectricField.z+=term.z;
-
-                    cosB=dipoleB.x*dr.x+dipoleB.y*dr.y+dipoleB.z*dr.z;
-
-                    term.x=COULOMBIC_CONVERSION_FACTOR*(Bt2*cosB*dr.x-Bt1*dipoleB.x);
-                    term.y=COULOMBIC_CONVERSION_FACTOR*(Bt2*cosB*dr.y-Bt1*dipoleB.y);
-                    term.z=COULOMBIC_CONVERSION_FACTOR*(Bt2*cosB*dr.z-Bt1*dipoleB.z);
-
-                    Cations[CurrentSystem][k].Atoms[l].ElectricField.x+=term.x;
-                    Cations[CurrentSystem][k].Atoms[l].ElectricField.y+=term.y;
-                    Cations[CurrentSystem][k].Atoms[l].ElectricField.z+=term.z;
+                    Cations[CurrentSystem][k].Atoms[l].ElectricField.x+=termA.x;
+                    Cations[CurrentSystem][k].Atoms[l].ElectricField.y+=termA.y;
+                    Cations[CurrentSystem][k].Atoms[l].ElectricField.z+=termA.z;
                   }
                 }
               }
@@ -3474,60 +2403,18 @@ int CalculateInterElectricFieldFromInducedDipoleMC(int New,int excl_ads,int excl
                 dr.z=posA.z-posB.z;
                 dr=ApplyBoundaryCondition(dr);
                 rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-                r=sqrt(rr);
 
-                if(rr<CutOffChargeChargeSquared)
+                if(rr<CutOffChargeChargeSquared[CurrentSystem])
                 {
-                  switch(ChargeMethod)
-                  {
-                    case NONE:
-                      Bt0=Bt1=Bt2=Bt3=0.0;  
-                      break;
-                    case EWALD:
-                      Bt0=erfc(Alpha[CurrentSystem]*r)/r;
-                      Bt1=2.0*Alpha[CurrentSystem]*exp(-SQR(-Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                          erfc(Alpha[CurrentSystem]*r)/(rr*r);
-                      Bt2=6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
-                          4.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                          3.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*r);
-                      Bt3=30.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr*rr)+
-                          20.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
-                          8.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                          15.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*rr*r);
-                      break;
-                    case TRUNCATED_COULOMB:
-                      Bt0=1.0/(r);
-                      Bt1=1.0/(r*rr);
-                      Bt2=3.0/(r*rr*rr);
-                      Bt3=15.0/(r*rr*rr*rr);
-                      break;
-                    case SHIFTED_COULOMB:
-                      Bt0=1.0/(r);
-                      Bt1=1.0/(r*rr);
-                      Bt2=3.0/(r*rr*rr);
-                      Bt3=15.0/(r*rr*rr*rr);
-                      break;
-                  }
+                  PotentialElectricFieldBondDipoleBondDipole(dipoleA,dipoleB,dr,rr,&termA,&termB);
 
-                  cosA=dipoleA.x*dr.x+dipoleA.y*dr.y+dipoleA.z*dr.z;
-
-                  term.x=COULOMBIC_CONVERSION_FACTOR*(Bt2*cosA*dr.x-Bt1*dipoleA.x);
-                  term.y=COULOMBIC_CONVERSION_FACTOR*(Bt2*cosA*dr.y-Bt1*dipoleA.y);
-                  term.z=COULOMBIC_CONVERSION_FACTOR*(Bt2*cosA*dr.z-Bt1*dipoleA.z);
-    
-                  Cations[CurrentSystem][i].Atoms[j].ElectricField.x+=term.x;
-                  Cations[CurrentSystem][i].Atoms[j].ElectricField.y+=term.y;
-                  Cations[CurrentSystem][i].Atoms[j].ElectricField.z+=term.z;
+                  Cations[CurrentSystem][i].Atoms[j].ElectricField.x+=termB.x;
+                  Cations[CurrentSystem][i].Atoms[j].ElectricField.y+=termB.y;
+                  Cations[CurrentSystem][i].Atoms[j].ElectricField.z+=termB.z;
   
-                  cosB=dipoleB.x*dr.x+dipoleB.y*dr.y+dipoleB.z*dr.z;
-    
-                  term.x=COULOMBIC_CONVERSION_FACTOR*(Bt2*cosB*dr.x-Bt1*dipoleB.x);
-                  term.y=COULOMBIC_CONVERSION_FACTOR*(Bt2*cosB*dr.y-Bt1*dipoleB.y);
-                  term.z=COULOMBIC_CONVERSION_FACTOR*(Bt2*cosB*dr.z-Bt1*dipoleB.z);
-
-                  Cations[CurrentSystem][k].Atoms[l].ElectricField.x+=term.x;
-                  Cations[CurrentSystem][k].Atoms[l].ElectricField.y+=term.y;
-                  Cations[CurrentSystem][k].Atoms[l].ElectricField.z+=term.z;
+                  Cations[CurrentSystem][k].Atoms[l].ElectricField.x+=termA.x;
+                  Cations[CurrentSystem][k].Atoms[l].ElectricField.y+=termA.y;
+                  Cations[CurrentSystem][k].Atoms[l].ElectricField.z+=termA.z;
                 }
               }
             }
@@ -3562,58 +2449,18 @@ int CalculateInterElectricFieldFromInducedDipoleMC(int New,int excl_ads,int excl
               dr.z=posA.z-posB.z;
               dr=ApplyBoundaryCondition(dr);
               rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-              r=sqrt(rr);
 
-              if(rr<CutOffChargeChargeSquared)
+              if(rr<CutOffChargeChargeSquared[CurrentSystem])
               {
-                switch(ChargeMethod)
-                {
-                  case NONE:
-                    Bt0=Bt1=Bt2=Bt3=0.0;
-                    break;
-                  case EWALD:
-                    Bt0=erfc(Alpha[CurrentSystem]*r)/r;
-                    Bt1=2.0*Alpha[CurrentSystem]*exp(-SQR(-Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                        erfc(Alpha[CurrentSystem]*r)/(rr*r);
-                    Bt2=6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
-                        4.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                        3.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*r);
-                    Bt3=30.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr*rr)+
-                        20.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
-                        8.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                        15.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*rr*r);
-                    break;
-                  case TRUNCATED_COULOMB:
-                    Bt0=1.0/(r);
-                    Bt1=1.0/(r*rr);
-                    Bt2=3.0/(r*rr*rr);
-                    Bt3=15.0/(r*rr*rr*rr);
-                    break;
-                  case SHIFTED_COULOMB:
-                    Bt0=1.0/(r);
-                    Bt1=1.0/(r*rr);
-                    Bt2=3.0/(r*rr*rr);
-                    Bt3=15.0/(r*rr*rr*rr);
-                    break;
-                }
+                PotentialElectricFieldBondDipoleBondDipole(dipoleA,dipoleB,dr,rr,&termA,&termB);
 
-                cosB=dipoleB.x*dr.x+dipoleB.y*dr.y+dipoleB.z*dr.z;
-                term.x=COULOMBIC_CONVERSION_FACTOR*(Bt2*cosB*dr.x-Bt1*dipoleB.x);
-                term.y=COULOMBIC_CONVERSION_FACTOR*(Bt2*cosB*dr.y-Bt1*dipoleB.y);
-                term.z=COULOMBIC_CONVERSION_FACTOR*(Bt2*cosB*dr.z-Bt1*dipoleB.z);
+                ElectricFieldAtTrialPosition[CurrentSystem][i].x+=termB.x;
+                ElectricFieldAtTrialPosition[CurrentSystem][i].y+=termB.y;
+                ElectricFieldAtTrialPosition[CurrentSystem][i].z+=termB.z;
 
-                ElectricFieldAtTrialPosition[CurrentSystem][i].x+=term.x;
-                ElectricFieldAtTrialPosition[CurrentSystem][i].y+=term.y;
-                ElectricFieldAtTrialPosition[CurrentSystem][i].z+=term.z;
-
-                cosA=dipoleA.x*dr.x+dipoleA.y*dr.y+dipoleA.z*dr.z;
-                term.x=COULOMBIC_CONVERSION_FACTOR*(Bt2*cosA*dr.x-Bt1*dipoleA.x);
-                term.y=COULOMBIC_CONVERSION_FACTOR*(Bt2*cosA*dr.y-Bt1*dipoleA.y);
-                term.z=COULOMBIC_CONVERSION_FACTOR*(Bt2*cosA*dr.z-Bt1*dipoleA.z);
-
-                Adsorbates[CurrentSystem][j].Atoms[l].ElectricField.x+=term.x;
-                Adsorbates[CurrentSystem][j].Atoms[l].ElectricField.y+=term.y;
-                Adsorbates[CurrentSystem][j].Atoms[l].ElectricField.z+=term.z;
+                Adsorbates[CurrentSystem][j].Atoms[l].ElectricField.x+=termA.x;
+                Adsorbates[CurrentSystem][j].Atoms[l].ElectricField.y+=termA.y;
+                Adsorbates[CurrentSystem][j].Atoms[l].ElectricField.z+=termA.z;
               }
             }
           }
@@ -3638,58 +2485,18 @@ int CalculateInterElectricFieldFromInducedDipoleMC(int New,int excl_ads,int excl
               dr.z=posA.z-posB.z;
               dr=ApplyBoundaryCondition(dr);
               rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-              r=sqrt(rr);
 
-              if(rr<CutOffChargeChargeSquared)
+              if(rr<CutOffChargeChargeSquared[CurrentSystem])
               {
-                switch(ChargeMethod)
-                {
-                  case NONE:
-                    Bt0=Bt1=Bt2=Bt3=0.0;
-                    break;
-                  case EWALD:
-                    Bt0=erfc(Alpha[CurrentSystem]*r)/r;
-                    Bt1=2.0*Alpha[CurrentSystem]*exp(-SQR(-Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                        erfc(Alpha[CurrentSystem]*r)/(rr*r);
-                    Bt2=6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
-                        4.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                        3.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*r);
-                    Bt3=30.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr*rr)+
-                        20.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
-                        8.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                        15.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*rr*r);
-                    break;
-                  case TRUNCATED_COULOMB:
-                    Bt0=1.0/(r);
-                    Bt1=1.0/(r*rr);
-                    Bt2=3.0/(r*rr*rr);
-                    Bt3=15.0/(r*rr*rr*rr);
-                    break;
-                  case SHIFTED_COULOMB:
-                    Bt0=1.0/(r);
-                    Bt1=1.0/(r*rr);
-                    Bt2=3.0/(r*rr*rr);
-                    Bt3=15.0/(r*rr*rr*rr);
-                    break;
-                }
+                PotentialElectricFieldBondDipoleBondDipole(dipoleA,dipoleB,dr,rr,&termA,&termB);
 
-                cosB=dipoleB.x*dr.x+dipoleB.y*dr.y+dipoleB.z*dr.z;
-                term.x=COULOMBIC_CONVERSION_FACTOR*(Bt2*cosB*dr.x-Bt1*dipoleB.x);
-                term.y=COULOMBIC_CONVERSION_FACTOR*(Bt2*cosB*dr.y-Bt1*dipoleB.y);
-                term.z=COULOMBIC_CONVERSION_FACTOR*(Bt2*cosB*dr.z-Bt1*dipoleB.z);
+                ElectricFieldAtTrialPosition[CurrentSystem][i].x+=termB.x;
+                ElectricFieldAtTrialPosition[CurrentSystem][i].y+=termB.y;
+                ElectricFieldAtTrialPosition[CurrentSystem][i].z+=termB.z;
 
-                ElectricFieldAtTrialPosition[CurrentSystem][i].x+=term.x;
-                ElectricFieldAtTrialPosition[CurrentSystem][i].y+=term.y;
-                ElectricFieldAtTrialPosition[CurrentSystem][i].z+=term.z;
-
-                cosA=dipoleA.x*dr.x+dipoleA.y*dr.y+dipoleA.z*dr.z;
-                term.x=COULOMBIC_CONVERSION_FACTOR*(Bt2*cosA*dr.x-Bt1*dipoleA.x);
-                term.y=COULOMBIC_CONVERSION_FACTOR*(Bt2*cosA*dr.y-Bt1*dipoleA.y);
-                term.z=COULOMBIC_CONVERSION_FACTOR*(Bt2*cosA*dr.z-Bt1*dipoleA.z);
-
-                Cations[CurrentSystem][j].Atoms[l].ElectricField.x+=term.x;
-                Cations[CurrentSystem][j].Atoms[l].ElectricField.y+=term.y;
-                Cations[CurrentSystem][j].Atoms[l].ElectricField.z+=term.z;
+                Cations[CurrentSystem][j].Atoms[l].ElectricField.x+=termA.x;
+                Cations[CurrentSystem][j].Atoms[l].ElectricField.y+=termA.y;
+                Cations[CurrentSystem][j].Atoms[l].ElectricField.z+=termA.z;
               }
             }
           }
@@ -3707,8 +2514,9 @@ int CalculateInterChargeInducedDipoleForce(void)
   int i,j,k,l;
   int TypeA,TypeB;
   VECTOR posA,posB,dr;
-  REAL r,rr,cosA,cosB,ChargeB,ChargeA;
-  VECTOR dipoleA,dipoleB,term;
+  REAL rr,chargeB,chargeA;
+  VECTOR dipoleA,dipoleB;
+  VECTOR termA,termB;
   REAL Bt0,Bt1,Bt2;
 
   if(ChargeMethod==NONE) return 0;
@@ -3724,7 +2532,7 @@ int CalculateInterChargeInducedDipoleForce(void)
       {
         posA=Adsorbates[CurrentSystem][i].Atoms[j].Position;
         dipoleA=Adsorbates[CurrentSystem][i].Atoms[j].InducedDipole;
-        ChargeA=Adsorbates[CurrentSystem][i].Atoms[j].Charge;
+        chargeA=Adsorbates[CurrentSystem][i].Atoms[j].Charge;
 
         if(!OmitAdsorbateAdsorbatePolarization)
         {
@@ -3737,7 +2545,7 @@ int CalculateInterChargeInducedDipoleForce(void)
               {
                 posB=Adsorbates[CurrentSystem][k].Atoms[l].Position;
                 dipoleB=Adsorbates[CurrentSystem][k].Atoms[l].InducedDipole;
-                ChargeB=Adsorbates[CurrentSystem][k].Atoms[l].Charge;
+                chargeB=Adsorbates[CurrentSystem][k].Atoms[l].Charge;
    
                 dr.x=posA.x-posB.x;
                 dr.y=posA.y-posB.y;
@@ -3745,62 +2553,25 @@ int CalculateInterChargeInducedDipoleForce(void)
                 dr=ApplyBoundaryCondition(dr);
                 rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
 
-                if(rr<CutOffChargeChargeSquared)
+                if(rr<CutOffChargeChargeSquared[CurrentSystem])
                 {
-                  r=sqrt(rr);
-                  switch(ChargeMethod)
-                  {
-                    case NONE:
-                      Bt0=Bt1=Bt2=0.0;  
-                      break;
-                    case TRUNCATED_COULOMB:
-                      Bt0=1.0/(r);
-                      Bt1=1.0/(r*rr);
-                      Bt2=3.0/(r*rr*rr);
-                      break;
-                    case SHIFTED_COULOMB:
-                      Bt0=1.0/(r);
-                      Bt1=1.0/(r*rr);
-                      Bt2=3.0/(r*rr*rr);
-                      break;
-                    case EWALD:
-                    default:
-                      Bt0=erfc(Alpha[CurrentSystem]*r)/r;
-                      Bt1=2.0*Alpha[CurrentSystem]*exp(-SQR(-Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                          erfc(Alpha[CurrentSystem]*r)/(rr*r);
-                      Bt2=6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
-                          4.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                          3.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*r);
-                      break;
-                  }
+                  PotentialElectricFieldBondDipoleBondDipole(dipoleA,dipoleB,dr,rr,&termA,&termB);
   
-                  cosA=dipoleA.x*dr.x+dipoleA.y*dr.y+dipoleA.z*dr.z;
+                  Adsorbates[CurrentSystem][i].Atoms[j].Force.x-=chargeB*termA.x;
+                  Adsorbates[CurrentSystem][i].Atoms[j].Force.y-=chargeB*termA.y;
+                  Adsorbates[CurrentSystem][i].Atoms[j].Force.z-=chargeB*termA.z;
 
-                  term.x=COULOMBIC_CONVERSION_FACTOR*ChargeB*(Bt2*cosA*dr.x-Bt1*dipoleA.x);
-                  term.y=COULOMBIC_CONVERSION_FACTOR*ChargeB*(Bt2*cosA*dr.y-Bt1*dipoleA.y);
-                  term.z=COULOMBIC_CONVERSION_FACTOR*ChargeB*(Bt2*cosA*dr.z-Bt1*dipoleA.z);
+                  Adsorbates[CurrentSystem][k].Atoms[l].Force.x+=chargeB*termA.x;
+                  Adsorbates[CurrentSystem][k].Atoms[l].Force.y+=chargeB*termA.y;
+                  Adsorbates[CurrentSystem][k].Atoms[l].Force.z+=chargeB*termA.z;
 
-                  Adsorbates[CurrentSystem][i].Atoms[j].Force.x-=term.x;
-                  Adsorbates[CurrentSystem][i].Atoms[j].Force.y-=term.y;
-                  Adsorbates[CurrentSystem][i].Atoms[j].Force.z-=term.z;
+                  Adsorbates[CurrentSystem][i].Atoms[j].Force.x+=chargeA*termB.x;
+                  Adsorbates[CurrentSystem][i].Atoms[j].Force.y+=chargeA*termB.y;
+                  Adsorbates[CurrentSystem][i].Atoms[j].Force.z+=chargeA*termB.z;
 
-                  Adsorbates[CurrentSystem][k].Atoms[l].Force.x+=term.x;
-                  Adsorbates[CurrentSystem][k].Atoms[l].Force.y+=term.y;
-                  Adsorbates[CurrentSystem][k].Atoms[l].Force.z+=term.z;
-
-                  cosB=dipoleB.x*dr.x+dipoleB.y*dr.y+dipoleB.z*dr.z;
-
-                  term.x=COULOMBIC_CONVERSION_FACTOR*ChargeA*(Bt2*cosB*dr.x-Bt1*dipoleB.x);
-                  term.y=COULOMBIC_CONVERSION_FACTOR*ChargeA*(Bt2*cosB*dr.y-Bt1*dipoleB.y);
-                  term.z=COULOMBIC_CONVERSION_FACTOR*ChargeA*(Bt2*cosB*dr.z-Bt1*dipoleB.z);
-
-                  Adsorbates[CurrentSystem][i].Atoms[j].Force.x+=term.x;
-                  Adsorbates[CurrentSystem][i].Atoms[j].Force.y+=term.y;
-                  Adsorbates[CurrentSystem][i].Atoms[j].Force.z+=term.z;
-
-                  Adsorbates[CurrentSystem][k].Atoms[l].Force.x-=term.x;
-                  Adsorbates[CurrentSystem][k].Atoms[l].Force.y-=term.y;
-                  Adsorbates[CurrentSystem][k].Atoms[l].Force.z-=term.z;
+                  Adsorbates[CurrentSystem][k].Atoms[l].Force.x-=chargeA*termB.x;
+                  Adsorbates[CurrentSystem][k].Atoms[l].Force.y-=chargeA*termB.y;
+                  Adsorbates[CurrentSystem][k].Atoms[l].Force.z-=chargeA*termB.z;
                 }
               }
             }
@@ -3816,7 +2587,7 @@ int CalculateInterChargeInducedDipoleForce(void)
             {
               posB=Cations[CurrentSystem][k].Atoms[l].Position;
               dipoleB=Cations[CurrentSystem][k].Atoms[l].InducedDipole;
-              ChargeB=Cations[CurrentSystem][k].Atoms[l].Charge;
+              chargeB=Cations[CurrentSystem][k].Atoms[l].Charge;
 
               dr.x=posA.x-posB.x;
               dr.y=posA.y-posB.y;
@@ -3824,62 +2595,25 @@ int CalculateInterChargeInducedDipoleForce(void)
               dr=ApplyBoundaryCondition(dr);
               rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
 
-              if(rr<CutOffChargeChargeSquared)
+              if(rr<CutOffChargeChargeSquared[CurrentSystem])
               {
-                r=sqrt(rr);
-                switch(ChargeMethod)
-                {
-                  case NONE:
-                    Bt0=Bt1=Bt2=0.0;
-                    break;
-                  case TRUNCATED_COULOMB:
-                    Bt0=1.0/(r);
-                    Bt1=1.0/(r*rr);
-                    Bt2=3.0/(r*rr*rr);
-                    break;
-                  case SHIFTED_COULOMB:
-                    Bt0=1.0/(r);
-                    Bt1=1.0/(r*rr);
-                    Bt2=3.0/(r*rr*rr);
-                    break;
-                  case EWALD:
-                  default:
-                    Bt0=erfc(Alpha[CurrentSystem]*r)/r;
-                    Bt1=2.0*Alpha[CurrentSystem]*exp(-SQR(-Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                        erfc(Alpha[CurrentSystem]*r)/(rr*r);
-                    Bt2=6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
-                        4.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                        3.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*r);
-                    break;
-                }
+                PotentialElectricFieldBondDipoleBondDipole(dipoleA,dipoleB,dr,rr,&termA,&termB);
 
-                cosA=dipoleA.x*dr.x+dipoleA.y*dr.y+dipoleA.z*dr.z;
+                Adsorbates[CurrentSystem][i].Atoms[j].Force.x-=chargeB*termA.x;
+                Adsorbates[CurrentSystem][i].Atoms[j].Force.y-=chargeB*termA.y;
+                Adsorbates[CurrentSystem][i].Atoms[j].Force.z-=chargeB*termA.z;
 
-                term.x=COULOMBIC_CONVERSION_FACTOR*ChargeB*(Bt2*cosA*dr.x-Bt1*dipoleA.x);
-                term.y=COULOMBIC_CONVERSION_FACTOR*ChargeB*(Bt2*cosA*dr.y-Bt1*dipoleA.y);
-                term.z=COULOMBIC_CONVERSION_FACTOR*ChargeB*(Bt2*cosA*dr.z-Bt1*dipoleA.z);
+                Cations[CurrentSystem][k].Atoms[l].Force.x+=chargeB*termA.x;
+                Cations[CurrentSystem][k].Atoms[l].Force.y+=chargeB*termA.y;
+                Cations[CurrentSystem][k].Atoms[l].Force.z+=chargeB*termA.z;
 
-                Adsorbates[CurrentSystem][i].Atoms[j].Force.x-=term.x;
-                Adsorbates[CurrentSystem][i].Atoms[j].Force.y-=term.y;
-                Adsorbates[CurrentSystem][i].Atoms[j].Force.z-=term.z;
+                Adsorbates[CurrentSystem][i].Atoms[j].Force.x-=chargeA*termB.x;
+                Adsorbates[CurrentSystem][i].Atoms[j].Force.y-=chargeA*termB.y;
+                Adsorbates[CurrentSystem][i].Atoms[j].Force.z-=chargeA*termB.z;
 
-                Cations[CurrentSystem][k].Atoms[l].Force.x+=term.x;
-                Cations[CurrentSystem][k].Atoms[l].Force.y+=term.y;
-                Cations[CurrentSystem][k].Atoms[l].Force.z+=term.z;
-
-                cosB=dipoleB.x*dr.x+dipoleB.y*dr.y+dipoleB.z*dr.z;
-
-                term.x=-COULOMBIC_CONVERSION_FACTOR*ChargeA*(Bt2*cosB*dr.x-Bt1*dipoleB.x);
-                term.y=-COULOMBIC_CONVERSION_FACTOR*ChargeA*(Bt2*cosB*dr.y-Bt1*dipoleB.y);
-                term.z=-COULOMBIC_CONVERSION_FACTOR*ChargeA*(Bt2*cosB*dr.z-Bt1*dipoleB.z);
-
-                Adsorbates[CurrentSystem][i].Atoms[j].Force.x-=term.x;
-                Adsorbates[CurrentSystem][i].Atoms[j].Force.y-=term.y;
-                Adsorbates[CurrentSystem][i].Atoms[j].Force.z-=term.z;
-
-                Cations[CurrentSystem][k].Atoms[l].Force.x+=term.x;
-                Cations[CurrentSystem][k].Atoms[l].Force.y+=term.y;
-                Cations[CurrentSystem][k].Atoms[l].Force.z+=term.z;
+                Cations[CurrentSystem][k].Atoms[l].Force.x+=chargeA*termB.x;
+                Cations[CurrentSystem][k].Atoms[l].Force.y+=chargeA*termB.y;
+                Cations[CurrentSystem][k].Atoms[l].Force.z+=chargeA*termB.z;
               }
             }
           }
@@ -3901,7 +2635,7 @@ int CalculateInterChargeInducedDipoleForce(void)
         if(PseudoAtoms[TypeA].HasCharges)
         {
           posA=Cations[CurrentSystem][i].Atoms[j].Position;
-          ChargeA=Cations[CurrentSystem][i].Atoms[j].Charge;
+          chargeA=Cations[CurrentSystem][i].Atoms[j].Charge;
 
           for(k=i+1;k<NumberOfCationMolecules[CurrentSystem];k++)
           {
@@ -3912,7 +2646,7 @@ int CalculateInterChargeInducedDipoleForce(void)
               {
                 posB=Cations[CurrentSystem][k].Atoms[l].Position;
                 dipoleB=Cations[CurrentSystem][k].Atoms[l].InducedDipole;
-                ChargeB=Cations[CurrentSystem][k].Atoms[l].Charge;
+                chargeB=Cations[CurrentSystem][k].Atoms[l].Charge;
 
                 dr.x=posA.x-posB.x;
                 dr.y=posA.y-posB.y;
@@ -3920,62 +2654,25 @@ int CalculateInterChargeInducedDipoleForce(void)
                 dr=ApplyBoundaryCondition(dr);
                 rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
 
-                if(rr<CutOffChargeChargeSquared)
+                if(rr<CutOffChargeChargeSquared[CurrentSystem])
                 {
-                  r=sqrt(rr);
-                  switch(ChargeMethod)
-                  {
-                    case NONE:
-                      Bt0=Bt1=Bt2=0.0;
-                      break;
-                    case TRUNCATED_COULOMB:
-                      Bt0=1.0/(r);
-                      Bt1=1.0/(r*rr);
-                      Bt2=3.0/(r*rr*rr);
-                      break;
-                    case SHIFTED_COULOMB:
-                      Bt0=1.0/(r);
-                      Bt1=1.0/(r*rr);
-                      Bt2=3.0/(r*rr*rr);
-                      break;
-                    case EWALD:
-                    default:
-                      Bt0=erfc(Alpha[CurrentSystem]*r)/r;
-                      Bt1=2.0*Alpha[CurrentSystem]*exp(-SQR(-Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                          erfc(Alpha[CurrentSystem]*r)/(rr*r);
-                      Bt2=6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
-                          4.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                          3.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*r);
-                      break;
-                  }
+                  PotentialElectricFieldBondDipoleBondDipole(dipoleA,dipoleB,dr,rr,&termA,&termB);
 
-                  cosA=dipoleA.x*dr.x+dipoleA.y*dr.y+dipoleA.z*dr.z;
+                  Cations[CurrentSystem][i].Atoms[j].Force.x-=chargeB*termA.x;
+                  Cations[CurrentSystem][i].Atoms[j].Force.y-=chargeB*termA.y;
+                  Cations[CurrentSystem][i].Atoms[j].Force.z-=chargeB*termA.z;
 
-                  term.x=COULOMBIC_CONVERSION_FACTOR*ChargeB*(Bt2*cosA*dr.x-Bt1*dipoleA.x);
-                  term.y=COULOMBIC_CONVERSION_FACTOR*ChargeB*(Bt2*cosA*dr.y-Bt1*dipoleA.y);
-                  term.z=COULOMBIC_CONVERSION_FACTOR*ChargeB*(Bt2*cosA*dr.z-Bt1*dipoleA.z);
-
-                  Cations[CurrentSystem][i].Atoms[j].Force.x-=term.x;
-                  Cations[CurrentSystem][i].Atoms[j].Force.y-=term.y;
-                  Cations[CurrentSystem][i].Atoms[j].Force.z-=term.z;
-
-                  Cations[CurrentSystem][k].Atoms[l].Force.x+=term.x;
-                  Cations[CurrentSystem][k].Atoms[l].Force.y+=term.y;
-                  Cations[CurrentSystem][k].Atoms[l].Force.z+=term.z;
+                  Cations[CurrentSystem][k].Atoms[l].Force.x+=chargeB*termA.x;
+                  Cations[CurrentSystem][k].Atoms[l].Force.y+=chargeB*termA.y;
+                  Cations[CurrentSystem][k].Atoms[l].Force.z+=chargeB*termA.z;
  
-                  cosB=dipoleB.x*dr.x+dipoleB.y*dr.y+dipoleB.z*dr.z;
-
-                  term.x=-COULOMBIC_CONVERSION_FACTOR*ChargeA*(Bt2*cosB*dr.x-Bt1*dipoleB.x);
-                  term.y=-COULOMBIC_CONVERSION_FACTOR*ChargeA*(Bt2*cosB*dr.y-Bt1*dipoleB.y);
-                  term.z=-COULOMBIC_CONVERSION_FACTOR*ChargeA*(Bt2*cosB*dr.z-Bt1*dipoleB.z);
-
-                  Cations[CurrentSystem][i].Atoms[j].Force.x-=term.x;
-                  Cations[CurrentSystem][i].Atoms[j].Force.y-=term.y;
-                  Cations[CurrentSystem][i].Atoms[j].Force.z-=term.z;
+                  Cations[CurrentSystem][i].Atoms[j].Force.x-=chargeA*termB.x;
+                  Cations[CurrentSystem][i].Atoms[j].Force.y-=chargeA*termB.y;
+                  Cations[CurrentSystem][i].Atoms[j].Force.z-=chargeA*termB.z;
  
-                  Cations[CurrentSystem][k].Atoms[l].Force.x+=term.x;
-                  Cations[CurrentSystem][k].Atoms[l].Force.y+=term.y;
-                  Cations[CurrentSystem][k].Atoms[l].Force.z+=term.z;
+                  Cations[CurrentSystem][k].Atoms[l].Force.x+=chargeA*termB.x;
+                  Cations[CurrentSystem][k].Atoms[l].Force.y+=chargeA*termB.y;
+                  Cations[CurrentSystem][k].Atoms[l].Force.z+=chargeA*termB.z;
                 }
               }
             }
@@ -3993,15 +2690,13 @@ int CalculateInterInducedDipoleInducedDipoleForce(void)
 
   int i,j,k,l;
   VECTOR posA,posB,dr;
-  REAL r,rr,cosA,cosB,cosAB;
+  REAL rr;
   VECTOR dipoleA,dipoleB,term;
-  REAL Bt0,Bt1,Bt2,Bt3;
+  REAL energy;
 
   if(ChargeMethod==NONE) return 0;
 
   if(!BackPolarization) return 0;
-
-  Bt0=Bt1=Bt2=Bt3=0.0;
 
   for(i=0;i<NumberOfAdsorbateMolecules[CurrentSystem];i++)
   {
@@ -4025,50 +2720,9 @@ int CalculateInterInducedDipoleInducedDipoleForce(void)
             dr=ApplyBoundaryCondition(dr);
             rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
 
-            if(rr<CutOffChargeChargeSquared)
+            if(rr<CutOffChargeChargeSquared[CurrentSystem])
             {
-              r=sqrt(rr);
-              switch(ChargeMethod)
-              {
-                case NONE:
-                  Bt0=Bt1=Bt2=Bt3=0.0;  
-                  break;
-                case TRUNCATED_COULOMB:
-                  Bt0=1.0/(r);
-                  Bt1=1.0/(r*rr);
-                  Bt2=3.0/(r*rr*rr);
-                  Bt3=15.0/(r*rr*rr*rr);
-                  break;
-                case SHIFTED_COULOMB:
-                  Bt0=1.0/(r);
-                  Bt1=1.0/(r*rr);
-                  Bt2=3.0/(r*rr*rr);
-                  Bt3=15.0/(r*rr*rr*rr);
-                  break;
-                case EWALD:
-                default:
-                  Bt0=erfc(Alpha[CurrentSystem]*r)/r;
-                  Bt1=2.0*Alpha[CurrentSystem]*exp(-SQR(-Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                      erfc(Alpha[CurrentSystem]*r)/(rr*r);
-                  Bt2=6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
-                      4.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                      3.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*r);
-                Bt3=30.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr*rr)+
-                    20.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
-                    8.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                    15.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*rr*r);
-                break;
-              }
-
-              cosAB=dipoleA.x*dipoleB.x+dipoleA.y*dipoleB.y+dipoleA.z*dipoleB.z;
-              cosA=dipoleA.x*dr.x+dipoleA.y*dr.y+dipoleA.z*dr.z;
-              cosB=dipoleB.x*dr.x+dipoleB.y*dr.y+dipoleB.z*dr.z;
-
-              //UAdsorbateAdsorbateBondDipoleBondDipoleReal[CurrentSystem]+=COULOMBIC_CONVERSION_FACTOR*(Bt1*cosAB-Bt2*cosA*cosB);
-
-              term.x=COULOMBIC_CONVERSION_FACTOR*(Bt3*(cosA*cosB)*dr.x-Bt2*(cosAB*dr.x+cosB*dipoleA.x+cosA*dipoleB.x));
-              term.y=COULOMBIC_CONVERSION_FACTOR*(Bt3*(cosA*cosB)*dr.y-Bt2*(cosAB*dr.y+cosB*dipoleA.y+cosA*dipoleB.y));
-              term.z=COULOMBIC_CONVERSION_FACTOR*(Bt3*(cosA*cosB)*dr.z-Bt2*(cosAB*dr.z+cosB*dipoleA.z+cosA*dipoleB.z));
+              PotentialGradientInducedDipoleInducedDipole(dipoleA,dipoleB,dr,rr,&energy,&term);
 
               Adsorbates[CurrentSystem][i].Atoms[j].Force.x-=term.x;
               Adsorbates[CurrentSystem][i].Atoms[j].Force.y-=term.y;
@@ -4095,48 +2749,9 @@ int CalculateInterInducedDipoleInducedDipoleForce(void)
           dr=ApplyBoundaryCondition(dr);
           rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
 
-          if(rr<CutOffChargeChargeSquared)
+          if(rr<CutOffChargeChargeSquared[CurrentSystem])
           {
-            r=sqrt(rr);
-            switch(ChargeMethod)
-            {
-              case NONE:
-                Bt0=Bt1=Bt2=Bt3=0.0;  
-                break;
-              case TRUNCATED_COULOMB:
-                Bt0=1.0/(r);
-                Bt1=1.0/(r*rr);
-                Bt2=3.0/(r*rr*rr);
-                Bt3=15.0/(r*rr*rr*rr);
-                break;
-              case SHIFTED_COULOMB:
-                Bt0=1.0/(r);
-                Bt1=1.0/(r*rr);
-                Bt2=3.0/(r*rr*rr);
-                Bt3=15.0/(r*rr*rr*rr);
-                break;
-              case EWALD:
-              default:
-                Bt0=erfc(Alpha[CurrentSystem]*r)/r;
-                Bt1=2.0*Alpha[CurrentSystem]*exp(-SQR(-Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                    erfc(Alpha[CurrentSystem]*r)/(rr*r);
-                Bt2=6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
-                    4.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                    3.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*r);
-                Bt3=30.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr*rr)+
-                    20.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
-                    8.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                    15.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*rr*r);
-                break;
-            }
-
-            cosAB=dipoleA.x*dipoleB.x+dipoleA.y*dipoleB.y+dipoleA.z*dipoleB.z;
-            cosA=dipoleA.x*dr.x+dipoleA.y*dr.y+dipoleA.z*dr.z;
-            cosB=dipoleB.x*dr.x+dipoleB.y*dr.y+dipoleB.z*dr.z;
-
-            term.x=COULOMBIC_CONVERSION_FACTOR*(Bt3*(cosA*cosB)*dr.x-Bt2*(cosAB*dr.x+cosB*dipoleA.x+cosA*dipoleB.x));
-            term.y=COULOMBIC_CONVERSION_FACTOR*(Bt3*(cosA*cosB)*dr.y-Bt2*(cosAB*dr.y+cosB*dipoleA.y+cosA*dipoleB.y));
-            term.z=COULOMBIC_CONVERSION_FACTOR*(Bt3*(cosA*cosB)*dr.z-Bt2*(cosAB*dr.z+cosB*dipoleA.z+cosA*dipoleB.z));
+            PotentialGradientInducedDipoleInducedDipole(dipoleA,dipoleB,dr,rr,&energy,&term);
 
             Adsorbates[CurrentSystem][i].Atoms[j].Force.x-=term.x;
             Adsorbates[CurrentSystem][i].Atoms[j].Force.y-=term.y;
@@ -4145,7 +2760,6 @@ int CalculateInterInducedDipoleInducedDipoleForce(void)
             Cations[CurrentSystem][k].Atoms[l].Force.x+=term.x;
             Cations[CurrentSystem][k].Atoms[l].Force.y+=term.y;
             Cations[CurrentSystem][k].Atoms[l].Force.z+=term.z;
-
           }
         }
       }
@@ -4174,48 +2788,9 @@ int CalculateInterInducedDipoleInducedDipoleForce(void)
             dr=ApplyBoundaryCondition(dr);
             rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
 
-            if(rr<CutOffChargeChargeSquared)
+            if(rr<CutOffChargeChargeSquared[CurrentSystem])
             {
-              r=sqrt(rr);
-              switch(ChargeMethod)
-              {
-                case NONE:
-                  Bt0=Bt1=Bt2=Bt3=0.0;  
-                  break;
-                case TRUNCATED_COULOMB:
-                  Bt0=1.0/(r);
-                  Bt1=1.0/(r*rr);
-                  Bt2=3.0/(r*rr*rr);
-                  Bt3=15.0/(r*rr*rr*rr);
-                  break;
-                case SHIFTED_COULOMB:
-                  Bt0=1.0/(r);
-                  Bt1=1.0/(r*rr);
-                  Bt2=3.0/(r*rr*rr);
-                  Bt3=15.0/(r*rr*rr*rr);
-                  break;
-                case EWALD:
-                default:
-                  Bt0=erfc(Alpha[CurrentSystem]*r)/r;
-                  Bt1=2.0*Alpha[CurrentSystem]*exp(-SQR(-Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                      erfc(Alpha[CurrentSystem]*r)/(rr*r);
-                  Bt2=6.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
-                      4.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                      3.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*r);
-                Bt3=30.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr*rr)+
-                    20.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr*rr)+
-                    8.0*Alpha[CurrentSystem]*SQR(Alpha[CurrentSystem])*SQR(Alpha[CurrentSystem])*exp(-SQR(Alpha[CurrentSystem]*r))/(sqrt(M_PI)*rr)+
-                    15.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*rr*r);
-                break;
-              }
-
-              cosAB=dipoleA.x*dipoleB.x+dipoleA.y*dipoleB.y+dipoleA.z*dipoleB.z;
-              cosA=dipoleA.x*dr.x+dipoleA.y*dr.y+dipoleA.z*dr.z;
-              cosB=dipoleB.x*dr.x+dipoleB.y*dr.y+dipoleB.z*dr.z;
-
-              term.x=COULOMBIC_CONVERSION_FACTOR*(Bt3*(cosA*cosB)*dr.x-Bt2*(cosAB*dr.x+cosB*dipoleA.x+cosA*dipoleB.x));
-              term.y=COULOMBIC_CONVERSION_FACTOR*(Bt3*(cosA*cosB)*dr.y-Bt2*(cosAB*dr.y+cosB*dipoleA.y+cosA*dipoleB.y));
-              term.z=COULOMBIC_CONVERSION_FACTOR*(Bt3*(cosA*cosB)*dr.z-Bt2*(cosAB*dr.z+cosB*dipoleA.z+cosA*dipoleB.z));
+              PotentialGradientInducedDipoleInducedDipole(dipoleA,dipoleB,dr,rr,&energy,&term);
 
               Cations[CurrentSystem][i].Atoms[j].Force.x-=term.x;
               Cations[CurrentSystem][i].Atoms[j].Force.y-=term.y;
@@ -4616,49 +3191,14 @@ int CalculateTotalInterReplicaChargeChargeCoulombForce(void)
                   dr=ApplyReplicaBoundaryCondition(dr);
                   rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
 
-                  if(rr<CutOffChargeChargeSquared)
+                  if(rr<CutOffChargeChargeSquared[CurrentSystem])
                   {
                     r=sqrt(rr);
                     typeB=Adsorbates[CurrentSystem][j].Atoms[l].Type;
                     scalingB=Adsorbates[CurrentSystem][j].Atoms[l].CFChargeScalingParameter;
                     chargeB=scalingB*Adsorbates[CurrentSystem][j].Atoms[l].Charge;
 
-                    switch(ChargeMethod)
-                    {
-                      case NONE:
-                        energy=0.0;
-                        force_factor=0.0;
-                        break;
-                      case TRUNCATED_COULOMB:
-                        energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB/r;
-                        force_factor=-COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB/(rr*r);
-                        break;
-                      case SHIFTED_COULOMB:
-                        energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-InverseCutOffChargeCharge);
-                        force_factor=-COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB/(rr*r);
-                        break;
-                      case WOLFS_METHOD_DAMPED_FG:
-                        energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(erfc(Alpha[CurrentSystem]*r)/r
-                                 -erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*InverseCutOffChargeCharge+
-                                  (r-CutOffChargeCharge)*(erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*SQR(InverseCutOffChargeCharge)+
-                                  (2.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*CutOffChargeChargeSquared)*M_1_SQRTPI*InverseCutOffChargeCharge)));
-                        force_factor=-COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(erfc(Alpha[CurrentSystem]*r)/rr+
-                                       2.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*rr)*M_1_SQRTPI/r
-                                       -(erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*SQR(InverseCutOffChargeCharge)+
-                                        2.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*CutOffChargeChargeSquared)*M_1_SQRTPI*InverseCutOffChargeCharge))/r;
-                        break;
-                      case EWALD:
-                        energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*
-                               (erfc(Alpha[CurrentSystem]*r)/r);
-                        force_factor=-COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*
-                               (erfc(Alpha[CurrentSystem]*r)+2.0*Alpha[CurrentSystem]*r*exp(-SQR(Alpha[CurrentSystem])*rr)/sqrt(M_PI))/
-                               (r*rr);
-                        break;
-                      default:
-                        printf("Unknown charge-method in 'CalculateTotalInterReplicaChargeChargeCoulombForce'\n");
-                        exit(0);
-                        break;
-                    }
+                    PotentialGradientCoulombic(chargeA,chargeB,rr,&energy,&force_factor);
 
                     if(ncell==0)
                       UAdsorbateAdsorbateChargeChargeReal[CurrentSystem]+=energy;
@@ -4736,51 +3276,13 @@ int CalculateTotalInterReplicaChargeChargeCoulombForce(void)
                 dr.z=posA.z-posB.z;
                 dr=ApplyReplicaBoundaryCondition(dr);
                 rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-                if(rr<CutOffChargeChargeSquared)
+                if(rr<CutOffChargeChargeSquared[CurrentSystem])
                 {
                   typeB=Cations[CurrentSystem][j].Atoms[l].Type;
                   scalingB=Cations[CurrentSystem][j].Atoms[l].CFChargeScalingParameter;
                   chargeB=scalingB*Cations[CurrentSystem][j].Atoms[l].Charge;
 
-                  r=sqrt(rr);
-
-                  switch(ChargeMethod)
-                  {
-                    case NONE:
-                      energy=0.0;
-                      force_factor=0.0;
-                      break;
-                    case TRUNCATED_COULOMB:
-                      energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB/r;
-                      force_factor=-COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB/(rr*r);
-                      break;
-                    case SHIFTED_COULOMB:
-                      energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-InverseCutOffChargeCharge);
-                      force_factor=-COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB/(rr*r);
-                      break;
-                    case WOLFS_METHOD_DAMPED_FG:
-                      energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(erfc(Alpha[CurrentSystem]*r)/r
-                               -erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*InverseCutOffChargeCharge+
-                                (r-CutOffChargeCharge)*(erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*SQR(InverseCutOffChargeCharge)+
-                                (2.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*CutOffChargeChargeSquared)*M_1_SQRTPI*InverseCutOffChargeCharge)));
-                      force_factor=-COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(erfc(Alpha[CurrentSystem]*r)/rr+
-                                    2.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*rr)*M_1_SQRTPI/r
-                                    -(erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*SQR(InverseCutOffChargeCharge)+
-                                    2.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*CutOffChargeChargeSquared)*M_1_SQRTPI*InverseCutOffChargeCharge))/r;
-                      break;
-                    case EWALD:
-                      energy=COULOMBIC_CONVERSION_FACTOR*erfc(Alpha[CurrentSystem]*r)*
-                                                       chargeA*chargeB/r;
-
-                      force_factor=-COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*
-                           (erfc(Alpha[CurrentSystem]*r)+2.0*Alpha[CurrentSystem]*r*exp(-SQR(Alpha[CurrentSystem])*rr)/sqrt(M_PI))/
-                           (r*rr);
-                      break;
-                    default:
-                      printf("Unknown charge-method in 'CalculateTotalInterReplicaChargeChargeCoulombForce'\n");
-                      exit(0);
-                      break;
-                  }
+                  PotentialGradientCoulombic(chargeA,chargeB,rr,&energy,&force_factor);
 
                   UAdsorbateCationChargeChargeReal[CurrentSystem]+=energy;
 
@@ -4849,50 +3351,13 @@ int CalculateTotalInterReplicaChargeChargeCoulombForce(void)
                 dr.z=posA.z-posB.z;
                 dr=ApplyReplicaBoundaryCondition(dr);
                 rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-                if(rr<CutOffChargeChargeSquared)
+                if(rr<CutOffChargeChargeSquared[CurrentSystem])
                 {
                   typeB=Cations[CurrentSystem][j].Atoms[l].Type;
                   scalingB=Cations[CurrentSystem][j].Atoms[l].CFChargeScalingParameter;
                   chargeB=scalingB*Cations[CurrentSystem][j].Atoms[l].Charge;
- 
-                  r=sqrt(rr);
 
-                  switch(ChargeMethod)
-                  {
-                    case NONE:
-                      energy=0.0;
-                      force_factor=0.0;
-                      break;
-                    case TRUNCATED_COULOMB:
-                      energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB/r;
-                      force_factor=-COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB/(rr*r);
-                      break;
-                    case SHIFTED_COULOMB:
-                      energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(1.0/r-InverseCutOffChargeCharge);
-                      force_factor=-COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB/(rr*r);
-                      break;
-                    case WOLFS_METHOD_DAMPED_FG:
-                      energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(erfc(Alpha[CurrentSystem]*r)/r
-                                -erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*InverseCutOffChargeCharge+
-                                (r-CutOffChargeCharge)*(erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*SQR(InverseCutOffChargeCharge)+
-                                (2.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*CutOffChargeChargeSquared)*M_1_SQRTPI*InverseCutOffChargeCharge)));
-                      force_factor=-COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(erfc(Alpha[CurrentSystem]*r)/rr+
-                                    2.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*rr)*M_1_SQRTPI/r
-                                   -(erfc(Alpha[CurrentSystem]*CutOffChargeCharge)*SQR(InverseCutOffChargeCharge)+
-                                    2.0*Alpha[CurrentSystem]*exp(-SQR(Alpha[CurrentSystem])*CutOffChargeChargeSquared)*M_1_SQRTPI*InverseCutOffChargeCharge))/r;
-                      break;
-                    case EWALD:
-                      energy=COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*
-                             (erfc(Alpha[CurrentSystem]*r)/r);
-                      force_factor=-COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*
-                              (erfc(Alpha[CurrentSystem]*r)+2.0*Alpha[CurrentSystem]*r*exp(-SQR(Alpha[CurrentSystem])*rr)/sqrt(M_PI))/
-                              (r*rr);
-                      break;
-                    default:
-                      printf("Unknown charge-method in 'CalculateTotalInterReplicaChargeChargeCoulombForce'\n");
-                      exit(0);
-                      break;
-                  }
+                  PotentialGradientCoulombic(chargeA,chargeB,rr,&energy,&force_factor); 
 
                   if(ncell==0)
                     UCationCationChargeChargeReal[CurrentSystem]+=energy;

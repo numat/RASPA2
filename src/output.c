@@ -228,7 +228,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
   fprintf(FilePtr,"Compiler and run-time data\n");
   fprintf(FilePtr,"===========================================================================\n");
 
-  fprintf(FilePtr,"%s\n","RASPA 1.7-2");
+  fprintf(FilePtr,"%s\n","RASPA 1.8-0");
   
   #if defined (__LP64__) || defined (__64BIT__) || defined (_LP64) || (__WORDSIZE == 64)
     fprintf(FilePtr,"Compiled as a 64-bits application\n");
@@ -1244,22 +1244,22 @@ void PrintPreSimulationStatusCurrentSystem(int system)
       if(BoundaryCondition[system]==FINITE)
         fprintf(FilePtr,"Coulombic potential is used (finite system)\n");
       else
-        fprintf(FilePtr,"Coulombic potential is truncated at: %f [A]\n",CutOffChargeCharge);
+        fprintf(FilePtr,"Coulombic potential is truncated at: %f [A]\n",CutOffChargeCharge[system]);
       break;
     case SHIFTED_COULOMB:
-      fprintf(FilePtr,"Coulombic potential is truncated and shifted to zero at: %f [A]\n",CutOffChargeCharge);
+      fprintf(FilePtr,"Coulombic potential is truncated and shifted to zero at: %f [A]\n",CutOffChargeCharge[system]);
       break;
     case SMOOTHED_COULOMB:
-      fprintf(FilePtr,"Coulombic potential is smoothed using a switching function from %f to: %f [A]\n",CutOffChargeChargeSwitch,CutOffChargeCharge);
+      fprintf(FilePtr,"Coulombic potential is smoothed using a switching function from %f to: %f [A]\n",CutOffChargeChargeSwitch[system],CutOffChargeCharge[system]);
       break;
     case WOLFS_METHOD:
-      fprintf(FilePtr,"The original Wolf's method is used, potential shifted to zero at %f [A]\n",CutOffChargeCharge);
+      fprintf(FilePtr,"The original Wolf's method is used, potential shifted to zero at %f [A]\n",CutOffChargeCharge[system]);
       break;
     case WOLFS_METHOD_DAMPED:
-      fprintf(FilePtr,"The damped Wolf's method is used, potential shifted to zero at %f [A], Alpha: %18.10f\n",CutOffChargeCharge,Alpha[system]);
+      fprintf(FilePtr,"The damped Wolf's method is used, potential shifted to zero at %f [A], Alpha: %18.10f\n",CutOffChargeCharge[system],Alpha[system]);
       break;
     case WOLFS_METHOD_DAMPED_FG:
-      fprintf(FilePtr,"The damped potential of Fenell and Gezelter is used, potential shifted to zero at %f [A], Alpha: %18.10f\n",CutOffChargeCharge,Alpha[system]);
+      fprintf(FilePtr,"The damped potential of Fenell and Gezelter is used, potential shifted to zero at %f [A], Alpha: %18.10f\n",CutOffChargeCharge[system],Alpha[system]);
       break;
     case EWALD:
     default:
@@ -2277,8 +2277,8 @@ void PrintPreSimulationStatusCurrentSystem(int system)
     {
       fprintf(FilePtr,"CutOff VDW : %lf (%lf)\n",(double)CutOffVDW,(double)CutOffVDWSquared);
       fprintf(FilePtr,"CutOff VDW switching on: %lf (%lf)\n",(double)CutOffVDWSwitch,(double)CutOffVDWSwitchSquared);
-      fprintf(FilePtr,"CutOff charge-charge : %lf (%lf)\n",(double)CutOffChargeCharge,(double)CutOffChargeChargeSquared);
-      fprintf(FilePtr,"CutOff charge-charge switching on: %lf (%lf)\n",(double)CutOffChargeChargeSwitch,(double)CutOffChargeChargeSwitchSquared);
+      fprintf(FilePtr,"CutOff charge-charge : %lf (%lf)\n",(double)CutOffChargeCharge[system],(double)CutOffChargeChargeSquared[system]);
+      fprintf(FilePtr,"CutOff charge-charge switching on: %lf (%lf)\n",(double)CutOffChargeChargeSwitch[system],(double)CutOffChargeChargeSwitchSquared[system]);
       fprintf(FilePtr,"CutOff charge-bonddipole : %lf (%lf)\n",(double)CutOffChargeBondDipole,(double)CutOffChargeBondDipoleSquared);
       fprintf(FilePtr,"CutOff charge-bondipole switching on: %lf (%lf)\n",(double)CutOffChargeBondDipoleSwitch,(double)CutOffChargeBondDipoleSwitchSquared);
       fprintf(FilePtr,"CutOff bonddipole-bonddipole : %lf (%lf)\n",(double)CutOffBondDipoleBondDipole,(double)CutOffBondDipoleBondDipoleSquared);
@@ -5623,7 +5623,6 @@ void PrintPreSimulationStatusCurrentSystem(int system)
             fprintf(FilePtr,"\tNumber of Intra Coulomb bonddipoles:             %d\n",Framework[system].NumberOfIntraBondDipoles[CurrentFramework]);
             fprintf(FilePtr,"\tNumber of excluded Intra VDW:                    %d\n",Framework[system].NumberOfExcludedIntraVDW[CurrentFramework]);
             fprintf(FilePtr,"\tNumber of excluded intra charge-charge:          %d\n",Framework[system].NumberOfExcludedIntraChargeCharge[CurrentFramework]);
-            fprintf(FilePtr,"\tNumber of excluded intra charge-charge 1-4:      %d\n",Framework[system].NumberOfExcludedIntra14ScalingChargeCharge[CurrentFramework]);
             fprintf(FilePtr,"\tNumber of excluded intra charge-bonddipole:      %d\n",Framework[system].NumberOfExcludedIntraChargeBondDipole[CurrentFramework]);
             fprintf(FilePtr,"\tNumber of excluded intra bonddipole-bonddipole:  %d\n",Framework[system].NumberOfExcludedIntraBondDipoleBondDipole[CurrentFramework]);
           }
@@ -5634,15 +5633,15 @@ void PrintPreSimulationStatusCurrentSystem(int system)
           fprintf(FilePtr,"\tNumber of 1-2,1-3 intra-framework pairs: %d\n",Framework[system].NumberOfIntra123Interactions);
           fprintf(FilePtr,"\tNumber of 1-2,1-3,1-4 intra-framework pairs: %d\n",Framework[system].NumberOfIntra1234Interactions);
           if(RemoveBondNeighboursFromLongRangeInteraction)
-            fprintf(FilePtr,"\tBond interactions are excluded from VDW and Coulomb interactions\n");
+            fprintf(FilePtr,"\tBond interactions are removed (excluded from VDW and Coulomb interactions)\n");
           else
             fprintf(FilePtr,"\tBond interactions are *included* in the VDW and Coulomb interactions\n");
           if(RemoveBendNeighboursFromLongRangeInteraction)
-            fprintf(FilePtr,"\tBend interactions are excluded from VDW and Coulomb interactions\n");
+            fprintf(FilePtr,"\tBend interactions are removed (excluded from VDW and Coulomb interactions)\n");
           else
             fprintf(FilePtr,"\tBend interactions are *included* in the VDW and Coulomb interactions\n");
           if(RemoveTorsionNeighboursFromLongRangeInteraction)
-            fprintf(FilePtr,"\tTorsion interactions are excluded from VDW and Coulomb interactions\n");
+            fprintf(FilePtr,"\tTorsion interactions are removed (excluded from VDW and Coulomb interactions)\n");
           else
             fprintf(FilePtr,"\tTorsion interactions are *included* in the VDW and Coulomb interactions\n");
           fprintf(FilePtr,"\tRemove12NeighboursFromVDWInteraction %s\n",Remove12NeighboursFromVDWInteraction?"yes":"no");
@@ -6962,7 +6961,7 @@ void PrintRestartFile(void)
     {
       for(j=0;j<Framework[CurrentSystem].NumberOfAtoms[CurrentFramework];j++)
         fprintf(FilePtrOut,"Framework-atom-position: %d %d %18.12f %18.12f %18.12f\n",
-          j,CurrentFramework,
+          CurrentFramework,j,
           (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Position.x,
           (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Position.y,
           (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Position.z);
@@ -6975,7 +6974,7 @@ void PrintRestartFile(void)
     {
       for(j=0;j<Framework[CurrentSystem].NumberOfAtoms[CurrentFramework];j++)
         fprintf(FilePtrOut,"Framework-atom-velocity: %d %d %18.12f %18.12f %18.12f\n",
-          j,CurrentFramework,
+          CurrentFramework,j,
           (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Velocity.x,
           (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Velocity.y,
           (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Velocity.z);
@@ -6988,7 +6987,7 @@ void PrintRestartFile(void)
     {
       for(j=0;j<Framework[CurrentSystem].NumberOfAtoms[CurrentFramework];j++)
         fprintf(FilePtrOut,"Framework-atom-force:    %d %d %18.12f %18.12f %18.12f\n",
-          j,CurrentFramework,
+          CurrentFramework,j,
           (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Force.x,
           (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Force.y,
           (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Force.z);
@@ -7001,7 +7000,7 @@ void PrintRestartFile(void)
     {
       for(j=0;j<Framework[CurrentSystem].NumberOfAtoms[CurrentFramework];j++)
         fprintf(FilePtrOut,"Framework-atom-charge:   %d %d %18.12f\n",
-          j,CurrentFramework,
+          CurrentFramework,j,
           (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Charge);
     }
     fprintf(FilePtrOut,"\n");
@@ -7012,7 +7011,7 @@ void PrintRestartFile(void)
     {
       for(j=0;j<Framework[CurrentSystem].NumberOfAtoms[CurrentFramework];j++)
         fprintf(FilePtrOut,"Framework-atom-fixed:    %d %d       %d %d %d\n",
-          j,CurrentFramework,
+          CurrentFramework,j,
           Framework[CurrentSystem].Atoms[CurrentFramework][j].Fixed.x,
           Framework[CurrentSystem].Atoms[CurrentFramework][j].Fixed.y,
           Framework[CurrentSystem].Atoms[CurrentFramework][j].Fixed.z);
