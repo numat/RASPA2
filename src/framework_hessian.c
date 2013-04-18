@@ -37,6 +37,7 @@
 #include "rigid.h"
 #include "minimization.h"
 #include "internal_hessian.h"
+#include "numerical.h"
 
 
 void CalculateDerivativesAtPositionVDW(VECTOR pos,int typeA,REAL *value,VECTOR *first_derivative,
@@ -2082,6 +2083,22 @@ static inline void GradientStrainJ(REAL *Gradient,REAL f1,VECTOR dr,VECTOR posB,
   }
 }
 
+/*********************************************************************************************************
+ * Name       | ComputeFrameworkAdsorbateVDWHessian                                                      *
+ * ----------------------------------------------------------------------------------------------------- *
+ * Function   | Computes the contributions of the framework-adsorbate Van der Waals interactions to the  *
+ *            | total energy, gradient, and Hessian-matrix.                                              *
+ *            | interactions.                                                                            *
+ * Parameters | Energy: pointer to the total energy                                                      *
+ *            | Gradient: array of the gradients                                                         *
+ *            | HessianMatrix: the Hessian matrix                                                        *
+ *            | StrainDerivative: pointer to a 3x3x matrix of the strain derivative                      *
+ *            | ComputeGradient: Boolean whether or not to compute the gradient                          *
+ *            | ComputeHessian: Boolean whether or not to compute the Hessian matrix                     *
+ * Note       |                                                                                          *
+ * Used in    | void EvaluateDerivatives(...)                                                            *
+ *********************************************************************************************************/
+
 void ComputeFrameworkAdsorbateVDWHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX HessianMatrix,
                                          REAL_MATRIX3x3 *StrainDerivative,int ComputeGradient,int ComputeHessian)
 {
@@ -2427,6 +2444,22 @@ void ComputeFrameworkAdsorbateChargeChargeHessian(REAL *Energy,REAL* Gradient,RE
   }
 }
 
+/*********************************************************************************************************
+ * Name       | ComputeFrameworkCationVDWHessian                                                         *
+ * ----------------------------------------------------------------------------------------------------- *
+ * Function   | Computes the contributions of the framework-cation Van der Waals interactions to the     *
+ *            | total energy, gradient, and Hessian-matrix.                                              *
+ *            | interactions.                                                                            *
+ * Parameters | Energy: pointer to the total energy                                                      *
+ *            | Gradient: array of the gradients                                                         *
+ *            | HessianMatrix: the Hessian matrix                                                        *
+ *            | StrainDerivative: pointer to a 3x3x matrix of the strain derivative                      *
+ *            | ComputeGradient: Boolean whether or not to compute the gradient                          *
+ *            | ComputeHessian: Boolean whether or not to compute the Hessian matrix                     *
+ * Note       |                                                                                          *
+ * Used in    | void EvaluateDerivatives(...)                                                            *
+ *********************************************************************************************************/
+
 void ComputeFrameworkCationVDWHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX HessianMatrix,
                                       REAL_MATRIX3x3 *StrainDerivative,int ComputeGradient,int ComputeHessian)
 {
@@ -2446,8 +2479,8 @@ void ComputeFrameworkCationVDWHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX He
 
   f1=f2=0.0;
   index2=0;
-  // first loop over adsorbate molecules
 
+  // first loop over framework atoms
   for(fr=0;fr<Framework[CurrentSystem].NumberOfFrameworks;fr++)
   {
     for(i=0;i<Framework[CurrentSystem].NumberOfAtoms[fr];i++)
@@ -6454,6 +6487,7 @@ void ComputeFrameworkBendTorsionHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX 
   INT_VECTOR3 index_i,index_j,index_k,index_l;
   REAL U;
   REAL_MATRIX3x3 strain_derivative;
+  int n;
 
   for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
   {
@@ -6508,6 +6542,71 @@ void ComputeFrameworkBendTorsionHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX 
         if(index_l.x>=0) Gradient[index_l.x]-=fd0.x;
         if(index_l.y>=0) Gradient[index_l.y]-=fd0.y;
         if(index_l.z>=0) Gradient[index_l.z]-=fd0.z;
+
+        n=NumberOfCoordinatesMinimizationVariables;
+        switch(Ensemble[CurrentSystem])
+        {
+          case NPT:
+            Gradient[n]+=strain_derivative.ax;
+            break;
+          case NPTPR:
+          case NPHPR:
+            switch(NPTPRCellType[CurrentSystem])
+            {
+              case ISOTROPIC:
+                Gradient[n  ]+=(strain_derivative.ax+strain_derivative.by+strain_derivative.cz)/3.0; // xx
+                Gradient[n+1]+=(strain_derivative.ax+strain_derivative.by+strain_derivative.cz)/3.0; // xx
+                Gradient[n+2]+=(strain_derivative.ax+strain_derivative.by+strain_derivative.cz)/3.0; // xx
+                break;
+              case ANISOTROPIC:
+                Gradient[n  ]+=strain_derivative.ax; // xx
+                Gradient[n+1]+=strain_derivative.by; // yy
+                Gradient[n+2]+=strain_derivative.cz; // zz
+                break;
+              case REGULAR:
+              case REGULAR_UPPER_TRIANGLE:
+                Gradient[n  ]+=strain_derivative.ax;  // xx
+                Gradient[n+1]+=strain_derivative.ay;  // xy
+                Gradient[n+2]+=strain_derivative.az;  // xz
+                Gradient[n+3]+=strain_derivative.by;  // yy
+                Gradient[n+4]+=strain_derivative.bz;  // yz
+                Gradient[n+5]+=strain_derivative.cz;  // zz
+                break;
+              case MONOCLINIC:
+              case MONOCLINIC_UPPER_TRIANGLE:
+                switch(MonoclinicAngleType[CurrentSystem])
+                {
+                  case MONOCLINIC_ALPHA_ANGLE:
+                    Gradient[n]+=strain_derivative.ax;
+                    Gradient[n+1]+=strain_derivative.by;
+                    Gradient[n+2]+=strain_derivative.bz;
+                    Gradient[n+3]+=strain_derivative.cz;
+                    break;
+                  case MONOCLINIC_BETA_ANGLE:
+                    Gradient[n]+=strain_derivative.ax;
+                    Gradient[n+1]+=strain_derivative.az;
+                    Gradient[n+2]+=strain_derivative.by;
+                    Gradient[n+3]+=strain_derivative.cz;
+                    break;
+                  case MONOCLINIC_GAMMA_ANGLE:
+                  default:
+                    Gradient[n]+=strain_derivative.ax;
+                    Gradient[n+1]+=strain_derivative.ay;
+                    Gradient[n+2]+=strain_derivative.by;
+                    Gradient[n+3]+=strain_derivative.cz;
+                    break;
+                }
+                break;
+              default:
+                printf("Unknown NPTPRCellType\n");
+                exit(0);
+                break;
+            }
+            break;
+          case NVT:
+          case NVE:
+            break;
+        }
       }
 
       if(ComputeHessian)
@@ -6943,4 +7042,3 @@ void ComputeFrameworkBendTorsionHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX 
     }
   }
 }
-

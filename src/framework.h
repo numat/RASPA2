@@ -508,4 +508,6 @@ void WriteFrameworkDefinitionPDB(char *string);
 void WriteFrameworkDefinitionTinker(char *string);
 void WriteFrameworkDefinitionMOL(char *string);
 
+void PutNoiseOnFrameworkAtomicPositions(void);
+
 #endif

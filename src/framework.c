@@ -11938,6 +11938,25 @@ void FindSpatialGroup2(void)
   }
 }
 
+void PutNoiseOnFrameworkAtomicPositions(void)
+{
+  int f1,i;
+  int system;
+
+  for(system=0;system<NumberOfSystems;system++)
+  {
+    for(f1=0;f1<Framework[system].NumberOfFrameworks;f1++)
+    {
+      for(i=0;i<Framework[system].NumberOfAtoms[f1];i++)
+      {
+        Framework[system].Atoms[f1][i].Position.x+=0.01*(2.0*RandomNumber()-1.0);
+        Framework[system].Atoms[f1][i].Position.y+=0.01*(2.0*RandomNumber()-1.0);
+        Framework[system].Atoms[f1][i].Position.z+=0.01*(2.0*RandomNumber()-1.0);
+      }
+    }
+  }
+}
+
 
 void WriteRestartFramework(FILE *FilePtr)
 {

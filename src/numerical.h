@@ -37,12 +37,14 @@ void ComputeNormalModeDerivativeNumerically(REAL_MATRIX GeneralizedHessianMatrix
                CUBIC_SPLINE *splines,REAL_MATRIX3x3 StoredBox,REAL_MATRIX3x3 StoredInverseBox);
 
 void ComputeCrossTermNumericallyMinimalSet(REAL_MATRIX CrossTerm);
-void AddRemainderOfBornTermNumerically(void);
 
 void ComputeThirdOrderElasticConstantsNumerically(int NumberOfPositionVariables,int NumberOfBoxVariables,REAL_MATRIX6x6x6 *VoigtMatrixThirdOrder);
 
 void ComputeEnergyGradientHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX3x3 *Strain_Derivative_Tensor,
                                   REAL_MATRIX HessianMatrix,REAL_MATRIX CrossTerm);
 
+
+void AddRemainderOfCrossTermNumerically(REAL_MATRIX HessianMatrix);
+void AddRemainderOfBornTermNumerically(REAL_MATRIX HessianMatrix);
 
  #endif

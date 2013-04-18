@@ -4835,29 +4835,14 @@ void ComputeNormalModeDerivativeNumerically(REAL_MATRIX GeneralizedHessianMatrix
   free(displacement);
 }
 
-void AddRemainderOfBornTermNumerically(void)
+// eventually need to be implemented anaytically
+void CalculateStrainDerivativeOfNumericalParts(void)
 {
-  REAL det;
-  REAL_MATRIX3x3 StrainDerivativeCentral,StrainDerivativeForward1,StrainDerivativeForward2;
-  REAL_MATRIX3x3 StrainDerivativeBackward1,StrainDerivativeBackward2;
-  REAL_MATRIX3x3 StoredBox,StoredReplicaBox,strain;
-  int StoredBoundaryCondition;
-  int ncell,k1,k2,k3;
-  const REAL delta=1e-6;
-  int StoredBornTerm;
-
-  StoredBornTerm=ComputeBornTerm;
-  StoredBox=Box[CurrentSystem];
-  StoredReplicaBox=ReplicaBox[CurrentSystem];
-  StoredBoundaryCondition=BoundaryCondition[CurrentSystem]; 
-  BoundaryCondition[CurrentSystem]=TRICLINIC;
-
-  ComputeBornTerm=FALSE;
+  int m;
 
   StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
   StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
   StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
-
   if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
   {
     CalculateFrameworkInversionBendForce();
@@ -4868,927 +4853,1354 @@ void AddRemainderOfBornTermNumerically(void)
     CalculateFrameworkBendTorsionForce();
   }
 
+  // contribution of the intra molecular interactions of the adsorbates
+  for(m=0;m<NumberOfAdsorbateMolecules[CurrentSystem];m++)
+  {
+    CalculateAdsorbateInversionBendForce(m);
+    CalculateAdsorbateBondBondForce(m);
+    CalculateAdsorbateBondBendForce(m);
+    CalculateAdsorbateBendBendForce(m);
+    CalculateAdsorbateBondTorsionForce(m);
+    CalculateAdsorbateBendTorsionForce(m);
+  }
+
+  // contribution of the intra molecular interactions of the cations
+  for(m=0;m<NumberOfCationMolecules[CurrentSystem];m++)
+  {
+    CalculateCationInversionBendForce(m);
+    CalculateCationBondBondForce(m);
+    CalculateCationBondBendForce(m);
+    CalculateCationBendBendForce(m);
+    CalculateCationBondTorsionForce(m);
+    CalculateCationBendTorsionForce(m);
+  }
+}
+
+void AddRemainderOfCrossTermNumerically(REAL_MATRIX HessianMatrix)
+{
+  int i,j,n;
+  INT_VECTOR3 index;
+  REAL_MATRIX3x3 StrainDerivativeForward1,StrainDerivativeForward2;
+  REAL_MATRIX3x3 StrainDerivativeBackward1,StrainDerivativeBackward2;
+  REAL_MATRIX3x3 StrainSecondDerivativeX,StrainSecondDerivativeY,StrainSecondDerivativeZ;
+  const REAL delta=1e-6;
+  VECTOR pos;
+  int type;
+
+  for(i=0;i<Framework[0].NumberOfAtoms[0];i++)
+  {
+    pos=Framework[CurrentSystem].Atoms[0][i].Position;
+    type=Framework[CurrentSystem].Atoms[0][i].Type;
+    index=Framework[CurrentSystem].Atoms[0][i].HessianIndex;
+
+    // x-direction
+    Framework[CurrentSystem].Atoms[0][i].Position.x=pos.x+delta;
+    CalculateStrainDerivativeOfNumericalParts();
+    StrainDerivativeForward2=StrainDerivativeTensor[0];
+
+    Framework[CurrentSystem].Atoms[0][i].Position.x=pos.x+0.5*delta;
+    CalculateStrainDerivativeOfNumericalParts();
+    StrainDerivativeForward1=StrainDerivativeTensor[0];
+
+    Framework[CurrentSystem].Atoms[0][i].Position.x=pos.x-0.5*delta;
+    CalculateStrainDerivativeOfNumericalParts();
+    StrainDerivativeBackward1=StrainDerivativeTensor[0];
+
+    Framework[CurrentSystem].Atoms[0][i].Position.x=pos.x-delta;
+    CalculateStrainDerivativeOfNumericalParts();
+    StrainDerivativeBackward2=StrainDerivativeTensor[0];
+
+    StrainSecondDerivativeX.ax=(-StrainDerivativeForward2.ax+8.0*StrainDerivativeForward1.ax-8.0*StrainDerivativeBackward1.ax+StrainDerivativeBackward2.ax)/(6.0*delta);
+    StrainSecondDerivativeX.ay=(-StrainDerivativeForward2.ay+8.0*StrainDerivativeForward1.ay-8.0*StrainDerivativeBackward1.ay+StrainDerivativeBackward2.ay)/(6.0*delta);
+    StrainSecondDerivativeX.az=(-StrainDerivativeForward2.az+8.0*StrainDerivativeForward1.az-8.0*StrainDerivativeBackward1.az+StrainDerivativeBackward2.az)/(6.0*delta);
+    StrainSecondDerivativeX.bx=(-StrainDerivativeForward2.bx+8.0*StrainDerivativeForward1.bx-8.0*StrainDerivativeBackward1.bx+StrainDerivativeBackward2.bx)/(6.0*delta);
+    StrainSecondDerivativeX.by=(-StrainDerivativeForward2.by+8.0*StrainDerivativeForward1.by-8.0*StrainDerivativeBackward1.by+StrainDerivativeBackward2.by)/(6.0*delta);
+    StrainSecondDerivativeX.bz=(-StrainDerivativeForward2.bz+8.0*StrainDerivativeForward1.bz-8.0*StrainDerivativeBackward1.bz+StrainDerivativeBackward2.bz)/(6.0*delta);
+    StrainSecondDerivativeX.cx=(-StrainDerivativeForward2.cx+8.0*StrainDerivativeForward1.cx-8.0*StrainDerivativeBackward1.cx+StrainDerivativeBackward2.cx)/(6.0*delta);
+    StrainSecondDerivativeX.cy=(-StrainDerivativeForward2.cy+8.0*StrainDerivativeForward1.cy-8.0*StrainDerivativeBackward1.cy+StrainDerivativeBackward2.cy)/(6.0*delta);
+    StrainSecondDerivativeX.cz=(-StrainDerivativeForward2.cz+8.0*StrainDerivativeForward1.cz-8.0*StrainDerivativeBackward1.cz+StrainDerivativeBackward2.cz)/(6.0*delta);
+
+    // restore original position
+    Framework[CurrentSystem].Atoms[0][i].Position.x=pos.x;
+
+    // y-direction
+    Framework[CurrentSystem].Atoms[0][i].Position.y=pos.y+delta;
+    CalculateStrainDerivativeOfNumericalParts();
+    StrainDerivativeForward2=StrainDerivativeTensor[0];
+
+    Framework[CurrentSystem].Atoms[0][i].Position.y=pos.y+0.5*delta;
+    CalculateStrainDerivativeOfNumericalParts();
+    StrainDerivativeForward1=StrainDerivativeTensor[0];
+
+    Framework[CurrentSystem].Atoms[0][i].Position.y=pos.y-0.5*delta;
+    CalculateStrainDerivativeOfNumericalParts();
+    StrainDerivativeBackward1=StrainDerivativeTensor[0];
+
+    Framework[CurrentSystem].Atoms[0][i].Position.y=pos.y-delta;
+    CalculateStrainDerivativeOfNumericalParts();
+    StrainDerivativeBackward2=StrainDerivativeTensor[0];
+
+    StrainSecondDerivativeY.ax=(-StrainDerivativeForward2.ax+8.0*StrainDerivativeForward1.ax-8.0*StrainDerivativeBackward1.ax+StrainDerivativeBackward2.ax)/(6.0*delta);
+    StrainSecondDerivativeY.ay=(-StrainDerivativeForward2.ay+8.0*StrainDerivativeForward1.ay-8.0*StrainDerivativeBackward1.ay+StrainDerivativeBackward2.ay)/(6.0*delta);
+    StrainSecondDerivativeY.az=(-StrainDerivativeForward2.az+8.0*StrainDerivativeForward1.az-8.0*StrainDerivativeBackward1.az+StrainDerivativeBackward2.az)/(6.0*delta);
+    StrainSecondDerivativeY.bx=(-StrainDerivativeForward2.bx+8.0*StrainDerivativeForward1.bx-8.0*StrainDerivativeBackward1.bx+StrainDerivativeBackward2.bx)/(6.0*delta);
+    StrainSecondDerivativeY.by=(-StrainDerivativeForward2.by+8.0*StrainDerivativeForward1.by-8.0*StrainDerivativeBackward1.by+StrainDerivativeBackward2.by)/(6.0*delta);
+    StrainSecondDerivativeY.bz=(-StrainDerivativeForward2.bz+8.0*StrainDerivativeForward1.bz-8.0*StrainDerivativeBackward1.bz+StrainDerivativeBackward2.bz)/(6.0*delta);
+    StrainSecondDerivativeY.cx=(-StrainDerivativeForward2.cx+8.0*StrainDerivativeForward1.cx-8.0*StrainDerivativeBackward1.cx+StrainDerivativeBackward2.cx)/(6.0*delta);
+    StrainSecondDerivativeY.cy=(-StrainDerivativeForward2.cy+8.0*StrainDerivativeForward1.cy-8.0*StrainDerivativeBackward1.cy+StrainDerivativeBackward2.cy)/(6.0*delta);
+    StrainSecondDerivativeY.cz=(-StrainDerivativeForward2.cz+8.0*StrainDerivativeForward1.cz-8.0*StrainDerivativeBackward1.cz+StrainDerivativeBackward2.cz)/(6.0*delta);
+
+    // restore original position
+    Framework[CurrentSystem].Atoms[0][i].Position.y=pos.y;
+
+    // z-direction
+    Framework[CurrentSystem].Atoms[0][i].Position.z=pos.z+delta;
+    CalculateStrainDerivativeOfNumericalParts();
+    StrainDerivativeForward2=StrainDerivativeTensor[0];
+
+    Framework[CurrentSystem].Atoms[0][i].Position.z=pos.z+0.5*delta;
+    CalculateStrainDerivativeOfNumericalParts();
+    StrainDerivativeForward1=StrainDerivativeTensor[0];
+  
+    Framework[CurrentSystem].Atoms[0][i].Position.z=pos.z-0.5*delta;
+    CalculateStrainDerivativeOfNumericalParts();
+    StrainDerivativeBackward1=StrainDerivativeTensor[0];
+
+    Framework[CurrentSystem].Atoms[0][i].Position.z=pos.z-delta;
+    CalculateStrainDerivativeOfNumericalParts();
+    StrainDerivativeBackward2=StrainDerivativeTensor[0];
+
+    StrainSecondDerivativeZ.ax=(-StrainDerivativeForward2.ax+8.0*StrainDerivativeForward1.ax-8.0*StrainDerivativeBackward1.ax+StrainDerivativeBackward2.ax)/(6.0*delta);
+    StrainSecondDerivativeZ.ay=(-StrainDerivativeForward2.ay+8.0*StrainDerivativeForward1.ay-8.0*StrainDerivativeBackward1.ay+StrainDerivativeBackward2.ay)/(6.0*delta);
+    StrainSecondDerivativeZ.az=(-StrainDerivativeForward2.az+8.0*StrainDerivativeForward1.az-8.0*StrainDerivativeBackward1.az+StrainDerivativeBackward2.az)/(6.0*delta);
+    StrainSecondDerivativeZ.bx=(-StrainDerivativeForward2.bx+8.0*StrainDerivativeForward1.bx-8.0*StrainDerivativeBackward1.bx+StrainDerivativeBackward2.bx)/(6.0*delta);
+    StrainSecondDerivativeZ.by=(-StrainDerivativeForward2.by+8.0*StrainDerivativeForward1.by-8.0*StrainDerivativeBackward1.by+StrainDerivativeBackward2.by)/(6.0*delta);
+    StrainSecondDerivativeZ.bz=(-StrainDerivativeForward2.bz+8.0*StrainDerivativeForward1.bz-8.0*StrainDerivativeBackward1.bz+StrainDerivativeBackward2.bz)/(6.0*delta);
+    StrainSecondDerivativeZ.cx=(-StrainDerivativeForward2.cx+8.0*StrainDerivativeForward1.cx-8.0*StrainDerivativeBackward1.cx+StrainDerivativeBackward2.cx)/(6.0*delta);
+    StrainSecondDerivativeZ.cy=(-StrainDerivativeForward2.cy+8.0*StrainDerivativeForward1.cy-8.0*StrainDerivativeBackward1.cy+StrainDerivativeBackward2.cy)/(6.0*delta);
+    StrainSecondDerivativeZ.cz=(-StrainDerivativeForward2.cz+8.0*StrainDerivativeForward1.cz-8.0*StrainDerivativeBackward1.cz+StrainDerivativeBackward2.cz)/(6.0*delta);
+
+    // restore original position
+    Framework[CurrentSystem].Atoms[0][i].Position.z=pos.z;
+
+    n=NumberOfCoordinatesMinimizationVariables;
+    switch(Ensemble[CurrentSystem])
+    {
+      case NPT:
+        HessianMatrix.element[index.x][n]+=StrainSecondDerivativeX.ax;
+        HessianMatrix.element[index.y][n]+=StrainSecondDerivativeY.ax;
+        HessianMatrix.element[index.z][n]+=StrainSecondDerivativeZ.ax;
+        break;
+      case NPTPR:
+      case NPHPR:
+        switch(NPTPRCellType[CurrentSystem])
+        {
+          case ISOTROPIC:
+          case ANISOTROPIC:
+            HessianMatrix.element[index.x][n]+=StrainSecondDerivativeX.ax;
+            HessianMatrix.element[index.x][n+1]+=StrainSecondDerivativeX.by;
+            HessianMatrix.element[index.x][n+2]+=StrainSecondDerivativeX.cz;
+            HessianMatrix.element[index.y][n]+=StrainSecondDerivativeY.ax;
+            HessianMatrix.element[index.y][n+1]+=StrainSecondDerivativeY.by;
+            HessianMatrix.element[index.y][n+2]+=StrainSecondDerivativeY.cz;
+            HessianMatrix.element[index.z][n]+=StrainSecondDerivativeZ.ax;
+            HessianMatrix.element[index.z][n+1]+=StrainSecondDerivativeZ.by;
+            HessianMatrix.element[index.z][n+2]+=StrainSecondDerivativeZ.cz;
+            break;
+            break;
+          case REGULAR:
+          case REGULAR_UPPER_TRIANGLE:
+            HessianMatrix.element[index.x][n]+=StrainSecondDerivativeX.ax;
+            HessianMatrix.element[index.x][n+1]+=StrainSecondDerivativeX.ay;
+            HessianMatrix.element[index.x][n+2]+=StrainSecondDerivativeX.az;
+            HessianMatrix.element[index.x][n+3]+=StrainSecondDerivativeX.by;
+            HessianMatrix.element[index.x][n+4]+=StrainSecondDerivativeX.bz;
+            HessianMatrix.element[index.x][n+5]+=StrainSecondDerivativeX.cz;
+            HessianMatrix.element[index.y][n]+=StrainSecondDerivativeY.ax;
+            HessianMatrix.element[index.y][n+1]+=StrainSecondDerivativeY.ay;
+            HessianMatrix.element[index.y][n+2]+=StrainSecondDerivativeY.az;
+            HessianMatrix.element[index.y][n+3]+=StrainSecondDerivativeY.by;
+            HessianMatrix.element[index.y][n+4]+=StrainSecondDerivativeY.bz;
+            HessianMatrix.element[index.y][n+5]+=StrainSecondDerivativeY.cz;
+            HessianMatrix.element[index.z][n]+=StrainSecondDerivativeZ.ax;
+            HessianMatrix.element[index.z][n+1]+=StrainSecondDerivativeZ.ay;
+            HessianMatrix.element[index.z][n+2]+=StrainSecondDerivativeZ.az;
+            HessianMatrix.element[index.z][n+3]+=StrainSecondDerivativeZ.by;
+            HessianMatrix.element[index.z][n+4]+=StrainSecondDerivativeZ.bz;
+            HessianMatrix.element[index.z][n+5]+=StrainSecondDerivativeZ.cz;
+            break;
+          case MONOCLINIC:
+          case MONOCLINIC_UPPER_TRIANGLE:
+            switch(MonoclinicAngleType[CurrentSystem])
+            {
+              case MONOCLINIC_ALPHA_ANGLE:
+                HessianMatrix.element[index.x][n]+=StrainSecondDerivativeX.ax;
+                HessianMatrix.element[index.x][n+1]+=StrainSecondDerivativeX.by;
+                HessianMatrix.element[index.x][n+2]+=StrainSecondDerivativeX.bz;
+                HessianMatrix.element[index.x][n+3]+=StrainSecondDerivativeX.cz;
+                HessianMatrix.element[index.y][n]+=StrainSecondDerivativeY.ax;
+                HessianMatrix.element[index.y][n+1]+=StrainSecondDerivativeY.by;
+                HessianMatrix.element[index.y][n+2]+=StrainSecondDerivativeY.bz;
+                HessianMatrix.element[index.y][n+3]+=StrainSecondDerivativeY.cz;
+                HessianMatrix.element[index.z][n]+=StrainSecondDerivativeZ.ax;
+                HessianMatrix.element[index.z][n+1]+=StrainSecondDerivativeZ.by;
+                HessianMatrix.element[index.z][n+2]+=StrainSecondDerivativeZ.bz;
+                HessianMatrix.element[index.z][n+3]+=StrainSecondDerivativeZ.cz;
+                break;
+              case MONOCLINIC_BETA_ANGLE:
+                HessianMatrix.element[index.x][n]+=StrainSecondDerivativeX.ax;
+                HessianMatrix.element[index.x][n+1]+=StrainSecondDerivativeX.az;
+                HessianMatrix.element[index.x][n+2]+=StrainSecondDerivativeX.by;
+                HessianMatrix.element[index.x][n+3]+=StrainSecondDerivativeX.cz;
+                HessianMatrix.element[index.y][n]+=StrainSecondDerivativeY.ax;
+                HessianMatrix.element[index.y][n+1]+=StrainSecondDerivativeY.az;
+                HessianMatrix.element[index.y][n+2]+=StrainSecondDerivativeY.by;
+                HessianMatrix.element[index.y][n+3]+=StrainSecondDerivativeY.cz;
+                HessianMatrix.element[index.z][n]+=StrainSecondDerivativeZ.ax;
+                HessianMatrix.element[index.z][n+1]+=StrainSecondDerivativeZ.az;
+                HessianMatrix.element[index.z][n+2]+=StrainSecondDerivativeZ.by;
+                HessianMatrix.element[index.z][n+3]+=StrainSecondDerivativeZ.cz;
+                break;
+              case MONOCLINIC_GAMMA_ANGLE:
+                HessianMatrix.element[index.x][n]+=StrainSecondDerivativeX.ax;
+                HessianMatrix.element[index.x][n+1]+=StrainSecondDerivativeX.ay;
+                HessianMatrix.element[index.x][n+2]+=StrainSecondDerivativeX.by;
+                HessianMatrix.element[index.x][n+3]+=StrainSecondDerivativeX.cz;
+                HessianMatrix.element[index.y][n]+=StrainSecondDerivativeY.ax;
+                HessianMatrix.element[index.y][n+1]+=StrainSecondDerivativeY.ay;
+                HessianMatrix.element[index.y][n+2]+=StrainSecondDerivativeY.by;
+                HessianMatrix.element[index.y][n+3]+=StrainSecondDerivativeY.cz;
+                HessianMatrix.element[index.z][n]+=StrainSecondDerivativeZ.ax;
+                HessianMatrix.element[index.z][n+1]+=StrainSecondDerivativeZ.ay;
+                HessianMatrix.element[index.z][n+2]+=StrainSecondDerivativeZ.by;
+                HessianMatrix.element[index.z][n+3]+=StrainSecondDerivativeZ.cz;
+                break;
+            }
+            break;
+          default:
+            printf("Unknown NPTPRCellType\n");
+            exit(0);
+            break;
+        }
+        break;
+      case NVT:
+      case NVE:
+        break;
+    }
+  }
+
+}
+
+void AddRemainderOfBornTermNumerically(REAL_MATRIX HessianMatrix)
+{
+  REAL det;
+  REAL_MATRIX3x3 StrainDerivativeCentral,StrainDerivativeForward1,StrainDerivativeForward2;
+  REAL_MATRIX3x3 StrainDerivativeBackward1,StrainDerivativeBackward2;
+  REAL_MATRIX3x3 StoredBox,StoredReplicaBox,strain;
+  REAL_MATRIX9x9 StrainSecondDerivative;
+  int StoredBoundaryCondition,StoreComputeBornTerm;
+  int n,ncell,k1,k2,k3;
+  const REAL delta=1e-8;
+  int StoredBornTerm;
+
+  StoredBox=Box[CurrentSystem];
+  StoredBoundaryCondition=BoundaryCondition[CurrentSystem];
+  BoundaryCondition[CurrentSystem]=TRICLINIC;
+  StoreComputeBornTerm=ComputeBornTerm;
+
+  ComputeBornTerm=FALSE;
+
+  InitializeMatrix9x9(&StrainSecondDerivative);
+  InitializeMatrix9x9(&BornTerm[CurrentSystem]);
+
+  if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+  {
+    CalculateFrameworkBendTorsionForce();
+  }
   StrainDerivativeCentral=StrainDerivativeTensor[CurrentSystem];
+
+  PrintRealMatrix3x3(&StrainDerivativeCentral);
 
   SaveFrameworkPositionsToReferenceValues();
   SaveAdsorbateAtomPositionsToReferenceValues();
   SaveCationAtomPositionsToReferenceValues();
 
-  // ax-element
-  strain.ax=1.0+delta; strain.bx=0.0; strain.cx=0.0;
-  strain.ay=0.0;       strain.by=1.0; strain.cy=0.0;
-  strain.az=0.0;       strain.bz=0.0; strain.cz=1.0;
-  Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
-  CellProperties(&Box[CurrentSystem],&BoxProperties[CurrentSystem],&Volume[CurrentSystem]);
-  InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
-  CellProperties(&InverseBox[CurrentSystem],&InverseBoxProperties[CurrentSystem],&det);
-  ReplicaBox[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredReplicaBox);
-  InverseBoxMatrix(&ReplicaBox[CurrentSystem],&InverseReplicaBox[CurrentSystem]);
-  ncell=0;
-  for(k1=0;k1<NumberOfReplicaCells[CurrentSystem].x;k1++)
-    for(k2=0;k2<NumberOfReplicaCells[CurrentSystem].y;k2++)
-      for(k3=0;k3<NumberOfReplicaCells[CurrentSystem].z;k3++)
+
+  if((Ensemble[CurrentSystem]==NPTPR||Ensemble[CurrentSystem]==NPHPR)&&(NPTPRCellType[CurrentSystem]==REGULAR))
+  {
+    // ax-element
+    strain.ax=1.0+delta; strain.bx=0.0; strain.cx=0.0;
+    strain.ay=0.0;       strain.by=1.0; strain.cy=0.0;
+    strain.az=0.0;       strain.bz=0.0; strain.cz=1.0;
+    Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
+    InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
+    PlaceFrameworkInBoxFromReferenceValues();
+    PlaceAdsorbateAtomsInBoxFromReferenceValues();
+    PlaceCationAtomsInBoxFromReferenceValues();
+    if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+    {
+      StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
+      StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
+      StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
+      CalculateFrameworkBendTorsionForce();
+    }
+    StrainDerivativeForward2=StrainDerivativeTensor[CurrentSystem];
+
+    strain.ax=1.0+0.5*delta; strain.bx=0.0; strain.cx=0.0;
+    strain.ay=0.0;           strain.by=1.0; strain.cy=0.0;
+    strain.az=0.0;           strain.bz=0.0; strain.cz=1.0;
+    Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
+    InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
+    PlaceFrameworkInBoxFromReferenceValues();
+    PlaceAdsorbateAtomsInBoxFromReferenceValues();
+    PlaceCationAtomsInBoxFromReferenceValues();
+    if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+    {
+      StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
+      StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
+      StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
+      CalculateFrameworkBendTorsionForce();
+    }
+    StrainDerivativeForward1=StrainDerivativeTensor[CurrentSystem];
+
+    strain.ax=1.0-0.5*delta; strain.bx=0.0; strain.cx=0.0;
+    strain.ay=0.0;           strain.by=1.0; strain.cy=0.0;
+    strain.az=0.0;           strain.bz=0.0; strain.cz=1.0;
+    Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
+    InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
+    PlaceFrameworkInBoxFromReferenceValues();
+    PlaceAdsorbateAtomsInBoxFromReferenceValues();
+    PlaceCationAtomsInBoxFromReferenceValues();
+    if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+    {
+      StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
+      StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
+      StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
+      CalculateFrameworkBendTorsionForce();
+    }
+    StrainDerivativeBackward1=StrainDerivativeTensor[CurrentSystem];
+
+    strain.ax=1.0-delta; strain.bx=0.0; strain.cx=0.0;
+    strain.ay=0.0;       strain.by=1.0; strain.cy=0.0;
+    strain.az=0.0;       strain.bz=0.0; strain.cz=1.0;
+    Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
+    InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
+    PlaceFrameworkInBoxFromReferenceValues();
+    PlaceAdsorbateAtomsInBoxFromReferenceValues();
+    PlaceCationAtomsInBoxFromReferenceValues();
+    if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+    {
+      StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
+      StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
+      StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
+      CalculateFrameworkBendTorsionForce();
+    }
+    StrainDerivativeBackward2=StrainDerivativeTensor[CurrentSystem];
+
+    StrainSecondDerivative.xxxx=(-StrainDerivativeForward2.ax+8.0*StrainDerivativeForward1.ax-8.0*StrainDerivativeBackward1.ax+StrainDerivativeBackward2.ax)/(6.0*delta);
+    StrainSecondDerivative.xxyy=(-StrainDerivativeForward2.by+8.0*StrainDerivativeForward1.by-8.0*StrainDerivativeBackward1.by+StrainDerivativeBackward2.by)/(6.0*delta);
+    StrainSecondDerivative.xxzz=(-StrainDerivativeForward2.cz+8.0*StrainDerivativeForward1.cz-8.0*StrainDerivativeBackward1.cz+StrainDerivativeBackward2.cz)/(6.0*delta);
+    StrainSecondDerivative.xxyz=(-StrainDerivativeForward2.bz+8.0*StrainDerivativeForward1.bz-8.0*StrainDerivativeBackward1.bz+StrainDerivativeBackward2.bz)/(6.0*delta);
+    StrainSecondDerivative.xxzx=(-StrainDerivativeForward2.cx+8.0*StrainDerivativeForward1.cx-8.0*StrainDerivativeBackward1.cx+StrainDerivativeBackward2.cx)/(6.0*delta);
+    StrainSecondDerivative.xxxy=(-StrainDerivativeForward2.ay+8.0*StrainDerivativeForward1.ay-8.0*StrainDerivativeBackward1.ay+StrainDerivativeBackward2.ay)/(6.0*delta);
+
+    // bx/ay-element
+    strain.ax=1.0;       strain.bx=0.5*delta; strain.cx=0.0;
+    strain.ay=0.5*delta; strain.by=1.0;       strain.cy=0.0;
+    strain.az=0.0;       strain.bz=0.0;       strain.cz=1.0;
+    Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
+    InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
+    PlaceFrameworkInBoxFromReferenceValues();
+    PlaceAdsorbateAtomsInBoxFromReferenceValues();
+    PlaceCationAtomsInBoxFromReferenceValues();
+    if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+    {
+      StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
+      StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
+      StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
+      CalculateFrameworkBendTorsionForce();
+    }
+    StrainDerivativeForward2=StrainDerivativeTensor[CurrentSystem];
+
+    strain.ax=1.0;        strain.bx=0.25*delta; strain.cx=0.0;
+    strain.ay=0.25*delta; strain.by=1.0;        strain.cy=0.0;
+    strain.az=0.0;        strain.bz=0.0;        strain.cz=1.0;
+    Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
+    InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
+    PlaceFrameworkInBoxFromReferenceValues();
+    PlaceAdsorbateAtomsInBoxFromReferenceValues();
+    PlaceCationAtomsInBoxFromReferenceValues();
+    if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+    {
+      StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
+      StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
+      StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
+      CalculateFrameworkBendTorsionForce();
+    }
+    StrainDerivativeForward1=StrainDerivativeTensor[CurrentSystem];
+
+    strain.ax=1.0;         strain.bx=-0.25*delta; strain.cx=0.0;
+    strain.ay=-0.25*delta; strain.by=1.0;         strain.cy=0.0;
+    strain.az=0.0;         strain.bz=0.0;         strain.cz=1.0;
+    Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
+    InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
+    PlaceFrameworkInBoxFromReferenceValues();
+    PlaceAdsorbateAtomsInBoxFromReferenceValues();
+    PlaceCationAtomsInBoxFromReferenceValues();
+    if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+    {
+      StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
+      StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
+      StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
+      CalculateFrameworkBendTorsionForce();
+    }
+    StrainDerivativeBackward1=StrainDerivativeTensor[CurrentSystem];
+
+    strain.ax=1.0;        strain.bx=-0.5*delta; strain.cx=0.0;
+    strain.ay=-0.5*delta; strain.by=1.0;        strain.cy=0.0;
+    strain.az=0.0;        strain.bz=0.0;        strain.cz=1.0;
+    Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
+    InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
+    PlaceFrameworkInBoxFromReferenceValues();
+    PlaceAdsorbateAtomsInBoxFromReferenceValues();
+    PlaceCationAtomsInBoxFromReferenceValues();
+    if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+    {
+      StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
+      StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
+      StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
+      CalculateFrameworkBendTorsionForce();
+    }
+    StrainDerivativeBackward2=StrainDerivativeTensor[CurrentSystem];
+
+    StrainSecondDerivative.xyxy=(-StrainDerivativeForward2.ay+8.0*StrainDerivativeForward1.ay-8.0*StrainDerivativeBackward1.ay+StrainDerivativeBackward2.ay)/(6.0*delta);
+    StrainSecondDerivative.yyxy=(-StrainDerivativeForward2.by+8.0*StrainDerivativeForward1.by-8.0*StrainDerivativeBackward1.by+StrainDerivativeBackward2.by)/(6.0*delta);
+    StrainSecondDerivative.yzxy=(-StrainDerivativeForward2.bz+8.0*StrainDerivativeForward1.bz-8.0*StrainDerivativeBackward1.bz+StrainDerivativeBackward2.bz)/(6.0*delta);
+    StrainSecondDerivative.zxxy=(-StrainDerivativeForward2.cx+8.0*StrainDerivativeForward1.cx-8.0*StrainDerivativeBackward1.cx+StrainDerivativeBackward2.cx)/(6.0*delta);
+    StrainSecondDerivative.zzxy=(-StrainDerivativeForward2.cz+8.0*StrainDerivativeForward1.cz-8.0*StrainDerivativeBackward1.cz+StrainDerivativeBackward2.cz)/(6.0*delta);
+
+    // cx/az-element
+    strain.ax=1.0;       strain.bx=0.0; strain.cx=0.5*delta;
+    strain.ay=0.0;       strain.by=1.0; strain.cy=0.0;
+    strain.az=0.5*delta; strain.bz=0.0; strain.cz=1.0;
+    Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
+    InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
+    PlaceFrameworkInBoxFromReferenceValues();
+    PlaceAdsorbateAtomsInBoxFromReferenceValues();
+    PlaceCationAtomsInBoxFromReferenceValues();
+    if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+    {
+      StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
+      StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
+      StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
+      CalculateFrameworkBendTorsionForce();
+    }
+    StrainDerivativeForward2=StrainDerivativeTensor[CurrentSystem];
+
+    strain.ax=1.0;        strain.bx=0.0; strain.cx=0.25*delta;
+    strain.ay=0.0;        strain.by=1.0; strain.cy=0.0;
+    strain.az=0.25*delta; strain.bz=0.0; strain.cz=1.0;
+    Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
+    InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
+    PlaceFrameworkInBoxFromReferenceValues();
+    PlaceAdsorbateAtomsInBoxFromReferenceValues();
+    PlaceCationAtomsInBoxFromReferenceValues();
+    if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+    {
+      StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
+      StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
+      StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
+      CalculateFrameworkBendTorsionForce();
+    }
+    StrainDerivativeForward1=StrainDerivativeTensor[CurrentSystem];
+
+    strain.ax=1.0;         strain.bx=0.0; strain.cx=-0.25*delta;
+    strain.ay=0.0;         strain.by=1.0; strain.cy=0.0;
+    strain.az=-0.25*delta; strain.bz=0.0; strain.cz=1.0;
+    Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
+    InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
+    PlaceFrameworkInBoxFromReferenceValues();
+    PlaceAdsorbateAtomsInBoxFromReferenceValues();
+    PlaceCationAtomsInBoxFromReferenceValues();
+    if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+    {
+      StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
+      StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
+      StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
+      CalculateFrameworkBendTorsionForce();
+    }
+    StrainDerivativeBackward1=StrainDerivativeTensor[CurrentSystem];
+
+    strain.ax=1.0;        strain.bx=0.0; strain.cx=-0.5*delta;
+    strain.ay=0.0;        strain.by=1.0; strain.cy=0.0;
+    strain.az=-0.5*delta; strain.bz=0.0; strain.cz=1.0;
+    Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
+    InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
+    PlaceFrameworkInBoxFromReferenceValues();
+    PlaceAdsorbateAtomsInBoxFromReferenceValues();
+    PlaceCationAtomsInBoxFromReferenceValues();
+    if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+    {
+      StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
+      StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
+      StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
+      CalculateFrameworkBendTorsionForce();
+    }
+    StrainDerivativeBackward2=StrainDerivativeTensor[CurrentSystem];
+
+    StrainSecondDerivative.zxzx=(-StrainDerivativeForward2.cx+8.0*StrainDerivativeForward1.cx-8.0*StrainDerivativeBackward1.cx+StrainDerivativeBackward2.cx)/(6.0*delta);
+    StrainSecondDerivative.zzzx=(-StrainDerivativeForward2.cz+8.0*StrainDerivativeForward1.cz-8.0*StrainDerivativeBackward1.cz+StrainDerivativeBackward2.cz)/(6.0*delta);
+    StrainSecondDerivative.yzzx=(-StrainDerivativeForward2.bz+8.0*StrainDerivativeForward1.bz-8.0*StrainDerivativeBackward1.bz+StrainDerivativeBackward2.bz)/(6.0*delta);
+
+    // by-element
+    strain.ax=1.0; strain.bx=0.0;       strain.cx=0.0;
+    strain.ay=0.0; strain.by=1.0+delta; strain.cy=0.0;
+    strain.az=0.0; strain.bz=0.0;       strain.cz=1.0;
+    Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
+    InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
+    PlaceFrameworkInBoxFromReferenceValues();
+    PlaceAdsorbateAtomsInBoxFromReferenceValues();
+    PlaceCationAtomsInBoxFromReferenceValues();
+    if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+    {
+      StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
+      StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
+      StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
+      CalculateFrameworkBendTorsionForce();
+    }
+    StrainDerivativeForward2=StrainDerivativeTensor[CurrentSystem];
+
+    strain.ax=1.0; strain.bx=0.0;           strain.cx=0.0;
+    strain.ay=0.0; strain.by=1.0+0.5*delta; strain.cy=0.0;
+    strain.az=0.0; strain.bz=0.0;           strain.cz=1.0;
+    Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
+    InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
+    PlaceFrameworkInBoxFromReferenceValues();
+    PlaceAdsorbateAtomsInBoxFromReferenceValues();
+    PlaceCationAtomsInBoxFromReferenceValues();
+    if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+    {
+      StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
+      StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
+      StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
+      CalculateFrameworkBendTorsionForce();
+    }
+    StrainDerivativeForward1=StrainDerivativeTensor[CurrentSystem];
+
+    strain.ax=1.0; strain.bx=0.0;           strain.cx=0.0;
+    strain.ay=0.0; strain.by=1.0-0.5*delta; strain.cy=0.0;
+    strain.az=0.0; strain.bz=0.0;           strain.cz=1.0;
+    Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
+    InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
+    PlaceFrameworkInBoxFromReferenceValues();
+    PlaceAdsorbateAtomsInBoxFromReferenceValues();
+    PlaceCationAtomsInBoxFromReferenceValues();
+    if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+    {
+      StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
+      StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
+      StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
+      CalculateFrameworkBendTorsionForce();
+    }
+    StrainDerivativeBackward1=StrainDerivativeTensor[CurrentSystem];
+
+    strain.ax=1.0; strain.bx=0.0;       strain.cx=0.0;
+    strain.ay=0.0; strain.by=1.0-delta; strain.cy=0.0;
+    strain.az=0.0; strain.bz=0.0;       strain.cz=1.0;
+    Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
+    InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
+    PlaceFrameworkInBoxFromReferenceValues();
+    PlaceAdsorbateAtomsInBoxFromReferenceValues();
+    PlaceCationAtomsInBoxFromReferenceValues();
+    if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+    {
+      StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
+      StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
+      StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
+      CalculateFrameworkBendTorsionForce();
+    }
+    StrainDerivativeBackward2=StrainDerivativeTensor[CurrentSystem];
+
+    StrainSecondDerivative.yyyy=(-StrainDerivativeForward2.by+8.0*StrainDerivativeForward1.by-8.0*StrainDerivativeBackward1.by+StrainDerivativeBackward2.by)/(6.0*delta);
+    StrainSecondDerivative.yyzz=(-StrainDerivativeForward2.cz+8.0*StrainDerivativeForward1.cz-8.0*StrainDerivativeBackward1.cz+StrainDerivativeBackward2.cz)/(6.0*delta);
+    StrainSecondDerivative.yyyz=(-StrainDerivativeForward2.cy+8.0*StrainDerivativeForward1.cy-8.0*StrainDerivativeBackward1.cy+StrainDerivativeBackward2.cy)/(6.0*delta);
+    StrainSecondDerivative.yyzx=(-StrainDerivativeForward2.cx+8.0*StrainDerivativeForward1.cx-8.0*StrainDerivativeBackward1.cx+StrainDerivativeBackward2.cx)/(6.0*delta);
+
+    // cy/bz-element
+    strain.ax=1.0; strain.bx=0.0;       strain.cx=0.0;
+    strain.ay=0.0; strain.by=1.0;       strain.cy=0.5*delta;
+    strain.az=0.0; strain.bz=0.5*delta; strain.cz=1.0;
+    Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
+    InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
+    PlaceFrameworkInBoxFromReferenceValues();
+    PlaceAdsorbateAtomsInBoxFromReferenceValues();
+    PlaceCationAtomsInBoxFromReferenceValues();
+    if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+    {
+      StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
+      StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
+      StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
+      CalculateFrameworkBendTorsionForce();
+    }
+    StrainDerivativeForward2=StrainDerivativeTensor[CurrentSystem];
+
+    strain.ax=1.0; strain.bx=0.0;        strain.cx=0.0;
+    strain.ay=0.0; strain.by=1.0;        strain.cy=0.25*delta;
+    strain.az=0.0; strain.bz=0.25*delta; strain.cz=1.0;
+    Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
+    InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
+    PlaceFrameworkInBoxFromReferenceValues();
+    PlaceAdsorbateAtomsInBoxFromReferenceValues();
+    PlaceCationAtomsInBoxFromReferenceValues();
+    if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+    {
+      StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
+      StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
+      StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
+      CalculateFrameworkBendTorsionForce();
+    }
+    StrainDerivativeForward1=StrainDerivativeTensor[CurrentSystem];
+
+    strain.ax=1.0; strain.bx=0.0;         strain.cx=0.0;
+    strain.ay=0.0; strain.by=1.0;         strain.cy=-0.25*delta;
+    strain.az=0.0; strain.bz=-0.25*delta; strain.cz=1.0;
+    Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
+    InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
+    PlaceFrameworkInBoxFromReferenceValues();
+    PlaceAdsorbateAtomsInBoxFromReferenceValues();
+    PlaceCationAtomsInBoxFromReferenceValues();
+    if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+    {
+      StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
+      StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
+      StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
+      CalculateFrameworkBendTorsionForce();
+    }
+    StrainDerivativeBackward1=StrainDerivativeTensor[CurrentSystem];
+
+    strain.ax=1.0; strain.bx=0.0;        strain.cx=0.0;
+    strain.ay=0.0; strain.by=1.0;        strain.cy=-0.5*delta;
+    strain.az=0.0; strain.bz=-0.5*delta; strain.cz=1.0;
+    Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
+    InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
+    PlaceFrameworkInBoxFromReferenceValues();
+    PlaceAdsorbateAtomsInBoxFromReferenceValues();
+    PlaceCationAtomsInBoxFromReferenceValues();
+    if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+    {
+      StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
+      StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
+      StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
+      CalculateFrameworkBendTorsionForce();
+    }
+    StrainDerivativeBackward2=StrainDerivativeTensor[CurrentSystem];
+
+    StrainSecondDerivative.yzyz=(-StrainDerivativeForward2.cy+8.0*StrainDerivativeForward1.cy-8.0*StrainDerivativeBackward1.cy+StrainDerivativeBackward2.cy)/(6.0*delta);
+    StrainSecondDerivative.zzyz=(-StrainDerivativeForward2.cz+8.0*StrainDerivativeForward1.cz-8.0*StrainDerivativeBackward1.cz+StrainDerivativeBackward2.cz)/(6.0*delta);
+
+    // cz-element
+    strain.ax=1.0; strain.bx=0.0; strain.cx=0.0;
+    strain.ay=0.0; strain.by=1.0; strain.cy=0.0;
+    strain.az=0.0; strain.bz=0.0; strain.cz=1.0+delta;
+    Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
+    InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
+    PlaceFrameworkInBoxFromReferenceValues();
+    PlaceAdsorbateAtomsInBoxFromReferenceValues();
+    PlaceCationAtomsInBoxFromReferenceValues();
+    if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+    {
+      StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
+      StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
+      StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
+      CalculateFrameworkBendTorsionForce();
+    }
+    StrainDerivativeForward2=StrainDerivativeTensor[CurrentSystem];
+
+    strain.ax=1.0; strain.bx=0.0; strain.cx=0.0;
+    strain.ay=0.0; strain.by=1.0; strain.cy=0.0;
+    strain.az=0.0; strain.bz=0.0; strain.cz=1.0+0.5*delta;
+    Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
+    InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
+    PlaceFrameworkInBoxFromReferenceValues();
+    PlaceAdsorbateAtomsInBoxFromReferenceValues();
+    PlaceCationAtomsInBoxFromReferenceValues();
+    if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+    {
+      StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
+      StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
+      StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
+      CalculateFrameworkBendTorsionForce();
+    }
+    StrainDerivativeForward1=StrainDerivativeTensor[CurrentSystem];
+
+    strain.ax=1.0; strain.bx=0.0; strain.cx=0.0;
+    strain.ay=0.0; strain.by=1.0; strain.cy=0.0;
+    strain.az=0.0; strain.bz=0.0; strain.cz=1.0-0.5*delta;
+    Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
+    InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
+    PlaceFrameworkInBoxFromReferenceValues();
+    PlaceAdsorbateAtomsInBoxFromReferenceValues();
+    PlaceCationAtomsInBoxFromReferenceValues();
+    if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+    {
+      StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
+      StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
+      StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
+      CalculateFrameworkBendTorsionForce();
+    }
+    StrainDerivativeBackward1=StrainDerivativeTensor[CurrentSystem];
+
+    strain.ax=1.0; strain.bx=0.0; strain.cx=0.0;
+    strain.ay=0.0; strain.by=1.0; strain.cy=0.0;
+    strain.az=0.0; strain.bz=0.0; strain.cz=1.0-delta;
+    Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
+    InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
+    PlaceFrameworkInBoxFromReferenceValues();
+    PlaceAdsorbateAtomsInBoxFromReferenceValues();
+    PlaceCationAtomsInBoxFromReferenceValues();
+    if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+    {
+      StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
+      StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
+      StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
+      CalculateFrameworkBendTorsionForce();
+    }
+    StrainDerivativeBackward2=StrainDerivativeTensor[CurrentSystem];
+
+    StrainSecondDerivative.zzzz=(-StrainDerivativeForward2.cz+8.0*StrainDerivativeForward1.cz-8.0*StrainDerivativeBackward1.cz+StrainDerivativeBackward2.cz)/(6.0*delta);
+  }
+  else
+  {
+    // ax-element
+    strain.ax=1.0+delta; strain.bx=0.0; strain.cx=0.0;
+    strain.ay=0.0;       strain.by=1.0; strain.cy=0.0;
+    strain.az=0.0;       strain.bz=0.0; strain.cz=1.0;
+    Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
+    InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
+    PlaceFrameworkInBoxFromReferenceValues();
+    PlaceAdsorbateAtomsInBoxFromReferenceValues();
+    PlaceCationAtomsInBoxFromReferenceValues();
+    if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+    {
+      StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
+      StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
+      StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
+      CalculateFrameworkBendTorsionForce();
+    }
+    StrainDerivativeForward2=StrainDerivativeTensor[CurrentSystem];
+
+    strain.ax=1.0+0.5*delta; strain.bx=0.0; strain.cx=0.0;
+    strain.ay=0.0;           strain.by=1.0; strain.cy=0.0;
+    strain.az=0.0;           strain.bz=0.0; strain.cz=1.0;
+    Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
+    InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
+    PlaceFrameworkInBoxFromReferenceValues();
+    PlaceAdsorbateAtomsInBoxFromReferenceValues();
+    PlaceCationAtomsInBoxFromReferenceValues();
+    StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
+    StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
+    StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
+    if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+    {
+      CalculateFrameworkBendTorsionForce();
+    }
+    StrainDerivativeForward1=StrainDerivativeTensor[CurrentSystem];
+
+    strain.ax=1.0-0.5*delta; strain.bx=0.0; strain.cx=0.0;
+    strain.ay=0.0;           strain.by=1.0; strain.cy=0.0;
+    strain.az=0.0;           strain.bz=0.0; strain.cz=1.0;
+    Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
+    InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
+    PlaceFrameworkInBoxFromReferenceValues();
+    PlaceAdsorbateAtomsInBoxFromReferenceValues();
+    PlaceCationAtomsInBoxFromReferenceValues();
+    StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
+    StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
+    StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
+    if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+    {
+      CalculateFrameworkBendTorsionForce();
+    }
+    StrainDerivativeBackward1=StrainDerivativeTensor[CurrentSystem];
+
+    strain.ax=1.0-delta; strain.bx=0.0; strain.cx=0.0;
+    strain.ay=0.0;       strain.by=1.0; strain.cy=0.0;
+    strain.az=0.0;       strain.bz=0.0; strain.cz=1.0;
+    Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
+    InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
+    PlaceFrameworkInBoxFromReferenceValues();
+    PlaceAdsorbateAtomsInBoxFromReferenceValues();
+    PlaceCationAtomsInBoxFromReferenceValues();
+    StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
+    StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
+    StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
+    if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+    {
+      CalculateFrameworkBendTorsionForce();
+    }
+    StrainDerivativeBackward2=StrainDerivativeTensor[CurrentSystem];
+
+    StrainSecondDerivative.xxxx=(-StrainDerivativeForward2.ax+8.0*StrainDerivativeForward1.ax-8.0*StrainDerivativeBackward1.ax+StrainDerivativeBackward2.ax)/(6.0*delta);
+    StrainSecondDerivative.xxyy=(-StrainDerivativeForward2.by+8.0*StrainDerivativeForward1.by-8.0*StrainDerivativeBackward1.by+StrainDerivativeBackward2.by)/(6.0*delta);
+    StrainSecondDerivative.xxzz=(-StrainDerivativeForward2.cz+8.0*StrainDerivativeForward1.cz-8.0*StrainDerivativeBackward1.cz+StrainDerivativeBackward2.cz)/(6.0*delta);
+    StrainSecondDerivative.xxyz=(-StrainDerivativeForward2.bz+8.0*StrainDerivativeForward1.bz-8.0*StrainDerivativeBackward1.bz+StrainDerivativeBackward2.bz)/(6.0*delta);
+    StrainSecondDerivative.xxzx=(-StrainDerivativeForward2.cx+8.0*StrainDerivativeForward1.cx-8.0*StrainDerivativeBackward1.cx+StrainDerivativeBackward2.cx)/(6.0*delta);
+    StrainSecondDerivative.xxxy=(-StrainDerivativeForward2.ay+8.0*StrainDerivativeForward1.ay-8.0*StrainDerivativeBackward1.ay+StrainDerivativeBackward2.ay)/(6.0*delta);
+
+    // bx/ay-element
+    strain.ax=1.0;       strain.bx=delta;     strain.cx=0.0;
+    strain.ay=0.0;       strain.by=1.0;       strain.cy=0.0;
+    strain.az=0.0;       strain.bz=0.0;       strain.cz=1.0;
+    Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
+    InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
+    PlaceFrameworkInBoxFromReferenceValues();
+    PlaceAdsorbateAtomsInBoxFromReferenceValues();
+    PlaceCationAtomsInBoxFromReferenceValues();
+    StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
+    StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
+    StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
+    if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+    {
+      CalculateFrameworkBendTorsionForce();
+    }
+    StrainDerivativeForward2=StrainDerivativeTensor[CurrentSystem];
+
+    strain.ax=1.0;        strain.bx=0.5*delta;  strain.cx=0.0;
+    strain.ay=0.0;        strain.by=1.0;        strain.cy=0.0;
+    strain.az=0.0;        strain.bz=0.0;        strain.cz=1.0;
+    Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
+    InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
+    PlaceFrameworkInBoxFromReferenceValues();
+    PlaceAdsorbateAtomsInBoxFromReferenceValues();
+    PlaceCationAtomsInBoxFromReferenceValues();
+    StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
+    StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
+    StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
+    if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+    {
+      CalculateFrameworkBendTorsionForce();
+    }
+    StrainDerivativeForward1=StrainDerivativeTensor[CurrentSystem];
+
+    strain.ax=1.0;         strain.bx=-0.5*delta;  strain.cx=0.0;
+    strain.ay=0.0;         strain.by=1.0;         strain.cy=0.0;
+    strain.az=0.0;         strain.bz=0.0;         strain.cz=1.0;
+    Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
+    InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
+    PlaceFrameworkInBoxFromReferenceValues();
+    PlaceAdsorbateAtomsInBoxFromReferenceValues();
+    PlaceCationAtomsInBoxFromReferenceValues();
+    StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
+    StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
+    StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
+    if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+    {
+      CalculateFrameworkBendTorsionForce();
+    }
+    StrainDerivativeBackward1=StrainDerivativeTensor[CurrentSystem];
+
+    strain.ax=1.0;        strain.bx=-delta;     strain.cx=0.0;
+    strain.ay=0.0;        strain.by=1.0;        strain.cy=0.0;
+    strain.az=0.0;        strain.bz=0.0;        strain.cz=1.0;
+    Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
+    InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
+    PlaceFrameworkInBoxFromReferenceValues();
+    PlaceAdsorbateAtomsInBoxFromReferenceValues();
+    PlaceCationAtomsInBoxFromReferenceValues();
+    StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
+    StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
+    StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
+    if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+    {
+      CalculateFrameworkBendTorsionForce();
+    }
+    StrainDerivativeBackward2=StrainDerivativeTensor[CurrentSystem];
+
+    StrainSecondDerivative.xyxy=(-StrainDerivativeForward2.ay+8.0*StrainDerivativeForward1.ay-8.0*StrainDerivativeBackward1.ay+StrainDerivativeBackward2.ay)/(6.0*delta);
+    StrainSecondDerivative.yyxy=(-StrainDerivativeForward2.by+8.0*StrainDerivativeForward1.by-8.0*StrainDerivativeBackward1.by+StrainDerivativeBackward2.by)/(6.0*delta);
+    StrainSecondDerivative.yzxy=(-StrainDerivativeForward2.bz+8.0*StrainDerivativeForward1.bz-8.0*StrainDerivativeBackward1.bz+StrainDerivativeBackward2.bz)/(6.0*delta);
+    StrainSecondDerivative.zxxy=(-StrainDerivativeForward2.cx+8.0*StrainDerivativeForward1.cx-8.0*StrainDerivativeBackward1.cx+StrainDerivativeBackward2.cx)/(6.0*delta);
+    StrainSecondDerivative.zzxy=(-StrainDerivativeForward2.cz+8.0*StrainDerivativeForward1.cz-8.0*StrainDerivativeBackward1.cz+StrainDerivativeBackward2.cz)/(6.0*delta);
+
+    // cx/az-element
+    strain.ax=1.0;       strain.bx=0.0; strain.cx=delta;
+    strain.ay=0.0;       strain.by=1.0; strain.cy=0.0;
+    strain.az=0.0;       strain.bz=0.0; strain.cz=1.0;
+    Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
+    InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
+    PlaceFrameworkInBoxFromReferenceValues();
+    PlaceAdsorbateAtomsInBoxFromReferenceValues();
+    PlaceCationAtomsInBoxFromReferenceValues();
+    StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
+    StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
+    StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
+    if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+    {
+      CalculateFrameworkBendTorsionForce();
+    }
+    StrainDerivativeForward2=StrainDerivativeTensor[CurrentSystem];
+
+    strain.ax=1.0;        strain.bx=0.0; strain.cx=0.5*delta;
+    strain.ay=0.0;        strain.by=1.0; strain.cy=0.0;
+    strain.az=0.0;        strain.bz=0.0; strain.cz=1.0;
+    Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
+    InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
+    PlaceFrameworkInBoxFromReferenceValues();
+    PlaceAdsorbateAtomsInBoxFromReferenceValues();
+    PlaceCationAtomsInBoxFromReferenceValues();
+    StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
+    StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
+    StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
+    if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+    {
+      CalculateFrameworkBendTorsionForce();
+    }
+    StrainDerivativeForward1=StrainDerivativeTensor[CurrentSystem];
+
+    strain.ax=1.0;         strain.bx=0.0; strain.cx=-0.5*delta;
+    strain.ay=0.0;         strain.by=1.0; strain.cy=0.0;
+    strain.az=0.0;         strain.bz=0.0; strain.cz=1.0;
+    Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
+    InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
+    PlaceFrameworkInBoxFromReferenceValues();
+    PlaceAdsorbateAtomsInBoxFromReferenceValues();
+    PlaceCationAtomsInBoxFromReferenceValues();
+    StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
+    StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
+    StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
+    if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+    {
+      CalculateFrameworkBendTorsionForce();
+    }
+    StrainDerivativeBackward1=StrainDerivativeTensor[CurrentSystem];
+
+    strain.ax=1.0;        strain.bx=0.0; strain.cx=-delta;
+    strain.ay=0.0;        strain.by=1.0; strain.cy=0.0;
+    strain.az=0.0;        strain.bz=0.0; strain.cz=1.0;
+    Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
+    InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
+    PlaceFrameworkInBoxFromReferenceValues();
+    PlaceAdsorbateAtomsInBoxFromReferenceValues();
+    PlaceCationAtomsInBoxFromReferenceValues();
+    StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
+    StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
+    StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
+    if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+    {
+      CalculateFrameworkBendTorsionForce();
+    }
+    StrainDerivativeBackward2=StrainDerivativeTensor[CurrentSystem];
+
+    StrainSecondDerivative.zxzx=(-StrainDerivativeForward2.cx+8.0*StrainDerivativeForward1.cx-8.0*StrainDerivativeBackward1.cx+StrainDerivativeBackward2.cx)/(6.0*delta);
+    StrainSecondDerivative.zzzx=(-StrainDerivativeForward2.cz+8.0*StrainDerivativeForward1.cz-8.0*StrainDerivativeBackward1.cz+StrainDerivativeBackward2.cz)/(6.0*delta);
+    StrainSecondDerivative.yzzx=(-StrainDerivativeForward2.bz+8.0*StrainDerivativeForward1.bz-8.0*StrainDerivativeBackward1.bz+StrainDerivativeBackward2.bz)/(6.0*delta);
+
+    // by-element
+    strain.ax=1.0; strain.bx=0.0;       strain.cx=0.0;
+    strain.ay=0.0; strain.by=1.0+delta; strain.cy=0.0;
+    strain.az=0.0; strain.bz=0.0;       strain.cz=1.0;
+    Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
+    InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
+    PlaceFrameworkInBoxFromReferenceValues();
+    PlaceAdsorbateAtomsInBoxFromReferenceValues();
+    PlaceCationAtomsInBoxFromReferenceValues();
+    StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
+    StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
+    StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
+    if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+    {
+      CalculateFrameworkBendTorsionForce();
+    }
+    StrainDerivativeForward2=StrainDerivativeTensor[CurrentSystem];
+
+    strain.ax=1.0; strain.bx=0.0;           strain.cx=0.0;
+    strain.ay=0.0; strain.by=1.0+0.5*delta; strain.cy=0.0;
+    strain.az=0.0; strain.bz=0.0;           strain.cz=1.0;
+    Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
+    InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
+    PlaceFrameworkInBoxFromReferenceValues();
+    PlaceAdsorbateAtomsInBoxFromReferenceValues();
+    PlaceCationAtomsInBoxFromReferenceValues();
+    StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
+    StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
+    StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
+    if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+    {
+      CalculateFrameworkBendTorsionForce();
+    }
+    StrainDerivativeForward1=StrainDerivativeTensor[CurrentSystem];
+
+    strain.ax=1.0; strain.bx=0.0;           strain.cx=0.0;
+    strain.ay=0.0; strain.by=1.0-0.5*delta; strain.cy=0.0;
+    strain.az=0.0; strain.bz=0.0;           strain.cz=1.0;
+    Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
+    InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
+    PlaceFrameworkInBoxFromReferenceValues();
+    PlaceAdsorbateAtomsInBoxFromReferenceValues();
+    PlaceCationAtomsInBoxFromReferenceValues();
+    StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
+    StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
+    StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
+    if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+    {
+      CalculateFrameworkBendTorsionForce();
+    }
+    StrainDerivativeBackward1=StrainDerivativeTensor[CurrentSystem];
+
+    strain.ax=1.0; strain.bx=0.0;       strain.cx=0.0;
+    strain.ay=0.0; strain.by=1.0-delta; strain.cy=0.0;
+    strain.az=0.0; strain.bz=0.0;       strain.cz=1.0;
+    Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
+    InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
+    PlaceFrameworkInBoxFromReferenceValues();
+    PlaceAdsorbateAtomsInBoxFromReferenceValues();
+    PlaceCationAtomsInBoxFromReferenceValues();
+    StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
+    StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
+    StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
+    if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+    {
+      CalculateFrameworkBendTorsionForce();
+    }
+    StrainDerivativeBackward2=StrainDerivativeTensor[CurrentSystem];
+
+    StrainSecondDerivative.yyyy=(-StrainDerivativeForward2.by+8.0*StrainDerivativeForward1.by-8.0*StrainDerivativeBackward1.by+StrainDerivativeBackward2.by)/(6.0*delta);
+    StrainSecondDerivative.yyzz=(-StrainDerivativeForward2.cz+8.0*StrainDerivativeForward1.cz-8.0*StrainDerivativeBackward1.cz+StrainDerivativeBackward2.cz)/(6.0*delta);
+    StrainSecondDerivative.yyyz=(-StrainDerivativeForward2.cy+8.0*StrainDerivativeForward1.cy-8.0*StrainDerivativeBackward1.cy+StrainDerivativeBackward2.cy)/(6.0*delta);
+    StrainSecondDerivative.yyzx=(-StrainDerivativeForward2.cx+8.0*StrainDerivativeForward1.cx-8.0*StrainDerivativeBackward1.cx+StrainDerivativeBackward2.cx)/(6.0*delta);
+
+    // cy/bz-element
+    strain.ax=1.0; strain.bx=0.0;       strain.cx=0.0;
+    strain.ay=0.0; strain.by=1.0;       strain.cy=delta;
+    strain.az=0.0; strain.bz=0.0;       strain.cz=1.0;
+    Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
+    InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
+    PlaceFrameworkInBoxFromReferenceValues();
+    PlaceAdsorbateAtomsInBoxFromReferenceValues();
+    PlaceCationAtomsInBoxFromReferenceValues();
+    StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
+    StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
+    StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
+    if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+    {
+      CalculateFrameworkBendTorsionForce();
+    }
+    StrainDerivativeForward2=StrainDerivativeTensor[CurrentSystem];
+
+    strain.ax=1.0; strain.bx=0.0;        strain.cx=0.0;
+    strain.ay=0.0; strain.by=1.0;        strain.cy=0.5*delta;
+    strain.az=0.0; strain.bz=0.0;        strain.cz=1.0;
+    Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
+    InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
+    PlaceFrameworkInBoxFromReferenceValues();
+    PlaceAdsorbateAtomsInBoxFromReferenceValues();
+    PlaceCationAtomsInBoxFromReferenceValues();
+    StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
+    StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
+    StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
+    if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+    {
+      CalculateFrameworkBendTorsionForce();
+    }
+    StrainDerivativeForward1=StrainDerivativeTensor[CurrentSystem];
+
+    strain.ax=1.0; strain.bx=0.0;         strain.cx=0.0;
+    strain.ay=0.0; strain.by=1.0;         strain.cy=-0.5*delta;
+    strain.az=0.0; strain.bz=0.0;         strain.cz=1.0;
+    Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
+    InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
+    PlaceFrameworkInBoxFromReferenceValues();
+    PlaceAdsorbateAtomsInBoxFromReferenceValues();
+    PlaceCationAtomsInBoxFromReferenceValues();
+    StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
+    StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
+    StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
+    if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+    {
+      CalculateFrameworkBendTorsionForce();
+    }
+    StrainDerivativeBackward1=StrainDerivativeTensor[CurrentSystem];
+
+    strain.ax=1.0; strain.bx=0.0;        strain.cx=0.0;
+    strain.ay=0.0; strain.by=1.0;        strain.cy=-delta;
+    strain.az=0.0; strain.bz=0.0;        strain.cz=1.0;
+    Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
+    InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
+    PlaceFrameworkInBoxFromReferenceValues();
+    PlaceAdsorbateAtomsInBoxFromReferenceValues();
+    PlaceCationAtomsInBoxFromReferenceValues();
+    StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
+    StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
+    StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
+    if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+    {
+      CalculateFrameworkBendTorsionForce();
+    }
+    StrainDerivativeBackward2=StrainDerivativeTensor[CurrentSystem];
+
+    StrainSecondDerivative.yzyz=(-StrainDerivativeForward2.cy+8.0*StrainDerivativeForward1.cy-8.0*StrainDerivativeBackward1.cy+StrainDerivativeBackward2.cy)/(6.0*delta);
+    StrainSecondDerivative.zzyz=(-StrainDerivativeForward2.cz+8.0*StrainDerivativeForward1.cz-8.0*StrainDerivativeBackward1.cz+StrainDerivativeBackward2.cz)/(6.0*delta);
+
+    // cz-element
+    strain.ax=1.0; strain.bx=0.0; strain.cx=0.0;
+    strain.ay=0.0; strain.by=1.0; strain.cy=0.0;
+    strain.az=0.0; strain.bz=0.0; strain.cz=1.0+delta;
+    Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
+    InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
+    PlaceFrameworkInBoxFromReferenceValues();
+    PlaceAdsorbateAtomsInBoxFromReferenceValues();
+    PlaceCationAtomsInBoxFromReferenceValues();
+    StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
+    StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
+    StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
+    if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+    {
+      CalculateFrameworkBendTorsionForce();
+    }
+    StrainDerivativeForward2=StrainDerivativeTensor[CurrentSystem];
+
+    strain.ax=1.0; strain.bx=0.0; strain.cx=0.0;
+    strain.ay=0.0; strain.by=1.0; strain.cy=0.0;
+    strain.az=0.0; strain.bz=0.0; strain.cz=1.0+0.5*delta;
+    Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
+    InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
+    PlaceFrameworkInBoxFromReferenceValues();
+    PlaceAdsorbateAtomsInBoxFromReferenceValues();
+    PlaceCationAtomsInBoxFromReferenceValues();
+    StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
+    StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
+    StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
+    if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+    {
+      CalculateFrameworkBendTorsionForce();
+    }
+    StrainDerivativeForward1=StrainDerivativeTensor[CurrentSystem];
+
+    strain.ax=1.0; strain.bx=0.0; strain.cx=0.0;
+    strain.ay=0.0; strain.by=1.0; strain.cy=0.0;
+    strain.az=0.0; strain.bz=0.0; strain.cz=1.0-0.5*delta;
+    Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
+    InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
+    PlaceFrameworkInBoxFromReferenceValues();
+    PlaceAdsorbateAtomsInBoxFromReferenceValues();
+    PlaceCationAtomsInBoxFromReferenceValues();
+    StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
+    StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
+    StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
+    if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+    {
+      CalculateFrameworkBendTorsionForce();
+    }
+    StrainDerivativeBackward1=StrainDerivativeTensor[CurrentSystem];
+
+    strain.ax=1.0; strain.bx=0.0; strain.cx=0.0;
+    strain.ay=0.0; strain.by=1.0; strain.cy=0.0;
+    strain.az=0.0; strain.bz=0.0; strain.cz=1.0-delta;
+    Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
+    InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
+    PlaceFrameworkInBoxFromReferenceValues();
+    PlaceAdsorbateAtomsInBoxFromReferenceValues();
+    PlaceCationAtomsInBoxFromReferenceValues();
+    StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
+    StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
+    StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
+    if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+    {
+      CalculateFrameworkBendTorsionForce();
+    }
+    StrainDerivativeBackward2=StrainDerivativeTensor[CurrentSystem];
+
+    StrainSecondDerivative.zzzz=(-StrainDerivativeForward2.cz+8.0*StrainDerivativeForward1.cz-8.0*StrainDerivativeBackward1.cz+StrainDerivativeBackward2.cz)/(6.0*delta);
+  }
+
+
+  // use symmetry Cijkl = Cjikl = Cijlk = Cjilk = Cklij
+  StrainSecondDerivative.yxxx=StrainSecondDerivative.xxxy;
+  StrainSecondDerivative.xxyx=StrainSecondDerivative.xxxy;
+  StrainSecondDerivative.yxyx=StrainSecondDerivative.xyxy;
+  StrainSecondDerivative.zxyx=StrainSecondDerivative.zxxy;
+  StrainSecondDerivative.yxzx=StrainSecondDerivative.zxxy;
+  StrainSecondDerivative.zyxx=StrainSecondDerivative.xxyz;
+  StrainSecondDerivative.xyyx=StrainSecondDerivative.xyxy;
+  StrainSecondDerivative.yyyx=StrainSecondDerivative.yyxy;
+  StrainSecondDerivative.zyyx=StrainSecondDerivative.yzxy;
+  StrainSecondDerivative.zyzx=StrainSecondDerivative.yzzx;
+  StrainSecondDerivative.xzxx=StrainSecondDerivative.xxzx;
+  StrainSecondDerivative.xzyx=StrainSecondDerivative.zxxy;
+  StrainSecondDerivative.yzyx=StrainSecondDerivative.yzxy;
+  StrainSecondDerivative.zzyx=StrainSecondDerivative.zzxy;
+  StrainSecondDerivative.xzzx=StrainSecondDerivative.zxzx;
+  StrainSecondDerivative.yxxy=StrainSecondDerivative.xyxy;
+  StrainSecondDerivative.yxyy=StrainSecondDerivative.yyxy;
+  StrainSecondDerivative.xxzy=StrainSecondDerivative.xxyz;
+  StrainSecondDerivative.yxzy=StrainSecondDerivative.yzxy;
+  StrainSecondDerivative.zxzy=StrainSecondDerivative.yzzx;
+  StrainSecondDerivative.zyxy=StrainSecondDerivative.yzxy;
+  StrainSecondDerivative.zyyy=StrainSecondDerivative.yyyz;
+  StrainSecondDerivative.xyzy=StrainSecondDerivative.yzxy;
+  StrainSecondDerivative.yyzy=StrainSecondDerivative.yyyz;
+  StrainSecondDerivative.zyzy=StrainSecondDerivative.yzyz;
+  StrainSecondDerivative.xzxy=StrainSecondDerivative.zxxy;
+  StrainSecondDerivative.xzyy=StrainSecondDerivative.yyzx;
+  StrainSecondDerivative.xzzy=StrainSecondDerivative.yzzx;
+  StrainSecondDerivative.yzzy=StrainSecondDerivative.yzyz;
+  StrainSecondDerivative.zzzy=StrainSecondDerivative.zzyz;
+  StrainSecondDerivative.xxxz=StrainSecondDerivative.xxzx;
+  StrainSecondDerivative.yxxz=StrainSecondDerivative.zxxy;
+  StrainSecondDerivative.zxxz=StrainSecondDerivative.zxzx;
+  StrainSecondDerivative.yxyz=StrainSecondDerivative.yzxy;
+  StrainSecondDerivative.yxzz=StrainSecondDerivative.zzxy;
+  StrainSecondDerivative.xyxz=StrainSecondDerivative.zxxy;
+  StrainSecondDerivative.yyxz=StrainSecondDerivative.yyzx;
+  StrainSecondDerivative.zyxz=StrainSecondDerivative.yzzx;
+  StrainSecondDerivative.zyyz=StrainSecondDerivative.yzyz;
+  StrainSecondDerivative.zyzz=StrainSecondDerivative.zzyz;
+  StrainSecondDerivative.xzxz=StrainSecondDerivative.zxzx;
+  StrainSecondDerivative.yzxz=StrainSecondDerivative.yzzx;
+  StrainSecondDerivative.zzxz=StrainSecondDerivative.zzzx;
+  StrainSecondDerivative.xzyz=StrainSecondDerivative.yzzx;
+  StrainSecondDerivative.xzzz=StrainSecondDerivative.zzzx;
+
+  // use symmetry Cijkl = Cklij
+  StrainSecondDerivative.zxxx=StrainSecondDerivative.xxzx;
+  StrainSecondDerivative.xyxx=StrainSecondDerivative.xxxy;
+  StrainSecondDerivative.yyxx=StrainSecondDerivative.xxyy;
+  StrainSecondDerivative.xyzx=StrainSecondDerivative.zxxy;
+  StrainSecondDerivative.yzxx=StrainSecondDerivative.xxyz;
+  StrainSecondDerivative.zzxx=StrainSecondDerivative.xxzz;
+  StrainSecondDerivative.zxyy=StrainSecondDerivative.yyzx;
+  StrainSecondDerivative.xyyy=StrainSecondDerivative.yyxy;
+  StrainSecondDerivative.yzyy=StrainSecondDerivative.yyyz;
+  StrainSecondDerivative.zzyy=StrainSecondDerivative.yyzz;
+  StrainSecondDerivative.zxyz=StrainSecondDerivative.yzzx;
+  StrainSecondDerivative.zxzz=StrainSecondDerivative.zzzx;
+  StrainSecondDerivative.xyyz=StrainSecondDerivative.yzxy;
+  StrainSecondDerivative.xyzz=StrainSecondDerivative.zzxy;
+  StrainSecondDerivative.yzzz=StrainSecondDerivative.zzyz;
+
+
+  n=NumberOfCoordinatesMinimizationVariables;
+  switch(Ensemble[CurrentSystem])
+  {
+    case NPT:
+      break;
+    case NPTPR:
+    case NPHPR:
+      switch(NPTPRCellType[CurrentSystem])
       {
-        ReplicaShift[ncell].x=Box[CurrentSystem].ax*k1+Box[CurrentSystem].bx*k2+Box[CurrentSystem].cx*k3;
-        ReplicaShift[ncell].y=Box[CurrentSystem].ay*k1+Box[CurrentSystem].by*k2+Box[CurrentSystem].cy*k3;
-        ReplicaShift[ncell].z=Box[CurrentSystem].az*k1+Box[CurrentSystem].bz*k2+Box[CurrentSystem].cz*k3;
-        ncell++;
+        case ISOTROPIC:
+          break;
+        case ANISOTROPIC:
+          HessianMatrix.element[n][n]+=StrainSecondDerivative.xxxx;
+          HessianMatrix.element[n][n+1]+=StrainSecondDerivative.xxyy;
+          HessianMatrix.element[n][n+2]+=StrainSecondDerivative.xxzz;
+          HessianMatrix.element[n+1][n+1]+=StrainSecondDerivative.yyyy;
+          HessianMatrix.element[n+1][n+2]+=StrainSecondDerivative.yyzz;
+          HessianMatrix.element[n+2][n+2]+=StrainSecondDerivative.zzzz;
+          break;
+        case REGULAR:
+        case REGULAR_UPPER_TRIANGLE:
+          HessianMatrix.element[n][n]+=StrainSecondDerivative.xxxx;
+          HessianMatrix.element[n][n+1]+=StrainSecondDerivative.xxxy;
+          HessianMatrix.element[n][n+2]+=StrainSecondDerivative.xxxz;
+          HessianMatrix.element[n][n+3]+=StrainSecondDerivative.xxyy;
+          HessianMatrix.element[n][n+4]+=StrainSecondDerivative.xxyz;
+          HessianMatrix.element[n][n+5]+=StrainSecondDerivative.xxzz;
+
+          HessianMatrix.element[n+1][n+1]+=StrainSecondDerivative.xyxy;
+          HessianMatrix.element[n+1][n+2]+=StrainSecondDerivative.xyxz;
+          HessianMatrix.element[n+1][n+3]+=StrainSecondDerivative.xyyy;
+          HessianMatrix.element[n+1][n+4]+=StrainSecondDerivative.xyyz;
+          HessianMatrix.element[n+1][n+5]+=StrainSecondDerivative.xyzz;
+
+          HessianMatrix.element[n+2][n+2]+=StrainSecondDerivative.xzxz;
+          HessianMatrix.element[n+2][n+3]+=StrainSecondDerivative.xzyy;
+          HessianMatrix.element[n+2][n+4]+=StrainSecondDerivative.xzyz;
+          HessianMatrix.element[n+2][n+5]+=StrainSecondDerivative.xzzz;
+
+          HessianMatrix.element[n+3][n+3]+=StrainSecondDerivative.yyyy;
+          HessianMatrix.element[n+3][n+4]+=StrainSecondDerivative.yyyz;
+          HessianMatrix.element[n+3][n+5]+=StrainSecondDerivative.yyzz;
+
+          HessianMatrix.element[n+4][n+4]+=StrainSecondDerivative.yzyz;
+          HessianMatrix.element[n+4][n+5]+=StrainSecondDerivative.yzzz;
+
+          HessianMatrix.element[n+5][n+5]+=StrainSecondDerivative.zzzz;
+          break;
+        case MONOCLINIC:
+        case MONOCLINIC_UPPER_TRIANGLE:
+          switch(MonoclinicAngleType[CurrentSystem])
+          {
+            case MONOCLINIC_ALPHA_ANGLE:
+               HessianMatrix.element[n][n]+=StrainSecondDerivative.xxxx;
+               HessianMatrix.element[n][n+1]+=StrainSecondDerivative.xxyy;
+               HessianMatrix.element[n][n+2]+=StrainSecondDerivative.xxyz;
+               HessianMatrix.element[n][n+3]+=StrainSecondDerivative.xxzz;
+
+               HessianMatrix.element[n+1][n+1]+=StrainSecondDerivative.yyyy;
+               HessianMatrix.element[n+1][n+2]+=StrainSecondDerivative.yyyz;
+               HessianMatrix.element[n+1][n+3]+=StrainSecondDerivative.yyzz;
+
+               HessianMatrix.element[n+2][n+2]+=StrainSecondDerivative.yzyz;
+               HessianMatrix.element[n+2][n+3]+=StrainSecondDerivative.yzzz;
+
+               HessianMatrix.element[n+3][n+3]+=StrainSecondDerivative.zzzz;
+              break;
+            case MONOCLINIC_BETA_ANGLE:
+               HessianMatrix.element[n][n]+=StrainSecondDerivative.xxxx;
+               HessianMatrix.element[n][n+1]+=StrainSecondDerivative.xxxz;
+               HessianMatrix.element[n][n+2]+=StrainSecondDerivative.xxyy;
+               HessianMatrix.element[n][n+3]+=StrainSecondDerivative.xxzz;
+
+               HessianMatrix.element[n+1][n+1]+=StrainSecondDerivative.xzxz;
+               HessianMatrix.element[n+1][n+2]+=StrainSecondDerivative.xzyy;
+               HessianMatrix.element[n+1][n+3]+=StrainSecondDerivative.xzzz;
+
+               HessianMatrix.element[n+2][n+2]+=StrainSecondDerivative.yyyy;
+               HessianMatrix.element[n+2][n+3]+=StrainSecondDerivative.yyzz;
+
+               HessianMatrix.element[n+3][n+3]+=StrainSecondDerivative.zzzz;
+              break;
+            case MONOCLINIC_GAMMA_ANGLE:
+               HessianMatrix.element[n][n]+=StrainSecondDerivative.xxxx;
+               HessianMatrix.element[n][n+1]+=StrainSecondDerivative.xxxy;
+               HessianMatrix.element[n][n+2]+=StrainSecondDerivative.xxyy;
+               HessianMatrix.element[n][n+3]+=StrainSecondDerivative.xxzz;
+
+               HessianMatrix.element[n+1][n+1]+=StrainSecondDerivative.xyxy;
+               HessianMatrix.element[n+1][n+2]+=StrainSecondDerivative.xyyy;
+               HessianMatrix.element[n+1][n+3]+=StrainSecondDerivative.xyzz;
+
+               HessianMatrix.element[n+2][n+2]+=StrainSecondDerivative.yyyy;
+               HessianMatrix.element[n+2][n+3]+=StrainSecondDerivative.yyzz;
+
+               HessianMatrix.element[n+3][n+3]+=StrainSecondDerivative.zzzz;
+            default:
+              break;
+          }
+          break;
+        default:
+          printf("Unknown NPTPRCellType\n");
+          exit(0);
+          break;
       }
-  PlaceFrameworkInBoxFromReferenceValues();
-  PlaceAdsorbateAtomsInBoxFromReferenceValues();
-  PlaceCationAtomsInBoxFromReferenceValues();
-  StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
-  StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
-  StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
-
-  CalculateFrameworkInversionBendForce();
-  CalculateFrameworkBondBondForce();
-  CalculateFrameworkBondBendForce();
-  CalculateFrameworkBendBendForce();
-  CalculateFrameworkBondTorsionForce();
-  CalculateFrameworkBendTorsionForce();
-  StrainDerivativeForward2=StrainDerivativeTensor[CurrentSystem];
-
-  strain.ax=1.0+0.5*delta; strain.bx=0.0; strain.cx=0.0;
-  strain.ay=0.0;           strain.by=1.0; strain.cy=0.0;
-  strain.az=0.0;           strain.bz=0.0; strain.cz=1.0;
-  Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
-  CellProperties(&Box[CurrentSystem],&BoxProperties[CurrentSystem],&Volume[CurrentSystem]);
-  InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
-  CellProperties(&InverseBox[CurrentSystem],&InverseBoxProperties[CurrentSystem],&det);
-  ReplicaBox[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredReplicaBox);
-  InverseBoxMatrix(&ReplicaBox[CurrentSystem],&InverseReplicaBox[CurrentSystem]);
-  ncell=0;
-  for(k1=0;k1<NumberOfReplicaCells[CurrentSystem].x;k1++)
-    for(k2=0;k2<NumberOfReplicaCells[CurrentSystem].y;k2++)
-      for(k3=0;k3<NumberOfReplicaCells[CurrentSystem].z;k3++)
-      {
-        ReplicaShift[ncell].x=Box[CurrentSystem].ax*k1+Box[CurrentSystem].bx*k2+Box[CurrentSystem].cx*k3;
-        ReplicaShift[ncell].y=Box[CurrentSystem].ay*k1+Box[CurrentSystem].by*k2+Box[CurrentSystem].cy*k3;
-        ReplicaShift[ncell].z=Box[CurrentSystem].az*k1+Box[CurrentSystem].bz*k2+Box[CurrentSystem].cz*k3;
-        ncell++;
-      }
-  PlaceFrameworkInBoxFromReferenceValues();
-  PlaceAdsorbateAtomsInBoxFromReferenceValues();
-  PlaceCationAtomsInBoxFromReferenceValues();
-  StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
-  StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
-  StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
-  CalculateFrameworkInversionBendForce();
-  CalculateFrameworkBondBondForce();
-  CalculateFrameworkBondBendForce();
-  CalculateFrameworkBendBendForce();
-  CalculateFrameworkBondTorsionForce();
-  CalculateFrameworkBendTorsionForce();
-
-  StrainDerivativeForward1=StrainDerivativeTensor[CurrentSystem];
-
-  strain.ax=1.0-0.5*delta; strain.bx=0.0; strain.cx=0.0;
-  strain.ay=0.0;           strain.by=1.0; strain.cy=0.0;
-  strain.az=0.0;           strain.bz=0.0; strain.cz=1.0;
-  Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
-  CellProperties(&Box[CurrentSystem],&BoxProperties[CurrentSystem],&Volume[CurrentSystem]);
-  InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
-  CellProperties(&InverseBox[CurrentSystem],&InverseBoxProperties[CurrentSystem],&det);
-  ReplicaBox[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredReplicaBox);
-  InverseBoxMatrix(&ReplicaBox[CurrentSystem],&InverseReplicaBox[CurrentSystem]);
-  ncell=0;
-  for(k1=0;k1<NumberOfReplicaCells[CurrentSystem].x;k1++)
-    for(k2=0;k2<NumberOfReplicaCells[CurrentSystem].y;k2++)
-      for(k3=0;k3<NumberOfReplicaCells[CurrentSystem].z;k3++)
-      {
-        ReplicaShift[ncell].x=Box[CurrentSystem].ax*k1+Box[CurrentSystem].bx*k2+Box[CurrentSystem].cx*k3;
-        ReplicaShift[ncell].y=Box[CurrentSystem].ay*k1+Box[CurrentSystem].by*k2+Box[CurrentSystem].cy*k3;
-        ReplicaShift[ncell].z=Box[CurrentSystem].az*k1+Box[CurrentSystem].bz*k2+Box[CurrentSystem].cz*k3;
-        ncell++;
-      }
-  PlaceFrameworkInBoxFromReferenceValues();
-  PlaceAdsorbateAtomsInBoxFromReferenceValues();
-  PlaceCationAtomsInBoxFromReferenceValues();
-  StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
-  StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
-  StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
-  CalculateFrameworkInversionBendForce();
-  CalculateFrameworkBondBondForce();
-  CalculateFrameworkBondBendForce();
-  CalculateFrameworkBendBendForce();
-  CalculateFrameworkBondTorsionForce();
-  CalculateFrameworkBendTorsionForce();
-
-  StrainDerivativeBackward1=StrainDerivativeTensor[CurrentSystem];
-
-  strain.ax=1.0-delta; strain.bx=0.0; strain.cx=0.0;
-  strain.ay=0.0;       strain.by=1.0; strain.cy=0.0;
-  strain.az=0.0;       strain.bz=0.0; strain.cz=1.0;
-  Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
-  CellProperties(&Box[CurrentSystem],&BoxProperties[CurrentSystem],&Volume[CurrentSystem]);
-  InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
-  CellProperties(&InverseBox[CurrentSystem],&InverseBoxProperties[CurrentSystem],&det);
-  ReplicaBox[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredReplicaBox);
-  InverseBoxMatrix(&ReplicaBox[CurrentSystem],&InverseReplicaBox[CurrentSystem]);
-  ncell=0;
-  for(k1=0;k1<NumberOfReplicaCells[CurrentSystem].x;k1++)
-    for(k2=0;k2<NumberOfReplicaCells[CurrentSystem].y;k2++)
-      for(k3=0;k3<NumberOfReplicaCells[CurrentSystem].z;k3++)
-      {
-        ReplicaShift[ncell].x=Box[CurrentSystem].ax*k1+Box[CurrentSystem].bx*k2+Box[CurrentSystem].cx*k3;
-        ReplicaShift[ncell].y=Box[CurrentSystem].ay*k1+Box[CurrentSystem].by*k2+Box[CurrentSystem].cy*k3;
-        ReplicaShift[ncell].z=Box[CurrentSystem].az*k1+Box[CurrentSystem].bz*k2+Box[CurrentSystem].cz*k3;
-        ncell++;
-      }
-  PlaceFrameworkInBoxFromReferenceValues();
-  PlaceAdsorbateAtomsInBoxFromReferenceValues();
-  PlaceCationAtomsInBoxFromReferenceValues();
-  StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
-  StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
-  StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
-  CalculateFrameworkInversionBendForce();
-  CalculateFrameworkBondBondForce();
-  CalculateFrameworkBondBendForce();
-  CalculateFrameworkBendBendForce();
-  CalculateFrameworkBondTorsionForce();
-  CalculateFrameworkBendTorsionForce();
-
-  StrainDerivativeBackward2=StrainDerivativeTensor[CurrentSystem];
-
-  BornTerm[CurrentSystem].xxxx+=(-StrainDerivativeForward2.ax+8.0*StrainDerivativeForward1.ax-8.0*StrainDerivativeBackward1.ax+StrainDerivativeBackward2.ax)/(6.0*delta);
-  BornTerm[CurrentSystem].xyxx+=(-StrainDerivativeForward2.ay+8.0*StrainDerivativeForward1.ay-8.0*StrainDerivativeBackward1.ay+StrainDerivativeBackward2.ay)/(6.0*delta);
-  BornTerm[CurrentSystem].xzxx+=(-StrainDerivativeForward2.az+8.0*StrainDerivativeForward1.az-8.0*StrainDerivativeBackward1.az+StrainDerivativeBackward2.az)/(6.0*delta);
-  BornTerm[CurrentSystem].yxxx+=(-StrainDerivativeForward2.bx+8.0*StrainDerivativeForward1.bx-8.0*StrainDerivativeBackward1.bx+StrainDerivativeBackward2.bx)/(6.0*delta);
-  BornTerm[CurrentSystem].yyxx+=(-StrainDerivativeForward2.by+8.0*StrainDerivativeForward1.by-8.0*StrainDerivativeBackward1.by+StrainDerivativeBackward2.by)/(6.0*delta);
-  BornTerm[CurrentSystem].yzxx+=(-StrainDerivativeForward2.bz+8.0*StrainDerivativeForward1.bz-8.0*StrainDerivativeBackward1.bz+StrainDerivativeBackward2.bz)/(6.0*delta);
-  BornTerm[CurrentSystem].zxxx+=(-StrainDerivativeForward2.cx+8.0*StrainDerivativeForward1.cx-8.0*StrainDerivativeBackward1.cx+StrainDerivativeBackward2.cx)/(6.0*delta);
-  BornTerm[CurrentSystem].zyxx+=(-StrainDerivativeForward2.cy+8.0*StrainDerivativeForward1.cy-8.0*StrainDerivativeBackward1.cy+StrainDerivativeBackward2.cy)/(6.0*delta);
-  BornTerm[CurrentSystem].zzxx+=(-StrainDerivativeForward2.cz+8.0*StrainDerivativeForward1.cz-8.0*StrainDerivativeBackward1.cz+StrainDerivativeBackward2.cz)/(6.0*delta);
-
-  // bx/ay-element
-  strain.ax=1.0;       strain.bx=0.5*delta; strain.cx=0.0;
-  strain.ay=0.5*delta; strain.by=1.0;       strain.cy=0.0;
-  strain.az=0.0;       strain.bz=0.0;       strain.cz=1.0;
-  Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
-  CellProperties(&Box[CurrentSystem],&BoxProperties[CurrentSystem],&Volume[CurrentSystem]);
-  InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
-  CellProperties(&InverseBox[CurrentSystem],&InverseBoxProperties[CurrentSystem],&det);
-  ReplicaBox[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredReplicaBox);
-  InverseBoxMatrix(&ReplicaBox[CurrentSystem],&InverseReplicaBox[CurrentSystem]);
-  ncell=0;
-  for(k1=0;k1<NumberOfReplicaCells[CurrentSystem].x;k1++)
-    for(k2=0;k2<NumberOfReplicaCells[CurrentSystem].y;k2++)
-      for(k3=0;k3<NumberOfReplicaCells[CurrentSystem].z;k3++)
-      {
-        ReplicaShift[ncell].x=Box[CurrentSystem].ax*k1+Box[CurrentSystem].bx*k2+Box[CurrentSystem].cx*k3;
-        ReplicaShift[ncell].y=Box[CurrentSystem].ay*k1+Box[CurrentSystem].by*k2+Box[CurrentSystem].cy*k3;
-        ReplicaShift[ncell].z=Box[CurrentSystem].az*k1+Box[CurrentSystem].bz*k2+Box[CurrentSystem].cz*k3;
-        ncell++;
-      }
-  PlaceFrameworkInBoxFromReferenceValues();
-  PlaceAdsorbateAtomsInBoxFromReferenceValues();
-  PlaceCationAtomsInBoxFromReferenceValues();
-  StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
-  StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
-  StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
-  CalculateFrameworkInversionBendForce();
-  CalculateFrameworkBondBondForce();
-  CalculateFrameworkBondBendForce();
-  CalculateFrameworkBendBendForce();
-  CalculateFrameworkBondTorsionForce();
-  CalculateFrameworkBendTorsionForce();
-
-  StrainDerivativeForward2=StrainDerivativeTensor[CurrentSystem];
-
-  strain.ax=1.0;        strain.bx=0.25*delta; strain.cx=0.0;
-  strain.ay=0.25*delta; strain.by=1.0;        strain.cy=0.0;
-  strain.az=0.0;        strain.bz=0.0;        strain.cz=1.0;
-  Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
-  CellProperties(&Box[CurrentSystem],&BoxProperties[CurrentSystem],&Volume[CurrentSystem]);
-  InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
-  CellProperties(&InverseBox[CurrentSystem],&InverseBoxProperties[CurrentSystem],&det);
-  ReplicaBox[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredReplicaBox);
-  InverseBoxMatrix(&ReplicaBox[CurrentSystem],&InverseReplicaBox[CurrentSystem]);
-  ncell=0;
-  for(k1=0;k1<NumberOfReplicaCells[CurrentSystem].x;k1++)
-    for(k2=0;k2<NumberOfReplicaCells[CurrentSystem].y;k2++)
-      for(k3=0;k3<NumberOfReplicaCells[CurrentSystem].z;k3++)
-      {
-        ReplicaShift[ncell].x=Box[CurrentSystem].ax*k1+Box[CurrentSystem].bx*k2+Box[CurrentSystem].cx*k3;
-        ReplicaShift[ncell].y=Box[CurrentSystem].ay*k1+Box[CurrentSystem].by*k2+Box[CurrentSystem].cy*k3;
-        ReplicaShift[ncell].z=Box[CurrentSystem].az*k1+Box[CurrentSystem].bz*k2+Box[CurrentSystem].cz*k3;
-        ncell++;
-      }
-  PlaceFrameworkInBoxFromReferenceValues();
-  PlaceAdsorbateAtomsInBoxFromReferenceValues();
-  PlaceCationAtomsInBoxFromReferenceValues();
-  StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
-  StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
-  StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
-  CalculateFrameworkInversionBendForce();
-  CalculateFrameworkBondBondForce();
-  CalculateFrameworkBondBendForce();
-  CalculateFrameworkBendBendForce();
-  CalculateFrameworkBondTorsionForce();
-  CalculateFrameworkBendTorsionForce();
-
-  StrainDerivativeForward1=StrainDerivativeTensor[CurrentSystem];
-
-  strain.ax=1.0;         strain.bx=-0.25*delta; strain.cx=0.0;
-  strain.ay=-0.25*delta; strain.by=1.0;         strain.cy=0.0;
-  strain.az=0.0;         strain.bz=0.0;         strain.cz=1.0;
-  Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
-  CellProperties(&Box[CurrentSystem],&BoxProperties[CurrentSystem],&Volume[CurrentSystem]);
-  InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
-  CellProperties(&InverseBox[CurrentSystem],&InverseBoxProperties[CurrentSystem],&det);
-  ReplicaBox[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredReplicaBox);
-  InverseBoxMatrix(&ReplicaBox[CurrentSystem],&InverseReplicaBox[CurrentSystem]);
-  ncell=0;
-  for(k1=0;k1<NumberOfReplicaCells[CurrentSystem].x;k1++)
-    for(k2=0;k2<NumberOfReplicaCells[CurrentSystem].y;k2++)
-      for(k3=0;k3<NumberOfReplicaCells[CurrentSystem].z;k3++)
-      {
-        ReplicaShift[ncell].x=Box[CurrentSystem].ax*k1+Box[CurrentSystem].bx*k2+Box[CurrentSystem].cx*k3;
-        ReplicaShift[ncell].y=Box[CurrentSystem].ay*k1+Box[CurrentSystem].by*k2+Box[CurrentSystem].cy*k3;
-        ReplicaShift[ncell].z=Box[CurrentSystem].az*k1+Box[CurrentSystem].bz*k2+Box[CurrentSystem].cz*k3;
-        ncell++;
-      }
-  PlaceFrameworkInBoxFromReferenceValues();
-  PlaceAdsorbateAtomsInBoxFromReferenceValues();
-  PlaceCationAtomsInBoxFromReferenceValues();
-  StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
-  StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
-  StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
-  CalculateFrameworkInversionBendForce();
-  CalculateFrameworkBondBondForce();
-  CalculateFrameworkBondBendForce();
-  CalculateFrameworkBendBendForce();
-  CalculateFrameworkBondTorsionForce();
-  CalculateFrameworkBendTorsionForce();
-
-  StrainDerivativeBackward1=StrainDerivativeTensor[CurrentSystem];
-
-  strain.ax=1.0;        strain.bx=-0.5*delta; strain.cx=0.0;
-  strain.ay=-0.5*delta; strain.by=1.0;        strain.cy=0.0;
-  strain.az=0.0;        strain.bz=0.0;        strain.cz=1.0;
-  Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
-  CellProperties(&Box[CurrentSystem],&BoxProperties[CurrentSystem],&Volume[CurrentSystem]);
-  InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
-  CellProperties(&InverseBox[CurrentSystem],&InverseBoxProperties[CurrentSystem],&det);
-  ReplicaBox[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredReplicaBox);
-  InverseBoxMatrix(&ReplicaBox[CurrentSystem],&InverseReplicaBox[CurrentSystem]);
-  ncell=0;
-  for(k1=0;k1<NumberOfReplicaCells[CurrentSystem].x;k1++)
-    for(k2=0;k2<NumberOfReplicaCells[CurrentSystem].y;k2++)
-      for(k3=0;k3<NumberOfReplicaCells[CurrentSystem].z;k3++)
-      {
-        ReplicaShift[ncell].x=Box[CurrentSystem].ax*k1+Box[CurrentSystem].bx*k2+Box[CurrentSystem].cx*k3;
-        ReplicaShift[ncell].y=Box[CurrentSystem].ay*k1+Box[CurrentSystem].by*k2+Box[CurrentSystem].cy*k3;
-        ReplicaShift[ncell].z=Box[CurrentSystem].az*k1+Box[CurrentSystem].bz*k2+Box[CurrentSystem].cz*k3;
-        ncell++;
-      }
-  PlaceFrameworkInBoxFromReferenceValues();
-  PlaceAdsorbateAtomsInBoxFromReferenceValues();
-  PlaceCationAtomsInBoxFromReferenceValues();
-  StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
-  StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
-  StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
-  CalculateFrameworkInversionBendForce();
-  CalculateFrameworkBondBondForce();
-  CalculateFrameworkBondBendForce();
-  CalculateFrameworkBendBendForce();
-  CalculateFrameworkBondTorsionForce();
-  CalculateFrameworkBendTorsionForce();
-
-  StrainDerivativeBackward2=StrainDerivativeTensor[CurrentSystem];
-
-  BornTerm[CurrentSystem].xxxy+=(-StrainDerivativeForward2.ax+8.0*StrainDerivativeForward1.ax-8.0*StrainDerivativeBackward1.ax+StrainDerivativeBackward2.ax)/(6.0*delta);
-  BornTerm[CurrentSystem].xyxy+=(-StrainDerivativeForward2.ay+8.0*StrainDerivativeForward1.ay-8.0*StrainDerivativeBackward1.ay+StrainDerivativeBackward2.ay)/(6.0*delta);
-  BornTerm[CurrentSystem].xzxy+=(-StrainDerivativeForward2.az+8.0*StrainDerivativeForward1.az-8.0*StrainDerivativeBackward1.az+StrainDerivativeBackward2.az)/(6.0*delta);
-  BornTerm[CurrentSystem].yxxy+=(-StrainDerivativeForward2.bx+8.0*StrainDerivativeForward1.bx-8.0*StrainDerivativeBackward1.bx+StrainDerivativeBackward2.bx)/(6.0*delta);
-  BornTerm[CurrentSystem].yyxy+=(-StrainDerivativeForward2.by+8.0*StrainDerivativeForward1.by-8.0*StrainDerivativeBackward1.by+StrainDerivativeBackward2.by)/(6.0*delta);
-  BornTerm[CurrentSystem].yzxy+=(-StrainDerivativeForward2.bz+8.0*StrainDerivativeForward1.bz-8.0*StrainDerivativeBackward1.bz+StrainDerivativeBackward2.bz)/(6.0*delta);
-  BornTerm[CurrentSystem].zxxy+=(-StrainDerivativeForward2.cx+8.0*StrainDerivativeForward1.cx-8.0*StrainDerivativeBackward1.cx+StrainDerivativeBackward2.cx)/(6.0*delta);
-  BornTerm[CurrentSystem].zyxy+=(-StrainDerivativeForward2.cy+8.0*StrainDerivativeForward1.cy-8.0*StrainDerivativeBackward1.cy+StrainDerivativeBackward2.cy)/(6.0*delta);
-  BornTerm[CurrentSystem].zzxy+=(-StrainDerivativeForward2.cz+8.0*StrainDerivativeForward1.cz-8.0*StrainDerivativeBackward1.cz+StrainDerivativeBackward2.cz)/(6.0*delta);
-
-  BornTerm[CurrentSystem].xxyx+=(-StrainDerivativeForward2.ax+8.0*StrainDerivativeForward1.ax-8.0*StrainDerivativeBackward1.ax+StrainDerivativeBackward2.ax)/(6.0*delta);
-  BornTerm[CurrentSystem].xyyx+=(-StrainDerivativeForward2.ay+8.0*StrainDerivativeForward1.ay-8.0*StrainDerivativeBackward1.ay+StrainDerivativeBackward2.ay)/(6.0*delta);
-  BornTerm[CurrentSystem].xzyx+=(-StrainDerivativeForward2.az+8.0*StrainDerivativeForward1.az-8.0*StrainDerivativeBackward1.az+StrainDerivativeBackward2.az)/(6.0*delta);
-  BornTerm[CurrentSystem].yxyx+=(-StrainDerivativeForward2.bx+8.0*StrainDerivativeForward1.bx-8.0*StrainDerivativeBackward1.bx+StrainDerivativeBackward2.bx)/(6.0*delta);
-  BornTerm[CurrentSystem].yyyx+=(-StrainDerivativeForward2.by+8.0*StrainDerivativeForward1.by-8.0*StrainDerivativeBackward1.by+StrainDerivativeBackward2.by)/(6.0*delta);
-  BornTerm[CurrentSystem].yzyx+=(-StrainDerivativeForward2.bz+8.0*StrainDerivativeForward1.bz-8.0*StrainDerivativeBackward1.bz+StrainDerivativeBackward2.bz)/(6.0*delta);
-  BornTerm[CurrentSystem].zxyx+=(-StrainDerivativeForward2.cx+8.0*StrainDerivativeForward1.cx-8.0*StrainDerivativeBackward1.cx+StrainDerivativeBackward2.cx)/(6.0*delta);
-  BornTerm[CurrentSystem].zyyx+=(-StrainDerivativeForward2.cy+8.0*StrainDerivativeForward1.cy-8.0*StrainDerivativeBackward1.cy+StrainDerivativeBackward2.cy)/(6.0*delta);
-  BornTerm[CurrentSystem].zzyx+=(-StrainDerivativeForward2.cz+8.0*StrainDerivativeForward1.cz-8.0*StrainDerivativeBackward1.cz+StrainDerivativeBackward2.cz)/(6.0*delta);
-
-  // cx/az-element
-  strain.ax=1.0;       strain.bx=0.0; strain.cx=0.5*delta;
-  strain.ay=0.0;       strain.by=1.0; strain.cy=0.0;
-  strain.az=0.5*delta; strain.bz=0.0; strain.cz=1.0;
-  Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
-  CellProperties(&Box[CurrentSystem],&BoxProperties[CurrentSystem],&Volume[CurrentSystem]);
-  InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
-  CellProperties(&InverseBox[CurrentSystem],&InverseBoxProperties[CurrentSystem],&det);
-  ReplicaBox[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredReplicaBox);
-  InverseBoxMatrix(&ReplicaBox[CurrentSystem],&InverseReplicaBox[CurrentSystem]);
-  ncell=0;
-  for(k1=0;k1<NumberOfReplicaCells[CurrentSystem].x;k1++)
-    for(k2=0;k2<NumberOfReplicaCells[CurrentSystem].y;k2++)
-      for(k3=0;k3<NumberOfReplicaCells[CurrentSystem].z;k3++)
-      {
-        ReplicaShift[ncell].x=Box[CurrentSystem].ax*k1+Box[CurrentSystem].bx*k2+Box[CurrentSystem].cx*k3;
-        ReplicaShift[ncell].y=Box[CurrentSystem].ay*k1+Box[CurrentSystem].by*k2+Box[CurrentSystem].cy*k3;
-        ReplicaShift[ncell].z=Box[CurrentSystem].az*k1+Box[CurrentSystem].bz*k2+Box[CurrentSystem].cz*k3;
-        ncell++;
-      }
-  PlaceFrameworkInBoxFromReferenceValues();
-  PlaceAdsorbateAtomsInBoxFromReferenceValues();
-  PlaceCationAtomsInBoxFromReferenceValues();
-  StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
-  StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
-  StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
-  CalculateFrameworkInversionBendForce();
-  CalculateFrameworkBondBondForce();
-  CalculateFrameworkBondBendForce();
-  CalculateFrameworkBendBendForce();
-  CalculateFrameworkBondTorsionForce();
-  CalculateFrameworkBendTorsionForce();
-
-  StrainDerivativeForward2=StrainDerivativeTensor[CurrentSystem];
-
-  strain.ax=1.0;        strain.bx=0.0; strain.cx=0.25*delta;
-  strain.ay=0.0;        strain.by=1.0; strain.cy=0.0;
-  strain.az=0.25*delta; strain.bz=0.0; strain.cz=1.0;
-  Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
-  CellProperties(&Box[CurrentSystem],&BoxProperties[CurrentSystem],&Volume[CurrentSystem]);
-  InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
-  CellProperties(&InverseBox[CurrentSystem],&InverseBoxProperties[CurrentSystem],&det);
-  ReplicaBox[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredReplicaBox);
-  InverseBoxMatrix(&ReplicaBox[CurrentSystem],&InverseReplicaBox[CurrentSystem]);
-  ncell=0;
-  for(k1=0;k1<NumberOfReplicaCells[CurrentSystem].x;k1++)
-    for(k2=0;k2<NumberOfReplicaCells[CurrentSystem].y;k2++)
-      for(k3=0;k3<NumberOfReplicaCells[CurrentSystem].z;k3++)
-      {
-        ReplicaShift[ncell].x=Box[CurrentSystem].ax*k1+Box[CurrentSystem].bx*k2+Box[CurrentSystem].cx*k3;
-        ReplicaShift[ncell].y=Box[CurrentSystem].ay*k1+Box[CurrentSystem].by*k2+Box[CurrentSystem].cy*k3;
-        ReplicaShift[ncell].z=Box[CurrentSystem].az*k1+Box[CurrentSystem].bz*k2+Box[CurrentSystem].cz*k3;
-        ncell++;
-      }
-  PlaceFrameworkInBoxFromReferenceValues();
-  PlaceAdsorbateAtomsInBoxFromReferenceValues();
-  PlaceCationAtomsInBoxFromReferenceValues();
-  StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
-  StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
-  StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
-  CalculateFrameworkInversionBendForce();
-  CalculateFrameworkBondBondForce();
-  CalculateFrameworkBondBendForce();
-  CalculateFrameworkBendBendForce();
-  CalculateFrameworkBondTorsionForce();
-  CalculateFrameworkBendTorsionForce();
-
-  StrainDerivativeForward1=StrainDerivativeTensor[CurrentSystem];
-
-  strain.ax=1.0;         strain.bx=0.0; strain.cx=-0.25*delta;
-  strain.ay=0.0;         strain.by=1.0; strain.cy=0.0;
-  strain.az=-0.25*delta; strain.bz=0.0; strain.cz=1.0;
-  Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
-  CellProperties(&Box[CurrentSystem],&BoxProperties[CurrentSystem],&Volume[CurrentSystem]);
-  InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
-  CellProperties(&InverseBox[CurrentSystem],&InverseBoxProperties[CurrentSystem],&det);
-  ReplicaBox[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredReplicaBox);
-  InverseBoxMatrix(&ReplicaBox[CurrentSystem],&InverseReplicaBox[CurrentSystem]);
-  ncell=0;
-  for(k1=0;k1<NumberOfReplicaCells[CurrentSystem].x;k1++)
-    for(k2=0;k2<NumberOfReplicaCells[CurrentSystem].y;k2++)
-      for(k3=0;k3<NumberOfReplicaCells[CurrentSystem].z;k3++)
-      {
-        ReplicaShift[ncell].x=Box[CurrentSystem].ax*k1+Box[CurrentSystem].bx*k2+Box[CurrentSystem].cx*k3;
-        ReplicaShift[ncell].y=Box[CurrentSystem].ay*k1+Box[CurrentSystem].by*k2+Box[CurrentSystem].cy*k3;
-        ReplicaShift[ncell].z=Box[CurrentSystem].az*k1+Box[CurrentSystem].bz*k2+Box[CurrentSystem].cz*k3;
-        ncell++;
-      }
-  PlaceFrameworkInBoxFromReferenceValues();
-  PlaceAdsorbateAtomsInBoxFromReferenceValues();
-  PlaceCationAtomsInBoxFromReferenceValues();
-  StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
-  StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
-  StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
-  CalculateFrameworkInversionBendForce();
-  CalculateFrameworkBondBondForce();
-  CalculateFrameworkBondBendForce();
-  CalculateFrameworkBendBendForce();
-  CalculateFrameworkBondTorsionForce();
-  CalculateFrameworkBendTorsionForce();
-
-  StrainDerivativeBackward1=StrainDerivativeTensor[CurrentSystem];
-
-  strain.ax=1.0;        strain.bx=0.0; strain.cx=-0.5*delta;
-  strain.ay=0.0;        strain.by=1.0; strain.cy=0.0;
-  strain.az=-0.5*delta; strain.bz=0.0; strain.cz=1.0;
-  Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
-  CellProperties(&Box[CurrentSystem],&BoxProperties[CurrentSystem],&Volume[CurrentSystem]);
-  InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
-  CellProperties(&InverseBox[CurrentSystem],&InverseBoxProperties[CurrentSystem],&det);
-  ReplicaBox[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredReplicaBox);
-  InverseBoxMatrix(&ReplicaBox[CurrentSystem],&InverseReplicaBox[CurrentSystem]);
-  ncell=0;
-  for(k1=0;k1<NumberOfReplicaCells[CurrentSystem].x;k1++)
-    for(k2=0;k2<NumberOfReplicaCells[CurrentSystem].y;k2++)
-      for(k3=0;k3<NumberOfReplicaCells[CurrentSystem].z;k3++)
-      {
-        ReplicaShift[ncell].x=Box[CurrentSystem].ax*k1+Box[CurrentSystem].bx*k2+Box[CurrentSystem].cx*k3;
-        ReplicaShift[ncell].y=Box[CurrentSystem].ay*k1+Box[CurrentSystem].by*k2+Box[CurrentSystem].cy*k3;
-        ReplicaShift[ncell].z=Box[CurrentSystem].az*k1+Box[CurrentSystem].bz*k2+Box[CurrentSystem].cz*k3;
-        ncell++;
-      }
-  PlaceFrameworkInBoxFromReferenceValues();
-  PlaceAdsorbateAtomsInBoxFromReferenceValues();
-  PlaceCationAtomsInBoxFromReferenceValues();
-  StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
-  StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
-  StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
-  CalculateFrameworkInversionBendForce();
-  CalculateFrameworkBondBondForce();
-  CalculateFrameworkBondBendForce();
-  CalculateFrameworkBendBendForce();
-  CalculateFrameworkBondTorsionForce();
-  CalculateFrameworkBendTorsionForce();
-
-  StrainDerivativeBackward2=StrainDerivativeTensor[CurrentSystem];
-
-  BornTerm[CurrentSystem].xxxz+=(-StrainDerivativeForward2.ax+8.0*StrainDerivativeForward1.ax-8.0*StrainDerivativeBackward1.ax+StrainDerivativeBackward2.ax)/(6.0*delta);
-  BornTerm[CurrentSystem].xyxz+=(-StrainDerivativeForward2.ay+8.0*StrainDerivativeForward1.ay-8.0*StrainDerivativeBackward1.ay+StrainDerivativeBackward2.ay)/(6.0*delta);
-  BornTerm[CurrentSystem].xzxz+=(-StrainDerivativeForward2.az+8.0*StrainDerivativeForward1.az-8.0*StrainDerivativeBackward1.az+StrainDerivativeBackward2.az)/(6.0*delta);
-  BornTerm[CurrentSystem].yxxz+=(-StrainDerivativeForward2.bx+8.0*StrainDerivativeForward1.bx-8.0*StrainDerivativeBackward1.bx+StrainDerivativeBackward2.bx)/(6.0*delta);
-  BornTerm[CurrentSystem].yyxz+=(-StrainDerivativeForward2.by+8.0*StrainDerivativeForward1.by-8.0*StrainDerivativeBackward1.by+StrainDerivativeBackward2.by)/(6.0*delta);
-  BornTerm[CurrentSystem].yzxz+=(-StrainDerivativeForward2.bz+8.0*StrainDerivativeForward1.bz-8.0*StrainDerivativeBackward1.bz+StrainDerivativeBackward2.bz)/(6.0*delta);
-  BornTerm[CurrentSystem].zxxz+=(-StrainDerivativeForward2.cx+8.0*StrainDerivativeForward1.cx-8.0*StrainDerivativeBackward1.cx+StrainDerivativeBackward2.cx)/(6.0*delta);
-  BornTerm[CurrentSystem].zyxz+=(-StrainDerivativeForward2.cy+8.0*StrainDerivativeForward1.cy-8.0*StrainDerivativeBackward1.cy+StrainDerivativeBackward2.cy)/(6.0*delta);
-  BornTerm[CurrentSystem].zzxz+=(-StrainDerivativeForward2.cz+8.0*StrainDerivativeForward1.cz-8.0*StrainDerivativeBackward1.cz+StrainDerivativeBackward2.cz)/(6.0*delta);
-
-  BornTerm[CurrentSystem].xxzx+=(-StrainDerivativeForward2.ax+8.0*StrainDerivativeForward1.ax-8.0*StrainDerivativeBackward1.ax+StrainDerivativeBackward2.ax)/(6.0*delta);
-  BornTerm[CurrentSystem].xyzx+=(-StrainDerivativeForward2.ay+8.0*StrainDerivativeForward1.ay-8.0*StrainDerivativeBackward1.ay+StrainDerivativeBackward2.ay)/(6.0*delta);
-  BornTerm[CurrentSystem].xzzx+=(-StrainDerivativeForward2.az+8.0*StrainDerivativeForward1.az-8.0*StrainDerivativeBackward1.az+StrainDerivativeBackward2.az)/(6.0*delta);
-  BornTerm[CurrentSystem].yxzx+=(-StrainDerivativeForward2.bx+8.0*StrainDerivativeForward1.bx-8.0*StrainDerivativeBackward1.bx+StrainDerivativeBackward2.bx)/(6.0*delta);
-  BornTerm[CurrentSystem].yyzx+=(-StrainDerivativeForward2.by+8.0*StrainDerivativeForward1.by-8.0*StrainDerivativeBackward1.by+StrainDerivativeBackward2.by)/(6.0*delta);
-  BornTerm[CurrentSystem].yzzx+=(-StrainDerivativeForward2.bz+8.0*StrainDerivativeForward1.bz-8.0*StrainDerivativeBackward1.bz+StrainDerivativeBackward2.bz)/(6.0*delta);
-  BornTerm[CurrentSystem].zxzx+=(-StrainDerivativeForward2.cx+8.0*StrainDerivativeForward1.cx-8.0*StrainDerivativeBackward1.cx+StrainDerivativeBackward2.cx)/(6.0*delta);
-  BornTerm[CurrentSystem].zyzx+=(-StrainDerivativeForward2.cy+8.0*StrainDerivativeForward1.cy-8.0*StrainDerivativeBackward1.cy+StrainDerivativeBackward2.cy)/(6.0*delta);
-  BornTerm[CurrentSystem].zzzx+=(-StrainDerivativeForward2.cz+8.0*StrainDerivativeForward1.cz-8.0*StrainDerivativeBackward1.cz+StrainDerivativeBackward2.cz)/(6.0*delta);
-
-  // by-element
-  strain.ax=1.0; strain.bx=0.0;       strain.cx=0.0;
-  strain.ay=0.0; strain.by=1.0+delta; strain.cy=0.0;
-  strain.az=0.0; strain.bz=0.0;       strain.cz=1.0;
-  Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
-  CellProperties(&Box[CurrentSystem],&BoxProperties[CurrentSystem],&Volume[CurrentSystem]);
-  InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
-  CellProperties(&InverseBox[CurrentSystem],&InverseBoxProperties[CurrentSystem],&det);
-  ReplicaBox[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredReplicaBox);
-  InverseBoxMatrix(&ReplicaBox[CurrentSystem],&InverseReplicaBox[CurrentSystem]);
-  ncell=0;
-  for(k1=0;k1<NumberOfReplicaCells[CurrentSystem].x;k1++)
-    for(k2=0;k2<NumberOfReplicaCells[CurrentSystem].y;k2++)
-      for(k3=0;k3<NumberOfReplicaCells[CurrentSystem].z;k3++)
-      {
-        ReplicaShift[ncell].x=Box[CurrentSystem].ax*k1+Box[CurrentSystem].bx*k2+Box[CurrentSystem].cx*k3;
-        ReplicaShift[ncell].y=Box[CurrentSystem].ay*k1+Box[CurrentSystem].by*k2+Box[CurrentSystem].cy*k3;
-        ReplicaShift[ncell].z=Box[CurrentSystem].az*k1+Box[CurrentSystem].bz*k2+Box[CurrentSystem].cz*k3;
-        ncell++;
-      }
-  PlaceFrameworkInBoxFromReferenceValues();
-  PlaceAdsorbateAtomsInBoxFromReferenceValues();
-  PlaceCationAtomsInBoxFromReferenceValues();
-  StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
-  StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
-  StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
-  CalculateFrameworkInversionBendForce();
-  CalculateFrameworkBondBondForce();
-  CalculateFrameworkBondBendForce();
-  CalculateFrameworkBendBendForce();
-  CalculateFrameworkBondTorsionForce();
-  CalculateFrameworkBendTorsionForce();
-
-  StrainDerivativeForward2=StrainDerivativeTensor[CurrentSystem];
-
-  strain.ax=1.0; strain.bx=0.0;           strain.cx=0.0;
-  strain.ay=0.0; strain.by=1.0+0.5*delta; strain.cy=0.0;
-  strain.az=0.0; strain.bz=0.0;           strain.cz=1.0;
-  Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
-  CellProperties(&Box[CurrentSystem],&BoxProperties[CurrentSystem],&Volume[CurrentSystem]);
-  InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
-  CellProperties(&InverseBox[CurrentSystem],&InverseBoxProperties[CurrentSystem],&det);
-  PlaceFrameworkInBoxFromReferenceValues();
-  PlaceAdsorbateAtomsInBoxFromReferenceValues();
-  PlaceCationAtomsInBoxFromReferenceValues();
-  StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
-  StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
-  StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
-  CalculateFrameworkInversionBendForce();
-  CalculateFrameworkBondBondForce();
-  CalculateFrameworkBondBendForce();
-  CalculateFrameworkBendBendForce();
-  CalculateFrameworkBondTorsionForce();
-  CalculateFrameworkBendTorsionForce();
-
-  StrainDerivativeForward1=StrainDerivativeTensor[CurrentSystem];
-
-  strain.ax=1.0; strain.bx=0.0;           strain.cx=0.0;
-  strain.ay=0.0; strain.by=1.0-0.5*delta; strain.cy=0.0;
-  strain.az=0.0; strain.bz=0.0;           strain.cz=1.0;
-  Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
-  CellProperties(&Box[CurrentSystem],&BoxProperties[CurrentSystem],&Volume[CurrentSystem]);
-  InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
-  CellProperties(&InverseBox[CurrentSystem],&InverseBoxProperties[CurrentSystem],&det);
-  ReplicaBox[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredReplicaBox);
-  InverseBoxMatrix(&ReplicaBox[CurrentSystem],&InverseReplicaBox[CurrentSystem]);
-  ncell=0;
-  for(k1=0;k1<NumberOfReplicaCells[CurrentSystem].x;k1++)
-    for(k2=0;k2<NumberOfReplicaCells[CurrentSystem].y;k2++)
-      for(k3=0;k3<NumberOfReplicaCells[CurrentSystem].z;k3++)
-      {
-        ReplicaShift[ncell].x=Box[CurrentSystem].ax*k1+Box[CurrentSystem].bx*k2+Box[CurrentSystem].cx*k3;
-        ReplicaShift[ncell].y=Box[CurrentSystem].ay*k1+Box[CurrentSystem].by*k2+Box[CurrentSystem].cy*k3;
-        ReplicaShift[ncell].z=Box[CurrentSystem].az*k1+Box[CurrentSystem].bz*k2+Box[CurrentSystem].cz*k3;
-        ncell++;
-      }
-  PlaceFrameworkInBoxFromReferenceValues();
-  PlaceAdsorbateAtomsInBoxFromReferenceValues();
-  PlaceCationAtomsInBoxFromReferenceValues();
-  StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
-  StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
-  StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
-  CalculateFrameworkInversionBendForce();
-  CalculateFrameworkBondBondForce();
-  CalculateFrameworkBondBendForce();
-  CalculateFrameworkBendBendForce();
-  CalculateFrameworkBondTorsionForce();
-  CalculateFrameworkBendTorsionForce();
-
-  StrainDerivativeBackward1=StrainDerivativeTensor[CurrentSystem];
-
-  strain.ax=1.0; strain.bx=0.0;       strain.cx=0.0;
-  strain.ay=0.0; strain.by=1.0-delta; strain.cy=0.0;
-  strain.az=0.0; strain.bz=0.0;       strain.cz=1.0;
-  Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
-  CellProperties(&Box[CurrentSystem],&BoxProperties[CurrentSystem],&Volume[CurrentSystem]);
-  InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
-  CellProperties(&InverseBox[CurrentSystem],&InverseBoxProperties[CurrentSystem],&det);
-  ReplicaBox[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredReplicaBox);
-  InverseBoxMatrix(&ReplicaBox[CurrentSystem],&InverseReplicaBox[CurrentSystem]);
-  ncell=0;
-  for(k1=0;k1<NumberOfReplicaCells[CurrentSystem].x;k1++)
-    for(k2=0;k2<NumberOfReplicaCells[CurrentSystem].y;k2++)
-      for(k3=0;k3<NumberOfReplicaCells[CurrentSystem].z;k3++)
-      {
-        ReplicaShift[ncell].x=Box[CurrentSystem].ax*k1+Box[CurrentSystem].bx*k2+Box[CurrentSystem].cx*k3;
-        ReplicaShift[ncell].y=Box[CurrentSystem].ay*k1+Box[CurrentSystem].by*k2+Box[CurrentSystem].cy*k3;
-        ReplicaShift[ncell].z=Box[CurrentSystem].az*k1+Box[CurrentSystem].bz*k2+Box[CurrentSystem].cz*k3;
-        ncell++;
-      }
-  PlaceFrameworkInBoxFromReferenceValues();
-  PlaceAdsorbateAtomsInBoxFromReferenceValues();
-  PlaceCationAtomsInBoxFromReferenceValues();
-  StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
-  StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
-  StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
-  CalculateFrameworkInversionBendForce();
-  CalculateFrameworkBondBondForce();
-  CalculateFrameworkBondBendForce();
-  CalculateFrameworkBendBendForce();
-  CalculateFrameworkBondTorsionForce();
-  CalculateFrameworkBendTorsionForce();
-
-  StrainDerivativeBackward2=StrainDerivativeTensor[CurrentSystem];
-
-  BornTerm[CurrentSystem].xxyy+=(-StrainDerivativeForward2.ax+8.0*StrainDerivativeForward1.ax-8.0*StrainDerivativeBackward1.ax+StrainDerivativeBackward2.ax)/(6.0*delta);
-  BornTerm[CurrentSystem].xyyy+=(-StrainDerivativeForward2.ay+8.0*StrainDerivativeForward1.ay-8.0*StrainDerivativeBackward1.ay+StrainDerivativeBackward2.ay)/(6.0*delta);
-  BornTerm[CurrentSystem].xzyy+=(-StrainDerivativeForward2.az+8.0*StrainDerivativeForward1.az-8.0*StrainDerivativeBackward1.az+StrainDerivativeBackward2.az)/(6.0*delta);
-  BornTerm[CurrentSystem].yxyy+=(-StrainDerivativeForward2.bx+8.0*StrainDerivativeForward1.bx-8.0*StrainDerivativeBackward1.bx+StrainDerivativeBackward2.bx)/(6.0*delta);
-  BornTerm[CurrentSystem].yyyy+=(-StrainDerivativeForward2.by+8.0*StrainDerivativeForward1.by-8.0*StrainDerivativeBackward1.by+StrainDerivativeBackward2.by)/(6.0*delta);
-  BornTerm[CurrentSystem].yzyy+=(-StrainDerivativeForward2.bz+8.0*StrainDerivativeForward1.bz-8.0*StrainDerivativeBackward1.bz+StrainDerivativeBackward2.bz)/(6.0*delta);
-  BornTerm[CurrentSystem].zxyy+=(-StrainDerivativeForward2.cx+8.0*StrainDerivativeForward1.cx-8.0*StrainDerivativeBackward1.cx+StrainDerivativeBackward2.cx)/(6.0*delta);
-  BornTerm[CurrentSystem].zyyy+=(-StrainDerivativeForward2.cy+8.0*StrainDerivativeForward1.cy-8.0*StrainDerivativeBackward1.cy+StrainDerivativeBackward2.cy)/(6.0*delta);
-  BornTerm[CurrentSystem].zzyy+=(-StrainDerivativeForward2.cz+8.0*StrainDerivativeForward1.cz-8.0*StrainDerivativeBackward1.cz+StrainDerivativeBackward2.cz)/(6.0*delta);
-
-  // cy/bz-element
-  strain.ax=1.0; strain.bx=0.0;       strain.cx=0.0;
-  strain.ay=0.0; strain.by=1.0;       strain.cy=0.5*delta;
-  strain.az=0.0; strain.bz=0.5*delta; strain.cz=1.0;
-  Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
-  CellProperties(&Box[CurrentSystem],&BoxProperties[CurrentSystem],&Volume[CurrentSystem]);
-  InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
-  CellProperties(&InverseBox[CurrentSystem],&InverseBoxProperties[CurrentSystem],&det);
-  ReplicaBox[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredReplicaBox);
-  InverseBoxMatrix(&ReplicaBox[CurrentSystem],&InverseReplicaBox[CurrentSystem]);
-  ncell=0;
-  for(k1=0;k1<NumberOfReplicaCells[CurrentSystem].x;k1++)
-    for(k2=0;k2<NumberOfReplicaCells[CurrentSystem].y;k2++)
-      for(k3=0;k3<NumberOfReplicaCells[CurrentSystem].z;k3++)
-      {
-        ReplicaShift[ncell].x=Box[CurrentSystem].ax*k1+Box[CurrentSystem].bx*k2+Box[CurrentSystem].cx*k3;
-        ReplicaShift[ncell].y=Box[CurrentSystem].ay*k1+Box[CurrentSystem].by*k2+Box[CurrentSystem].cy*k3;
-        ReplicaShift[ncell].z=Box[CurrentSystem].az*k1+Box[CurrentSystem].bz*k2+Box[CurrentSystem].cz*k3;
-        ncell++;
-      }
-  PlaceFrameworkInBoxFromReferenceValues();
-  PlaceAdsorbateAtomsInBoxFromReferenceValues();
-  PlaceCationAtomsInBoxFromReferenceValues();
-  StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
-  StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
-  StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
-  CalculateFrameworkInversionBendForce();
-  CalculateFrameworkBondBondForce();
-  CalculateFrameworkBondBendForce();
-  CalculateFrameworkBendBendForce();
-  CalculateFrameworkBondTorsionForce();
-  CalculateFrameworkBendTorsionForce();
-  StrainDerivativeForward2=StrainDerivativeTensor[CurrentSystem];
-
-  strain.ax=1.0; strain.bx=0.0;        strain.cx=0.0;
-  strain.ay=0.0; strain.by=1.0;        strain.cy=0.25*delta;
-  strain.az=0.0; strain.bz=0.25*delta; strain.cz=1.0;
-  Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
-  CellProperties(&Box[CurrentSystem],&BoxProperties[CurrentSystem],&Volume[CurrentSystem]);
-  InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
-  CellProperties(&InverseBox[CurrentSystem],&InverseBoxProperties[CurrentSystem],&det);
-  ReplicaBox[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredReplicaBox);
-  InverseBoxMatrix(&ReplicaBox[CurrentSystem],&InverseReplicaBox[CurrentSystem]);
-  ncell=0;
-  for(k1=0;k1<NumberOfReplicaCells[CurrentSystem].x;k1++)
-    for(k2=0;k2<NumberOfReplicaCells[CurrentSystem].y;k2++)
-      for(k3=0;k3<NumberOfReplicaCells[CurrentSystem].z;k3++)
-      {
-        ReplicaShift[ncell].x=Box[CurrentSystem].ax*k1+Box[CurrentSystem].bx*k2+Box[CurrentSystem].cx*k3;
-        ReplicaShift[ncell].y=Box[CurrentSystem].ay*k1+Box[CurrentSystem].by*k2+Box[CurrentSystem].cy*k3;
-        ReplicaShift[ncell].z=Box[CurrentSystem].az*k1+Box[CurrentSystem].bz*k2+Box[CurrentSystem].cz*k3;
-        ncell++;
-      }
-  PlaceFrameworkInBoxFromReferenceValues();
-  PlaceAdsorbateAtomsInBoxFromReferenceValues();
-  PlaceCationAtomsInBoxFromReferenceValues();
-  StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
-  StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
-  StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
-  CalculateFrameworkInversionBendForce();
-  CalculateFrameworkBondBondForce();
-  CalculateFrameworkBondBendForce();
-  CalculateFrameworkBendBendForce();
-  CalculateFrameworkBondTorsionForce();
-  CalculateFrameworkBendTorsionForce();
-  StrainDerivativeForward1=StrainDerivativeTensor[CurrentSystem];
-
-  strain.ax=1.0; strain.bx=0.0;         strain.cx=0.0;
-  strain.ay=0.0; strain.by=1.0;         strain.cy=-0.25*delta;
-  strain.az=0.0; strain.bz=-0.25*delta; strain.cz=1.0;
-  Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
-  CellProperties(&Box[CurrentSystem],&BoxProperties[CurrentSystem],&Volume[CurrentSystem]);
-  InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
-  CellProperties(&InverseBox[CurrentSystem],&InverseBoxProperties[CurrentSystem],&det);
-  ReplicaBox[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredReplicaBox);
-  InverseBoxMatrix(&ReplicaBox[CurrentSystem],&InverseReplicaBox[CurrentSystem]);
-  ncell=0;
-  for(k1=0;k1<NumberOfReplicaCells[CurrentSystem].x;k1++)
-    for(k2=0;k2<NumberOfReplicaCells[CurrentSystem].y;k2++)
-      for(k3=0;k3<NumberOfReplicaCells[CurrentSystem].z;k3++)
-      {
-        ReplicaShift[ncell].x=Box[CurrentSystem].ax*k1+Box[CurrentSystem].bx*k2+Box[CurrentSystem].cx*k3;
-        ReplicaShift[ncell].y=Box[CurrentSystem].ay*k1+Box[CurrentSystem].by*k2+Box[CurrentSystem].cy*k3;
-        ReplicaShift[ncell].z=Box[CurrentSystem].az*k1+Box[CurrentSystem].bz*k2+Box[CurrentSystem].cz*k3;
-        ncell++;
-      }
-  PlaceFrameworkInBoxFromReferenceValues();
-  PlaceAdsorbateAtomsInBoxFromReferenceValues();
-  PlaceCationAtomsInBoxFromReferenceValues();
-  StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
-  StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
-  StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
-  CalculateFrameworkInversionBendForce();
-  CalculateFrameworkBondBondForce();
-  CalculateFrameworkBondBendForce();
-  CalculateFrameworkBendBendForce();
-  CalculateFrameworkBondTorsionForce();
-  CalculateFrameworkBendTorsionForce();
-  StrainDerivativeBackward1=StrainDerivativeTensor[CurrentSystem];
-
-  strain.ax=1.0; strain.bx=0.0;        strain.cx=0.0;
-  strain.ay=0.0; strain.by=1.0;        strain.cy=-0.5*delta;
-  strain.az=0.0; strain.bz=-0.5*delta; strain.cz=1.0;
-  Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
-  CellProperties(&Box[CurrentSystem],&BoxProperties[CurrentSystem],&Volume[CurrentSystem]);
-  InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
-  CellProperties(&InverseBox[CurrentSystem],&InverseBoxProperties[CurrentSystem],&det);
-  ReplicaBox[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredReplicaBox);
-  InverseBoxMatrix(&ReplicaBox[CurrentSystem],&InverseReplicaBox[CurrentSystem]);
-  ncell=0;
-  for(k1=0;k1<NumberOfReplicaCells[CurrentSystem].x;k1++)
-    for(k2=0;k2<NumberOfReplicaCells[CurrentSystem].y;k2++)
-      for(k3=0;k3<NumberOfReplicaCells[CurrentSystem].z;k3++)
-      {
-        ReplicaShift[ncell].x=Box[CurrentSystem].ax*k1+Box[CurrentSystem].bx*k2+Box[CurrentSystem].cx*k3;
-        ReplicaShift[ncell].y=Box[CurrentSystem].ay*k1+Box[CurrentSystem].by*k2+Box[CurrentSystem].cy*k3;
-        ReplicaShift[ncell].z=Box[CurrentSystem].az*k1+Box[CurrentSystem].bz*k2+Box[CurrentSystem].cz*k3;
-        ncell++;
-      }
-  PlaceFrameworkInBoxFromReferenceValues();
-  PlaceAdsorbateAtomsInBoxFromReferenceValues();
-  PlaceCationAtomsInBoxFromReferenceValues();
-  StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
-  StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
-  StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
-  CalculateFrameworkInversionBendForce();
-  CalculateFrameworkBondBondForce();
-  CalculateFrameworkBondBendForce();
-  CalculateFrameworkBendBendForce();
-  CalculateFrameworkBondTorsionForce();
-  CalculateFrameworkBendTorsionForce();
-  StrainDerivativeBackward2=StrainDerivativeTensor[CurrentSystem];
-
-  BornTerm[CurrentSystem].xxzy+=(-StrainDerivativeForward2.ax+8.0*StrainDerivativeForward1.ax-8.0*StrainDerivativeBackward1.ax+StrainDerivativeBackward2.ax)/(6.0*delta);
-  BornTerm[CurrentSystem].xyzy+=(-StrainDerivativeForward2.ay+8.0*StrainDerivativeForward1.ay-8.0*StrainDerivativeBackward1.ay+StrainDerivativeBackward2.ay)/(6.0*delta);
-  BornTerm[CurrentSystem].xzzy+=(-StrainDerivativeForward2.az+8.0*StrainDerivativeForward1.az-8.0*StrainDerivativeBackward1.az+StrainDerivativeBackward2.az)/(6.0*delta);
-  BornTerm[CurrentSystem].yxzy+=(-StrainDerivativeForward2.bx+8.0*StrainDerivativeForward1.bx-8.0*StrainDerivativeBackward1.bx+StrainDerivativeBackward2.bx)/(6.0*delta);
-  BornTerm[CurrentSystem].yyzy+=(-StrainDerivativeForward2.by+8.0*StrainDerivativeForward1.by-8.0*StrainDerivativeBackward1.by+StrainDerivativeBackward2.by)/(6.0*delta);
-  BornTerm[CurrentSystem].yzzy+=(-StrainDerivativeForward2.bz+8.0*StrainDerivativeForward1.bz-8.0*StrainDerivativeBackward1.bz+StrainDerivativeBackward2.bz)/(6.0*delta);
-  BornTerm[CurrentSystem].zxzy+=(-StrainDerivativeForward2.cx+8.0*StrainDerivativeForward1.cx-8.0*StrainDerivativeBackward1.cx+StrainDerivativeBackward2.cx)/(6.0*delta);
-  BornTerm[CurrentSystem].zyzy+=(-StrainDerivativeForward2.cy+8.0*StrainDerivativeForward1.cy-8.0*StrainDerivativeBackward1.cy+StrainDerivativeBackward2.cy)/(6.0*delta);
-  BornTerm[CurrentSystem].zzzy+=(-StrainDerivativeForward2.cz+8.0*StrainDerivativeForward1.cz-8.0*StrainDerivativeBackward1.cz+StrainDerivativeBackward2.cz)/(6.0*delta);
-
-  BornTerm[CurrentSystem].xxyz+=(-StrainDerivativeForward2.ax+8.0*StrainDerivativeForward1.ax-8.0*StrainDerivativeBackward1.ax+StrainDerivativeBackward2.ax)/(6.0*delta);
-  BornTerm[CurrentSystem].xyyz+=(-StrainDerivativeForward2.ay+8.0*StrainDerivativeForward1.ay-8.0*StrainDerivativeBackward1.ay+StrainDerivativeBackward2.ay)/(6.0*delta);
-  BornTerm[CurrentSystem].xzyz+=(-StrainDerivativeForward2.az+8.0*StrainDerivativeForward1.az-8.0*StrainDerivativeBackward1.az+StrainDerivativeBackward2.az)/(6.0*delta);
-  BornTerm[CurrentSystem].yxyz+=(-StrainDerivativeForward2.bx+8.0*StrainDerivativeForward1.bx-8.0*StrainDerivativeBackward1.bx+StrainDerivativeBackward2.bx)/(6.0*delta);
-  BornTerm[CurrentSystem].yyyz+=(-StrainDerivativeForward2.by+8.0*StrainDerivativeForward1.by-8.0*StrainDerivativeBackward1.by+StrainDerivativeBackward2.by)/(6.0*delta);
-  BornTerm[CurrentSystem].yzyz+=(-StrainDerivativeForward2.bz+8.0*StrainDerivativeForward1.bz-8.0*StrainDerivativeBackward1.bz+StrainDerivativeBackward2.bz)/(6.0*delta);
-  BornTerm[CurrentSystem].zxyz+=(-StrainDerivativeForward2.cx+8.0*StrainDerivativeForward1.cx-8.0*StrainDerivativeBackward1.cx+StrainDerivativeBackward2.cx)/(6.0*delta);
-  BornTerm[CurrentSystem].zyyz+=(-StrainDerivativeForward2.cy+8.0*StrainDerivativeForward1.cy-8.0*StrainDerivativeBackward1.cy+StrainDerivativeBackward2.cy)/(6.0*delta);
-  BornTerm[CurrentSystem].zzyz+=(-StrainDerivativeForward2.cz+8.0*StrainDerivativeForward1.cz-8.0*StrainDerivativeBackward1.cz+StrainDerivativeBackward2.cz)/(6.0*delta);
-
-  // cz-element
-  strain.ax=1.0; strain.bx=0.0; strain.cx=0.0;
-  strain.ay=0.0; strain.by=1.0; strain.cy=0.0;
-  strain.az=0.0; strain.bz=0.0; strain.cz=1.0+delta;
-  Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
-  CellProperties(&Box[CurrentSystem],&BoxProperties[CurrentSystem],&Volume[CurrentSystem]);
-  InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
-  CellProperties(&InverseBox[CurrentSystem],&InverseBoxProperties[CurrentSystem],&det);
-  ReplicaBox[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredReplicaBox);
-  InverseBoxMatrix(&ReplicaBox[CurrentSystem],&InverseReplicaBox[CurrentSystem]);
-  ncell=0;
-  for(k1=0;k1<NumberOfReplicaCells[CurrentSystem].x;k1++)
-    for(k2=0;k2<NumberOfReplicaCells[CurrentSystem].y;k2++)
-      for(k3=0;k3<NumberOfReplicaCells[CurrentSystem].z;k3++)
-      {
-        ReplicaShift[ncell].x=Box[CurrentSystem].ax*k1+Box[CurrentSystem].bx*k2+Box[CurrentSystem].cx*k3;
-        ReplicaShift[ncell].y=Box[CurrentSystem].ay*k1+Box[CurrentSystem].by*k2+Box[CurrentSystem].cy*k3;
-        ReplicaShift[ncell].z=Box[CurrentSystem].az*k1+Box[CurrentSystem].bz*k2+Box[CurrentSystem].cz*k3;
-        ncell++;
-      }
-  PlaceFrameworkInBoxFromReferenceValues();
-  PlaceAdsorbateAtomsInBoxFromReferenceValues();
-  PlaceCationAtomsInBoxFromReferenceValues();
-  StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
-  StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
-  StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
-  CalculateFrameworkInversionBendForce();
-  CalculateFrameworkBondBondForce();
-  CalculateFrameworkBondBendForce();
-  CalculateFrameworkBendBendForce();
-  CalculateFrameworkBondTorsionForce();
-  CalculateFrameworkBendTorsionForce();
-  StrainDerivativeForward2=StrainDerivativeTensor[CurrentSystem];
-
-  strain.ax=1.0; strain.bx=0.0; strain.cx=0.0;
-  strain.ay=0.0; strain.by=1.0; strain.cy=0.0;
-  strain.az=0.0; strain.bz=0.0; strain.cz=1.0+0.5*delta;
-  Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
-  CellProperties(&Box[CurrentSystem],&BoxProperties[CurrentSystem],&Volume[CurrentSystem]);
-  InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
-  CellProperties(&InverseBox[CurrentSystem],&InverseBoxProperties[CurrentSystem],&det);
-  ReplicaBox[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredReplicaBox);
-  InverseBoxMatrix(&ReplicaBox[CurrentSystem],&InverseReplicaBox[CurrentSystem]);
-  ncell=0;
-  for(k1=0;k1<NumberOfReplicaCells[CurrentSystem].x;k1++)
-    for(k2=0;k2<NumberOfReplicaCells[CurrentSystem].y;k2++)
-      for(k3=0;k3<NumberOfReplicaCells[CurrentSystem].z;k3++)
-      {
-        ReplicaShift[ncell].x=Box[CurrentSystem].ax*k1+Box[CurrentSystem].bx*k2+Box[CurrentSystem].cx*k3;
-        ReplicaShift[ncell].y=Box[CurrentSystem].ay*k1+Box[CurrentSystem].by*k2+Box[CurrentSystem].cy*k3;
-        ReplicaShift[ncell].z=Box[CurrentSystem].az*k1+Box[CurrentSystem].bz*k2+Box[CurrentSystem].cz*k3;
-        ncell++;
-      }
-  PlaceFrameworkInBoxFromReferenceValues();
-  PlaceAdsorbateAtomsInBoxFromReferenceValues();
-  PlaceCationAtomsInBoxFromReferenceValues();
-  StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
-  StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
-  StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
-  CalculateFrameworkInversionBendForce();
-  CalculateFrameworkBondBondForce();
-  CalculateFrameworkBondBendForce();
-  CalculateFrameworkBendBendForce();
-  CalculateFrameworkBondTorsionForce();
-  CalculateFrameworkBendTorsionForce();
-  StrainDerivativeForward1=StrainDerivativeTensor[CurrentSystem];
-
-  strain.ax=1.0; strain.bx=0.0; strain.cx=0.0;
-  strain.ay=0.0; strain.by=1.0; strain.cy=0.0;
-  strain.az=0.0; strain.bz=0.0; strain.cz=1.0-0.5*delta;
-  Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
-  CellProperties(&Box[CurrentSystem],&BoxProperties[CurrentSystem],&Volume[CurrentSystem]);
-  InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
-  CellProperties(&InverseBox[CurrentSystem],&InverseBoxProperties[CurrentSystem],&det);
-  ReplicaBox[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredReplicaBox);
-  InverseBoxMatrix(&ReplicaBox[CurrentSystem],&InverseReplicaBox[CurrentSystem]);
-  ncell=0;
-  for(k1=0;k1<NumberOfReplicaCells[CurrentSystem].x;k1++)
-    for(k2=0;k2<NumberOfReplicaCells[CurrentSystem].y;k2++)
-      for(k3=0;k3<NumberOfReplicaCells[CurrentSystem].z;k3++)
-      {
-        ReplicaShift[ncell].x=Box[CurrentSystem].ax*k1+Box[CurrentSystem].bx*k2+Box[CurrentSystem].cx*k3;
-        ReplicaShift[ncell].y=Box[CurrentSystem].ay*k1+Box[CurrentSystem].by*k2+Box[CurrentSystem].cy*k3;
-        ReplicaShift[ncell].z=Box[CurrentSystem].az*k1+Box[CurrentSystem].bz*k2+Box[CurrentSystem].cz*k3;
-        ncell++;
-      }
-  PlaceFrameworkInBoxFromReferenceValues();
-  PlaceAdsorbateAtomsInBoxFromReferenceValues();
-  PlaceCationAtomsInBoxFromReferenceValues();
-  StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
-  StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
-  StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
-  CalculateFrameworkInversionBendForce();
-  CalculateFrameworkBondBondForce();
-  CalculateFrameworkBondBendForce();
-  CalculateFrameworkBendBendForce();
-  CalculateFrameworkBondTorsionForce();
-  CalculateFrameworkBendTorsionForce();
-  StrainDerivativeBackward1=StrainDerivativeTensor[CurrentSystem];
-
-  strain.ax=1.0; strain.bx=0.0; strain.cx=0.0;
-  strain.ay=0.0; strain.by=1.0; strain.cy=0.0;
-  strain.az=0.0; strain.bz=0.0; strain.cz=1.0-delta;
-  Box[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredBox);
-  CellProperties(&Box[CurrentSystem],&BoxProperties[CurrentSystem],&Volume[CurrentSystem]);
-  InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
-  CellProperties(&InverseBox[CurrentSystem],&InverseBoxProperties[CurrentSystem],&det);
-  ReplicaBox[CurrentSystem]=MatrixMatrixMultiplication3x3(strain,StoredReplicaBox);
-  InverseBoxMatrix(&ReplicaBox[CurrentSystem],&InverseReplicaBox[CurrentSystem]);
-  ncell=0;
-  for(k1=0;k1<NumberOfReplicaCells[CurrentSystem].x;k1++)
-    for(k2=0;k2<NumberOfReplicaCells[CurrentSystem].y;k2++)
-      for(k3=0;k3<NumberOfReplicaCells[CurrentSystem].z;k3++)
-      {
-        ReplicaShift[ncell].x=Box[CurrentSystem].ax*k1+Box[CurrentSystem].bx*k2+Box[CurrentSystem].cx*k3;
-        ReplicaShift[ncell].y=Box[CurrentSystem].ay*k1+Box[CurrentSystem].by*k2+Box[CurrentSystem].cy*k3;
-        ReplicaShift[ncell].z=Box[CurrentSystem].az*k1+Box[CurrentSystem].bz*k2+Box[CurrentSystem].cz*k3;
-        ncell++;
-      }
-  PlaceFrameworkInBoxFromReferenceValues();
-  PlaceAdsorbateAtomsInBoxFromReferenceValues();
-  PlaceCationAtomsInBoxFromReferenceValues();
-  StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
-  StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
-  StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
-  CalculateFrameworkInversionBendForce();
-  CalculateFrameworkBondBondForce();
-  CalculateFrameworkBondBendForce();
-  CalculateFrameworkBendBendForce();
-  CalculateFrameworkBondTorsionForce();
-  CalculateFrameworkBendTorsionForce();
-  StrainDerivativeBackward2=StrainDerivativeTensor[CurrentSystem];
-
-  BornTerm[CurrentSystem].xxzz+=(-StrainDerivativeForward2.ax+8.0*StrainDerivativeForward1.ax-8.0*StrainDerivativeBackward1.ax+StrainDerivativeBackward2.ax)/(6.0*delta);
-  BornTerm[CurrentSystem].xyzz+=(-StrainDerivativeForward2.ay+8.0*StrainDerivativeForward1.ay-8.0*StrainDerivativeBackward1.ay+StrainDerivativeBackward2.ay)/(6.0*delta);
-  BornTerm[CurrentSystem].xzzz+=(-StrainDerivativeForward2.az+8.0*StrainDerivativeForward1.az-8.0*StrainDerivativeBackward1.az+StrainDerivativeBackward2.az)/(6.0*delta);
-  BornTerm[CurrentSystem].yxzz+=(-StrainDerivativeForward2.bx+8.0*StrainDerivativeForward1.bx-8.0*StrainDerivativeBackward1.bx+StrainDerivativeBackward2.bx)/(6.0*delta);
-  BornTerm[CurrentSystem].yyzz+=(-StrainDerivativeForward2.by+8.0*StrainDerivativeForward1.by-8.0*StrainDerivativeBackward1.by+StrainDerivativeBackward2.by)/(6.0*delta);
-  BornTerm[CurrentSystem].yzzz+=(-StrainDerivativeForward2.bz+8.0*StrainDerivativeForward1.bz-8.0*StrainDerivativeBackward1.bz+StrainDerivativeBackward2.bz)/(6.0*delta);
-  BornTerm[CurrentSystem].zxzz+=(-StrainDerivativeForward2.cx+8.0*StrainDerivativeForward1.cx-8.0*StrainDerivativeBackward1.cx+StrainDerivativeBackward2.cx)/(6.0*delta);
-  BornTerm[CurrentSystem].zyzz+=(-StrainDerivativeForward2.cy+8.0*StrainDerivativeForward1.cy-8.0*StrainDerivativeBackward1.cy+StrainDerivativeBackward2.cy)/(6.0*delta);
-  BornTerm[CurrentSystem].zzzz+=(-StrainDerivativeForward2.cz+8.0*StrainDerivativeForward1.cz-8.0*StrainDerivativeBackward1.cz+StrainDerivativeBackward2.cz)/(6.0*delta);
+      break;
+    case NVT:
+    case NVE:
+      break;
+  }
+  
 
   // restore initial box, positions, and boundary condition
   Box[CurrentSystem]=StoredBox;
-  ReplicaBox[CurrentSystem]=StoredReplicaBox;
-  CellProperties(&Box[CurrentSystem],&BoxProperties[CurrentSystem],&Volume[CurrentSystem]);
   InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
-  InverseBoxMatrix(&ReplicaBox[CurrentSystem],&InverseReplicaBox[CurrentSystem]);
-  CellProperties(&InverseBox[CurrentSystem],&InverseBoxProperties[CurrentSystem],&det);
-  ncell=0;
-  for(k1=0;k1<NumberOfReplicaCells[CurrentSystem].x;k1++)
-    for(k2=0;k2<NumberOfReplicaCells[CurrentSystem].y;k2++)
-      for(k3=0;k3<NumberOfReplicaCells[CurrentSystem].z;k3++)
-      {
-        ReplicaShift[ncell].x=Box[CurrentSystem].ax*k1+Box[CurrentSystem].bx*k2+Box[CurrentSystem].cx*k3;
-        ReplicaShift[ncell].y=Box[CurrentSystem].ay*k1+Box[CurrentSystem].by*k2+Box[CurrentSystem].cy*k3;
-        ReplicaShift[ncell].z=Box[CurrentSystem].az*k1+Box[CurrentSystem].bz*k2+Box[CurrentSystem].cz*k3;
-        ncell++;
-      }
+
   PlaceFrameworkInBoxFromReferenceValues();
   PlaceAdsorbateAtomsInBoxFromReferenceValues();
   PlaceCationAtomsInBoxFromReferenceValues();
 
   BoundaryCondition[CurrentSystem]=StoredBoundaryCondition; 
-  ComputeBornTerm=StoredBornTerm;
+  ComputeBornTerm=StoreComputeBornTerm;
 }
 
 void ComputeForcesForMinimalSet(void)

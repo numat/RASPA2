@@ -2346,6 +2346,13 @@ void EvaluateDerivatives(int n,REAL *Energy,REAL* Gradient,REAL_MATRIX Hessian,R
   if((ChargeMethod==EWALD)&&(!OmitEwaldFourier))
     CalculateEwaldFourierDerivatives(Energy,Gradient,Hessian,StrainFirstDerivative,ComputeGradient,ComputeHessian);
 
+  // these are not yet implemented analytically
+  if(ComputeHessian)
+  {
+    AddRemainderOfCrossTermNumerically(Hessian);
+    AddRemainderOfBornTermNumerically(Hessian);
+  }
+
   // compute the harmonic constraints contributions
   CalculateHarmonicBondConstraintHessian(Energy,Gradient,Hessian,StrainFirstDerivative,ComputeGradient,ComputeHessian);
   CalculateHarmonicBendConstraintHessian(Energy,Gradient,Hessian,StrainFirstDerivative,ComputeGradient,ComputeHessian);

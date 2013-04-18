@@ -5,9 +5,9 @@ Compiled as a 64-bits application
 Compiler: gcc 4.2.1 (Based on Apple Inc. build 5658) (LLVM build 2336.11.00)
 Compile Date = Apr 18 2013, Compile Time = 10:46:58
 
-Thu Apr 18 12:11:16 2013
+Thu Apr 18 12:06:34 2013
 Simulation started on Thursday, April 18.
-The start time was 12:11 PM.
+The start time was 12:06 PM.
 
 Cpu data:    x86_64
 Cpu Model:   MacPro5,1
@@ -20,7 +20,7 @@ OS version:  12D78
 Simulation
 ===========================================================================
 Dimensions: 3
-Random number seed: 1366279875
+Random number seed: 1366279593
 RASPA directory set to: /Users/dubbelda/RASPA/simulations/
 String appended to output-files: 
 Number of cycles: 1
@@ -29,8 +29,8 @@ Number of equilibration cycles: 0
 Print every: 1
 Triclinic boundary condition applied
 Timestep: 0.000500
-Initialization Ensemble: NVT (constant number of particles N, constant volume V, constant average temperature T)
-Production run ensemble: NVT (constant number of particles N, constant volume V, constant average temperature T)
+Initialization Ensemble: NPT (constant number of particles N, constant average pressure P, constant average temperature T)
+Production run ensemble: NPT (constant number of particles N, constant average pressure P, constant average temperature T)
 	Degrees of freedom:                        432
 	Translational Degrees of freedom:          432
 	Rotational Degrees of freedom:             0
@@ -679,9 +679,9 @@ Current (initial full energy) Energy Status
 ===========================================================================
 
 Internal energy:
-Host stretch energy:                                        91769.65564516
-Host UreyBradley energy:                                      655.30379116
-Host bend energy:                                          123490.82594415
+Host stretch energy:                                        90493.85893238
+Host UreyBradley energy:                                      548.75593054
+Host bend energy:                                          124680.15789697
 Host inversion-bend energy:                                     0.00000000
 Host torsion energy:                                            0.00000000
 Host improper torsion energy:                                   0.00000000
@@ -690,7 +690,7 @@ Host stretch/stretch energy:                                    0.00000000
 Host bend/bend energy:                                          0.00000000
 Host stretch/bend energy:                                       0.00000000
 Host stretch/torsion energy:                                    0.00000000
-Host bend/torsion energy:                                  -90967.54875659
+Host bend/torsion energy:                                  -91297.92173319
 
 Adsorbate stretch energy:                                       0.00000000
 Adsorbate UreyBradley energy:                                   0.00000000
@@ -726,11 +726,11 @@ Cation intra charge-charge Coulomb energy:                      0.00000000
 Cation intra charge-bonddipole Coulomb energy:                  0.00000000
 Cation intra bonddipole-bonddipole Coulomb energy:              0.00000000
 
-Host/Host energy:                                      -6387837.71186264
-	Host/Host VDW energy:                                    -63742.44530454
-	Host/Host Coulomb energy:                              -6324095.26655809
-	Host/Host charge-charge Real energy:                    -419070.45155551
-	Host/Host charge-charge Fourier energy:                -5905024.81500259
+Host/Host energy:                                      -6387759.98641285
+	Host/Host VDW energy:                                    -63728.54522574
+	Host/Host Coulomb energy:                              -6324031.44118712
+	Host/Host charge-charge Real energy:                    -419042.22956759
+	Host/Host charge-charge Fourier energy:                -5904989.21161953
 	Host/Host charge-bonddipole Real energy:                      0.00000000
 	Host/Host charge-bonddipole Fourier energy:                   0.00000000
 	Host/Host bondipole-bonddipole Real energy:                   0.00000000
@@ -804,9 +804,9 @@ Out-of-plane distance constraints energy:                     0.00000000
 Exclusion constraints energy:                                 0.00000000
 
 ===================================================================
-Total energy: -6262889.475238761865
-	Total Van der Waals: -63742.445305
-	Total Coulomb: -6324095.266558
+Total energy: -6263335.135386151262
+	Total Van der Waals: -63728.545226
+	Total Coulomb: -6324031.441187
 
 	Total Polarization: 0.000000
 
@@ -820,14 +820,14 @@ Total energy: -6262889.475238761865
 Starting simulation
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-Total number of variables used in the minimization: 432
-Number of cell-variables used in the minimization: 0
+Total number of variables used in the minimization: 433
+Number of cell-variables used in the minimization: 1
 Total number of variables used for generalized coordinates in the minimization: 432
 Total number of variables used for positions in the minimization: 432
 Total number of variables used for orientation in the minimization: 0
 
 Minimization initial volume:    3395.9682747910 [A^3]
-Minimization initial energy: -6262889.4752387684 [K]
+Minimization initial energy: -6263335.1353861410 [K]
 Minimization initial strain:       0.0000000000 [-]
 Minimization initial box:      15.0310000000       0.0000000000       0.0000000000[-]
                                 0.0000000000      15.0310000000       0.0000000000[-]
@@ -837,1632 +837,1860 @@ Beginning Baker minimization:
 -----------------------------
 Computing generalized Hessian matrix
 Computing eigenvalues and vectors
-Shifting parameter: -210222.1937649600 Lowest eigenvalue:    6258.8982545564
-Iteration: 0 Energy: -6262889.4752387684 Volume:    3395.9682747910 RMS gradient: 690.1  Max gradient: 33759.4 Number of negative eigenvalues: 0 Number of zero eigenvalues: 3
-      Box:      15.0310000000       0.0000000000       0.0000000000     Strain derivative: 3106763.3892138638    8684.8254528920    9797.4357605231
-                 0.0000000000      15.0310000000       0.0000000000                           8684.8254528920 3103552.3239234858  -20482.9333872259
-                 0.0000000000       0.0000000000      15.0310000000                           9797.4357605232  -20482.9333872258 3114769.9833614710
+Shifting parameter: -589077.6765650709 Lowest eigenvalue:    6231.7960114136
+Iteration: 0 Energy: -6263335.1353861410 Volume:    3395.9682747910 RMS gradient: 21585.8  Max gradient: 9.34199e+06 Number of negative eigenvalues: 0 Number of zero eigenvalues: 3
+      Box:      15.0310000000       0.0000000000       0.0000000000     Strain derivative: 3124953.0393965538     -64.9725325470  -13461.6531592442
+                 0.0000000000      15.0310000000       0.0000000000                            -64.9725325470 3081064.1619052133     333.2206660143
+                 0.0000000000       0.0000000000      15.0310000000                         -13461.6531592442     333.2206660143 3135561.3905652380
       Lengths:      15.0310000000      15.0310000000      15.0310000000, Angles:      90.0000000000      90.0000000000      90.0000000000
 
 Computing generalized Hessian matrix
 Computing eigenvalues and vectors
-Shifting parameter: -160084.4176328535 Lowest eigenvalue:    5924.9902377876
-Iteration: 1 Energy: -6357001.4535804177 Volume:    3395.9682747910 RMS gradient: 549.783  Max gradient: 26695.7 Number of negative eigenvalues: 0 Number of zero eigenvalues: 3
-      Box:      15.0310000000       0.0000000000       0.0000000000     Strain derivative: 2833411.0652441466    5461.2135686118    5872.3652749458
-                 0.0000000000      15.0310000000       0.0000000000                           5461.2135686118 2832226.5123217166  -14018.5622507728
-                 0.0000000000       0.0000000000      15.0310000000                           5872.3652749458  -14018.5622507728 2838175.6629005396
-      Lengths:      15.0310000000      15.0310000000      15.0310000000, Angles:      90.0000000000      90.0000000000      90.0000000000
+Shifting parameter:  -61284.2835977958 Lowest eigenvalue:  -15885.5773494561
+Iteration: 1 Energy: -6648920.5002631992 Volume:    2838.7793200296 RMS gradient: 1298.75  Max gradient: 549392 Number of negative eigenvalues: 21 Number of zero eigenvalues: 3
+      Box:      14.1593682755       0.0000000000       0.0000000000     Strain derivative:  190159.7795059382    -582.3099989973   -6922.0555816404
+                 0.0000000000      14.1593682755       0.0000000000                           -582.3099989973  164609.1002225853    1200.7372394381
+                 0.0000000000       0.0000000000      14.1593682755                          -6922.0555816403    1200.7372394381  194147.1439638642
+      Lengths:      14.1593682755      14.1593682755      14.1593682755, Angles:      90.0000000000      90.0000000000      90.0000000000
 
 Computing generalized Hessian matrix
 Computing eigenvalues and vectors
-Shifting parameter: -114717.3308467919 Lowest eigenvalue:    4088.3712667461
-Iteration: 2 Energy: -6430875.1382615054 Volume:    3395.9682747910 RMS gradient: 422.491  Max gradient: 20232.4 Number of negative eigenvalues: 0 Number of zero eigenvalues: 3
-      Box:      15.0310000000       0.0000000000       0.0000000000     Strain derivative: 2576307.7996541257    3254.9195038478    3237.7117358560
-                 0.0000000000      15.0310000000       0.0000000000                           3254.9195038477 2576408.1056306642   -9089.9779220755
-                 0.0000000000       0.0000000000      15.0310000000                           3237.7117358560   -9089.9779220755 2578690.0935078696
-      Lengths:      15.0310000000      15.0310000000      15.0310000000, Angles:      90.0000000000      90.0000000000      90.0000000000
+Shifting parameter:  -34200.1522520463 Lowest eigenvalue:  -16811.4410082592
+Iteration: 2 Energy: -6678637.2047490561 Volume:    2864.1951327299 RMS gradient: 820.269  Max gradient: 346286 Number of negative eigenvalues: 24 Number of zero eigenvalues: 3
+      Box:      14.2014994329       0.0000000000       0.0000000000     Strain derivative:  118862.1875161566    -537.5346799824   -3880.4358006115
+                 0.0000000000      14.2014994329       0.0000000000                           -537.5346799824  104103.6710435169     831.9601351820
+                 0.0000000000       0.0000000000      14.2014994329                          -3880.4358006115     831.9601351819  123008.6744706694
+      Lengths:      14.2014994329      14.2014994329      14.2014994329, Angles:      90.0000000000      90.0000000000      90.0000000000
 
 Computing generalized Hessian matrix
 Computing eigenvalues and vectors
-Shifting parameter:  -74008.1907436586 Lowest eigenvalue:     765.3814122952
-Iteration: 3 Energy: -6486248.1817926457 Volume:    3395.9682747910 RMS gradient: 305.882  Max gradient: 14332.5 Number of negative eigenvalues: 0 Number of zero eigenvalues: 3
-      Box:      15.0310000000       0.0000000000       0.0000000000     Strain derivative: 2335905.9327013153    1785.6485676230    1600.8455038294
-                 0.0000000000      15.0310000000       0.0000000000                           1785.6485676230 2336725.4767727912   -5451.7426240949
-                 0.0000000000       0.0000000000      15.0310000000                           1600.8455038294   -5451.7426240949 2336600.0535550560
-      Lengths:      15.0310000000      15.0310000000      15.0310000000, Angles:      90.0000000000      90.0000000000      90.0000000000
+Shifting parameter:  -16824.7341704123 Lowest eigenvalue:  -16819.7794193269
+Iteration: 3 Energy: -6697054.5408984125 Volume:    2890.4256821341 RMS gradient: 487.058  Max gradient: 206401 Number of negative eigenvalues: 24 Number of zero eigenvalues: 3
+      Box:      14.2447206168       0.0000000000       0.0000000000     Strain derivative:   69555.5361676422    -338.9601174524   -1789.0630754768
+                 0.0000000000      14.2447206168       0.0000000000                           -338.9601174524   62690.4147724050     429.6216372837
+                 0.0000000000       0.0000000000      14.2447206168                          -1789.0630754768     429.6216372838   74109.7812968604
+      Lengths:      14.2447206168      14.2447206168      14.2447206168, Angles:      90.0000000000      90.0000000000      90.0000000000
 
 Computing generalized Hessian matrix
 Computing eigenvalues and vectors
-Shifting parameter:  -38987.0077549555 Lowest eigenvalue:   -2191.9706465847
-Iteration: 4 Energy: -6524507.3740224373 Volume:    3395.9682747910 RMS gradient: 198.361  Max gradient: 8976.31 Number of negative eigenvalues: 9 Number of zero eigenvalues: 3
-      Box:      15.0310000000       0.0000000000       0.0000000000     Strain derivative: 2113047.5976827312     849.0481294764     687.4838680273
-                 0.0000000000      15.0310000000       0.0000000000                            849.0481294764 2114162.1276665302   -2866.4974445956
-                 0.0000000000       0.0000000000      15.0310000000                            687.4838680272   -2866.4974445956 2112640.0425954410
-      Lengths:      15.0310000000      15.0310000000      15.0310000000, Angles:      90.0000000000      90.0000000000      90.0000000000
+Shifting parameter:  -19228.9683115420 Lowest eigenvalue:  -15941.3560594199
+Iteration: 4 Energy: -6698066.3277084604 Volume:    2890.5566668216 RMS gradient: 518.023  Max gradient: 220060 Number of negative eigenvalues: 24 Number of zero eigenvalues: 3
+      Box:      14.2449357884       0.0000000000       0.0000000000     Strain derivative:   74322.0889249776    -255.9808194584   -1793.1230882656
+                 0.0000000000      14.2449357884       0.0000000000                           -255.9808194584   66873.5743554305     397.7384141180
+                 0.0000000000       0.0000000000      14.2449357884                          -1793.1230882656     397.7384141180   78588.2119982495
+      Lengths:      14.2449357884      14.2449357884      14.2449357884, Angles:      90.0000000000      90.0000000000      90.0000000000
 
 Computing generalized Hessian matrix
 Computing eigenvalues and vectors
-Shifting parameter:  -13387.7301837351 Lowest eigenvalue:   -4654.4215271232
-Iteration: 5 Energy: -6546834.5873875841 Volume:    3395.9682747910 RMS gradient: 100.774  Max gradient: 4277.41 Number of negative eigenvalues: 11 Number of zero eigenvalues: 3
-      Box:      15.0310000000       0.0000000000       0.0000000000     Strain derivative: 1911239.8581647403     308.9207708334     242.7490466437
-                 0.0000000000      15.0310000000       0.0000000000                            308.9207708334 1912319.7933023067   -1136.9867598403
-                 0.0000000000       0.0000000000      15.0310000000                            242.7490466437   -1136.9867598403 1910322.8965249343
-      Lengths:      15.0310000000      15.0310000000      15.0310000000, Angles:      90.0000000000      90.0000000000      90.0000000000
+Shifting parameter:  -20431.3287768435 Lowest eigenvalue:  -14028.6206851613
+Iteration: 5 Energy: -6702949.1078319158 Volume:    2893.1318670947 RMS gradient: 464.113  Max gradient: 197467 Number of negative eigenvalues: 24 Number of zero eigenvalues: 3
+      Box:      14.2491648093       0.0000000000       0.0000000000     Strain derivative:   66513.2003966974    -119.0041250596   -1534.4050671886
+                 0.0000000000      14.2491648093       0.0000000000                           -119.0041250596   60041.5816544959     272.7101191151
+                 0.0000000000       0.0000000000      14.2491648093                          -1534.4050671886     272.7101191151   70617.1374435754
+      Lengths:      14.2491648093      14.2491648093      14.2491648093, Angles:      90.0000000000      90.0000000000      90.0000000000
 
 Computing generalized Hessian matrix
 Computing eigenvalues and vectors
-Shifting parameter:   -6546.3534087671 Lowest eigenvalue:   -6540.1318225325
-Iteration: 6 Energy: -6555227.2984951092 Volume:    3395.9682747910 RMS gradient: 31.2525  Max gradient: 1567.54 Number of negative eigenvalues: 11 Number of zero eigenvalues: 3
-      Box:      15.0310000000       0.0000000000       0.0000000000     Strain derivative: 1762614.9814023220     117.7286085544      50.4341973233
-                 0.0000000000      15.0310000000       0.0000000000                            117.7286085544 1763390.2738918148    -235.6771707047
-                 0.0000000000       0.0000000000      15.0310000000                             50.4341973233    -235.6771707047 1762151.7164181808
-      Lengths:      15.0310000000      15.0310000000      15.0310000000, Angles:      90.0000000000      90.0000000000      90.0000000000
+Shifting parameter:  -20848.3474213160 Lowest eigenvalue:  -11435.1660999378
+Iteration: 6 Energy: -6708449.5518812109 Volume:    2893.4642545934 RMS gradient: 404.773  Max gradient: 172256 Number of negative eigenvalues: 25 Number of zero eigenvalues: 3
+      Box:      14.2497104767       0.0000000000       0.0000000000     Strain derivative:   57882.9421730387      22.5490315474   -1338.5271191276
+                 0.0000000000      14.2497104767       0.0000000000                             22.5490315474   52512.9530479052     135.5761084922
+                 0.0000000000       0.0000000000      14.2497104767                          -1338.5271191276     135.5761084922   61582.6142147621
+      Lengths:      14.2497104767      14.2497104767      14.2497104767, Angles:      90.0000000000      90.0000000000      90.0000000000
 
 Computing generalized Hessian matrix
 Computing eigenvalues and vectors
-Shifting parameter:   -7097.5940353617 Lowest eigenvalue:   -5884.6403815547
-Iteration: 7 Energy: -6555663.4257787261 Volume:    3395.9682747910 RMS gradient: 32.3941  Max gradient: 1642.28 Number of negative eigenvalues: 11 Number of zero eigenvalues: 3
-      Box:      15.0310000000       0.0000000000       0.0000000000     Strain derivative: 1768576.9882838672     127.8956422444      42.9785006437
-                 0.0000000000      15.0310000000       0.0000000000                            127.8956422444 1769307.8930066503    -264.9606544521
-                 0.0000000000       0.0000000000      15.0310000000                             42.9785006437    -264.9606544521 1768107.4072275155
-      Lengths:      15.0310000000      15.0310000000      15.0310000000, Angles:      90.0000000000      90.0000000000      90.0000000000
+Shifting parameter:  -20440.0169792819 Lowest eigenvalue:   -8442.6459933307
+Iteration: 7 Energy: -6714444.9898315901 Volume:    2891.8512285070 RMS gradient: 342.238  Max gradient: 145444 Number of negative eigenvalues: 21 Number of zero eigenvalues: 3
+      Box:      14.2470620450       0.0000000000       0.0000000000     Strain derivative:   48754.2305589592     164.6665142266   -1180.6210005093
+                 0.0000000000      14.2470620450       0.0000000000                            164.6665142266   44501.3985778584      -9.2465577233
+                 0.0000000000       0.0000000000      14.2470620450                          -1180.6210005093      -9.2465577233   51968.8537345439
+      Lengths:      14.2470620450      14.2470620450      14.2470620450, Angles:      90.0000000000      90.0000000000      90.0000000000
 
 Computing generalized Hessian matrix
 Computing eigenvalues and vectors
-Shifting parameter:   -7761.8503750347 Lowest eigenvalue:   -4733.0343804566
-Iteration: 8 Energy: -6557249.5032688854 Volume:    3395.9682747910 RMS gradient: 30.2586  Max gradient: 1538.21 Number of negative eigenvalues: 11 Number of zero eigenvalues: 3
-      Box:      15.0310000000       0.0000000000       0.0000000000     Strain derivative: 1769118.7383918755     146.8099975192      11.8631511473
-                 0.0000000000      15.0310000000       0.0000000000                            146.8099975192 1769853.9814777249    -230.7397816194
-                 0.0000000000       0.0000000000      15.0310000000                             11.8631511473    -230.7397816195 1768190.9589287466
-      Lengths:      15.0310000000      15.0310000000      15.0310000000, Angles:      90.0000000000      90.0000000000      90.0000000000
+Shifting parameter:  -19081.2271395113 Lowest eigenvalue:   -5146.6270916773
+Iteration: 8 Energy: -6720722.1817838252 Volume:    2888.6408212092 RMS gradient: 279.598  Max gradient: 118418 Number of negative eigenvalues: 15 Number of zero eigenvalues: 3
+      Box:      14.2417879369       0.0000000000       0.0000000000     Strain derivative:   39579.1487858741     286.8111595428   -1034.7511450552
+                 0.0000000000      14.2417879369       0.0000000000                            286.8111595428   36374.0137195507    -138.0183358659
+                 0.0000000000       0.0000000000      14.2417879369                          -1034.7511450551    -138.0183358659   42321.1840474556
+      Lengths:      14.2417879369      14.2417879369      14.2417879369, Angles:      90.0000000000      90.0000000000      90.0000000000
 
 Computing generalized Hessian matrix
 Computing eigenvalues and vectors
-Shifting parameter:   -7662.6173234700 Lowest eigenvalue:   -2756.3779187017
-Iteration: 9 Energy: -6559461.2362507302 Volume:    3395.9682747910 RMS gradient: 27.5774  Max gradient: 1373.02 Number of negative eigenvalues: 9 Number of zero eigenvalues: 3
-      Box:      15.0310000000       0.0000000000       0.0000000000     Strain derivative: 1771465.8587065856     152.6581949208     -18.5347747779
-                 0.0000000000      15.0310000000       0.0000000000                            152.6581949208 1772168.5518349793    -175.4125514323
-                 0.0000000000       0.0000000000      15.0310000000                            -18.5347747778    -175.4125514323 1770232.1829065809
-      Lengths:      15.0310000000      15.0310000000      15.0310000000, Angles:      90.0000000000      90.0000000000      90.0000000000
+Shifting parameter:  -16632.4309393231 Lowest eigenvalue:   -2919.1236711365
+Iteration: 9 Energy: -6726988.7072935496 Volume:    2884.3711823750 RMS gradient: 220.069  Max gradient: 92651.4 Number of negative eigenvalues: 13 Number of zero eigenvalues: 3
+      Box:      14.2347676485       0.0000000000       0.0000000000     Strain derivative:   30845.7192974388     363.2668361535    -877.9124600674
+                 0.0000000000      14.2347676485       0.0000000000                            363.2668361535   28557.4583180761    -226.4785194551
+                 0.0000000000       0.0000000000      14.2347676485                           -877.9124600674    -226.4785194551   33172.0152840677
+      Lengths:      14.2347676485      14.2347676485      14.2347676485, Angles:      90.0000000000      90.0000000000      90.0000000000
 
 Computing generalized Hessian matrix
 Computing eigenvalues and vectors
-Shifting parameter:   -6531.0519621639 Lowest eigenvalue:     102.7654106788
-Iteration: 10 Energy: -6561967.9461386157 Volume:    3395.9682747910 RMS gradient: 24.5955  Max gradient: 1190.62 Number of negative eigenvalues: 0 Number of zero eigenvalues: 3
-      Box:      15.0310000000       0.0000000000       0.0000000000     Strain derivative: 1777877.5691757801     131.3872047256     -31.5666013799
-                 0.0000000000      15.0310000000       0.0000000000                            131.3872047256 1778488.0365417975    -121.5045973613
-                 0.0000000000       0.0000000000      15.0310000000                            -31.5666013799    -121.5045973613 1776726.0051457803
-      Lengths:      15.0310000000      15.0310000000      15.0310000000, Angles:      90.0000000000      90.0000000000      90.0000000000
+Shifting parameter:  -13336.9467619721 Lowest eigenvalue:   -2221.8448868474
+Iteration: 10 Energy: -6732850.7011070279 Volume:    2879.9398356035 RMS gradient: 167.512  Max gradient: 69964.3 Number of negative eigenvalues: 8 Number of zero eigenvalues: 3
+      Box:      14.2274741440       0.0000000000       0.0000000000     Strain derivative:   23164.1647337504     382.6145697008    -705.9166817343
+                 0.0000000000      14.2274741440       0.0000000000                            382.6145697008   21606.8947285885    -253.3723215213
+                 0.0000000000       0.0000000000      14.2274741440                           -705.9166817343    -253.3723215213   25154.7330146794
+      Lengths:      14.2274741440      14.2274741440      14.2274741440, Angles:      90.0000000000      90.0000000000      90.0000000000
 
 Computing generalized Hessian matrix
 Computing eigenvalues and vectors
-Shifting parameter:   -4309.2692557674 Lowest eigenvalue:    3458.4323474118
-Iteration: 11 Energy: -6564420.6486300649 Volume:    3395.9682747910 RMS gradient: 20.468  Max gradient: 988.804 Number of negative eigenvalues: 0 Number of zero eigenvalues: 3
-      Box:      15.0310000000       0.0000000000       0.0000000000     Strain derivative: 1788536.7120348271      89.1879503098     -24.1746211790
-                 0.0000000000      15.0310000000       0.0000000000                             89.1879503098 1789013.3446504490     -76.1477571587
-                 0.0000000000       0.0000000000      15.0310000000                            -24.1746211790     -76.1477571587 1787722.6842667232
-      Lengths:      15.0310000000      15.0310000000      15.0310000000, Angles:      90.0000000000      90.0000000000      90.0000000000
+Shifting parameter:   -9985.3474569855 Lowest eigenvalue:   -1150.2909165243
+Iteration: 11 Energy: -6737854.6180195529 Volume:    2876.8498527030 RMS gradient: 129.256  Max gradient: 53729.9 Number of negative eigenvalues: 8 Number of zero eigenvalues: 3
+      Box:      14.2223839469       0.0000000000       0.0000000000     Strain derivative:   17667.3122209231     350.4148788735    -537.7336414022
+                 0.0000000000      14.2223839469       0.0000000000                            350.4148788735   16606.3260468767    -238.6433900797
+                 0.0000000000       0.0000000000      14.2223839469                           -537.7336414022    -238.6433900797   19429.6495792627
+      Lengths:      14.2223839469      14.2223839469      14.2223839469, Angles:      90.0000000000      90.0000000000      90.0000000000
 
 Computing generalized Hessian matrix
 Computing eigenvalues and vectors
-Shifting parameter:   -1563.9674735439 Lowest eigenvalue:    4146.8242214889
-Iteration: 12 Energy: -6566374.0392032815 Volume:    3395.9682747910 RMS gradient: 14.1136  Max gradient: 735.902 Number of negative eigenvalues: 0 Number of zero eigenvalues: 3
-      Box:      15.0310000000       0.0000000000       0.0000000000     Strain derivative: 1802638.0925272964      42.3029817201      -2.0142823485
-                 0.0000000000      15.0310000000       0.0000000000                             42.3029817201 1802939.7797313470     -39.6813681206
-                 0.0000000000       0.0000000000      15.0310000000                             -2.0142823485     -39.6813681206 1802273.4690601237
-      Lengths:      15.0310000000      15.0310000000      15.0310000000, Angles:      90.0000000000      90.0000000000      90.0000000000
+Shifting parameter:   -6410.3134625633 Lowest eigenvalue:   -1461.4454578427
+Iteration: 12 Energy: -6741774.0371542210 Volume:    2875.9035348332 RMS gradient: 108.888  Max gradient: 45551.1 Number of negative eigenvalues: 6 Number of zero eigenvalues: 3
+      Box:      14.2208243275       0.0000000000       0.0000000000     Strain derivative:   14854.1312695709     295.6373363207    -415.0772372314
+                 0.0000000000      14.2208243275       0.0000000000                            295.6373363207   14075.0556702284    -225.2318429163
+                 0.0000000000       0.0000000000      14.2208243275                           -415.0772372314    -225.2318429163   16605.2682013134
+      Lengths:      14.2208243275      14.2208243275      14.2208243275, Angles:      90.0000000000      90.0000000000      90.0000000000
 
 Computing generalized Hessian matrix
 Computing eigenvalues and vectors
-Shifting parameter:     -37.1303566702 Lowest eigenvalue:    4264.2711052856
-Iteration: 13 Energy: -6567279.5887819445 Volume:    3395.9682747910 RMS gradient: 5.16668  Max gradient: 322.266 Number of negative eigenvalues: 0 Number of zero eigenvalues: 3
-      Box:      15.0310000000       0.0000000000       0.0000000000     Strain derivative: 1816964.3543647840      -0.9587114774      16.1909861871
-                 0.0000000000      15.0310000000       0.0000000000                             -0.9587114774 1817025.2017881772      -7.9802883613
-                 0.0000000000       0.0000000000      15.0310000000                             16.1909861871      -7.9802883612 1816993.5342025454
-      Lengths:      15.0310000000      15.0310000000      15.0310000000, Angles:      90.0000000000      90.0000000000      90.0000000000
+Shifting parameter:   -2441.2657099007 Lowest eigenvalue:   -1791.4808921910
+Iteration: 13 Energy: -6744658.5339679709 Volume:    2875.2997903393 RMS gradient: 86.3662  Max gradient: 36507 Number of negative eigenvalues: 6 Number of zero eigenvalues: 3
+      Box:      14.2198291220       0.0000000000       0.0000000000     Strain derivative:   11768.2272877676     252.0076126695    -337.9002468410
+                 0.0000000000      14.2198291220       0.0000000000                            252.0076126696   11113.2277495155    -242.1649837059
+                 0.0000000000       0.0000000000      14.2198291220                           -337.9002468409    -242.1649837059   13619.8482405465
+      Lengths:      14.2198291220      14.2198291220      14.2198291220, Angles:      90.0000000000      90.0000000000      90.0000000000
 
 Computing generalized Hessian matrix
 Computing eigenvalues and vectors
-Shifting parameter:      -0.0063088305 Lowest eigenvalue:    4250.6610459552
-Iteration: 14 Energy: -6567302.0670158574 Volume:    3395.9682747910 RMS gradient: 0.0416325  Max gradient: 3.40801 Number of negative eigenvalues: 0 Number of zero eigenvalues: 3
-      Box:      15.0310000000       0.0000000000       0.0000000000     Strain derivative: 1812738.3900289913      -0.0294959655       0.2450119312
-                 0.0000000000      15.0310000000       0.0000000000                             -0.0294959655 1812738.8056793788       0.1236632544
-                 0.0000000000       0.0000000000      15.0310000000                              0.2450119312       0.1236632544 1812734.7622997749
-      Lengths:      15.0310000000      15.0310000000      15.0310000000, Angles:      90.0000000000      90.0000000000      90.0000000000
+Shifting parameter:   -2286.1248811287 Lowest eigenvalue:   -2285.6781189405
+Iteration: 14 Energy: -6746079.2524778377 Volume:    2873.5319940677 RMS gradient: 37.2608  Max gradient: 15765.7 Number of negative eigenvalues: 6 Number of zero eigenvalues: 3
+      Box:      14.2169143054       0.0000000000       0.0000000000     Strain derivative:    4837.8878292753     544.0121982820    -686.8932603894
+                 0.0000000000      14.2169143054       0.0000000000                            544.0121982821    4400.4792097739    -863.1171755105
+                 0.0000000000       0.0000000000      14.2169143054                           -686.8932603894    -863.1171755105    6528.1978110623
+      Lengths:      14.2169143054      14.2169143054      14.2169143054, Angles:      90.0000000000      90.0000000000      90.0000000000
 
 Computing generalized Hessian matrix
 Computing eigenvalues and vectors
-Shifting parameter:      -0.0000000007 Lowest eigenvalue:    4250.7084089771
-Iteration: 15 Energy: -6567302.0708105033 Volume:    3395.9682747910 RMS gradient: 1.6173e-05  Max gradient: 0.00136464 Number of negative eigenvalues: 0 Number of zero eigenvalues: 3
-      Box:      15.0310000000       0.0000000000       0.0000000000     Strain derivative: 1812726.3735951933       0.0000199419       0.0000468550
-                 0.0000000000      15.0310000000       0.0000000000                              0.0000199419 1812726.3736424067       0.0000349899
-                 0.0000000000       0.0000000000      15.0310000000                              0.0000468550       0.0000349899 1812726.3735833231
-      Lengths:      15.0310000000      15.0310000000      15.0310000000, Angles:      90.0000000000      90.0000000000      90.0000000000
+Shifting parameter:   -2281.3296068065 Lowest eigenvalue:   -2280.5135873981
+Iteration: 15 Energy: -6746193.7441927008 Volume:    2873.4442209160 RMS gradient: 61.2016  Max gradient: 26140 Number of negative eigenvalues: 6 Number of zero eigenvalues: 3
+      Box:      14.2167695502       0.0000000000       0.0000000000     Strain derivative:    8512.1044430456   11875.1252010833   -1017.6491077281
+                 0.0000000000      14.2167695502       0.0000000000                          11875.1252010832    8070.0729773453   -1216.9807687961
+                 0.0000000000       0.0000000000      14.2167695502                          -1017.6491077280   -1216.9807687961    9664.7425777064
+      Lengths:      14.2167695502      14.2167695502      14.2167695502, Angles:      90.0000000000      90.0000000000      90.0000000000
 
 Computing generalized Hessian matrix
 Computing eigenvalues and vectors
-Shifting parameter:      -0.0000000000 Lowest eigenvalue:    4250.7084315048
-Iteration: 16 Energy: -6567302.0708104949 Volume:    3395.9682747910 RMS gradient: 8.56799e-12  Max gradient: 9.81373e-10 Number of negative eigenvalues: 0 Number of zero eigenvalues: 3
-      Box:      15.0310000000       0.0000000000       0.0000000000     Strain derivative: 1812726.3584909327       0.0000000002       0.0000000004
-                 0.0000000000      15.0310000000       0.0000000000                              0.0000000002 1812726.3584909278       0.0000000014
-                 0.0000000000       0.0000000000      15.0310000000                              0.0000000004       0.0000000014 1812726.3584909437
-      Lengths:      15.0310000000      15.0310000000      15.0310000000, Angles:      90.0000000000      90.0000000000      90.0000000000
+Shifting parameter:   -2342.3133243955 Lowest eigenvalue:   -2264.3414464534
+Iteration: 16 Energy: -6746326.9992460506 Volume:    2873.2198311621 RMS gradient: 84.0124  Max gradient: 36016.4 Number of negative eigenvalues: 6 Number of zero eigenvalues: 3
+      Box:      14.2163994740       0.0000000000       0.0000000000     Strain derivative:   11879.1707484461   12497.0451025680  -12219.5890818012
+                 0.0000000000      14.2163994740       0.0000000000                          12497.0451025679   11039.6973847393    1054.4734972066
+                 0.0000000000       0.0000000000      14.2163994740                         -12219.5890818012    1054.4734972066   13301.2211696239
+      Lengths:      14.2163994740      14.2163994740      14.2163994740, Angles:      90.0000000000      90.0000000000      90.0000000000
 
-SUCCES: RMS Gradient tolerance 1e-06 reached (8.56799e-12)
-        Max Gradient tolerance 1e-06 reached (9.81373e-10)
+Computing generalized Hessian matrix
+Computing eigenvalues and vectors
+Shifting parameter:   -2335.8843718993 Lowest eigenvalue:   -2168.7511502434
+Iteration: 17 Energy: -6746621.8067935696 Volume:    2870.6156287223 RMS gradient: 96.2836  Max gradient: 39602.7 Number of negative eigenvalues: 6 Number of zero eigenvalues: 3
+      Box:      14.2121030661       0.0000000000       0.0000000000     Strain derivative:   12928.9720069428   20302.2764514016  -19628.9575502957
+                 0.0000000000      14.2121030661       0.0000000000                          20302.2764514015   11379.1546073970    6685.9783141751
+                 0.0000000000       0.0000000000      14.2121030661                         -19628.9575502957    6685.9783141751   13707.5144158187
+      Lengths:      14.2121030661      14.2121030661      14.2121030661, Angles:      90.0000000000      90.0000000000      90.0000000000
+
+Computing generalized Hessian matrix
+Computing eigenvalues and vectors
+Shifting parameter:   -2175.4595881823 Lowest eigenvalue:   -1836.8502817945
+Iteration: 18 Energy: -6746906.4209282324 Volume:    2868.4058508934 RMS gradient: 100.804  Max gradient: 40633.1 Number of negative eigenvalues: 6 Number of zero eigenvalues: 3
+      Box:      14.2084553407       0.0000000000       0.0000000000     Strain derivative:    9174.0210143170   20978.2254237625  -20218.0646742381
+                 0.0000000000      14.2084553407       0.0000000000                          20978.2254237625   14358.4022996510   19044.7082528698
+                 0.0000000000       0.0000000000      14.2084553407                         -20218.0646742381   19044.7082528698   17362.1002815869
+      Lengths:      14.2084553407      14.2084553407      14.2084553407, Angles:      90.0000000000      90.0000000000      90.0000000000
+
+Computing generalized Hessian matrix
+Computing eigenvalues and vectors
+Shifting parameter:   -3849.9692930805 Lowest eigenvalue:   -3314.9241332031
+Iteration: 19 Energy: -6747551.1063644504 Volume:    2863.8180982037 RMS gradient: 88.8666  Max gradient: 36382.3 Number of negative eigenvalues: 6 Number of zero eigenvalues: 3
+      Box:      14.2008762572       0.0000000000       0.0000000000     Strain derivative:    2416.9239680256   23518.3087627005  -22235.8465339350
+                 0.0000000000      14.2008762572       0.0000000000                          23518.3087627004   12862.4606136760   20305.6911925528
+                 0.0000000000       0.0000000000      14.2008762572                         -22235.8465339350   20305.6911925528   21516.4341364631
+      Lengths:      14.2008762572      14.2008762572      14.2008762572, Angles:      90.0000000000      90.0000000000      90.0000000000
+
+Computing generalized Hessian matrix
+Computing eigenvalues and vectors
+Shifting parameter:   -4345.4983902791 Lowest eigenvalue:   -3660.7104276007
+Iteration: 20 Energy: -6748240.3035688838 Volume:    2859.5476754087 RMS gradient: 94.7375  Max gradient: 38969.6 Number of negative eigenvalues: 5 Number of zero eigenvalues: 3
+      Box:      14.1938141334       0.0000000000       0.0000000000     Strain derivative:   -5042.4497317176   25569.2173105272  -23632.2518613130
+                 0.0000000000      14.1938141334       0.0000000000                          25569.2173105272   10443.1366812851   21124.8713072294
+                 0.0000000000       0.0000000000      14.1938141334                         -23632.2518613130   21124.8713072294   34302.2718436728
+      Lengths:      14.1938141334      14.1938141334      14.1938141334, Angles:      90.0000000000      90.0000000000      90.0000000000
+
+Computing generalized Hessian matrix
+Computing eigenvalues and vectors
+Shifting parameter:   -4447.8650827529 Lowest eigenvalue:   -3743.5231377130
+Iteration: 21 Energy: -6749064.6436142558 Volume:    2854.5578215731 RMS gradient: 96.8237  Max gradient: 39548.2 Number of negative eigenvalues: 4 Number of zero eigenvalues: 3
+      Box:      14.1855533521       0.0000000000       0.0000000000     Strain derivative:  -12366.2960002258   26967.2049320247  -25658.3507312215
+                 0.0000000000      14.1855533521       0.0000000000                          26967.2049320246   22149.9128574810   22214.4622777963
+                 0.0000000000       0.0000000000      14.1855533521                         -25658.3507312214   22214.4622777963   30728.6624514541
+      Lengths:      14.1855533521      14.1855533521      14.1855533521, Angles:      90.0000000000      90.0000000000      90.0000000000
+
+Computing generalized Hessian matrix
+Computing eigenvalues and vectors
+Shifting parameter:   -5040.6929167070 Lowest eigenvalue:   -4109.9968749452
+Iteration: 22 Energy: -6749945.5768911000 Volume:    2848.6350838336 RMS gradient: 92.3841  Max gradient: 36724.4 Number of negative eigenvalues: 4 Number of zero eigenvalues: 3
+      Box:      14.1757356626       0.0000000000       0.0000000000     Strain derivative:  -18075.0080109604   29895.1430343613  -27367.3669164371
+                 0.0000000000      14.1757356626       0.0000000000                          29895.1430343613   15843.6969309362   24168.0126850915
+                 0.0000000000       0.0000000000      14.1757356626                         -27367.3669164371   24168.0126850915   40756.3034574628
+      Lengths:      14.1757356626      14.1757356626      14.1757356626, Angles:      90.0000000000      90.0000000000      90.0000000000
+
+Computing generalized Hessian matrix
+Computing eigenvalues and vectors
+Shifting parameter:   -4944.7923452162 Lowest eigenvalue:   -3869.3878093794
+Iteration: 23 Energy: -6750766.5148489457 Volume:    2842.7097484603 RMS gradient: 92.5473  Max gradient: 34479.8 Number of negative eigenvalues: 2 Number of zero eigenvalues: 3
+      Box:      14.1659000405       0.0000000000       0.0000000000     Strain derivative:  -12040.8992249946   30997.4159870472  -30347.9589067987
+                 0.0000000000      14.1659000405       0.0000000000                          30997.4159870473   17788.9162744524   26263.5525869094
+                 0.0000000000       0.0000000000      14.1659000405                         -30347.9589067987   26263.5525869094   31232.9099799361
+      Lengths:      14.1659000405      14.1659000405      14.1659000405, Angles:      90.0000000000      90.0000000000      90.0000000000
+
+Computing generalized Hessian matrix
+Computing eigenvalues and vectors
+Shifting parameter:   -3310.2210871798 Lowest eigenvalue:   -3056.3552681826
+Iteration: 24 Energy: -6751125.4531918848 Volume:    2836.8969704125 RMS gradient: 102.617  Max gradient: 30387.3 Number of negative eigenvalues: 1 Number of zero eigenvalues: 3
+      Box:      14.1562379658       0.0000000000       0.0000000000     Strain derivative:  -19026.3970292722   32996.3866730736  -33367.5327474951
+                 0.0000000000      14.1562379658       0.0000000000                          32996.3866730736   29603.9261680301   28139.3073566775
+                 0.0000000000       0.0000000000      14.1562379658                         -33367.5327474951   28139.3073566775   24233.0245695119
+      Lengths:      14.1562379658      14.1562379658      14.1562379658, Angles:      90.0000000000      90.0000000000      90.0000000000
+
+Computing generalized Hessian matrix
+Computing eigenvalues and vectors
+Shifting parameter:   -3856.4669714064 Lowest eigenvalue:   -2568.7583073654
+Iteration: 25 Energy: -6751705.3238172289 Volume:    2834.4652901314 RMS gradient: 107.831  Max gradient: 36483.9 Number of negative eigenvalues: 1 Number of zero eigenvalues: 3
+      Box:      14.1521920799       0.0000000000       0.0000000000     Strain derivative:   -1868.4021819549   33381.2183009267  -33693.4775246964
+                 0.0000000000      14.1521920799       0.0000000000                          33381.2183009267   23488.0880474593   30475.0438043102
+                 0.0000000000       0.0000000000      14.1521920799                         -33693.4775246964   30475.0438043101   18578.2008721033
+      Lengths:      14.1521920799      14.1521920799      14.1521920799, Angles:      90.0000000000      90.0000000000      90.0000000000
+
+Computing generalized Hessian matrix
+Computing eigenvalues and vectors
+Shifting parameter:   -3439.8691564670 Lowest eigenvalue:    2342.6591906008
+Iteration: 26 Energy: -6751211.0507485149 Volume:    2829.9792477824 RMS gradient: 131.764  Max gradient: 37465.9 Number of negative eigenvalues: 0 Number of zero eigenvalues: 3
+      Box:      14.1447220224       0.0000000000       0.0000000000     Strain derivative:   17290.7606866290   33974.1712637960  -34215.6861012960
+                 0.0000000000      14.1447220224       0.0000000000                          33974.1712637959   12074.0391519724   33918.3846878588
+                 0.0000000000       0.0000000000      14.1447220224                         -34215.6861012960   33918.3846878588    7846.9733489467
+      Lengths:      14.1447220224      14.1447220224      14.1447220224, Angles:      90.0000000000      90.0000000000      90.0000000000
+
+Computing generalized Hessian matrix
+Computing eigenvalues and vectors
+Shifting parameter:   -1502.2782164028 Lowest eigenvalue:    2309.6106499432
+Iteration: 27 Energy: -6752830.7415092951 Volume:    2827.3575018996 RMS gradient: 22.2577  Max gradient: 5264.01 Number of negative eigenvalues: 0 Number of zero eigenvalues: 3
+      Box:      14.1403526942       0.0000000000       0.0000000000     Strain derivative:   -1440.8525735169   32989.8876783398  -33000.6563185704
+                 0.0000000000      14.1403526942       0.0000000000                          32989.8876783398     258.8650589467   32466.1198872708
+                 0.0000000000       0.0000000000      14.1403526942                         -33000.6563185704   32466.1198872708    -380.2634505905
+      Lengths:      14.1403526942      14.1403526942      14.1403526942, Angles:      90.0000000000      90.0000000000      90.0000000000
+
+Computing generalized Hessian matrix
+Computing eigenvalues and vectors
+Shifting parameter: -357748.1831216527 Lowest eigenvalue: -357692.9064018234
+Iteration: 28 Energy: -6749697.2130904561 Volume:    2822.5585476572 RMS gradient: 62.3354  Max gradient: 15485.3 Number of negative eigenvalues: 2 Number of zero eigenvalues: 3
+      Box:      14.1323478894       0.0000000000       0.0000000000     Strain derivative:   15173.9959136354   33529.6894550440  -33536.5185614310
+                 0.0000000000      14.1323478894       0.0000000000                          33529.6894550441   -6834.6058676795   34114.8967686564
+                 0.0000000000       0.0000000000      14.1323478894                         -33536.5185614309   34114.8967686563   -7173.6181156143
+      Lengths:      14.1323478894      14.1323478894      14.1323478894, Angles:      90.0000000000      90.0000000000      90.0000000000
+
+Computing generalized Hessian matrix
+Computing eigenvalues and vectors
+Shifting parameter: -436484.9120121077 Lowest eigenvalue: -436482.3029145760
+Iteration: 29 Energy: -6746304.2838634951 Volume:    2822.4418228676 RMS gradient: 132.911  Max gradient: 21263.7 Number of negative eigenvalues: 1 Number of zero eigenvalues: 3
+      Box:      14.1321530758       0.0000000000       0.0000000000     Strain derivative:   33266.0054020193   33587.3829548915  -33384.3191201942
+                 0.0000000000      14.1321530758       0.0000000000                          33587.3829548915   -3895.5222992279   37604.9452673229
+                 0.0000000000       0.0000000000      14.1321530758                         -33384.3191201942   37604.9452673229  -10182.1629975947
+      Lengths:      14.1321530758      14.1321530758      14.1321530758, Angles:      90.0000000000      90.0000000000      90.0000000000
+
+Computing generalized Hessian matrix
+Computing eigenvalues and vectors
+Shifting parameter:  -13831.8369309932 Lowest eigenvalue:    2267.7463518940
+Iteration: 30 Energy: -6744432.8820785442 Volume:    2822.8900165284 RMS gradient: 218.195  Max gradient: 48056.4 Number of negative eigenvalues: 0 Number of zero eigenvalues: 3
+      Box:      14.1329010814       0.0000000000       0.0000000000     Strain derivative:   58487.9142512169   33683.9708310330  -34007.9389115913
+                 0.0000000000      14.1329010814       0.0000000000                          33683.9708310330   20478.5924560589   41415.4063548862
+                 0.0000000000       0.0000000000      14.1329010814                         -34007.9389115913   41415.4063548862  -30889.2833232172
+      Lengths:      14.1329010814      14.1329010814      14.1329010814, Angles:      90.0000000000      90.0000000000      90.0000000000
+
+Computing generalized Hessian matrix
+Computing eigenvalues and vectors
+Shifting parameter:    -856.1502011005 Lowest eigenvalue:    2295.7243432995
+Iteration: 31 Energy: -6753152.5749578997 Volume:    2825.4400232049 RMS gradient: 70.2616  Max gradient: 25609.8 Number of negative eigenvalues: 0 Number of zero eigenvalues: 3
+      Box:      14.1371553675       0.0000000000       0.0000000000     Strain derivative:   17418.1899762449   33436.7592225583  -33360.4261992040
+                 0.0000000000      14.1371553675       0.0000000000                          33436.7592225582    6505.5713099880   35378.3048116022
+                 0.0000000000       0.0000000000      14.1371553675                         -33360.4261992040   35378.3048116022    2200.1514733821
+      Lengths:      14.1371553675      14.1371553675      14.1371553675, Angles:      90.0000000000      90.0000000000      90.0000000000
+
+Computing generalized Hessian matrix
+Computing eigenvalues and vectors
+Shifting parameter:     -63.4947095313 Lowest eigenvalue:    2265.0757610162
+Iteration: 32 Energy: -6753598.3384337639 Volume:    2822.9413947600 RMS gradient: 14.05  Max gradient: 3056.32 Number of negative eigenvalues: 0 Number of zero eigenvalues: 3
+      Box:      14.1329868232       0.0000000000       0.0000000000     Strain derivative:     745.4825123002   33109.1325059725  -33175.7522239326
+                 0.0000000000      14.1329868232       0.0000000000                          33109.1325059725    1703.6336635444   32709.9628357149
+                 0.0000000000       0.0000000000      14.1329868232                         -33175.7522239326   32709.9628357149   -3794.7752631574
+      Lengths:      14.1329868232      14.1329868232      14.1329868232, Angles:      90.0000000000      90.0000000000      90.0000000000
+
+Computing generalized Hessian matrix
+Computing eigenvalues and vectors
+Shifting parameter:      -9.3195668999 Lowest eigenvalue:    2262.0406444326
+Iteration: 33 Energy: -6753630.3367941845 Volume:    2822.9722608925 RMS gradient: 6.48873  Max gradient: 2220.29 Number of negative eigenvalues: 0 Number of zero eigenvalues: 3
+      Box:      14.1330383332       0.0000000000       0.0000000000     Strain derivative:    -319.2039468392   33000.9861322130  -33067.2951024376
+                 0.0000000000      14.1330383332       0.0000000000                          33000.9861322130    2901.8793461340   32702.3314509345
+                 0.0000000000       0.0000000000      14.1330383332                         -33067.2951024376   32702.3314509345   -2430.6043952150
+      Lengths:      14.1330383332      14.1330383332      14.1330383332, Angles:      90.0000000000      90.0000000000      90.0000000000
+
+Computing generalized Hessian matrix
+Computing eigenvalues and vectors
+Shifting parameter:      -0.0115864064 Lowest eigenvalue:    2260.0152438687
+Iteration: 34 Energy: -6753635.8362397570 Volume:    2822.9495467901 RMS gradient: 0.239034  Max gradient: 76.0136 Number of negative eigenvalues: 0 Number of zero eigenvalues: 3
+      Box:      14.1330004275       0.0000000000       0.0000000000     Strain derivative:   -1020.0816019724   32983.0231592177  -33058.1474647280
+                 0.0000000000      14.1330004275       0.0000000000                          32983.0231592177    3093.4765696414   32733.3315735356
+                 0.0000000000       0.0000000000      14.1330004275                         -33058.1474647279   32733.3315735356   -2010.0520411564
+      Lengths:      14.1330004275      14.1330004275      14.1330004275, Angles:      90.0000000000      90.0000000000      90.0000000000
+
+Computing generalized Hessian matrix
+Computing eigenvalues and vectors
+Shifting parameter:      -0.0000401156 Lowest eigenvalue:    2259.9756828821
+Iteration: 35 Energy: -6753635.8431515926 Volume:    2822.9513953523 RMS gradient: 0.0137767  Max gradient: 4.46518 Number of negative eigenvalues: 0 Number of zero eigenvalues: 3
+      Box:      14.1330035124       0.0000000000       0.0000000000     Strain derivative:   -1031.8376155465   32982.0776640459  -33057.4699099874
+                 0.0000000000      14.1330035124       0.0000000000                          32982.0776640458    3116.2564844180   32733.7192061556
+                 0.0000000000       0.0000000000      14.1330035124                         -33057.4699099874   32733.7192061556   -1975.7836276116
+      Lengths:      14.1330035124      14.1330035124      14.1330035124, Angles:      90.0000000000      90.0000000000      90.0000000000
+
+Computing generalized Hessian matrix
+Computing eigenvalues and vectors
+Shifting parameter:      -0.0000001442 Lowest eigenvalue:    2259.9685622101
+Iteration: 36 Energy: -6753635.8431774639 Volume:    2822.9512761151 RMS gradient: 0.000857296  Max gradient: 0.267584 Number of negative eigenvalues: 0 Number of zero eigenvalues: 3
+      Box:      14.1330033134       0.0000000000       0.0000000000     Strain derivative:   -1033.6876941199   32982.0232069370  -33057.4311372865
+                 0.0000000000      14.1330033134       0.0000000000                          32982.0232069370    3116.3440551976   32733.7379545367
+                 0.0000000000       0.0000000000      14.1330033134                         -33057.4311372865   32733.7379545367   -1975.0103828353
+      Lengths:      14.1330033134      14.1330033134      14.1330033134, Angles:      90.0000000000      90.0000000000      90.0000000000
+
+Computing generalized Hessian matrix
+Computing eigenvalues and vectors
+Shifting parameter:      -0.0000000005 Lowest eigenvalue:    2259.9684944894
+Iteration: 37 Energy: -6753635.8431774341 Volume:    2822.9512838490 RMS gradient: 4.98439e-05  Max gradient: 0.0159188 Number of negative eigenvalues: 0 Number of zero eigenvalues: 3
+      Box:      14.1330033263       0.0000000000       0.0000000000     Strain derivative:   -1033.7231549203   32982.0198343050  -33057.4286970957
+                 0.0000000000      14.1330033263       0.0000000000                          32982.0198343049    3116.4310833857   32733.7392553006
+                 0.0000000000       0.0000000000      14.1330033263                         -33057.4286970957   32733.7392553006   -1974.8824176297
+      Lengths:      14.1330033263      14.1330033263      14.1330033263, Angles:      90.0000000000      90.0000000000      90.0000000000
+
+Computing generalized Hessian matrix
+Computing eigenvalues and vectors
+Shifting parameter:      -0.0000000000 Lowest eigenvalue:    2259.9685429743
+Iteration: 38 Energy: -6753635.8431774415 Volume:    2822.9512833475 RMS gradient: 3.12585e-06  Max gradient: 0.000955361 Number of negative eigenvalues: 0 Number of zero eigenvalues: 3
+      Box:      14.1330033255       0.0000000000       0.0000000000     Strain derivative:   -1033.7301388969   32982.0196405829  -33057.4285592885
+                 0.0000000000      14.1330033255       0.0000000000                          32982.0196405829    3116.4309761188   32733.7393209304
+                 0.0000000000       0.0000000000      14.1330033255                         -33057.4285592885   32733.7393209304   -1974.8800777261
+      Lengths:      14.1330033255      14.1330033255      14.1330033255, Angles:      90.0000000000      90.0000000000      90.0000000000
+
+Computing generalized Hessian matrix
+Computing eigenvalues and vectors
+Shifting parameter:      -0.0000000000 Lowest eigenvalue:    2259.9686986081
+Iteration: 39 Energy: -6753635.8431774508 Volume:    2822.9512833800 RMS gradient: 1.81307e-07  Max gradient: 5.67957e-05 Number of negative eigenvalues: 0 Number of zero eigenvalues: 3
+      Box:      14.1330033255       0.0000000000       0.0000000000     Strain derivative:   -1033.7302407637   32982.0196285042  -33057.4285505387
+                 0.0000000000      14.1330033255       0.0000000000                          32982.0196285042    3116.4313137296   32733.7393256331
+                 0.0000000000       0.0000000000      14.1330033255                         -33057.4285505387   32733.7393256330   -1974.8795940085
+      Lengths:      14.1330033255      14.1330033255      14.1330033255, Angles:      90.0000000000      90.0000000000      90.0000000000
+
+Computing generalized Hessian matrix
+Computing eigenvalues and vectors
+Shifting parameter:      -0.0000000000 Lowest eigenvalue:    2259.9685279070
+Iteration: 40 Energy: -6753635.8431774462 Volume:    2822.9512833779 RMS gradient: 1.1411e-08  Max gradient: 3.41258e-06 Number of negative eigenvalues: 0 Number of zero eigenvalues: 3
+      Box:      14.1330033255       0.0000000000       0.0000000000     Strain derivative:   -1033.7302672118   32982.0196278159  -33057.4285500513
+                 0.0000000000      14.1330033255       0.0000000000                          32982.0196278159    3116.4313116194   32733.7393258634
+                 0.0000000000       0.0000000000      14.1330033255                         -33057.4285500513   32733.7393258635   -1974.8795873381
+      Lengths:      14.1330033255      14.1330033255      14.1330033255, Angles:      90.0000000000      90.0000000000      90.0000000000
+
+Computing generalized Hessian matrix
+Computing eigenvalues and vectors
+Shifting parameter:      -0.0000000000 Lowest eigenvalue:    2259.9685450592
+Iteration: 41 Energy: -6753635.8431774490 Volume:    2822.9512833780 RMS gradient: 6.28478e-10  Max gradient: 2.02126e-07 Number of negative eigenvalues: 0 Number of zero eigenvalues: 3
+      Box:      14.1330033255       0.0000000000       0.0000000000     Strain derivative:   -1033.7302674919   32982.0196277720  -33057.4285500231
+                 0.0000000000      14.1330033255       0.0000000000                          32982.0196277720    3116.4313129127   32733.7393258798
+                 0.0000000000       0.0000000000      14.1330033255                         -33057.4285500231   32733.7393258798   -1974.8795855520
+      Lengths:      14.1330033255      14.1330033255      14.1330033255, Angles:      90.0000000000      90.0000000000      90.0000000000
+
+SUCCES: RMS Gradient tolerance 1e-06 reached (6.28478e-10)
+        Max Gradient tolerance 1e-06 reached (2.02126e-07)
 
 
 Variable vector:
 ================
-x: 0 = 3.768
-x: 1 = 1.4951
-x: 2 = 5.97662
-x: 3 = 3.328
-x: 4 = 0.000472678
-x: 5 = 5.56281
-x: 6 = 2.59302
-x: 7 = 2.59336
-x: 8 = 5.80566
-x: 9 = 13.5365
-x: 10 = 3.76835
-x: 11 = 5.97662
-x: 12 = 0.000125215
-x: 13 = 3.32834
-x: 14 = 5.56281
-x: 15 = 12.4382
-x: 16 = 2.59336
-x: 17 = 5.80566
-x: 18 = 11.2632
-x: 19 = 13.5368
-x: 20 = 5.97662
-x: 21 = 11.7033
-x: 22 = 0.000472678
-x: 23 = 5.56281
-x: 24 = 12.4382
-x: 25 = 12.4386
-x: 26 = 5.80566
-x: 27 = 1.49475
-x: 28 = 11.2636
-x: 29 = 5.97662
-x: 30 = 0.000125215
-x: 31 = 11.7036
-x: 32 = 5.56281
-x: 33 = 2.59302
-x: 34 = 12.4386
-x: 35 = 5.80566
-x: 36 = 3.768
-x: 37 = 13.5368
-x: 38 = 9.05296
-x: 39 = 3.328
-x: 40 = 0.000472678
-x: 41 = 9.46677
-x: 42 = 2.59302
-x: 43 = 12.4386
-x: 44 = 9.22393
-x: 45 = 1.49475
-x: 46 = 3.76835
-x: 47 = 9.05296
-x: 48 = 0.000125215
-x: 49 = 3.32834
-x: 50 = 9.46677
-x: 51 = 2.59302
-x: 52 = 2.59336
-x: 53 = 9.22393
-x: 54 = 11.2632
-x: 55 = 1.4951
-x: 56 = 9.05296
-x: 57 = 11.7033
-x: 58 = 0.000472678
-x: 59 = 9.46677
-x: 60 = 12.4382
-x: 61 = 2.59336
-x: 62 = 9.22393
-x: 63 = 13.5365
-x: 64 = 11.2636
-x: 65 = 9.05296
-x: 66 = 0.000125215
-x: 67 = 11.7036
-x: 68 = 9.46677
-x: 69 = 12.4382
-x: 70 = 12.4386
-x: 71 = 9.22393
-x: 72 = 5.97746
-x: 73 = 3.76835
-x: 74 = 1.49392
-x: 75 = 5.56365
-x: 76 = 3.32834
-x: 77 = -0.000707893
-x: 78 = 5.80649
-x: 79 = 2.59336
-x: 80 = 2.59218
-x: 81 = 11.2632
-x: 82 = 5.9778
-x: 83 = 1.49392
-x: 84 = 11.7033
-x: 85 = 5.56399
-x: 86 = -0.000707893
-x: 87 = 12.4382
-x: 88 = 5.80684
-x: 89 = 2.59218
-x: 90 = 9.05379
-x: 91 = 11.2636
-x: 92 = 1.49392
-x: 93 = 9.4676
-x: 94 = 11.7036
-x: 95 = -0.000707893
-x: 96 = 9.22476
-x: 97 = 12.4386
-x: 98 = 2.59218
-x: 99 = 3.768
-x: 100 = 9.05414
-x: 101 = 1.49392
-x: 102 = 3.328
-x: 103 = 9.46795
-x: 104 = -0.000707893
-x: 105 = 2.59302
-x: 106 = 9.22511
-x: 107 = 2.59218
-x: 108 = 5.97746
-x: 109 = 11.2636
-x: 110 = 13.5357
-x: 111 = 5.56365
-x: 112 = 11.7036
-x: 113 = -0.000707893
-x: 114 = 5.80649
-x: 115 = 12.4386
-x: 116 = 12.4374
-x: 117 = 3.768
-x: 118 = 5.9778
-x: 119 = 13.5357
-x: 120 = 3.328
-x: 121 = 5.56399
-x: 122 = -0.000707893
-x: 123 = 2.59302
-x: 124 = 5.80684
-x: 125 = 12.4374
-x: 126 = 9.05379
-x: 127 = 3.76835
-x: 128 = 13.5357
-x: 129 = 9.4676
-x: 130 = 3.32834
-x: 131 = -0.000707893
-x: 132 = 9.22476
-x: 133 = 2.59336
-x: 134 = 12.4374
-x: 135 = 11.2632
-x: 136 = 9.05414
-x: 137 = 13.5357
-x: 138 = 11.7033
-x: 139 = 9.46795
-x: 140 = -0.000707893
-x: 141 = 12.4382
-x: 142 = 9.22511
-x: 143 = 12.4374
-x: 144 = 1.49475
-x: 145 = 5.9778
-x: 146 = 3.76717
-x: 147 = 0.000125215
-x: 148 = 5.56399
-x: 149 = 3.32716
-x: 150 = 2.59302
-x: 151 = 5.80684
-x: 152 = 2.59218
-x: 153 = 1.49475
-x: 154 = 9.05414
-x: 155 = 11.2624
-x: 156 = 0.000125215
-x: 157 = 9.46795
-x: 158 = 11.7024
-x: 159 = 2.59302
-x: 160 = 9.22511
-x: 161 = 12.4374
-x: 162 = 5.97746
-x: 163 = 1.4951
-x: 164 = 11.2624
-x: 165 = 5.56365
-x: 166 = 0.000472678
-x: 167 = 11.7024
-x: 168 = 5.80649
-x: 169 = 2.59336
-x: 170 = 12.4374
-x: 171 = 13.5365
-x: 172 = 5.9778
-x: 173 = 11.2624
-x: 174 = 0.000125215
-x: 175 = 5.56399
-x: 176 = 11.7024
-x: 177 = 12.4382
-x: 178 = 5.80684
-x: 179 = 12.4374
-x: 180 = 9.05379
-x: 181 = 13.5368
-x: 182 = 11.2624
-x: 183 = 9.4676
-x: 184 = 0.000472678
-x: 185 = 11.7024
-x: 186 = 9.22476
-x: 187 = 12.4386
-x: 188 = 12.4374
-x: 189 = 13.5365
-x: 190 = 9.05414
-x: 191 = 3.76717
-x: 192 = 0.000125215
-x: 193 = 9.46795
-x: 194 = 3.32716
-x: 195 = 12.4382
-x: 196 = 9.22511
-x: 197 = 2.59218
-x: 198 = 5.97746
-x: 199 = 13.5368
-x: 200 = 3.76717
-x: 201 = 5.56365
-x: 202 = 0.000472678
-x: 203 = 3.32716
-x: 204 = 5.80649
-x: 205 = 12.4386
-x: 206 = 2.59218
-x: 207 = 9.05379
-x: 208 = 1.4951
-x: 209 = 3.76717
-x: 210 = 9.4676
-x: 211 = 0.000472678
-x: 212 = 3.32716
-x: 213 = 9.22476
-x: 214 = 2.59336
-x: 215 = 2.59218
-x: 216 = 11.2632
-x: 217 = 13.5368
-x: 218 = 9.05296
-x: 219 = 1.49475
-x: 220 = 11.2636
-x: 221 = 9.05296
-x: 222 = 3.768
-x: 223 = 1.4951
-x: 224 = 9.05296
-x: 225 = 13.5365
-x: 226 = 3.76835
-x: 227 = 9.05296
-x: 228 = 11.2632
-x: 229 = 1.4951
-x: 230 = 5.97662
-x: 231 = 13.5365
-x: 232 = 11.2636
-x: 233 = 5.97662
-x: 234 = 3.768
-x: 235 = 13.5368
-x: 236 = 5.97662
-x: 237 = 1.49475
-x: 238 = 3.76835
-x: 239 = 5.97662
-x: 240 = 9.05379
-x: 241 = 11.2636
-x: 242 = 13.5357
-x: 243 = 3.768
-x: 244 = 9.05414
-x: 245 = 13.5357
-x: 246 = 5.97746
-x: 247 = 3.76835
-x: 248 = 13.5357
-x: 249 = 11.2632
-x: 250 = 5.9778
-x: 251 = 13.5357
-x: 252 = 9.05379
-x: 253 = 3.76835
-x: 254 = 1.49392
-x: 255 = 11.2632
-x: 256 = 9.05414
-x: 257 = 1.49392
-x: 258 = 5.97746
-x: 259 = 11.2636
-x: 260 = 1.49392
-x: 261 = 3.768
-x: 262 = 5.9778
-x: 263 = 1.49392
-x: 264 = 13.5365
-x: 265 = 9.05414
-x: 266 = 11.2624
-x: 267 = 13.5365
-x: 268 = 5.9778
-x: 269 = 3.76717
-x: 270 = 9.05379
-x: 271 = 13.5368
-x: 272 = 3.76717
-x: 273 = 1.49475
-x: 274 = 9.05414
-x: 275 = 3.76717
-x: 276 = 5.97746
-x: 277 = 1.4951
-x: 278 = 3.76717
-x: 279 = 1.49475
-x: 280 = 5.9778
-x: 281 = 11.2624
-x: 282 = 9.05379
-x: 283 = 1.4951
-x: 284 = 11.2624
-x: 285 = 5.97746
-x: 286 = 13.5368
-x: 287 = 11.2624
-x: 288 = 10.8198
-x: 289 = 7.51597
-x: 290 = 13.6177
-x: 291 = 10.0132
-x: 292 = 10.0136
-x: 293 = 13.1489
-x: 294 = 7.51563
-x: 295 = 10.8202
-x: 296 = 13.6177
-x: 297 = 5.01804
-x: 298 = 10.0136
-x: 299 = 13.1489
-x: 300 = 4.21144
-x: 301 = 7.51597
-x: 302 = 13.6177
-x: 303 = 5.01804
-x: 304 = 5.01838
-x: 305 = 13.1489
-x: 306 = 7.51563
-x: 307 = 4.21179
-x: 308 = 13.6177
-x: 309 = 10.0132
-x: 310 = 5.01838
-x: 311 = 13.1489
-x: 312 = 10.8198
-x: 313 = 7.51597
-x: 314 = 1.41187
-x: 315 = 10.0132
-x: 316 = 5.01838
-x: 317 = 1.88063
-x: 318 = 7.51563
-x: 319 = 10.8202
-x: 320 = 1.41187
-x: 321 = 10.0132
-x: 322 = 10.0136
-x: 323 = 1.88063
-x: 324 = 4.21144
-x: 325 = 7.51597
-x: 326 = 1.41187
-x: 327 = 5.01804
-x: 328 = 10.0136
-x: 329 = 1.88063
-x: 330 = 7.51563
-x: 331 = 4.21179
-x: 332 = 1.41187
-x: 333 = 5.01804
-x: 334 = 5.01838
-x: 335 = 1.88063
-x: 336 = 13.6185
-x: 337 = 10.8202
-x: 338 = 7.51479
-x: 339 = 13.1498
-x: 340 = 10.0136
-x: 341 = 10.0124
-x: 342 = 4.21144
-x: 343 = 13.6189
-x: 344 = 7.51479
-x: 345 = 5.01804
-x: 346 = 13.1501
-x: 347 = 10.0124
-x: 348 = 1.4127
-x: 349 = 4.21179
-x: 350 = 7.51479
-x: 351 = 1.88147
-x: 352 = 5.01838
-x: 353 = 10.0124
-x: 354 = 10.8198
-x: 355 = 1.41305
-x: 356 = 7.51479
-x: 357 = 10.0132
-x: 358 = 1.88182
-x: 359 = 10.0124
-x: 360 = 13.6185
-x: 361 = 4.21179
-x: 362 = 7.51479
-x: 363 = 13.1498
-x: 364 = 5.01838
-x: 365 = 5.0172
-x: 366 = 10.8198
-x: 367 = 13.6189
-x: 368 = 7.51479
-x: 369 = 10.0132
-x: 370 = 13.1501
-x: 371 = 5.0172
-x: 372 = 1.4127
-x: 373 = 10.8202
-x: 374 = 7.51479
-x: 375 = 1.88147
-x: 376 = 10.0136
-x: 377 = 5.0172
-x: 378 = 4.21144
-x: 379 = 1.41305
-x: 380 = 7.51479
-x: 381 = 5.01804
-x: 382 = 1.88182
-x: 383 = 5.0172
-x: 384 = 7.51563
-x: 385 = 13.6189
-x: 386 = 10.819
-x: 387 = 10.0132
-x: 388 = 13.1501
-x: 389 = 10.0124
-x: 390 = 7.51563
-x: 391 = 1.41305
-x: 392 = 4.21061
-x: 393 = 10.0132
-x: 394 = 1.88182
-x: 395 = 5.0172
-x: 396 = 13.6185
-x: 397 = 7.51597
-x: 398 = 4.21061
-x: 399 = 13.1498
-x: 400 = 10.0136
-x: 401 = 5.0172
-x: 402 = 7.51563
-x: 403 = 13.6189
-x: 404 = 4.21061
-x: 405 = 5.01804
-x: 406 = 13.1501
-x: 407 = 5.0172
-x: 408 = 1.4127
-x: 409 = 7.51597
-x: 410 = 4.21061
-x: 411 = 1.88147
-x: 412 = 5.01838
-x: 413 = 5.0172
-x: 414 = 7.51563
-x: 415 = 1.41305
-x: 416 = 10.819
-x: 417 = 5.01804
-x: 418 = 1.88182
-x: 419 = 10.0124
-x: 420 = 13.6185
-x: 421 = 7.51597
-x: 422 = 10.819
-x: 423 = 13.1498
-x: 424 = 5.01838
-x: 425 = 10.0124
-x: 426 = 1.4127
-x: 427 = 7.51597
-x: 428 = 10.819
-x: 429 = 1.88147
-x: 430 = 10.0136
-x: 431 = 10.0124
+x: 0 = 3.66208
+x: 1 = 1.61075
+x: 2 = 5.97634
+x: 3 = 3.16952
+x: 4 = 0.0528576
+x: 5 = 6.19334
+x: 6 = 2.3376
+x: 7 = 2.47596
+x: 8 = 5.45532
+x: 9 = 13.392
+x: 10 = 3.79051
+x: 11 = 6.06198
+x: 12 = 0.00554997
+x: 13 = 3.71639
+x: 14 = 6.11859
+x: 15 = 12.6762
+x: 16 = 2.35585
+x: 17 = 5.5513
+x: 18 = 11.1586
+x: 19 = 13.3867
+x: 20 = 6.02631
+x: 21 = 11.317
+x: 22 = -0.00677571
+x: 23 = 6.11948
+x: 24 = 12.5591
+x: 25 = 12.6943
+x: 26 = 5.46132
+x: 27 = 1.49106
+x: 28 = 11.3857
+x: 29 = 5.9498
+x: 30 = -0.0544695
+x: 31 = 11.8778
+x: 32 = 6.21555
+x: 33 = 2.33097
+x: 34 = 12.6975
+x: 35 = 5.3882
+x: 36 = 3.78466
+x: 37 = 13.3895
+x: 38 = 8.96755
+x: 39 = 3.7121
+x: 40 = 0.00359648
+x: 41 = 8.91054
+x: 42 = 2.3478
+x: 43 = 12.6756
+x: 44 = 9.47119
+x: 45 = 1.61219
+x: 46 = 3.66577
+x: 47 = 9.0539
+x: 48 = 0.0547324
+x: 49 = 3.17252
+x: 50 = 8.83797
+x: 51 = 2.47542
+x: 52 = 2.33982
+x: 53 = 9.57472
+x: 54 = 11.3837
+x: 55 = 1.50266
+x: 56 = 9.079
+x: 57 = 11.8638
+x: 58 = -0.0561126
+x: 59 = 8.83635
+x: 60 = 12.698
+x: 61 = 2.33538
+x: 62 = 9.64869
+x: 63 = 13.3857
+x: 64 = 11.1467
+x: 65 = 9.01297
+x: 66 = -0.00223154
+x: 67 = 11.2253
+x: 68 = 9.13292
+x: 69 = 12.6936
+x: 70 = 12.552
+x: 71 = 9.56944
+x: 72 = 6.02599
+x: 73 = 3.87429
+x: 74 = 1.64187
+x: 75 = 6.11933
+x: 76 = 3.71515
+x: 77 = 0.00457433
+x: 78 = 5.45565
+x: 79 = 2.47595
+x: 80 = 2.33776
+x: 81 = 11.3684
+x: 82 = 5.97862
+x: 83 = 1.61029
+x: 84 = 11.8625
+x: 85 = 6.19373
+x: 86 = 0.0529947
+x: 87 = 12.6928
+x: 88 = 5.45821
+x: 89 = 2.47565
+x: 90 = 8.96814
+x: 91 = 11.2428
+x: 92 = 1.63626
+x: 93 = 8.91155
+x: 94 = 11.3164
+x: 95 = -0.00811266
+x: 96 = 9.4786
+x: 97 = 12.6768
+x: 98 = 2.35287
+x: 99 = 3.64811
+x: 100 = 9.08131
+x: 101 = 1.5009
+x: 102 = 3.16644
+x: 103 = 8.84084
+x: 104 = -0.0573094
+x: 105 = 2.33482
+x: 106 = 9.65344
+x: 107 = 2.33326
+x: 108 = 5.97674
+x: 109 = 11.3682
+x: 110 = 13.418
+x: 111 = 6.19248
+x: 112 = 11.8629
+x: 113 = -0.0558578
+x: 114 = 5.45636
+x: 115 = 12.6932
+x: 116 = 12.5541
+x: 117 = 3.87377
+x: 118 = 6.02817
+x: 119 = 13.3865
+x: 120 = 3.71459
+x: 121 = 6.12118
+x: 122 = -0.00727448
+x: 123 = 2.47488
+x: 124 = 5.46017
+x: 125 = 12.6906
+x: 126 = 9.08028
+x: 127 = 3.64989
+x: 128 = 13.5258
+x: 129 = 8.83919
+x: 130 = 3.17017
+x: 131 = 0.0534348
+x: 132 = 9.64916
+x: 133 = 2.33395
+x: 134 = 12.6954
+x: 135 = 11.2451
+x: 136 = 8.9697
+x: 137 = 13.3887
+x: 138 = 11.3184
+x: 139 = 8.91352
+x: 140 = 0.00270753
+x: 141 = 12.6796
+x: 142 = 9.47833
+x: 143 = 12.6708
+x: 144 = 1.63841
+x: 145 = 6.06551
+x: 146 = 3.78796
+x: 147 = -0.00587304
+x: 148 = 6.12231
+x: 149 = 3.71436
+x: 150 = 2.35397
+x: 151 = 5.55439
+x: 152 = 2.35368
+x: 153 = 1.65265
+x: 154 = 9.01506
+x: 155 = 11.1402
+x: 156 = 0.00717856
+x: 157 = 8.92296
+x: 158 = 11.2968
+x: 159 = 2.33811
+x: 160 = 9.57608
+x: 161 = 12.548
+x: 162 = 6.06283
+x: 163 = 1.63794
+x: 164 = 11.2407
+x: 165 = 6.11909
+x: 166 = -0.00662253
+x: 167 = 11.314
+x: 168 = 5.55247
+x: 169 = 2.35441
+x: 170 = 12.6749
+x: 171 = 13.5283
+x: 172 = 5.95799
+x: 173 = 11.3793
+x: 174 = 0.0553846
+x: 175 = 6.20212
+x: 176 = 11.8579
+x: 177 = 12.6991
+x: 178 = 5.38591
+x: 179 = 12.6947
+x: 180 = 9.05381
+x: 181 = 13.4182
+x: 182 = 11.3644
+x: 183 = 8.83849
+x: 184 = -0.0554005
+x: 185 = 11.8584
+x: 186 = 9.57448
+x: 187 = 12.5553
+x: 188 = 12.69
+x: 189 = 13.4221
+x: 190 = 9.05839
+x: 191 = 3.65965
+x: 192 = -0.0545536
+x: 193 = 8.8407
+x: 194 = 3.15956
+x: 195 = 12.5546
+x: 196 = 9.58022
+x: 197 = 2.33751
+x: 198 = 5.95148
+x: 199 = 13.5256
+x: 200 = 3.65039
+x: 201 = 6.19196
+x: 202 = 0.0531831
+x: 203 = 3.17046
+x: 204 = 5.38191
+x: 205 = 12.6959
+x: 206 = 2.3346
+x: 207 = 9.00455
+x: 208 = 1.64256
+x: 209 = 3.87342
+x: 210 = 8.91181
+x: 211 = 0.00513146
+x: 212 = 3.7144
+x: 213 = 9.57536
+x: 214 = 2.33924
+x: 215 = 2.47581
+x: 216 = 11.3696
+x: 217 = 13.4171
+x: 218 = 9.05157
+x: 219 = 1.63969
+x: 220 = 11.2324
+x: 221 = 8.97471
+x: 222 = 3.87228
+x: 223 = 1.64139
+x: 224 = 9.00402
+x: 225 = 13.5274
+x: 226 = 3.65207
+x: 227 = 9.07948
+x: 228 = 11.2428
+x: 229 = 1.63813
+x: 230 = 6.06241
+x: 231 = 13.4314
+x: 232 = 11.3729
+x: 233 = 5.97499
+x: 234 = 3.64864
+x: 235 = 13.525
+x: 236 = 5.95319
+x: 237 = 1.6429
+x: 238 = 3.87511
+x: 239 = 6.02532
+x: 240 = 9.00488
+x: 241 = 11.157
+x: 242 = 13.3857
+x: 243 = 3.66111
+x: 244 = 9.05576
+x: 245 = 13.416
+x: 246 = 6.06271
+x: 247 = 3.7889
+x: 248 = 13.3909
+x: 249 = 11.3828
+x: 250 = 5.95305
+x: 251 = 13.5254
+x: 252 = 9.05447
+x: 253 = 3.66398
+x: 254 = 1.61094
+x: 255 = 11.1584
+x: 256 = 9.00699
+x: 257 = 1.64002
+x: 258 = 5.95165
+x: 259 = 11.3819
+x: 260 = 1.50208
+x: 261 = 3.78816
+x: 262 = 6.06424
+x: 263 = 1.63713
+x: 264 = 13.3856
+x: 265 = 8.97865
+x: 266 = 11.2268
+x: 267 = 13.3881
+x: 268 = 6.02958
+x: 269 = 3.87353
+x: 270 = 8.96905
+x: 271 = 13.3915
+x: 272 = 3.788
+x: 273 = 1.50085
+x: 274 = 9.08318
+x: 275 = 3.64594
+x: 276 = 5.97639
+x: 277 = 1.61116
+x: 278 = 3.66255
+x: 279 = 1.61245
+x: 280 = 5.98343
+x: 281 = 11.3653
+x: 282 = 9.07983
+x: 283 = 1.50325
+x: 284 = 11.3799
+x: 285 = 6.02525
+x: 286 = 13.3871
+x: 287 = 11.1548
+x: 288 = 10.8954
+x: 289 = 7.41544
+x: 290 = 12.8811
+x: 291 = 10.022
+x: 292 = 9.95602
+x: 293 = 12.8929
+x: 294 = 7.45498
+x: 295 = 10.8454
+x: 296 = 12.8305
+x: 297 = 4.83687
+x: 298 = 10.1943
+x: 299 = 13.2812
+x: 300 = 4.18684
+x: 301 = 7.57757
+x: 302 = 12.8313
+x: 303 = 5.0752
+x: 304 = 5.01075
+x: 305 = 12.8941
+x: 306 = 7.61714
+x: 307 = 4.13573
+x: 308 = 12.8813
+x: 309 = 10.2136
+x: 310 = 4.8193
+x: 311 = 13.3901
+x: 312 = 10.8474
+x: 313 = 7.45758
+x: 314 = 2.19694
+x: 315 = 10.1936
+x: 316 = 4.83921
+x: 317 = 1.74671
+x: 318 = 7.41428
+x: 319 = 10.8952
+x: 320 = 2.14653
+x: 321 = 9.95511
+x: 322 = 10.0211
+x: 323 = 2.13324
+x: 324 = 4.13415
+x: 325 = 7.61876
+x: 326 = 2.14651
+x: 327 = 4.81797
+x: 328 = 10.2134
+x: 329 = 1.63686
+x: 330 = 7.5757
+x: 331 = 4.18567
+x: 332 = 2.19789
+x: 333 = 5.01019
+x: 334 = 5.07703
+x: 335 = 2.13444
+x: 336 = 12.8763
+x: 337 = 10.8338
+x: 338 = 7.45012
+x: 339 = 12.8297
+x: 340 = 9.95265
+x: 341 = 10.0096
+x: 342 = 4.12932
+x: 343 = 12.8751
+x: 344 = 7.41477
+x: 345 = 5.00652
+x: 346 = 12.8932
+x: 347 = 9.95508
+x: 348 = 2.19924
+x: 349 = 4.18623
+x: 350 = 7.57483
+x: 351 = 1.74834
+x: 352 = 4.84221
+x: 353 = 10.1918
+x: 354 = 10.8965
+x: 355 = 2.14744
+x: 356 = 7.6167
+x: 357 = 10.2138
+x: 358 = 1.63832
+x: 359 = 10.2114
+x: 360 = 12.8823
+x: 361 = 4.13675
+x: 362 = 7.61634
+x: 363 = 12.8951
+x: 364 = 5.01372
+x: 365 = 5.07599
+x: 366 = 10.8509
+x: 367 = 12.8256
+x: 368 = 7.57407
+x: 369 = 9.95826
+x: 370 = 12.8934
+x: 371 = 5.00833
+x: 372 = 2.10325
+x: 373 = 10.8802
+x: 374 = 7.40992
+x: 375 = 1.6298
+x: 376 = 10.2169
+x: 377 = 4.81627
+x: 378 = 4.1844
+x: 379 = 2.19749
+x: 380 = 7.45462
+x: 381 = 4.83703
+x: 382 = 1.74697
+x: 383 = 4.8373
+x: 384 = 7.57497
+x: 385 = 12.8315
+x: 386 = 10.842
+x: 387 = 10.1939
+x: 388 = 13.2816
+x: 389 = 10.1901
+x: 390 = 7.45479
+x: 391 = 2.19812
+x: 392 = 4.18503
+x: 393 = 10.02
+x: 394 = 2.13474
+x: 395 = 5.07623
+x: 396 = 12.8345
+x: 397 = 7.58057
+x: 398 = 4.18396
+x: 399 = 13.2923
+x: 400 = 10.1982
+x: 401 = 4.83557
+x: 402 = 7.41494
+x: 403 = 12.8814
+x: 404 = 4.13615
+x: 405 = 4.81781
+x: 406 = 13.3895
+x: 407 = 4.81969
+x: 408 = 2.14597
+x: 409 = 7.62092
+x: 410 = 4.13431
+x: 411 = 2.13559
+x: 412 = 5.07803
+x: 413 = 5.00981
+x: 414 = 7.61705
+x: 415 = 2.14766
+x: 416 = 10.893
+x: 417 = 5.07539
+x: 418 = 2.134
+x: 419 = 10.0188
+x: 420 = 12.8816
+x: 421 = 7.41927
+x: 422 = 10.8928
+x: 423 = 13.3924
+x: 424 = 4.82284
+x: 425 = 10.2114
+x: 426 = 2.20262
+x: 427 = 7.46011
+x: 428 = 10.8426
+x: 429 = 2.20332
+x: 430 = 10.0202
+x: 431 = 9.94253
+x: 432 = -0.059743
 
 
 
 
 Gradient vector:
 ================
-Gradient: 0 = -1.30967e-10
-Gradient: 1 = -1.60298e-11
-Gradient: 2 = -1.63709e-11
-Gradient: 3 = -1.08912e-10
-Gradient: 4 = 3.94493e-10
-Gradient: 5 = -1.5342e-10
-Gradient: 6 = 4.61569e-11
-Gradient: 7 = -1.2551e-10
-Gradient: 8 = 3.52429e-12
-Gradient: 9 = -2.21462e-10
-Gradient: 10 = 5.82077e-11
-Gradient: 11 = -1.29603e-10
-Gradient: 12 = 1.70758e-10
-Gradient: 13 = -2.31921e-11
-Gradient: 14 = -1.82467e-11
-Gradient: 15 = -2.45564e-11
-Gradient: 16 = -1.44723e-10
-Gradient: 17 = 9.20863e-12
-Gradient: 18 = 1.92813e-10
-Gradient: 19 = 3.18437e-10
-Gradient: 20 = -1.59162e-10
-Gradient: 21 = -5.36602e-11
-Gradient: 22 = -3.01043e-10
-Gradient: 23 = 4.46789e-11
-Gradient: 24 = 1.02318e-11
-Gradient: 25 = 4.09273e-12
-Gradient: 26 = 2.52385e-11
-Gradient: 27 = -2.23963e-11
-Gradient: 28 = 1.47338e-10
-Gradient: 29 = -9.86802e-11
-Gradient: 30 = 3.01952e-10
-Gradient: 31 = 6.59384e-11
-Gradient: 32 = -1.51203e-11
-Gradient: 33 = -1.76897e-10
-Gradient: 34 = -6.969e-11
-Gradient: 35 = -1.60298e-11
-Gradient: 36 = 1.65073e-10
-Gradient: 37 = -1.16529e-10
-Gradient: 38 = -5.29326e-10
-Gradient: 39 = -1.52113e-10
-Gradient: 40 = 1.91903e-10
-Gradient: 41 = 1.91676e-10
-Gradient: 42 = -1.26533e-10
-Gradient: 43 = -1.11413e-10
-Gradient: 44 = 6.53699e-11
-Gradient: 45 = 2.54431e-10
-Gradient: 46 = -4.36557e-11
-Gradient: 47 = -3.21506e-10
-Gradient: 48 = 6.82121e-13
-Gradient: 49 = -8.86757e-11
-Gradient: 50 = 5.8094e-11
-Gradient: 51 = -1.50067e-10
-Gradient: 52 = 1.00158e-10
-Gradient: 53 = 5.70708e-11
-Gradient: 54 = -5.37966e-10
-Gradient: 55 = -7.46923e-11
-Gradient: 56 = -4.45652e-11
-Gradient: 57 = -5.6616e-11
-Gradient: 58 = -3.56522e-10
-Gradient: 59 = -4.69527e-11
-Gradient: 60 = 5.37398e-10
-Gradient: 61 = 1.7053e-10
-Gradient: 62 = -1.01181e-11
-Gradient: 63 = -1.37447e-10
-Gradient: 64 = 8.2764e-11
-Gradient: 65 = -1.29148e-10
-Gradient: 66 = 2.04636e-10
-Gradient: 67 = 8.70841e-11
-Gradient: 68 = 1.89857e-11
-Gradient: 69 = 5.68434e-11
-Gradient: 70 = 5.17275e-11
-Gradient: 71 = -1.39039e-10
-Gradient: 72 = -9.59517e-11
-Gradient: 73 = 1.45519e-11
-Gradient: 74 = 1.10504e-10
-Gradient: 75 = -1.94575e-10
-Gradient: 76 = -1.62117e-10
-Gradient: 77 = 5.78893e-10
-Gradient: 78 = 2.4329e-11
-Gradient: 79 = -4.36557e-11
-Gradient: 80 = -3.97904e-11
-Gradient: 81 = -4.67935e-10
-Gradient: 82 = 7.27596e-12
-Gradient: 83 = 7.50333e-12
-Gradient: 84 = -1.90994e-11
-Gradient: 85 = 7.37828e-11
-Gradient: 86 = -2.46473e-10
-Gradient: 87 = 3.7835e-10
-Gradient: 88 = 1.16415e-10
-Gradient: 89 = 2.27374e-11
-Gradient: 90 = -4.54747e-12
-Gradient: 91 = 5.32054e-11
-Gradient: 92 = 1.50521e-10
-Gradient: 93 = 6.12204e-11
-Gradient: 94 = -5.13865e-11
-Gradient: 95 = -9.9817e-11
-Gradient: 96 = -8.95852e-11
-Gradient: 97 = -6.2073e-11
-Gradient: 98 = -2.46928e-10
-Gradient: 99 = 1.30512e-10
-Gradient: 100 = -4.75666e-10
-Gradient: 101 = -2.22826e-11
-Gradient: 102 = -9.004e-11
-Gradient: 103 = 1.20053e-10
-Gradient: 104 = 1.89175e-10
-Gradient: 105 = -1.63709e-10
-Gradient: 106 = 7.00311e-11
-Gradient: 107 = 1.32331e-10
-Gradient: 108 = 9.95897e-11
-Gradient: 109 = 5.00222e-11
-Gradient: 110 = -2.59547e-10
-Gradient: 111 = -8.49809e-11
-Gradient: 112 = -1.79625e-11
-Gradient: 113 = 2.62389e-10
-Gradient: 114 = -5.91172e-12
-Gradient: 115 = 2.11458e-11
-Gradient: 116 = 2.13731e-11
-Gradient: 117 = 6.09361e-11
-Gradient: 118 = -1.03228e-10
-Gradient: 119 = 3.16845e-10
-Gradient: 120 = 2.86491e-11
-Gradient: 121 = -1.93268e-12
-Gradient: 122 = -2.51703e-10
-Gradient: 123 = -1.08912e-10
-Gradient: 124 = 4.8658e-11
-Gradient: 125 = 3.31966e-11
-Gradient: 126 = -6.65295e-10
-Gradient: 127 = -8.59472e-11
-Gradient: 128 = -9.7657e-11
-Gradient: 129 = 2.01453e-10
-Gradient: 130 = -1.15506e-10
-Gradient: 131 = 2.52612e-10
-Gradient: 132 = 9.16316e-11
-Gradient: 133 = 2.36469e-11
-Gradient: 134 = -2.91038e-11
-Gradient: 135 = 8.54925e-11
-Gradient: 136 = 2.92857e-10
-Gradient: 137 = 1.23919e-10
-Gradient: 138 = -1.12777e-10
-Gradient: 139 = -5.03633e-11
-Gradient: 140 = -1.58025e-10
-Gradient: 141 = 9.02673e-11
-Gradient: 142 = -1.08912e-10
-Gradient: 143 = 8.73115e-11
-Gradient: 144 = 1.33923e-10
-Gradient: 145 = -2.95586e-11
-Gradient: 146 = 9.1859e-11
-Gradient: 147 = -3.17414e-10
-Gradient: 148 = 3.34808e-11
-Gradient: 149 = 3.11502e-11
-Gradient: 150 = 5.41149e-11
-Gradient: 151 = 3.81988e-11
-Gradient: 152 = -1.03682e-10
-Gradient: 153 = 2.5409e-10
-Gradient: 154 = 2.27828e-10
-Gradient: 155 = 2.69665e-10
-Gradient: 156 = 2.94676e-10
-Gradient: 157 = 9.54401e-11
-Gradient: 158 = 1.01863e-10
-Gradient: 159 = -1.78147e-10
-Gradient: 160 = -9.27685e-11
-Gradient: 161 = -1.94177e-10
-Gradient: 162 = -2.10093e-10
-Gradient: 163 = 7.53744e-11
-Gradient: 164 = 3.5925e-11
-Gradient: 165 = -4.33147e-11
-Gradient: 166 = 2.48292e-10
-Gradient: 167 = 6.0254e-11
-Gradient: 168 = 1.2551e-10
-Gradient: 169 = 3.97904e-11
-Gradient: 170 = 3.34694e-10
-Gradient: 171 = 1.18575e-10
-Gradient: 172 = -2.16005e-10
-Gradient: 173 = 9.64064e-11
-Gradient: 174 = -1.63482e-10
-Gradient: 175 = 4.91127e-11
-Gradient: 176 = -1.10276e-11
-Gradient: 177 = 4.02451e-11
-Gradient: 178 = 2.68301e-11
-Gradient: 179 = 3.7744e-11
-Gradient: 180 = 3.65162e-10
-Gradient: 181 = -3.79941e-10
-Gradient: 182 = -5.00222e-12
-Gradient: 183 = 1.10958e-10
-Gradient: 184 = 2.18733e-10
-Gradient: 185 = 5.74119e-11
-Gradient: 186 = 6.36646e-12
-Gradient: 187 = 1.26192e-10
-Gradient: 188 = -3.5925e-11
-Gradient: 189 = 2.31807e-10
-Gradient: 190 = -4.50655e-10
-Gradient: 191 = -2.65572e-10
-Gradient: 192 = -1.53022e-10
-Gradient: 193 = 1.12323e-10
-Gradient: 194 = 3.75167e-12
-Gradient: 195 = 3.54703e-11
-Gradient: 196 = 6.35509e-11
-Gradient: 197 = 1.437e-10
-Gradient: 198 = 1.36424e-10
-Gradient: 199 = -8.35598e-11
-Gradient: 200 = 4.8658e-11
-Gradient: 201 = -5.11591e-11
-Gradient: 202 = 1.92586e-10
-Gradient: 203 = -5.97993e-11
-Gradient: 204 = -5.68434e-13
-Gradient: 205 = -9.16316e-11
-Gradient: 206 = -5.36602e-11
-Gradient: 207 = 8.6402e-12
-Gradient: 208 = -9.77707e-11
-Gradient: 209 = 8.86757e-11
-Gradient: 210 = -1.25738e-10
-Gradient: 211 = -2.52612e-10
-Gradient: 212 = 5.22959e-11
-Gradient: 213 = 4.79758e-11
-Gradient: 214 = 1.25169e-10
-Gradient: 215 = -1.70985e-10
-Gradient: 216 = 2.70575e-10
-Gradient: 217 = 1.89971e-10
-Gradient: 218 = 1.47338e-10
-Gradient: 219 = 4.70664e-11
-Gradient: 220 = 2.08274e-10
-Gradient: 221 = 4.00178e-11
-Gradient: 222 = -2.95586e-11
-Gradient: 223 = 7.38964e-12
-Gradient: 224 = -5.28871e-10
-Gradient: 225 = -4.32692e-10
-Gradient: 226 = -9.68612e-11
-Gradient: 227 = -3.2378e-10
-Gradient: 228 = -2.87855e-10
-Gradient: 229 = 7.50333e-11
-Gradient: 230 = 2.76941e-10
-Gradient: 231 = -1.20849e-10
-Gradient: 232 = -3.13776e-11
-Gradient: 233 = 8.41283e-11
-Gradient: 234 = 9.91349e-11
-Gradient: 235 = -1.61322e-10
-Gradient: 236 = 1.58707e-10
-Gradient: 237 = -7.18501e-11
-Gradient: 238 = -1.22327e-10
-Gradient: 239 = 1.90994e-11
-Gradient: 240 = -5.12955e-10
-Gradient: 241 = 9.3678e-11
-Gradient: 242 = 2.03755e-10
-Gradient: 243 = 1.844e-10
-Gradient: 244 = 2.85581e-10
-Gradient: 245 = -4.51763e-10
-Gradient: 246 = 8.00355e-11
-Gradient: 247 = -1.24373e-10
-Gradient: 248 = -9.81373e-10
-Gradient: 249 = 1.15051e-10
-Gradient: 250 = -1.51886e-10
-Gradient: 251 = 1.64505e-10
-Gradient: 252 = 8.73115e-11
-Gradient: 253 = -6.61657e-11
-Gradient: 254 = 1.11186e-10
-Gradient: 255 = 5.38421e-10
-Gradient: 256 = -4.51564e-10
-Gradient: 257 = -2.467e-10
-Gradient: 258 = 6.27551e-11
-Gradient: 259 = 1.91449e-10
-Gradient: 260 = -2.10321e-11
-Gradient: 261 = -1.64164e-10
-Gradient: 262 = 9.1859e-11
-Gradient: 263 = 3.83125e-11
-Gradient: 264 = -3.60671e-10
-Gradient: 265 = 3.45608e-11
-Gradient: 266 = -8.13998e-11
-Gradient: 267 = 1.71951e-10
-Gradient: 268 = -3.08319e-10
-Gradient: 269 = -1.27329e-10
-Gradient: 270 = 4.18822e-10
-Gradient: 271 = 3.23951e-10
-Gradient: 272 = 8.36735e-11
-Gradient: 273 = 7.02016e-11
-Gradient: 274 = -4.26553e-10
-Gradient: 275 = -1.64846e-10
-Gradient: 276 = -7.82165e-11
-Gradient: 277 = 9.01821e-11
-Gradient: 278 = -1.29376e-10
-Gradient: 279 = -3.32818e-11
-Gradient: 280 = 1.50067e-11
-Gradient: 281 = 5.91172e-12
-Gradient: 282 = -1.4461e-10
-Gradient: 283 = -6.16183e-11
-Gradient: 284 = 1.4802e-10
-Gradient: 285 = -2.00089e-11
-Gradient: 286 = -2.50196e-10
-Gradient: 287 = 1.32786e-10
-Gradient: 288 = -9.34506e-11
-Gradient: 289 = -1.03682e-10
-Gradient: 290 = 2.3249e-11
-Gradient: 291 = 2.44654e-10
-Gradient: 292 = -1.40631e-10
-Gradient: 293 = -1.03341e-10
-Gradient: 294 = 2.63753e-10
-Gradient: 295 = 8.41283e-12
-Gradient: 296 = 9.20863e-12
-Gradient: 297 = -2.92744e-10
-Gradient: 298 = -1.47338e-10
-Gradient: 299 = 6.29825e-11
-Gradient: 300 = 5.10454e-11
-Gradient: 301 = -1.61435e-10
-Gradient: 302 = -3.75167e-11
-Gradient: 303 = -6.73026e-11
-Gradient: 304 = 8.83347e-11
-Gradient: 305 = 2.31921e-11
-Gradient: 306 = 3.10592e-10
-Gradient: 307 = 3.09228e-11
-Gradient: 308 = -3.33102e-11
-Gradient: 309 = 2.60115e-10
-Gradient: 310 = 2.04523e-10
-Gradient: 311 = -1.22725e-10
-Gradient: 312 = 3.51292e-11
-Gradient: 313 = -8.91305e-11
-Gradient: 314 = 4.37126e-11
-Gradient: 315 = 5.13865e-11
-Gradient: 316 = 2.86491e-11
-Gradient: 317 = -4.63274e-11
-Gradient: 318 = 6.13909e-11
-Gradient: 319 = -5.9913e-11
-Gradient: 320 = 1.92131e-11
-Gradient: 321 = -4.78849e-10
-Gradient: 322 = 4.36785e-10
-Gradient: 323 = 7.67386e-11
-Gradient: 324 = 2.84217e-12
-Gradient: 325 = 2.75122e-10
-Gradient: 326 = 6.57678e-11
-Gradient: 327 = -8.41283e-11
-Gradient: 328 = 7.63976e-11
-Gradient: 329 = 3.34808e-11
-Gradient: 330 = -4.95675e-11
-Gradient: 331 = 1.22554e-10
-Gradient: 332 = 4.64979e-11
-Gradient: 333 = 1.47338e-10
-Gradient: 334 = -1.67802e-10
-Gradient: 335 = 1.58025e-11
-Gradient: 336 = -7.36122e-11
-Gradient: 337 = 3.3765e-11
-Gradient: 338 = -1.36424e-11
-Gradient: 339 = -1.29319e-10
-Gradient: 340 = -1.65983e-10
-Gradient: 341 = 1.9952e-10
-Gradient: 342 = 2.95586e-11
-Gradient: 343 = -7.88418e-11
-Gradient: 344 = 3.04226e-10
-Gradient: 345 = -4.54747e-12
-Gradient: 346 = -1.36595e-10
-Gradient: 347 = 8.74252e-11
-Gradient: 348 = 7.7307e-12
-Gradient: 349 = 5.20686e-11
-Gradient: 350 = 2.66027e-10
-Gradient: 351 = 5.95151e-11
-Gradient: 352 = -4.45652e-11
-Gradient: 353 = 3.08091e-11
-Gradient: 354 = 1.0516e-10
-Gradient: 355 = 1.3074e-12
-Gradient: 356 = -2.58751e-10
-Gradient: 357 = 2.45109e-10
-Gradient: 358 = 4.5361e-11
-Gradient: 359 = -7.02585e-11
-Gradient: 360 = 8.91305e-11
-Gradient: 361 = 1.13573e-10
-Gradient: 362 = 3.17414e-10
-Gradient: 363 = -1.5234e-11
-Gradient: 364 = -5.00222e-12
-Gradient: 365 = 6.24141e-11
-Gradient: 366 = -1.27557e-10
-Gradient: 367 = -4.52474e-11
-Gradient: 368 = -1.09139e-11
-Gradient: 369 = -1.19599e-10
-Gradient: 370 = -8.90736e-11
-Gradient: 371 = -1.04819e-10
-Gradient: 372 = -3.9563e-11
-Gradient: 373 = -1.6837e-10
-Gradient: 374 = -6.13909e-11
-Gradient: 375 = 4.74074e-11
-Gradient: 376 = 1.10504e-10
-Gradient: 377 = 5.6616e-11
-Gradient: 378 = 4.96811e-11
-Gradient: 379 = 1.7053e-13
-Gradient: 380 = 3.09683e-10
-Gradient: 381 = -1.36424e-11
-Gradient: 382 = 5.34328e-12
-Gradient: 383 = -2.93312e-11
-Gradient: 384 = -1.06866e-10
-Gradient: 385 = 5.9913e-11
-Gradient: 386 = -2.44881e-10
-Gradient: 387 = -2.37833e-10
-Gradient: 388 = 7.54312e-11
-Gradient: 389 = 2.03386e-10
-Gradient: 390 = -8.6402e-12
-Gradient: 391 = -4.61569e-11
-Gradient: 392 = 1.19371e-10
-Gradient: 393 = 2.35104e-10
-Gradient: 394 = 2.15437e-11
-Gradient: 395 = -2.02363e-11
-Gradient: 396 = -8.25366e-11
-Gradient: 397 = 3.20597e-10
-Gradient: 398 = 6.74163e-11
-Gradient: 399 = -1.66665e-10
-Gradient: 400 = 1.56888e-10
-Gradient: 401 = 9.02673e-11
-Gradient: 402 = -1.628e-10
-Gradient: 403 = -5.38307e-11
-Gradient: 404 = 6.37783e-11
-Gradient: 405 = -2.31921e-11
-Gradient: 406 = -1.18632e-10
-Gradient: 407 = -3.67208e-11
-Gradient: 408 = 2.72848e-11
-Gradient: 409 = 2.31012e-10
-Gradient: 410 = 2.4329e-11
-Gradient: 411 = -6.0254e-12
-Gradient: 412 = 1.11413e-10
-Gradient: 413 = -1.71212e-10
-Gradient: 414 = 9.09495e-13
-Gradient: 415 = -9.77707e-12
-Gradient: 416 = -1.83377e-10
-Gradient: 417 = 2.43745e-10
-Gradient: 418 = 2.09752e-11
-Gradient: 419 = 2.25214e-10
-Gradient: 420 = 1.8872e-11
-Gradient: 421 = 9.82254e-11
-Gradient: 422 = -1.08912e-10
-Gradient: 423 = -5.27507e-11
-Gradient: 424 = 1.54159e-10
-Gradient: 425 = 1.52227e-10
-Gradient: 426 = -6.9349e-12
-Gradient: 427 = -9.86802e-11
-Gradient: 428 = -9.07221e-11
-Gradient: 429 = 4.50768e-11
-Gradient: 430 = -1.15051e-10
-Gradient: 431 = 1.736e-10
+Gradient: 0 = 9.54969e-11
+Gradient: 1 = 3.08546e-10
+Gradient: 2 = -3.91083e-11
+Gradient: 3 = 2.28056e-10
+Gradient: 4 = -1.20076e-09
+Gradient: 5 = -5.70708e-11
+Gradient: 6 = 6.12772e-11
+Gradient: 7 = -2.92857e-10
+Gradient: 8 = -1.72292e-10
+Gradient: 9 = 4.85215e-10
+Gradient: 10 = 2.30557e-10
+Gradient: 11 = -3.36513e-10
+Gradient: 12 = -3.29237e-10
+Gradient: 13 = -8.16726e-10
+Gradient: 14 = 9.75433e-11
+Gradient: 15 = 1.96451e-10
+Gradient: 16 = -9.57243e-11
+Gradient: 17 = -3.38275e-10
+Gradient: 18 = 2.21917e-10
+Gradient: 19 = 4.90445e-10
+Gradient: 20 = -1.09594e-10
+Gradient: 21 = 4.56794e-10
+Gradient: 22 = -3.73802e-10
+Gradient: 23 = 3.25144e-10
+Gradient: 24 = 3.78691e-10
+Gradient: 25 = -5.50244e-11
+Gradient: 26 = -1.35856e-10
+Gradient: 27 = -3.86024e-10
+Gradient: 28 = 5.82986e-10
+Gradient: 29 = 1.01045e-09
+Gradient: 30 = -5.42059e-10
+Gradient: 31 = -8.96307e-10
+Gradient: 32 = 1.21918e-09
+Gradient: 33 = -2.91038e-11
+Gradient: 34 = 1.54614e-11
+Gradient: 35 = -8.08313e-11
+Gradient: 36 = 2.32376e-10
+Gradient: 37 = 5.32282e-10
+Gradient: 38 = 1.01682e-09
+Gradient: 39 = 3.0218e-10
+Gradient: 40 = -4.99085e-10
+Gradient: 41 = -1.20383e-09
+Gradient: 42 = -1.12469e-09
+Gradient: 43 = 1.45519e-10
+Gradient: 44 = 1.14017e-09
+Gradient: 45 = 4.23142e-10
+Gradient: 46 = 6.13909e-11
+Gradient: 47 = -2.47837e-10
+Gradient: 48 = -6.31871e-10
+Gradient: 49 = 2.04636e-12
+Gradient: 50 = 1.42336e-10
+Gradient: 51 = -2.52385e-10
+Gradient: 52 = -2.15437e-11
+Gradient: 53 = 2.45791e-10
+Gradient: 54 = 3.35604e-10
+Gradient: 55 = -1.33753e-10
+Gradient: 56 = -4.61569e-10
+Gradient: 57 = -4.09273e-11
+Gradient: 58 = -7.96945e-10
+Gradient: 59 = 9.43601e-11
+Gradient: 60 = 1.01295e-10
+Gradient: 61 = 8.6402e-12
+Gradient: 62 = 3.54078e-10
+Gradient: 63 = -9.35438e-09
+Gradient: 64 = 1.7596e-08
+Gradient: 65 = 9.73519e-08
+Gradient: 66 = -2.17528e-09
+Gradient: 67 = -3.56708e-08
+Gradient: 68 = -2.01848e-07
+Gradient: 69 = 9.79526e-10
+Gradient: 70 = 6.16751e-10
+Gradient: 71 = 1.28443e-09
+Gradient: 72 = 1.03682e-10
+Gradient: 73 = -2.72394e-10
+Gradient: 74 = -1.12095e-10
+Gradient: 75 = -8.83574e-10
+Gradient: 76 = 5.65706e-10
+Gradient: 77 = -1.46269e-09
+Gradient: 78 = -1.43245e-10
+Gradient: 79 = -3.73717e-10
+Gradient: 80 = 4.1382e-11
+Gradient: 81 = -4.54747e-13
+Gradient: 82 = 4.81577e-10
+Gradient: 83 = 2.03841e-10
+Gradient: 84 = -5.68434e-11
+Gradient: 85 = -1.49839e-10
+Gradient: 86 = -1.123e-09
+Gradient: 87 = 1.44823e-10
+Gradient: 88 = -3.01725e-10
+Gradient: 89 = -2.3033e-10
+Gradient: 90 = 7.45786e-10
+Gradient: 91 = 5.27052e-10
+Gradient: 92 = -1.72577e-10
+Gradient: 93 = 8.66862e-10
+Gradient: 94 = 5.41149e-11
+Gradient: 95 = -6.10044e-10
+Gradient: 96 = -6.68479e-11
+Gradient: 97 = 2.78163e-10
+Gradient: 98 = -5.13865e-11
+Gradient: 99 = 2.88765e-10
+Gradient: 100 = 2.63753e-11
+Gradient: 101 = -2.80636e-10
+Gradient: 102 = 1.17552e-10
+Gradient: 103 = -1.57343e-10
+Gradient: 104 = -5.27734e-10
+Gradient: 105 = -5.11591e-12
+Gradient: 106 = 3.36968e-10
+Gradient: 107 = 1.33468e-10
+Gradient: 108 = -6.10726e-10
+Gradient: 109 = 6.90761e-10
+Gradient: 110 = 6.39091e-10
+Gradient: 111 = -1.09139e-11
+Gradient: 112 = 4.8658e-11
+Gradient: 113 = -6.41194e-10
+Gradient: 114 = 6.00267e-11
+Gradient: 115 = -1.1579e-10
+Gradient: 116 = 4.80213e-10
+Gradient: 117 = -1.74168e-10
+Gradient: 118 = -2.30102e-10
+Gradient: 119 = 1.00749e-09
+Gradient: 120 = 1.27784e-10
+Gradient: 121 = 4.58158e-11
+Gradient: 122 = -7.45558e-10
+Gradient: 123 = -3.87644e-10
+Gradient: 124 = -1.35969e-10
+Gradient: 125 = -2.75122e-11
+Gradient: 126 = -4.19277e-10
+Gradient: 127 = 2.59661e-10
+Gradient: 128 = 8.19057e-10
+Gradient: 129 = 1.03682e-10
+Gradient: 130 = 1.15733e-10
+Gradient: 131 = -1.3647e-09
+Gradient: 132 = 1.92358e-10
+Gradient: 133 = -2.16289e-11
+Gradient: 134 = 1.69621e-10
+Gradient: 135 = 5.1341e-10
+Gradient: 136 = -2.86491e-10
+Gradient: 137 = 1.54705e-09
+Gradient: 138 = -1.93745e-09
+Gradient: 139 = 1.60503e-09
+Gradient: 140 = -1.015e-09
+Gradient: 141 = 7.78158e-10
+Gradient: 142 = 1.37584e-09
+Gradient: 143 = 5.31827e-10
+Gradient: 144 = -7.66249e-11
+Gradient: 145 = -1.46883e-10
+Gradient: 146 = -3.81988e-11
+Gradient: 147 = -8.83119e-10
+Gradient: 148 = -5.20686e-11
+Gradient: 149 = -3.77213e-10
+Gradient: 150 = -8.91873e-11
+Gradient: 151 = -1.9827e-10
+Gradient: 152 = -4.91127e-11
+Gradient: 153 = 1.71508e-09
+Gradient: 154 = 2.22694e-08
+Gradient: 155 = 2.32844e-08
+Gradient: 156 = -1.83468e-09
+Gradient: 157 = -4.30981e-08
+Gradient: 158 = -4.84542e-08
+Gradient: 159 = -6.80657e-10
+Gradient: 160 = 7.24867e-10
+Gradient: 161 = 4.79304e-10
+Gradient: 162 = -2.7012e-10
+Gradient: 163 = -1.51203e-10
+Gradient: 164 = 1.51158e-09
+Gradient: 165 = 6.79847e-11
+Gradient: 166 = -1.88265e-10
+Gradient: 167 = -1.50294e-09
+Gradient: 168 = -1.34776e-10
+Gradient: 169 = -1.69479e-10
+Gradient: 170 = -1.25965e-10
+Gradient: 171 = 1.32889e-09
+Gradient: 172 = -2.31921e-11
+Gradient: 173 = 9.70886e-10
+Gradient: 174 = -1.61549e-09
+Gradient: 175 = 1.22009e-09
+Gradient: 176 = -5.54792e-10
+Gradient: 177 = -6.60521e-11
+Gradient: 178 = -5.05906e-11
+Gradient: 179 = -4.502e-11
+Gradient: 180 = 5.52973e-10
+Gradient: 181 = 3.25826e-10
+Gradient: 182 = 1.23191e-09
+Gradient: 183 = 1.0391e-10
+Gradient: 184 = -6.43695e-10
+Gradient: 185 = -9.43601e-11
+Gradient: 186 = -7.95808e-11
+Gradient: 187 = 9.95101e-10
+Gradient: 188 = -8.31733e-10
+Gradient: 189 = -4.33317e-10
+Gradient: 190 = -3.8699e-10
+Gradient: 191 = -4.53383e-10
+Gradient: 192 = -1.51658e-10
+Gradient: 193 = -1.80989e-10
+Gradient: 194 = 8.15135e-11
+Gradient: 195 = 7.4408e-10
+Gradient: 196 = 3.22984e-10
+Gradient: 197 = 3.28782e-10
+Gradient: 198 = -8.77662e-11
+Gradient: 199 = 1.07957e-09
+Gradient: 200 = -3.92902e-10
+Gradient: 201 = -1.45519e-11
+Gradient: 202 = -9.44738e-10
+Gradient: 203 = 1.90539e-10
+Gradient: 204 = -1.10504e-10
+Gradient: 205 = 2.99792e-10
+Gradient: 206 = 2.05546e-10
+Gradient: 207 = -1.21963e-09
+Gradient: 208 = 8.50378e-11
+Gradient: 209 = -2.81034e-10
+Gradient: 210 = 7.20547e-10
+Gradient: 211 = -4.67708e-10
+Gradient: 212 = 5.29383e-10
+Gradient: 213 = 3.74314e-10
+Gradient: 214 = -4.77769e-11
+Gradient: 215 = -3.32875e-10
+Gradient: 216 = 1.50976e-10
+Gradient: 217 = 1.39164e-09
+Gradient: 218 = -1.07593e-09
+Gradient: 219 = 1.20081e-08
+Gradient: 220 = 1.72386e-08
+Gradient: 221 = 9.92891e-08
+Gradient: 222 = -5.0477e-11
+Gradient: 223 = 3.41061e-11
+Gradient: 224 = 1.38562e-09
+Gradient: 225 = 2.82e-10
+Gradient: 226 = -1.23691e-10
+Gradient: 227 = -8.7266e-10
+Gradient: 228 = -1.44155e-10
+Gradient: 229 = -1.06866e-11
+Gradient: 230 = -4.59295e-11
+Gradient: 231 = 1.0217e-09
+Gradient: 232 = 7.70342e-10
+Gradient: 233 = -1.42791e-10
+Gradient: 234 = -2.55113e-10
+Gradient: 235 = 1.48611e-09
+Gradient: 236 = -7.99446e-10
+Gradient: 237 = -1.45064e-10
+Gradient: 238 = 5.22959e-10
+Gradient: 239 = -3.065e-10
+Gradient: 240 = -7.49878e-10
+Gradient: 241 = 3.07182e-10
+Gradient: 242 = 1.01159e-09
+Gradient: 243 = -3.19005e-10
+Gradient: 244 = 3.25144e-10
+Gradient: 245 = 9.98853e-10
+Gradient: 246 = 1.95996e-10
+Gradient: 247 = -4.10637e-10
+Gradient: 248 = 1.67347e-09
+Gradient: 249 = -1.27329e-10
+Gradient: 250 = 1.89175e-10
+Gradient: 251 = 5.65763e-10
+Gradient: 252 = 4.96584e-10
+Gradient: 253 = 5.17275e-10
+Gradient: 254 = 3.08319e-10
+Gradient: 255 = 1.17689e-09
+Gradient: 256 = -1.57206e-09
+Gradient: 257 = -2.03045e-10
+Gradient: 258 = -4.62023e-10
+Gradient: 259 = -9.54515e-10
+Gradient: 260 = -2.06398e-10
+Gradient: 261 = -1.60526e-10
+Gradient: 262 = -2.08729e-10
+Gradient: 263 = -1.81899e-11
+Gradient: 264 = 8.4583e-11
+Gradient: 265 = 2.07588e-08
+Gradient: 266 = 2.22785e-08
+Gradient: 267 = 8.18773e-10
+Gradient: 268 = 3.91083e-10
+Gradient: 269 = -2.31921e-11
+Gradient: 270 = 7.34872e-10
+Gradient: 271 = -1.25056e-11
+Gradient: 272 = -3.23553e-10
+Gradient: 273 = 3.24917e-10
+Gradient: 274 = -8.74934e-10
+Gradient: 275 = 1.78488e-10
+Gradient: 276 = 5.13865e-11
+Gradient: 277 = 2.98996e-10
+Gradient: 278 = -2.48974e-10
+Gradient: 279 = 4.11092e-10
+Gradient: 280 = 2.77396e-11
+Gradient: 281 = 5.07271e-10
+Gradient: 282 = 1.08139e-09
+Gradient: 283 = -1.02091e-10
+Gradient: 284 = -8.11497e-10
+Gradient: 285 = -3.15595e-10
+Gradient: 286 = 2.85127e-10
+Gradient: 287 = 9.05743e-10
+Gradient: 288 = -1.72918e-10
+Gradient: 289 = -5.91172e-12
+Gradient: 290 = -4.15127e-10
+Gradient: 291 = 7.05313e-10
+Gradient: 292 = -3.46631e-10
+Gradient: 293 = -1.12166e-10
+Gradient: 294 = 1.73259e-10
+Gradient: 295 = -2.80011e-10
+Gradient: 296 = -3.80851e-10
+Gradient: 297 = 4.86466e-10
+Gradient: 298 = -6.68933e-10
+Gradient: 299 = 8.16271e-11
+Gradient: 300 = 7.8785e-11
+Gradient: 301 = 1.46429e-10
+Gradient: 302 = -1.91207e-10
+Gradient: 303 = -2.36469e-10
+Gradient: 304 = 6.84395e-11
+Gradient: 305 = -2.20785e-10
+Gradient: 306 = 5.41149e-11
+Gradient: 307 = 2.51816e-10
+Gradient: 308 = -3.02066e-10
+Gradient: 309 = 4.95675e-10
+Gradient: 310 = -2.89333e-10
+Gradient: 311 = 4.203e-10
+Gradient: 312 = -1.51203e-10
+Gradient: 313 = 1.25965e-10
+Gradient: 314 = 1.12422e-10
+Gradient: 315 = -5.6616e-10
+Gradient: 316 = -5.41718e-10
+Gradient: 317 = -4.17742e-10
+Gradient: 318 = -5.49335e-10
+Gradient: 319 = -5.54223e-10
+Gradient: 320 = 4.88058e-10
+Gradient: 321 = -2.6921e-10
+Gradient: 322 = 1.62572e-11
+Gradient: 323 = 1.73113e-10
+Gradient: 324 = 2.10775e-10
+Gradient: 325 = -1.63709e-11
+Gradient: 326 = 1.97348e-10
+Gradient: 327 = 5.0477e-10
+Gradient: 328 = 1.07775e-10
+Gradient: 329 = 6.13454e-10
+Gradient: 330 = 2.27828e-10
+Gradient: 331 = 1.53364e-10
+Gradient: 332 = 1.16515e-10
+Gradient: 333 = -9.09495e-12
+Gradient: 334 = -1.58479e-10
+Gradient: 335 = 1.47821e-10
+Gradient: 336 = 1.02887e-11
+Gradient: 337 = -4.91696e-10
+Gradient: 338 = 6.562e-10
+Gradient: 339 = -4.96719e-10
+Gradient: 340 = -7.35781e-10
+Gradient: 341 = 1.04069e-09
+Gradient: 342 = 4.12115e-10
+Gradient: 343 = -4.68447e-10
+Gradient: 344 = 5.27507e-10
+Gradient: 345 = -5.97538e-10
+Gradient: 346 = -2.50111e-12
+Gradient: 347 = -4.04043e-10
+Gradient: 348 = 1.39977e-12
+Gradient: 349 = 1.34946e-10
+Gradient: 350 = 3.97904e-10
+Gradient: 351 = -6.75811e-10
+Gradient: 352 = -2.37833e-10
+Gradient: 353 = -2.91607e-10
+Gradient: 354 = -2.2078e-10
+Gradient: 355 = 1.31459e-10
+Gradient: 356 = 1.27329e-11
+Gradient: 357 = -1.71667e-09
+Gradient: 358 = 3.8068e-10
+Gradient: 359 = 6.41194e-10
+Gradient: 360 = -7.06564e-11
+Gradient: 361 = 1.72463e-10
+Gradient: 362 = 6.45741e-10
+Gradient: 363 = -1.63816e-10
+Gradient: 364 = -5.22959e-11
+Gradient: 365 = -4.05862e-11
+Gradient: 366 = -2.86491e-11
+Gradient: 367 = -1.54557e-10
+Gradient: 368 = 3.30147e-10
+Gradient: 369 = -6.3983e-10
+Gradient: 370 = 4.71339e-11
+Gradient: 371 = -4.38945e-10
+Gradient: 372 = 3.05263e-10
+Gradient: 373 = -4.26553e-10
+Gradient: 374 = -9.32687e-10
+Gradient: 375 = -6.04246e-11
+Gradient: 376 = -4.19732e-10
+Gradient: 377 = -2.46018e-10
+Gradient: 378 = 1.58593e-10
+Gradient: 379 = 4.61355e-11
+Gradient: 380 = -5.27507e-10
+Gradient: 381 = -2.38742e-10
+Gradient: 382 = -7.3311e-10
+Gradient: 383 = 3.52543e-10
+Gradient: 384 = -6.68479e-11
+Gradient: 385 = -3.3873e-10
+Gradient: 386 = -1.85992e-10
+Gradient: 387 = -5.9481e-10
+Gradient: 388 = 1.90994e-11
+Gradient: 389 = 2.24873e-10
+Gradient: 390 = 4.51109e-10
+Gradient: 391 = -1.03206e-10
+Gradient: 392 = 1.09708e-10
+Gradient: 393 = 2.03272e-10
+Gradient: 394 = 2.08274e-10
+Gradient: 395 = -1.91903e-10
+Gradient: 396 = 2.33001e-10
+Gradient: 397 = -1.40517e-10
+Gradient: 398 = 1.05388e-10
+Gradient: 399 = 5.08237e-10
+Gradient: 400 = 1.35515e-10
+Gradient: 401 = 4.49063e-10
+Gradient: 402 = -6.82121e-12
+Gradient: 403 = -3.58e-10
+Gradient: 404 = 4.44174e-10
+Gradient: 405 = 2.31921e-11
+Gradient: 406 = -2.33399e-10
+Gradient: 407 = 6.38465e-10
+Gradient: 408 = 5.55982e-11
+Gradient: 409 = 4.93401e-10
+Gradient: 410 = 1.83263e-10
+Gradient: 411 = 1.16829e-10
+Gradient: 412 = -4.60204e-10
+Gradient: 413 = 2.53067e-10
+Gradient: 414 = -1.22327e-10
+Gradient: 415 = 3.28104e-10
+Gradient: 416 = -3.06841e-10
+Gradient: 417 = -5.98902e-10
+Gradient: 418 = 1.64921e-10
+Gradient: 419 = -6.5063e-10
+Gradient: 420 = -1.25397e-10
+Gradient: 421 = 1.30058e-10
+Gradient: 422 = 6.94854e-10
+Gradient: 423 = -1.5865e-10
+Gradient: 424 = 5.2114e-10
+Gradient: 425 = -3.9995e-10
+Gradient: 426 = 1.47506e-10
+Gradient: 427 = -4.84761e-10
+Gradient: 428 = 6.53017e-10
+Gradient: 429 = -8.63754e-13
+Gradient: 430 = -9.23137e-11
+Gradient: 431 = 1.43586e-10
+Gradient: 432 = 7.10024e-08
 
 
 Eigenvalues:
 ============
-Eigenvalue: 0 =      -0.0000070354
-Eigenvalue: 1 =      -0.0000023646
-Eigenvalue: 2 =       0.0000015713
-Eigenvalue: 3 =    4250.7084315048
-Eigenvalue: 4 =    4250.7084533257
-Eigenvalue: 5 =    4250.7084852826
-Eigenvalue: 6 =    6519.4401618559
-Eigenvalue: 7 =    7366.4941338597
-Eigenvalue: 8 =    7502.6225733857
-Eigenvalue: 9 =    7502.6225838543
-Eigenvalue: 10 =    7502.6225949733
-Eigenvalue: 11 =    8619.4604462807
-Eigenvalue: 12 =    8619.4604544683
-Eigenvalue: 13 =    8828.9184223161
-Eigenvalue: 14 =    8828.9184263591
-Eigenvalue: 15 =    8828.9184340918
-Eigenvalue: 16 =    9604.5915532571
-Eigenvalue: 17 =    9604.5915726892
-Eigenvalue: 18 =    9604.5915897353
-Eigenvalue: 19 =    9616.8577833115
-Eigenvalue: 20 =    9616.8578241130
-Eigenvalue: 21 =    9616.8578808437
-Eigenvalue: 22 =   10332.5632706972
-Eigenvalue: 23 =   10410.7630194358
-Eigenvalue: 24 =   10410.7630270470
-Eigenvalue: 25 =   10410.7630318518
-Eigenvalue: 26 =   11101.7206007538
-Eigenvalue: 27 =   11101.7206189245
-Eigenvalue: 28 =   11101.7206323298
-Eigenvalue: 29 =   13385.7297187999
-Eigenvalue: 30 =   13385.7297507913
-Eigenvalue: 31 =   15049.0206080343
-Eigenvalue: 32 =   15049.0206203848
-Eigenvalue: 33 =   15092.9103980145
-Eigenvalue: 34 =   15092.9104106642
-Eigenvalue: 35 =   15092.9104231455
-Eigenvalue: 36 =   15222.7024587933
-Eigenvalue: 37 =   15222.7024887403
-Eigenvalue: 38 =   15222.7025072285
-Eigenvalue: 39 =   16268.6532776538
-Eigenvalue: 40 =   16268.6532911947
-Eigenvalue: 41 =   16268.6533145493
-Eigenvalue: 42 =   17382.9009916557
-Eigenvalue: 43 =   17382.9009930315
-Eigenvalue: 44 =   17382.9009986882
-Eigenvalue: 45 =   17564.2808566039
-Eigenvalue: 46 =   17564.2809268401
-Eigenvalue: 47 =   18343.6349084807
-Eigenvalue: 48 =   18343.6349782013
-Eigenvalue: 49 =   18941.4684306470
-Eigenvalue: 50 =   19521.1102224602
-Eigenvalue: 51 =   19521.1102262521
-Eigenvalue: 52 =   19521.1102354739
-Eigenvalue: 53 =   19631.2060867652
-Eigenvalue: 54 =   19631.2060954033
-Eigenvalue: 55 =   19631.2061119883
-Eigenvalue: 56 =   19725.9143424822
-Eigenvalue: 57 =   19725.9143495793
-Eigenvalue: 58 =   19725.9143561538
-Eigenvalue: 59 =   21175.9458388309
-Eigenvalue: 60 =   22328.5126281526
-Eigenvalue: 61 =   23527.9329546016
-Eigenvalue: 62 =   23527.9329709218
-Eigenvalue: 63 =   23527.9329765367
-Eigenvalue: 64 =   23923.9976491367
-Eigenvalue: 65 =   23923.9976645518
-Eigenvalue: 66 =   24409.1169928097
-Eigenvalue: 67 =   24409.1170011428
-Eigenvalue: 68 =   24409.1170192070
-Eigenvalue: 69 =   28322.8668912016
-Eigenvalue: 70 =   28322.8669075934
-Eigenvalue: 71 =   28322.8669152154
-Eigenvalue: 72 =   28573.4774616546
-Eigenvalue: 73 =   28573.4775228577
-Eigenvalue: 74 =   29487.3336440468
-Eigenvalue: 75 =   29487.3336560605
-Eigenvalue: 76 =   29487.3336708415
-Eigenvalue: 77 =   31681.2750722931
-Eigenvalue: 78 =   31681.2750814134
-Eigenvalue: 79 =   32486.2387873390
-Eigenvalue: 80 =   32486.2387903837
-Eigenvalue: 81 =   32486.2387997584
-Eigenvalue: 82 =   37834.4792403868
-Eigenvalue: 83 =   37834.4792529049
-Eigenvalue: 84 =   37834.4792608524
-Eigenvalue: 85 =   40349.2094811747
-Eigenvalue: 86 =   40349.2094891809
-Eigenvalue: 87 =   40349.2094988837
-Eigenvalue: 88 =   40781.2061470439
-Eigenvalue: 89 =   40781.2061522586
-Eigenvalue: 90 =   40781.2061683770
-Eigenvalue: 91 =   41191.1399804540
-Eigenvalue: 92 =   41191.1399908984
-Eigenvalue: 93 =   41191.1399947723
-Eigenvalue: 94 =   47020.0819189175
-Eigenvalue: 95 =   47020.0819254688
-Eigenvalue: 96 =   47020.0819332896
-Eigenvalue: 97 =   47040.7781522777
-Eigenvalue: 98 =   47040.7782122187
-Eigenvalue: 99 =   48392.4246478749
-Eigenvalue: 100 =   50303.0009307125
-Eigenvalue: 101 =   50303.0009362240
-Eigenvalue: 102 =   50848.7879431370
-Eigenvalue: 103 =   50848.7879519123
-Eigenvalue: 104 =   50848.7879621695
-Eigenvalue: 105 =   52130.5691206896
-Eigenvalue: 106 =   52130.5691890301
-Eigenvalue: 107 =   52130.5692560770
-Eigenvalue: 108 =   55271.8332421150
-Eigenvalue: 109 =   56206.5071626541
-Eigenvalue: 110 =   56206.5071987340
-Eigenvalue: 111 =   56206.5072204489
-Eigenvalue: 112 =   59558.3379779816
-Eigenvalue: 113 =   59558.3381240926
-Eigenvalue: 114 =   59558.3383136762
-Eigenvalue: 115 =   60170.8199860495
-Eigenvalue: 116 =   60170.8200096482
-Eigenvalue: 117 =   60170.8200295236
-Eigenvalue: 118 =   60596.4472651696
-Eigenvalue: 119 =   62541.0876746660
-Eigenvalue: 120 =   62541.0876825161
-Eigenvalue: 121 =   62541.0876888038
-Eigenvalue: 122 =   68342.2562731394
-Eigenvalue: 123 =   70343.5023481738
-Eigenvalue: 124 =   72367.7383602826
-Eigenvalue: 125 =   73078.6541015696
-Eigenvalue: 126 =   73078.6541097020
-Eigenvalue: 127 =   73078.6541250697
-Eigenvalue: 128 =   73813.4198760110
-Eigenvalue: 129 =   73813.4198885599
-Eigenvalue: 130 =   73813.4198993131
-Eigenvalue: 131 =   78697.2216983138
-Eigenvalue: 132 =   78697.2217127728
-Eigenvalue: 133 =   81837.2862850249
-Eigenvalue: 134 =   81837.2862981419
-Eigenvalue: 135 =   81837.2863075952
-Eigenvalue: 136 =   82901.9095065732
-Eigenvalue: 137 =   82901.9095117071
-Eigenvalue: 138 =   82901.9095135943
-Eigenvalue: 139 =   83524.0739534861
-Eigenvalue: 140 =   83524.0740031135
-Eigenvalue: 141 =   83554.3586843742
-Eigenvalue: 142 =   83554.3586909674
-Eigenvalue: 143 =   83554.3587166922
-Eigenvalue: 144 =   85019.0045704143
-Eigenvalue: 145 =   85019.0045765312
-Eigenvalue: 146 =   85019.0045910526
-Eigenvalue: 147 =   86473.2139943476
-Eigenvalue: 148 =   86473.2140279077
-Eigenvalue: 149 =   86473.2140647362
-Eigenvalue: 150 =   88479.2550410003
-Eigenvalue: 151 =   92875.9347005096
-Eigenvalue: 152 =   92875.9347109442
-Eigenvalue: 153 =   92875.9347229697
-Eigenvalue: 154 =   93114.7563840678
-Eigenvalue: 155 =   93114.7564117286
-Eigenvalue: 156 =   93114.7564218858
-Eigenvalue: 157 =   96573.2714459338
-Eigenvalue: 158 =   96573.2714655822
-Eigenvalue: 159 =   96573.2714690965
-Eigenvalue: 160 =   97931.5044585003
-Eigenvalue: 161 =   97931.5044622837
-Eigenvalue: 162 =   97931.5044668124
-Eigenvalue: 163 =   99886.2206533135
-Eigenvalue: 164 =   99886.2206864600
-Eigenvalue: 165 =  104511.7615186446
-Eigenvalue: 166 =  105236.9751885782
-Eigenvalue: 167 =  105236.9752144728
-Eigenvalue: 168 =  108209.0440390834
-Eigenvalue: 169 =  108209.0440534014
-Eigenvalue: 170 =  108209.0440640339
-Eigenvalue: 171 =  112357.9240556278
-Eigenvalue: 172 =  112357.9240805885
-Eigenvalue: 173 =  112357.9241002257
-Eigenvalue: 174 =  112787.6504102720
-Eigenvalue: 175 =  112787.6504184142
-Eigenvalue: 176 =  112787.6504305939
-Eigenvalue: 177 =  114238.7177104411
-Eigenvalue: 178 =  117373.6365369043
-Eigenvalue: 179 =  117373.6365491742
-Eigenvalue: 180 =  119179.1789126729
-Eigenvalue: 181 =  119179.1789850675
-Eigenvalue: 182 =  119179.1790540694
-Eigenvalue: 183 =  122528.7689606708
-Eigenvalue: 184 =  122528.7689867391
-Eigenvalue: 185 =  122528.7690123618
-Eigenvalue: 186 =  122882.7968072756
-Eigenvalue: 187 =  122882.7968146027
-Eigenvalue: 188 =  122882.7968203067
-Eigenvalue: 189 =  126440.6159524265
-Eigenvalue: 190 =  127543.3207439443
-Eigenvalue: 191 =  127543.3207539635
-Eigenvalue: 192 =  127543.3207674558
-Eigenvalue: 193 =  127982.7948807332
-Eigenvalue: 194 =  128454.5010146979
-Eigenvalue: 195 =  128454.5010417445
-Eigenvalue: 196 =  128622.1108034518
-Eigenvalue: 197 =  128622.1108075210
-Eigenvalue: 198 =  128622.1108207204
-Eigenvalue: 199 =  130805.9667092136
-Eigenvalue: 200 =  130805.9667234652
-Eigenvalue: 201 =  130805.9667297103
-Eigenvalue: 202 =  131520.9728170233
-Eigenvalue: 203 =  131520.9728586131
-Eigenvalue: 204 =  132211.2448644988
-Eigenvalue: 205 =  132211.2448779188
-Eigenvalue: 206 =  132211.2448838637
-Eigenvalue: 207 =  134114.6210557833
-Eigenvalue: 208 =  134114.6210721461
-Eigenvalue: 209 =  134114.6210822842
-Eigenvalue: 210 =  135394.6360992612
-Eigenvalue: 211 =  138656.8758028299
-Eigenvalue: 212 =  138656.8758146492
-Eigenvalue: 213 =  138656.8758252265
-Eigenvalue: 214 =  141791.3979277093
-Eigenvalue: 215 =  141791.3979411404
-Eigenvalue: 216 =  142409.4730489792
-Eigenvalue: 217 =  142409.4730524651
-Eigenvalue: 218 =  142409.4730623643
-Eigenvalue: 219 =  142819.6800555730
-Eigenvalue: 220 =  142819.6800687429
-Eigenvalue: 221 =  146272.0522631310
-Eigenvalue: 222 =  147419.7742518772
-Eigenvalue: 223 =  155011.0648444179
-Eigenvalue: 224 =  155011.0648532909
-Eigenvalue: 225 =  155011.0648742884
-Eigenvalue: 226 =  155840.7616274737
-Eigenvalue: 227 =  155840.7616365596
-Eigenvalue: 228 =  155840.7616382838
-Eigenvalue: 229 =  198830.8320652494
-Eigenvalue: 230 =  198830.8320893334
-Eigenvalue: 231 =  198830.8320993200
-Eigenvalue: 232 =  200626.5220998429
-Eigenvalue: 233 =  200626.5221103026
-Eigenvalue: 234 =  200626.5221652893
-Eigenvalue: 235 =  201138.3607248615
-Eigenvalue: 236 =  209434.0966491232
-Eigenvalue: 237 =  209434.0967252597
-Eigenvalue: 238 =  220894.6725108624
-Eigenvalue: 239 =  220894.6725273799
-Eigenvalue: 240 =  221036.0474745457
-Eigenvalue: 241 =  221036.0474802875
-Eigenvalue: 242 =  221036.0474845850
-Eigenvalue: 243 =  225215.0238165311
-Eigenvalue: 244 =  225215.0238348984
-Eigenvalue: 245 =  225215.0238756129
-Eigenvalue: 246 =  234552.3282863152
-Eigenvalue: 247 =  238232.2574068970
-Eigenvalue: 248 =  238232.2574877958
-Eigenvalue: 249 =  238232.2576485551
-Eigenvalue: 250 =  240406.9034503280
-Eigenvalue: 251 =  240406.9035170206
-Eigenvalue: 252 =  240406.9035469977
-Eigenvalue: 253 =  241898.2599377910
-Eigenvalue: 254 =  241898.2599752818
-Eigenvalue: 255 =  241898.2600117468
-Eigenvalue: 256 =  247898.3976893959
-Eigenvalue: 257 =  247898.3977292737
-Eigenvalue: 258 =  247898.3977557976
-Eigenvalue: 259 =  275344.8009035908
-Eigenvalue: 260 =  275344.8009654027
-Eigenvalue: 261 =  275344.8009758621
-Eigenvalue: 262 =  288377.0297286266
-Eigenvalue: 263 =  288377.0297470300
-Eigenvalue: 264 =  288377.0298097997
-Eigenvalue: 265 =  293041.4183327158
-Eigenvalue: 266 =  293041.4184128586
-Eigenvalue: 267 =  301451.0095652076
-Eigenvalue: 268 =  301451.0096656315
-Eigenvalue: 269 =  316158.9423082094
-Eigenvalue: 270 =  316158.9423413848
-Eigenvalue: 271 =  316158.9423622426
-Eigenvalue: 272 =  318900.5330011212
-Eigenvalue: 273 =  329380.7133182527
-Eigenvalue: 274 =  329380.7133317565
-Eigenvalue: 275 =  329380.7133706907
-Eigenvalue: 276 =  333780.5110507485
-Eigenvalue: 277 =  333780.5111111581
-Eigenvalue: 278 =  333780.5111658747
-Eigenvalue: 279 =  357543.1711552263
-Eigenvalue: 280 =  357543.1711931162
-Eigenvalue: 281 =  357543.1712807770
-Eigenvalue: 282 =  377946.9585269565
-Eigenvalue: 283 =  377946.9586040529
-Eigenvalue: 284 =  402210.5296829687
-Eigenvalue: 285 =  402210.5297146006
-Eigenvalue: 286 =  402210.5297582369
-Eigenvalue: 287 =  461625.4005577427
-Eigenvalue: 288 =  529726.1708553155
-Eigenvalue: 289 =  529726.1708947119
-Eigenvalue: 290 =  530368.9711817999
-Eigenvalue: 291 =  531755.1724970050
-Eigenvalue: 292 =  531755.1725026736
-Eigenvalue: 293 =  531755.1725103677
-Eigenvalue: 294 =  536292.1883621721
-Eigenvalue: 295 =  536292.1883689818
-Eigenvalue: 296 =  536292.1883713544
-Eigenvalue: 297 =  536518.7026321586
-Eigenvalue: 298 =  536518.7026482179
-Eigenvalue: 299 =  536518.7026615551
-Eigenvalue: 300 =  539544.5188337906
-Eigenvalue: 301 =  539544.5188429866
-Eigenvalue: 302 =  539544.5188552870
-Eigenvalue: 303 =  550149.4529707883
-Eigenvalue: 304 =  550149.4529937017
-Eigenvalue: 305 =  550149.4529991900
-Eigenvalue: 306 =  553718.8308305934
-Eigenvalue: 307 =  553718.8308366826
-Eigenvalue: 308 =  553718.8308405294
-Eigenvalue: 309 =  561279.1889471394
-Eigenvalue: 310 =  561279.1889768145
-Eigenvalue: 311 =  568618.8137431581
-Eigenvalue: 312 =  568618.8137552907
-Eigenvalue: 313 =  568618.8137768479
-Eigenvalue: 314 =  568704.8433423479
-Eigenvalue: 315 =  568704.8433533991
-Eigenvalue: 316 =  572019.3162572964
-Eigenvalue: 317 =  572019.3162771832
-Eigenvalue: 318 =  572019.3163170586
-Eigenvalue: 319 =  575402.8882391606
-Eigenvalue: 320 =  582497.5491467465
-Eigenvalue: 321 =  582497.5491709430
-Eigenvalue: 322 =  582497.5492029125
-Eigenvalue: 323 =  592629.3874323659
-Eigenvalue: 324 =  600886.4499372942
-Eigenvalue: 325 =  600886.4499527251
-Eigenvalue: 326 =  600886.4499705725
-Eigenvalue: 327 =  615068.0467848510
-Eigenvalue: 328 =  620807.8945636676
-Eigenvalue: 329 =  620807.8946201351
-Eigenvalue: 330 =  620807.8946427018
-Eigenvalue: 331 =  633950.8150609523
-Eigenvalue: 332 =  633950.8150872069
-Eigenvalue: 333 =  645732.3386974215
-Eigenvalue: 334 =  645732.3387362296
-Eigenvalue: 335 =  658967.4392342491
-Eigenvalue: 336 =  658967.4392633979
-Eigenvalue: 337 =  658967.4392765516
-Eigenvalue: 338 =  688155.7924994626
-Eigenvalue: 339 =  688155.7925629246
-Eigenvalue: 340 =  688155.7925977996
-Eigenvalue: 341 =  719783.6419006654
-Eigenvalue: 342 =  719783.6419172444
-Eigenvalue: 343 =  719783.6419234007
-Eigenvalue: 344 =  723258.0002323894
-Eigenvalue: 345 =  723258.0002643430
-Eigenvalue: 346 =  723258.0002777603
-Eigenvalue: 347 =  723548.8636510773
-Eigenvalue: 348 =  723548.8636634647
-Eigenvalue: 349 =  723548.8636889702
-Eigenvalue: 350 =  738384.5501335503
-Eigenvalue: 351 =  738384.5501472253
-Eigenvalue: 352 =  742383.0831754357
-Eigenvalue: 353 =  742383.0831987185
-Eigenvalue: 354 =  742383.0832148553
-Eigenvalue: 355 =  744964.3865831837
-Eigenvalue: 356 =  744964.3866106078
-Eigenvalue: 357 =  744964.3866249132
-Eigenvalue: 358 =  759674.5401798724
-Eigenvalue: 359 =  779004.6620652186
-Eigenvalue: 360 =  779004.6620719190
-Eigenvalue: 361 =  779004.6620904728
-Eigenvalue: 362 =  783916.9230529165
-Eigenvalue: 363 =  790559.6080978351
-Eigenvalue: 364 =  796595.2960449903
-Eigenvalue: 365 =  796595.2960602122
-Eigenvalue: 366 =  796595.2960694513
-Eigenvalue: 367 =  803809.3612929776
-Eigenvalue: 368 =  803809.3612999577
-Eigenvalue: 369 =  803809.3613034602
-Eigenvalue: 370 =  812619.6832810355
-Eigenvalue: 371 =  813147.5521510897
-Eigenvalue: 372 =  813147.5521684528
-Eigenvalue: 373 =  818255.9252646643
-Eigenvalue: 374 =  818255.9252870535
-Eigenvalue: 375 =  818255.9253328836
-Eigenvalue: 376 =  819264.4111951279
-Eigenvalue: 377 =  819264.4112001340
-Eigenvalue: 378 =  822050.6047122116
-Eigenvalue: 379 =  822050.6047210477
-Eigenvalue: 380 =  822050.6047261475
-Eigenvalue: 381 =  840345.2867899667
-Eigenvalue: 382 =  840345.2868023913
-Eigenvalue: 383 =  840345.2868203503
-Eigenvalue: 384 =  846222.0591832472
-Eigenvalue: 385 =  846222.0591988382
-Eigenvalue: 386 =  846222.0592153443
-Eigenvalue: 387 =  855566.2130366497
-Eigenvalue: 388 =  859331.2217156035
-Eigenvalue: 389 =  859331.2217244660
-Eigenvalue: 390 =  859331.2217341407
-Eigenvalue: 391 =  866614.6903852425
-Eigenvalue: 392 =  871674.8158303514
-Eigenvalue: 393 =  872865.9876858372
-Eigenvalue: 394 =  872865.9877371032
-Eigenvalue: 395 =  872865.9877544880
-Eigenvalue: 396 =  874180.6256154421
-Eigenvalue: 397 =  874180.6257048609
-Eigenvalue: 398 =  875981.8417768489
-Eigenvalue: 399 =  875981.8418362885
-Eigenvalue: 400 =  875981.8418899400
-Eigenvalue: 401 =  884427.2928291522
-Eigenvalue: 402 =  884644.3441055010
-Eigenvalue: 403 =  884644.3441502961
-Eigenvalue: 404 =  884644.3442263046
-Eigenvalue: 405 =  884678.8316893558
-Eigenvalue: 406 =  884678.8316994908
-Eigenvalue: 407 =  884678.8317623736
-Eigenvalue: 408 =  884711.0839382975
-Eigenvalue: 409 =  884711.0839986815
-Eigenvalue: 410 =  884711.0840203095
-Eigenvalue: 411 =  885969.7413768717
-Eigenvalue: 412 =  885969.7414196851
-Eigenvalue: 413 =  886263.2255300652
-Eigenvalue: 414 =  886263.2255634984
-Eigenvalue: 415 =  886263.2256305612
-Eigenvalue: 416 =  897533.5191057327
-Eigenvalue: 417 =  897533.5191280318
-Eigenvalue: 418 =  897533.5191683301
-Eigenvalue: 419 =  904564.9818112728
-Eigenvalue: 420 =  904564.9818446841
-Eigenvalue: 421 =  904564.9818572263
-Eigenvalue: 422 =  908376.5718450460
-Eigenvalue: 423 =  908376.5718727071
-Eigenvalue: 424 =  908376.5719088448
-Eigenvalue: 425 =  914542.1252192230
-Eigenvalue: 426 =  914542.1252415591
-Eigenvalue: 427 =  914542.1252807012
-Eigenvalue: 428 =  915322.0717999313
-Eigenvalue: 429 =  915322.0718623481
-Eigenvalue: 430 =  918690.1236961385
-Eigenvalue: 431 =  918690.1237455239
+Eigenvalue: 0 =      -0.0001207998
+Eigenvalue: 1 =      -0.0000248208
+Eigenvalue: 2 =       0.0001433943
+Eigenvalue: 3 =    2259.9685472640
+Eigenvalue: 4 =    2470.6510790282
+Eigenvalue: 5 =    2572.4480918284
+Eigenvalue: 6 =    2577.6363330784
+Eigenvalue: 7 =    4788.6182307524
+Eigenvalue: 8 =    5225.2806014202
+Eigenvalue: 9 =    5692.1299042246
+Eigenvalue: 10 =    5728.3651718587
+Eigenvalue: 11 =    6737.4369504065
+Eigenvalue: 12 =    7118.6127439443
+Eigenvalue: 13 =    7144.3583143215
+Eigenvalue: 14 =    7219.4458179687
+Eigenvalue: 15 =    7936.3583871511
+Eigenvalue: 16 =    7994.2123098330
+Eigenvalue: 17 =    8126.2112662148
+Eigenvalue: 18 =    8332.1108297303
+Eigenvalue: 19 =    8358.7217169027
+Eigenvalue: 20 =   11682.7094518472
+Eigenvalue: 21 =   11813.7467988772
+Eigenvalue: 22 =   11827.2108367184
+Eigenvalue: 23 =   12585.9868730522
+Eigenvalue: 24 =   12608.5892330067
+Eigenvalue: 25 =   12668.5662089218
+Eigenvalue: 26 =   13166.0248555246
+Eigenvalue: 27 =   13216.7765239331
+Eigenvalue: 28 =   14841.6442955941
+Eigenvalue: 29 =   14975.0734168330
+Eigenvalue: 30 =   15281.3492888167
+Eigenvalue: 31 =   15316.7858076051
+Eigenvalue: 32 =   16017.0026192557
+Eigenvalue: 33 =   16043.6300482284
+Eigenvalue: 34 =   16180.5676267203
+Eigenvalue: 35 =   17104.2715661603
+Eigenvalue: 36 =   19698.5206731372
+Eigenvalue: 37 =   19921.9247794683
+Eigenvalue: 38 =   19969.7893215859
+Eigenvalue: 39 =   20056.3684792653
+Eigenvalue: 40 =   20432.8129873786
+Eigenvalue: 41 =   20927.8540276802
+Eigenvalue: 42 =   22785.7193105057
+Eigenvalue: 43 =   23093.6690989578
+Eigenvalue: 44 =   24023.3396990600
+Eigenvalue: 45 =   24248.4336768409
+Eigenvalue: 46 =   24566.1069838581
+Eigenvalue: 47 =   24646.0304078360
+Eigenvalue: 48 =   24838.5903339893
+Eigenvalue: 49 =   25028.9789305441
+Eigenvalue: 50 =   25714.9780312318
+Eigenvalue: 51 =   25749.9896545636
+Eigenvalue: 52 =   25907.0798556239
+Eigenvalue: 53 =   27056.8368960113
+Eigenvalue: 54 =   27830.8809993470
+Eigenvalue: 55 =   28066.6221449454
+Eigenvalue: 56 =   29326.5134239542
+Eigenvalue: 57 =   29357.5659594187
+Eigenvalue: 58 =   30028.9858532154
+Eigenvalue: 59 =   30442.3309303448
+Eigenvalue: 60 =   31198.4785014762
+Eigenvalue: 61 =   31870.0741704366
+Eigenvalue: 62 =   32183.6244821858
+Eigenvalue: 63 =   32877.6153808833
+Eigenvalue: 64 =   33051.9181680235
+Eigenvalue: 65 =   33574.7118497458
+Eigenvalue: 66 =   34521.8836359604
+Eigenvalue: 67 =   34676.7617865025
+Eigenvalue: 68 =   34895.7092759000
+Eigenvalue: 69 =   35018.1510035560
+Eigenvalue: 70 =   35087.6971899437
+Eigenvalue: 71 =   35518.7444589745
+Eigenvalue: 72 =   36347.3325544003
+Eigenvalue: 73 =   37302.8428697687
+Eigenvalue: 74 =   37731.1204015523
+Eigenvalue: 75 =   37958.6172321464
+Eigenvalue: 76 =   38850.5774964116
+Eigenvalue: 77 =   39298.2903253679
+Eigenvalue: 78 =   39594.2712189594
+Eigenvalue: 79 =   40511.2095400255
+Eigenvalue: 80 =   40757.2842320275
+Eigenvalue: 81 =   40868.5897467643
+Eigenvalue: 82 =   42416.8918182395
+Eigenvalue: 83 =   44764.6530382859
+Eigenvalue: 84 =   44899.1449909005
+Eigenvalue: 85 =   45163.1228573425
+Eigenvalue: 86 =   45244.2702635740
+Eigenvalue: 87 =   45492.8262539373
+Eigenvalue: 88 =   45722.0178510748
+Eigenvalue: 89 =   46284.1036865097
+Eigenvalue: 90 =   47319.1231286719
+Eigenvalue: 91 =   47722.6532917976
+Eigenvalue: 92 =   47793.2933483221
+Eigenvalue: 93 =   48021.3501793378
+Eigenvalue: 94 =   48599.9347179911
+Eigenvalue: 95 =   50555.3959362522
+Eigenvalue: 96 =   51197.1192315099
+Eigenvalue: 97 =   51594.3722412933
+Eigenvalue: 98 =   52972.8899890598
+Eigenvalue: 99 =   53409.5039168367
+Eigenvalue: 100 =   54014.9595289227
+Eigenvalue: 101 =   54480.4037045541
+Eigenvalue: 102 =   55145.4768457821
+Eigenvalue: 103 =   56434.3841690105
+Eigenvalue: 104 =   56560.0075830171
+Eigenvalue: 105 =   59459.3739431286
+Eigenvalue: 106 =   60795.0602718663
+Eigenvalue: 107 =   62185.2318792596
+Eigenvalue: 108 =   62821.4733294000
+Eigenvalue: 109 =   63142.3351688779
+Eigenvalue: 110 =   63331.9228244497
+Eigenvalue: 111 =   63474.7505543720
+Eigenvalue: 112 =   64575.8145182886
+Eigenvalue: 113 =   65106.3078616835
+Eigenvalue: 114 =   65396.9112803653
+Eigenvalue: 115 =   66020.7270771200
+Eigenvalue: 116 =   67533.4495637960
+Eigenvalue: 117 =   68706.0069144802
+Eigenvalue: 118 =   68944.9674252010
+Eigenvalue: 119 =   69039.2685176394
+Eigenvalue: 120 =   69800.0303921296
+Eigenvalue: 121 =   70133.3729087620
+Eigenvalue: 122 =   70240.8450477200
+Eigenvalue: 123 =   74096.6000047063
+Eigenvalue: 124 =   74292.1123730039
+Eigenvalue: 125 =   74375.5819819807
+Eigenvalue: 126 =   75171.0713888938
+Eigenvalue: 127 =   75510.8235452722
+Eigenvalue: 128 =   75863.7515229667
+Eigenvalue: 129 =   76201.7446048535
+Eigenvalue: 130 =   76532.6838717585
+Eigenvalue: 131 =   76850.3002945411
+Eigenvalue: 132 =   77954.0138016671
+Eigenvalue: 133 =   79188.4452140191
+Eigenvalue: 134 =   80589.9228742779
+Eigenvalue: 135 =   81962.7795146285
+Eigenvalue: 136 =   82455.9476070860
+Eigenvalue: 137 =   83518.1855519736
+Eigenvalue: 138 =   83836.4921946270
+Eigenvalue: 139 =   84183.4661203343
+Eigenvalue: 140 =   84749.6328109841
+Eigenvalue: 141 =   87377.9259246625
+Eigenvalue: 142 =   91053.0383182107
+Eigenvalue: 143 =   91278.1439704676
+Eigenvalue: 144 =   91696.7363756112
+Eigenvalue: 145 =   93078.6875086211
+Eigenvalue: 146 =   94473.7102869665
+Eigenvalue: 147 =   94789.0024772945
+Eigenvalue: 148 =   95502.6653166563
+Eigenvalue: 149 =   99373.5095953557
+Eigenvalue: 150 =  100233.6538042486
+Eigenvalue: 151 =  103431.5185629521
+Eigenvalue: 152 =  103965.6670487012
+Eigenvalue: 153 =  104627.7101680271
+Eigenvalue: 154 =  108031.1329424546
+Eigenvalue: 155 =  109267.9526248195
+Eigenvalue: 156 =  109402.6765392767
+Eigenvalue: 157 =  109597.3165727496
+Eigenvalue: 158 =  109748.7093119660
+Eigenvalue: 159 =  110537.9531380209
+Eigenvalue: 160 =  111866.5748363472
+Eigenvalue: 161 =  112681.5886511648
+Eigenvalue: 162 =  112990.2554294588
+Eigenvalue: 163 =  113247.6008236979
+Eigenvalue: 164 =  113604.8869367503
+Eigenvalue: 165 =  117648.5269476038
+Eigenvalue: 166 =  117891.6597881138
+Eigenvalue: 167 =  118467.6826597461
+Eigenvalue: 168 =  120138.0878603530
+Eigenvalue: 169 =  121531.8483452470
+Eigenvalue: 170 =  122277.3486456424
+Eigenvalue: 171 =  122762.7862263488
+Eigenvalue: 172 =  123161.3659062450
+Eigenvalue: 173 =  123287.0599434558
+Eigenvalue: 174 =  123564.2093184927
+Eigenvalue: 175 =  125528.4976107720
+Eigenvalue: 176 =  125667.5090547133
+Eigenvalue: 177 =  128174.7900485309
+Eigenvalue: 178 =  128975.9642386387
+Eigenvalue: 179 =  129173.8539880747
+Eigenvalue: 180 =  129286.7896034156
+Eigenvalue: 181 =  129397.2460686081
+Eigenvalue: 182 =  132908.4770018826
+Eigenvalue: 183 =  133127.3117348220
+Eigenvalue: 184 =  133585.9937626443
+Eigenvalue: 185 =  133847.9125632136
+Eigenvalue: 186 =  134528.6502938483
+Eigenvalue: 187 =  138345.0832840927
+Eigenvalue: 188 =  138693.1704329357
+Eigenvalue: 189 =  144063.2588528792
+Eigenvalue: 190 =  144403.3925771192
+Eigenvalue: 191 =  148122.0291825992
+Eigenvalue: 192 =  148680.3790873572
+Eigenvalue: 193 =  151869.2310485199
+Eigenvalue: 194 =  152366.1296816635
+Eigenvalue: 195 =  152564.8841696164
+Eigenvalue: 196 =  156330.1943082501
+Eigenvalue: 197 =  157246.7223162438
+Eigenvalue: 198 =  157552.9308034710
+Eigenvalue: 199 =  158163.3750943766
+Eigenvalue: 200 =  158234.4193475837
+Eigenvalue: 201 =  166847.2689064968
+Eigenvalue: 202 =  168079.4510110714
+Eigenvalue: 203 =  168144.2167487972
+Eigenvalue: 204 =  174803.1765881463
+Eigenvalue: 205 =  174909.2283202019
+Eigenvalue: 206 =  190239.0095126814
+Eigenvalue: 207 =  192497.2449667444
+Eigenvalue: 208 =  200445.5187465718
+Eigenvalue: 209 =  203768.0682074718
+Eigenvalue: 210 =  203923.6310459475
+Eigenvalue: 211 =  208763.5492066349
+Eigenvalue: 212 =  211860.9585899748
+Eigenvalue: 213 =  212959.5719972214
+Eigenvalue: 214 =  214806.9340601620
+Eigenvalue: 215 =  215238.5305429644
+Eigenvalue: 216 =  230268.8794115275
+Eigenvalue: 217 =  237264.9711258858
+Eigenvalue: 218 =  237389.6900282466
+Eigenvalue: 219 =  238101.5336402693
+Eigenvalue: 220 =  238336.4933176399
+Eigenvalue: 221 =  238792.0008372255
+Eigenvalue: 222 =  241624.3127235096
+Eigenvalue: 223 =  248619.9274211474
+Eigenvalue: 224 =  249426.3945466678
+Eigenvalue: 225 =  251079.2001570948
+Eigenvalue: 226 =  253188.9471065075
+Eigenvalue: 227 =  259379.8775656724
+Eigenvalue: 228 =  259841.5160560612
+Eigenvalue: 229 =  262366.5492350878
+Eigenvalue: 230 =  271404.9612832650
+Eigenvalue: 231 =  275709.2018990676
+Eigenvalue: 232 =  275918.9280778817
+Eigenvalue: 233 =  282624.4277405150
+Eigenvalue: 234 =  283347.6528102373
+Eigenvalue: 235 =  294456.6383945441
+Eigenvalue: 236 =  294842.1269280993
+Eigenvalue: 237 =  297313.6242711028
+Eigenvalue: 238 =  305320.9500755430
+Eigenvalue: 239 =  306189.4572401000
+Eigenvalue: 240 =  306944.9962545399
+Eigenvalue: 241 =  314220.0616472515
+Eigenvalue: 242 =  314466.4553854365
+Eigenvalue: 243 =  314918.0209047191
+Eigenvalue: 244 =  331421.7435364266
+Eigenvalue: 245 =  331732.0045194893
+Eigenvalue: 246 =  332513.8056680074
+Eigenvalue: 247 =  333459.3594262889
+Eigenvalue: 248 =  342001.7695370748
+Eigenvalue: 249 =  345959.2375921195
+Eigenvalue: 250 =  346745.0576011871
+Eigenvalue: 251 =  349181.4528135067
+Eigenvalue: 252 =  360844.4287696155
+Eigenvalue: 253 =  369024.3940198027
+Eigenvalue: 254 =  369602.9643382598
+Eigenvalue: 255 =  373055.8965212001
+Eigenvalue: 256 =  373642.8524510143
+Eigenvalue: 257 =  374404.4559367468
+Eigenvalue: 258 =  377749.6190718834
+Eigenvalue: 259 =  383400.8707137691
+Eigenvalue: 260 =  384027.8031547416
+Eigenvalue: 261 =  388383.5278683399
+Eigenvalue: 262 =  391773.0479014368
+Eigenvalue: 263 =  395023.8803033939
+Eigenvalue: 264 =  395533.9981976064
+Eigenvalue: 265 =  395937.0226132847
+Eigenvalue: 266 =  397518.4984490737
+Eigenvalue: 267 =  402000.7295012104
+Eigenvalue: 268 =  422917.1018156300
+Eigenvalue: 269 =  423532.0160488692
+Eigenvalue: 270 =  425765.6893403021
+Eigenvalue: 271 =  427022.6645292118
+Eigenvalue: 272 =  430304.2577912019
+Eigenvalue: 273 =  430837.8273818651
+Eigenvalue: 274 =  435772.9750162838
+Eigenvalue: 275 =  442949.6378168963
+Eigenvalue: 276 =  458474.7061503842
+Eigenvalue: 277 =  459403.8217003773
+Eigenvalue: 278 =  465383.4065390681
+Eigenvalue: 279 =  468706.0942068370
+Eigenvalue: 280 =  475445.5814240572
+Eigenvalue: 281 =  476133.4553669456
+Eigenvalue: 282 =  480535.1577626775
+Eigenvalue: 283 =  485788.7500442219
+Eigenvalue: 284 =  486475.5722269504
+Eigenvalue: 285 =  486549.2153451860
+Eigenvalue: 286 =  488297.0357403233
+Eigenvalue: 287 =  489444.2431006070
+Eigenvalue: 288 =  543947.1391861223
+Eigenvalue: 289 =  549748.0714806733
+Eigenvalue: 290 =  550067.7764381064
+Eigenvalue: 291 =  552457.9082158826
+Eigenvalue: 292 =  555463.9658379699
+Eigenvalue: 293 =  556204.6760931032
+Eigenvalue: 294 =  557728.0579192480
+Eigenvalue: 295 =  562852.3461577252
+Eigenvalue: 296 =  563583.4947277091
+Eigenvalue: 297 =  564079.1352271462
+Eigenvalue: 298 =  572223.7291021942
+Eigenvalue: 299 =  573485.1035594015
+Eigenvalue: 300 =  575679.9138484441
+Eigenvalue: 301 =  577323.5004008870
+Eigenvalue: 302 =  580786.8169783690
+Eigenvalue: 303 =  581490.2377329546
+Eigenvalue: 304 =  582582.9297481262
+Eigenvalue: 305 =  590536.8552008582
+Eigenvalue: 306 =  590631.2284459861
+Eigenvalue: 307 =  597202.6981839302
+Eigenvalue: 308 =  603682.9442160251
+Eigenvalue: 309 =  603895.8010993850
+Eigenvalue: 310 =  605137.2480810169
+Eigenvalue: 311 =  612702.0011684424
+Eigenvalue: 312 =  613036.5778453317
+Eigenvalue: 313 =  615560.0876228333
+Eigenvalue: 314 =  623334.8727766488
+Eigenvalue: 315 =  625871.2790297584
+Eigenvalue: 316 =  631571.2337603444
+Eigenvalue: 317 =  632585.9593641899
+Eigenvalue: 318 =  637765.0411508178
+Eigenvalue: 319 =  638625.7028198480
+Eigenvalue: 320 =  639264.9153264458
+Eigenvalue: 321 =  642579.1687132420
+Eigenvalue: 322 =  649825.2372700357
+Eigenvalue: 323 =  649979.1250221380
+Eigenvalue: 324 =  650412.0123703406
+Eigenvalue: 325 =  650818.1350171706
+Eigenvalue: 326 =  652092.2395547919
+Eigenvalue: 327 =  665499.4291012556
+Eigenvalue: 328 =  665762.9648462607
+Eigenvalue: 329 =  686970.9353088916
+Eigenvalue: 330 =  690703.6752281399
+Eigenvalue: 331 =  691755.7960367362
+Eigenvalue: 332 =  694050.5117259168
+Eigenvalue: 333 =  695494.1878951201
+Eigenvalue: 334 =  701574.9379159502
+Eigenvalue: 335 =  718609.2396629610
+Eigenvalue: 336 =  719060.2411120110
+Eigenvalue: 337 =  726144.9276559168
+Eigenvalue: 338 =  729809.7974615697
+Eigenvalue: 339 =  731986.6282742569
+Eigenvalue: 340 =  733705.2339097379
+Eigenvalue: 341 =  742697.4396288127
+Eigenvalue: 342 =  747658.8987301155
+Eigenvalue: 343 =  748954.9215447110
+Eigenvalue: 344 =  756402.6318204330
+Eigenvalue: 345 =  757860.3147804395
+Eigenvalue: 346 =  774942.0224095139
+Eigenvalue: 347 =  777686.3772076379
+Eigenvalue: 348 =  787055.0053958703
+Eigenvalue: 349 =  790188.4646693568
+Eigenvalue: 350 =  797084.8322548795
+Eigenvalue: 351 =  800220.1936468232
+Eigenvalue: 352 =  800733.4608847573
+Eigenvalue: 353 =  801363.6316148635
+Eigenvalue: 354 =  803261.5496676957
+Eigenvalue: 355 =  803807.9743266559
+Eigenvalue: 356 =  806549.4910239545
+Eigenvalue: 357 =  812137.3865980533
+Eigenvalue: 358 =  812723.6653362408
+Eigenvalue: 359 =  816356.8766806867
+Eigenvalue: 360 =  853558.7339591696
+Eigenvalue: 361 =  858557.1074527057
+Eigenvalue: 362 =  860022.4172314754
+Eigenvalue: 363 =  861011.6160460769
+Eigenvalue: 364 =  861864.0767471892
+Eigenvalue: 365 =  861891.8549602176
+Eigenvalue: 366 =  862693.4668062937
+Eigenvalue: 367 =  862895.7749809847
+Eigenvalue: 368 =  865008.9861589333
+Eigenvalue: 369 =  865952.8891270618
+Eigenvalue: 370 =  866847.0134496429
+Eigenvalue: 371 =  867763.4793470402
+Eigenvalue: 372 =  867984.6956992041
+Eigenvalue: 373 =  868467.4812663848
+Eigenvalue: 374 =  869949.8411411984
+Eigenvalue: 375 =  870614.6308470620
+Eigenvalue: 376 =  871826.3448479945
+Eigenvalue: 377 =  872603.1397294073
+Eigenvalue: 378 =  873017.9423408826
+Eigenvalue: 379 =  873184.0285438155
+Eigenvalue: 380 =  874183.4643076278
+Eigenvalue: 381 =  874486.3580358715
+Eigenvalue: 382 =  875441.1122590357
+Eigenvalue: 383 =  876027.1767039635
+Eigenvalue: 384 =  950583.4089484164
+Eigenvalue: 385 =  961315.5632150783
+Eigenvalue: 386 =  961844.6435893239
+Eigenvalue: 387 =  962182.7073813402
+Eigenvalue: 388 =  969128.1372386718
+Eigenvalue: 389 =  972522.0747271854
+Eigenvalue: 390 =  974006.7385508686
+Eigenvalue: 391 =  977125.3141372219
+Eigenvalue: 392 =  986406.3636087602
+Eigenvalue: 393 =  987725.5006028333
+Eigenvalue: 394 =  991299.8204951364
+Eigenvalue: 395 =  991858.9179192205
+Eigenvalue: 396 =  996137.3674826337
+Eigenvalue: 397 =  997158.6127315643
+Eigenvalue: 398 =  1002019.4019116363
+Eigenvalue: 399 =  1003128.7617982375
+Eigenvalue: 400 =  1004453.8060800423
+Eigenvalue: 401 =  1005199.6303984774
+Eigenvalue: 402 =  1015767.3998746534
+Eigenvalue: 403 =  1019219.3432815748
+Eigenvalue: 404 =  1020737.5704400988
+Eigenvalue: 405 =  1024782.3731915888
+Eigenvalue: 406 =  1025974.8663059735
+Eigenvalue: 407 =  1026835.6722840687
+Eigenvalue: 408 =  1123426.1027205265
+Eigenvalue: 409 =  1128914.6728970509
+Eigenvalue: 410 =  1136088.4665230513
+Eigenvalue: 411 =  1139710.0626749434
+Eigenvalue: 412 =  1140682.5355004137
+Eigenvalue: 413 =  1143087.4893570924
+Eigenvalue: 414 =  1143458.5765378082
+Eigenvalue: 415 =  1148100.2597480321
+Eigenvalue: 416 =  1150166.6193221463
+Eigenvalue: 417 =  1152906.4858541652
+Eigenvalue: 418 =  1156316.5289306988
+Eigenvalue: 419 =  1161474.8916286703
+Eigenvalue: 420 =  1171894.1106964345
+Eigenvalue: 421 =  1184370.7877198311
+Eigenvalue: 422 =  1184882.3833239698
+Eigenvalue: 423 =  1185853.8054960340
+Eigenvalue: 424 =  1187716.9283071463
+Eigenvalue: 425 =  1190064.9876037613
+Eigenvalue: 426 =  1194341.3859516669
+Eigenvalue: 427 =  1197861.0119079542
+Eigenvalue: 428 =  1198395.6537764189
+Eigenvalue: 429 =  1200303.9558942071
+Eigenvalue: 430 =  1201615.5616907363
+Eigenvalue: 431 =  1221561.4092392037
+Eigenvalue: 432 =  136421352.8227995038
 
 
-Final energy after minimization: -6567302.0708104949 in 16 steps
-Final pressure after minimization: -8863760631.1533088684 [Pa]
-Final stress after minimization: {{-8863760631.153297,-0.000001,-0.000002},{-,-8863760631.153273,-0.000007},{-,-,-8863760631.153351}} [Pa]
+Final energy after minimization: -6753635.8431774480 in 41 steps
+Final pressure after minimization: -211412.1600131232 [Pa]
+Final stress after minimization: {{6080695.317822,-194009616.076571,194453192.795648},{-,-18331734.968632,-192549160.755981},{-,-,11616803.170771}} [Pa]
 
 
-Volume [A^3]:    3395.9682747910
-      Box:      15.0310000000       0.0000000000       0.0000000000     Strain derivative: 1812726.3584909327       0.0000000002       0.0000000004
-                 0.0000000000      15.0310000000       0.0000000000                              0.0000000002 1812726.3584909278       0.0000000014
-                 0.0000000000       0.0000000000      15.0310000000                              0.0000000004       0.0000000014 1812726.3584909437
-      Final Lengths:      15.0310000000      15.0310000000      15.0310000000, Angles:      90.0000000000      90.0000000000      90.0000000000
+Volume [A^3]:    2822.9512833780
+      Box:      14.1330033255       0.0000000000       0.0000000000     Strain derivative:   -1033.7302674922   32982.0196277713  -33057.4285500243
+                 0.0000000000      14.1330033255       0.0000000000                          32982.0196277713    3116.4313129092   32733.7393258807
+                 0.0000000000       0.0000000000      14.1330033255                         -33057.4285500243   32733.7393258807   -1974.8795855516
+      Final Lengths:      14.1330033255      14.1330033255      14.1330033255, Angles:      90.0000000000      90.0000000000      90.0000000000
 
 Strain derivative from force routines (NOTE: different when fixed atoms are present)
-1812726.3584909309       0.0000000005       0.0000000007
-      0.0000000005 1812726.3584909290       0.0000000019
-      0.0000000007       0.0000000019 1812726.3584909397
+  -1033.7302674947   32982.0196277722  -33057.4285500260
+  32982.0196277722    3116.4313129107   32733.7393258790
+ -33057.4285500260   32733.7393258790   -1974.8795855497
 
 Forces
-Framework[0] Atom: 0  -3.49246e-10 7.7307e-11 1.18234e-10
-Framework[0] Atom: 1  1.97815e-10 -2.96495e-10 1.952e-10
-Framework[0] Atom: 2  1.83036e-10 -2.54659e-11 -6.36646e-12
-Framework[0] Atom: 3  -3.01043e-10 1.1687e-10 3.55158e-10
-Framework[0] Atom: 4  1.57115e-10 -1.10276e-10 -1.20053e-10
-Framework[0] Atom: 5  -3.64253e-10 -3.93356e-11 -3.05818e-11
-Framework[0] Atom: 6  2.40107e-10 -4.00064e-10 2.52385e-10
-Framework[0] Atom: 7  -1.19371e-10 3.05135e-10 -6.32667e-11
-Framework[0] Atom: 8  -4.20869e-10 6.00267e-11 -1.57684e-10
-Framework[0] Atom: 9  -2.76259e-11 -1.45519e-10 2.46018e-10
-Framework[0] Atom: 10  1.69166e-10 7.07132e-11 -1.27955e-10
-Framework[0] Atom: 11  3.89718e-10 6.753e-11 -9.22e-11
-Framework[0] Atom: 12  7.09406e-11 9.20863e-11 7.57154e-10
-Framework[0] Atom: 13  9.84528e-11 -1.99634e-10 -1.70189e-10
-Framework[0] Atom: 14  -1.47793e-12 7.32143e-11 -8.59472e-11
-Framework[0] Atom: 15  -1.6064e-10 1.92813e-10 5.80258e-10
-Framework[0] Atom: 16  3.80169e-10 6.36646e-12 -2.6148e-12
-Framework[0] Atom: 17  6.45741e-11 -1.09026e-10 -9.44738e-11
-Framework[0] Atom: 18  1.02045e-09 4.2553e-10 5.54792e-11
-Framework[0] Atom: 19  -1.49157e-10 2.05773e-10 -2.44427e-11
-Framework[0] Atom: 20  -1.01852e-09 -5.37966e-10 1.93268e-12
-Framework[0] Atom: 21  -3.71074e-10 -1.27329e-10 -2.27374e-12
-Framework[0] Atom: 22  2.27146e-10 1.00044e-11 4.48495e-11
-Framework[0] Atom: 23  -4.33829e-10 4.49063e-11 1.7144e-10
-Framework[0] Atom: 24  -4.56112e-10 6.13909e-11 1.3506e-10
-Framework[0] Atom: 25  2.40732e-10 1.60981e-10 -6.35055e-10
-Framework[0] Atom: 26  1.02773e-10 6.0254e-11 -1.78488e-10
-Framework[0] Atom: 27  1.13005e-09 1.36424e-10 1.51658e-10
-Framework[0] Atom: 28  -1.63709e-10 -1.51999e-10 2.41243e-10
-Framework[0] Atom: 29  -7.62611e-10 -1.77124e-10 -1.80989e-10
-Framework[0] Atom: 30  -6.04359e-10 1.22327e-10 -1.39948e-10
-Framework[0] Atom: 31  1.88038e-10 1.41426e-10 9.59517e-11
-Framework[0] Atom: 32  2.65118e-10 -7.32143e-11 2.59661e-10
-Framework[0] Atom: 33  1.01863e-10 8.29459e-10 1.34264e-10
-Framework[0] Atom: 34  5.97993e-11 -7.0429e-11 -1.95314e-10
-Framework[0] Atom: 35  -2.22826e-11 -3.00361e-10 -3.688e-10
-Framework[0] Atom: 36  -2.41926e-10 -1.24146e-10 2.83194e-10
-Framework[0] Atom: 37  1.6297e-10 -1.95541e-11 -3.2469e-10
-Framework[0] Atom: 38  1.39835e-10 2.59206e-11 1.86446e-11
-Framework[0] Atom: 39  -4.14275e-10 6.64386e-10 -2.05659e-10
-Framework[0] Atom: 40  -3.86535e-12 -1.19087e-10 1.95541e-10
-Framework[0] Atom: 41  3.19687e-10 -5.75255e-11 6.91216e-11
-Framework[0] Atom: 42  -5.41149e-11 1.50067e-10 2.55454e-10
-Framework[0] Atom: 43  3.84262e-11 4.502e-11 -2.49884e-10
-Framework[0] Atom: 44  6.29825e-11 -4.41105e-11 -1.72804e-10
-Framework[0] Atom: 45  5.5843e-10 3.41061e-10 -2.68528e-10
-Framework[0] Atom: 46  -1.09367e-10 2.45564e-11 1.42109e-10
-Framework[0] Atom: 47  -3.3242e-10 -5.61613e-11 6.0254e-11
-Framework[0] Atom: 48  -3.38673e-10 3.60615e-10 -2.47383e-10
-Framework[0] Atom: 49  7.93989e-10 -1.57627e-10 -9.89075e-11
-Framework[0] Atom: 50  1.96792e-10 -4.42242e-11 -8.86757e-11
-Framework[0] Atom: 51  2.09184e-11 2.84217e-10 -1.3506e-10
-Framework[0] Atom: 52  1.43018e-10 -2.18847e-11 -3.79714e-11
-Framework[0] Atom: 53  -2.02931e-10 -1.70303e-10 1.95541e-10
-Framework[0] Atom: 54  -5.91172e-11 7.81029e-11 -7.68523e-11
-Framework[0] Atom: 55  1.57399e-10 -3.07182e-10 -1.19371e-10
-Framework[0] Atom: 56  2.26237e-11 -1.54841e-10 -3.15595e-10
-Framework[0] Atom: 57  -5.00904e-10 7.23503e-10 -6.18456e-11
-Framework[0] Atom: 58  5.33873e-10 -1.7576e-10 7.66249e-11
-Framework[0] Atom: 59  -4.61455e-10 -7.5147e-11 8.59472e-11
-Framework[0] Atom: 60  -7.77163e-10 4.86466e-10 1.67347e-10
-Framework[0] Atom: 61  9.3678e-11 -2.658e-10 2.27374e-13
-Framework[0] Atom: 62  1.69962e-10 -1.86787e-10 -1.31422e-10
-Framework[0] Atom: 63  -7.60338e-10 6.96673e-10 3.42425e-10
-Framework[0] Atom: 64  5.38193e-10 -4.04725e-11 -8.78799e-11
-Framework[0] Atom: 65  -3.04794e-10 -2.06228e-10 -4.81577e-10
-Framework[0] Atom: 66  -3.22871e-10 5.01359e-11 1.95541e-10
-Framework[0] Atom: 67  1.39607e-10 -1.43473e-10 4.72937e-11
-Framework[0] Atom: 68  1.07434e-10 1.3074e-11 -2.3374e-10
-Framework[0] Atom: 69  -7.9217e-10 1.19371e-10 -1.12777e-10
-Framework[0] Atom: 70  3.50838e-10 2.12367e-10 -1.50635e-10
-Framework[0] Atom: 71  1.09821e-10 -3.5584e-11 1.05501e-10
-Framework[0] Atom: 72  2.10548e-10 -2.37833e-10 -1.05501e-10
-Framework[0] Atom: 73  4.37694e-11 -2.44199e-10 2.41016e-11
-Framework[0] Atom: 74  2.00998e-10 9.90212e-11 7.52152e-10
-Framework[0] Atom: 75  -1.5234e-11 4.83396e-10 4.82487e-10
-Framework[0] Atom: 76  7.68978e-10 1.25738e-10 -2.3465e-10
-Framework[0] Atom: 77  -3.60387e-10 -5.22959e-11 1.46429e-10
-Framework[0] Atom: 78  -4.69754e-10 1.56206e-10 4.00178e-11
-Framework[0] Atom: 79  2.05091e-10 2.82853e-10 1.53705e-10
-Framework[0] Atom: 80  4.8658e-11 8.6402e-12 -2.57785e-11
-Framework[0] Atom: 81  1.40972e-11 2.41926e-10 4.71942e-10
-Framework[0] Atom: 82  -3.03771e-10 2.32831e-10 9.63468e-10
-Framework[0] Atom: 83  5.12955e-10 5.42514e-10 -2.20325e-10
-Framework[0] Atom: 84  -6.81666e-10 2.13731e-11 -2.86491e-11
-Framework[0] Atom: 85  -1.81899e-11 6.50743e-10 4.71914e-10
-Framework[0] Atom: 86  -2.92857e-10 -1.98725e-10 1.69962e-10
-Framework[0] Atom: 87  -1.71894e-10 2.10093e-10 8.70841e-11
-Framework[0] Atom: 88  -2.77112e-10 2.72394e-10 1.92813e-10
-Framework[0] Atom: 89  -6.28489e-10 8.03539e-10 -1.36424e-11
-Framework[0] Atom: 90  -1.1496e-09 -2.41243e-10 -3.27873e-10
-Framework[0] Atom: 91  5.68718e-11 7.93534e-10 3.01952e-10
-Framework[0] Atom: 92  -3.87445e-10 -4.66116e-11 1.52113e-10
-Framework[0] Atom: 93  -1.07207e-10 4.77939e-10 -2.86491e-11
-Framework[0] Atom: 94  -4.26553e-10 1.04649e-10 -5.45697e-12
-Framework[0] Atom: 95  -1.2642e-10 2.0907e-10 -1.90994e-10
-Framework[0] Atom: 96  -5.27507e-11 -6.33008e-10 -1.17041e-10
-Framework[0] Atom: 97  -4.95675e-11 -3.43334e-11 6.861e-11
-Framework[0] Atom: 98  -3.61524e-10 4.59295e-11 -1.37447e-10
-Framework[0] Atom: 99  3.95744e-10 2.10093e-10 -2.6148e-12
-Framework[0] Atom: 100  -8.01492e-11 -5.47971e-10 -1.09367e-10
-Framework[0] Atom: 101  4.70664e-10 -3.8267e-10 -4.00178e-11
-Framework[0] Atom: 102  1.31877e-11 -1.69621e-10 -9.06653e-11
-Framework[0] Atom: 103  -2.26009e-10 -2.49429e-10 5.96287e-11
-Framework[0] Atom: 104  -1.54841e-10 2.04636e-11 -3.60956e-11
-Framework[0] Atom: 105  -4.54747e-11 -1.05615e-10 8.54357e-11
-Framework[0] Atom: 106  1.05956e-10 1.00272e-10 1.63141e-11
-Framework[0] Atom: 107  6.72571e-10 -6.02427e-10 -4.45652e-11
-Framework[0] Atom: 108  -2.6148e-11 -5.55247e-10 1.42109e-12
-Framework[0] Atom: 109  1.01181e-10 -8.41283e-11 -1.07264e-10
-Framework[0] Atom: 110  5.97993e-10 -1.07661e-10 -3.17755e-11
-Framework[0] Atom: 111  2.12367e-10 -1.76442e-10 -5.16138e-11
-Framework[0] Atom: 112  1.95712e-10 -7.24185e-11 1.09139e-11
-Framework[0] Atom: 113  1.52738e-10 1.79625e-10 -1.99975e-10
-Framework[0] Atom: 114  2.18279e-11 9.91918e-11 -5.35692e-10
-Framework[0] Atom: 115  3.41061e-11 1.92472e-10 -3.78577e-11
-Framework[0] Atom: 116  9.37916e-12 -9.20863e-11 -5.86169e-10
-Framework[0] Atom: 117  -6.66205e-11 -2.36469e-10 -2.11799e-10
-Framework[0] Atom: 118  -1.18689e-10 -2.77964e-11 2.64208e-10
-Framework[0] Atom: 119  -3.50155e-11 -3.80282e-11 -3.22871e-11
-Framework[0] Atom: 120  2.24532e-11 -1.18803e-10 -5.8526e-10
-Framework[0] Atom: 121  1.21076e-11 -2.55113e-10 1.39721e-10
-Framework[0] Atom: 122  1.03796e-10 6.36646e-11 6.82121e-12
-Framework[0] Atom: 123  4.00178e-10 2.16573e-11 3.38105e-10
-Framework[0] Atom: 124  5.5536e-11 1.64391e-10 3.63798e-12
-Framework[0] Atom: 125  -9.004e-11 -1.48248e-10 -9.11768e-11
-Framework[0] Atom: 126  1.93268e-12 -2.9786e-11 -5.37511e-10
-Framework[0] Atom: 127  2.7012e-10 2.21689e-12 -9.62928e-11
-Framework[0] Atom: 128  7.27596e-12 -6.90648e-11 2.66027e-10
-Framework[0] Atom: 129  4.42014e-10 -1.16131e-10 -3.05931e-10
-Framework[0] Atom: 130  6.04814e-10 4.06999e-11 -1.14483e-10
-Framework[0] Atom: 131  -2.72848e-12 2.54659e-11 1.60981e-10
-Framework[0] Atom: 132  1.87697e-10 -7.54426e-10 -1.14824e-11
-Framework[0] Atom: 133  1.88038e-10 -1.4461e-10 -1.00954e-10
-Framework[0] Atom: 134  3.91537e-10 5.11591e-11 -9.24274e-11
-Framework[0] Atom: 135  3.08773e-10 1.22554e-10 -1.42904e-10
-Framework[0] Atom: 136  1.47224e-11 -5.53428e-10 -1.62572e-11
-Framework[0] Atom: 137  5.65024e-11 -3.91083e-10 4.13934e-10
-Framework[0] Atom: 138  1.56888e-10 5.91172e-12 2.2294e-10
-Framework[0] Atom: 139  -1.8963e-10 -1.17495e-10 -1.82467e-10
-Framework[0] Atom: 140  1.0931e-10 -6.46196e-10 7.53744e-11
-Framework[0] Atom: 141  7.72502e-11 -4.99313e-10 -3.43789e-10
-Framework[0] Atom: 142  3.68914e-11 -5.94355e-10 1.04933e-10
-Framework[0] Atom: 143  -1.1255e-10 1.42336e-10 -2.36469e-10
+Framework[0] Atom: 0  -9.59517e-11 -3.17073e-10 -3.87899e-10
+Framework[0] Atom: 1  -2.22826e-10 1.19098e-09 -9.77707e-12
+Framework[0] Atom: 2  -1.13033e-10 3.76531e-10 1.56774e-10
+Framework[0] Atom: 3  3.26963e-10 -8.16271e-10 4.09727e-10
+Framework[0] Atom: 4  -4.91127e-11 1.25283e-09 -3.42766e-10
+Framework[0] Atom: 5  -6.35737e-10 -7.0429e-11 3.99268e-10
+Framework[0] Atom: 6  4.6839e-11 3.11502e-11 -8.6311e-10
+Framework[0] Atom: 7  -3.58796e-10 -7.34417e-11 -8.12861e-11
+Framework[0] Atom: 8  -1.10242e-09 7.62157e-10 6.25278e-11
+Framework[0] Atom: 9  1.74282e-10 -4.70664e-10 -8.12634e-10
+Framework[0] Atom: 10  3.64935e-10 8.77208e-10 -1.24282e-09
+Framework[0] Atom: 11  8.00355e-11 9.15179e-11 1.06184e-10
+Framework[0] Atom: 12  -1.84627e-10 2.08274e-10 -1.6189e-09
+Framework[0] Atom: 13  -1.23919e-10 -2.50111e-12 1.37356e-09
+Framework[0] Atom: 14  6.9852e-10 -7.56245e-10 -1.11197e-09
+Framework[0] Atom: 15  -2.68415e-10 -5.65251e-10 -1.57797e-10
+Framework[0] Atom: 16  2.76486e-10 1.05047e-10 -1.17097e-10
+Framework[0] Atom: 17  1.03682e-10 2.00998e-10 -2.2419e-10
+Framework[0] Atom: 18  -5.36602e-10 9.06653e-11 -1.56888e-10
+Framework[0] Atom: 19  1.13005e-10 7.04858e-10 2.7967e-11
+Framework[0] Atom: 20  2.23167e-10 1.54614e-10 -3.52429e-10
+Framework[0] Atom: 21  1.03473e-08 -1.73377e-08 -9.79694e-08
+Framework[0] Atom: 22  1.25692e-09 3.47588e-08 2.02116e-07
+Framework[0] Atom: 23  -1.58434e-09 -5.38876e-11 -1.33036e-09
+Framework[0] Atom: 24  -5.16593e-10 -2.26009e-10 3.97904e-11
+Framework[0] Atom: 25  1.29955e-09 -4.55657e-10 1.0632e-09
+Framework[0] Atom: 26  2.19643e-10 6.37186e-10 -2.21235e-10
+Framework[0] Atom: 27  8.6311e-10 -6.3983e-10 -1.72918e-10
+Framework[0] Atom: 28  -9.07221e-11 6.36646e-11 5.07043e-10
+Framework[0] Atom: 29  -5.53626e-10 3.10138e-10 -1.03682e-10
+Framework[0] Atom: 30  -3.36058e-10 -1.91721e-09 4.75211e-11
+Framework[0] Atom: 31  -1.8299e-09 1.11459e-09 1.34833e-10
+Framework[0] Atom: 32  1.71212e-10 1.03597e-10 2.23508e-10
+Framework[0] Atom: 33  -4.06089e-10 -3.65162e-10 2.53237e-10
+Framework[0] Atom: 34  -1.59162e-11 1.7576e-10 1.32104e-10
+Framework[0] Atom: 35  -1.47622e-10 -4.07681e-10 4.88853e-11
+Framework[0] Atom: 36  1.06547e-09 -1.47793e-10 -4.42242e-10
+Framework[0] Atom: 37  -4.36557e-11 -1.75078e-10 5.83668e-10
+Framework[0] Atom: 38  -7.34417e-11 -9.80549e-13 -3.47427e-10
+Framework[0] Atom: 39  9.27685e-11 -1.58707e-10 -1.44109e-09
+Framework[0] Atom: 40  -1.13687e-11 4.48949e-10 7.0736e-10
+Framework[0] Atom: 41  6.59952e-10 1.06411e-10 2.93767e-10
+Framework[0] Atom: 42  9.32232e-10 -4.03816e-10 -5.65251e-10
+Framework[0] Atom: 43  -2.58751e-10 -5.00222e-11 1.09776e-09
+Framework[0] Atom: 44  -4.24734e-10 8.59757e-11 -1.62117e-10
+Framework[0] Atom: 45  6.82121e-11 9.91349e-11 -1.10845e-09
+Framework[0] Atom: 46  2.00157e-09 -1.43768e-09 5.70935e-10
+Framework[0] Atom: 47  -1.10538e-09 -1.22509e-09 -2.06455e-10
+Framework[0] Atom: 48  -1.22327e-10 -1.33696e-10 -1.46883e-10
+Framework[0] Atom: 49  4.95675e-10 1.89971e-10 6.72571e-10
+Framework[0] Atom: 50  2.41073e-10 2.17597e-10 -4.00178e-11
+Framework[0] Atom: 51  -1.77238e-09 -2.22572e-08 -2.42039e-08
+Framework[0] Atom: 52  1.30785e-09 4.36113e-08 4.8582e-08
+Framework[0] Atom: 53  6.82903e-10 -4.55088e-10 -1.70076e-10
+Framework[0] Atom: 54  2.33285e-10 4.02451e-11 -1.44792e-09
+Framework[0] Atom: 55  1.69393e-11 -2.16005e-10 1.50476e-09
+Framework[0] Atom: 56  7.34417e-11 1.76186e-10 1.7053e-10
+Framework[0] Atom: 57  -1.91699e-09 1.57797e-10 -4.62933e-10
+Framework[0] Atom: 58  1.5616e-09 -1.26283e-09 4.28713e-10
+Framework[0] Atom: 59  7.62157e-10 5.71845e-11 -5.96629e-10
+Framework[0] Atom: 60  -1.29603e-10 3.36115e-10 -4.03361e-10
+Framework[0] Atom: 61  6.11635e-11 2.20552e-10 -1.83036e-11
+Framework[0] Atom: 62  1.46656e-10 -9.93623e-10 9.51331e-10
+Framework[0] Atom: 63  1.39778e-10 2.16005e-10 5.07043e-10
+Framework[0] Atom: 64  -5.11591e-11 6.86668e-11 -1.36083e-10
+Framework[0] Atom: 65  -7.29301e-10 -2.80579e-10 -4.14275e-10
+Framework[0] Atom: 66  3.52884e-10 -5.93104e-10 2.49202e-10
+Framework[0] Atom: 67  -6.9349e-11 5.70253e-10 -6.34373e-11
+Framework[0] Atom: 68  6.34373e-11 -6.99174e-10 -4.75666e-10
+Framework[0] Atom: 69  1.23327e-09 1.22782e-11 3.34694e-10
+Framework[0] Atom: 70  1.5234e-11 -4.20641e-11 -2.35502e-10
+Framework[0] Atom: 71  -3.74882e-10 1.7053e-12 2.86491e-10
+Framework[0] Atom: 72  6.72571e-10 -1.90971e-09 1.56479e-09
+Framework[0] Atom: 73  -1.18257e-08 -1.63941e-08 -9.90808e-08
+Framework[0] Atom: 74  -7.54881e-11 3.63798e-12 -1.83809e-09
+Framework[0] Atom: 75  2.22826e-11 -1.48248e-10 1.09276e-09
+Framework[0] Atom: 76  5.78439e-10 9.57243e-11 -1.97815e-10
+Framework[0] Atom: 77  -5.22959e-10 -1.42154e-09 4.5975e-10
+Framework[0] Atom: 78  2.12822e-10 -1.96235e-09 8.19455e-10
+Framework[0] Atom: 79  1.50976e-10 -7.45786e-10 3.36968e-10
+Framework[0] Atom: 80  1.4652e-09 -6.87351e-10 -5.05452e-10
+Framework[0] Atom: 81  3.51974e-10 -3.94721e-10 4.54747e-13
+Framework[0] Atom: 82  -3.91083e-10 2.74781e-10 -1.2551e-09
+Framework[0] Atom: 83  -5.80258e-10 -2.51021e-10 1.8639e-10
+Framework[0] Atom: 84  2.56478e-10 -5.60931e-10 -4.52474e-10
+Framework[0] Atom: 85  -1.10049e-09 9.58153e-10 2.10321e-10
+Framework[0] Atom: 86  7.03494e-10 1.60981e-09 2.44199e-10
+Framework[0] Atom: 87  -1.36879e-10 -5.10227e-10 3.9563e-11
+Framework[0] Atom: 88  7.44649e-10 -2.15132e-08 -2.19868e-08
+Framework[0] Atom: 89  -1.78943e-10 4.18368e-11 -1.20849e-10
+Framework[0] Atom: 90  -1.55478e-09 6.53927e-10 -5.71845e-11
+Framework[0] Atom: 91  -2.43745e-10 1.32559e-09 -9.39053e-11
+Framework[0] Atom: 92  5.95719e-11 -3.3333e-10 1.75305e-10
+Framework[0] Atom: 93  -3.86308e-10 1.14596e-10 -5.76847e-10
+Framework[0] Atom: 94  -1.85082e-10 -1.36879e-10 9.5315e-10
+Framework[0] Atom: 95  4.32465e-10 1.43473e-10 -8.28436e-10
+Framework[0] Atom: 96  5.9913e-11 -7.18501e-11 3.93754e-10
+Framework[0] Atom: 97  -9.3678e-10 4.11319e-10 -2.17568e-11
+Framework[0] Atom: 98  -5.5752e-10 2.44199e-10 4.7811e-10
+Framework[0] Atom: 99  -7.43626e-10 2.25555e-10 -9.52696e-10
+Framework[0] Atom: 100  -8.29914e-12 -2.73303e-10 3.22203e-10
+Framework[0] Atom: 101  3.5925e-11 2.11458e-10 3.05848e-10
+Framework[0] Atom: 102  -3.82443e-10 -2.15437e-10 2.3249e-10
+Framework[0] Atom: 103  -8.50378e-11 4.76689e-10 -1.80421e-10
+Framework[0] Atom: 104  7.79892e-11 2.31012e-10 -9.72804e-11
+Framework[0] Atom: 105  -3.05135e-10 5.93445e-10 4.8351e-10
+Framework[0] Atom: 106  4.72482e-10 6.562e-10 -4.99824e-10
+Framework[0] Atom: 107  -7.7307e-11 4.6623e-10 -9.14486e-11
+Framework[0] Atom: 108  -1.30285e-10 7.40329e-10 -2.11237e-10
+Framework[0] Atom: 109  -3.72097e-10 -5.17502e-10 -5.03178e-10
+Framework[0] Atom: 110  -2.21007e-10 -2.67164e-11 -2.15721e-11
+Framework[0] Atom: 111  -1.59616e-10 4.48949e-10 -6.80629e-11
+Framework[0] Atom: 112  2.89901e-11 6.00835e-10 -5.0477e-10
+Framework[0] Atom: 113  3.33941e-10 1.09912e-09 -1.3888e-09
+Framework[0] Atom: 114  -4.29509e-10 4.34397e-10 -4.17458e-10
+Framework[0] Atom: 115  7.76254e-10 -1.3398e-10 5.57179e-10
+Framework[0] Atom: 116  8.69704e-12 -8.50378e-11 -3.99268e-10
+Framework[0] Atom: 117  4.21949e-10 4.87944e-10 7.29983e-10
+Framework[0] Atom: 118  1.92017e-10 -1.34801e-10 2.99224e-10
+Framework[0] Atom: 119  1.20508e-09 -3.15367e-10 -3.10024e-10
+Framework[0] Atom: 120  -2.305e-10 -5.00222e-11 -4.97948e-10
+Framework[0] Atom: 121  -8.95213e-11 1.72804e-10 1.38698e-11
+Framework[0] Atom: 122  -1.04819e-10 -1.10674e-10 2.46928e-10
+Framework[0] Atom: 123  1.02318e-09 -1.30244e-10 8.34802e-10
+Framework[0] Atom: 124  -2.41258e-10 4.01087e-10 7.28051e-10
+Framework[0] Atom: 125  3.81647e-10 2.9786e-10 -8.03766e-11
+Framework[0] Atom: 126  -7.45786e-11 1.03242e-11 9.24956e-10
+Framework[0] Atom: 127  2.45564e-11 4.9647e-10 3.50155e-11
+Framework[0] Atom: 128  -6.85304e-10 -5.22959e-12 -1.45405e-10
+Framework[0] Atom: 129  1.81444e-10 2.68358e-10 -1.04251e-09
+Framework[0] Atom: 130  -6.6666e-10 1.45512e-10 -1.01636e-10
+Framework[0] Atom: 131  -3.57431e-10 -2.12047e-10 -8.6402e-12
+Framework[0] Atom: 132  -6.3892e-11 5.59339e-11 -1.85537e-10
+Framework[0] Atom: 133  -2.10264e-10 -1.68257e-10 -3.94948e-10
+Framework[0] Atom: 134  2.55568e-10 1.34776e-10 -4.58044e-10
+Framework[0] Atom: 135  -2.53749e-10 8.20364e-10 -4.13593e-10
+Framework[0] Atom: 136  4.58567e-11 -4.45652e-10 -1.64619e-10
+Framework[0] Atom: 137  -8.34302e-11 3.46517e-10 -9.53833e-11
+Framework[0] Atom: 138  -3.65162e-10 -2.13536e-11 1.73941e-11
+Framework[0] Atom: 139  7.62157e-10 -4.38813e-11 7.73298e-10
+Framework[0] Atom: 140  2.57955e-10 -4.4156e-10 -7.91829e-10
+Framework[0] Atom: 141  5.63602e-10 -3.77895e-10 3.40947e-10
+Framework[0] Atom: 142  -1.24866e-10 3.70619e-10 -5.96515e-10
+Framework[0] Atom: 143  -1.23924e-10 -6.13909e-11 1.77351e-10
 
 
 
@@ -2471,9 +2699,9 @@ Current (minimization full energy) Energy Status
 ===========================================================================
 
 Internal energy:
-Host stretch energy:                                         1923.06801137
-Host UreyBradley energy:                                     9593.12291479
-Host bend energy:                                           29642.39679937
+Host stretch energy:                                        80490.78944464
+Host UreyBradley energy:                                    62559.02098629
+Host bend energy:                                           44918.51939989
 Host inversion-bend energy:                                     0.00000000
 Host torsion energy:                                            0.00000000
 Host improper torsion energy:                                   0.00000000
@@ -2482,7 +2710,7 @@ Host stretch/stretch energy:                                    0.00000000
 Host bend/bend energy:                                          0.00000000
 Host stretch/bend energy:                                       0.00000000
 Host stretch/torsion energy:                                    0.00000000
-Host bend/torsion energy:                                 -141062.75627306
+Host bend/torsion energy:                                 -161344.69394632
 
 Adsorbate stretch energy:                                       0.00000000
 Adsorbate UreyBradley energy:                                   0.00000000
@@ -2518,11 +2746,11 @@ Cation intra charge-charge Coulomb energy:                      0.00000000
 Cation intra charge-bonddipole Coulomb energy:                  0.00000000
 Cation intra bonddipole-bonddipole Coulomb energy:              0.00000000
 
-Host/Host energy:                                      -6467397.90226297
-	Host/Host VDW energy:                                    -52837.22389630
-	Host/Host Coulomb energy:                              -6414560.67836667
-	Host/Host charge-charge Real energy:                    -459163.21920563
-	Host/Host charge-charge Fourier energy:                -5955397.45916104
+Host/Host energy:                                      -6780259.47906194
+	Host/Host VDW energy:                                    -27025.33815298
+	Host/Host Coulomb energy:                              -6753234.14090897
+	Host/Host charge-charge Real energy:                    -594205.80459108
+	Host/Host charge-charge Fourier energy:                -6159028.33631788
 	Host/Host charge-bonddipole Real energy:                      0.00000000
 	Host/Host charge-bonddipole Fourier energy:                   0.00000000
 	Host/Host bondipole-bonddipole Real energy:                   0.00000000
@@ -2596,9 +2824,9 @@ Out-of-plane distance constraints energy:                     0.00000000
 Exclusion constraints energy:                                 0.00000000
 
 ===================================================================
-Total energy: -6567302.070810498670
-	Total Van der Waals: -52837.223896
-	Total Coulomb: -6414560.678367
+Total energy: -6753635.843177447096
+	Total Van der Waals: -27025.338153
+	Total Coulomb: -6753234.140909
 
 	Total Polarization: 0.000000
 
@@ -2613,9 +2841,9 @@ Current (running energy) Energy Status
 ===========================================================================
 
 Internal energy:
-Host stretch energy:                                         1923.06801137
-Host UreyBradley energy:                                     9593.12291479
-Host bend energy:                                           29642.39679937
+Host stretch energy:                                        80490.78944464
+Host UreyBradley energy:                                    62559.02098629
+Host bend energy:                                           44918.51939989
 Host inversion-bend energy:                                     0.00000000
 Host torsion energy:                                            0.00000000
 Host improper torsion energy:                                   0.00000000
@@ -2624,7 +2852,7 @@ Host stretch/stretch energy:                                    0.00000000
 Host bend/bend energy:                                          0.00000000
 Host stretch/bend energy:                                       0.00000000
 Host stretch/torsion energy:                                    0.00000000
-Host bend/torsion energy:                                 -141062.75627306
+Host bend/torsion energy:                                 -161344.69394632
 
 Adsorbate stretch energy:                                       0.00000000
 Adsorbate UreyBradley energy:                                   0.00000000
@@ -2660,11 +2888,11 @@ Cation intra charge-charge Coulomb energy:                      0.00000000
 Cation intra charge-bonddipole Coulomb energy:                  0.00000000
 Cation intra bonddipole-bonddipole Coulomb energy:              0.00000000
 
-Host/Host energy:                                      -6467397.90226297
-	Host/Host VDW energy:                                    -52837.22389630
-	Host/Host Coulomb energy:                              -6414560.67836667
-	Host/Host charge-charge Real energy:                    -459163.21920563
-	Host/Host charge-charge Fourier energy:                -5955397.45916104
+Host/Host energy:                                      -6780259.47906194
+	Host/Host VDW energy:                                    -27025.33815298
+	Host/Host Coulomb energy:                              -6753234.14090897
+	Host/Host charge-charge Real energy:                    -594205.80459108
+	Host/Host charge-charge Fourier energy:                -6159028.33631788
 	Host/Host charge-bonddipole Real energy:                      0.00000000
 	Host/Host charge-bonddipole Fourier energy:                   0.00000000
 	Host/Host bondipole-bonddipole Real energy:                   0.00000000
@@ -2738,9 +2966,9 @@ Out-of-plane distance constraints energy:                     0.00000000
 Exclusion constraints energy:                                 0.00000000
 
 ===================================================================
-Total energy: -6567302.070810498670
-	Total Van der Waals: -52837.223896
-	Total Coulomb: -6414560.678367
+Total energy: -6753635.843177447096
+	Total Van der Waals: -27025.338153
+	Total Coulomb: -6753234.140909
 
 	Total Polarization: 0.000000
 
@@ -2814,9 +3042,9 @@ Current (full final energy) Energy Status
 ===========================================================================
 
 Internal energy:
-Host stretch energy:                                         1923.06801137
-Host UreyBradley energy:                                     9593.12291479
-Host bend energy:                                           29642.39679937
+Host stretch energy:                                        80490.78944464
+Host UreyBradley energy:                                    62559.02098629
+Host bend energy:                                           44918.51939989
 Host inversion-bend energy:                                     0.00000000
 Host torsion energy:                                            0.00000000
 Host improper torsion energy:                                   0.00000000
@@ -2825,7 +3053,7 @@ Host stretch/stretch energy:                                    0.00000000
 Host bend/bend energy:                                          0.00000000
 Host stretch/bend energy:                                       0.00000000
 Host stretch/torsion energy:                                    0.00000000
-Host bend/torsion energy:                                 -141062.75627306
+Host bend/torsion energy:                                 -161344.69394632
 
 Adsorbate stretch energy:                                       0.00000000
 Adsorbate UreyBradley energy:                                   0.00000000
@@ -2861,11 +3089,11 @@ Cation intra charge-charge Coulomb energy:                      0.00000000
 Cation intra charge-bonddipole Coulomb energy:                  0.00000000
 Cation intra bonddipole-bonddipole Coulomb energy:              0.00000000
 
-Host/Host energy:                                      -6467397.90226296
-	Host/Host VDW energy:                                    -52837.22389630
-	Host/Host Coulomb energy:                              -6414560.67836666
-	Host/Host charge-charge Real energy:                    -459163.21920563
-	Host/Host charge-charge Fourier energy:                -5955397.45916103
+Host/Host energy:                                      -6780259.47906195
+	Host/Host VDW energy:                                    -27025.33815298
+	Host/Host Coulomb energy:                              -6753234.14090897
+	Host/Host charge-charge Real energy:                    -594205.80459108
+	Host/Host charge-charge Fourier energy:                -6159028.33631788
 	Host/Host charge-bonddipole Real energy:                      0.00000000
 	Host/Host charge-bonddipole Fourier energy:                   0.00000000
 	Host/Host bondipole-bonddipole Real energy:                   0.00000000
@@ -2939,9 +3167,9 @@ Out-of-plane distance constraints energy:                     0.00000000
 Exclusion constraints energy:                                 0.00000000
 
 ===================================================================
-Total energy: -6567302.070810487494
-	Total Van der Waals: -52837.223896
-	Total Coulomb: -6414560.678367
+Total energy: -6753635.843177450821
+	Total Van der Waals: -27025.338153
+	Total Coulomb: -6753234.140909
 
 	Total Polarization: 0.000000
 
@@ -2998,11 +3226,11 @@ Cation intra Coulomb charge-charge energy-drift:                     0
 Cation intra Coulomb charge-bonddipole energy-drift:                 0
 Cation intra Coulomb bonddipole-bonddipole energy-drift:             0
 
-Host/Host energy-drift:                                              -1.12012e-08
+Host/Host energy-drift:                                              3.36037e-09
 	Host/Host VDW energy-drift:                                        0
-	Host/Host Coulomb energy-drift:                                    -1.12012e-08
+	Host/Host Coulomb energy-drift:                                    3.36037e-09
 		Host/Host Real charge-charge energy-drift:                       0
-		Host/Host Fourier charge-charge energy-drift:                    -1.12012e-08
+		Host/Host Fourier charge-charge energy-drift:                    3.36037e-09
 		Host/Host Real charge-bonddipole energy-drift:                   0
 		Host/Host Fourier charge-bonddipole energy-drift:                0
 		Host/Host Real bonddipole-bonddipole energy-drift:               0
@@ -3071,7 +3299,7 @@ Out-of-plane distance constraints energy-drift:                    0
 Exclusion constraints energy-drift:                 0
 
 ===================================================================
-Total energy-drift: -1.12012e-08
+Total energy-drift: 3.36037e-09
 
 
 
@@ -3907,7 +4135,7 @@ Average adsorption energy <U_gh>_1-<U_h>_0 obtained from Widom-insertion:
 
 Simulation finished,  0 warnings
 
-Thu Apr 18 12:12:43 2013
+Thu Apr 18 12:10:09 2013
 Simulation finished on Thursday, April 18.
-The end time was 12:12 PM.
+The end time was 12:10 PM.
 
