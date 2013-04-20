@@ -2322,6 +2322,7 @@ void EvaluateDerivatives(int n,REAL *Energy,REAL* Gradient,REAL_MATRIX Hessian,R
   CalculateAdsorbateImproperTorsionHessian(Energy,Gradient,Hessian,StrainFirstDerivative,ComputeGradient,ComputeHessian);
   CalculateAdsorbateIntraVDWHessian(Energy,Gradient,Hessian,StrainFirstDerivative,ComputeGradient,ComputeHessian);
   CalculateAdsorbateIntraCoulombHessian(Energy,Gradient,Hessian,StrainFirstDerivative,ComputeGradient,ComputeHessian);
+  CalculateAdsorbateBondBondHessian(Energy,Gradient,Hessian,StrainFirstDerivative,ComputeGradient,ComputeHessian);
 
   // compute the intra cations contributions
   CalculateCationBondHessian(Energy,Gradient,Hessian,StrainFirstDerivative,ComputeGradient,ComputeHessian);

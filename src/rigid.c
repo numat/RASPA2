@@ -4526,25 +4526,6 @@ void ShakeInMinimization(void)
 
       error=fabs(Phi-Phi0);
       max_error=MAX2(error,max_error);
-
-/*
-      // HERE
-      printf("value: %g\n",ReturnTorsionConstrainDerivative(Rab,Rbc,Rcd,Vab,Vbc,Vcd));
-
-      switch(DihedralConstraintType)
-      {
-        case COS_PHI_SQUARED:
-          printf("Gamma %g dihedral angle: %g %g\n",gamma,acos(sqrt(Phi))*RAD2DEG,acos(sqrt(Phi0))*RAD2DEG);
-          break;
-        case COS_PHI:
-          printf("Gamma %g dihedral angle: %g %g\n",gamma,acos(Phi)*RAD2DEG,acos(Phi0)*RAD2DEG);
-          break;
-        case PHI:
-        default:
-          printf("Gamma %g dihedral angle: %g %g\n",gamma,(Phi)*RAD2DEG,(Phi0)*RAD2DEG);
-          break;
-      }
-*/
     }
 
     for(j=0;j<NumberOfImproperDihedralConstraints[CurrentSystem];j++)
@@ -4690,6 +4671,7 @@ void RattleStageOne(void)
   VECTOR ReferenceGradientA,ReferenceGradientB,ReferenceGradientC,ReferenceGradientD;
   VECTOR CurrentGradientA,CurrentGradientB,CurrentGradientC,CurrentGradientD;
   REAL dot_productA,dot_productB,dot_productC,dot_productD;
+  VECTOR dr;
 
   NumberOfRattleSteps=0;
   do
@@ -4726,6 +4708,9 @@ void RattleStageOne(void)
           posA=Adsorbates[CurrentSystem][m].Atoms[A].RattleReferencePosition;
           posB=Adsorbates[CurrentSystem][m].Atoms[B].RattleReferencePosition;
           ReturnWilsonVectorsDistanceRATTLE(posA,posB,&ReferenceGradientA,&ReferenceGradientB);
+          dr.x=posA.x-posB.x;
+          dr.y=posA.y-posB.y;
+          dr.z=posA.z-posB.z;
 
           sigma=ConstraintValue-ConstraintTarget;
 
@@ -4752,6 +4737,19 @@ void RattleStageOne(void)
           Adsorbates[CurrentSystem][m].Atoms[B].Velocity.x-=0.5*DeltaT*InverseMassB*gamma*ReferenceGradientB.x;
           Adsorbates[CurrentSystem][m].Atoms[B].Velocity.y-=0.5*DeltaT*InverseMassB*gamma*ReferenceGradientB.y;
           Adsorbates[CurrentSystem][m].Atoms[B].Velocity.z-=0.5*DeltaT*InverseMassB*gamma*ReferenceGradientB.z;
+
+          // add contribution to the stress tensor
+          StrainDerivativeTensor[CurrentSystem].ax-=gamma*dr.x*dr.x;
+          StrainDerivativeTensor[CurrentSystem].bx-=gamma*dr.y*dr.x;
+          StrainDerivativeTensor[CurrentSystem].cx-=gamma*dr.z*dr.x;
+
+          StrainDerivativeTensor[CurrentSystem].ay-=gamma*dr.x*dr.y;
+          StrainDerivativeTensor[CurrentSystem].by-=gamma*dr.y*dr.y;
+          StrainDerivativeTensor[CurrentSystem].cy-=gamma*dr.z*dr.y;
+
+          StrainDerivativeTensor[CurrentSystem].az-=gamma*dr.x*dr.z;
+          StrainDerivativeTensor[CurrentSystem].bz-=gamma*dr.y*dr.z;
+          StrainDerivativeTensor[CurrentSystem].cz-=gamma*dr.z*dr.z;
         }
       }
       for(j=0;j<Components[Type].NumberOfBends;j++)
@@ -5397,6 +5395,7 @@ void RattleStageTwo(void)
 
           posA=Adsorbates[CurrentSystem][m].Atoms[A].Position;
           posB=Adsorbates[CurrentSystem][m].Atoms[B].Position;
+
           ConstraintValue=ReturnWilsonVectorsDistanceRATTLE(posA,posB,&CurrentGradientA,&CurrentGradientB);
 
           dot_productA=CurrentGradientA.x*velA.x+CurrentGradientA.y*velA.y+CurrentGradientA.z*velA.z;

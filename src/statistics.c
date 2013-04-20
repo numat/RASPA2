@@ -3312,10 +3312,10 @@ void PrintAverageTotalSystemEnergiesMC(FILE *FilePtr)
   {
     if(BlockCount[CurrentSystem][i]>0.0)
     {
-      tmp=HEAT_CAPACITY_CONVERSION_FACTOR*
-          (((EnthalpySquaredAverage[CurrentSystem][i]/BlockCount[CurrentSystem][i])-
-          SQR(EnthalpyAverage[CurrentSystem][i]/BlockCount[CurrentSystem][i]))/
-           (N*K_B*SQR(therm_baro_stats.ExternalTemperature[CurrentSystem])))+3.0*MOLAR_GAS_CONSTANT;
+      H2=EnthalpySquaredAverage[CurrentSystem][i]/BlockCount[CurrentSystem][i];
+      H=EnthalpyAverage[CurrentSystem][i]/BlockCount[CurrentSystem][i];
+      T=therm_baro_stats.ExternalTemperature[CurrentSystem];
+      tmp=HEAT_CAPACITY_CONVERSION_FACTOR*((H2-SQR(H))/(N*K_B*SQR(T))+3.0/(2.0*SQR(Beta[CurrentSystem])));
       sum+=tmp;
       sum2+=SQR(tmp);
       fprintf(FilePtr,"\tBlock[%2d] %g [J/mol/K]\n",i,(double)tmp);

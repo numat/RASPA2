@@ -4831,7 +4831,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
                 fprintf(FilePtr,"\t\tCVFF_BOND_BOND_CROSS: p_0/k_B=%-10.6f [K/A^2], p_1=%-10.6f [A], p_2=%-10.6f [A]\n",
                   (double)(Components[i].BondBondArguments[j][0]*ENERGY_TO_KELVIN),
                   (double)(Components[i].BondBondArguments[j][1]),
-                  (double)(Components[i].BondBondArguments[j][1]));
+                  (double)(Components[i].BondBondArguments[j][2]));
                  break;
               default:
                 printf("Unknown bond/bond-potential\n");

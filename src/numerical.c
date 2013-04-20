@@ -5119,8 +5119,6 @@ void AddRemainderOfBornTermNumerically(REAL_MATRIX HessianMatrix)
   }
   StrainDerivativeCentral=StrainDerivativeTensor[CurrentSystem];
 
-  PrintRealMatrix3x3(&StrainDerivativeCentral);
-
   SaveFrameworkPositionsToReferenceValues();
   SaveAdsorbateAtomPositionsToReferenceValues();
   SaveCationAtomPositionsToReferenceValues();
