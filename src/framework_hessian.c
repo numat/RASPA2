@@ -5666,9 +5666,9 @@ void CalculateFrameworkInversionBendForces(int f1,int i,VECTOR posA,VECTOR posB,
         fd->y=-dedcos*(dccdid.y+deedid.y);
         fd->z=-dedcos*(dccdid.z+deedid.z);
   
-  fb->x=-(fa->x+fc->x+fd->x);
-  fb->y=-(fa->y+fc->y+fd->y);
-  fb->z=-(fa->z+fc->z+fd->z);
+        fb->x=-(fa->x+fc->x+fd->x);
+        fb->y=-(fa->y+fc->y+fd->y);
+        fb->z=-(fa->z+fc->z+fd->z);
 
         strain_derivative->ax=Rab.x*fa->x+Rbc.x*fc->x+Rbd.x*fd->x;
         strain_derivative->ay=Rab.x*fa->y+Rbc.x*fc->y+Rbd.x*fd->y;

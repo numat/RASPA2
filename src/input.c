@@ -7835,7 +7835,7 @@ int ReadInputFile(char *inputfilename)
   }
   //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-  PutNoiseOnFrameworkAtomicPositions();
+  //PutNoiseOnFrameworkAtomicPositions();
 
   CurrentSystem=0;
   CurrentComponent=0;
