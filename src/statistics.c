@@ -165,9 +165,10 @@ static REAL **GammaAngleAverage;
 static REAL **VolumeAverage;
 static REAL **VolumeSquaredAverage;
 
+static REAL **TotalEnergyAverage;
+static REAL **TotalEnergySquaredAverage;
 static REAL **EnthalpyAverage;
 static REAL **EnthalpySquaredAverage;
-
 static REAL **EnthalpyTimesVolumeAverage;
 
 static REAL **TemperatureAverage;
@@ -1029,6 +1030,9 @@ void InitializesEnergyAveragesAllSystems(void)
       VolumeAverage[k][i]=0.0;
       VolumeSquaredAverage[k][i]=0.0;
 
+      TotalEnergyAverage[k][i]=0.0;
+      TotalEnergySquaredAverage[k][i]=0.0;
+
       EnthalpyAverage[k][i]=0.0;
       EnthalpySquaredAverage[k][i]=0.0;
 
@@ -1286,6 +1290,9 @@ void UpdateEnergyAveragesCurrentSystem(void)
   VolumeAverage[CurrentSystem][Block]+=Volume[CurrentSystem];
 
   VolumeSquaredAverage[CurrentSystem][Block]+=SQR(Volume[CurrentSystem]);
+
+  TotalEnergyAverage[CurrentSystem][Block]+=UTotal[CurrentSystem];
+  TotalEnergySquaredAverage[CurrentSystem][Block]+=SQR(UTotal[CurrentSystem]);
 
   Enthalpy=UTotal[CurrentSystem]+Volume[CurrentSystem]*therm_baro_stats.ExternalPressure[CurrentSystem][0];
   EnthalpyAverage[CurrentSystem][Block]+=Enthalpy;
@@ -3312,10 +3319,10 @@ void PrintAverageTotalSystemEnergiesMC(FILE *FilePtr)
   {
     if(BlockCount[CurrentSystem][i]>0.0)
     {
-      H2=EnthalpySquaredAverage[CurrentSystem][i]/BlockCount[CurrentSystem][i];
-      H=EnthalpyAverage[CurrentSystem][i]/BlockCount[CurrentSystem][i];
+      H2=TotalEnergySquaredAverage[CurrentSystem][i]/BlockCount[CurrentSystem][i];
+      H=TotalEnergyAverage[CurrentSystem][i]/BlockCount[CurrentSystem][i];
       T=therm_baro_stats.ExternalTemperature[CurrentSystem];
-      tmp=HEAT_CAPACITY_CONVERSION_FACTOR*((H2-SQR(H))/(N*K_B*SQR(T))+3.0/(2.0*SQR(Beta[CurrentSystem])));
+      tmp=HEAT_CAPACITY_CONVERSION_FACTOR*((H2-SQR(H))/(N*K_B*SQR(T))+3.0*K_B/2.0);
       sum+=tmp;
       sum2+=SQR(tmp);
       fprintf(FilePtr,"\tBlock[%2d] %g [J/mol/K]\n",i,(double)tmp);
@@ -4115,6 +4122,8 @@ void WriteRestartStatistics(FILE *FilePtr)
     fwrite(VolumeAverage[i],sizeof(REAL),NumberOfBlocks,FilePtr);
     fwrite(VolumeSquaredAverage[i],sizeof(REAL),NumberOfBlocks,FilePtr);
 
+    fwrite(TotalEnergyAverage[i],sizeof(REAL),NumberOfBlocks,FilePtr);
+    fwrite(TotalEnergySquaredAverage[i],sizeof(REAL),NumberOfBlocks,FilePtr);
     fwrite(EnthalpyAverage[i],sizeof(REAL),NumberOfBlocks,FilePtr);
     fwrite(EnthalpySquaredAverage[i],sizeof(REAL),NumberOfBlocks,FilePtr);
     fwrite(EnthalpyTimesVolumeAverage[i],sizeof(REAL),NumberOfBlocks,FilePtr);
@@ -4297,6 +4306,8 @@ void AllocateStatisticsMemory(void)
   VolumeAverage=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
   VolumeSquaredAverage=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
 
+  TotalEnergyAverage=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
+  TotalEnergySquaredAverage=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
   EnthalpyAverage=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
   EnthalpySquaredAverage=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
   EnthalpyTimesVolumeAverage=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
@@ -4464,6 +4475,8 @@ void AllocateStatisticsMemory(void)
     VolumeAverage[i]=(REAL*)calloc(NumberOfBlocks,sizeof(REAL));
     VolumeSquaredAverage[i]=(REAL*)calloc(NumberOfBlocks,sizeof(REAL));
 
+    TotalEnergyAverage[i]=(REAL*)calloc(NumberOfBlocks,sizeof(REAL));
+    TotalEnergySquaredAverage[i]=(REAL*)calloc(NumberOfBlocks,sizeof(REAL));
     EnthalpyAverage[i]=(REAL*)calloc(NumberOfBlocks,sizeof(REAL));
     EnthalpySquaredAverage[i]=(REAL*)calloc(NumberOfBlocks,sizeof(REAL));
     EnthalpyTimesVolumeAverage[i]=(REAL*)calloc(NumberOfBlocks,sizeof(REAL));
@@ -4669,6 +4682,8 @@ void ReadRestartStatistics(FILE *FilePtr)
     fread(VolumeAverage[i],sizeof(REAL),NumberOfBlocks,FilePtr);
     fread(VolumeSquaredAverage[i],sizeof(REAL),NumberOfBlocks,FilePtr);
 
+    fread(TotalEnergyAverage[i],sizeof(REAL),NumberOfBlocks,FilePtr);
+    fread(TotalEnergySquaredAverage[i],sizeof(REAL),NumberOfBlocks,FilePtr);
     fread(EnthalpyAverage[i],sizeof(REAL),NumberOfBlocks,FilePtr);
     fread(EnthalpySquaredAverage[i],sizeof(REAL),NumberOfBlocks,FilePtr);
     fread(EnthalpyTimesVolumeAverage[i],sizeof(REAL),NumberOfBlocks,FilePtr);
