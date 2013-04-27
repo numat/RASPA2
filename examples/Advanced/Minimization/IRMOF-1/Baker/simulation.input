@@ -8,8 +8,6 @@ RestartFile                      no
 
 RandomSeed 1305100553
 
-NoReciprocalCutOff
-
 RMSGradientTolerance 1e-6
 MaxGradientTolerance 1e-6
 MaximumStepLength 0.3
@@ -22,11 +20,13 @@ ComputeElasticConstants yes
 CutOff                           12.0
 ChargeMethod                     Ewald
 Forcefield                       Dubbeldam2007FlexibleIRMOF-1
+NoReciprocalCutOff
 EwaldPrecision                   1e-8
 TimeStep                         0.00005
 
 Framework 0
 Frameworkname IRMOF-1
+RestrictFrameworkAtomsToBox yes 
 UnitCells 1 1 1
 ExternalPressure 0.0
 Movies yes

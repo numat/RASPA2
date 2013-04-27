@@ -17,9 +17,10 @@ EwaldPrecision                   1e-8
 
 Framework 0
 Frameworkname IRMOF-1
+RestrictFrameworkAtomsToBox yes
 UnitCells 1 1 1
 ExternalPressure 0.0
-ExternalTemperature 300.0
+ExternalTemperature 298.0
 
 FlexibleFramework yes
 FrameworkDefinitions Dubbeldam2007FlexibleIRMOF-1

@@ -47,6 +47,20 @@ enum {MOL_FORMAT,CSSR_FORMAT,DLPOLY_FORMAT,XYZ_FORMAT,PDB_FORMAT,CIF_FORMAT};
 
 enum {CHARGE_ATOM_FROM_PSEUDO_ATOM_DEFINITION,CHARGE_ATOM_FROM_STRUCTURE_FILE,CHARGE_NOT_DEFINED};
 
+
+enum MC_ENSEMBLE
+{
+  CONSTANT_NUMBER_OF_FRAMEWORK_PARTICLES   = 0,   //binary value == 00000000
+  CONSTANT_NUMBER_OF_PARTICLES             = 1,   //binary value == 00000001
+  CONSTANT_CHEMICAL_POTENTIAL              = 2,   //binary value == 00000010
+  CONSTANT_VOLUME                          = 4,   //binary value == 00000100
+  CONSTANT_PRESSURE                        = 8,   //binary value == 00001000
+  CONSTANT_TENSION                         = 16,  //binary value == 00010000
+  GIBBS                                    = 32,  //binary value == 00100000
+  CONSTANT_TEMPERATURE                     = 64,  //binary value == 01000000
+  CONSTANT_ENERGY                          = 128  //binary value == 10000000
+};
+
 extern int (**CellListMap)[27];
 
 extern int Dimension;
@@ -358,6 +372,7 @@ extern int *InitEnsemble;
 extern int *RunEnsemble;
 extern int *NPTPRCellType;
 extern int *MonoclinicAngleType;
+extern int *MCEnsemble;
 enum {MONOCLINIC_ALPHA_ANGLE,MONOCLINIC_BETA_ANGLE,MONOCLINIC_GAMMA_ANGLE};
 
 extern int *DegreesOfFreedom;
