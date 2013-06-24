@@ -1001,6 +1001,13 @@ int CalculateInterBondDipoleEnergyCationAtPosition(POINT posA1,POINT posA2,REAL 
   return 0;
 }
 
+/*********************************************************************************************************
+ * Name       | CalculateTotalInterVDWEnergy                                                             *
+ * ----------------------------------------------------------------------------------------------------- *
+ * Function   | Returns the CalculateTotalInterVDWEnergy, UAdsorbateCationVDW, and UCationCationVDW      *
+ *            | energy for the current system.                                                           *
+ *********************************************************************************************************/
+
 int CalculateTotalInterVDWEnergy(void)
 {
   int i,j,k,l;

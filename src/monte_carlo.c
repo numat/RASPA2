@@ -136,6 +136,10 @@ void MonteCarloSimulation(void)
       // this is the point where the previous binary restart file was written
       ContinueAfterCrashLabel1: ;
 
+      // detect erroneous chirality changes
+      for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
+        CheckChiralityMolecules();
+
       // Print at 'PrintEvery' intervals the status and a restart-file
       if((CurrentCycle%PrintEvery)==0) 
       {
@@ -302,6 +306,10 @@ void MonteCarloSimulation(void)
         // a label to jump to for a restart, everything before here is skipped
         // this is the point where the previous binary restart file was written
         ContinueAfterCrashLabel2: ;
+
+        // detect erroneous chirality changes
+        for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
+          CheckChiralityMolecules();
 
         // Print at 'PrintEvery' intervals the status and a restart-file
         if((CurrentCycle%PrintEvery)==0) 
@@ -494,7 +502,6 @@ void MonteCarloSimulation(void)
     SimulationStage=PRODUCTION;
     for(CurrentCycle=0;CurrentCycle<NumberOfCycles;CurrentCycle++)
     {
-
       // detect erroneous chirality changes
       for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
         CheckChiralityMolecules();

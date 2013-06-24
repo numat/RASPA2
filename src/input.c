@@ -7944,13 +7944,24 @@ void ReadRestartFile(void)
 
     fclose(FilePtrIn);
 
-    // read first time to fill in all values
+    // read second time to fill in all values
     FilePtrIn=fopen(buffer,"r");
     while(fgets(line,1024,FilePtrIn))
     {
       // extract first word
       strcpy(keyword,"keyword");
       sscanf(line,"%s %[^\n]",keyword,arguments);
+
+      // parse "Component: 0     Cation       96 molecules of sodium"
+      if(strcasecmp(keyword,"Component:")==0)
+      {
+        sscanf(arguments,"%d %s %d molecules of %s%*[^\n]",
+           &CurrentComponentRead,
+           ExtraFrameworkMoleculeRead,
+           &NumberOfMoleculesRead,
+           ComponentNameRead);
+        CurrentComponent=CurrentComponentRead;
+      }
 
       if(strcasecmp(keyword,"InitialFrameworkCenterOfMass:")==0)
       {
@@ -8107,6 +8118,7 @@ void ReadRestartFile(void)
         Adsorbates[CurrentSystem][int_temp1].Atoms[int_temp2].Position.x=temp1;
         Adsorbates[CurrentSystem][int_temp1].Atoms[int_temp2].Position.y=temp2;
         Adsorbates[CurrentSystem][int_temp1].Atoms[int_temp2].Position.z=temp3;
+        Adsorbates[CurrentSystem][int_temp1].Type=CurrentComponent;
       }
       if(strcasecmp(keyword,"Adsorbate-atom-velocity:")==0)
       {
@@ -8154,6 +8166,7 @@ void ReadRestartFile(void)
         Cations[CurrentSystem][int_temp1].Atoms[int_temp2].Position.x=temp1;
         Cations[CurrentSystem][int_temp1].Atoms[int_temp2].Position.y=temp2;
         Cations[CurrentSystem][int_temp1].Atoms[int_temp2].Position.z=temp3;
+        Cations[CurrentSystem][int_temp1].Type=CurrentComponent;
       }
       if(strcasecmp(keyword,"Cation-atom-velocity:")==0)
       {

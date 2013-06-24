@@ -2812,8 +2812,8 @@ void ReadFrameworkDefinitionMOL(void)
     else
     {
       if((fabs(A-B)>0.01)||(fabs(A-C)>0.01)||(fabs(B-C)>0.01))
-        BoundaryCondition[0]=RECTANGULAR;
-      else BoundaryCondition[0]=RECTANGULAR;
+        BoundaryCondition[CurrentSystem]=RECTANGULAR;
+      else BoundaryCondition[CurrentSystem]=RECTANGULAR;
     }
   }
   AlphaAngle[CurrentSystem]*=M_PI/180.0;

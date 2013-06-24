@@ -205,7 +205,6 @@ void InitializeEwald(REAL precision,int Automatic)
     {
       tol=sqrt(fabs(log(eps*CutOffChargeCharge[i])));
 
-      printf("i: %d %g\n",i,CutOffChargeCharge[i]);
       Alpha[i]=sqrt(fabs(log(eps*CutOffChargeCharge[i]*tol)))/CutOffChargeCharge[i];
       tol1=sqrt(-log(eps*CutOffChargeCharge[i]*SQR(2.0*tol*Alpha[i])));
 
