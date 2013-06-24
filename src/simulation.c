@@ -307,6 +307,7 @@ int *InitEnsemble;
 int *RunEnsemble;
 int *NPTPRCellType;
 int *MonoclinicAngleType;
+int *MCEnsemble;
 
 int *DegreesOfFreedom;
 int *DegreesOfFreedomTranslation;
@@ -1014,6 +1015,7 @@ void WriteRestartSimulation(FILE *FilePtr)
   fwrite(RunEnsemble,sizeof(int),NumberOfSystems,FilePtr);
   fwrite(NPTPRCellType,sizeof(int),NumberOfSystems,FilePtr);
   fwrite(MonoclinicAngleType,sizeof(int),NumberOfSystems,FilePtr);
+  fwrite(MCEnsemble,sizeof(int),NumberOfSystems,FilePtr);
 
   fwrite(DegreesOfFreedom,sizeof(int),NumberOfSystems,FilePtr);
   fwrite(DegreesOfFreedomTranslation,sizeof(int),NumberOfSystems,FilePtr);
@@ -1266,12 +1268,12 @@ void AllocateSimulationMemory(void)
   UAdsorbateIntraChargeBondDipole=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
   UAdsorbateIntraBondDipoleBondDipole=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
 
-  // MD
   Ensemble=(int*)calloc(NumberOfSystems,sizeof(int));
   InitEnsemble=(int*)calloc(NumberOfSystems,sizeof(int));
   RunEnsemble=(int*)calloc(NumberOfSystems,sizeof(int));
   NPTPRCellType=(int*)calloc(NumberOfSystems,sizeof(int));
   MonoclinicAngleType=(int*)calloc(NumberOfSystems,sizeof(int));
+  MCEnsemble=(int*)calloc(NumberOfSystems,sizeof(int));
 
   DegreesOfFreedom=(int*)calloc(NumberOfSystems,sizeof(int));
   DegreesOfFreedomTranslation=(int*)calloc(NumberOfSystems,sizeof(int));
@@ -1598,6 +1600,7 @@ void ReadRestartSimulation(FILE *FilePtr)
   fread(RunEnsemble,sizeof(int),NumberOfSystems,FilePtr);
   fread(NPTPRCellType,sizeof(int),NumberOfSystems,FilePtr);
   fread(MonoclinicAngleType,sizeof(int),NumberOfSystems,FilePtr);
+  fread(MCEnsemble,sizeof(int),NumberOfSystems,FilePtr);
 
   fread(DegreesOfFreedom,sizeof(int),NumberOfSystems,FilePtr);
   fread(DegreesOfFreedomTranslation,sizeof(int),NumberOfSystems,FilePtr);

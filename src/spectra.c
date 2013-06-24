@@ -92,350 +92,6 @@ typedef struct powder_diffraction_peaks
 int NumberOfPeaks;
 POWDER_DIFF_PEAK *PowderDiffractionPeaks;
 
-/*
-void StoredPositionsToRealPositions(int NumberOfPositionVariables,int NumberOfBoxVariables,REAL *Positions,REAL *displacement,REAL_MATRIX HessianMatrix,REAL_MATRIX3x3 StoredBox,REAL_MATRIX3x3 StoredInverseBox)
-{
-  int i,j,f1,l,m,n,Type,A;
-  INT_VECTOR3 index;
-  REAL_MATRIX3x3 Transform,RotationMatrix;
-  REAL det,TotalMass,Mass,temp,EulerAngle;
-  VECTOR r,pos,com,t,p;
-
-  n=NumberOfPositionVariables;
-
-  // Compute total mass in the cell
-  TotalMass=0.0;
-  if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
-  {
-    for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
-      for(i=0;i<Framework[CurrentSystem].NumberOfAtoms[f1];i++)
-      {
-        Mass=PseudoAtoms[Framework[CurrentSystem].Atoms[f1][i].Type].Mass;
-        TotalMass+=Mass;
-      }
-  }
-  for(i=0;i<NumberOfAdsorbateMolecules[CurrentSystem];i++)
-  {
-    for(j=0;j<Adsorbates[CurrentSystem][i].NumberOfAtoms;j++)
-    {
-      Type=Adsorbates[CurrentSystem][i].Atoms[j].Type;
-      Mass=PseudoAtoms[Type].Mass;
-      TotalMass+=Mass;
-    }
-  }
-  for(i=0;i<NumberOfCationMolecules[CurrentSystem];i++)
-  {
-    for(j=0;j<Cations[CurrentSystem][i].NumberOfAtoms;j++)
-    {
-      Type=Cations[CurrentSystem][i].Atoms[j].Type;
-      Mass=PseudoAtoms[Type].Mass;
-      TotalMass+=Mass;
-    }
-  }
-
-
-  switch(Ensemble[CurrentSystem])
-  {
-    case NPT:
-      Transform.ax=1.0+displacement[n]/sqrt(TotalMass);
-      Transform.bx=0.0;
-      Transform.cx=0.0;
-
-      Transform.ay=0.0;
-      Transform.by=1.0+displacement[n+1]/sqrt(TotalMass);
-      Transform.cy=0.0;
-
-      Transform.az=0.0;
-      Transform.bz=0.0;
-      Transform.cz=1.0+displacement[n+2]/sqrt(TotalMass);
-      break;
-    case NPTPR:
-    case NPHPR:
-      switch(NPTPRCellType[CurrentSystem])
-      {
-        case ISOTROPIC:
-          temp=(displacement[n]+displacement[n+1]+displacement[n+2])/3.0;
-          Transform.ax=1.0+temp; Transform.bx=0.0;      Transform.cx=0.0;
-          Transform.ay=0.0;      Transform.by=1.0+temp; Transform.cy=0.0;
-          Transform.az=0.0;      Transform.bz=0.0;      Transform.cz=1.0+temp;
-        case ANISOTROPIC:
-          Transform.ax=1.0+displacement[n];  Transform.bx=0.0;                   Transform.cx=0.0;
-          Transform.ay=0.0;                  Transform.by=1.0+displacement[n+1]; Transform.cy=0.0;
-          Transform.az=0.0;                  Transform.bz=0.0;                   Transform.cz=1.0+displacement[n+2];
-          break;
-        case REGULAR:
-          Transform.ax=1.0+displacement[n];   Transform.bx=0.5*displacement[n+3]; Transform.cx=0.5*displacement[n+6];
-          Transform.ay=0.5*displacement[n+1]; Transform.by=1.0+displacement[n+4]; Transform.cy=0.5*displacement[n+7];
-          Transform.az=0.5*displacement[n+2]; Transform.bz=0.5*displacement[n+5]; Transform.cz=1.0+displacement[n+8];
-          break;
-        case REGULAR_UPPER_TRIANGLE:
-          Transform.ax=1.0+displacement[n];   Transform.bx=0.5*displacement[n+1]; Transform.cx=0.5*displacement[n+2];
-          Transform.ay=0.5*displacement[n+1]; Transform.by=1.0+displacement[n+3]; Transform.cy=0.5*displacement[n+4];
-          Transform.az=0.5*displacement[n+2]; Transform.bz=0.5*displacement[n+4]; Transform.cz=1.0+displacement[n+5];
-          break;
-        case MONOCLINIC:
-          Transform.ax=1.0+displacement[n];   Transform.bx=0;                     Transform.cx=0.5*displacement[n+3];
-          Transform.ay=0.0;                   Transform.by=1.0+displacement[n+2]; Transform.cy=0;
-          Transform.az=0.5*displacement[n+1]; Transform.bz=0.0;                   Transform.cz=1.0+displacement[n+4];
-          break;
-        case MONOCLINIC_UPPER_TRIANGLE:
-          Transform.ax=1.0+displacement[n];   Transform.bx=0;                     Transform.cx=displacement[n+2];
-          Transform.ay=0.0;                   Transform.by=1.0+displacement[n+1]; Transform.cy=0;
-          Transform.az=0.0;                   Transform.bz=0.0;                   Transform.cz=1.0+displacement[n+3];
-          break;
-        default:
-          printf("Unknown NPTPRCellType\n");
-          exit(0);
-          break;
-      }
-      break;
-    case NVT:
-    case NVE:
-    default:
-      Transform.ax=1.0;  Transform.bx=0.0; Transform.cx=0.0;
-      Transform.ay=0.0;  Transform.by=1.0; Transform.cy=0.0;
-      Transform.az=0.0;  Transform.bz=0.0; Transform.cz=1.0;
-      break;
-  }
-
-  Box[CurrentSystem]=MatrixMatrixMultiplication3x3(Transform,StoredBox);
-  CellProperties(&Box[CurrentSystem],&BoxProperties[CurrentSystem],&Volume[CurrentSystem]);
-  Invert3x3Matrix(&Box[CurrentSystem],&InverseBox[CurrentSystem],&det);
-  CellProperties(&InverseBox[CurrentSystem],&InverseBoxProperties[CurrentSystem],&det);
-
-  AlphaAngle[CurrentSystem]=acos(BoxProperties[CurrentSystem].bx);
-  BetaAngle[CurrentSystem]=acos(BoxProperties[CurrentSystem].by);
-  GammaAngle[CurrentSystem]=acos(BoxProperties[CurrentSystem].bz);
-
-  if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
-  {
-    for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
-    {
-      for(i=0;i<Framework[CurrentSystem].NumberOfAtoms[f1];i++)
-      {
-        index=Framework[CurrentSystem].Atoms[f1][i].HessianIndex;
-        Mass=PseudoAtoms[Framework[CurrentSystem].Atoms[f1][i].Type].Mass;
-        r.x=Positions[index.x]+displacement[index.x]/sqrt(Mass);
-        r.y=Positions[index.y]+displacement[index.y]/sqrt(Mass);
-        r.z=Positions[index.z]+displacement[index.z]/sqrt(Mass);
-        Framework[CurrentSystem].Atoms[f1][i].Position.x=Transform.ax*r.x+Transform.bx*r.y+Transform.cx*r.z;
-        Framework[CurrentSystem].Atoms[f1][i].Position.y=Transform.ay*r.x+Transform.by*r.y+Transform.cy*r.z;
-        Framework[CurrentSystem].Atoms[f1][i].Position.z=Transform.az*r.x+Transform.bz*r.y+Transform.cz*r.z;
-      }
-    }
-  }
-
-  for(m=0;m<NumberOfAdsorbateMolecules[CurrentSystem];m++)
-  {
-    Type=Adsorbates[CurrentSystem][m].Type;
-    for(l=0;l<Components[Type].NumberOfGroups;l++)
-    {
-      index=Adsorbates[CurrentSystem][m].Groups[l].HessianIndex;
-      if(Components[Type].Groups[l].Rigid) // rigid unit
-      {
-        Mass=Components[Type].Groups[l].Mass;
-        pos.x=Positions[index.x]+displacement[index.x]/sqrt(Mass);
-        pos.y=Positions[index.y]+displacement[index.y]/sqrt(Mass);
-        pos.z=Positions[index.z]+displacement[index.z]/sqrt(Mass);
-        Adsorbates[CurrentSystem][m].Groups[l].CenterOfMassPosition.x=Transform.ax*pos.x+Transform.bx*pos.y+Transform.cx*pos.z;
-        Adsorbates[CurrentSystem][m].Groups[l].CenterOfMassPosition.y=Transform.ay*pos.x+Transform.by*pos.y+Transform.cy*pos.z;
-        Adsorbates[CurrentSystem][m].Groups[l].CenterOfMassPosition.z=Transform.az*pos.x+Transform.bz*pos.y+Transform.cz*pos.z;
-        com=Adsorbates[CurrentSystem][m].Groups[l].CenterOfMassPosition;
-
-        Adsorbates[CurrentSystem][m].Groups[l].EulerAxis.x=Positions[index+3]+displacement[index+3]*sqrt(Components[Type].Groups[l].InverseInertiaVector.x);
-        Adsorbates[CurrentSystem][m].Groups[l].EulerAxis.y=Positions[index+4]+displacement[index+4]*sqrt(Components[Type].Groups[l].InverseInertiaVector.y);
-        Adsorbates[CurrentSystem][m].Groups[l].EulerAxis.z=Positions[index+5]+displacement[index+5]*sqrt(Components[Type].Groups[l].InverseInertiaVector.z);
-        p=Adsorbates[CurrentSystem][m].Groups[l].EulerAxis;
-        EulerAngle=sqrt(SQR(p.x)+SQR(p.y)+SQR(p.z));
-
-        if(EulerAngle<1e-8)
-        {
-          RotationMatrix.ax=1.0; RotationMatrix.bx=0.0; RotationMatrix.cx=0.0;
-          RotationMatrix.ay=0.0; RotationMatrix.by=1.0; RotationMatrix.cy=0.0;
-          RotationMatrix.az=0.0; RotationMatrix.bz=0.0; RotationMatrix.cz=1.0;
-        }
-        else
-        {
-          RotationMatrix.ax=1.0+(SQR(p.y)+SQR(p.z))*(cos(EulerAngle)-1.0)/SQR(EulerAngle);
-          RotationMatrix.ay=(p.x*p.y - p.x*p.y*cos(EulerAngle) + p.z*EulerAngle*sin(EulerAngle))/SQR(EulerAngle);
-          RotationMatrix.az=(p.x*p.z - p.x*p.z*cos(EulerAngle) - p.y*EulerAngle*sin(EulerAngle))/SQR(EulerAngle);
-
-          RotationMatrix.bx=(p.x*p.y - p.x*p.y*cos(EulerAngle) - p.z*EulerAngle*sin(EulerAngle))/SQR(EulerAngle);
-          RotationMatrix.by=1.0+((SQR(p.x) + SQR(p.z))*(-1 + cos(EulerAngle)))/SQR(EulerAngle);
-          RotationMatrix.bz=(p.y*p.z - p.y*p.z*cos(EulerAngle) + p.x*EulerAngle*sin(EulerAngle))/SQR(EulerAngle);
-
-          RotationMatrix.cx=(p.x*p.z - p.x*p.z*cos(EulerAngle) + p.y*EulerAngle*sin(EulerAngle))/SQR(EulerAngle);
-          RotationMatrix.cy=(p.y*p.z - p.y*p.z*cos(EulerAngle) - p.x*EulerAngle*sin(EulerAngle))/SQR(EulerAngle);
-          RotationMatrix.cz=1.0+((SQR(p.x) + SQR(p.y))*(-1.0 + cos(EulerAngle)))/SQR(EulerAngle);
-        }
-
-       for(i=0;i<Components[Type].Groups[l].NumberOfGroupAtoms;i++)
-        {
-          A=Components[Type].Groups[l].Atoms[i];
-          pos=Components[Type].Positions[A];
-
-          t.x=RotationMatrix.ax*pos.x+RotationMatrix.bx*pos.y+RotationMatrix.cx*pos.z;
-          t.y=RotationMatrix.ay*pos.x+RotationMatrix.by*pos.y+RotationMatrix.cy*pos.z;
-          t.z=RotationMatrix.az*pos.x+RotationMatrix.bz*pos.y+RotationMatrix.cz*pos.z;
-          pos.x=com.x+t.x;
-          pos.y=com.y+t.y;
-          pos.z=com.z+t.z;
-          Adsorbates[CurrentSystem][m].Atoms[A].Position=pos;
-        }
-      }
-      else // flexible unit
-      {
-        for(i=0;i<Components[Type].Groups[l].NumberOfGroupAtoms;i++)
-        {
-          A=Components[Type].Groups[l].Atoms[i];
-          index=Adsorbates[CurrentSystem][m].Atoms[A].HessianIndex;
-          Mass=PseudoAtoms[Adsorbates[CurrentSystem][m].Atoms[A].Type].Mass;
-
-          r.x=Positions[index.x]+displacement[index.x]/sqrt(Mass);
-          r.y=Positions[index.y]+displacement[index.y]/sqrt(Mass);
-          r.z=Positions[index.z]+displacement[index.z]/sqrt(Mass);
-          Adsorbates[CurrentSystem][m].Atoms[A].Position.x=Transform.ax*r.x+Transform.bx*r.y+Transform.cx*r.z;
-          Adsorbates[CurrentSystem][m].Atoms[A].Position.y=Transform.ay*r.x+Transform.by*r.y+Transform.cy*r.z;
-          Adsorbates[CurrentSystem][m].Atoms[A].Position.z=Transform.az*r.x+Transform.bz*r.y+Transform.cz*r.z;
-        }
-      }
-    }
-  }
-
-  for(m=0;m<NumberOfCationMolecules[CurrentSystem];m++)
-  {
-    Type=Cations[CurrentSystem][m].Type;
-    for(l=0;l<Components[Type].NumberOfGroups;l++)
-    {
-      index=Cations[CurrentSystem][m].Groups[l].HessianIndex;
-      if(Components[Type].Groups[l].Rigid) // rigid unit
-      {
-        Mass=Components[Type].Groups[l].Mass;
-        pos.x=Positions[index.x]+displacement[index.x]/sqrt(Mass);
-        pos.y=Positions[index.y]+displacement[index.y]/sqrt(Mass);
-        pos.z=Positions[index.z]+displacement[index.z]/sqrt(Mass);
-        Cations[CurrentSystem][m].Groups[l].CenterOfMassPosition.x=Transform.ax*pos.x+Transform.bx*pos.y+Transform.cx*pos.z;
-        Cations[CurrentSystem][m].Groups[l].CenterOfMassPosition.y=Transform.ay*pos.x+Transform.by*pos.y+Transform.cy*pos.z;
-        Cations[CurrentSystem][m].Groups[l].CenterOfMassPosition.z=Transform.az*pos.x+Transform.bz*pos.y+Transform.cz*pos.z;
-        com=Cations[CurrentSystem][m].Groups[l].CenterOfMassPosition;
-
-        Cations[CurrentSystem][m].Groups[l].EulerAxis.x=Positions[index+3]+displacement[index+3]*sqrt(Components[Type].Groups[l].InverseInertiaVector.x);
-        Cations[CurrentSystem][m].Groups[l].EulerAxis.y=Positions[index+4]+displacement[index+4]*sqrt(Components[Type].Groups[l].InverseInertiaVector.y);
-        Cations[CurrentSystem][m].Groups[l].EulerAxis.z=Positions[index+5]+displacement[index+5]*sqrt(Components[Type].Groups[l].InverseInertiaVector.z);
-        p=Cations[CurrentSystem][m].Groups[l].EulerAxis;
-        EulerAngle=sqrt(SQR(p.x)+SQR(p.y)+SQR(p.z));
-
-        if(EulerAngle<1e-8)
-        {
-          RotationMatrix.ax=1.0; RotationMatrix.bx=0.0; RotationMatrix.cx=0.0;
-          RotationMatrix.ay=0.0; RotationMatrix.by=1.0; RotationMatrix.cy=0.0;
-          RotationMatrix.az=0.0; RotationMatrix.bz=0.0; RotationMatrix.cz=1.0;
-        }
-        else
-        {
-          RotationMatrix.ax=1.0+(SQR(p.y)+SQR(p.z))*(cos(EulerAngle)-1.0)/SQR(EulerAngle);
-          RotationMatrix.ay=(p.x*p.y - p.x*p.y*cos(EulerAngle) + p.z*EulerAngle*sin(EulerAngle))/SQR(EulerAngle);
-          RotationMatrix.az=(p.x*p.z - p.x*p.z*cos(EulerAngle) - p.y*EulerAngle*sin(EulerAngle))/SQR(EulerAngle);
-
-          RotationMatrix.bx=(p.x*p.y - p.x*p.y*cos(EulerAngle) - p.z*EulerAngle*sin(EulerAngle))/SQR(EulerAngle);
-          RotationMatrix.by=1.0+((SQR(p.x) + SQR(p.z))*(-1 + cos(EulerAngle)))/SQR(EulerAngle);
-          RotationMatrix.bz=(p.y*p.z - p.y*p.z*cos(EulerAngle) + p.x*EulerAngle*sin(EulerAngle))/SQR(EulerAngle);
-
-          RotationMatrix.cx=(p.x*p.z - p.x*p.z*cos(EulerAngle) + p.y*EulerAngle*sin(EulerAngle))/SQR(EulerAngle);
-          RotationMatrix.cy=(p.y*p.z - p.y*p.z*cos(EulerAngle) - p.x*EulerAngle*sin(EulerAngle))/SQR(EulerAngle);
-          RotationMatrix.cz=1.0+((SQR(p.x) + SQR(p.y))*(-1.0 + cos(EulerAngle)))/SQR(EulerAngle);
-        }
-
-       for(i=0;i<Components[Type].Groups[l].NumberOfGroupAtoms;i++)
-        {
-          A=Components[Type].Groups[l].Atoms[i];
-          pos=Components[Type].Positions[A];
-
-          t.x=RotationMatrix.ax*pos.x+RotationMatrix.bx*pos.y+RotationMatrix.cx*pos.z;
-          t.y=RotationMatrix.ay*pos.x+RotationMatrix.by*pos.y+RotationMatrix.cy*pos.z;
-          t.z=RotationMatrix.az*pos.x+RotationMatrix.bz*pos.y+RotationMatrix.cz*pos.z;
-          pos.x=com.x+t.x;
-          pos.y=com.y+t.y;
-          pos.z=com.z+t.z;
-          Cations[CurrentSystem][m].Atoms[A].Position=pos;
-        }
-      }
-      else // flexible unit
-      {
-        for(i=0;i<Components[Type].Groups[l].NumberOfGroupAtoms;i++)
-        {
-          A=Components[Type].Groups[l].Atoms[i];
-          index=Cations[CurrentSystem][m].Atoms[A].HessianIndex;
-          Mass=PseudoAtoms[Cations[CurrentSystem][m].Atoms[A].Type].Mass;
-
-          r.x=Positions[index.x]+displacement[index.x]/sqrt(Mass);
-          r.y=Positions[index.y]+displacement[index.y]/sqrt(Mass);
-          r.z=Positions[index.z]+displacement[index.z]/sqrt(Mass);
-          Cations[CurrentSystem][m].Atoms[A].Position.x=Transform.ax*r.x+Transform.bx*r.y+Transform.cx*r.z;
-          Cations[CurrentSystem][m].Atoms[A].Position.y=Transform.ay*r.x+Transform.by*r.y+Transform.cy*r.z;
-          Cations[CurrentSystem][m].Atoms[A].Position.z=Transform.az*r.x+Transform.bz*r.y+Transform.cz*r.z;
-        }
-      }
-    }
-  }
-
-}
-*/
-
-void WriteIR(void)
-{
-  int i,j,k;
-  REAL Charge;
-  VECTOR vel,cor;
-  FILE *FilePtr;
-  char buffer[256];
-
-  mkdir("InfraRedSpectra",S_IRWXU);
-  for(k=0;k<NumberOfSystems;k++)
-  {
-    sprintf(buffer,"InfraRedSpectra/System_%d",k);
-    mkdir(buffer,S_IRWXU);
-
-    cor.x=0.0;
-    cor.y=0.0;
-    cor.z=0.0;
-    for(i=0;i<Framework[CurrentSystem].TotalNumberOfAtoms;i++)
-    {
-      vel=Framework[CurrentSystem].Atoms[0][i].Velocity;
-      Charge=Framework[CurrentSystem].Atoms[0][i].Charge;
-      cor.x+=Charge*vel.x;
-      cor.y+=Charge*vel.y;
-      cor.z+=Charge*vel.z;
-    }
-    for(i=0;i<NumberOfAdsorbateMolecules[k];i++)
-    {
-      for(j=0;j<Adsorbates[k][i].NumberOfAtoms;j++)
-      {
-        vel=Adsorbates[k][i].Atoms[j].Velocity;
-        Charge=Adsorbates[k][i].Atoms[j].Charge;
-        cor.x+=Charge*vel.x;
-        cor.y+=Charge*vel.y;
-        cor.z+=Charge*vel.z;
-      }
-    }
-    for(i=0;i<NumberOfCationMolecules[k];i++)
-    {
-      for(j=0;j<Cations[k][i].NumberOfAtoms;j++)
-      {
-        vel=Cations[k][i].Atoms[j].Velocity;
-        Charge=Cations[k][i].Atoms[j].Charge;
-        cor.x+=Charge*vel.x;
-        cor.y+=Charge*vel.y;
-        cor.z+=Charge*vel.z;
-      }
-    }
-
-    sprintf(buffer,"InfraRedSpectra/System_%d/IR%s.dat",k,FileNameAppend);
-    FilePtr=fopen(buffer,"a");
-    fprintf(FilePtr,"%g 0.0\n",(double)((cor.x+cor.y+cor.z)/3.0));
-    fclose(FilePtr);
-  }
-}
 
 void MassWeightHessianMatrix(int n,REAL_MATRIX Hessian,REAL *Weights)
 {
@@ -1076,6 +732,349 @@ void SolveEigenValuesAndVectorsHessian(REAL_MATRIX HessianMatrix,REAL* Frequenci
 
 #endif
 
+void StoredPositionsToRealPositions(int NumberOfPositionVariables,int NumberOfBoxVariables,REAL *Positions,REAL *displacement,REAL_MATRIX HessianMatrix,REAL_MATRIX3x3 StoredBox,REAL_MATRIX3x3 StoredInverseBox)
+{
+  int i,j,f1,l,m,n,Type,A;
+  INT_VECTOR3 index;
+  REAL_MATRIX3x3 Transform,RotationMatrix;
+  REAL det,TotalMass,Mass,temp,EulerAngle;
+  VECTOR r,pos,com,t,p;
+
+  n=NumberOfPositionVariables;
+
+  // Compute total mass in the cell
+  TotalMass=0.0;
+  if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+  {
+    for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
+      for(i=0;i<Framework[CurrentSystem].NumberOfAtoms[f1];i++)
+      {
+        Mass=PseudoAtoms[Framework[CurrentSystem].Atoms[f1][i].Type].Mass;
+        TotalMass+=Mass;
+      }
+  }
+  for(i=0;i<NumberOfAdsorbateMolecules[CurrentSystem];i++)
+  {
+    for(j=0;j<Adsorbates[CurrentSystem][i].NumberOfAtoms;j++)
+    {
+      Type=Adsorbates[CurrentSystem][i].Atoms[j].Type;
+      Mass=PseudoAtoms[Type].Mass;
+      TotalMass+=Mass;
+    }
+  }
+  for(i=0;i<NumberOfCationMolecules[CurrentSystem];i++)
+  {
+    for(j=0;j<Cations[CurrentSystem][i].NumberOfAtoms;j++)
+    {
+      Type=Cations[CurrentSystem][i].Atoms[j].Type;
+      Mass=PseudoAtoms[Type].Mass;
+      TotalMass+=Mass;
+    }
+  }
+
+
+  switch(Ensemble[CurrentSystem])
+  {
+    case NPT:
+      Transform.ax=1.0+displacement[n]/sqrt(TotalMass);
+      Transform.bx=0.0;
+      Transform.cx=0.0;
+
+      Transform.ay=0.0;
+      Transform.by=1.0+displacement[n+1]/sqrt(TotalMass);
+      Transform.cy=0.0;
+
+      Transform.az=0.0;
+      Transform.bz=0.0;
+      Transform.cz=1.0+displacement[n+2]/sqrt(TotalMass);
+      break;
+    case NPTPR:
+    case NPHPR:
+      switch(NPTPRCellType[CurrentSystem])
+      {
+        case ISOTROPIC:
+          temp=(displacement[n]+displacement[n+1]+displacement[n+2])/3.0;
+          Transform.ax=1.0+temp; Transform.bx=0.0;      Transform.cx=0.0;
+          Transform.ay=0.0;      Transform.by=1.0+temp; Transform.cy=0.0;
+          Transform.az=0.0;      Transform.bz=0.0;      Transform.cz=1.0+temp;
+        case ANISOTROPIC:
+          Transform.ax=1.0+displacement[n];  Transform.bx=0.0;                   Transform.cx=0.0;
+          Transform.ay=0.0;                  Transform.by=1.0+displacement[n+1]; Transform.cy=0.0;
+          Transform.az=0.0;                  Transform.bz=0.0;                   Transform.cz=1.0+displacement[n+2];
+          break;
+        case REGULAR:
+          Transform.ax=1.0+displacement[n];   Transform.bx=0.5*displacement[n+3]; Transform.cx=0.5*displacement[n+6];
+          Transform.ay=0.5*displacement[n+1]; Transform.by=1.0+displacement[n+4]; Transform.cy=0.5*displacement[n+7];
+          Transform.az=0.5*displacement[n+2]; Transform.bz=0.5*displacement[n+5]; Transform.cz=1.0+displacement[n+8];
+          break;
+        case REGULAR_UPPER_TRIANGLE:
+          Transform.ax=1.0+displacement[n];   Transform.bx=0.5*displacement[n+1]; Transform.cx=0.5*displacement[n+2];
+          Transform.ay=0.5*displacement[n+1]; Transform.by=1.0+displacement[n+3]; Transform.cy=0.5*displacement[n+4];
+          Transform.az=0.5*displacement[n+2]; Transform.bz=0.5*displacement[n+4]; Transform.cz=1.0+displacement[n+5];
+          break;
+        case MONOCLINIC:
+          Transform.ax=1.0+displacement[n];   Transform.bx=0;                     Transform.cx=0.5*displacement[n+3];
+          Transform.ay=0.0;                   Transform.by=1.0+displacement[n+2]; Transform.cy=0;
+          Transform.az=0.5*displacement[n+1]; Transform.bz=0.0;                   Transform.cz=1.0+displacement[n+4];
+          break;
+        case MONOCLINIC_UPPER_TRIANGLE:
+          Transform.ax=1.0+displacement[n];   Transform.bx=0;                     Transform.cx=displacement[n+2];
+          Transform.ay=0.0;                   Transform.by=1.0+displacement[n+1]; Transform.cy=0;
+          Transform.az=0.0;                   Transform.bz=0.0;                   Transform.cz=1.0+displacement[n+3];
+          break;
+        default:
+          printf("Unknown NPTPRCellType\n");
+          exit(0);
+          break;
+      }
+      break;
+    case NVT:
+    case NVE:
+    default:
+      Transform.ax=1.0;  Transform.bx=0.0; Transform.cx=0.0;
+      Transform.ay=0.0;  Transform.by=1.0; Transform.cy=0.0;
+      Transform.az=0.0;  Transform.bz=0.0; Transform.cz=1.0;
+      break;
+  }
+
+  Box[CurrentSystem]=MatrixMatrixMultiplication3x3(Transform,StoredBox);
+  CellProperties(&Box[CurrentSystem],&BoxProperties[CurrentSystem],&Volume[CurrentSystem]);
+  Invert3x3Matrix(&Box[CurrentSystem],&InverseBox[CurrentSystem],&det);
+  CellProperties(&InverseBox[CurrentSystem],&InverseBoxProperties[CurrentSystem],&det);
+
+  AlphaAngle[CurrentSystem]=acos(BoxProperties[CurrentSystem].bx);
+  BetaAngle[CurrentSystem]=acos(BoxProperties[CurrentSystem].by);
+  GammaAngle[CurrentSystem]=acos(BoxProperties[CurrentSystem].bz);
+
+  if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+  {
+    for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
+    {
+      for(i=0;i<Framework[CurrentSystem].NumberOfAtoms[f1];i++)
+      {
+        index=Framework[CurrentSystem].Atoms[f1][i].HessianIndex;
+        Mass=PseudoAtoms[Framework[CurrentSystem].Atoms[f1][i].Type].Mass;
+        r.x=Positions[index.x]+displacement[index.x]/sqrt(Mass);
+        r.y=Positions[index.y]+displacement[index.y]/sqrt(Mass);
+        r.z=Positions[index.z]+displacement[index.z]/sqrt(Mass);
+        Framework[CurrentSystem].Atoms[f1][i].Position.x=Transform.ax*r.x+Transform.bx*r.y+Transform.cx*r.z;
+        Framework[CurrentSystem].Atoms[f1][i].Position.y=Transform.ay*r.x+Transform.by*r.y+Transform.cy*r.z;
+        Framework[CurrentSystem].Atoms[f1][i].Position.z=Transform.az*r.x+Transform.bz*r.y+Transform.cz*r.z;
+      }
+    }
+  }
+
+  for(m=0;m<NumberOfAdsorbateMolecules[CurrentSystem];m++)
+  {
+    Type=Adsorbates[CurrentSystem][m].Type;
+    for(l=0;l<Components[Type].NumberOfGroups;l++)
+    {
+      index=Adsorbates[CurrentSystem][m].Groups[l].HessianIndex;
+      if(Components[Type].Groups[l].Rigid) // rigid unit
+      {
+        Mass=Components[Type].Groups[l].Mass;
+        pos.x=Positions[index.x]+displacement[index.x]/sqrt(Mass);
+        pos.y=Positions[index.y]+displacement[index.y]/sqrt(Mass);
+        pos.z=Positions[index.z]+displacement[index.z]/sqrt(Mass);
+        Adsorbates[CurrentSystem][m].Groups[l].CenterOfMassPosition.x=Transform.ax*pos.x+Transform.bx*pos.y+Transform.cx*pos.z;
+        Adsorbates[CurrentSystem][m].Groups[l].CenterOfMassPosition.y=Transform.ay*pos.x+Transform.by*pos.y+Transform.cy*pos.z;
+        Adsorbates[CurrentSystem][m].Groups[l].CenterOfMassPosition.z=Transform.az*pos.x+Transform.bz*pos.y+Transform.cz*pos.z;
+        com=Adsorbates[CurrentSystem][m].Groups[l].CenterOfMassPosition;
+
+        Adsorbates[CurrentSystem][m].Groups[l].EulerAxis.x=Positions[index.x+3]+displacement[index.x+3]*sqrt(Components[Type].Groups[l].InverseInertiaVector.x);
+        Adsorbates[CurrentSystem][m].Groups[l].EulerAxis.y=Positions[index.y+3]+displacement[index.y+3]*sqrt(Components[Type].Groups[l].InverseInertiaVector.y);
+        Adsorbates[CurrentSystem][m].Groups[l].EulerAxis.z=Positions[index.z+3]+displacement[index.z+3]*sqrt(Components[Type].Groups[l].InverseInertiaVector.z);
+        p=Adsorbates[CurrentSystem][m].Groups[l].EulerAxis;
+        EulerAngle=sqrt(SQR(p.x)+SQR(p.y)+SQR(p.z));
+
+        if(EulerAngle<1e-8)
+        {
+          RotationMatrix.ax=1.0; RotationMatrix.bx=0.0; RotationMatrix.cx=0.0;
+          RotationMatrix.ay=0.0; RotationMatrix.by=1.0; RotationMatrix.cy=0.0;
+          RotationMatrix.az=0.0; RotationMatrix.bz=0.0; RotationMatrix.cz=1.0;
+        }
+        else
+        {
+          RotationMatrix.ax=1.0+(SQR(p.y)+SQR(p.z))*(cos(EulerAngle)-1.0)/SQR(EulerAngle);
+          RotationMatrix.ay=(p.x*p.y - p.x*p.y*cos(EulerAngle) + p.z*EulerAngle*sin(EulerAngle))/SQR(EulerAngle);
+          RotationMatrix.az=(p.x*p.z - p.x*p.z*cos(EulerAngle) - p.y*EulerAngle*sin(EulerAngle))/SQR(EulerAngle);
+
+          RotationMatrix.bx=(p.x*p.y - p.x*p.y*cos(EulerAngle) - p.z*EulerAngle*sin(EulerAngle))/SQR(EulerAngle);
+          RotationMatrix.by=1.0+((SQR(p.x) + SQR(p.z))*(-1 + cos(EulerAngle)))/SQR(EulerAngle);
+          RotationMatrix.bz=(p.y*p.z - p.y*p.z*cos(EulerAngle) + p.x*EulerAngle*sin(EulerAngle))/SQR(EulerAngle);
+
+          RotationMatrix.cx=(p.x*p.z - p.x*p.z*cos(EulerAngle) + p.y*EulerAngle*sin(EulerAngle))/SQR(EulerAngle);
+          RotationMatrix.cy=(p.y*p.z - p.y*p.z*cos(EulerAngle) - p.x*EulerAngle*sin(EulerAngle))/SQR(EulerAngle);
+          RotationMatrix.cz=1.0+((SQR(p.x) + SQR(p.y))*(-1.0 + cos(EulerAngle)))/SQR(EulerAngle);
+        }
+
+       for(i=0;i<Components[Type].Groups[l].NumberOfGroupAtoms;i++)
+        {
+          A=Components[Type].Groups[l].Atoms[i];
+          pos=Components[Type].Positions[A];
+
+          t.x=RotationMatrix.ax*pos.x+RotationMatrix.bx*pos.y+RotationMatrix.cx*pos.z;
+          t.y=RotationMatrix.ay*pos.x+RotationMatrix.by*pos.y+RotationMatrix.cy*pos.z;
+          t.z=RotationMatrix.az*pos.x+RotationMatrix.bz*pos.y+RotationMatrix.cz*pos.z;
+          pos.x=com.x+t.x;
+          pos.y=com.y+t.y;
+          pos.z=com.z+t.z;
+          Adsorbates[CurrentSystem][m].Atoms[A].Position=pos;
+        }
+      }
+      else // flexible unit
+      {
+        for(i=0;i<Components[Type].Groups[l].NumberOfGroupAtoms;i++)
+        {
+          A=Components[Type].Groups[l].Atoms[i];
+          index=Adsorbates[CurrentSystem][m].Atoms[A].HessianIndex;
+          Mass=PseudoAtoms[Adsorbates[CurrentSystem][m].Atoms[A].Type].Mass;
+
+          r.x=Positions[index.x]+displacement[index.x]/sqrt(Mass);
+          r.y=Positions[index.y]+displacement[index.y]/sqrt(Mass);
+          r.z=Positions[index.z]+displacement[index.z]/sqrt(Mass);
+          Adsorbates[CurrentSystem][m].Atoms[A].Position.x=Transform.ax*r.x+Transform.bx*r.y+Transform.cx*r.z;
+          Adsorbates[CurrentSystem][m].Atoms[A].Position.y=Transform.ay*r.x+Transform.by*r.y+Transform.cy*r.z;
+          Adsorbates[CurrentSystem][m].Atoms[A].Position.z=Transform.az*r.x+Transform.bz*r.y+Transform.cz*r.z;
+        }
+      }
+    }
+  }
+
+  for(m=0;m<NumberOfCationMolecules[CurrentSystem];m++)
+  {
+    Type=Cations[CurrentSystem][m].Type;
+    for(l=0;l<Components[Type].NumberOfGroups;l++)
+    {
+      index=Cations[CurrentSystem][m].Groups[l].HessianIndex;
+      if(Components[Type].Groups[l].Rigid) // rigid unit
+      {
+        Mass=Components[Type].Groups[l].Mass;
+        pos.x=Positions[index.x]+displacement[index.x]/sqrt(Mass);
+        pos.y=Positions[index.y]+displacement[index.y]/sqrt(Mass);
+        pos.z=Positions[index.z]+displacement[index.z]/sqrt(Mass);
+        Cations[CurrentSystem][m].Groups[l].CenterOfMassPosition.x=Transform.ax*pos.x+Transform.bx*pos.y+Transform.cx*pos.z;
+        Cations[CurrentSystem][m].Groups[l].CenterOfMassPosition.y=Transform.ay*pos.x+Transform.by*pos.y+Transform.cy*pos.z;
+        Cations[CurrentSystem][m].Groups[l].CenterOfMassPosition.z=Transform.az*pos.x+Transform.bz*pos.y+Transform.cz*pos.z;
+        com=Cations[CurrentSystem][m].Groups[l].CenterOfMassPosition;
+
+        Cations[CurrentSystem][m].Groups[l].EulerAxis.x=Positions[index.x+3]+displacement[index.x+3]*sqrt(Components[Type].Groups[l].InverseInertiaVector.x);
+        Cations[CurrentSystem][m].Groups[l].EulerAxis.y=Positions[index.y+3]+displacement[index.y+3]*sqrt(Components[Type].Groups[l].InverseInertiaVector.y);
+        Cations[CurrentSystem][m].Groups[l].EulerAxis.z=Positions[index.z+3]+displacement[index.z+3]*sqrt(Components[Type].Groups[l].InverseInertiaVector.z);
+        p=Cations[CurrentSystem][m].Groups[l].EulerAxis;
+        EulerAngle=sqrt(SQR(p.x)+SQR(p.y)+SQR(p.z));
+
+        if(EulerAngle<1e-8)
+        {
+          RotationMatrix.ax=1.0; RotationMatrix.bx=0.0; RotationMatrix.cx=0.0;
+          RotationMatrix.ay=0.0; RotationMatrix.by=1.0; RotationMatrix.cy=0.0;
+          RotationMatrix.az=0.0; RotationMatrix.bz=0.0; RotationMatrix.cz=1.0;
+        }
+        else
+        {
+          RotationMatrix.ax=1.0+(SQR(p.y)+SQR(p.z))*(cos(EulerAngle)-1.0)/SQR(EulerAngle);
+          RotationMatrix.ay=(p.x*p.y - p.x*p.y*cos(EulerAngle) + p.z*EulerAngle*sin(EulerAngle))/SQR(EulerAngle);
+          RotationMatrix.az=(p.x*p.z - p.x*p.z*cos(EulerAngle) - p.y*EulerAngle*sin(EulerAngle))/SQR(EulerAngle);
+
+          RotationMatrix.bx=(p.x*p.y - p.x*p.y*cos(EulerAngle) - p.z*EulerAngle*sin(EulerAngle))/SQR(EulerAngle);
+          RotationMatrix.by=1.0+((SQR(p.x) + SQR(p.z))*(-1 + cos(EulerAngle)))/SQR(EulerAngle);
+          RotationMatrix.bz=(p.y*p.z - p.y*p.z*cos(EulerAngle) + p.x*EulerAngle*sin(EulerAngle))/SQR(EulerAngle);
+
+          RotationMatrix.cx=(p.x*p.z - p.x*p.z*cos(EulerAngle) + p.y*EulerAngle*sin(EulerAngle))/SQR(EulerAngle);
+          RotationMatrix.cy=(p.y*p.z - p.y*p.z*cos(EulerAngle) - p.x*EulerAngle*sin(EulerAngle))/SQR(EulerAngle);
+          RotationMatrix.cz=1.0+((SQR(p.x) + SQR(p.y))*(-1.0 + cos(EulerAngle)))/SQR(EulerAngle);
+        }
+
+       for(i=0;i<Components[Type].Groups[l].NumberOfGroupAtoms;i++)
+        {
+          A=Components[Type].Groups[l].Atoms[i];
+          pos=Components[Type].Positions[A];
+
+          t.x=RotationMatrix.ax*pos.x+RotationMatrix.bx*pos.y+RotationMatrix.cx*pos.z;
+          t.y=RotationMatrix.ay*pos.x+RotationMatrix.by*pos.y+RotationMatrix.cy*pos.z;
+          t.z=RotationMatrix.az*pos.x+RotationMatrix.bz*pos.y+RotationMatrix.cz*pos.z;
+          pos.x=com.x+t.x;
+          pos.y=com.y+t.y;
+          pos.z=com.z+t.z;
+          Cations[CurrentSystem][m].Atoms[A].Position=pos;
+        }
+      }
+      else // flexible unit
+      {
+        for(i=0;i<Components[Type].Groups[l].NumberOfGroupAtoms;i++)
+        {
+          A=Components[Type].Groups[l].Atoms[i];
+          index=Cations[CurrentSystem][m].Atoms[A].HessianIndex;
+          Mass=PseudoAtoms[Cations[CurrentSystem][m].Atoms[A].Type].Mass;
+
+          r.x=Positions[index.x]+displacement[index.x]/sqrt(Mass);
+          r.y=Positions[index.y]+displacement[index.y]/sqrt(Mass);
+          r.z=Positions[index.z]+displacement[index.z]/sqrt(Mass);
+          Cations[CurrentSystem][m].Atoms[A].Position.x=Transform.ax*r.x+Transform.bx*r.y+Transform.cx*r.z;
+          Cations[CurrentSystem][m].Atoms[A].Position.y=Transform.ay*r.x+Transform.by*r.y+Transform.cy*r.z;
+          Cations[CurrentSystem][m].Atoms[A].Position.z=Transform.az*r.x+Transform.bz*r.y+Transform.cz*r.z;
+        }
+      }
+    }
+  }
+
+}
+
+void WriteIR(void)
+{
+  int i,j,k;
+  REAL Charge;
+  VECTOR vel,cor;
+  FILE *FilePtr;
+  char buffer[256];
+
+  mkdir("InfraRedSpectra",S_IRWXU);
+  for(k=0;k<NumberOfSystems;k++)
+  {
+    sprintf(buffer,"InfraRedSpectra/System_%d",k);
+    mkdir(buffer,S_IRWXU);
+
+    cor.x=0.0;
+    cor.y=0.0;
+    cor.z=0.0;
+    for(i=0;i<Framework[CurrentSystem].TotalNumberOfAtoms;i++)
+    {
+      vel=Framework[CurrentSystem].Atoms[0][i].Velocity;
+      Charge=Framework[CurrentSystem].Atoms[0][i].Charge;
+      cor.x+=Charge*vel.x;
+      cor.y+=Charge*vel.y;
+      cor.z+=Charge*vel.z;
+    }
+    for(i=0;i<NumberOfAdsorbateMolecules[k];i++)
+    {
+      for(j=0;j<Adsorbates[k][i].NumberOfAtoms;j++)
+      {
+        vel=Adsorbates[k][i].Atoms[j].Velocity;
+        Charge=Adsorbates[k][i].Atoms[j].Charge;
+        cor.x+=Charge*vel.x;
+        cor.y+=Charge*vel.y;
+        cor.z+=Charge*vel.z;
+      }
+    }
+    for(i=0;i<NumberOfCationMolecules[k];i++)
+    {
+      for(j=0;j<Cations[k][i].NumberOfAtoms;j++)
+      {
+        vel=Cations[k][i].Atoms[j].Velocity;
+        Charge=Cations[k][i].Atoms[j].Charge;
+        cor.x+=Charge*vel.x;
+        cor.y+=Charge*vel.y;
+        cor.z+=Charge*vel.z;
+      }
+    }
+
+    sprintf(buffer,"InfraRedSpectra/System_%d/IR%s.dat",k,FileNameAppend);
+    FilePtr=fopen(buffer,"a");
+    fprintf(FilePtr,"%g 0.0\n",(double)((cor.x+cor.y+cor.z)/3.0));
+    fclose(FilePtr);
+  }
+}
+
 void MakeNormalModeMovie(int NumberOfPositionVariables,int NumberOfBoxVariables,REAL_MATRIX HessianMatrix,REAL *Positions,REAL *frequencies,REAL* Weights)
 {
   int i,j,f1,n,mode,frames,Type;
@@ -1137,8 +1136,7 @@ void MakeNormalModeMovie(int NumberOfPositionVariables,int NumberOfBoxVariables,
         for(i=0;i<n;i++)
           displacement[i]=factor*HessianMatrix.element[mode][i];
 
-        // TODO!!! 08-02-2012
-        //StoredPositionsToRealPositions(NumberOfPositionVariables,NumberOfBoxVariables,Positions,displacement,HessianMatrix,StoredBox,StoredInverseBox);
+        StoredPositionsToRealPositions(NumberOfPositionVariables,NumberOfBoxVariables,Positions,displacement,HessianMatrix,StoredBox,StoredInverseBox);
 
         // correct the positions for constraints
         if(CorrectNormalModesForConstraints)
