@@ -150,9 +150,10 @@ void CalculateFrameworkForceAtPosition(POINT pos,int typeA,REAL *UVDW,VECTOR *Fo
         }
         if(rr<CutOffChargeChargeSquared[CurrentSystem])
         {
+          chargeB=Framework[CurrentSystem].Atoms[f1][i].Charge;
           PotentialGradientCoulombic(chargeA,chargeB,rr,&energy,&temp);
 
-          (*UCoulomb)+=temp;
+          (*UCoulomb)+=energy;
 
           if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
           {
