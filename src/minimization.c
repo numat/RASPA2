@@ -2759,13 +2759,14 @@ void ComputeDerivative(int np,int nb,REAL *x,REAL* Energy,REAL *Gradient,REAL_MA
 
   EvaluateDerivatives(np,Energy,Gradient,Hessian,StrainFirstDerivative,TRUE,FALSE);
 
+
   // project the constraints from the gradient and Hessian
   ProjectConstraintsFromHessianMatrix(np,nb,Gradient,Hessian,TRUE,FALSE);
 }
 
 
 
-void ComputeDerivatives(int np,int nb,REAL *x,REAL* Energy,REAL *Gradient,REAL_MATRIX Hessian,REAL_MATRIX3x3 *StrainFirstDerivative)
+void ComputeDerivativesMinimization(int np,int nb,REAL *x,REAL* Energy,REAL *Gradient,REAL_MATRIX Hessian,REAL_MATRIX3x3 *StrainFirstDerivative)
 {
   int i,j;
 
@@ -2794,13 +2795,6 @@ void ComputeDerivatives(int np,int nb,REAL *x,REAL* Energy,REAL *Gradient,REAL_M
   for(i=0;i<np+nb;i++)
     for(j=0;j<np+nb;j++)
       Hessian.element[j][i]=Hessian.element[i][j];
-
-
-  // project the constraints from the gradient and Hessian
-  ProjectConstraintsFromHessianMatrix(np,nb,Gradient,Hessian,TRUE,TRUE);
-
-  if(MinimizationVariables==FRACTIONAL)
-    ConvertHessianFromCartesianToFractional(np,nb,Gradient,Hessian);
 }
 
 void ComputeDerivativesSpectra(int np,int nb,REAL *x,REAL* Energy,REAL *Gradient,REAL_MATRIX Hessian,REAL_MATRIX3x3 *StrainFirstDerivative)
@@ -3822,7 +3816,15 @@ void BakerSaddlePointSearch(int np,int nb,REAL *x,int run)
 
     fprintf(OutputFilePtr[CurrentSystem],"Computing generalized Hessian matrix\n");
     fflush(OutputFilePtr[CurrentSystem]);
-    ComputeDerivatives(np,nb,x,&Energy,Gradient,HessianMatrix,&StrainFirstDerivative);
+    ComputeDerivativesMinimization(np,nb,x,&Energy,Gradient,HessianMatrix,&StrainFirstDerivative);
+
+    // project the constraints from the gradient and Hessian
+    fprintf(OutputFilePtr[CurrentSystem],"Projecting constraints from generalized Hessian matrix\n");
+    fflush(OutputFilePtr[CurrentSystem]);
+    ProjectConstraintsFromHessianMatrix(np,nb,Gradient,HessianMatrix,TRUE,TRUE);
+    
+    if(MinimizationVariables==FRACTIONAL)
+       ConvertHessianFromCartesianToFractional(np,nb,Gradient,HessianMatrix);
 
     // Diagonalize the Hessian matrix.
     fprintf(OutputFilePtr[CurrentSystem],"Computing eigenvalues and vectors\n");
@@ -4180,7 +4182,15 @@ void BakerMinimization(int np,int nb,REAL *x,int run)
       fprintf(OutputFilePtr[CurrentSystem],"Computing generalized Hessian matrix\n");
       fflush(OutputFilePtr[CurrentSystem]);
     }
-    ComputeDerivatives(np,nb,x,&Energy,Gradient,HessianMatrix,&StrainFirstDerivative);
+    ComputeDerivativesMinimization(np,nb,x,&Energy,Gradient,HessianMatrix,&StrainFirstDerivative);
+
+    // project the constraints from the gradient and Hessian
+    fprintf(OutputFilePtr[CurrentSystem],"Projecting constraints from generalized Hessian matrix\n");
+    fflush(OutputFilePtr[CurrentSystem]);
+    ProjectConstraintsFromHessianMatrix(np,nb,Gradient,HessianMatrix,TRUE,TRUE);
+  
+    if(MinimizationVariables==FRACTIONAL)
+      ConvertHessianFromCartesianToFractional(np,nb,Gradient,HessianMatrix);
     
     // Diagonalize the Hessian matrix.
     if(k%PrintEvery==0)
@@ -4350,7 +4360,13 @@ void BakerMinimization(int np,int nb,REAL *x,int run)
   //if(Ensemble[CurrentSystem]==NPTPR&&(NPTPRCellType[CurrentSystem]==REGULAR_UPPER_TRIANGLE||NPTPRCellType[CurrentSystem]==MONOCLINIC_UPPER_TRIANGLE))
   //  AdjustToUpperTriangle();
 
-  ComputeDerivatives(np,nb,x,&Energy,Gradient,HessianMatrix,&StrainFirstDerivative);
+  ComputeDerivativesMinimization(np,nb,x,&Energy,Gradient,HessianMatrix,&StrainFirstDerivative);
+
+  // project the constraints from the gradient and Hessian
+  ProjectConstraintsFromHessianMatrix(np,nb,Gradient,HessianMatrix,TRUE,TRUE);
+ 
+  if(MinimizationVariables==FRACTIONAL)
+    ConvertHessianFromCartesianToFractional(np,nb,Gradient,HessianMatrix);
 
   fprintf(OutputFilePtr[CurrentSystem],"\n\n");
   fprintf(OutputFilePtr[CurrentSystem],"Variable vector:\n");
@@ -4588,12 +4604,18 @@ void NewtonRaphsonMinimization(int np,int nb,REAL *x,int run)
 
     fprintf(OutputFilePtr[CurrentSystem],"Computing generalized Hessian matrix\n");
     fflush(OutputFilePtr[CurrentSystem]);
-    ComputeDerivatives(np,nb,x,&Energy,Gradient,HessianMatrix,&StrainFirstDerivative);
+    ComputeDerivativesMinimization(np,nb,x,&Energy,Gradient,HessianMatrix,&StrainFirstDerivative);
+
+    // project the constraints from the gradient and Hessian
+    fprintf(OutputFilePtr[CurrentSystem],"Projecting constraints from generalized Hessian matrix\n");
+    fflush(OutputFilePtr[CurrentSystem]);
+    ProjectConstraintsFromHessianMatrix(np,nb,Gradient,HessianMatrix,TRUE,TRUE);
+
+    if(MinimizationVariables==FRACTIONAL)
+      ConvertHessianFromCartesianToFractional(np,nb,Gradient,HessianMatrix);
 
     //for(i=0;i<NumberOfPositionVariables;i++)
     //  printf("%d gradient %f\n",i,Gradient[i]);
-
-   // NEW
 
     // Diagonalize the Hessian matrix.
     fprintf(OutputFilePtr[CurrentSystem],"Computing eigenvalues and vectors\n");
@@ -4755,7 +4777,13 @@ void NewtonRaphsonMinimization(int np,int nb,REAL *x,int run)
   //if(Ensemble[CurrentSystem]==NPTPR&&(NPTPRCellType[CurrentSystem]==REGULAR_UPPER_TRIANGLE||NPTPRCellType[CurrentSystem]==MONOCLINIC_UPPER_TRIANGLE))
   //  AdjustToUpperTriangle();
 
-  ComputeDerivatives(np,nb,x,&Energy,Gradient,HessianMatrix,&StrainFirstDerivative);
+  ComputeDerivativesMinimization(np,nb,x,&Energy,Gradient,HessianMatrix,&StrainFirstDerivative);
+
+  // project the constraints from the gradient and Hessian
+  ProjectConstraintsFromHessianMatrix(np,nb,Gradient,HessianMatrix,TRUE,TRUE);
+ 
+  if(MinimizationVariables==FRACTIONAL)
+    ConvertHessianFromCartesianToFractional(np,nb,Gradient,HessianMatrix);
 
   fprintf(OutputFilePtr[CurrentSystem],"\n\n");
   fprintf(OutputFilePtr[CurrentSystem],"Variable vector:\n");
@@ -4913,7 +4941,13 @@ void ComputeElasticConstantsAfterMinimization(int np,int nb,REAL *x)
   {
     if((Ensemble[CurrentSystem]==NPTPR)&&(NPTPRCellType[CurrentSystem]==REGULAR_UPPER_TRIANGLE||NPTPRCellType[CurrentSystem]==REGULAR))
     {
-      ComputeDerivatives(np,nb,x,&Energy,Gradient,HessianMatrix,&StrainFirstDerivative);
+      ComputeDerivativesMinimization(np,nb,x,&Energy,Gradient,HessianMatrix,&StrainFirstDerivative);
+
+      // project the constraints from the gradient and Hessian
+      ProjectConstraintsFromHessianMatrix(np,nb,Gradient,HessianMatrix,TRUE,TRUE);
+
+      if(MinimizationVariables==FRACTIONAL)
+        ConvertHessianFromCartesianToFractional(np,nb,Gradient,HessianMatrix);
 
       switch(Dimension)
       {
@@ -5543,7 +5577,13 @@ void SnymanMinimization(int np,int nb,REAL *x,int run)
   EigenValues=(REAL*)calloc(NumberOfMinimizationVariables,sizeof(REAL));
   HessianMatrix=CreateRealMatrix(NumberOfMinimizationVariables,NumberOfMinimizationVariables);
 
-  ComputeDerivatives(np,nb,x_new,&Energy,a_new,HessianMatrix,&StrainFirstDerivative);
+  ComputeDerivativesMinimization(np,nb,x_new,&Energy,a_new,HessianMatrix,&StrainFirstDerivative);
+
+  // project the constraints from the gradient and Hessian
+  ProjectConstraintsFromHessianMatrix(np,nb,a_new,HessianMatrix,TRUE,TRUE);
+
+  if(MinimizationVariables==FRACTIONAL)
+    ConvertHessianFromCartesianToFractional(np,nb,a_new,HessianMatrix);
 
   fprintf(OutputFilePtr[CurrentSystem],"\n\n");
   fprintf(OutputFilePtr[CurrentSystem],"Final energy after minimization: %18.10f\n",(double)(Energy*ENERGY_TO_KELVIN));

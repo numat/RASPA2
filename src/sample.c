@@ -5019,7 +5019,7 @@ void SampleInfraRedSpectra(int Switch)
                 SpectrumBuffer[i]=UnweightedSpectrum[CurrentSystem][l][k][i];
               // fill odd (imaginary) part
               for (i=1;i<4*m;i+=2)
-                SpectrumBuffer[i]=UnweightedSpectrum[CurrentSystem][l][k][i];
+                SpectrumBuffer[i]=0.0;
 
               // "window" the data
               for(j=0;j<2*m;j++)
@@ -5047,7 +5047,7 @@ void SampleInfraRedSpectra(int Switch)
                 SpectrumBuffer[i]=Spectrum[CurrentSystem][l][k][i];
               // fill odd (imaginary) part
               for (i=1;i<4*m;i+=2)
-                SpectrumBuffer[i]=Spectrum[CurrentSystem][l][k][i];
+                SpectrumBuffer[i]=0.0;
 
               // "window" the data
               for(j=0;j<2*m;j++)
@@ -5080,7 +5080,7 @@ void SampleInfraRedSpectra(int Switch)
                   SpectrumBuffer[i]=SpectrumPseudoAtoms[CurrentSystem][0][n][k][i];
                 // fill odd (imaginary) part
                 for (i=1;i<4*m;i+=2)
-                  SpectrumBuffer[i]=SpectrumPseudoAtoms[CurrentSystem][0][n][k][i];
+                  SpectrumBuffer[i]=0.0;
 
                 // "window" the data
                 for(j=0;j<2*m;j++)
@@ -5114,7 +5114,7 @@ void SampleInfraRedSpectra(int Switch)
                   SpectrumBuffer[i]=SpectrumPseudoAtoms[CurrentSystem][1][n][k][i];
                 // fill odd (imaginary) part
                 for (i=1;i<4*m;i+=2)
-                  SpectrumBuffer[i]=SpectrumPseudoAtoms[CurrentSystem][1][n][k][i];
+                  SpectrumBuffer[i]=0.0;
 
                 // "window" the data
                 for(j=0;j<2*m;j++)
@@ -5157,7 +5157,7 @@ void SampleInfraRedSpectra(int Switch)
       m=2048;
       for(k=0;k<5;k++)
       {
-        conversion_factor=1.0/(4.0*m*DeltaT*PICO_SECOND*100.0*SPEED_OF_LIGHT);
+        conversion_factor=TO_WAVENUMBERS/(8.0*m*DeltaT);
 
         //================================================================
         // FFT of the velocity autocorrelation function (unweighted)

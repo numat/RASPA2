@@ -7686,12 +7686,18 @@ int ReadFrameworkDefinition(void)
     if(!(FilePtr=fopen(buffer,"r")))
     {
       sprintf(buffer,"%s/share/raspa/framework/%s/%s.%s",RASPA_DIRECTORY,
-              Framework[CurrentSystem].FrameworkDefinitions,"Framework","def");
+              Framework[CurrentSystem].FrameworkDefinitions,"framework","def");
   
       if(!(FilePtr=fopen(buffer,"r")))
       {
-        printf("Error:  file %s does not exists.\n",buffer);
-        exit(1);
+        sprintf(buffer,"%s/share/raspa/framework/%s/%s.%s",RASPA_DIRECTORY,
+                Framework[CurrentSystem].FrameworkDefinitions,"Framework","def");
+
+        if(!(FilePtr=fopen(buffer,"r")))
+        {
+          printf("Error:  file %s does not exists.\n",buffer);
+          exit(1);
+        }
       }
     }
   }

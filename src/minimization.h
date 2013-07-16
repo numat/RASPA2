@@ -299,7 +299,7 @@ int OrderNumberOfMinimiationVariables(void);
 
 void AdjustToUpperTriangle(void);
 
-void ComputeDerivatives(int np,int nb,REAL *x,REAL* Energy,REAL *Gradient,REAL_MATRIX Hessian,REAL_MATRIX3x3 *StrainFirstDerivative);
+void ComputeDerivativesMinimization(int np,int nb,REAL *x,REAL* Energy,REAL *Gradient,REAL_MATRIX Hessian,REAL_MATRIX3x3 *StrainFirstDerivative);
 void ComputeDerivativesSpectra(int np,int nb,REAL *x,REAL* Energy,REAL *Gradient,REAL_MATRIX Hessian,REAL_MATRIX3x3 *StrainFirstDerivative);
 
 void Minimization(int k);
