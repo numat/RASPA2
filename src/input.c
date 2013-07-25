@@ -5655,7 +5655,7 @@ int ReadInputFile(char *inputfilename)
     // determine boundary conditions from angles
     if(BoundaryCondition[i]==UNINITIALIZED_BOUNDARY_CONDITION)
     {
-      if((fabs(AlphaAngle[i]-90.0)>0.001)||(fabs(BetaAngle[i]-90.0)>0.001)||(fabs(GammaAngle[i]-90.0)>0.001))
+      if((fabs(AlphaAngle[i]*RAD2DEG-90.0)>0.001)||(fabs(BetaAngle[i]*RAD2DEG-90.0)>0.001)||(fabs(GammaAngle[i]*RAD2DEG-90.0)>0.001))
         BoundaryCondition[i]=TRICLINIC;
       else BoundaryCondition[i]=RECTANGULAR;
     }
@@ -7847,7 +7847,7 @@ int ReadInputFile(char *inputfilename)
 
 void ReadRestartFile(void)
 {
-  int i;
+  int i,j;
   int NumberOfComponentsRead;
   int extra_framework_boolean;
   FILE *FilePtrIn;
@@ -7859,6 +7859,9 @@ void ReadRestartFile(void)
   char ComponentNameRead[256];
   REAL temp1,temp2,temp3;
   int int_temp1,int_temp2,int_temp3,int_temp4,int_temp5;
+  int *typeArrayAdsorbates,*typeArrayCations;
+  int totalNumberOfAdsorbateMolecules;
+  int totalNumberOfCationMolecules;
 
   extra_framework_boolean=FALSE;
   for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
@@ -7879,13 +7882,15 @@ void ReadRestartFile(void)
             (double)therm_baro_stats.ExternalPressure[CurrentSystem][CurrentIsothermPressure]*PRESSURE_CONVERSION_FACTOR);
 
 
+    // read first time to get the total number of  molecules
     if(!(FilePtrIn=fopen(buffer,"r")))
     {
       printf("Could NOT open file: %s\n",buffer);
       exit(0);
     }
 
-    // read first time to allocate the molecules
+    totalNumberOfAdsorbateMolecules=0;
+    totalNumberOfCationMolecules=0;
     while(fgets(line,1024,FilePtrIn))
     {
       // extract first word
@@ -7894,10 +7899,32 @@ void ReadRestartFile(void)
 
       if(strcasecmp(keyword,"Components:")==0)
       {
-        sscanf(arguments,"%d%*[^\n]",&NumberOfComponentsRead);
+        sscanf(arguments,"%d (Adsorbates %d, Cations %d) %*[^\n]",&NumberOfComponentsRead,
+            &totalNumberOfAdsorbateMolecules,&totalNumberOfCationMolecules);
         if(NumberOfComponentsRead!=NumberOfComponents)
           printf("Warning: NumberOfComponents does not match restart-file !\n");
       }
+    }
+    fclose(FilePtrIn);
+
+    // allocate the memory for the type of the molecules
+    typeArrayAdsorbates=(int*)calloc(totalNumberOfAdsorbateMolecules,sizeof(int*));
+    typeArrayCations=(int*)calloc(totalNumberOfCationMolecules,sizeof(int*));
+
+
+    // read second time to get the types of all the molecules
+    if(!(FilePtrIn=fopen(buffer,"r")))
+    {
+      printf("Could NOT open file: %s\n",buffer);
+      exit(0);
+    }
+
+    CurrentComponent=0;
+    while(fgets(line,1024,FilePtrIn))
+    {
+      // extract first word
+      strcpy(keyword,"keyword");
+      sscanf(line,"%s %[^\n]",keyword,arguments);
 
       // parse "Component: 0     Cation       96 molecules of sodium"
       if(strcasecmp(keyword,"Component:")==0)
@@ -7908,41 +7935,77 @@ void ReadRestartFile(void)
            &NumberOfMoleculesRead,
            ComponentNameRead);
         CurrentComponent=CurrentComponentRead;
+      }
 
-        for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
-        {
-          CFVDWScaling[i]=1.0;
-          CFChargeScaling[i]=1.0;
+      // read adsorbate atom information
+      if(strcasecmp(keyword,"Adsorbate-atom-position:")==0)
+      {
+        temp1=temp2=temp3=0.0;
+        sscanf(arguments,"%d %d %lf %lf %lf\n",&int_temp1,&int_temp2,&temp1,&temp2,&temp3);
+        typeArrayAdsorbates[int_temp1]=CurrentComponent;
+      }
 
-          NewPosition[CurrentSystem][i].x=0.0;
-          NewPosition[CurrentSystem][i].y=0.0;
-          NewPosition[CurrentSystem][i].z=0.0;
-
-          NewVelocity[CurrentSystem][i].x=0.0;
-          NewVelocity[CurrentSystem][i].y=0.0;
-          NewVelocity[CurrentSystem][i].z=0.0;
-
-          NewForce[CurrentSystem][i].x=0.0;
-          NewForce[CurrentSystem][i].y=0.0;
-          NewForce[CurrentSystem][i].z=0.0;
-        }
-
-        if(!strncasecmp(ExtraFrameworkMoleculeRead,"Cation",MAX2(strlen(ExtraFrameworkMoleculeRead),strlen("Cation"))))
-        {
-          extra_framework_boolean=TRUE;
-          for(i=0;i<NumberOfMoleculesRead;i++)
-            InsertCationMolecule();
-        }
-        else
-        {
-          extra_framework_boolean=FALSE;
-          for(i=0;i<NumberOfMoleculesRead;i++)
-            InsertAdsorbateMolecule();
-        }
+      // read cation atom information
+      if(strcasecmp(keyword,"Cation-atom-position:")==0)
+      {
+        temp1=temp2=temp3=0.0;
+        sscanf(arguments,"%d %d %lf %lf %lf\n",&int_temp1,&int_temp2,&temp1,&temp2,&temp3);
+        typeArrayCations[int_temp1]=CurrentComponent;
       }
     }
-
     fclose(FilePtrIn);
+
+    // allocate the molecules with the correct type
+    for(j=0;j<totalNumberOfAdsorbateMolecules;j++)
+    {
+      CurrentComponent=typeArrayAdsorbates[j];
+
+      for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
+      {
+        CFVDWScaling[i]=1.0;
+        CFChargeScaling[i]=1.0;
+
+        NewPosition[CurrentSystem][i].x=0.0;
+        NewPosition[CurrentSystem][i].y=0.0;
+        NewPosition[CurrentSystem][i].z=0.0;
+
+        NewVelocity[CurrentSystem][i].x=0.0;
+        NewVelocity[CurrentSystem][i].y=0.0;
+        NewVelocity[CurrentSystem][i].z=0.0;
+
+        NewForce[CurrentSystem][i].x=0.0;
+        NewForce[CurrentSystem][i].y=0.0;
+        NewForce[CurrentSystem][i].z=0.0;
+      }
+
+      InsertAdsorbateMolecule();
+    }
+    for(j=0;j<totalNumberOfCationMolecules;j++)
+    {
+      CurrentComponent=typeArrayCations[j];
+
+      for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
+      {
+        CFVDWScaling[i]=1.0;
+        CFChargeScaling[i]=1.0;
+
+        NewPosition[CurrentSystem][i].x=0.0;
+        NewPosition[CurrentSystem][i].y=0.0;
+        NewPosition[CurrentSystem][i].z=0.0;
+
+        NewVelocity[CurrentSystem][i].x=0.0;
+        NewVelocity[CurrentSystem][i].y=0.0;
+        NewVelocity[CurrentSystem][i].z=0.0;
+
+        NewForce[CurrentSystem][i].x=0.0;
+        NewForce[CurrentSystem][i].y=0.0;
+        NewForce[CurrentSystem][i].z=0.0;
+      }
+
+      InsertCationMolecule();
+    }
+    free(typeArrayAdsorbates);
+    free(typeArrayCations);
 
     // read second time to fill in all values
     FilePtrIn=fopen(buffer,"r");
@@ -8118,7 +8181,6 @@ void ReadRestartFile(void)
         Adsorbates[CurrentSystem][int_temp1].Atoms[int_temp2].Position.x=temp1;
         Adsorbates[CurrentSystem][int_temp1].Atoms[int_temp2].Position.y=temp2;
         Adsorbates[CurrentSystem][int_temp1].Atoms[int_temp2].Position.z=temp3;
-        Adsorbates[CurrentSystem][int_temp1].Type=CurrentComponent;
       }
       if(strcasecmp(keyword,"Adsorbate-atom-velocity:")==0)
       {
@@ -8166,7 +8228,6 @@ void ReadRestartFile(void)
         Cations[CurrentSystem][int_temp1].Atoms[int_temp2].Position.x=temp1;
         Cations[CurrentSystem][int_temp1].Atoms[int_temp2].Position.y=temp2;
         Cations[CurrentSystem][int_temp1].Atoms[int_temp2].Position.z=temp3;
-        Cations[CurrentSystem][int_temp1].Type=CurrentComponent;
       }
       if(strcasecmp(keyword,"Cation-atom-velocity:")==0)
       {

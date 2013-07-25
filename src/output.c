@@ -228,7 +228,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
   fprintf(FilePtr,"Compiler and run-time data\n");
   fprintf(FilePtr,"===========================================================================\n");
 
-  fprintf(FilePtr,"%s\n","RASPA 1.8-2");
+  fprintf(FilePtr,"%s\n","RASPA 1.8-3");
   
   #if defined (__LP64__) || defined (__64BIT__) || defined (_LP64) || (__WORDSIZE == 64)
     fprintf(FilePtr,"Compiled as a 64-bits application\n");
@@ -6938,7 +6938,8 @@ void PrintRestartFile(void)
   fprintf(FilePtrOut,"\n\n");
 
 
-  fprintf(FilePtrOut,"Components: %d\n",NumberOfComponents);
+  fprintf(FilePtrOut,"Components: %d (Adsorbates %d, Cations %d)\n",NumberOfComponents,
+     NumberOfAdsorbateMolecules[CurrentSystem],NumberOfCationMolecules[CurrentSystem]);
   fprintf(FilePtrOut,"========================================================================\n");
   for(j=0;j<NumberOfComponents;j++)
   {
