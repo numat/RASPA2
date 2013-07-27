@@ -9,6 +9,12 @@ if test "$HAVE_LAPACK" = yes; then
   AC_DEFINE(HAVE_LAPACK, 0, [Define if you have LAPACK library.])
 fi
 
+AC_CHECK_LIB(fftw3,fftw_plan_dft_r2c_1d,[LIBS="-lfftw3 ${LIBS}"] HAVE_FFTW3="yes",,${LIBS})
+
+if test "$HAVE_FFTW3" = yes; then
+  AC_DEFINE(HAVE_FFTW3, 0, [Define if you have FFTW library.])
+fi
+
 AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_F77
@@ -16,7 +22,9 @@ AC_PROG_RANLIB
 
 dnl Checks for header files.
 AC_STDC_HEADERS
-AC_HAVE_HEADERS(string.h)
+AC_CHECK_HEADERS([math.h])
+AC_CHECK_HEADERS([string.h])
+AC_CHECK_HEADERS([fftw3.h])
 
 
 AC_OUTPUT(Makefile \

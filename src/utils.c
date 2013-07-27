@@ -31,6 +31,10 @@
 #include "internal_force.h"
 #include "recrossing.h"
 
+#ifdef HAVE_FFTW3
+#include <fftw3.h>
+#endif
+
 REAL Smoothing(REAL theta)
 {
   REAL on,off;
@@ -1818,59 +1822,76 @@ void powell(int np,int nb,REAL *p, REAL **xi, int n, REAL ftol, int *iter, REAL 
 }
 #undef ITMAX
 
-//#define SWAP(a,b) tempr=(a);(a)=(b);(b)=tempr
-void FastFourierTransform(double data[], unsigned long nn, int isign)
+void FastFourierTransform(REAL(*fftw_data)[2], unsigned long nn, int isign)
 {
-  unsigned long n,mmax,m,j,istep,i;
-  double wtemp,wr,wpr,wpi,wi,theta;
-  double tempr,tempi,temp;
+  #ifdef HAVE_FFTW3
 
-  n=nn << 1;
-  j=1;
-  for (i=1;i<n;i+=2)
-  {
-    if(j>i)
+    if(isign>0)
     {
-      SWAP(data[j-1],data[i-1],temp);
-      SWAP(data[j+1-1],data[i+1-1],temp);
+      fftw_plan plan;
+      fftw_complex *result;
+
+      result = (fftw_complex *)fftw_malloc(sizeof (fftw_complex) * nn);
+      plan = fftw_plan_dft_1d(nn, fftw_data, fftw_data, FFTW_FORWARD, FFTW_ESTIMATE);
+      fftw_execute(plan);
     }
-    m=n>>1;
-    while(m>=2&&j>m)
+
+  #else
+
+    unsigned long n,mmax,m,j,istep,i;
+    REAL wtemp,wr,wpr,wpi,wi,theta;
+    REAL tempr,tempi,temp;
+    REAL *data;
+
+    data=(REAL*)fftw_data;
+    
+
+    n=nn << 1;
+    j=1;
+    for (i=1;i<n;i+=2)
     {
-      j-=m;
-      m>>=1;
-    }
-    j+=m;
-  }
-  mmax=2;
-  while(n>mmax)
-  {
-    istep=mmax << 1;
-    theta=isign*(6.28318530717959/mmax);
-    wtemp=sin(0.5*theta);
-    wpr = -2.0*wtemp*wtemp;
-    wpi=sin(theta);
-    wr=1.0;
-    wi=0.0;
-    for (m=1;m<mmax;m+=2)
-    {
-      for (i=m;i<=n;i+=istep)
+      if(j>i)
       {
-        j=i+mmax;
-        tempr=wr*data[j-1]-wi*data[j+1-1];
-        tempi=wr*data[j+1-1]+wi*data[j-1];
-        data[j-1]=data[i-1]-tempr;
-        data[j+1-1]=data[i+1-1]-tempi;
-        data[i-1] += tempr;
-        data[i+1-1] += tempi;
+        SWAP(data[j-1],data[i-1],temp);
+        SWAP(data[j+1-1],data[i+1-1],temp);
       }
-      wr=(wtemp=wr)*wpr-wi*wpi+wr;
-      wi=wi*wpr+wtemp*wpi+wi;
+      m=n>>1;
+      while(m>=2&&j>m)
+      {
+        j-=m;
+        m>>=1;
+      }
+      j+=m;
     }
-    mmax=istep;
-  }
+    mmax=2;
+    while(n>mmax)
+    {
+      istep=mmax << 1;
+      theta=isign*(6.28318530717959/mmax);
+      wtemp=sin(0.5*theta);
+      wpr = -2.0*wtemp*wtemp;
+      wpi=sin(theta);
+      wr=1.0;
+      wi=0.0;
+      for (m=1;m<mmax;m+=2)
+      {
+        for (i=m;i<=n;i+=istep)
+        {
+          j=i+mmax;
+          tempr=wr*data[j-1]-wi*data[j+1-1];
+          tempi=wr*data[j+1-1]+wi*data[j-1];
+          data[j-1]=data[i-1]-tempr;
+          data[j+1-1]=data[i+1-1]-tempi;
+          data[i-1] += tempr;
+          data[i+1-1] += tempi;
+        }
+        wr=(wtemp=wr)*wpr-wi*wpi+wr;
+        wi=wi*wpr+wtemp*wpi+wi;
+      }
+      mmax=istep;
+    }
+  #endif
 }
-//#undef SWAP
 
 REAL_MATRIX3x3 ConvertToVoigt2D(REAL_MATRIX9x9 b)
 {

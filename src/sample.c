@@ -4695,7 +4695,17 @@ void SampleMoleculePropertyHistogram(int Switch)
  * ----------------------------------------------------------------------------------------------------- *
  * Function   | Samples the IR spectra (spacings: 2048, 4196, 8192, 16384, 32768 points).                *
  * Parameters | -                                                                                        *
+ * Note       | zero-padding and/or windowing gives poor results                                         *
  *********************************************************************************************************/
+
+
+#define TRIANGULAR(j,m) (1.0-fabs(((j))-(m))/(m))            /* Bartlett window */
+#define SQUARE(j,m) 1.0                                        /* Square window */
+#define WELTCH(j,m) (1.0-SQR(((j)-(m))/(m)))             /* Weltch window */
+#define HANNING(j,m) (0.5*(1.0+cos(((j)-(m))*M_PI/(m))))   /* Hanning window */
+#define HAMMING(j,m) (0.54+0.46*cos((((j)-(m)))*M_PI/(m))) /* Hamming window */
+
+#define FFT_WINDOW(j,m) SQUARE((double)j,(double)m)    /* use Weltch window */
 
 void SampleInfraRedSpectra(int Switch)
 {
@@ -4707,12 +4717,13 @@ void SampleInfraRedSpectra(int Switch)
   VECTOR vel,drift_system;
   FILE *FilePtr;
   char buffer[256];
-  static REAL *SpectrumBuffer=NULL;
+  static REAL (*SpectrumBuffer)[2];
   REAL conversion_factor;
   VECTOR corrvacf_all,corrvacf_framework,corrvacf_adsorbates,corrvacf_cations;
   VECTOR corr_all,corr_framework,corr_adsorbates,corr_cations;
   static VECTOR *corr_pseudoatoms=NULL,*corrvacf_pseudoatoms=NULL;
   static REAL *corr_pseudoatoms_isotropic=NULL,*corrvacf_pseudoatoms_isotropic=NULL;
+  int fft_size,half_fft_size;
 
   switch(Switch)
   {
@@ -4730,7 +4741,7 @@ void SampleInfraRedSpectra(int Switch)
       SpectrumPseudoAtomsAverage=(REAL *****)calloc(NumberOfSystems,sizeof(REAL****));
       SpectrumCount=(REAL **)calloc(NumberOfSystems,sizeof(REAL*));
       sumw=(REAL*)calloc(5,sizeof(REAL));
-      SpectrumBuffer=(REAL*)calloc(5*32768,sizeof(REAL));
+      SpectrumBuffer=(REAL(*)[2])calloc(5*32768,sizeof(REAL[2]));
       for(k=0;k<NumberOfSystems;k++)
       {
         if(ComputeInfraRedSpectra[k])
@@ -4808,10 +4819,12 @@ void SampleInfraRedSpectra(int Switch)
           m=2048;
           for(k=0;k<5;k++)
           {
+            fft_size=4*m;
+            half_fft_size=2*m;
             SpectrumCount[j][k]=0.0;
             sumw[k]=0.0;
-            for(i=0;i<2*m;i++)
-              sumw[k]+=SQR(WINDOW(i,m,1.0/m));
+            for(i=0;i<fft_size;i++)
+              sumw[k]+=SQR(FFT_WINDOW(i,half_fft_size));
             m*=2;
           }
         }
@@ -4886,6 +4899,7 @@ void SampleInfraRedSpectra(int Switch)
       {
         for(j=0;j<Adsorbates[CurrentSystem][i].NumberOfAtoms;j++)
         {
+          Type=Adsorbates[CurrentSystem][i].Atoms[j].Type;
           vel=Adsorbates[CurrentSystem][i].Atoms[j].Velocity;
           vel.x-=drift_system.x;
           vel.y-=drift_system.y;
@@ -4898,6 +4912,9 @@ void SampleInfraRedSpectra(int Switch)
           corrvacf_adsorbates.x+=vel.x;
           corrvacf_adsorbates.y+=vel.y;
           corrvacf_adsorbates.z+=vel.z;
+          corrvacf_pseudoatoms[Type].x+=vel.x;
+          corrvacf_pseudoatoms[Type].y+=vel.y;
+          corrvacf_pseudoatoms[Type].z+=vel.z;
 
           corr_adsorbates.x+=Charge*vel.x;
           corr_adsorbates.y+=Charge*vel.y;
@@ -4905,6 +4922,9 @@ void SampleInfraRedSpectra(int Switch)
           corr_all.x+=Charge*vel.x;
           corr_all.y+=Charge*vel.y;
           corr_all.z+=Charge*vel.z;
+          corr_pseudoatoms[Type].x+=Charge*vel.x;
+          corr_pseudoatoms[Type].y+=Charge*vel.y;
+          corr_pseudoatoms[Type].z+=Charge*vel.z;
         }
       }
 
@@ -4918,6 +4938,7 @@ void SampleInfraRedSpectra(int Switch)
       {
         for(j=0;j<Cations[CurrentSystem][i].NumberOfAtoms;j++)
         {
+          Type=Cations[CurrentSystem][i].Atoms[j].Type;
           vel=Cations[CurrentSystem][i].Atoms[j].Velocity;
           vel.x-=drift_system.x;
           vel.y-=drift_system.y;
@@ -4930,6 +4951,9 @@ void SampleInfraRedSpectra(int Switch)
           corrvacf_cations.x+=vel.x;
           corrvacf_cations.y+=vel.y;
           corrvacf_cations.z+=vel.z;
+          corrvacf_pseudoatoms[Type].x+=vel.x;
+          corrvacf_pseudoatoms[Type].y+=vel.y;
+          corrvacf_pseudoatoms[Type].z+=vel.z;
 
           corr_cations.x+=Charge*vel.x;
           corr_cations.y+=Charge*vel.y;
@@ -4937,6 +4961,9 @@ void SampleInfraRedSpectra(int Switch)
           corr_all.x+=Charge*vel.x;
           corr_all.y+=Charge*vel.y;
           corr_all.z+=Charge*vel.z;
+          corr_pseudoatoms[Type].x+=Charge*vel.x;
+          corr_pseudoatoms[Type].y+=Charge*vel.y;
+          corr_pseudoatoms[Type].z+=Charge*vel.z;
         }
       }
       corrvacf=(corrvacf_all.x+corrvacf_all.y+corrvacf_all.z)/3.0;
@@ -5013,28 +5040,29 @@ void SampleInfraRedSpectra(int Switch)
               //================================================================
               // FFT of the velocity autocorrelation function (unweighted)
               //================================================================
+              fft_size=4*m;
+              half_fft_size=2*m;
 
               // fill even (real) part
-              for (i=0;i<4*m;i+=2)
-                SpectrumBuffer[i]=UnweightedSpectrum[CurrentSystem][l][k][i];
-              // fill odd (imaginary) part
-              for (i=1;i<4*m;i+=2)
-                SpectrumBuffer[i]=0.0;
+              for (i=0;i<fft_size;i++)
+              {
+                SpectrumBuffer[i][0]=UnweightedSpectrum[CurrentSystem][l][k][i];
+                SpectrumBuffer[i][1]=0.0;
+              }
 
               // "window" the data
-              for(j=0;j<2*m;j++)
+              for(i=0;i<fft_size;i++)
               {
-                w=WINDOW(j,m,1.0/m);
-                SpectrumBuffer[2*j]*=w;
-                SpectrumBuffer[2*j+1]*=w;
+                w=FFT_WINDOW(i,half_fft_size);
+                SpectrumBuffer[i][0]*=w;
               }
-              // FFT the frame
-              FastFourierTransform(SpectrumBuffer,2*m,1);
-              UnweightedSpectrumAverage[CurrentSystem][l][k][0]+=(SQR(SpectrumBuffer[0])+SQR(SpectrumBuffer[1]));
-              for(j=1;j<m;j++)
-                UnweightedSpectrumAverage[CurrentSystem][l][k][j]+=(SQR(SpectrumBuffer[2*j])+SQR(SpectrumBuffer[2*j+1])+
-                                                     SQR(SpectrumBuffer[4*m-2*j])+SQR(SpectrumBuffer[4*m-2*j+1]));
 
+              // FFT the frame
+              FastFourierTransform(SpectrumBuffer,fft_size,1);
+              for(i=0;i<2*(fft_size/2+1);i++)
+                UnweightedSpectrumAverage[CurrentSystem][l][k][i]+=SQR(SpectrumBuffer[i][0])+SQR(SpectrumBuffer[i][1]);
+
+              // shift data down by half_fft_size
               for(i=0;i<2*m;i++)
                 UnweightedSpectrum[CurrentSystem][l][k][i]=UnweightedSpectrum[CurrentSystem][l][k][i+2*m];
 
@@ -5043,25 +5071,23 @@ void SampleInfraRedSpectra(int Switch)
               //================================================================
 
               // fill even (real) part
-              for (i=0;i<4*m;i+=2)
-                SpectrumBuffer[i]=Spectrum[CurrentSystem][l][k][i];
-              // fill odd (imaginary) part
-              for (i=1;i<4*m;i+=2)
-                SpectrumBuffer[i]=0.0;
+              for (i=0;i<fft_size;i++)
+              {
+                SpectrumBuffer[i][0]=Spectrum[CurrentSystem][l][k][i];
+                SpectrumBuffer[i][1]=0.0;
+              }
 
               // "window" the data
-              for(j=0;j<2*m;j++)
+              for(i=0;i<fft_size;i++)
               {
-                w=WINDOW(j,m,1.0/m);
-                SpectrumBuffer[2*j]*=w;
-                SpectrumBuffer[2*j+1]*=w;
+                w=FFT_WINDOW(i,half_fft_size);
+                SpectrumBuffer[i][0]*=w;
               }
+
               // FFT the frame
-              FastFourierTransform(SpectrumBuffer,2*m,1);
-              SpectrumAverage[CurrentSystem][l][k][0]+=(SQR(SpectrumBuffer[0])+SQR(SpectrumBuffer[1]));
-              for(j=1;j<m;j++)
-                SpectrumAverage[CurrentSystem][l][k][j]+=(SQR(SpectrumBuffer[2*j])+SQR(SpectrumBuffer[2*j+1])+
-                                    SQR(SpectrumBuffer[4*m-2*j])+SQR(SpectrumBuffer[4*m-2*j+1]));
+              FastFourierTransform(SpectrumBuffer,fft_size,1);
+              for(i=0;i<2*(fft_size/2+1);i++)
+                SpectrumAverage[CurrentSystem][l][k][i]+=SQR(SpectrumBuffer[i][0])+SQR(SpectrumBuffer[i][1]);
 
               for(i=0;i<2*m;i++)
                 Spectrum[CurrentSystem][l][k][i]=Spectrum[CurrentSystem][l][k][i+2*m];
@@ -5076,25 +5102,23 @@ void SampleInfraRedSpectra(int Switch)
               if(NumberOfPseudoAtomsType[CurrentSystem][n]>0)
               {
                 // fill even (real) part
-                for (i=0;i<4*m;i+=2)
-                  SpectrumBuffer[i]=SpectrumPseudoAtoms[CurrentSystem][0][n][k][i];
-                // fill odd (imaginary) part
-                for (i=1;i<4*m;i+=2)
-                  SpectrumBuffer[i]=0.0;
+                for (i=0;i<fft_size;i++)
+                {
+                  SpectrumBuffer[i][0]=SpectrumPseudoAtoms[CurrentSystem][0][n][k][i];
+                  SpectrumBuffer[i][1]=0.0;
+                }
 
                 // "window" the data
-                for(j=0;j<2*m;j++)
+                for(i=0;i<fft_size;i++)
                 {
-                  w=WINDOW(j,m,1.0/m);
-                  SpectrumBuffer[2*j]*=w;
-                  SpectrumBuffer[2*j+1]*=w;
+                  w=FFT_WINDOW(i,half_fft_size);
+                  SpectrumBuffer[i][0]*=w;
                 }
+
                 // FFT the frame
-                FastFourierTransform(SpectrumBuffer,2*m,1);
-                SpectrumPseudoAtomsAverage[CurrentSystem][0][n][k][0]+=(SQR(SpectrumBuffer[0])+SQR(SpectrumBuffer[1])); 
-                for(j=1;j<m;j++)
-                  SpectrumPseudoAtomsAverage[CurrentSystem][0][n][k][j]+=(SQR(SpectrumBuffer[2*j])+SQR(SpectrumBuffer[2*j+1])+
-                                                   SQR(SpectrumBuffer[4*m-2*j])+SQR(SpectrumBuffer[4*m-2*j+1]));
+                FastFourierTransform(SpectrumBuffer,fft_size,1);
+                for(i=0;i<2*(fft_size/2+1);i++)
+                  SpectrumPseudoAtomsAverage[CurrentSystem][0][n][k][i]+=SQR(SpectrumBuffer[i][0])+SQR(SpectrumBuffer[i][1]);
 
                 for(i=0;i<2*m;i++)
                   SpectrumPseudoAtoms[CurrentSystem][0][n][k][i]=SpectrumPseudoAtoms[CurrentSystem][0][n][k][i+2*m];
@@ -5110,26 +5134,25 @@ void SampleInfraRedSpectra(int Switch)
               if(NumberOfPseudoAtomsType[CurrentSystem][n]>0)
               {
                 // fill even (real) part
-                for (i=0;i<4*m;i+=2)
-                  SpectrumBuffer[i]=SpectrumPseudoAtoms[CurrentSystem][1][n][k][i];
-                // fill odd (imaginary) part
-                for (i=1;i<4*m;i+=2)
-                  SpectrumBuffer[i]=0.0;
+                for (i=0;i<fft_size;i++)
+                {
+                  SpectrumBuffer[i][0]=SpectrumPseudoAtoms[CurrentSystem][1][n][k][i];
+                  SpectrumBuffer[i][1]=0.0;
+                }
 
                 // "window" the data
-                for(j=0;j<2*m;j++)
+                for(i=0;i<fft_size;i++)
                 {
-                  w=WINDOW(j,m,1.0/m);
-                  SpectrumBuffer[2*j]*=w;
-                  SpectrumBuffer[2*j+1]*=w;
+                  w=FFT_WINDOW(i,half_fft_size);
+                  SpectrumBuffer[i][0]*=w;
                 }
-                // FFT the frame
-                FastFourierTransform(SpectrumBuffer,2*m,1);
-                SpectrumPseudoAtomsAverage[CurrentSystem][1][n][k][0]+=(SQR(SpectrumBuffer[0])+SQR(SpectrumBuffer[1]));
-                for(j=1;j<m;j++)
-                  SpectrumPseudoAtomsAverage[CurrentSystem][1][n][k][j]+=(SQR(SpectrumBuffer[2*j])+SQR(SpectrumBuffer[2*j+1])+
-                                                   SQR(SpectrumBuffer[4*m-2*j])+SQR(SpectrumBuffer[4*m-2*j+1]));
 
+                // FFT the frame
+                FastFourierTransform(SpectrumBuffer,fft_size,1);
+                for(i=0;i<2*(fft_size/2+1);i++)
+                  SpectrumPseudoAtomsAverage[CurrentSystem][1][n][k][i]+=SQR(SpectrumBuffer[i][0])+SQR(SpectrumBuffer[i][1]);
+
+                // shift down by 
                 for(i=0;i<2*m;i++)
                   SpectrumPseudoAtoms[CurrentSystem][1][n][k][i]=SpectrumPseudoAtoms[CurrentSystem][1][n][k][i+2*m];
               }
@@ -5157,7 +5180,10 @@ void SampleInfraRedSpectra(int Switch)
       m=2048;
       for(k=0;k<5;k++)
       {
-        conversion_factor=TO_WAVENUMBERS/(8.0*m*DeltaT);
+        conversion_factor=TO_WAVENUMBERS*M_PI/(2.0*m*DeltaT);
+
+        fft_size=4*m;
+        half_fft_size=2*m;
 
         //================================================================
         // FFT of the velocity autocorrelation function (unweighted)
@@ -5168,9 +5194,9 @@ void SampleInfraRedSpectra(int Switch)
         fprintf(FilePtr,"# %lld samples (half overlapping)\n",(long long)SpectrumCount[CurrentSystem][k]);
         fprintf(FilePtr,"# column 1 frequencies in cm^-1\n");
         fprintf(FilePtr,"# column 2 intensity\n");
-        for(i=0;i<m;i++)
+        for(i=0;i<half_fft_size;i++)
           if(SpectrumCount[CurrentSystem][k]>0.0)
-            fprintf(FilePtr,"%g %g\n",i*conversion_factor,UnweightedSpectrumAverage[CurrentSystem][0][k][i]/(4.0*m*sumw[k]*SpectrumCount[CurrentSystem][k]));
+            fprintf(FilePtr,"%g %g\n",i*conversion_factor,UnweightedSpectrumAverage[CurrentSystem][0][k][i]/(m*SpectrumCount[CurrentSystem][k]));
         fclose(FilePtr);
 
         sprintf(buffer,"MD_Spectra/System_%d/VACF_FFT/Spectrum_%d_framework%s.dat",CurrentSystem,m,FileNameAppend);
@@ -5178,9 +5204,9 @@ void SampleInfraRedSpectra(int Switch)
         fprintf(FilePtr,"# %lld samples (half overlapping)\n",(long long)SpectrumCount[CurrentSystem][k]);
         fprintf(FilePtr,"# column 1 frequencies in cm^-1\n");
         fprintf(FilePtr,"# column 2 intensity\n");
-        for(i=0;i<m;i++)
+        for(i=0;i<half_fft_size;i++)
           if(SpectrumCount[CurrentSystem][k]>0.0)
-            fprintf(FilePtr,"%g %g\n",i*conversion_factor,UnweightedSpectrumAverage[CurrentSystem][1][k][i]/(4.0*m*sumw[k]*SpectrumCount[CurrentSystem][k]));
+            fprintf(FilePtr,"%g %g\n",i*conversion_factor,UnweightedSpectrumAverage[CurrentSystem][1][k][i]/(m*SpectrumCount[CurrentSystem][k]));
         fclose(FilePtr);
 
         sprintf(buffer,"MD_Spectra/System_%d/VACF_FFT/Spectrum_%d_adsorbates%s.dat",CurrentSystem,m,FileNameAppend);
@@ -5188,9 +5214,9 @@ void SampleInfraRedSpectra(int Switch)
         fprintf(FilePtr,"# %lld samples (half overlapping)\n",(long long)SpectrumCount[CurrentSystem][k]);
         fprintf(FilePtr,"# column 1 frequencies in cm^-1\n");
         fprintf(FilePtr,"# column 2 intensity\n");
-        for(i=0;i<m;i++)
+        for(i=0;i<half_fft_size;i++)
           if(SpectrumCount[CurrentSystem][k]>0.0)
-            fprintf(FilePtr,"%g %g\n",i*conversion_factor,UnweightedSpectrumAverage[CurrentSystem][2][k][i]/(4.0*m*sumw[k]*SpectrumCount[CurrentSystem][k]));
+            fprintf(FilePtr,"%g %g\n",i*conversion_factor,UnweightedSpectrumAverage[CurrentSystem][2][k][i]/(m*SpectrumCount[CurrentSystem][k]));
         fclose(FilePtr);
 
         sprintf(buffer,"MD_Spectra/System_%d/VACF_FFT/Spectrum_%d_cations%s.dat",CurrentSystem,m,FileNameAppend);
@@ -5198,9 +5224,9 @@ void SampleInfraRedSpectra(int Switch)
         fprintf(FilePtr,"# %lld samples (half overlapping)\n",(long long)SpectrumCount[CurrentSystem][k]);
         fprintf(FilePtr,"# column 1 frequencies in cm^-1\n");
         fprintf(FilePtr,"# column 2 intensity\n");
-        for(i=0;i<m;i++)
+        for(i=0;i<half_fft_size;i++)
           if(SpectrumCount[CurrentSystem][k]>0.0)
-            fprintf(FilePtr,"%g %g\n",i*conversion_factor,UnweightedSpectrumAverage[CurrentSystem][3][k][i]/(4.0*m*sumw[k]*SpectrumCount[CurrentSystem][k]));
+            fprintf(FilePtr,"%g %g\n",i*conversion_factor,UnweightedSpectrumAverage[CurrentSystem][3][k][i]/(m*SpectrumCount[CurrentSystem][k]));
         fclose(FilePtr);
 
 
@@ -5213,9 +5239,9 @@ void SampleInfraRedSpectra(int Switch)
         fprintf(FilePtr,"# %lld samples (half overlapping)\n",(long long)SpectrumCount[CurrentSystem][k]);
         fprintf(FilePtr,"# column 1 frequencies in cm^-1\n");
         fprintf(FilePtr,"# column 2 intensity\n");
-        for(i=0;i<m;i++)
+        for(i=0;i<half_fft_size;i++)
           if(SpectrumCount[CurrentSystem][k]>0.0)
-            fprintf(FilePtr,"%g %g\n",i*conversion_factor,SpectrumAverage[CurrentSystem][0][k][i]/(4.0*m*sumw[k]*SpectrumCount[CurrentSystem][k]));
+            fprintf(FilePtr,"%g %g\n",i*conversion_factor,SpectrumAverage[CurrentSystem][0][k][i]/(m*SpectrumCount[CurrentSystem][k]));
         fclose(FilePtr);
 
         sprintf(buffer,"MD_Spectra/System_%d/ChargeWeightedVACF_FFT/Spectrum_%d_framework%s.dat",CurrentSystem,m,FileNameAppend);
@@ -5223,9 +5249,9 @@ void SampleInfraRedSpectra(int Switch)
         fprintf(FilePtr,"# %lld samples (half overlapping)\n",(long long)SpectrumCount[CurrentSystem][k]);
         fprintf(FilePtr,"# column 1 frequencies in cm^-1\n");
         fprintf(FilePtr,"# column 2 intensity\n");
-        for(i=0;i<m;i++)
+        for(i=0;i<half_fft_size;i++)
           if(SpectrumCount[CurrentSystem][k]>0.0)
-            fprintf(FilePtr,"%g %g\n",i*conversion_factor,SpectrumAverage[CurrentSystem][1][k][i]/(4.0*m*sumw[k]*SpectrumCount[CurrentSystem][k]));
+            fprintf(FilePtr,"%g %g\n",i*conversion_factor,SpectrumAverage[CurrentSystem][1][k][i]/(m*SpectrumCount[CurrentSystem][k]));
         fclose(FilePtr);
 
         sprintf(buffer,"MD_Spectra/System_%d/ChargeWeightedVACF_FFT/Spectrum_%d_adsorbates%s.dat",CurrentSystem,m,FileNameAppend);
@@ -5233,9 +5259,9 @@ void SampleInfraRedSpectra(int Switch)
         fprintf(FilePtr,"# %lld samples (half overlapping)\n",(long long)SpectrumCount[CurrentSystem][k]);
         fprintf(FilePtr,"# column 1 frequencies in cm^-1\n");
         fprintf(FilePtr,"# column 2 intensity\n");
-        for(i=0;i<m;i++)
+        for(i=0;i<half_fft_size;i++)
           if(SpectrumCount[CurrentSystem][k]>0.0)
-            fprintf(FilePtr,"%g %g\n",i*conversion_factor,SpectrumAverage[CurrentSystem][2][k][i]/(4.0*m*sumw[k]*SpectrumCount[CurrentSystem][k]));
+            fprintf(FilePtr,"%g %g\n",i*conversion_factor,SpectrumAverage[CurrentSystem][2][k][i]/(m*SpectrumCount[CurrentSystem][k]));
         fclose(FilePtr);
 
         sprintf(buffer,"MD_Spectra/System_%d/ChargeWeightedVACF_FFT/Spectrum_%d_cations%s.dat",CurrentSystem,m,FileNameAppend);
@@ -5243,9 +5269,9 @@ void SampleInfraRedSpectra(int Switch)
         fprintf(FilePtr,"# %lld samples (half overlapping)\n",(long long)SpectrumCount[CurrentSystem][k]);
         fprintf(FilePtr,"# column 1 frequencies in cm^-1\n");
         fprintf(FilePtr,"# column 2 intensity\n");
-        for(i=0;i<m;i++)
+        for(i=0;i<half_fft_size;i++)
           if(SpectrumCount[CurrentSystem][k]>0.0)
-            fprintf(FilePtr,"%g %g\n",i*conversion_factor,SpectrumAverage[CurrentSystem][3][k][i]/(4.0*m*sumw[k]*SpectrumCount[CurrentSystem][k]));
+            fprintf(FilePtr,"%g %g\n",i*conversion_factor,SpectrumAverage[CurrentSystem][3][k][i]/(m*SpectrumCount[CurrentSystem][k]));
         fclose(FilePtr);
 
         for(n=0;n<NumberOfPseudoAtoms;n++)
@@ -5257,9 +5283,9 @@ void SampleInfraRedSpectra(int Switch)
             fprintf(FilePtr,"# %lld samples (half overlapping)\n",(long long)SpectrumCount[CurrentSystem][k]);
             fprintf(FilePtr,"# column 1 frequencies in cm^-1\n");
             fprintf(FilePtr,"# column 2 intensity\n");
-            for(i=0;i<m;i++)
+            for(i=0;i<half_fft_size;i++)
               if(SpectrumCount[CurrentSystem][k]>0.0)
-                fprintf(FilePtr,"%g %g\n",i*conversion_factor,SpectrumPseudoAtomsAverage[CurrentSystem][0][n][k][i]/(4.0*m*sumw[k]*SpectrumCount[CurrentSystem][k]));
+                fprintf(FilePtr,"%g %g\n",i*conversion_factor,SpectrumPseudoAtomsAverage[CurrentSystem][0][n][k][i]/(m*SpectrumCount[CurrentSystem][k]));
             fclose(FilePtr);
           }
         }
@@ -5273,9 +5299,9 @@ void SampleInfraRedSpectra(int Switch)
             fprintf(FilePtr,"# %lld samples (half overlapping)\n",(long long)SpectrumCount[CurrentSystem][k]);
             fprintf(FilePtr,"# column 1 frequencies in cm^-1\n");
             fprintf(FilePtr,"# column 2 intensity\n");
-            for(i=0;i<m;i++)
+            for(i=0;i<half_fft_size;i++)
               if(SpectrumCount[CurrentSystem][k]>0.0)
-                fprintf(FilePtr,"%g %g\n",i*conversion_factor,SpectrumPseudoAtomsAverage[CurrentSystem][1][n][k][i]/(4.0*m*sumw[k]*SpectrumCount[CurrentSystem][k]));
+                fprintf(FilePtr,"%g %g\n",i*conversion_factor,SpectrumPseudoAtomsAverage[CurrentSystem][1][n][k][i]/(m*SpectrumCount[CurrentSystem][k]));
             fclose(FilePtr);
           }
         }

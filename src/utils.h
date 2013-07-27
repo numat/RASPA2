@@ -54,7 +54,6 @@ typedef struct quaternion
 #define MIN4(u,v,w,x) MIN2(MIN2((u),(v)),MIN2((w),(x)))
 #define MAX4(u,v,w,x) MAX2(MAX2((u),(v)),MAX2((w),(x)))
 #define SWAP(x,y,z) {z=(x);x=(y);y=(z);}
-#define WINDOW(j,a,b) (1.0-fabs(((j)-(a))*(b))) 
 
 #define ZERO_TEST (1e-8)
 
@@ -158,7 +157,7 @@ void linmin(int np,int nb,REAL *p, REAL *xi, int n, REAL *fret, REAL (*func)(int
 void powell(int np,int nb,REAL *p, REAL **xi, int n, REAL ftol, int *iter, REAL *fret,
         REAL (*func)(int,int,REAL []));
 
-void FastFourierTransform(double data[], unsigned long nn, int isign);
+void FastFourierTransform(REAL(* data)[2], unsigned long nn, int isign);
 
 REAL_MATRIX3x3 ConvertToVoigt2D(REAL_MATRIX9x9 b);
 REAL_MATRIX6x6 ConvertToVoigt3D(REAL_MATRIX9x9 b);

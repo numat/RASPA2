@@ -337,7 +337,7 @@ int ReadInputFile(char *inputfilename)
   OmitAdsorbateAdsorbatePolarization=TRUE;
   OmitCationCationPolarization=TRUE;
 
-  SampleEveryInfraRed=10;
+  SampleEveryInfraRed=1;
 
   NumberOfBlockElementsMSDOrderN=25;
   MaxNumberOfBlocksMSDOrderN=25;
