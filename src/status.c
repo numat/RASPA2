@@ -366,7 +366,7 @@ REAL PrintBondEnergyStatus(int nr,char *string,int BondType,REAL *parms,REAL r)
       U=0.0;
       break;
     default:
-      printf("Undefined Bond potential in routine 'PrintBondEnergyStatus' ('status.c')\n");
+      fprintf(stderr, "Undefined Bond potential in routine 'PrintBondEnergyStatus' ('status.c')\n");
       exit(0);
       break;
   }
@@ -564,7 +564,7 @@ REAL PrintUreyBradleyEnergyStatus(int nr,char *string,int UreyBradleyType,REAL *
       U=0.0;
       break;
     default:
-      printf("Undefined UreyBradley potential in routine 'PrintUreyBradleyEnergyStatus' ('status.c')\n");
+      fprintf(stderr, "Undefined UreyBradley potential in routine 'PrintUreyBradleyEnergyStatus' ('status.c')\n");
       exit(0);
       break;
   }
@@ -733,7 +733,7 @@ REAL PrintBendEnergyStatus(int nr,char *string,int BendType,REAL *parms,REAL The
       U=0.0;
       break;
     default:
-      printf("Undefined Bend potential in routine 'CalculateFrameworkBendEnergy' ('framework_energy.c')\n");
+      fprintf(stderr, "Undefined Bend potential in routine 'CalculateFrameworkBendEnergy' ('framework_energy.c')\n");
       exit(0);
       break;
   }
@@ -859,7 +859,7 @@ REAL PrintInversionBendEnergyStatus(int nr,char *string,int InversionBendType,RE
               energy*ENERGY_TO_KCAL_PER_MOL);
       break;
     default:
-      printf("Undefined Inversion-Bend potential in routine 'CalculateFrameworkInversionBendEnergy' ('framework_energy.c')\n");
+      fprintf(stderr, "Undefined Inversion-Bend potential in routine 'CalculateFrameworkInversionBendEnergy' ('framework_energy.c')\n");
       exit(0);
       break;
   }
@@ -1136,7 +1136,7 @@ REAL PrintTorsionEnergyStatus(int nr,char *string,int TorsionType,REAL *parms,RE
                 U*ENERGY_TO_KCAL_PER_MOL);
       break;
     default:
-      printf("Undefined Torsion potential in routine 'CalculateFrameworkTorsionEnergy' ('framework_energy.c')\n");
+      fprintf(stderr, "Undefined Torsion potential in routine 'CalculateFrameworkTorsionEnergy' ('framework_energy.c')\n");
       exit(0);
       break;
   }
@@ -1413,7 +1413,7 @@ REAL PrintImproperTorsionEnergyStatus(int nr,char *string,int TorsionType,REAL *
                 U*ENERGY_TO_KCAL_PER_MOL);
       break;
     default:
-      printf("Undefined Torsion potential in routine 'CalculateFrameworkTorsionEnergy' ('framework_energy.c')\n");
+      fprintf(stderr, "Undefined Torsion potential in routine 'CalculateFrameworkTorsionEnergy' ('framework_energy.c')\n");
       exit(0);
       break;
   }
@@ -1467,7 +1467,7 @@ REAL PrintBondBondEnergyStatus(int nr,char *string, int BondBondType,REAL *parms
                 energy*ENERGY_TO_KCAL_PER_MOL);
       break;
     default:
-      printf("Undefined Bond-Bond potential in routine 'CalculateFrameworkBondBondEnergy' ('status.c')\n");
+      fprintf(stderr, "Undefined Bond-Bond potential in routine 'CalculateFrameworkBondBondEnergy' ('status.c')\n");
       exit(0);
       break;
   }
@@ -1655,7 +1655,7 @@ REAL PrintBondBendEnergyStatus(int nr,char *string,int BondBendType,REAL *parms,
                 U*ENERGY_TO_KCAL_PER_MOL);
       break;
     default:
-      printf("Undefined Bond-Bend potential in routine 'CalculateFrameworkBondBendEnergy' ('status.c')\n");
+      fprintf(stderr, "Undefined Bond-Bend potential in routine 'CalculateFrameworkBondBendEnergy' ('status.c')\n");
       exit(0);
       break;
   }
@@ -1729,7 +1729,7 @@ REAL PrintBendBendEnergyStatus(int nr,char *string,int BendBendType,REAL *parms,
                 U*ENERGY_TO_KCAL_PER_MOL);
       break;
     default:
-      printf("Undefined Bend-Bend potential in routine 'CalculateFrameworkBendBendEnergy' ('framework_energy.c')\n");
+      fprintf(stderr, "Undefined Bend-Bend potential in routine 'CalculateFrameworkBendBendEnergy' ('framework_energy.c')\n");
       exit(0);
       break;
   }
@@ -1770,7 +1770,7 @@ REAL PrintBondTorsionEnergyStatus(int nr,char *string,int BondTorsionType,REAL *
                 U*ENERGY_TO_KCAL_PER_MOL);
       break;
     default:
-      printf("Undefined Bond-Torsion potential in routine 'CalculateFrameworkBondTorsionEnergy' ('status.c')\n");
+      fprintf(stderr, "Undefined Bond-Torsion potential in routine 'CalculateFrameworkBondTorsionEnergy' ('status.c')\n");
       exit(0);
       break;
   }
@@ -1958,7 +1958,7 @@ REAL PrintBendTorsionEnergyStatus(int nr,char *string,int BendTorsionType,REAL *
                 U*ENERGY_TO_KCAL_PER_MOL);
       break;
     default:
-      printf("Undefined Bend-Torsion potential in routine 'CalculateFrameworkBendTorsionEnergy' ('status.c')\n");
+      fprintf(stderr, "Undefined Bend-Torsion potential in routine 'CalculateFrameworkBendTorsionEnergy' ('status.c')\n");
       exit(0);
       break;
   }
@@ -2204,7 +2204,7 @@ void PrintVDWEnergyStatus(int nr,char *string,int typeA,int typeB,REAL r,REAL en
       // p_0/k_B [K A^12]
       // p_1/k_B [K A^6]
       // p_2/k_B [K A^2]
-      // p_3/k_B [K] 
+      // p_3/k_B [K]
       // p_4/k_B [K]  (non-zero for a shifted potential)
       arg1=PotentialParms[typeA][typeB][0];
       arg2=PotentialParms[typeA][typeB][1];
@@ -2231,7 +2231,7 @@ void PrintVDWEnergyStatus(int nr,char *string,int typeA,int typeB,REAL r,REAL en
       // p_0/k_B [K A^12]
       // p_1/k_B [K A^6]
       // p_2/k_B [K A^2]
-      // p_3/k_B [K] 
+      // p_3/k_B [K]
       arg1=PotentialParms[typeA][typeB][0];
       arg2=PotentialParms[typeA][typeB][1];
       arg3=PotentialParms[typeA][typeB][2];
@@ -2255,7 +2255,7 @@ void PrintVDWEnergyStatus(int nr,char *string,int typeA,int typeB,REAL r,REAL en
       // p_0/k_B [K A^12]
       // p_1/k_B [K A^6]
       // p_2/k_B [K A^2]
-      // p_3/k_B [K] 
+      // p_3/k_B [K]
       arg1=PotentialParms[typeA][typeB][0];
       arg2=PotentialParms[typeA][typeB][1];
       arg3=PotentialParms[typeA][typeB][2];
@@ -2605,7 +2605,7 @@ void PrintVDWEnergyStatus(int nr,char *string,int typeA,int typeB,REAL r,REAL en
           string,
           arg1*ENERGY_TO_KELVIN,
           arg2,
-          arg3*ENERGY_TO_KELVIN,           
+          arg3*ENERGY_TO_KELVIN,
           arg4,
           r,
           energy*ENERGY_TO_KELVIN,
@@ -3102,7 +3102,7 @@ void PrintVDWEnergyStatus(int nr,char *string,int typeA,int typeB,REAL r,REAL en
           energy*ENERGY_TO_KCAL_PER_MOL);
       break;
     default:
-      printf("Undefined VDW potential in routine 'PrintVDWEnergyStatus' ('status.c')\n");
+      fprintf(stderr, "Undefined VDW potential in routine 'PrintVDWEnergyStatus' ('status.c')\n");
       exit(0);
       break;
   }
@@ -3186,7 +3186,7 @@ REAL PrintChargeChargeEnergyStatus(int nr,char *string,REAL chargeA,REAL chargeB
           energy*ENERGY_TO_KCAL_PER_MOL);
       break;
     default:
-      printf("Unknown charge-charge method in 'CalculateFrameworkIntraChargeChargeEnergy'\n");
+      fprintf(stderr, "Unknown charge-charge method in 'CalculateFrameworkIntraChargeChargeEnergy'\n");
       exit(0);
       break;
   }
@@ -3276,7 +3276,7 @@ REAL PrintChargeBondDipoleStatus(int nr,char *string,REAL cosA,REAL magntitude, 
           energy*ENERGY_TO_KCAL_PER_MOL);
       break;
     default:
-      printf("Unknown charge-method in 'CalculateTotalInterChargeBondDipoleCoulombEnergy'\n");
+      fprintf(stderr, "Unknown charge-method in 'CalculateTotalInterChargeBondDipoleCoulombEnergy'\n");
       exit(0);
       break;
   }
@@ -3356,7 +3356,7 @@ REAL PrintBondDipoleBondDipoleStatus(int nr,char *string,REAL cosA,REAL cosB,REA
       energy=COULOMBIC_CONVERSION_FACTOR*(Bt1*cosAB-Bt2*cosA*cosB);
       break;
     default:
-      printf("Unknown bonddipole-bonddipole method in 'CalculateFrameworkIntraBondDipoleBondDipoleEnergy'\n");
+      fprintf(stderr, "Unknown bonddipole-bonddipole method in 'CalculateFrameworkIntraBondDipoleBondDipoleEnergy'\n");
       exit(0);
       break;
   }
@@ -3406,7 +3406,7 @@ void PrintFrameworkBondEnergyStatus(void)
                      PseudoAtoms[Framework[CurrentSystem].Atoms[f1][B].Type].Name);
 
       U=PrintBondEnergyStatus(nr++,string,Framework[CurrentSystem].BondType[f1][i],parms,r);
-                             
+
       // add contribution to the Adsorbate stretch energy
       UHostBond+=U;
     }
@@ -3701,7 +3701,7 @@ void PrintFrameworkInversionBendEnergyStatus(void)
           c=(Rcd.x*Rcd.x+Rcd.y*Rcd.y+Rcd.z*Rcd.z)*(Rad.x*Rad.x+Rad.y*Rad.y+Rad.z*Rad.z)-SQR(Rad.x*Rcd.x+Rad.y*Rcd.y+Rad.z*Rcd.z);
           break;
         default:
-          printf("Undefined Inversion-Bend potential in routine 'CalculateFrameworkInversionBendEnergy' ('framework_energy.c')\n");
+          fprintf(stderr, "Undefined Inversion-Bend potential in routine 'CalculateFrameworkInversionBendEnergy' ('framework_energy.c')\n");
           exit(0);
           break;
       }
@@ -5057,7 +5057,7 @@ void PrintAdsorbateInversionBendEnergyStatus(void)
           c=(Rcd.x*Rcd.x+Rcd.y*Rcd.y+Rcd.z*Rcd.z)*(Rad.x*Rad.x+Rad.y*Rad.y+Rad.z*Rad.z)-SQR(Rad.x*Rcd.x+Rad.y*Rcd.y+Rad.z*Rcd.z);
           break;
         default:
-          printf("Undefined Inversion-Bend potential in routine 'CalculateInversionBendEnergyAdsorbate' ('internal_energy.c')\n");
+          fprintf(stderr, "Undefined Inversion-Bend potential in routine 'CalculateInversionBendEnergyAdsorbate' ('internal_energy.c')\n");
           exit(0);
           break;
       }
@@ -6293,7 +6293,7 @@ void PrintCationInversionBendEnergyStatus(void)
           c=(Rcd.x*Rcd.x+Rcd.y*Rcd.y+Rcd.z*Rcd.z)*(Rad.x*Rad.x+Rad.y*Rad.y+Rad.z*Rad.z)-SQR(Rad.x*Rcd.x+Rad.y*Rcd.y+Rad.z*Rcd.z);
           break;
         default:
-          printf("Undefined Inversion-Bend potential in routine 'CalculateInversionBendEnergyCation' ('internal_energy.c')\n");
+          fprintf(stderr, "Undefined Inversion-Bend potential in routine 'CalculateInversionBendEnergyCation' ('internal_energy.c')\n");
           exit(0);
           break;
       }

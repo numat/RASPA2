@@ -93,8 +93,8 @@ REAL IntegrateCubicSpline(CUBIC_SPLINE spline,int n,
   alpha=MAX2(MIN2(a,b),x[0]);
   beta=MIN2(MAX2(a,b),x[n-1]);
 
-  k=Interval(n,alpha,x); 
-  l=Interval(n,beta,x); 
+  k=Interval(n,alpha,x);
+  l=Interval(n,beta,x);
 
   r=0.0;
   if(k==l)      // a and b in the same spline-piece
@@ -144,7 +144,7 @@ REAL Trapezoidal(CUBIC_SPLINE spline,REAL f(REAL),REAL a,REAL b,int n)
   REAL valuea,valueb;
   REAL tmp1,tmp2,tmp3;
 
-  if(n==1) 
+  if(n==1)
   {
     r=a;
     if (r<spline.x[i]||r>=spline.x[i+1])
@@ -164,15 +164,15 @@ REAL Trapezoidal(CUBIC_SPLINE spline,REAL f(REAL),REAL a,REAL b,int n)
     tmp3=2.0*tmp1;
     valueb=((spline.d[i]*r+spline.c[i])*r+spline.b[i])*r+spline.a[i];
     return (s=0.5*(b-a)*(f(valuea)+f(valueb)));
-  } 
-  else 
+  }
+  else
   {
-    for (it=1,j=1;j<n-1;j++) 
+    for (it=1,j=1;j<n-1;j++)
       it <<= 1;
     tnm=it;
     del=(b-a)/tnm;
     x=a+0.5*del;
-    for (sum=0.0,j=1;j<=it;j++,x+=del) 
+    for (sum=0.0,j=1;j<=it;j++,x+=del)
     {
       r=x;
       if (r<spline.x[i]||r>=spline.x[i+1])
@@ -195,7 +195,7 @@ REAL QuadratureSimpson(CUBIC_SPLINE spline,REAL f(REAL),REAL a,REAL b)
   REAL s,st,ost,os;
 
   ost = os = -1.0e30;
-  for (j=1;j<=JMAX;j++) 
+  for (j=1;j<=JMAX;j++)
   {
     st=Trapezoidal(spline,f,a,b,j);
     s=(4.0*st-ost)/3.0;
@@ -204,7 +204,7 @@ REAL QuadratureSimpson(CUBIC_SPLINE spline,REAL f(REAL),REAL a,REAL b)
     os=s;
     ost=st;
   }
-  printf("Too many steps in routine qsimp");
+  fprintf(stderr, "Too many steps in routine qsimp");
   return 0.0;
 }
 
@@ -223,7 +223,7 @@ REAL TrapezoidalWeight(CUBIC_SPLINE spline,REAL f(REAL),
   REAL valuea,valueb;
   REAL tmp1,tmp2,tmp3;
 
-  if(n==1) 
+  if(n==1)
   {
     r=a;
     if (r<spline.x[i]||r>=spline.x[i+1])
@@ -243,15 +243,15 @@ REAL TrapezoidalWeight(CUBIC_SPLINE spline,REAL f(REAL),
     tmp3=2.0*tmp1;
     valueb=((spline.d[i]*r+spline.c[i])*r+spline.b[i])*r+spline.a[i];
     return (s=0.5*(b-a)*(exp(-f(a))*g(b)+exp(-f(b))*g(b)));
-  } 
-  else 
+  }
+  else
   {
-    for (it=1,j=1;j<n-1;j++) 
+    for (it=1,j=1;j<n-1;j++)
       it <<= 1;
     tnm=it;
     del=(b-a)/tnm;
     x=a+0.5*del;
-    for (sum=0.0,j=1;j<=it;j++,x+=del) 
+    for (sum=0.0,j=1;j<=it;j++,x+=del)
     {
       r=x;
       if (r<spline.x[i]||r>=spline.x[i+1])
@@ -275,7 +275,7 @@ REAL QuadratureSimpsonWeight(CUBIC_SPLINE spline,REAL f(REAL),
   REAL s,st,ost,os;
 
   ost = os = 1.0e30;
-  for (j=1;j<=JMAX;j++) 
+  for (j=1;j<=JMAX;j++)
   {
     st=TrapezoidalWeight(spline,f,g,a,b,j);
     s=(4.0*st-ost)/3.0;
@@ -283,7 +283,7 @@ REAL QuadratureSimpsonWeight(CUBIC_SPLINE spline,REAL f(REAL),
     os=s;
     ost=st;
   }
-  printf("Too many steps in routine qsimp");
+  fprintf(stderr, "Too many steps in routine qsimp");
   return 0.0;
 }
 #undef EPS
@@ -319,7 +319,7 @@ CUBIC_SPLINE CreateCubicSpline(int m,REAL *x,REAL *y,int boundary_condition,
   REAL *h,*lower,*diag,*upper,*lowrow=NULL,*ricol=NULL;
   CUBIC_SPLINE spline;
 
-  spline.n=m; 
+  spline.n=m;
   n=m-1;
   spline.a=(REAL*)calloc(m+1,sizeof(REAL));
   spline.b=(REAL*)calloc(m+1,sizeof(REAL));
@@ -347,8 +347,8 @@ CUBIC_SPLINE CreateCubicSpline(int m,REAL *x,REAL *y,int boundary_condition,
       lowrow=(REAL*)calloc(n-2+1,sizeof(REAL));
       ricol=(REAL*)calloc(n-2+1,sizeof(REAL));
     }
-  
-  for(i=0;i<n;i++) 
+
+  for(i=0;i<n;i++)
     h[i]=x[i+1]-x[i];
 
   for(i=0;i<n-1;i++)    /* form linear system */
@@ -412,7 +412,7 @@ CUBIC_SPLINE CreateCubicSpline(int m,REAL *x,REAL *y,int boundary_condition,
       else
         spline.c[1]=spline.c[0]/diag[0];
       break;
-    default:    
+    default:
       if (boundary_condition==PERIODIC_SPLINE)
         tzdiag(n, lower, diag, upper, lowrow,ricol, spline.c, 0);
       else
@@ -420,7 +420,7 @@ CUBIC_SPLINE CreateCubicSpline(int m,REAL *x,REAL *y,int boundary_condition,
       for(i=n;i!=0;i--)
         spline.c[i]=spline.c[i-1];
       break;
-  }  
+  }
 
   switch (boundary_condition)
   {
@@ -463,7 +463,7 @@ static REAL hf[10];   /* aux vector that may not be altered after     */
                       /* the first call of a run                      */
 
 // Compute the coefficients of a cubic fitting spline for given first
-// derivatives at the end points. 
+// derivatives at the end points.
 int glsp1a(int n,REAL *xn,REAL *fn,REAL *w,
            REAL marg_0,REAL marg_n,int rep,
            REAL *a,REAL *b,REAL *c,REAL *d,
@@ -785,7 +785,7 @@ int glsppe(int n,REAL *xn,REAL *fn,REAL *w,int rep,
            REAL *a,REAL *b,REAL *c,REAL *d,
            REAL *h,REAL *h1,REAL *h2,REAL *h3,
            REAL *rs,REAL *hup)
-{ 
+{
   int i,k,error;
   REAL h_var_1,h_var_2;
 
@@ -971,8 +971,8 @@ void PrintKnotVector(KNOTVECTOR c)
 {
   int i;
   for(i=0;i<c.m;i++)
-    printf("%f ",(double)c.U[i]);
-  printf("\n");
+    fprintf(stderr, "%f ",(double)c.U[i]);
+  fprintf(stderr, "\n");
 }
 
 CNET CreateControlNet(int m,int n)
@@ -980,7 +980,7 @@ CNET CreateControlNet(int m,int n)
   int i;
   CNET c;
 
-  printf("allocing control-net %dx%d matrix\n",m,n);
+  fprintf(stderr, "allocing control-net %dx%d matrix\n",m,n);
   c.m=m;
   c.n=n;
   c.Pw=(CPOINT**)calloc(m,sizeof(CPOINT*));
@@ -1078,7 +1078,7 @@ REAL ShortestLineToLineDistance(LINE L1,LINE L2)
   a=DotProduct(L1.v,L1.v);
   b=DotProduct(L1.v,L2.v);
 
-   
+
     // compute the line parameters of the two closest points
     if (D < SMALL_NUM) {         // the lines are almost parallel
         sc = 0.0;

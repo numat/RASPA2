@@ -400,7 +400,7 @@ void Minimization(int run)
     SaveFrameworkPositionsToReferenceValues();
     SaveAdsorbateAtomPositionsToReferenceValues();
     SaveCationAtomPositionsToReferenceValues();
-  
+
     delta=UnitCellDeformation;
 
     ReferenceBox=Box[CurrentSystem];
@@ -687,7 +687,7 @@ void SetStrainToZero(int np,REAL *x)
           x[np]=x[np+1]=x[np+2]=x[np+3]=0.0;
           break;
         default:
-          printf("Unknown NPTPRCellType\n");
+          fprintf(stderr, "Unknown NPTPRCellType\n");
           exit(0);
           break;
       }
@@ -766,7 +766,7 @@ void SetWeights(int np,REAL *Weights,REAL *Charges)
             if(index2.x>=0) Weights[index2.x]=1.0/sqrt(Mass);
             break;
         }
-        
+
       }
       else // flexible unit
       {
@@ -815,7 +815,7 @@ void SetWeights(int np,REAL *Weights,REAL *Charges)
             if(index.x>=0) Weights[index.x]=1.0/sqrt(Mass);
             break;
         }
-        
+
 
         switch(Dimension)
         {
@@ -827,7 +827,7 @@ void SetWeights(int np,REAL *Weights,REAL *Charges)
             if(index2.x>=0) Weights[index2.x]=1.0/sqrt(Mass);
             break;
         }
-        
+
       }
       else // flexible unit
       {
@@ -1030,7 +1030,7 @@ int OrderNumberOfMinimiationVariables(void)
               NumberOfMinimizationVariables++;
               NumberOfCoordinatesMinimizationVariables++;
               NumberOfOrientationalMinimizationVariables++;
- 
+
             }
             if(Adsorbates[CurrentSystem][m].Groups[l].FixedOrientation.y)
               Adsorbates[CurrentSystem][m].Groups[l].HessianIndexOrientation.y=-1;
@@ -1040,7 +1040,7 @@ int OrderNumberOfMinimiationVariables(void)
               NumberOfMinimizationVariables++;
               NumberOfCoordinatesMinimizationVariables++;
               NumberOfOrientationalMinimizationVariables++;
- 
+
             }
             if(Adsorbates[CurrentSystem][m].Groups[l].FixedOrientation.z)
               Adsorbates[CurrentSystem][m].Groups[l].HessianIndexOrientation.z=-1;
@@ -1050,7 +1050,7 @@ int OrderNumberOfMinimiationVariables(void)
               NumberOfMinimizationVariables++;
               NumberOfCoordinatesMinimizationVariables++;
               NumberOfOrientationalMinimizationVariables++;
- 
+
             }
             break;
           case 2:
@@ -1062,7 +1062,7 @@ int OrderNumberOfMinimiationVariables(void)
               NumberOfMinimizationVariables++;
               NumberOfCoordinatesMinimizationVariables++;
               NumberOfOrientationalMinimizationVariables++;
- 
+
             }
             if(Adsorbates[CurrentSystem][m].Groups[l].FixedOrientation.y)
               Adsorbates[CurrentSystem][m].Groups[l].HessianIndexOrientation.y=-1;
@@ -1072,7 +1072,7 @@ int OrderNumberOfMinimiationVariables(void)
               NumberOfMinimizationVariables++;
               NumberOfCoordinatesMinimizationVariables++;
               NumberOfOrientationalMinimizationVariables++;
- 
+
             }
             break;
           case 1:
@@ -1084,7 +1084,7 @@ int OrderNumberOfMinimiationVariables(void)
               NumberOfMinimizationVariables++;
               NumberOfCoordinatesMinimizationVariables++;
               NumberOfOrientationalMinimizationVariables++;
- 
+
             }
             break;
         }
@@ -1252,7 +1252,7 @@ int OrderNumberOfMinimiationVariables(void)
               NumberOfMinimizationVariables++;
               NumberOfCoordinatesMinimizationVariables++;
               NumberOfOrientationalMinimizationVariables++;
- 
+
             }
             if(Cations[CurrentSystem][m].Groups[l].FixedOrientation.y)
               Cations[CurrentSystem][m].Groups[l].HessianIndexOrientation.y=-1;
@@ -1262,7 +1262,7 @@ int OrderNumberOfMinimiationVariables(void)
               NumberOfMinimizationVariables++;
               NumberOfCoordinatesMinimizationVariables++;
               NumberOfOrientationalMinimizationVariables++;
- 
+
             }
             if(Cations[CurrentSystem][m].Groups[l].FixedOrientation.z)
               Cations[CurrentSystem][m].Groups[l].HessianIndexOrientation.z=-1;
@@ -1272,7 +1272,7 @@ int OrderNumberOfMinimiationVariables(void)
               NumberOfMinimizationVariables++;
               NumberOfCoordinatesMinimizationVariables++;
               NumberOfOrientationalMinimizationVariables++;
- 
+
             }
             break;
           case 2:
@@ -1284,7 +1284,7 @@ int OrderNumberOfMinimiationVariables(void)
               NumberOfMinimizationVariables++;
               NumberOfCoordinatesMinimizationVariables++;
               NumberOfOrientationalMinimizationVariables++;
- 
+
             }
             if(Cations[CurrentSystem][m].Groups[l].FixedOrientation.y)
               Cations[CurrentSystem][m].Groups[l].HessianIndexOrientation.y=-1;
@@ -1294,7 +1294,7 @@ int OrderNumberOfMinimiationVariables(void)
               NumberOfMinimizationVariables++;
               NumberOfCoordinatesMinimizationVariables++;
               NumberOfOrientationalMinimizationVariables++;
- 
+
             }
             break;
           case 1:
@@ -1306,7 +1306,7 @@ int OrderNumberOfMinimiationVariables(void)
               NumberOfMinimizationVariables++;
               NumberOfCoordinatesMinimizationVariables++;
               NumberOfOrientationalMinimizationVariables++;
- 
+
             }
             break;
         }
@@ -1541,7 +1541,7 @@ void CreateGeneralizedCoordinatesFromPositions(int np,int nb,REAL *x)
               Transform.ax=1.0+x[np];  Transform.bx=0;            Transform.cx=0.0;
               Transform.ay=0.0;        Transform.by=1.0+x[np+1];  Transform.cy=0.5*x[np+2];
               Transform.az=0;          Transform.bz=0.5*x[np+2];  Transform.cz=1.0+x[np+3];
-              break; 
+              break;
             case MONOCLINIC_BETA_ANGLE:
               Transform.ax=1.0+x[np];  Transform.bx=0;            Transform.cx=0.5*x[np+1];
               Transform.ay=0.0;        Transform.by=1.0+x[np+2];  Transform.cy=0;
@@ -1551,9 +1551,9 @@ void CreateGeneralizedCoordinatesFromPositions(int np,int nb,REAL *x)
               Transform.ax=1.0+x[np];   Transform.bx=0.5*x[np+1];  Transform.cx=0;
               Transform.ay=0.5*x[np+1]; Transform.by=1.0+x[np+2];  Transform.cy=0;
               Transform.az=0;           Transform.bz=0;            Transform.cz=1.0+x[np+3];
-              break; 
+              break;
             default:
-              break; 
+              break;
           }
           break;
         case MONOCLINIC_UPPER_TRIANGLE:
@@ -1579,7 +1579,7 @@ void CreateGeneralizedCoordinatesFromPositions(int np,int nb,REAL *x)
           }
           break;
         default:
-          printf("Unknown NPTPRCellType\n");
+          fprintf(stderr, "Unknown NPTPRCellType\n");
           exit(0);
           break;
       }
@@ -1666,7 +1666,7 @@ void CreateGeneralizedCoordinatesFromPositions(int np,int nb,REAL *x)
             if(index.x>=0) x[index.x]=pos1.x;
             break;
         }
-        
+
 
         EulerAxis=Adsorbates[CurrentSystem][m].Groups[l].EulerAxis;
         switch(Dimension)
@@ -1743,7 +1743,7 @@ void CreateGeneralizedCoordinatesFromPositions(int np,int nb,REAL *x)
             if(index.x>=0) x[index.x]=pos1.x;
             break;
         }
-        
+
 
         EulerAxis=Cations[CurrentSystem][m].Groups[l].EulerAxis;
         switch(Dimension)
@@ -1921,7 +1921,7 @@ void CreatePositionsFromGeneralizedCoordinates(int np,int nb,REAL *x)
           }
           break;
         default:
-          printf("Unknown NPTPRCellType\n");
+          fprintf(stderr, "Unknown NPTPRCellType\n");
           exit(0);
           break;
       }
@@ -1991,7 +1991,7 @@ void CreatePositionsFromGeneralizedCoordinates(int np,int nb,REAL *x)
             else pos.x=Framework[CurrentSystem].Atoms[f1][i].Position.x;
             break;
         }
-        
+
 
         if(MinimizationVariables==FRACTIONAL)
           Framework[CurrentSystem].Atoms[f1][i].Position=ConvertFromABCtoXYZ(pos);
@@ -2849,14 +2849,14 @@ void ConvertGradientFromCartesianToFractional(REAL *Gradient)
 
         //if(index>=0)
         {
-          grad.x=Gradient[index.x]; 
-          grad.y=Gradient[index.y]; 
+          grad.x=Gradient[index.x];
+          grad.y=Gradient[index.y];
           grad.z=Gradient[index.z];
           fgrad.x=Box[CurrentSystem].ax*grad.x+Box[CurrentSystem].ay*grad.y+Box[CurrentSystem].az*grad.z;
           fgrad.y=Box[CurrentSystem].bx*grad.x+Box[CurrentSystem].by*grad.y+Box[CurrentSystem].bz*grad.z;
           fgrad.z=Box[CurrentSystem].cx*grad.x+Box[CurrentSystem].cy*grad.y+Box[CurrentSystem].cz*grad.z;
-          Gradient[index.x]=fgrad.x; 
-          Gradient[index.y]=fgrad.y; 
+          Gradient[index.x]=fgrad.x;
+          Gradient[index.y]=fgrad.y;
           Gradient[index.z]=fgrad.z;
         }
       }
@@ -3648,7 +3648,7 @@ void ConvertHessianFromCartesianToFractional(int np,int nb,REAL *Gradient,REAL_M
         case MONOCLINIC_UPPER_TRIANGLE:
           break;
         default:
-          printf("Unknown NPTPRCellType\n");
+          fprintf(stderr, "Unknown NPTPRCellType\n");
           exit(0);
           break;
       }
@@ -3728,7 +3728,7 @@ REAL CalculateBakerSaddlePointStepSize(int n,int NumberOfValidModes,int ISTEP,RE
 
   Lambda=lambdan;
 
-  scale=GX[0]/(lambdap-EigenValues[0]); 
+  scale=GX[0]/(lambdap-EigenValues[0]);
   if(fabs(lambdap-EigenValues[0])<1e-8) scale=0.1;
   for(i=0;i<NumberOfVariables;i++)
     dx[i]+=scale*HessianMatrix.element[0][i];
@@ -3822,7 +3822,7 @@ void BakerSaddlePointSearch(int np,int nb,REAL *x,int run)
     fprintf(OutputFilePtr[CurrentSystem],"Projecting constraints from generalized Hessian matrix\n");
     fflush(OutputFilePtr[CurrentSystem]);
     ProjectConstraintsFromHessianMatrix(np,nb,Gradient,HessianMatrix,TRUE,TRUE);
-    
+
     if(MinimizationVariables==FRACTIONAL)
        ConvertHessianFromCartesianToFractional(np,nb,Gradient,HessianMatrix);
 
@@ -3839,9 +3839,9 @@ void BakerSaddlePointSearch(int np,int nb,REAL *x,int run)
     for(i=0;i<NumberOfVariables;i++)
     {
       if(EigenValues[i]<-MINIMUM_EIGEN_VALUE) NumberOfNegativeEigenValues++;
-      if(fabs(EigenValues[i])<MINIMUM_EIGEN_VALUE) 
+      if(fabs(EigenValues[i])<MINIMUM_EIGEN_VALUE)
         NumberOfZeroEigenValues++;
-      else 
+      else
       {
         if(NumberOfZeroEigenValues>0)
         {
@@ -4066,7 +4066,7 @@ REAL CalculateBakerStepSize(int n,int NumberOfValidModes,int ISTEP,REAL *dx,REAL
 
     // check for the value of lambda
     if((Lambda>EigenValues[LOWER])||(EigenValues[LOWER]>0.0&&Lambda>0.0))
-      printf("Baker minimization: Error in lambda\n");
+      fprintf(stderr, "Baker minimization: Error in lambda\n");
 
     //if((SimulationType==MINIMIZATION)&&(k%PrintEvery==0))
     //  fprintf(OutputFilePtr[CurrentSystem],"Shifting parameter: %18.10f Lowest eigenvalue: %18.10f\n",Lambda,EigenValues[LOWER]);
@@ -4188,10 +4188,10 @@ void BakerMinimization(int np,int nb,REAL *x,int run)
     fprintf(OutputFilePtr[CurrentSystem],"Projecting constraints from generalized Hessian matrix\n");
     fflush(OutputFilePtr[CurrentSystem]);
     ProjectConstraintsFromHessianMatrix(np,nb,Gradient,HessianMatrix,TRUE,TRUE);
-  
+
     if(MinimizationVariables==FRACTIONAL)
       ConvertHessianFromCartesianToFractional(np,nb,Gradient,HessianMatrix);
-    
+
     // Diagonalize the Hessian matrix.
     if(k%PrintEvery==0)
     {
@@ -4343,7 +4343,7 @@ void BakerMinimization(int np,int nb,REAL *x,int run)
     PrintRestartFile();
 
     // Check for convergence.
-    if(((RMSGradient<RMSGradientTolerance)&&(MaxGradient<MaxGradientTolerance))&&(NumberOfNegativeEigenValues==NEGREQ)) 
+    if(((RMSGradient<RMSGradientTolerance)&&(MaxGradient<MaxGradientTolerance))&&(NumberOfNegativeEigenValues==NEGREQ))
     //if(((RMSGradient<RMSGradientTolerance)&&(MaxGradient<MaxGradientTolerance)))
     {
       fprintf(OutputFilePtr[CurrentSystem],"SUCCES: RMS Gradient tolerance %g reached (%g)\n",(double)RMSGradientTolerance,(double)RMSGradient);
@@ -4364,7 +4364,7 @@ void BakerMinimization(int np,int nb,REAL *x,int run)
 
   // project the constraints from the gradient and Hessian
   ProjectConstraintsFromHessianMatrix(np,nb,Gradient,HessianMatrix,TRUE,TRUE);
- 
+
   if(MinimizationVariables==FRACTIONAL)
     ConvertHessianFromCartesianToFractional(np,nb,Gradient,HessianMatrix);
 
@@ -4615,7 +4615,7 @@ void NewtonRaphsonMinimization(int np,int nb,REAL *x,int run)
       ConvertHessianFromCartesianToFractional(np,nb,Gradient,HessianMatrix);
 
     //for(i=0;i<NumberOfPositionVariables;i++)
-    //  printf("%d gradient %f\n",i,Gradient[i]);
+    //  fprintf(stderr, "%d gradient %f\n",i,Gradient[i]);
 
     // Diagonalize the Hessian matrix.
     fprintf(OutputFilePtr[CurrentSystem],"Computing eigenvalues and vectors\n");
@@ -4691,7 +4691,7 @@ void NewtonRaphsonMinimization(int np,int nb,REAL *x,int run)
 /*
     if(StepSize>1.5*StepSizePrevious)
     {
-      printf("trimming back: %g %g\n",StepSize,StepSizePrevious);
+      fprintf(stderr, "trimming back: %g %g\n",StepSize,StepSizePrevious);
       for(i=0;i<NumberOfVariables;i++)
         dx[i]*=(1.5*StepSizePrevious/StepSize);
     }
@@ -4781,7 +4781,7 @@ void NewtonRaphsonMinimization(int np,int nb,REAL *x,int run)
 
   // project the constraints from the gradient and Hessian
   ProjectConstraintsFromHessianMatrix(np,nb,Gradient,HessianMatrix,TRUE,TRUE);
- 
+
   if(MinimizationVariables==FRACTIONAL)
     ConvertHessianFromCartesianToFractional(np,nb,Gradient,HessianMatrix);
 
@@ -4911,7 +4911,7 @@ void NewtonRaphsonMinimization(int np,int nb,REAL *x,int run)
     }
   }
   fprintf(OutputFilePtr[CurrentSystem],"\n\n");
-  
+
   ComputeElasticConstantsAfterMinimization(np,nb,x);
 }
 
@@ -4957,13 +4957,13 @@ void ComputeElasticConstantsAfterMinimization(int np,int nb,REAL *x)
           BornTerm[CurrentSystem].zxxx=HessianMatrix.element[np][np+2];
           BornTerm[CurrentSystem].zyxx=HessianMatrix.element[np][np+4];
           BornTerm[CurrentSystem].zzxx=HessianMatrix.element[np][np+5];
-          
+
           BornTerm[CurrentSystem].xzxy=HessianMatrix.element[np+1][np+2];
           BornTerm[CurrentSystem].yzxy=HessianMatrix.element[np+1][np+4];
           BornTerm[CurrentSystem].zxxy=HessianMatrix.element[np+1][np+2];
           BornTerm[CurrentSystem].zyxy=HessianMatrix.element[np+1][np+4];
           BornTerm[CurrentSystem].zzxy=HessianMatrix.element[np+1][np+5];
-          
+
           BornTerm[CurrentSystem].xxxz=HessianMatrix.element[np+2][np];
           BornTerm[CurrentSystem].xyxz=HessianMatrix.element[np+2][np+1];
           BornTerm[CurrentSystem].xzxz=HessianMatrix.element[np+2][np+2];
@@ -4973,19 +4973,19 @@ void ComputeElasticConstantsAfterMinimization(int np,int nb,REAL *x)
           BornTerm[CurrentSystem].zxxz=HessianMatrix.element[np+2][np+2];
           BornTerm[CurrentSystem].zyxz=HessianMatrix.element[np+2][np+4];
           BornTerm[CurrentSystem].zzxz=HessianMatrix.element[np+2][np+5];
-          
+
           BornTerm[CurrentSystem].xzyx=HessianMatrix.element[np+1][np+2];
           BornTerm[CurrentSystem].yzyx=HessianMatrix.element[np+1][np+4];
           BornTerm[CurrentSystem].zxyx=HessianMatrix.element[np+1][np+2];
           BornTerm[CurrentSystem].zyyx=HessianMatrix.element[np+1][np+4];
           BornTerm[CurrentSystem].zzyx=HessianMatrix.element[np+1][np+5];
-          
+
           BornTerm[CurrentSystem].xzyy=HessianMatrix.element[np+3][np+2];
           BornTerm[CurrentSystem].yzyy=HessianMatrix.element[np+3][np+4];
           BornTerm[CurrentSystem].zxyy=HessianMatrix.element[np+3][np+2];
           BornTerm[CurrentSystem].zyyy=HessianMatrix.element[np+3][np+4];
           BornTerm[CurrentSystem].zzyy=HessianMatrix.element[np+3][np+5];
-          
+
           BornTerm[CurrentSystem].xxyz=HessianMatrix.element[np+4][np];
           BornTerm[CurrentSystem].xyyz=HessianMatrix.element[np+4][np+1];
           BornTerm[CurrentSystem].xzyz=HessianMatrix.element[np+4][np+2];
@@ -4995,7 +4995,7 @@ void ComputeElasticConstantsAfterMinimization(int np,int nb,REAL *x)
           BornTerm[CurrentSystem].zxyz=HessianMatrix.element[np+4][np+2];
           BornTerm[CurrentSystem].zyyz=HessianMatrix.element[np+4][np+4];
           BornTerm[CurrentSystem].zzyz=HessianMatrix.element[np+4][np+5];
-          
+
           BornTerm[CurrentSystem].xxzx=HessianMatrix.element[np+2][np];
           BornTerm[CurrentSystem].xyzx=HessianMatrix.element[np+2][np+1];
           BornTerm[CurrentSystem].xzzx=HessianMatrix.element[np+2][np+2];
@@ -5005,7 +5005,7 @@ void ComputeElasticConstantsAfterMinimization(int np,int nb,REAL *x)
           BornTerm[CurrentSystem].zxzx=HessianMatrix.element[np+2][np+2];
           BornTerm[CurrentSystem].zyzx=HessianMatrix.element[np+2][np+4];
           BornTerm[CurrentSystem].zzzx=HessianMatrix.element[np+2][np+5];
-          
+
           BornTerm[CurrentSystem].xxzy=HessianMatrix.element[np+4][np];
           BornTerm[CurrentSystem].xyzy=HessianMatrix.element[np+4][np+1];
           BornTerm[CurrentSystem].xzzy=HessianMatrix.element[np+4][np+2];
@@ -5015,7 +5015,7 @@ void ComputeElasticConstantsAfterMinimization(int np,int nb,REAL *x)
           BornTerm[CurrentSystem].zxzy=HessianMatrix.element[np+4][np+2];
           BornTerm[CurrentSystem].zyzy=HessianMatrix.element[np+4][np+4];
           BornTerm[CurrentSystem].zzzy=HessianMatrix.element[np+4][np+5];
-          
+
           BornTerm[CurrentSystem].xxzz=HessianMatrix.element[np+5][np];
           BornTerm[CurrentSystem].xyzz=HessianMatrix.element[np+5][np+1];
           BornTerm[CurrentSystem].xzzz=HessianMatrix.element[np+5][np+2];
@@ -5045,16 +5045,16 @@ void ComputeElasticConstantsAfterMinimization(int np,int nb,REAL *x)
           BornTerm[CurrentSystem].xxxx=HessianMatrix.element[np][np];
           break;
       }
- 
+
       // inverse is singular, ommit last particle to remove com-translation
       // the contribution of this particle is still contained in the remainder
       HessianMatrixInverse=CreateRealMatrix(np-Dimension,np-Dimension);
       CrossTerm=CreateRealMatrix(np,SQR(Dimension));
-      
+
       for(i=0;i<np-Dimension;i++)
         for(j=0;j<np-Dimension;j++)
           HessianMatrixInverse.element[i][j]=HessianMatrix.element[i][j];
-   
+
       for(i=0;i<np/Dimension;i++)
       {
         switch(Dimension)
@@ -5095,10 +5095,10 @@ void ComputeElasticConstantsAfterMinimization(int np,int nb,REAL *x)
         }
       }
 
-      
+
       //InverseRealMatrix(HessianMatrixInverse);
       SingularValueDecompositionMatrixInversion(HessianMatrixInverse);
-      
+
       InitializeMatrix9x9(&RelaxationTerm);
 
       fac=1.0;
@@ -5220,13 +5220,13 @@ void ComputeElasticConstantsAfterMinimization(int np,int nb,REAL *x)
         Factor=1.0;
       else
         Factor=1e9/PRESSURE_CONVERSION_FACTOR;
-      
+
       fprintf(OutputFilePtr[CurrentSystem],"Born-term %s\n",UseReducedUnits?"[-]":"[GPa]");
       fprintf(OutputFilePtr[CurrentSystem],"---------------\n");
       PrintRealMatrix9x9ToFile(&BornTerm[CurrentSystem],OutputFilePtr[CurrentSystem],Factor*Volume[CurrentSystem]);
       fprintf(OutputFilePtr[CurrentSystem],"\n");
-      
-      
+
+
       fprintf(OutputFilePtr[CurrentSystem],"Relaxation-term %s\n",UseReducedUnits?"[-]":"[GPa]");
       fprintf(OutputFilePtr[CurrentSystem],"-----------------------------\n");
       PrintRealMatrix9x9ToFile(&RelaxationTerm,OutputFilePtr[CurrentSystem],Factor*Volume[CurrentSystem]);
@@ -5237,10 +5237,10 @@ void ComputeElasticConstantsAfterMinimization(int np,int nb,REAL *x)
       PrintRealMatrix9x9ToFile(&PressureCorrection,OutputFilePtr[CurrentSystem],Factor*Volume[CurrentSystem]);
       fprintf(OutputFilePtr[CurrentSystem],"\n\n");
 
-      
+
       SubtractRealMatrix9x9(&ElasticConstants,BornTerm[CurrentSystem],RelaxationTerm);
       AddRealMatrix9x9(&ElasticConstants,ElasticConstants,PressureCorrection);
-      
+
       fprintf(OutputFilePtr[CurrentSystem],"Elastic constant %s\n",UseReducedUnits?"[-]":"[GPa]");
       fprintf(OutputFilePtr[CurrentSystem],"----------------------\n");
       PrintRealMatrix9x9ToFile(&ElasticConstants,OutputFilePtr[CurrentSystem],Factor*Volume[CurrentSystem]);
@@ -5260,7 +5260,7 @@ void ComputeElasticConstantsAfterMinimization(int np,int nb,REAL *x)
           break;
       }
       fprintf(OutputFilePtr[CurrentSystem],"\n");
-      
+
       fprintf(OutputFilePtr[CurrentSystem],"Relaxation-term (Voigt notation) %s\n",UseReducedUnits?"[-]":"[GPa]");
       fprintf(OutputFilePtr[CurrentSystem],"-------------------------------------\n");
       switch(Dimension)
@@ -5305,7 +5305,7 @@ void ComputeElasticConstantsAfterMinimization(int np,int nb,REAL *x)
           break;
       }
       fprintf(OutputFilePtr[CurrentSystem],"\n\n");
-      
+
       switch(Dimension)
       {
         case 2:
@@ -5450,12 +5450,12 @@ void SnymanMinimization(int np,int nb,REAL *x,int run)
   a_bar=(REAL*)calloc(np+nb,sizeof(REAL));
 
   ComputeDerivative(np,nb,x,&Energy,a,&StrainFirstDerivative);
-  
+
 
   for(i=0;i<np+nb;i++)
     v[i]=-DeltaT*a[i];
 
-  for(loop=0;loop<MaximumNumberOfMinimizationSteps*1000;loop++) 
+  for(loop=0;loop<MaximumNumberOfMinimizationSteps*1000;loop++)
   {
     if(Movies[CurrentSystem]&&(loop%WriteMoviesEvery[CurrentSystem]==0))
       SamplePDBMovies(SAMPLE,run);
@@ -5529,7 +5529,7 @@ void SnymanMinimization(int np,int nb,REAL *x,int run)
     {
       for(i=0;i<np+nb;i++)
         v_bar[i]=-DeltaT*a[i];
-       
+
       for(i=0;i<np+nb;i++)
         x_bar[i]=x[i]+DeltaT*v_bar[i];
 
@@ -5710,7 +5710,7 @@ void SnymanMinimization(int np,int nb,REAL *x,int run)
     }
   }
   fprintf(OutputFilePtr[CurrentSystem],"\n\n");
-  
+
   ComputeElasticConstantsAfterMinimization(np,nb,x);
 
   CurrentSystem=0;
@@ -5992,7 +5992,7 @@ void ReadRestartMinimization(FILE *FilePtr)
   fread(&Check,1,sizeof(REAL),FilePtr);
   if(fabs(Check-123456789.0)>1e-10)
   {
-    printf("Error in binary restart-file (ReadRestartMinimization)\n");
+    fprintf(stderr, "Error in binary restart-file (ReadRestartMinimization)\n");
     exit(0);
   }
 }

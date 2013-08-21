@@ -191,7 +191,7 @@ void CalculateFrameworkBondBornTerm(void)
           break;
         default:
           U=DF=DDF=0.0;
-          printf("Undefined Bond potential (Bond born framework)\n");
+          fprintf(stderr, "Undefined Bond potential (Bond born framework)\n");
           exit(0);
           break;
       }
@@ -378,7 +378,7 @@ void CalculateFrameworkUreyBradleyBornTerm(void)
           break;
         default:
           U=DF=DDF=0.0;
-          printf("Undefined Urey-Bradley potential\n");
+          fprintf(stderr, "Undefined Urey-Bradley potential\n");
           exit(0);
           break;
       }
@@ -567,7 +567,7 @@ void CalculateFrameworkBendBornTerm(void)
           temp2=SQR(temp);
           U=parms[0]*temp2*(1.0-0.014*temp+5.6e-5*temp2-7.0e-7*temp*temp2+2.2e-8*SQR(temp2));
           DF=parms[0]*RAD2DEG*(2.0-(3.0*0.014-(4.0*5.6e-5-(5.0*7.0e-7-6.0*2.2e-8*temp)*temp)*temp)*temp)*temp*DTDX;
-          printf("TO BE DONE!\n");
+          fprintf(stderr, "TO BE DONE!\n");
           exit(0);
           break;
         case FIXED_BEND:
@@ -578,7 +578,7 @@ void CalculateFrameworkBendBornTerm(void)
           break;
         default:
           U=DF=DDF=0.0;
-          printf("Undefined Bend potential in routine 'CalculateFrameworkBendBornTerm'\n");
+          fprintf(stderr, "Undefined Bend potential in routine 'CalculateFrameworkBendBornTerm'\n");
           exit(0);
           break;
       }
@@ -1026,7 +1026,7 @@ void CalculateFrameworkTorsionBornTerm(void)
               +parms[5]*(18.0-288.0*CosPhi2+480.0*SQR(CosPhi2));
           break;
         default:
-          printf("Undefined Torsion potential in 'framework_born.c'\n");
+          fprintf(stderr, "Undefined Torsion potential in 'framework_born.c'\n");
           U=DF=DDF=0.0;
           exit(0);
           break;
@@ -1704,7 +1704,7 @@ void CalculateFrameworkImproperTorsionBornTerm(void)
               +parms[5]*(18.0-288.0*CosPhi2+480.0*SQR(CosPhi2));
           break;
         default:
-          printf("Undefined Improper Torsion potential\n");
+          fprintf(stderr, "Undefined Improper Torsion potential\n");
           U=DF=DDF=0.0;
           exit(0);
           break;
@@ -2336,7 +2336,7 @@ void FrameworkAdsorbateVDWBornTerm(void)
               Framework[CurrentSystem].Atoms[f1][k].Force.z-=f.z;
             }
 
-  
+
             // add contribution to the strain derivative tensor
             StrainDerivativeTensor[CurrentSystem].ax-=f.x*dr.x;
             StrainDerivativeTensor[CurrentSystem].bx-=f.y*dr.x;
@@ -2412,7 +2412,7 @@ void FrameworkCationVDWBornTerm(void)
               Framework[CurrentSystem].Atoms[f1][k].Force.z-=f.z;
             }
 
-  
+
             // add contribution to the strain derivative tensor
             StrainDerivativeTensor[CurrentSystem].ax-=f.x*dr.x;
             StrainDerivativeTensor[CurrentSystem].bx-=f.y*dr.x;
@@ -2774,7 +2774,7 @@ int CalculateFrameworkIntraReplicaChargeChargeBornTerm(void)
                     Framework[CurrentSystem].Atoms[f1][i].Force.z-=f.z;
 
                     if(ncell==0)
-                    { 
+                    {
                       Framework[CurrentSystem].Atoms[f2][j].Force.x+=f.x;
                       Framework[CurrentSystem].Atoms[f2][j].Force.y+=f.y;
                       Framework[CurrentSystem].Atoms[f2][j].Force.z+=f.z;
@@ -2888,7 +2888,7 @@ void FrameworkAdsorbateReplicaVDWBornTerm(void)
                     Framework[CurrentSystem].Atoms[f1][k].Force.z+=f.z;
                   }
 
-  
+
                   // add contribution to the strain derivative tensor
                   StrainDerivativeTensor[CurrentSystem].ax+=f.x*dr.x;
                   StrainDerivativeTensor[CurrentSystem].bx+=f.y*dr.x;

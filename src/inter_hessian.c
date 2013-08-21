@@ -75,7 +75,7 @@ void HessianAtomicPositionPosition(REAL_MATRIX HessianMatrix,INT_VECTOR3 index_i
       if(index_i.x>=0) HessianMatrix.element[index_i.x][index_i.x]+=ReplicaFactor*Hessian.ax;
       break;
   }
-  
+
 
   // case [J,J]: Center of mass - Center of mass
   switch(Dimension)
@@ -222,7 +222,7 @@ void HessianCenterOfMassOrientation(REAL_MATRIX HessianMatrix,INT_VECTOR3 index_
 
   // case [J,J]: Center of mass J - Orientation J
   if(index1>=0)
-  { 
+  {
     veci1=DVecX[index1];
     veci2=DVecY[index1];
     veci3=DVecZ[index1];
@@ -824,7 +824,7 @@ void HessianCenterOfMassStrain(REAL_MATRIX HessianMatrix,INT_VECTOR3 index_i,INT
                 break;
             }
           }
-          break;                                   
+          break;
         case REGULAR_UPPER_TRIANGLE:
           // the first and second term of Eq. 39 of Ref. Dubbeldam, Krishna, Snurr, 2009
           // ===========================================================================
@@ -992,7 +992,7 @@ void HessianCenterOfMassStrain(REAL_MATRIX HessianMatrix,INT_VECTOR3 index_i,INT
                 break;
             }
           }
-          break;                                   
+          break;
         case MONOCLINIC:
           switch(MonoclinicAngleType[CurrentSystem])
           {
@@ -1321,7 +1321,7 @@ void HessianCenterOfMassStrain(REAL_MATRIX HessianMatrix,INT_VECTOR3 index_i,INT
               }
               break;
           }
-          break;  
+          break;
         case MONOCLINIC_UPPER_TRIANGLE:
           switch(MonoclinicAngleType[CurrentSystem])
           {
@@ -1650,9 +1650,9 @@ void HessianCenterOfMassStrain(REAL_MATRIX HessianMatrix,INT_VECTOR3 index_i,INT
               }
               break;
           }
-          break;  
-        default:  
-          printf("Unknown NPTPRCellType\n");
+          break;
+        default:
+          fprintf(stderr, "Unknown NPTPRCellType\n");
           exit(0);
           break;
       }
@@ -1713,7 +1713,7 @@ void HessianOrientationStrain(REAL_MATRIX HessianMatrix,INT_VECTOR3 index_i2,INT
           if(index_i2.x>=0) HessianMatrix.element[index_i2.z][n]+=drJI.x*Hessian.ax+drJI.y*Hessian.bx+drJI.z*Hessian.cx;  // (xx x + yy x + zz x)/3
           break;
       }
-      
+
       veci1=DVecX[index1]; vecj1=DVecX[index2];
       veci2=DVecY[index1]; vecj2=DVecY[index2];
       veci3=DVecZ[index1]; vecj3=DVecZ[index2];
@@ -1789,7 +1789,7 @@ void HessianOrientationStrain(REAL_MATRIX HessianMatrix,INT_VECTOR3 index_i2,INT
               if(index_i2.x>=0) HessianMatrix.element[index_i2.x][n]+=drJI.x*Hessian.ax;         // xx x
               break;
           }
-          
+
           veci1=DVecX[index1]; vecj1=DVecX[index2];
           veci2=DVecY[index1]; vecj2=DVecY[index2];
           veci3=DVecZ[index1]; vecj3=DVecZ[index2];
@@ -1875,7 +1875,7 @@ void HessianOrientationStrain(REAL_MATRIX HessianMatrix,INT_VECTOR3 index_i2,INT
               if(index_i2.x>=0) HessianMatrix.element[index_i2.x][n]+=drJI.x*Hessian.ax;                           // xx x
               break;
           }
-          
+
           veci1=DVecX[index1]; vecj1=DVecX[index2];
           veci2=DVecY[index1]; vecj2=DVecY[index2];
           veci3=DVecZ[index1]; vecj3=DVecZ[index2];
@@ -1921,7 +1921,7 @@ void HessianOrientationStrain(REAL_MATRIX HessianMatrix,INT_VECTOR3 index_i2,INT
               if(index_j2.x>=0) HessianMatrix.element[index_j2.x][n]-=drJI.x*Hessian.ax;                           // xx x
               break;
           }
-          break;                                   
+          break;
         case REGULAR_UPPER_TRIANGLE:
           // Eq. 40 of Ref. Dubbeldam, Krishna, Snurr, 2009
           // ==============================================
@@ -1972,7 +1972,7 @@ void HessianOrientationStrain(REAL_MATRIX HessianMatrix,INT_VECTOR3 index_i2,INT
               if(index_i2.x>=0) HessianMatrix.element[index_i2.x][n]+=drJI.x*Hessian.ax;     // xx x
               break;
           }
-          
+
           veci1=DVecX[index1]; vecj1=DVecX[index2];
           veci2=DVecY[index1]; vecj2=DVecY[index2];
           veci3=DVecZ[index1]; vecj3=DVecZ[index2];
@@ -2020,7 +2020,7 @@ void HessianOrientationStrain(REAL_MATRIX HessianMatrix,INT_VECTOR3 index_i2,INT
               if(index_j2.x>=0) HessianMatrix.element[index_j2.x][n]-=drJI.x*Hessian.ax;     // xx x
               break;
           }
-          break;                                   
+          break;
         case MONOCLINIC:
           switch(MonoclinicAngleType[CurrentSystem])
           {
@@ -2061,7 +2061,7 @@ void HessianOrientationStrain(REAL_MATRIX HessianMatrix,INT_VECTOR3 index_i2,INT
               if(index_i2.z>=0) HessianMatrix.element[index_i2.z][n+1]+=drJI.y*Hessian.bz;                         // yy z
               if(index_i2.z>=0) HessianMatrix.element[index_i2.z][n+2]+=0.5*(drJI.z*Hessian.bz+drJI.y*Hessian.cz); // yz z
               if(index_i2.z>=0) HessianMatrix.element[index_i2.z][n+3]+=drJI.z*Hessian.cz;                         // zz z
-              
+
               veci1=DVecX[index1]; vecj1=DVecX[index2];
               veci2=DVecY[index1]; vecj2=DVecY[index2];
               veci3=DVecZ[index1]; vecj3=DVecZ[index2];
@@ -2134,7 +2134,7 @@ void HessianOrientationStrain(REAL_MATRIX HessianMatrix,INT_VECTOR3 index_i2,INT
               if(index_i2.z>=0) HessianMatrix.element[index_i2.z][n+1]+=0.5*(drJI.y*Hessian.az+drJI.x*Hessian.bz); // xy z
               if(index_i2.z>=0) HessianMatrix.element[index_i2.z][n+2]+=drJI.y*Hessian.bz;                         // yy z
               if(index_i2.z>=0) HessianMatrix.element[index_i2.z][n+3]+=drJI.z*Hessian.cz;                         // zz z
-              
+
               veci1=DVecX[index1]; vecj1=DVecX[index2];
               veci2=DVecY[index1]; vecj2=DVecY[index2];
               veci3=DVecZ[index1]; vecj3=DVecZ[index2];
@@ -2208,7 +2208,7 @@ void HessianOrientationStrain(REAL_MATRIX HessianMatrix,INT_VECTOR3 index_i2,INT
               if(index_i2.z>=0) HessianMatrix.element[index_i2.z][n+1]+=0.5*(drJI.z*Hessian.az+drJI.x*Hessian.cz); // xz z
               if(index_i2.z>=0) HessianMatrix.element[index_i2.z][n+2]+=drJI.y*Hessian.bz;                         // yy z
               if(index_i2.z>=0) HessianMatrix.element[index_i2.z][n+3]+=drJI.z*Hessian.cz;                         // zz z
-              
+
               veci1=DVecX[index1]; vecj1=DVecX[index2];
               veci2=DVecY[index1]; vecj2=DVecY[index2];
               veci3=DVecZ[index1]; vecj3=DVecZ[index2];
@@ -2245,7 +2245,7 @@ void HessianOrientationStrain(REAL_MATRIX HessianMatrix,INT_VECTOR3 index_i2,INT
               if(index_j2.z>=0) HessianMatrix.element[index_j2.z][n+3]-=drJI.z*Hessian.cz;                         // zz z
               break;
           }
-          break;  
+          break;
         case MONOCLINIC_UPPER_TRIANGLE:
           switch(MonoclinicAngleType[CurrentSystem])
           {
@@ -2286,7 +2286,7 @@ void HessianOrientationStrain(REAL_MATRIX HessianMatrix,INT_VECTOR3 index_i2,INT
               if(index_i2.z>=0) HessianMatrix.element[index_i2.z][n+1]+=drJI.y*Hessian.bz; // yy z
               if(index_i2.z>=0) HessianMatrix.element[index_i2.z][n+2]+=drJI.z*Hessian.bz; // yz z
               if(index_i2.z>=0) HessianMatrix.element[index_i2.z][n+3]+=drJI.z*Hessian.cz; // zz z
-              
+
               veci1=DVecX[index1]; vecj1=DVecX[index2];
               veci2=DVecY[index1]; vecj2=DVecY[index2];
               veci3=DVecZ[index1]; vecj3=DVecZ[index2];
@@ -2359,7 +2359,7 @@ void HessianOrientationStrain(REAL_MATRIX HessianMatrix,INT_VECTOR3 index_i2,INT
               if(index_i2.z>=0) HessianMatrix.element[index_i2.z][n+1]+=drJI.z*Hessian.az; // xz z
               if(index_i2.z>=0) HessianMatrix.element[index_i2.z][n+2]+=drJI.y*Hessian.bz; // yy z
               if(index_i2.z>=0) HessianMatrix.element[index_i2.z][n+3]+=drJI.z*Hessian.cz; // zz z
-              
+
               veci1=DVecX[index1]; vecj1=DVecX[index2];
               veci2=DVecY[index1]; vecj2=DVecY[index2];
               veci3=DVecZ[index1]; vecj3=DVecZ[index2];
@@ -2432,7 +2432,7 @@ void HessianOrientationStrain(REAL_MATRIX HessianMatrix,INT_VECTOR3 index_i2,INT
               if(index_i2.z>=0) HessianMatrix.element[index_i2.z][n+1]+=drJI.y*Hessian.az; // xy z
               if(index_i2.z>=0) HessianMatrix.element[index_i2.z][n+2]+=drJI.y*Hessian.bz; // yy z
               if(index_i2.z>=0) HessianMatrix.element[index_i2.z][n+3]+=drJI.z*Hessian.cz; // zz z
-              
+
               veci1=DVecX[index1]; vecj1=DVecX[index2];
               veci2=DVecY[index1]; vecj2=DVecY[index2];
               veci3=DVecZ[index1]; vecj3=DVecZ[index2];
@@ -2470,8 +2470,8 @@ void HessianOrientationStrain(REAL_MATRIX HessianMatrix,INT_VECTOR3 index_i2,INT
               break;
           }
           break;
-        default:  
-          printf("Unknown NPTPRCellType\n");
+        default:
+          fprintf(stderr, "Unknown NPTPRCellType\n");
           exit(0);
           break;
       }
@@ -2682,7 +2682,7 @@ void HessianAtomicStrainStrain(REAL_MATRIX HessianMatrix,
               HessianMatrix.element[n][n]+=f2*drJI.x*dr.x*dJI.x*dr.x+f1*drJI.x*dJI.x;                                                         // xxxx
               break;
           }
-          break;                                   
+          break;
         case REGULAR_UPPER_TRIANGLE:
           // the first and second terms of Eq. 43 of Ref. Dubbeldam, Krishna, Snurr, 2009
           // ============================================================================
@@ -2745,7 +2745,7 @@ void HessianAtomicStrainStrain(REAL_MATRIX HessianMatrix,
               HessianMatrix.element[n][n  ]+=f2*drJI.x*dr.x*dJI.x*dr.x+f1*drJI.x*dJI.x;                    // xxxx
               break;
           }
-          break;                                   
+          break;
         case MONOCLINIC:
           switch(MonoclinicAngleType[CurrentSystem])
           {
@@ -3058,8 +3058,8 @@ void HessianAtomicStrainStrain(REAL_MATRIX HessianMatrix,
               break;
           }
           break;
-        default:  
-          printf("Unknown NPTPRCellType\n");
+        default:
+          fprintf(stderr, "Unknown NPTPRCellType\n");
           exit(0);
           break;
       }
@@ -3162,7 +3162,7 @@ static inline void GradientStrain(REAL *Gradient,REAL f1,VECTOR dr)
           }
           break;
         default:
-          printf("Unknown NPTPRCellType\n");
+          fprintf(stderr, "Unknown NPTPRCellType\n");
           exit(0);
           break;
       }
@@ -3292,7 +3292,7 @@ void GradientStrainI(REAL *Gradient,REAL f1,VECTOR dr,VECTOR posA,VECTOR comA)
           }
           break;
         default:
-          printf("Unknown NPTPRCellType\n");
+          fprintf(stderr, "Unknown NPTPRCellType\n");
           exit(0);
           break;
       }
@@ -3432,7 +3432,7 @@ void GradientStrainJ(REAL *Gradient,REAL f1,VECTOR dr,VECTOR posB,VECTOR comB)
           }
           break;
         default:
-          printf("Unknown NPTPRCellType\n");
+          fprintf(stderr, "Unknown NPTPRCellType\n");
           exit(0);
           break;
       }
@@ -3669,7 +3669,7 @@ void ComputeInterVDWMolecularHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX Hes
                   for(ja=0;ja<Components[TypeMolB].Groups[jg].NumberOfGroupAtoms;ja++)
                   {
                     j=Components[TypeMolB].Groups[jg].Atoms[ja];
- 
+
                     if(RigidJ)
                     {
                       index_j=Adsorbates[CurrentSystem][J].Groups[jg].HessianIndex;
@@ -3764,7 +3764,7 @@ void ComputeInterVDWMolecularHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX Hes
 
                       // add contribution to the first derivatives
                       if(ComputeGradient)
-                      { 
+                      {
                         if(index_i.x>=0) Gradient[index_i.x]+=f1*dr.x;
                         if(index_i.y>=0) Gradient[index_i.y]+=f1*dr.y;
                         if(index_i.z>=0) Gradient[index_i.z]+=f1*dr.z;
@@ -3780,7 +3780,7 @@ void ComputeInterVDWMolecularHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX Hes
                         }
 
                         GradientStrain(Gradient,ReplicaFactor*f1,dr);
-  
+
                         if(ncell==0)
                         {
                           if(index_j.x>=0) Gradient[index_j.x]-=f1*dr.x;
@@ -3790,7 +3790,7 @@ void ComputeInterVDWMolecularHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX Hes
                           if(RigidJ)
                           {
                             GradientStrainJ(Gradient,f1,dr,posB,comB);
- 
+
                             // add contribution to the first derivatives
                             if(index_j2.x>=0) Gradient[index_j2.x]-=f1*(dr.x*DVecX[index2].x+dr.y*DVecX[index2].y+dr.z*DVecX[index2].z);
                             if(index_j2.y>=0) Gradient[index_j2.y]-=f1*(dr.x*DVecY[index2].x+dr.y*DVecY[index2].y+dr.z*DVecY[index2].z);
@@ -3830,7 +3830,7 @@ void ComputeInterVDWMolecularHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX Hes
                   for(ja=0;ja<Components[TypeMolB].Groups[jg].NumberOfGroupAtoms;ja++)
                   {
                     j=Components[TypeMolB].Groups[jg].Atoms[ja];
- 
+
                     if(RigidJ)
                     {
                       index_j=Cations[CurrentSystem][J].Groups[jg].HessianIndex;
@@ -3922,7 +3922,7 @@ void ComputeInterVDWMolecularHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX Hes
 
                       // add contribution to the first derivatives
                       if(ComputeGradient)
-                      { 
+                      {
                         if(index_i.x>=0) Gradient[index_i.x]+=f1*dr.x;
                         if(index_i.y>=0) Gradient[index_i.y]+=f1*dr.y;
                         if(index_i.z>=0) Gradient[index_i.z]+=f1*dr.z;
@@ -3938,7 +3938,7 @@ void ComputeInterVDWMolecularHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX Hes
                         }
 
                         GradientStrain(Gradient,f1,dr);
-  
+
                         if(index_j.x>=0) Gradient[index_j.x]-=f1*dr.x;
                         if(index_j.y>=0) Gradient[index_j.y]-=f1*dr.y;
                         if(index_j.z>=0) Gradient[index_j.z]-=f1*dr.z;
@@ -3946,7 +3946,7 @@ void ComputeInterVDWMolecularHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX Hes
                         if(RigidJ)
                         {
                           GradientStrainJ(Gradient,f1,dr,posB,comB);
- 
+
                           // add contribution to the first derivatives
                           if(index_j2.x>=0) Gradient[index_j2.x]-=f1*(dr.x*DVecX[index2].x+dr.y*DVecX[index2].y+dr.z*DVecX[index2].z);
                           if(index_j2.y>=0) Gradient[index_j2.y]-=f1*(dr.x*DVecY[index2].x+dr.y*DVecY[index2].y+dr.z*DVecY[index2].z);
@@ -4030,7 +4030,7 @@ void ComputeInterVDWMolecularHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX Hes
                   for(ja=0;ja<Components[TypeMolB].Groups[jg].NumberOfGroupAtoms;ja++)
                   {
                     j=Components[TypeMolB].Groups[jg].Atoms[ja];
- 
+
                     if(RigidJ)
                     {
                       index_j=Cations[CurrentSystem][J].Groups[jg].HessianIndex;
@@ -4125,7 +4125,7 @@ void ComputeInterVDWMolecularHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX Hes
 
                       // add contribution to the first derivatives
                       if(ComputeGradient)
-                      { 
+                      {
                         if(index_i.x>=0) Gradient[index_i.x]+=f1*dr.x;
                         if(index_i.y>=0) Gradient[index_i.y]+=f1*dr.y;
                         if(index_i.z>=0) Gradient[index_i.z]+=f1*dr.z;
@@ -4141,7 +4141,7 @@ void ComputeInterVDWMolecularHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX Hes
                         }
 
                         GradientStrain(Gradient,ReplicaFactor*f1,dr);
-  
+
                         if(ncell==0)
                         {
                           if(index_j.x>=0) Gradient[index_j.x]-=f1*dr.x;
@@ -4151,7 +4151,7 @@ void ComputeInterVDWMolecularHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX Hes
                           if(RigidJ)
                           {
                             GradientStrainJ(Gradient,f1,dr,posB,comB);
- 
+
                             // add contribution to the first derivatives
                             if(index_j2.x>=0) Gradient[index_j2.x]-=f1*(dr.x*DVecX[index2].x+dr.y*DVecX[index2].y+dr.z*DVecX[index2].z);
                             if(index_j2.y>=0) Gradient[index_j2.y]-=f1*(dr.x*DVecY[index2].x+dr.y*DVecY[index2].y+dr.z*DVecY[index2].z);
@@ -4261,7 +4261,7 @@ void ComputeInterChargeChargeMolecularHessian(REAL *Energy,REAL* Gradient,REAL_M
                   for(ja=0;ja<Components[TypeMolB].Groups[jg].NumberOfGroupAtoms;ja++)
                   {
                     j=Components[TypeMolB].Groups[jg].Atoms[ja];
- 
+
                     if(RigidJ)
                     {
                       index_j=Adsorbates[CurrentSystem][J].Groups[jg].HessianIndex;
@@ -4371,7 +4371,7 @@ void ComputeInterChargeChargeMolecularHessian(REAL *Energy,REAL* Gradient,REAL_M
                         }
 
                         GradientStrain(Gradient,ReplicaFactor*f1,dr);
-  
+
                         if(ncell==0)
                         {
                           if(index_j.x>=0) Gradient[index_j.x]-=f1*dr.x;
@@ -4381,7 +4381,7 @@ void ComputeInterChargeChargeMolecularHessian(REAL *Energy,REAL* Gradient,REAL_M
                           if(RigidJ)
                           {
                             GradientStrainJ(Gradient,f1,dr,posB,comB);
- 
+
                             // add contribution to the first derivatives
                             if(index_j2.x>=0) Gradient[index_j2.x]-=f1*(dr.x*DVecX[index2].x+dr.y*DVecX[index2].y+dr.z*DVecX[index2].z);
                             if(index_j2.y>=0) Gradient[index_j2.y]-=f1*(dr.x*DVecY[index2].x+dr.y*DVecY[index2].y+dr.z*DVecY[index2].z);
@@ -4622,7 +4622,7 @@ void ComputeInterChargeChargeMolecularHessian(REAL *Energy,REAL* Gradient,REAL_M
                   for(ja=0;ja<Components[TypeMolB].Groups[jg].NumberOfGroupAtoms;ja++)
                   {
                     j=Components[TypeMolB].Groups[jg].Atoms[ja];
- 
+
                     if(RigidJ)
                     {
                       index_j=Cations[CurrentSystem][J].Groups[jg].HessianIndex;
@@ -4733,7 +4733,7 @@ void ComputeInterChargeChargeMolecularHessian(REAL *Energy,REAL* Gradient,REAL_M
                         }
 
                         GradientStrain(Gradient,ReplicaFactor*f1,dr);
-  
+
                         if(ncell==0)
                         {
                           if(index_j.x>=0) Gradient[index_j.x]-=f1*dr.x;
@@ -4743,7 +4743,7 @@ void ComputeInterChargeChargeMolecularHessian(REAL *Energy,REAL* Gradient,REAL_M
                           if(RigidJ)
                           {
                             GradientStrainJ(Gradient,f1,dr,posB,comB);
- 
+
                             // add contribution to the first derivatives
                             if(index_j2.x>=0) Gradient[index_j2.x]-=f1*(dr.x*DVecX[index2].x+dr.y*DVecX[index2].y+dr.z*DVecX[index2].z);
                             if(index_j2.y>=0) Gradient[index_j2.y]-=f1*(dr.x*DVecY[index2].x+dr.y*DVecY[index2].y+dr.z*DVecY[index2].z);
@@ -4870,7 +4870,7 @@ void CalculateBondConstraintExclusionHessian(REAL *Energy,REAL* Gradient,REAL_MA
             }
           }
 
-/*             
+/*
           if(rr<CutOffChargeChargeSquared)
           {
             energy=f1=f2=0.0;

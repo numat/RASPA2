@@ -84,7 +84,7 @@ void ComputeInterVDWBornTerm(void)
               for(ja=0;ja<Components[TypeMolB].Groups[jg].NumberOfGroupAtoms;ja++)
               {
                 j=Components[TypeMolB].Groups[jg].Atoms[ja];
- 
+
                 if(RigidJ)
                   comB=Adsorbates[CurrentSystem][J].Groups[jg].CenterOfMassPosition;
                 else
@@ -191,7 +191,7 @@ void ComputeInterVDWBornTerm(void)
               for(ja=0;ja<Components[TypeMolB].Groups[jg].NumberOfGroupAtoms;ja++)
               {
                 j=Components[TypeMolB].Groups[jg].Atoms[ja];
- 
+
                 if(RigidJ)
                   comB=Cations[CurrentSystem][J].Groups[jg].CenterOfMassPosition;
                 else
@@ -253,7 +253,7 @@ void ComputeInterVDWBornTerm(void)
 
                   // add the contributions to the Born-term
                   BornTerm[CurrentSystem].xxxx+=DDF*drJI.x*dr.x*drJI.x*dr.x+DF*drJI.x*dr.x+DF*drJI.x*drJI.x;
-                  BornTerm[CurrentSystem].xxyy+=DDF*drJI.x*dr.x*drJI.y*dr.y; 
+                  BornTerm[CurrentSystem].xxyy+=DDF*drJI.x*dr.x*drJI.y*dr.y;
                   BornTerm[CurrentSystem].xxzz+=DDF*drJI.x*dr.x*drJI.z*dr.z;
                   BornTerm[CurrentSystem].xxyz+=0.5*DDF*drJI.x*dr.x*(drJI.y*dr.z+drJI.z*dr.y);
                   BornTerm[CurrentSystem].xxzx+=0.5*DDF*drJI.x*dr.x*(drJI.x*dr.z+drJI.z*dr.x)+0.5*DF*(drJI.x*dJI.z)+DF*(drJI.x*dr.z);
@@ -320,7 +320,7 @@ void ComputeInterVDWBornTerm(void)
               for(ja=0;ja<Components[TypeMolB].Groups[jg].NumberOfGroupAtoms;ja++)
               {
                 j=Components[TypeMolB].Groups[jg].Atoms[ja];
- 
+
                 if(RigidJ)
                   comB=Cations[CurrentSystem][J].Groups[jg].CenterOfMassPosition;
                 else
@@ -383,7 +383,7 @@ void ComputeInterVDWBornTerm(void)
 
                   // add the contributions to the Born-term
                   BornTerm[CurrentSystem].xxxx+=DDF*drJI.x*dr.x*dr.x*dr.x+2.0*DF*drJI.x*dr.x+DDF*drJI.x*dr.x*dJI.x*dr.x+DF*drJI.x*dJI.x;
-                  BornTerm[CurrentSystem].xxyy+=DDF*drJI.x*dr.x*dr.y*dr.y+0.5*DDF*drJI.x*dr.x*(dJI.y*dr.y+dJI.y*dr.y); 
+                  BornTerm[CurrentSystem].xxyy+=DDF*drJI.x*dr.x*dr.y*dr.y+0.5*DDF*drJI.x*dr.x*(dJI.y*dr.y+dJI.y*dr.y);
                   BornTerm[CurrentSystem].xxzz+=DDF*drJI.x*dr.x*dr.z*dr.z+0.5*DDF*drJI.x*dr.x*(dJI.z*dr.z+dJI.z*dr.z);
                   BornTerm[CurrentSystem].xxyz+=DDF*drJI.x*dr.x*dr.y*dr.z+0.5*DDF*drJI.x*dr.x*(dJI.y*dr.z+dJI.z*dr.y);
                   BornTerm[CurrentSystem].xxzx+=DDF*drJI.x*dr.x*dr.x*dr.z+DF*(drJI.x*dr.z)+0.5*DDF*drJI.x*dr.x*(dJI.x*dr.z+dJI.z*dr.x)+0.5*DF*(drJI.x*dJI.z);
@@ -466,7 +466,7 @@ void ComputeInterChargeChargeBornTerm(void)
               for(ja=0;ja<Components[TypeMolB].Groups[jg].NumberOfGroupAtoms;ja++)
               {
                 j=Components[TypeMolB].Groups[jg].Atoms[ja];
- 
+
                 if(RigidJ)
                   comB=Adsorbates[CurrentSystem][J].Groups[jg].CenterOfMassPosition;
                 else
@@ -571,7 +571,7 @@ void ComputeInterChargeChargeBornTerm(void)
               for(ja=0;ja<Components[TypeMolB].Groups[jg].NumberOfGroupAtoms;ja++)
               {
                 j=Components[TypeMolB].Groups[jg].Atoms[ja];
- 
+
                 if(RigidJ)
                   comB=Cations[CurrentSystem][J].Groups[jg].CenterOfMassPosition;
                 else
@@ -632,7 +632,7 @@ void ComputeInterChargeChargeBornTerm(void)
 
                   // add the contributions to the Born-term
                   BornTerm[CurrentSystem].xxxx+=DDF*drJI.x*dr.x*drJI.x*dr.x+DF*drJI.x*dr.x+DF*drJI.x*drJI.x;
-                  BornTerm[CurrentSystem].xxyy+=DDF*drJI.x*dr.x*drJI.y*dr.y; 
+                  BornTerm[CurrentSystem].xxyy+=DDF*drJI.x*dr.x*drJI.y*dr.y;
                   BornTerm[CurrentSystem].xxzz+=DDF*drJI.x*dr.x*drJI.z*dr.z;
                   BornTerm[CurrentSystem].xxyz+=0.5*DDF*drJI.x*dr.x*(drJI.y*dr.z+drJI.z*dr.y);
                   BornTerm[CurrentSystem].xxzx+=0.5*DDF*drJI.x*dr.x*(drJI.x*dr.z+drJI.z*dr.x)+0.5*DF*(drJI.x*dJI.z)+DF*(drJI.x*dr.z);
@@ -699,7 +699,7 @@ void ComputeInterChargeChargeBornTerm(void)
               for(ja=0;ja<Components[TypeMolB].Groups[jg].NumberOfGroupAtoms;ja++)
               {
                 j=Components[TypeMolB].Groups[jg].Atoms[ja];
- 
+
                 if(RigidJ)
                   comB=Cations[CurrentSystem][J].Groups[jg].CenterOfMassPosition;
                 else
@@ -761,7 +761,7 @@ void ComputeInterChargeChargeBornTerm(void)
 
                   // add the contributions to the Born-term
                   BornTerm[CurrentSystem].xxxx+=DDF*drJI.x*dr.x*dr.x*dr.x+2.0*DF*drJI.x*dr.x+DDF*drJI.x*dr.x*dJI.x*dr.x+DF*drJI.x*dJI.x;
-                  BornTerm[CurrentSystem].xxyy+=DDF*drJI.x*dr.x*dr.y*dr.y+0.5*DDF*drJI.x*dr.x*(dJI.y*dr.y+dJI.y*dr.y); 
+                  BornTerm[CurrentSystem].xxyy+=DDF*drJI.x*dr.x*dr.y*dr.y+0.5*DDF*drJI.x*dr.x*(dJI.y*dr.y+dJI.y*dr.y);
                   BornTerm[CurrentSystem].xxzz+=DDF*drJI.x*dr.x*dr.z*dr.z+0.5*DDF*drJI.x*dr.x*(dJI.z*dr.z+dJI.z*dr.z);
                   BornTerm[CurrentSystem].xxyz+=DDF*drJI.x*dr.x*dr.y*dr.z+0.5*DDF*drJI.x*dr.x*(dJI.y*dr.z+dJI.z*dr.y);
                   BornTerm[CurrentSystem].xxzx+=DDF*drJI.x*dr.x*dr.x*dr.z+DF*(drJI.x*dr.z)+0.5*DDF*drJI.x*dr.x*(dJI.x*dr.z+dJI.z*dr.x)+0.5*DF*(drJI.x*dJI.z);

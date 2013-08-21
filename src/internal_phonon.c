@@ -85,7 +85,7 @@ static inline void GradientStrain(REAL *Gradient,REAL f1,VECTOR dr)
           }
           break;
         default:
-          printf("Unknown NPTPRCellType\n");
+          fprintf(stderr, "Unknown NPTPRCellType\n");
           exit(0);
           break;
       }
@@ -151,7 +151,7 @@ static inline void GradientStrainBend(REAL *Gradient,REAL_MATRIX3x3 S)
           }
           break;
         default:
-          printf("Unknown NPTPRCellType\n");
+          fprintf(stderr, "Unknown NPTPRCellType\n");
           exit(0);
           break;
       }
@@ -219,7 +219,7 @@ static inline void GradientStrainTorsion(REAL *Gradient,REAL_MATRIX3x3 S)
           }
           break;
         default:
-          printf("Unknown NPTPRCellType\n");
+          fprintf(stderr, "Unknown NPTPRCellType\n");
           exit(0);
           break;
       }
@@ -390,7 +390,7 @@ void CalculateAdsorbateBondPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX_M
           break;
         default:
           U=DF=DDF=0.0;
-          printf("Undefined Bond potential (Bond Hessian adsorbate)\n");
+          fprintf(stderr, "Undefined Bond potential (Bond Hessian adsorbate)\n");
           exit(0);
           break;
       }
@@ -436,11 +436,11 @@ void CalculateAdsorbateBondPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX_M
       if(ComputeHessian)
       {
         // add contribution to the second derivatives (Hessian matrix)
-        Hessian.ax=DDF*dr.x*dr.x+DF; 
-        Hessian.ay=DDF*dr.x*dr.y; 
-        Hessian.az=DDF*dr.x*dr.z; 
+        Hessian.ax=DDF*dr.x*dr.x+DF;
+        Hessian.ay=DDF*dr.x*dr.y;
+        Hessian.az=DDF*dr.x*dr.z;
         Hessian.by=DDF*dr.y*dr.y+DF;
-        Hessian.bz=DDF*dr.y*dr.z; 
+        Hessian.bz=DDF*dr.y*dr.z;
         Hessian.cz=DDF*dr.z*dr.z+DF;
 
         if(index_i>=0)
@@ -671,7 +671,7 @@ void CalculateCationBondPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX_MATR
           break;
         default:
           U=DF=DDF=0.0;
-          printf("Undefined Bond potential (Bond Hessian adsorbate)\n");
+          fprintf(stderr, "Undefined Bond potential (Bond Hessian adsorbate)\n");
           exit(0);
           break;
       }
@@ -718,11 +718,11 @@ void CalculateCationBondPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX_MATR
       if(ComputeHessian)
       {
         // add contribution to the second derivatives (Hessian matrix)
-        Hessian.ax=DDF*dr.x*dr.x+DF; 
-        Hessian.ay=DDF*dr.x*dr.y; 
-        Hessian.az=DDF*dr.x*dr.z; 
+        Hessian.ax=DDF*dr.x*dr.x+DF;
+        Hessian.ay=DDF*dr.x*dr.y;
+        Hessian.az=DDF*dr.x*dr.z;
         Hessian.by=DDF*dr.y*dr.y+DF;
-        Hessian.bz=DDF*dr.y*dr.z; 
+        Hessian.bz=DDF*dr.y*dr.z;
         Hessian.cz=DDF*dr.z*dr.z+DF;
 
         if(index_i>=0)
@@ -746,7 +746,7 @@ void CalculateCationBondPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX_MATR
         }
 
         if((index_i>=0)&&(index_j>=0))
-        { 
+        {
           if(index_i<index_j)
           {
             HessianMatrix.element[index_i][index_j].re-=phase_factor.re*Hessian.ax;
@@ -975,7 +975,7 @@ void CalculateAdsorbateBendPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX_M
           temp2=SQR(temp);
           U=parms[0]*temp2*(1.0-0.014*temp+5.6e-5*temp2-7.0e-7*temp*temp2+2.2e-8*SQR(temp2));
           DF=parms[0]*RAD2DEG*(2.0-(3.0*0.014-(4.0*5.6e-5-(5.0*7.0e-7-6.0*2.2e-8*temp)*temp)*temp)*temp)*temp*DTDX;
-          printf("TO BE DONE!\n");
+          fprintf(stderr, "TO BE DONE!\n");
           exit(0);
           break;
         case FIXED_BEND:
@@ -986,7 +986,7 @@ void CalculateAdsorbateBendPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX_M
           break;
         default:
           U=DF=DDF=0.0;
-          printf("Undefined Bend potential\n");
+          fprintf(stderr, "Undefined Bend potential\n");
           exit(0);
           break;
       }
@@ -1420,7 +1420,7 @@ void CalculateCationBendPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX_MATR
           temp2=SQR(temp);
           U=parms[0]*temp2*(1.0-0.014*temp+5.6e-5*temp2-7.0e-7*temp*temp2+2.2e-8*SQR(temp2));
           DF=parms[0]*RAD2DEG*(2.0-(3.0*0.014-(4.0*5.6e-5-(5.0*7.0e-7-6.0*2.2e-8*temp)*temp)*temp)*temp)*temp*DTDX;
-          printf("TO BE DONE!\n");
+          fprintf(stderr, "TO BE DONE!\n");
           exit(0);
           break;
         case FIXED_BEND:
@@ -1431,7 +1431,7 @@ void CalculateCationBendPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX_MATR
           break;
         default:
           U=DF=DDF=0.0;
-          printf("Undefined Bend potential\n");
+          fprintf(stderr, "Undefined Bend potential\n");
           exit(0);
           break;
       }
@@ -1937,7 +1937,7 @@ void CalculateAdsorbateTorsionPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLE
           U=DF=DDF=0.0;
           break;
         default:
-          printf("Undefined Torsion potential\n");
+          fprintf(stderr, "Undefined Torsion potential\n");
           U=DF=DDF=0.0;
           exit(0);
           break;
@@ -2262,9 +2262,9 @@ void CalculateAdsorbateTorsionPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLE
           if(index_i<index_l)
           {
             HessianMatrix.element[index_i][index_l].re+=DDF*dtA.x*dtD.x+D2IL.ax;
-            HessianMatrix.element[index_i][index_l+1].re+=DDF*dtA.x*dtD.y+D2IL.ay; 
-            HessianMatrix.element[index_i][index_l+2].re+=DDF*dtA.x*dtD.z+D2IL.az; 
-            HessianMatrix.element[index_i+1][index_l].re+=DDF*dtA.y*dtD.x+D2IL.bx; 
+            HessianMatrix.element[index_i][index_l+1].re+=DDF*dtA.x*dtD.y+D2IL.ay;
+            HessianMatrix.element[index_i][index_l+2].re+=DDF*dtA.x*dtD.z+D2IL.az;
+            HessianMatrix.element[index_i+1][index_l].re+=DDF*dtA.y*dtD.x+D2IL.bx;
             HessianMatrix.element[index_i+1][index_l+1].re+=DDF*dtA.y*dtD.y+D2IL.by;
             HessianMatrix.element[index_i+1][index_l+2].re+=DDF*dtA.y*dtD.z+D2IL.bz;
             HessianMatrix.element[index_i+2][index_l].re+=DDF*dtA.z*dtD.x+D2IL.cx;
@@ -2290,7 +2290,7 @@ void CalculateAdsorbateTorsionPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLE
           if(index_j<index_k)
           {
             HessianMatrix.element[index_j][index_k].re+=DDF*dtB.x*dtC.x+D2JK.ax;
-            HessianMatrix.element[index_j][index_k+1].re+=DDF*dtB.x*dtC.y+D2JK.ay; 
+            HessianMatrix.element[index_j][index_k+1].re+=DDF*dtB.x*dtC.y+D2JK.ay;
             HessianMatrix.element[index_j][index_k+2].re+=DDF*dtB.x*dtC.z+D2JK.az;
             HessianMatrix.element[index_j+1][index_k].re+=DDF*dtB.y*dtC.x+D2JK.bx;
             HessianMatrix.element[index_j+1][index_k+1].re+=DDF*dtB.y*dtC.y+D2JK.by;
@@ -2649,7 +2649,7 @@ void CalculateCationTorsionPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX_M
               +parms[5]*(18.0-288.0*CosPhi2+480.0*SQR(CosPhi2));
           break;
         default:
-          printf("Undefined Torsion potential\n");
+          fprintf(stderr, "Undefined Torsion potential\n");
           U=DF=DDF=0.0;
           exit(0);
           break;
@@ -2974,9 +2974,9 @@ void CalculateCationTorsionPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX_M
           if(index_i<index_l)
           {
             HessianMatrix.element[index_i][index_l].re+=DDF*dtA.x*dtD.x+D2IL.ax;
-            HessianMatrix.element[index_i][index_l+1].re+=DDF*dtA.x*dtD.y+D2IL.ay; 
-            HessianMatrix.element[index_i][index_l+2].re+=DDF*dtA.x*dtD.z+D2IL.az; 
-            HessianMatrix.element[index_i+1][index_l].re+=DDF*dtA.y*dtD.x+D2IL.bx; 
+            HessianMatrix.element[index_i][index_l+1].re+=DDF*dtA.x*dtD.y+D2IL.ay;
+            HessianMatrix.element[index_i][index_l+2].re+=DDF*dtA.x*dtD.z+D2IL.az;
+            HessianMatrix.element[index_i+1][index_l].re+=DDF*dtA.y*dtD.x+D2IL.bx;
             HessianMatrix.element[index_i+1][index_l+1].re+=DDF*dtA.y*dtD.y+D2IL.by;
             HessianMatrix.element[index_i+1][index_l+2].re+=DDF*dtA.y*dtD.z+D2IL.bz;
             HessianMatrix.element[index_i+2][index_l].re+=DDF*dtA.z*dtD.x+D2IL.cx;
@@ -3002,7 +3002,7 @@ void CalculateCationTorsionPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX_M
           if(index_j<index_k)
           {
             HessianMatrix.element[index_j][index_k].re+=DDF*dtB.x*dtC.x+D2JK.ax;
-            HessianMatrix.element[index_j][index_k+1].re+=DDF*dtB.x*dtC.y+D2JK.ay; 
+            HessianMatrix.element[index_j][index_k+1].re+=DDF*dtB.x*dtC.y+D2JK.ay;
             HessianMatrix.element[index_j][index_k+2].re+=DDF*dtB.x*dtC.z+D2JK.az;
             HessianMatrix.element[index_j+1][index_k].re+=DDF*dtB.y*dtC.x+D2JK.bx;
             HessianMatrix.element[index_j+1][index_k+1].re+=DDF*dtB.y*dtC.y+D2JK.by;
@@ -3364,7 +3364,7 @@ void CalculateAdsorbateImproperTorsionPhonon(VECTOR k,REAL *Energy,REAL* Gradien
           U=DF=DDF=0.0;
           break;
         default:
-          printf("Undefined Improper Torsion potential\n");
+          fprintf(stderr, "Undefined Improper Torsion potential\n");
           U=DF=DDF=0.0;
           exit(0);
           break;
@@ -3689,9 +3689,9 @@ void CalculateAdsorbateImproperTorsionPhonon(VECTOR k,REAL *Energy,REAL* Gradien
           if(index_i<index_l)
           {
             HessianMatrix.element[index_i][index_l].re+=DDF*dtA.x*dtD.x+D2IL.ax;
-            HessianMatrix.element[index_i][index_l+1].re+=DDF*dtA.x*dtD.y+D2IL.ay; 
-            HessianMatrix.element[index_i][index_l+2].re+=DDF*dtA.x*dtD.z+D2IL.az; 
-            HessianMatrix.element[index_i+1][index_l].re+=DDF*dtA.y*dtD.x+D2IL.bx; 
+            HessianMatrix.element[index_i][index_l+1].re+=DDF*dtA.x*dtD.y+D2IL.ay;
+            HessianMatrix.element[index_i][index_l+2].re+=DDF*dtA.x*dtD.z+D2IL.az;
+            HessianMatrix.element[index_i+1][index_l].re+=DDF*dtA.y*dtD.x+D2IL.bx;
             HessianMatrix.element[index_i+1][index_l+1].re+=DDF*dtA.y*dtD.y+D2IL.by;
             HessianMatrix.element[index_i+1][index_l+2].re+=DDF*dtA.y*dtD.z+D2IL.bz;
             HessianMatrix.element[index_i+2][index_l].re+=DDF*dtA.z*dtD.x+D2IL.cx;
@@ -3717,7 +3717,7 @@ void CalculateAdsorbateImproperTorsionPhonon(VECTOR k,REAL *Energy,REAL* Gradien
           if(index_j<index_k)
           {
             HessianMatrix.element[index_j][index_k].re+=DDF*dtB.x*dtC.x+D2JK.ax;
-            HessianMatrix.element[index_j][index_k+1].re+=DDF*dtB.x*dtC.y+D2JK.ay; 
+            HessianMatrix.element[index_j][index_k+1].re+=DDF*dtB.x*dtC.y+D2JK.ay;
             HessianMatrix.element[index_j][index_k+2].re+=DDF*dtB.x*dtC.z+D2JK.az;
             HessianMatrix.element[index_j+1][index_k].re+=DDF*dtB.y*dtC.x+D2JK.bx;
             HessianMatrix.element[index_j+1][index_k+1].re+=DDF*dtB.y*dtC.y+D2JK.by;
@@ -4079,7 +4079,7 @@ void CalculateCationImproperTorsionPhonon(VECTOR k,REAL *Energy,REAL* Gradient,C
           U=DF=DDF=0.0;
           break;
         default:
-          printf("Undefined Improper Torsion potential\n");
+          fprintf(stderr, "Undefined Improper Torsion potential\n");
           U=DF=DDF=0.0;
           exit(0);
           break;
@@ -4404,9 +4404,9 @@ void CalculateCationImproperTorsionPhonon(VECTOR k,REAL *Energy,REAL* Gradient,C
           if(index_i<index_l)
           {
             HessianMatrix.element[index_i][index_l].re+=DDF*dtA.x*dtD.x+D2IL.ax;
-            HessianMatrix.element[index_i][index_l+1].re+=DDF*dtA.x*dtD.y+D2IL.ay; 
-            HessianMatrix.element[index_i][index_l+2].re+=DDF*dtA.x*dtD.z+D2IL.az; 
-            HessianMatrix.element[index_i+1][index_l].re+=DDF*dtA.y*dtD.x+D2IL.bx; 
+            HessianMatrix.element[index_i][index_l+1].re+=DDF*dtA.x*dtD.y+D2IL.ay;
+            HessianMatrix.element[index_i][index_l+2].re+=DDF*dtA.x*dtD.z+D2IL.az;
+            HessianMatrix.element[index_i+1][index_l].re+=DDF*dtA.y*dtD.x+D2IL.bx;
             HessianMatrix.element[index_i+1][index_l+1].re+=DDF*dtA.y*dtD.y+D2IL.by;
             HessianMatrix.element[index_i+1][index_l+2].re+=DDF*dtA.y*dtD.z+D2IL.bz;
             HessianMatrix.element[index_i+2][index_l].re+=DDF*dtA.z*dtD.x+D2IL.cx;
@@ -4432,7 +4432,7 @@ void CalculateCationImproperTorsionPhonon(VECTOR k,REAL *Energy,REAL* Gradient,C
           if(index_j<index_k)
           {
             HessianMatrix.element[index_j][index_k].re+=DDF*dtB.x*dtC.x+D2JK.ax;
-            HessianMatrix.element[index_j][index_k+1].re+=DDF*dtB.x*dtC.y+D2JK.ay; 
+            HessianMatrix.element[index_j][index_k+1].re+=DDF*dtB.x*dtC.y+D2JK.ay;
             HessianMatrix.element[index_j][index_k+2].re+=DDF*dtB.x*dtC.z+D2JK.az;
             HessianMatrix.element[index_j+1][index_k].re+=DDF*dtB.y*dtC.x+D2JK.bx;
             HessianMatrix.element[index_j+1][index_k+1].re+=DDF*dtB.y*dtC.y+D2JK.by;

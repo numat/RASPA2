@@ -53,7 +53,7 @@ void MinimalizationSimulation(void)
   ReferenceEnergy=0.0;
   CurrentSystem=0;
 
-  printf("Starting minimization\n");
+  fprintf(stderr, "Starting minimization\n");
 
   OpenOutputFile();
 

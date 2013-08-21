@@ -353,7 +353,7 @@ void CalculateFrameworkBondDipoleEnergyAtPosition(VECTOR posA1,VECTOR posA2,REAL
           }
         }
       }
- 
+
       for(k=0;k<Framework[CurrentSystem].NumberOfBondDipoles[f1];k++)
       {
         DipoleMagnitudeB=Framework[CurrentSystem].BondDipoleMagnitude[f1][k];
@@ -411,7 +411,7 @@ void CalculateFrameworkBondDipoleEnergyAtPosition(VECTOR posA1,VECTOR posA2,REAL
             (*UchargeBondDipole)-=PotentialValueChargeBondDipole(chargeB,dipoleA,dr,sqrt(rr));
         }
       }
- 
+
       for(k=0;k<Framework[CurrentSystem].NumberOfBondDipoles[f1];k++)
       {
         DipoleMagnitudeB=Framework[CurrentSystem].BondDipoleMagnitude[f1][k];
@@ -467,23 +467,23 @@ REAL CalculateFrameworkBondEnergy(int flag,int f2,int atom_id)
       {
         A=Framework[CurrentSystem].Bonds[f1][i].A;
         B=Framework[CurrentSystem].Bonds[f1][i].B;
-  
+
         // if flag is 'false', only execute when atom 'atom_id' is involved
         // else compute total energy
         if(flag||((f1==f2)&&(A==atom_id||B==atom_id)))
         {
           posA=Framework[CurrentSystem].Atoms[f1][A].Position;
           posB=Framework[CurrentSystem].Atoms[f1][B].Position;
-  
+
           dr.x=posA.x-posB.x;
           dr.y=posA.y-posB.y;
           dr.z=posA.z-posB.z;
           dr=ApplyBoundaryCondition(dr);
           rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
           r=sqrt(rr);
-  
+
           parms=(REAL*)&Framework[CurrentSystem].BondArguments[f1][i];
-  
+
           switch(Framework[CurrentSystem].BondType[f1][i])
           {
             case HARMONIC_BOND:
@@ -583,11 +583,11 @@ REAL CalculateFrameworkBondEnergy(int flag,int f2,int atom_id)
               U=0.0;
               break;
             default:
-              printf("Undefined Bond potential in routine 'CalculateFrameworkBondEnergy' ('framework_energy.c')\n");
+              fprintf(stderr, "Undefined Bond potential in routine 'CalculateFrameworkBondEnergy' ('framework_energy.c')\n");
               exit(0);
               break;
           }
-  
+
           // add contribution to the Adsorbate stretch energy
           UHostBond+=U;
         }
@@ -615,23 +615,23 @@ REAL CalculateFrameworkUreyBradleyEnergy(int flag,int f2,int atom_id)
       {
         A=Framework[CurrentSystem].UreyBradleys[f1][i].A;
         C=Framework[CurrentSystem].UreyBradleys[f1][i].C;
-  
+
         // if flag is 'false', only execute when atom 'atom_id' is involved
         // else compute total energy
         if(flag||((f1==f2)&&(A==atom_id||C==atom_id)))
         {
           posA=Framework[CurrentSystem].Atoms[f1][A].Position;
           posC=Framework[CurrentSystem].Atoms[f1][C].Position;
-  
+
           dr.x=posA.x-posC.x;
           dr.y=posA.y-posC.y;
           dr.z=posA.z-posC.z;
           dr=ApplyBoundaryCondition(dr);
           rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
           r=sqrt(rr);
-  
+
           parms=(REAL*)&Framework[CurrentSystem].UreyBradleyArguments[f1][i];
-  
+
           switch(Framework[CurrentSystem].UreyBradleyType[f1][i])
           {
             case HARMONIC_UREYBRADLEY:
@@ -725,11 +725,11 @@ REAL CalculateFrameworkUreyBradleyEnergy(int flag,int f2,int atom_id)
               U=0.0;
               break;
             default:
-              printf("Undefined Urey-Bradley potential in routine 'CalculateFrameworkUreyBradleyEnergy' ('framework_energy.c')\n");
+              fprintf(stderr, "Undefined Urey-Bradley potential in routine 'CalculateFrameworkUreyBradleyEnergy' ('framework_energy.c')\n");
               exit(0);
               break;
           }
-  
+
           // add contribution to the Adsorbate Urey-Bradley energy
           UHostUreyBradley+=U;
         }
@@ -761,7 +761,7 @@ REAL CalculateFrameworkBendEnergy(int flag,int f2,int atom_id)
         B=Framework[CurrentSystem].Bends[f1][i].B;
         C=Framework[CurrentSystem].Bends[f1][i].C;
         D=Framework[CurrentSystem].Bends[f1][i].D;
-  
+
         // if flag is 'false', only execute when atom 'atom_id' is involved
         // else compute total energy
         if(flag||((f1==f2)&&((A==atom_id)||(B==atom_id)||(C==atom_id)||(D==atom_id))))
@@ -769,7 +769,7 @@ REAL CalculateFrameworkBendEnergy(int flag,int f2,int atom_id)
           posA=Framework[CurrentSystem].Atoms[f1][A].Position;
           posB=Framework[CurrentSystem].Atoms[f1][B].Position;
           posC=Framework[CurrentSystem].Atoms[f1][C].Position;
-  
+
           switch(Framework[CurrentSystem].BendType[f1][i])
           {
             case MM3_IN_PLANE_BEND:
@@ -779,23 +779,23 @@ REAL CalculateFrameworkBendEnergy(int flag,int f2,int atom_id)
               Rad.y=posA.y-posD.y;
               Rad.z=posA.z-posD.z;
               Rad=ApplyBoundaryCondition(Rad);
-  
+
               Rbd.x=posB.x-posD.x;
               Rbd.y=posB.y-posD.y;
               Rbd.z=posB.z-posD.z;
               Rbd=ApplyBoundaryCondition(Rbd);
-  
+
               Rcd.x=posC.x-posD.x;
               Rcd.y=posC.y-posD.y;
               Rcd.z=posC.z-posD.z;
               Rcd=ApplyBoundaryCondition(Rcd);
-  
+
               t.x=Rad.y*Rcd.z-Rad.z*Rcd.y;
               t.y=Rad.z*Rcd.x-Rad.x*Rcd.z;
               t.z=Rad.x*Rcd.y-Rad.y*Rcd.x;
               rt2=t.x*t.x+t.y*t.y+t.z*t.z;
               delta=-(t.x*Rbd.x+t.y*Rbd.y+t.z*Rbd.z)/rt2;
-  
+
               ip.x=posB.x+t.x*delta;
               ip.y=posB.y+t.y*delta;
               ip.z=posB.z+t.z*delta;
@@ -807,10 +807,10 @@ REAL CalculateFrameworkBendEnergy(int flag,int f2,int atom_id)
               cp.z=posC.z-ip.z;
               ap=ApplyBoundaryCondition(ap);
               cp=ApplyBoundaryCondition(cp);
-  
+
               rap2=ap.x*ap.x+ap.y*ap.y+ap.z*ap.z;
               rcp2=cp.x*cp.x+cp.y*cp.y+cp.z*cp.z;
-  
+
               CosTheta=(ap.x*cp.x+ap.y*cp.y+ap.z*cp.z)/sqrt(rap2*rcp2);
             break;
             default:
@@ -822,7 +822,7 @@ REAL CalculateFrameworkBendEnergy(int flag,int f2,int atom_id)
               Rab.x/=rab;
               Rab.y/=rab;
               Rab.z/=rab;
-  
+
               Rbc.x=posC.x-posB.x;
               Rbc.y=posC.y-posB.y;
               Rbc.z=posC.z-posB.z;
@@ -831,7 +831,7 @@ REAL CalculateFrameworkBendEnergy(int flag,int f2,int atom_id)
               Rbc.x/=rbc;
               Rbc.y/=rbc;
               Rbc.z/=rbc;
-  
+
               Rac.x=posC.x-posA.x;
               Rac.y=posC.y-posA.y;
               Rac.z=posC.z-posA.z;
@@ -840,18 +840,18 @@ REAL CalculateFrameworkBendEnergy(int flag,int f2,int atom_id)
               Rac.x/=rac;
               Rac.y/=rac;
               Rac.z/=rac;
-  
+
               CosTheta=(Rab.x*Rbc.x+Rab.y*Rbc.y+Rab.z*Rbc.z);
               break;
           }
-  
+
           CosTheta=MIN2(1.0,MAX2(-1.0,CosTheta));
           Theta=acos(CosTheta);
           SinTheta=MAX2((REAL)1.0e-8,sqrt(1.0-SQR(CosTheta)));
           DTDX=-1.0/sqrt(1.0-SQR(CosTheta));
-  
+
           parms=Framework[CurrentSystem].BendArguments[f1][i];
-  
+
           switch(Framework[CurrentSystem].BendType[f1][i])
           {
             case HARMONIC_BEND:
@@ -923,11 +923,11 @@ REAL CalculateFrameworkBendEnergy(int flag,int f2,int atom_id)
               U=0.0;
               break;
             default:
-              printf("Undefined Bend potential in routine 'CalculateFrameworkBendEnergy' ('framework_energy.c')\n");
+              fprintf(stderr, "Undefined Bend potential in routine 'CalculateFrameworkBendEnergy' ('framework_energy.c')\n");
               exit(0);
               break;
           }
-  
+
           // add contribution to the energy
           UHostBend+=U;
         }
@@ -959,7 +959,7 @@ REAL CalculateFrameworkInversionBendEnergy(int flag,int f2,int atom_id)
         B=Framework[CurrentSystem].InversionBends[f1][i].B;
         C=Framework[CurrentSystem].InversionBends[f1][i].C;
         D=Framework[CurrentSystem].InversionBends[f1][i].D;
-  
+
         // if flag is 'false', only execute when atom 'atom_id' is involved
         // else compute total energy
         if(flag||((f1==f2)&&(A==atom_id||B==atom_id||C==atom_id||D==atom_id)))
@@ -968,34 +968,34 @@ REAL CalculateFrameworkInversionBendEnergy(int flag,int f2,int atom_id)
           posB=Framework[CurrentSystem].Atoms[f1][B].Position;
           posC=Framework[CurrentSystem].Atoms[f1][C].Position;
           posD=Framework[CurrentSystem].Atoms[f1][D].Position;
-  
+
           Rab.x=posA.x-posB.x;
           Rab.y=posA.y-posB.y;
           Rab.z=posA.z-posB.z;
           Rab=ApplyBoundaryCondition(Rab);
           rab2=Rab.x*Rab.x+Rab.y*Rab.y+Rab.z*Rab.z;
           rrab=sqrt(rab2);
-  
+
           Rbc.x=posC.x-posB.x;
           Rbc.y=posC.y-posB.y;
           Rbc.z=posC.z-posB.z;
           Rbc=ApplyBoundaryCondition(Rbc);
-  
+
           Rbd.x=posD.x-posB.x;
           Rbd.y=posD.y-posB.y;
           Rbd.z=posD.z-posB.z;
           Rbd=ApplyBoundaryCondition(Rbd);
-  
+
           Rcd.x=posD.x-posC.x;
           Rcd.y=posD.y-posC.y;
           Rcd.z=posD.z-posC.z;
           Rcd=ApplyBoundaryCondition(Rcd);
-  
+
           Rad.x=posD.x-posA.x;
           Rad.y=posD.y-posA.y;
           Rad.z=posD.z-posA.z;
           Rad=ApplyBoundaryCondition(Rad);
-  
+
           switch(Framework[CurrentSystem].InversionBendType[f1][i])
           {
             case HARMONIC_INVERSION:
@@ -1014,19 +1014,19 @@ REAL CalculateFrameworkInversionBendEnergy(int flag,int f2,int atom_id)
               c=(Rcd.x*Rcd.x+Rcd.y*Rcd.y+Rcd.z*Rcd.z)*(Rad.x*Rad.x+Rad.y*Rad.y+Rad.z*Rad.z)-SQR(Rad.x*Rcd.x+Rad.y*Rcd.y+Rad.z*Rcd.z);
               break;
             default:
-              printf("Undefined Inversion-Bend potential in routine 'CalculateFrameworkInversionBendEnergy' ('framework_energy.c')\n");
+              fprintf(stderr, "Undefined Inversion-Bend potential in routine 'CalculateFrameworkInversionBendEnergy' ('framework_energy.c')\n");
               exit(0);
               break;
           }
-  
+
           e=Rab.x*(Rbd.y*Rbc.z-Rbd.z*Rbc.y)+Rab.y*(Rbd.z*Rbc.x-Rbd.x*Rbc.z)+Rab.z*(Rbd.x*Rbc.y-Rbd.y*Rbc.x);
           CosChi=sqrt((Rab.x*Rab.x+Rab.y*Rab.y+Rab.z*Rab.z)-SQR(e)/c)/rrab;
-  
+
           // Ensure CosChi is between -1 and 1.
           CosChi=SIGN(MIN2(fabs(CosChi),(REAL)1.0),CosChi);
-  
+
           parms=Framework[CurrentSystem].InversionBendArguments[f1][i];
-  
+
           switch(Framework[CurrentSystem].InversionBendType[f1][i])
           {
             case HARMONIC_INVERSION:
@@ -1064,11 +1064,11 @@ REAL CalculateFrameworkInversionBendEnergy(int flag,int f2,int atom_id)
               energy=parms[0]*temp2*(1.0-0.014*temp+5.6e-5*temp2-7.0e-7*temp*temp2+2.2e-8*SQR(temp2));
               break;
             default:
-              printf("Undefined Inversion-Bend potential in routine 'CalculateFrameworkInversionBendEnergy' ('framework_energy.c')\n");
+              fprintf(stderr, "Undefined Inversion-Bend potential in routine 'CalculateFrameworkInversionBendEnergy' ('framework_energy.c')\n");
               exit(0);
               break;
           }
-  
+
           // energy
           UHostInversionBend+=energy;
         }
@@ -1100,7 +1100,7 @@ REAL CalculateFrameworkTorsionEnergy(int flag,int f2,int atom_id)
         B=Framework[CurrentSystem].Torsions[f1][i].B;
         C=Framework[CurrentSystem].Torsions[f1][i].C;
         D=Framework[CurrentSystem].Torsions[f1][i].D;
-  
+
         // if flag is 'false', only execute when atom 'atom_id' is involved
         // else compute total energy
         if(flag||((f1==f2)&&(A==atom_id||B==atom_id||C==atom_id||D==atom_id)))
@@ -1109,49 +1109,49 @@ REAL CalculateFrameworkTorsionEnergy(int flag,int f2,int atom_id)
           posB=Framework[CurrentSystem].Atoms[f1][B].Position;
           posC=Framework[CurrentSystem].Atoms[f1][C].Position;
           posD=Framework[CurrentSystem].Atoms[f1][D].Position;
-  
+
           Dab.x=posA.x-posB.x;
           Dab.y=posA.y-posB.y;
           Dab.z=posA.z-posB.z;
           Dab=ApplyBoundaryCondition(Dab);
-  
+
           Dcb.x=posC.x-posB.x;
           Dcb.y=posC.y-posB.y;
           Dcb.z=posC.z-posB.z;
           Dcb=ApplyBoundaryCondition(Dcb);
           rbc=sqrt(SQR(Dcb.x)+SQR(Dcb.y)+SQR(Dcb.z));
           Dcb.x/=rbc; Dcb.y/=rbc; Dcb.z/=rbc;
-  
+
           Ddc.x=posD.x-posC.x;
           Ddc.y=posD.y-posC.y;
           Ddc.z=posD.z-posC.z;
           Ddc=ApplyBoundaryCondition(Ddc);
-  
+
           dot_ab=Dab.x*Dcb.x+Dab.y*Dcb.y+Dab.z*Dcb.z;
           dot_cd=Ddc.x*Dcb.x+Ddc.y*Dcb.y+Ddc.z*Dcb.z;
-  
+
           dr.x=Dab.x-dot_ab*Dcb.x;
           dr.y=Dab.y-dot_ab*Dcb.y;
           dr.z=Dab.z-dot_ab*Dcb.z;
           r=MAX2((REAL)1.0e-8,sqrt(SQR(dr.x)+SQR(dr.y)+SQR(dr.z)));
           dr.x/=r; dr.y/=r; dr.z/=r;
-  
+
           ds.x=Ddc.x-dot_cd*Dcb.x;
           ds.y=Ddc.y-dot_cd*Dcb.y;
           ds.z=Ddc.z-dot_cd*Dcb.z;
           s=MAX2((REAL)1.0e-8,sqrt(SQR(ds.x)+SQR(ds.y)+SQR(ds.z)));
           ds.x/=s; ds.y/=s; ds.z/=s;
-  
+
           // compute Cos(Phi)
           // Phi is defined in protein convention Phi(trans)=Pi
           CosPhi=dr.x*ds.x+dr.y*ds.y+dr.z*ds.z;
-  
+
           // Ensure CosPhi is between -1 and 1.
           CosPhi=SIGN(MIN2(fabs(CosPhi),(REAL)1.0),CosPhi);
           CosPhi2=SQR(CosPhi);
-  
+
           parms=Framework[CurrentSystem].TorsionArguments[f1][i];
-  
+
           switch(Framework[CurrentSystem].TorsionType[f1][i])
           {
             case HARMONIC_DIHEDRAL:
@@ -1300,11 +1300,11 @@ REAL CalculateFrameworkTorsionEnergy(int flag,int f2,int atom_id)
                 2.0*CosPhi*(parms[2]+parms[4]*(4.0*CosPhi2-5.0)))));
               break;
             default:
-              printf("Undefined Torsion potential in routine 'CalculateFrameworkTorsionEnergy' ('framework_energy.c')\n");
+              fprintf(stderr, "Undefined Torsion potential in routine 'CalculateFrameworkTorsionEnergy' ('framework_energy.c')\n");
               exit(0);
               break;
           }
-  
+
           // energy
           UHostTorsion+=U;
         }
@@ -1336,7 +1336,7 @@ REAL CalculateFrameworkImproperTorsionEnergy(int flag,int f2,int atom_id)
         B=Framework[CurrentSystem].ImproperTorsions[f1][i].B;
         C=Framework[CurrentSystem].ImproperTorsions[f1][i].C;
         D=Framework[CurrentSystem].ImproperTorsions[f1][i].D;
-  
+
         // if flag is 'false', only execute when atom 'atom_id' is involved
         // else compute total energy
         if(flag||((f1==f2)&&(A==atom_id||B==atom_id||C==atom_id||D==atom_id)))
@@ -1345,49 +1345,49 @@ REAL CalculateFrameworkImproperTorsionEnergy(int flag,int f2,int atom_id)
           posB=Framework[CurrentSystem].Atoms[f1][B].Position;
           posC=Framework[CurrentSystem].Atoms[f1][C].Position;
           posD=Framework[CurrentSystem].Atoms[f1][D].Position;
-  
+
           Dab.x=posA.x-posB.x;
           Dab.y=posA.y-posB.y;
           Dab.z=posA.z-posB.z;
           Dab=ApplyBoundaryCondition(Dab);
-  
+
           Dcb.x=posC.x-posB.x;
           Dcb.y=posC.y-posB.y;
           Dcb.z=posC.z-posB.z;
           Dcb=ApplyBoundaryCondition(Dcb);
           rbc=sqrt(SQR(Dcb.x)+SQR(Dcb.y)+SQR(Dcb.z));
           Dcb.x/=rbc; Dcb.y/=rbc; Dcb.z/=rbc;
-  
+
           Ddc.x=posD.x-posC.x;
           Ddc.y=posD.y-posC.y;
           Ddc.z=posD.z-posC.z;
           Ddc=ApplyBoundaryCondition(Ddc);
-  
+
           dot_ab=Dab.x*Dcb.x+Dab.y*Dcb.y+Dab.z*Dcb.z;
           dot_cd=Ddc.x*Dcb.x+Ddc.y*Dcb.y+Ddc.z*Dcb.z;
-  
+
           dr.x=Dab.x-dot_ab*Dcb.x;
           dr.y=Dab.y-dot_ab*Dcb.y;
           dr.z=Dab.z-dot_ab*Dcb.z;
           r=sqrt(SQR(dr.x)+SQR(dr.y)+SQR(dr.z));
           dr.x/=r; dr.y/=r; dr.z/=r;
-  
+
           ds.x=Ddc.x-dot_cd*Dcb.x;
           ds.y=Ddc.y-dot_cd*Dcb.y;
           ds.z=Ddc.z-dot_cd*Dcb.z;
           s=sqrt(SQR(ds.x)+SQR(ds.y)+SQR(ds.z));
           ds.x/=s; ds.y/=s; ds.z/=s;
-  
+
           // compute Cos(Phi)
           // Phi is defined in protein convention Phi(trans)=Pi
           CosPhi=dr.x*ds.x+dr.y*ds.y+dr.z*ds.z;
-  
+
           // Ensure CosPhi is between -1 and 1.
           CosPhi=SIGN(MIN2(fabs(CosPhi),(REAL)1.0),CosPhi);
           CosPhi2=SQR(CosPhi);
-  
+
           parms=Framework[CurrentSystem].ImproperTorsionArguments[f1][i];
-  
+
           switch(Framework[CurrentSystem].ImproperTorsionType[f1][i])
           {
             case HARMONIC_IMPROPER_DIHEDRAL:
@@ -1539,11 +1539,11 @@ REAL CalculateFrameworkImproperTorsionEnergy(int flag,int f2,int atom_id)
               U=0.0;
               break;
             default:
-              printf("Undefined Improper-Torsion potential in routine 'CalculateFrameworkImproperTorsionEnergy' ('framework_energy.c')\n");
+              fprintf(stderr, "Undefined Improper-Torsion potential in routine 'CalculateFrameworkImproperTorsionEnergy' ('framework_energy.c')\n");
               exit(0);
               break;
           }
-  
+
           // energy
           UHostImproperTorsion+=U;
         }
@@ -1572,7 +1572,7 @@ REAL CalculateFrameworkBondBondEnergy(int flag,int f2,int atom_id)
         A=Framework[CurrentSystem].BondBonds[f1][i].A;
         B=Framework[CurrentSystem].BondBonds[f1][i].B;
         C=Framework[CurrentSystem].BondBonds[f1][i].C;
-  
+
         // if flag is 'false', only execute when atom 'atom_id' is involved
         // else compute total energy
         if(flag||((f1==f2)&&(A==atom_id||B==atom_id||C==atom_id)))
@@ -1580,21 +1580,21 @@ REAL CalculateFrameworkBondBondEnergy(int flag,int f2,int atom_id)
           posA=Framework[CurrentSystem].Atoms[f1][A].Position;
           posB=Framework[CurrentSystem].Atoms[f1][B].Position;
           posC=Framework[CurrentSystem].Atoms[f1][C].Position;
-  
+
           Rab.x=posA.x-posB.x;
           Rab.y=posA.y-posB.y;
           Rab.z=posA.z-posB.z;
           Rab=ApplyBoundaryCondition(Rab);
           rab=sqrt(SQR(Rab.x)+SQR(Rab.y)+SQR(Rab.z));
-  
+
           Rbc.x=posC.x-posB.x;
           Rbc.y=posC.y-posB.y;
           Rbc.z=posC.z-posB.z;
           Rbc=ApplyBoundaryCondition(Rbc);
           rbc=sqrt(SQR(Rbc.x)+SQR(Rbc.y)+SQR(Rbc.z));
-  
+
           parms=Framework[CurrentSystem].BondBondArguments[f1][i];
-  
+
           switch(Framework[CurrentSystem].BondBondType[f1][i])
           {
             case CVFF_BOND_BOND_CROSS:
@@ -1607,11 +1607,11 @@ REAL CalculateFrameworkBondBondEnergy(int flag,int f2,int atom_id)
               energy=parms[0]*(rab-parms[1])*(rbc-parms[2]);
             break;
             default:
-              printf("Undefined Bond-Bond potential in routine 'CalculateFrameworkBondBondEnergy' ('framework_energy.c')\n");
+              fprintf(stderr, "Undefined Bond-Bond potential in routine 'CalculateFrameworkBondBondEnergy' ('framework_energy.c')\n");
               exit(0);
               break;
           }
-  
+
           // add contribution to the energy
           UHostBondBond+=energy;
         }
@@ -1640,13 +1640,13 @@ REAL CalculateFrameworkBondBendEnergy(int flag,int f2,int atom_id)
         A=Framework[CurrentSystem].BondBends[f1][i].A;
         B=Framework[CurrentSystem].BondBends[f1][i].B;
         C=Framework[CurrentSystem].BondBends[f1][i].C;
-  
+
         if(flag||((f1==f2)&&(A==atom_id||B==atom_id||C==atom_id)))
         {
           posA=Framework[CurrentSystem].Atoms[f1][A].Position;
           posB=Framework[CurrentSystem].Atoms[f1][B].Position;
           posC=Framework[CurrentSystem].Atoms[f1][C].Position;
-  
+
           Rab.x=posA.x-posB.x;
           Rab.y=posA.y-posB.y;
           Rab.z=posA.z-posB.z;
@@ -1655,7 +1655,7 @@ REAL CalculateFrameworkBondBendEnergy(int flag,int f2,int atom_id)
           Rab.x/=rab;
           Rab.y/=rab;
           Rab.z/=rab;
-  
+
           Rbc.x=posC.x-posB.x;
           Rbc.y=posC.y-posB.y;
           Rbc.z=posC.z-posB.z;
@@ -1664,7 +1664,7 @@ REAL CalculateFrameworkBondBendEnergy(int flag,int f2,int atom_id)
           Rbc.x/=rbc;
           Rbc.y/=rbc;
           Rbc.z/=rbc;
-  
+
           Rac.x=posC.x-posA.x;
           Rac.y=posC.y-posA.y;
           Rac.z=posC.z-posA.z;
@@ -1673,14 +1673,14 @@ REAL CalculateFrameworkBondBendEnergy(int flag,int f2,int atom_id)
           Rac.x/=rac;
           Rac.y/=rac;
           Rac.z/=rac;
-  
+
           cost=(Rab.x*Rbc.x+Rab.y*Rbc.y+Rab.z*Rbc.z);
           cost=SIGN(MIN2(fabs(cost),(REAL)1.0),cost);
           theta=acos(cost);
           sint=MAX2((REAL)1.0e-8,sqrt(1.0-SQR(cost)));
-  
+
           parms=Framework[CurrentSystem].BondBendArguments[f1][i];
-  
+
           switch(Framework[CurrentSystem].BondBendType[f1][i])
           {
             case CVFF_BOND_BEND_CROSS:
@@ -1743,11 +1743,11 @@ REAL CalculateFrameworkBondBendEnergy(int flag,int f2,int atom_id)
                     *exp(-(pow(rab,8)+pow(rbc,8))/pow(parms[3],8));
               break;
             default:
-              printf("Undefined Bond-Bend potential in routine 'CalculateFrameworkBondBendEnergy' ('framework_energy.c')\n");
+              fprintf(stderr, "Undefined Bond-Bend potential in routine 'CalculateFrameworkBondBendEnergy' ('framework_energy.c')\n");
               exit(0);
               break;
           }
-  
+
           // energy
           UHostBondBend+=U;
         }
@@ -1781,7 +1781,7 @@ REAL CalculateFrameworkBendBendEnergy(int flag,int f2,int atom_id)
         B=Framework[CurrentSystem].BendBends[f1][i].B;
         C=Framework[CurrentSystem].BendBends[f1][i].C;
         D=Framework[CurrentSystem].BendBends[f1][i].D;
-  
+
         // if flag is 'false', only execute when atom 'atom_id' is involved
         // else compute total energy
         if(flag||((f1==f2)&&(A==atom_id||B==atom_id||C==atom_id||D==atom_id)))
@@ -1790,42 +1790,42 @@ REAL CalculateFrameworkBendBendEnergy(int flag,int f2,int atom_id)
           posB=Framework[CurrentSystem].Atoms[f1][B].Position;
           posC=Framework[CurrentSystem].Atoms[f1][C].Position;
           posD=Framework[CurrentSystem].Atoms[f1][D].Position;
-  
+
           Dab.x=posA.x-posB.x;
           Dab.y=posA.y-posB.y;
           Dab.z=posA.z-posB.z;
           Dab=ApplyBoundaryCondition(Dab);
           rab=sqrt(SQR(Dab.x)+SQR(Dab.y)+SQR(Dab.z));
           Dab.x/=rab; Dab.y/=rab; Dab.z/=rab;
-  
+
           Dbc.x=posC.x-posB.x;
           Dbc.y=posC.y-posB.y;
           Dbc.z=posC.z-posB.z;
           Dbc=ApplyBoundaryCondition(Dbc);
           rbc=sqrt(SQR(Dbc.x)+SQR(Dbc.y)+SQR(Dbc.z));
           Dbc.x/=rbc; Dbc.y/=rbc; Dbc.z/=rbc;
-  
+
           Dbd.x=posD.x-posB.x;
           Dbd.y=posD.y-posB.y;
           Dbd.z=posD.z-posB.z;
           Dbd=ApplyBoundaryCondition(Dbd);
           rbd=sqrt(SQR(Dbd.x)+SQR(Dbd.y)+SQR(Dbd.z));
           Dbd.x/=rbd; Dbd.y/=rbd; Dbd.z/=rbd;
-  
+
           dot_abc=Dab.x*Dbc.x+Dab.y*Dbc.y+Dab.z*Dbc.z;
           CosTheta1=dot_abc;
           CosTheta1=SIGN(MIN2(fabs(CosTheta1),(REAL)1.0),CosTheta1);
           Theta1=acos(CosTheta1);
           SinTheta1=MAX2((REAL)1.0e-8,sqrt(1.0-SQR(CosTheta1)));
-  
+
           dot_abd=Dab.x*Dbd.x+Dab.y*Dbd.y+Dab.z*Dbd.z;
           CosTheta2=dot_abd;
           CosTheta2=SIGN(MIN2(fabs(CosTheta2),(REAL)1.0),CosTheta2);
           Theta2=acos(CosTheta2);
           SinTheta2=MAX2((REAL)1.0e-8,sqrt(1.0-SQR(CosTheta2)));
-  
+
           parms=(REAL*)&Framework[CurrentSystem].BendBendArguments[f1][i];
-  
+
           switch(Framework[CurrentSystem].BendBendType[f1][i])
           {
             case CVFF_BEND_BEND_CROSS:
@@ -1846,7 +1846,7 @@ REAL CalculateFrameworkBendBendEnergy(int flag,int f2,int atom_id)
               U=-parms[0]*SQR(RAD2DEG)*(Theta1-parms[1])*(Theta2-parms[2]);
               break;
             default:
-              printf("Undefined Bend-Bend potential in routine 'CalculateFrameworkBendBendEnergy' ('framework_energy.c')\n");
+              fprintf(stderr, "Undefined Bend-Bend potential in routine 'CalculateFrameworkBendBendEnergy' ('framework_energy.c')\n");
               exit(0);
               break;
           }
@@ -1880,7 +1880,7 @@ REAL CalculateFrameworkBondTorsionEnergy(int flag,int f2,int atom_id)
         B=Framework[CurrentSystem].BondTorsions[f1][i].B;
         C=Framework[CurrentSystem].BondTorsions[f1][i].C;
         D=Framework[CurrentSystem].BondTorsions[f1][i].D;
-  
+
         // if flag is 'false', only execute when atom 'atom_id' is involved
         // else compute total energy
         if(flag||((f1==f2)&&(A==atom_id||B==atom_id||C==atom_id||D==atom_id)))
@@ -1889,51 +1889,51 @@ REAL CalculateFrameworkBondTorsionEnergy(int flag,int f2,int atom_id)
           posB=Framework[CurrentSystem].Atoms[f1][B].Position;
           posC=Framework[CurrentSystem].Atoms[f1][C].Position;
           posD=Framework[CurrentSystem].Atoms[f1][D].Position;
-  
+
           Dab.x=posA.x-posB.x;
           Dab.y=posA.y-posB.y;
           Dab.z=posA.z-posB.z;
           Dab=ApplyBoundaryCondition(Dab);
           rab=sqrt(SQR(Dab.x)+SQR(Dab.y)+SQR(Dab.z));
-  
+
           Dcb.x=posC.x-posB.x;
           Dcb.y=posC.y-posB.y;
           Dcb.z=posC.z-posB.z;
           Dcb=ApplyBoundaryCondition(Dcb);
           rbc=sqrt(SQR(Dcb.x)+SQR(Dcb.y)+SQR(Dcb.z));
           Dcb.x/=rbc; Dcb.y/=rbc; Dcb.z/=rbc;
-  
+
           Ddc.x=posD.x-posC.x;
           Ddc.y=posD.y-posC.y;
           Ddc.z=posD.z-posC.z;
           Ddc=ApplyBoundaryCondition(Ddc);
           rcd=sqrt(SQR(Ddc.x)+SQR(Ddc.y)+SQR(Ddc.z));
-  
+
           dot_ab=Dab.x*Dcb.x+Dab.y*Dcb.y+Dab.z*Dcb.z;
           dot_cd=Ddc.x*Dcb.x+Ddc.y*Dcb.y+Ddc.z*Dcb.z;
-  
+
           dr.x=Dab.x-dot_ab*Dcb.x;
           dr.y=Dab.y-dot_ab*Dcb.y;
           dr.z=Dab.z-dot_ab*Dcb.z;
           r=sqrt(SQR(dr.x)+SQR(dr.y)+SQR(dr.z));
           dr.x/=r; dr.y/=r; dr.z/=r;
-  
+
           ds.x=Ddc.x-dot_cd*Dcb.x;
           ds.y=Ddc.y-dot_cd*Dcb.y;
           ds.z=Ddc.z-dot_cd*Dcb.z;
           s=sqrt(SQR(ds.x)+SQR(ds.y)+SQR(ds.z));
           ds.x/=s; ds.y/=s; ds.z/=s;
-  
+
           // compute Cos(Phi)
           // Phi is defined in protein convention Phi(trans)=Pi
           CosPhi=dr.x*ds.x+dr.y*ds.y+dr.z*ds.z;
-  
+
           // Ensure CosPhi is between -1 and 1.
           CosPhi=SIGN(MIN2(fabs(CosPhi),(REAL)1.0),CosPhi);
           CosPhi2=SQR(CosPhi);
-  
+
           parms=(REAL*)&Framework[CurrentSystem].BondTorsionArguments[f1][i];
-  
+
           switch(Framework[CurrentSystem].BondTorsionType[f1][i])
           {
             case MM3_BOND_TORSION_CROSS:
@@ -1947,11 +1947,11 @@ REAL CalculateFrameworkBondTorsionEnergy(int flag,int f2,int atom_id)
               U=parms[0]*temp*CosPhi+parms[1]*temp*(2.0*CosPhi2-1.0)+parms[2]*temp*(4.0*CosPhi2*CosPhi-3.0*CosPhi);
               break;
             default:
-              printf("Undefined Bond-Torsion potential in routine 'CalculateFrameworkBondTorsionEnergy' ('framework_energy.c')\n");
+              fprintf(stderr, "Undefined Bond-Torsion potential in routine 'CalculateFrameworkBondTorsionEnergy' ('framework_energy.c')\n");
               exit(0);
               break;
           }
-  
+
           // energy
           UHostBondTorsion+=U;
         }
@@ -1984,7 +1984,7 @@ REAL CalculateFrameworkBendTorsionEnergy(int flag,int f2,int atom_id)
         B=Framework[CurrentSystem].BendTorsions[f1][i].B;
         C=Framework[CurrentSystem].BendTorsions[f1][i].C;
         D=Framework[CurrentSystem].BendTorsions[f1][i].D;
-  
+
         // if flag is 'false', only execute when atom 'atom_id' is involved
         // else compute total energy
         if(flag||((f1==f2)&&(A==atom_id||B==atom_id||C==atom_id||D==atom_id)))
@@ -1993,60 +1993,60 @@ REAL CalculateFrameworkBendTorsionEnergy(int flag,int f2,int atom_id)
           posB=Framework[CurrentSystem].Atoms[f1][B].Position;
           posC=Framework[CurrentSystem].Atoms[f1][C].Position;
           posD=Framework[CurrentSystem].Atoms[f1][D].Position;
-  
+
           Dab.x=posA.x-posB.x;
           Dab.y=posA.y-posB.y;
           Dab.z=posA.z-posB.z;
           Dab=ApplyBoundaryCondition(Dab);
           rab=sqrt(SQR(Dab.x)+SQR(Dab.y)+SQR(Dab.z));
-  
+
           Dbc.x=posC.x-posB.x;
           Dbc.y=posC.y-posB.y;
           Dbc.z=posC.z-posB.z;
           Dbc=ApplyBoundaryCondition(Dbc);
           rbc=sqrt(SQR(Dbc.x)+SQR(Dbc.y)+SQR(Dbc.z));
           Dbc.x/=rbc; Dbc.y/=rbc; Dbc.z/=rbc;
-  
+
           Dcd.x=posD.x-posC.x;
           Dcd.y=posD.y-posC.y;
           Dcd.z=posD.z-posC.z;
           Dcd=ApplyBoundaryCondition(Dcd);
           rcd=sqrt(SQR(Dcd.x)+SQR(Dcd.y)+SQR(Dcd.z));
-  
+
           dot_ab=Dab.x*Dbc.x+Dab.y*Dbc.y+Dab.z*Dbc.z;
           CosTheta1=dot_ab/rab;
           CosTheta1=MAX2(MIN2(CosTheta1,(REAL)1.0),-1.0);
           Theta1=acos(CosTheta1);
           SinTheta1=MAX2((REAL)1.0e-8,sqrt(1.0-SQR(CosTheta1)));
-  
+
           dot_cd=Dcd.x*Dbc.x+Dcd.y*Dbc.y+Dcd.z*Dbc.z;
           CosTheta2=-dot_cd/rcd;
           CosTheta2=MAX2(MIN2(CosTheta2,(REAL)1.0),-1.0);
           Theta2=acos(CosTheta2);
           SinTheta2=MAX2((REAL)1.0e-8,sqrt(1.0-SQR(CosTheta2)));
-  
+
           dr.x=Dab.x-dot_ab*Dbc.x;
           dr.y=Dab.y-dot_ab*Dbc.y;
           dr.z=Dab.z-dot_ab*Dbc.z;
           r=MAX2((REAL)1.0e-8,sqrt(SQR(dr.x)+SQR(dr.y)+SQR(dr.z)));
           dr.x/=r; dr.y/=r; dr.z/=r;
-  
+
           ds.x=Dcd.x-dot_cd*Dbc.x;
           ds.y=Dcd.y-dot_cd*Dbc.y;
           ds.z=Dcd.z-dot_cd*Dbc.z;
           s=MAX2((REAL)1.0e-8,sqrt(SQR(ds.x)+SQR(ds.y)+SQR(ds.z)));
           ds.x/=s; ds.y/=s; ds.z/=s;
-  
+
           // compute Cos(Phi)
           // Phi is defined in protein convention Phi(trans)=Pi
           CosPhi=dr.x*ds.x+dr.y*ds.y+dr.z*ds.z;
-  
+
           // Ensure CosPhi is between -1 and 1.
           CosPhi=SIGN(MIN2(fabs(CosPhi),(REAL)1.0),CosPhi);
           CosPhi2=SQR(CosPhi);
-  
+
           parms=(REAL*)&Framework[CurrentSystem].BendTorsionArguments[f1][i];
-  
+
           switch(Framework[CurrentSystem].BendTorsionType[f1][i])
           {
             case CVFF_BEND_TORSION_CROSS:
@@ -2120,11 +2120,11 @@ REAL CalculateFrameworkBendTorsionEnergy(int flag,int f2,int atom_id)
               U=parms[0]*(Theta1-parms[1])*(Theta2-parms[2])*CosPhi*Smoothing(Theta1)*Smoothing(Theta2);
               break;
             default:
-              printf("Undefined Bend-Torsion potential in routine 'CalculateFrameworkBendTorsionEnergy' ('framework_energy.c')\n");
+              fprintf(stderr, "Undefined Bend-Torsion potential in routine 'CalculateFrameworkBendTorsionEnergy' ('framework_energy.c')\n");
               exit(0);
               break;
           }
-  
+
           // energy
           UHostBendTorsion+=U;
         }
@@ -2413,7 +2413,7 @@ int CalculateFrameworkIntraChargeBondDipoleEnergy(void)
             {
               posB=Framework[CurrentSystem].Atoms[f1][j].Position;
               chargeB=Framework[CurrentSystem].Atoms[f1][j].Charge;
-  
+
               dr.x=posA.x-posB.x;
               dr.y=posA.y-posB.y;
               dr.z=posA.z-posB.z;
@@ -2461,7 +2461,7 @@ int CalculateFrameworkIntraChargeBondDipoleEnergy(void)
             {
               posB=Framework[CurrentSystem].Atoms[f2][j].Position;
               chargeB=Framework[CurrentSystem].Atoms[f2][j].Charge;
-  
+
               dr.x=posA.x-posB.x;
               dr.y=posA.y-posB.y;
               dr.z=posA.z-posB.z;
@@ -2490,7 +2490,7 @@ int CalculateFrameworkIntraBondDipoleBondDipoleEnergy(void)
   REAL DipoleMagnitudeA,DipoleMagnitudeB;
   REAL_MATRIX3x3 v;
 
-  Bt1=Bt2=0.0;  
+  Bt1=Bt2=0.0;
   v.ax=v.bx=v.cx=0.0;
   v.ay=v.by=v.cy=0.0;
   v.az=v.bz=v.cz=0.0;
@@ -2642,7 +2642,7 @@ int CalculateFrameworkAdsorbateVDWEnergy(void)
       {
         UHostAdsorbateVDW[CurrentSystem]+=InterpolateVDWGrid(typeA,posA);
       }
-      else 
+      else
       {
         if(UseCellLists[CurrentSystem])
         {
@@ -2954,7 +2954,7 @@ int CalculateFrameworkAdsorbateChargeBondDipoleEnergy(void)
   UHostAdsorbateChargeBondDipoleReal[CurrentSystem]=0.0;
   if(ChargeMethod==NONE) return 0;
 
-  Bt0=Bt1=0.0;  
+  Bt0=Bt1=0.0;
   v.ax=v.bx=v.cx=0.0;
   v.ay=v.by=v.cy=0.0;
   v.az=v.bz=v.cz=0.0;
@@ -2989,7 +2989,7 @@ int CalculateFrameworkAdsorbateChargeBondDipoleEnergy(void)
           {
             posB=Adsorbates[CurrentSystem][j].Atoms[k].Position;
             chargeB=Adsorbates[CurrentSystem][j].Atoms[k].Charge;
-  
+
             dr.x=posA.x-posB.x;
             dr.y=posA.y-posB.y;
             dr.z=posA.z-posB.z;
@@ -3064,7 +3064,7 @@ int CalculateFrameworkCationChargeBondDipoleEnergy(void)
   UHostCationChargeBondDipoleReal[CurrentSystem]=0.0;
   if(ChargeMethod==NONE) return 0;
 
-  Bt0=Bt1=0.0;  
+  Bt0=Bt1=0.0;
   v.ax=v.bx=v.cx=0.0;
   v.ay=v.by=v.cy=0.0;
   v.az=v.bz=v.cz=0.0;
@@ -3099,7 +3099,7 @@ int CalculateFrameworkCationChargeBondDipoleEnergy(void)
           {
             posB=Cations[CurrentSystem][j].Atoms[k].Position;
             chargeB=Cations[CurrentSystem][j].Atoms[k].Charge;
-  
+
             dr.x=posA.x-posB.x;
             dr.y=posA.y-posB.y;
             dr.z=posA.z-posB.z;
@@ -5212,7 +5212,7 @@ int CalculateFrameworkCationVDWEnergyDifference(int m,int comp,int New,int Old)
  *            | New: whether or not to compute the charge-charge energy of the new positions stored in   *
  *            |      'TrialPosition'                                                                     *
  *            | False: whether or not to compute the charge-charge energy of the old positions of        *
- *            |        molecule 'm'                                                                      * 
+ *            |        molecule 'm'                                                                      *
  * Note       |                                                                                          *
  * Used       | int TranslationMoveAdsorbate(void)                                                       *
  *            | int RandomTranslationMoveAdsorbate(void)                                                 *
@@ -5364,7 +5364,7 @@ int CalculateFrameworkAdsorbateChargeChargeEnergyDifference(int m,int comp,int N
  *            | New: whether or not to compute the charge-charge energy of the new positions stored in   *
  *            |      'TrialPosition'                                                                     *
  *            | False: whether or not to compute the charge-charge energy of the old positions of        *
- *            |        molecule 'm'                                                                      * 
+ *            |        molecule 'm'                                                                      *
  * Note       |                                                                                          *
  * Used       | int TranslationMoveAdsorbate(void)                                                       *
  *            | int RandomTranslationMoveAdsorbate(void)                                                 *
@@ -5510,7 +5510,7 @@ int CalculateFrameworkCationChargeChargeEnergyDifference(int m,int comp,int New,
  *            | New: whether or not to compute the charge-bonddipole energy of the new positions stored  *
  *            |      in 'TrialPosition'                                                                  *
  *            | False: whether or not to compute the charge-bonddipole energy of the old positions of    *
- *            |        molecule 'm'                                                                      * 
+ *            |        molecule 'm'                                                                      *
  * Note       |                                                                                          *
  * Used       | int TranslationMoveAdsorbate(void)                                                       *
  *            | int RandomTranslationMoveAdsorbate(void)                                                 *
@@ -5552,7 +5552,7 @@ int CalculateFrameworkAdsorbateChargeBondDipoleEnergyDifference(int m,int comp,i
           chargeA_old=Adsorbates[CurrentSystem][m].Atoms[j].CFChargeScalingParameter*Adsorbates[CurrentSystem][m].Atoms[j].Charge;
           posA_old=Adsorbates[CurrentSystem][m].Atoms[j].Position;
         }
-    
+
         for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
         {
           for(k=0;k<Framework[CurrentSystem].NumberOfBondDipoles[f1];k++)
@@ -5562,7 +5562,7 @@ int CalculateFrameworkAdsorbateChargeBondDipoleEnergyDifference(int m,int comp,i
             B2=Framework[CurrentSystem].BondDipoles[f1][k].B;
             posB1=Framework[CurrentSystem].Atoms[f1][B1].Position;
             posB2=Framework[CurrentSystem].Atoms[f1][B2].Position;
-    
+
             dipoleB.x=posB2.x-posB1.x;
             dipoleB.y=posB2.y-posB1.y;
             dipoleB.z=posB2.z-posB1.z;
@@ -5584,12 +5584,12 @@ int CalculateFrameworkAdsorbateChargeBondDipoleEnergyDifference(int m,int comp,i
                 dr.z=posA_new.z-(posB.z+ReplicaShift[ncell].z);;
                 dr=ApplyReplicaBoundaryCondition(dr);
                 rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-      
+
                 if(rr<CutOffChargeBondDipoleSquared)
                   UHostChargeBondDipoleRealDelta[CurrentSystem]+=PotentialValueChargeBondDipole(chargeA_new,dipoleB,dr,sqrt(rr));
               }
             }
-      
+
             if(Old)
             {
               for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
@@ -5599,7 +5599,7 @@ int CalculateFrameworkAdsorbateChargeBondDipoleEnergyDifference(int m,int comp,i
                 dr.z=posA_old.z-(posB.z+ReplicaShift[ncell].z);
                 dr=ApplyReplicaBoundaryCondition(dr);
                 rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-      
+
                 if(rr<CutOffChargeBondDipoleSquared)
                   UHostChargeBondDipoleRealDelta[CurrentSystem]-=PotentialValueChargeBondDipole(chargeA_old,dipoleB,dr,sqrt(rr));
               }
@@ -5607,15 +5607,15 @@ int CalculateFrameworkAdsorbateChargeBondDipoleEnergyDifference(int m,int comp,i
           }
         }
       }
-    
+
       for(j=0;j<Components[comp].NumberOfBondDipoles;j++)
       {
         A1=Components[comp].BondDipoles[j].A;
         A2=Components[comp].BondDipoles[j].B;
         DipoleMagnitudeA=Components[comp].BondDipoleMagnitude[j];
- 
+
         if(New)
-        { 
+        {
           posA1=TrialPosition[CurrentSystem][A1];
           posA2=TrialPosition[CurrentSystem][A2];
           scalingA1=CFChargeScaling[A1];
@@ -5631,9 +5631,9 @@ int CalculateFrameworkAdsorbateChargeBondDipoleEnergyDifference(int m,int comp,i
           temp=0.5*(scalingA1*scalingA2)*DipoleMagnitudeA/length;
           dipoleA_new.x*=temp; dipoleA_new.y*=temp; dipoleA_new.z*=temp;
         }
- 
+
         if(Old)
-        { 
+        {
           posA1=Adsorbates[CurrentSystem][m].Atoms[A1].Position;
           posA2=Adsorbates[CurrentSystem][m].Atoms[A2].Position;
           scalingA1=Adsorbates[CurrentSystem][m].Atoms[A1].CFChargeScalingParameter;
@@ -5649,20 +5649,20 @@ int CalculateFrameworkAdsorbateChargeBondDipoleEnergyDifference(int m,int comp,i
           temp=0.5*(scalingA1+scalingA2)*DipoleMagnitudeA/length;
           dipoleA_old.x*=temp; dipoleA_old.y*=temp; dipoleA_old.z*=temp;
         }
-    
+
         for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
         {
           for(k=0;k<Framework[CurrentSystem].NumberOfAtoms[f1];k++)
           {
             Type=Framework[CurrentSystem].Atoms[f1][k].Type;
-    
+
             if(PseudoAtoms[Type].HasCharges)
             {
               posB=Framework[CurrentSystem].Atoms[f1][k].Position;
               chargeB=Framework[CurrentSystem].Atoms[f1][k].Charge;
- 
+
               if(New)
-              { 
+              {
                 for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
                 {
                   dr.x=posA_new.x-(posB.x+ReplicaShift[ncell].x);
@@ -5670,14 +5670,14 @@ int CalculateFrameworkAdsorbateChargeBondDipoleEnergyDifference(int m,int comp,i
                   dr.z=posA_new.z-(posB.z+ReplicaShift[ncell].z);
                   dr=ApplyReplicaBoundaryCondition(dr);
                   rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-      
+
                   if(rr<CutOffChargeBondDipoleSquared)
                     UHostChargeBondDipoleRealDelta[CurrentSystem]-=PotentialValueChargeBondDipole(chargeB,dipoleA_new,dr,sqrt(rr));
                 }
               }
-      
+
               if(Old)
-              { 
+              {
                 for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
                 {
                   dr.x=posA_old.x-(posB.x+ReplicaShift[ncell].x);
@@ -5685,7 +5685,7 @@ int CalculateFrameworkAdsorbateChargeBondDipoleEnergyDifference(int m,int comp,i
                   dr.z=posA_old.z-(posB.z+ReplicaShift[ncell].z);
                   dr=ApplyReplicaBoundaryCondition(dr);
                   rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-       
+
                   if(rr<CutOffChargeBondDipoleSquared)
                     UHostChargeBondDipoleRealDelta[CurrentSystem]+=PotentialValueChargeBondDipole(chargeB,dipoleA_old,dr,sqrt(rr));
                 }
@@ -5710,7 +5710,7 @@ int CalculateFrameworkAdsorbateChargeBondDipoleEnergyDifference(int m,int comp,i
           chargeA_old=Adsorbates[CurrentSystem][m].Atoms[j].CFChargeScalingParameter*Adsorbates[CurrentSystem][m].Atoms[j].Charge;
           posA_old=Adsorbates[CurrentSystem][m].Atoms[j].Position;
         }
-    
+
         for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
         {
           for(k=0;k<Framework[CurrentSystem].NumberOfBondDipoles[f1];k++)
@@ -5720,7 +5720,7 @@ int CalculateFrameworkAdsorbateChargeBondDipoleEnergyDifference(int m,int comp,i
             B2=Framework[CurrentSystem].BondDipoles[f1][k].B;
             posB1=Framework[CurrentSystem].Atoms[f1][B1].Position;
             posB2=Framework[CurrentSystem].Atoms[f1][B2].Position;
-    
+
             dipoleB.x=posB2.x-posB1.x;
             dipoleB.y=posB2.y-posB1.y;
             dipoleB.z=posB2.z-posB1.z;
@@ -5732,42 +5732,42 @@ int CalculateFrameworkAdsorbateChargeBondDipoleEnergyDifference(int m,int comp,i
             length=sqrt(rk2);
             temp=DipoleMagnitudeB/length;
             dipoleB.x*=temp; dipoleB.y*=temp; dipoleB.z*=temp;
- 
+
             if(New)
-            { 
+            {
               dr.x=posA_new.x-posB.x;
               dr.y=posA_new.y-posB.y;
               dr.z=posA_new.z-posB.z;
               dr=ApplyBoundaryCondition(dr);
               rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-    
+
               if(rr<CutOffChargeBondDipoleSquared)
                 UHostChargeBondDipoleRealDelta[CurrentSystem]+=PotentialValueChargeBondDipole(chargeA_new,dipoleB,dr,sqrt(rr));
             }
- 
+
             if(Old)
-            { 
+            {
               dr.x=posA_old.x-posB.x;
               dr.y=posA_old.y-posB.y;
               dr.z=posA_old.z-posB.z;
               dr=ApplyBoundaryCondition(dr);
               rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-    
+
               if(rr<CutOffChargeBondDipoleSquared)
                 UHostChargeBondDipoleRealDelta[CurrentSystem]-=PotentialValueChargeBondDipole(chargeA_old,dipoleB,dr,sqrt(rr));
             }
           }
         }
       }
-    
+
       for(j=0;j<Components[comp].NumberOfBondDipoles;j++)
       {
         A1=Components[comp].BondDipoles[j].A;
         A2=Components[comp].BondDipoles[j].B;
         DipoleMagnitudeA=Components[comp].BondDipoleMagnitude[j];
- 
+
         if(New)
-        { 
+        {
           posA1=TrialPosition[CurrentSystem][A1];
           posA2=TrialPosition[CurrentSystem][A2];
           scalingA1=CFChargeScaling[A1];
@@ -5785,7 +5785,7 @@ int CalculateFrameworkAdsorbateChargeBondDipoleEnergyDifference(int m,int comp,i
         }
 
         if(Old)
-        {  
+        {
           posA1=Adsorbates[CurrentSystem][m].Atoms[A1].Position;
           posA2=Adsorbates[CurrentSystem][m].Atoms[A2].Position;
           scalingA1=Adsorbates[CurrentSystem][m].Atoms[A1].CFChargeScalingParameter;
@@ -5801,38 +5801,38 @@ int CalculateFrameworkAdsorbateChargeBondDipoleEnergyDifference(int m,int comp,i
           temp=0.5*(scalingA1+scalingA2)*DipoleMagnitudeA/length;
           dipoleA_old.x*=temp; dipoleA_old.y*=temp; dipoleA_old.z*=temp;
         }
-    
+
         for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
         {
           for(k=0;k<Framework[CurrentSystem].NumberOfAtoms[f1];k++)
           {
             Type=Framework[CurrentSystem].Atoms[f1][k].Type;
-    
+
             if(PseudoAtoms[Type].HasCharges)
             {
               posB=Framework[CurrentSystem].Atoms[f1][k].Position;
               chargeB=Framework[CurrentSystem].Atoms[f1][k].Charge;
- 
+
               if(New)
-              { 
+              {
                 dr.x=posA_new.x-posB.x;
                 dr.y=posA_new.y-posB.y;
                 dr.z=posA_new.z-posB.z;
                 dr=ApplyBoundaryCondition(dr);
                 rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-    
+
                 if(rr<CutOffChargeBondDipoleSquared)
                   UHostChargeBondDipoleRealDelta[CurrentSystem]-=PotentialValueChargeBondDipole(chargeB,dipoleA_new,dr,sqrt(rr));
               }
-    
+
               if(Old)
-              { 
+              {
                 dr.x=posA_old.x-posB.x;
                 dr.y=posA_old.y-posB.y;
                 dr.z=posA_old.z-posB.z;
                 dr=ApplyBoundaryCondition(dr);
                 rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-     
+
                 if(rr<CutOffChargeBondDipoleSquared)
                   UHostChargeBondDipoleRealDelta[CurrentSystem]+=PotentialValueChargeBondDipole(chargeB,dipoleA_new,dr,sqrt(rr));
               }
@@ -5861,7 +5861,7 @@ int CalculateFrameworkAdsorbateChargeBondDipoleEnergyDifference(int m,int comp,i
  *            | New: whether or not to compute the charge-bonddipole energy of the new positions stored  *
  *            |      in 'TrialPosition'                                                                  *
  *            | False: whether or not to compute the charge-bonddipole energy of the old positions of    *
- *            |        molecule 'm'                                                                      * 
+ *            |        molecule 'm'                                                                      *
  * Note       |                                                                                          *
  * Used       | int TranslationMoveCation(void)                                                          *
  *            | int RandomTranslationMoveCation(void)                                                    *
@@ -5903,7 +5903,7 @@ int CalculateFrameworkCationChargeBondDipoleEnergyDifference(int m,int comp,int 
           chargeA_old=Cations[CurrentSystem][m].Atoms[j].CFChargeScalingParameter*Cations[CurrentSystem][m].Atoms[j].Charge;
           posA_old=Cations[CurrentSystem][m].Atoms[j].Position;
         }
-    
+
         for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
         {
           for(k=0;k<Framework[CurrentSystem].NumberOfBondDipoles[f1];k++)
@@ -5913,7 +5913,7 @@ int CalculateFrameworkCationChargeBondDipoleEnergyDifference(int m,int comp,int 
             B2=Framework[CurrentSystem].BondDipoles[f1][k].B;
             posB1=Framework[CurrentSystem].Atoms[f1][B1].Position;
             posB2=Framework[CurrentSystem].Atoms[f1][B2].Position;
-    
+
             dipoleB.x=posB2.x-posB1.x;
             dipoleB.y=posB2.y-posB1.y;
             dipoleB.z=posB2.z-posB1.z;
@@ -5935,12 +5935,12 @@ int CalculateFrameworkCationChargeBondDipoleEnergyDifference(int m,int comp,int 
                 dr.z=posA_new.z-(posB.z+ReplicaShift[ncell].z);;
                 dr=ApplyReplicaBoundaryCondition(dr);
                 rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-      
+
                 if(rr<CutOffChargeBondDipoleSquared)
                   UHostChargeBondDipoleRealDelta[CurrentSystem]+=PotentialValueChargeBondDipole(chargeA_new,dipoleB,dr,sqrt(rr));
               }
             }
-      
+
             if(Old)
             {
               for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
@@ -5950,7 +5950,7 @@ int CalculateFrameworkCationChargeBondDipoleEnergyDifference(int m,int comp,int 
                 dr.z=posA_old.z-(posB.z+ReplicaShift[ncell].z);
                 dr=ApplyReplicaBoundaryCondition(dr);
                 rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-      
+
                 if(rr<CutOffChargeBondDipoleSquared)
                   UHostChargeBondDipoleRealDelta[CurrentSystem]-=PotentialValueChargeBondDipole(chargeA_old,dipoleB,dr,sqrt(rr));
               }
@@ -5958,15 +5958,15 @@ int CalculateFrameworkCationChargeBondDipoleEnergyDifference(int m,int comp,int 
           }
         }
       }
-    
+
       for(j=0;j<Components[comp].NumberOfBondDipoles;j++)
       {
         A1=Components[comp].BondDipoles[j].A;
         A2=Components[comp].BondDipoles[j].B;
         DipoleMagnitudeA=Components[comp].BondDipoleMagnitude[j];
- 
+
         if(New)
-        { 
+        {
           posA1=TrialPosition[CurrentSystem][A1];
           posA2=TrialPosition[CurrentSystem][A2];
           scalingA1=CFChargeScaling[A1];
@@ -5982,9 +5982,9 @@ int CalculateFrameworkCationChargeBondDipoleEnergyDifference(int m,int comp,int 
           temp=0.5*(scalingA1*scalingA2)*DipoleMagnitudeA/length;
           dipoleA_new.x*=temp; dipoleA_new.y*=temp; dipoleA_new.z*=temp;
         }
- 
+
         if(Old)
-        { 
+        {
           posA1=Cations[CurrentSystem][m].Atoms[A1].Position;
           posA2=Cations[CurrentSystem][m].Atoms[A2].Position;
           scalingA1=Cations[CurrentSystem][m].Atoms[A1].CFChargeScalingParameter;
@@ -6000,20 +6000,20 @@ int CalculateFrameworkCationChargeBondDipoleEnergyDifference(int m,int comp,int 
           temp=0.5*(scalingA1+scalingA2)*DipoleMagnitudeA/length;
           dipoleA_old.x*=temp; dipoleA_old.y*=temp; dipoleA_old.z*=temp;
         }
-    
+
         for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
         {
           for(k=0;k<Framework[CurrentSystem].NumberOfAtoms[f1];k++)
           {
             Type=Framework[CurrentSystem].Atoms[f1][k].Type;
-    
+
             if(PseudoAtoms[Type].HasCharges)
             {
               posB=Framework[CurrentSystem].Atoms[f1][k].Position;
               chargeB=Framework[CurrentSystem].Atoms[f1][k].Charge;
- 
+
               if(New)
-              { 
+              {
                 for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
                 {
                   dr.x=posA_new.x-(posB.x+ReplicaShift[ncell].x);
@@ -6021,14 +6021,14 @@ int CalculateFrameworkCationChargeBondDipoleEnergyDifference(int m,int comp,int 
                   dr.z=posA_new.z-(posB.z+ReplicaShift[ncell].z);
                   dr=ApplyReplicaBoundaryCondition(dr);
                   rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-      
+
                   if(rr<CutOffChargeBondDipoleSquared)
                     UHostChargeBondDipoleRealDelta[CurrentSystem]-=PotentialValueChargeBondDipole(chargeB,dipoleA_new,dr,sqrt(rr));
                 }
               }
-      
+
               if(Old)
-              { 
+              {
                 for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
                 {
                   dr.x=posA_old.x-(posB.x+ReplicaShift[ncell].x);
@@ -6036,7 +6036,7 @@ int CalculateFrameworkCationChargeBondDipoleEnergyDifference(int m,int comp,int 
                   dr.z=posA_old.z-(posB.z+ReplicaShift[ncell].z);
                   dr=ApplyReplicaBoundaryCondition(dr);
                   rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-       
+
                   if(rr<CutOffChargeBondDipoleSquared)
                     UHostChargeBondDipoleRealDelta[CurrentSystem]+=PotentialValueChargeBondDipole(chargeB,dipoleA_old,dr,sqrt(rr));
                 }
@@ -6061,7 +6061,7 @@ int CalculateFrameworkCationChargeBondDipoleEnergyDifference(int m,int comp,int 
           chargeA_old=Cations[CurrentSystem][m].Atoms[j].CFChargeScalingParameter*Cations[CurrentSystem][m].Atoms[j].Charge;
           posA_old=Cations[CurrentSystem][m].Atoms[j].Position;
         }
-    
+
         for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
         {
           for(k=0;k<Framework[CurrentSystem].NumberOfBondDipoles[f1];k++)
@@ -6071,7 +6071,7 @@ int CalculateFrameworkCationChargeBondDipoleEnergyDifference(int m,int comp,int 
             B2=Framework[CurrentSystem].BondDipoles[f1][k].B;
             posB1=Framework[CurrentSystem].Atoms[f1][B1].Position;
             posB2=Framework[CurrentSystem].Atoms[f1][B2].Position;
-    
+
             dipoleB.x=posB2.x-posB1.x;
             dipoleB.y=posB2.y-posB1.y;
             dipoleB.z=posB2.z-posB1.z;
@@ -6083,42 +6083,42 @@ int CalculateFrameworkCationChargeBondDipoleEnergyDifference(int m,int comp,int 
             length=sqrt(rk2);
             temp=DipoleMagnitudeB/length;
             dipoleB.x*=temp; dipoleB.y*=temp; dipoleB.z*=temp;
- 
+
             if(New)
-            { 
+            {
               dr.x=posA_new.x-posB.x;
               dr.y=posA_new.y-posB.y;
               dr.z=posA_new.z-posB.z;
               dr=ApplyBoundaryCondition(dr);
               rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-    
+
               if(rr<CutOffChargeBondDipoleSquared)
                 UHostChargeBondDipoleRealDelta[CurrentSystem]+=PotentialValueChargeBondDipole(chargeA_new,dipoleB,dr,sqrt(rr));
             }
- 
+
             if(Old)
-            { 
+            {
               dr.x=posA_old.x-posB.x;
               dr.y=posA_old.y-posB.y;
               dr.z=posA_old.z-posB.z;
               dr=ApplyBoundaryCondition(dr);
               rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-    
+
               if(rr<CutOffChargeBondDipoleSquared)
                 UHostChargeBondDipoleRealDelta[CurrentSystem]-=PotentialValueChargeBondDipole(chargeA_old,dipoleB,dr,sqrt(rr));
             }
           }
         }
       }
-    
+
       for(j=0;j<Components[comp].NumberOfBondDipoles;j++)
       {
         A1=Components[comp].BondDipoles[j].A;
         A2=Components[comp].BondDipoles[j].B;
         DipoleMagnitudeA=Components[comp].BondDipoleMagnitude[j];
- 
+
         if(New)
-        { 
+        {
           posA1=TrialPosition[CurrentSystem][A1];
           posA2=TrialPosition[CurrentSystem][A2];
           scalingA1=CFChargeScaling[A1];
@@ -6136,7 +6136,7 @@ int CalculateFrameworkCationChargeBondDipoleEnergyDifference(int m,int comp,int 
         }
 
         if(Old)
-        {  
+        {
           posA1=Cations[CurrentSystem][m].Atoms[A1].Position;
           posA2=Cations[CurrentSystem][m].Atoms[A2].Position;
           scalingA1=Cations[CurrentSystem][m].Atoms[A1].CFChargeScalingParameter;
@@ -6152,38 +6152,38 @@ int CalculateFrameworkCationChargeBondDipoleEnergyDifference(int m,int comp,int 
           temp=0.5*(scalingA1+scalingA2)*DipoleMagnitudeA/length;
           dipoleA_old.x*=temp; dipoleA_old.y*=temp; dipoleA_old.z*=temp;
         }
-    
+
         for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
         {
           for(k=0;k<Framework[CurrentSystem].NumberOfAtoms[f1];k++)
           {
             Type=Framework[CurrentSystem].Atoms[f1][k].Type;
-    
+
             if(PseudoAtoms[Type].HasCharges)
             {
               posB=Framework[CurrentSystem].Atoms[f1][k].Position;
               chargeB=Framework[CurrentSystem].Atoms[f1][k].Charge;
- 
+
               if(New)
-              { 
+              {
                 dr.x=posA_new.x-posB.x;
                 dr.y=posA_new.y-posB.y;
                 dr.z=posA_new.z-posB.z;
                 dr=ApplyBoundaryCondition(dr);
                 rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-    
+
                 if(rr<CutOffChargeBondDipoleSquared)
                   UHostChargeBondDipoleRealDelta[CurrentSystem]-=PotentialValueChargeBondDipole(chargeB,dipoleA_new,dr,sqrt(rr));
               }
-    
+
               if(Old)
-              { 
+              {
                 dr.x=posA_old.x-posB.x;
                 dr.y=posA_old.y-posB.y;
                 dr.z=posA_old.z-posB.z;
                 dr=ApplyBoundaryCondition(dr);
                 rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-     
+
                 if(rr<CutOffChargeBondDipoleSquared)
                   UHostChargeBondDipoleRealDelta[CurrentSystem]+=PotentialValueChargeBondDipole(chargeB,dipoleA_new,dr,sqrt(rr));
               }
@@ -6212,7 +6212,7 @@ int CalculateFrameworkCationChargeBondDipoleEnergyDifference(int m,int comp,int 
  *            | New: whether or not to compute the bonddipole-bonddipole energy of the new positions     *
  *            |      stored in 'TrialPosition'                                                           *
  *            | False: whether or not to compute the bonddipole-bonddipole energy of the old positions   *
- *            |        of molecule 'm'                                                                   * 
+ *            |        of molecule 'm'                                                                   *
  * Note       |                                                                                          *
  * Used       | int TranslationMoveAdsorbate(void)                                                       *
  *            | int RandomTranslationMoveAdsorbate(void)                                                 *
@@ -6247,9 +6247,9 @@ int CalculateFrameworkAdsorbateBondDipoleBondDipoleEnergyDifference(int m,int co
         A1=Components[comp].BondDipoles[j].A;
         A2=Components[comp].BondDipoles[j].B;
         DipoleMagnitudeA=Components[comp].BondDipoleMagnitude[j];
- 
+
         if(New)
-        { 
+        {
           posA1=TrialPosition[CurrentSystem][A1];
           posA2=TrialPosition[CurrentSystem][A2];
           scalingA1=CFChargeScaling[A1];
@@ -6265,9 +6265,9 @@ int CalculateFrameworkAdsorbateBondDipoleBondDipoleEnergyDifference(int m,int co
           temp=0.5*(scalingA1+scalingA2)*DipoleMagnitudeA/length;
           dipoleA_new.x*=temp; dipoleA_new.y*=temp; dipoleA_new.z*=temp;
         }
-    
+
         if(Old)
-        { 
+        {
           posA1=Adsorbates[CurrentSystem][m].Atoms[A1].Position;
           posA2=Adsorbates[CurrentSystem][m].Atoms[A2].Position;
           scalingA1=Adsorbates[CurrentSystem][m].Atoms[A1].CFChargeScalingParameter;
@@ -6283,7 +6283,7 @@ int CalculateFrameworkAdsorbateBondDipoleBondDipoleEnergyDifference(int m,int co
           temp=0.5*(scalingA1+scalingA2)*DipoleMagnitudeA/length;
           dipoleA_old.x*=temp; dipoleA_old.y*=temp; dipoleA_old.z*=temp;
         }
-    
+
         for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
         {
           for(k=0;k<Framework[CurrentSystem].NumberOfBondDipoles[f1];k++)
@@ -6293,7 +6293,7 @@ int CalculateFrameworkAdsorbateBondDipoleBondDipoleEnergyDifference(int m,int co
             B2=Framework[CurrentSystem].BondDipoles[f1][k].B;
             posB1=Framework[CurrentSystem].Atoms[f1][B1].Position;
             posB2=Framework[CurrentSystem].Atoms[f1][B2].Position;
-    
+
             dipoleB.x=posB2.x-posB1.x;
             dipoleB.y=posB2.y-posB1.y;
             dipoleB.z=posB2.z-posB1.z;
@@ -6313,16 +6313,16 @@ int CalculateFrameworkAdsorbateBondDipoleBondDipoleEnergyDifference(int m,int co
               dr.z=posA_new.z-(posB.z+ReplicaShift[ncell].z);
               dr=ApplyReplicaBoundaryCondition(dr);
               rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-      
+
               if(rr<CutOffBondDipoleBondDipoleSquared)
                 UHostBondDipoleBondDipoleRealDelta[CurrentSystem]+=PotentialValueBondDipoleBondDipole(dipoleA_new,dipoleB,dr,sqrt(r));
-      
+
               dr.x=posA_old.x-(posB.x+ReplicaShift[ncell].x);
               dr.y=posA_old.y-(posB.y+ReplicaShift[ncell].y);
               dr.z=posA_old.z-(posB.z+ReplicaShift[ncell].z);
               dr=ApplyReplicaBoundaryCondition(dr);
               rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-      
+
               if(rr<CutOffBondDipoleBondDipoleSquared)
                 UHostBondDipoleBondDipoleRealDelta[CurrentSystem]-=PotentialValueBondDipoleBondDipole(dipoleA_old,dipoleB,dr,sqrt(r));
             }
@@ -6337,9 +6337,9 @@ int CalculateFrameworkAdsorbateBondDipoleBondDipoleEnergyDifference(int m,int co
         A1=Components[comp].BondDipoles[j].A;
         A2=Components[comp].BondDipoles[j].B;
         DipoleMagnitudeA=Components[comp].BondDipoleMagnitude[j];
- 
+
         if(New)
-        { 
+        {
           posA1=TrialPosition[CurrentSystem][A1];
           posA2=TrialPosition[CurrentSystem][A2];
           scalingA1=CFChargeScaling[A1];
@@ -6354,10 +6354,10 @@ int CalculateFrameworkAdsorbateBondDipoleBondDipoleEnergyDifference(int m,int co
           length=sqrt(ri2);
           temp=0.5*(scalingA1+scalingA2)*DipoleMagnitudeA/length;
           dipoleA_new.x*=temp; dipoleA_new.y*=temp; dipoleA_new.z*=temp;
-        } 
- 
+        }
+
         if(Old)
-        { 
+        {
           posA1=Adsorbates[CurrentSystem][m].Atoms[A1].Position;
           posA2=Adsorbates[CurrentSystem][m].Atoms[A2].Position;
           scalingA1=Adsorbates[CurrentSystem][m].Atoms[A1].CFChargeScalingParameter;
@@ -6373,7 +6373,7 @@ int CalculateFrameworkAdsorbateBondDipoleBondDipoleEnergyDifference(int m,int co
           temp=0.5*(scalingA1+scalingA2)*DipoleMagnitudeA/length;
           dipoleA_old.x*=temp; dipoleA_old.y*=temp; dipoleA_old.z*=temp;
         }
-    
+
         for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
         {
           for(k=0;k<Framework[CurrentSystem].NumberOfBondDipoles[f1];k++)
@@ -6383,7 +6383,7 @@ int CalculateFrameworkAdsorbateBondDipoleBondDipoleEnergyDifference(int m,int co
             B2=Framework[CurrentSystem].BondDipoles[f1][k].B;
             posB1=Framework[CurrentSystem].Atoms[f1][B1].Position;
             posB2=Framework[CurrentSystem].Atoms[f1][B2].Position;
-    
+
             dipoleB.x=posB2.x-posB1.x;
             dipoleB.y=posB2.y-posB1.y;
             dipoleB.z=posB2.z-posB1.z;
@@ -6397,25 +6397,25 @@ int CalculateFrameworkAdsorbateBondDipoleBondDipoleEnergyDifference(int m,int co
             dipoleB.x*=temp; dipoleB.y*=temp; dipoleB.z*=temp;
 
             if(New)
-            {  
+            {
               dr.x=posA_new.x-posB.x;
               dr.y=posA_new.y-posB.y;
               dr.z=posA_new.z-posB.z;
               dr=ApplyBoundaryCondition(dr);
               rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-    
+
               if(rr<CutOffBondDipoleBondDipoleSquared)
                 UHostBondDipoleBondDipoleRealDelta[CurrentSystem]+=PotentialValueBondDipoleBondDipole(dipoleA_new,dipoleB,dr,sqrt(r));
             }
- 
+
             if(Old)
-            { 
+            {
               dr.x=posA_old.x-posB.x;
               dr.y=posA_old.y-posB.y;
               dr.z=posA_old.z-posB.z;
               dr=ApplyBoundaryCondition(dr);
               rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-    
+
               if(rr<CutOffBondDipoleBondDipoleSquared)
                 UHostBondDipoleBondDipoleRealDelta[CurrentSystem]-=PotentialValueBondDipoleBondDipole(dipoleA_old,dipoleB,dr,sqrt(r));
             }
@@ -6443,7 +6443,7 @@ int CalculateFrameworkAdsorbateBondDipoleBondDipoleEnergyDifference(int m,int co
  *            | New: whether or not to compute the bonddipole-bonddipole energy of the new positions     *
  *            |      stored in 'TrialPosition'                                                           *
  *            | False: whether or not to compute the bonddipole-bonddipole energy of the old positions   *
- *            |        of molecule 'm'                                                                   * 
+ *            |        of molecule 'm'                                                                   *
  * Note       |                                                                                          *
  * Used       | int TranslationMoveAdsorbate(void)                                                       *
  *            | int RandomTranslationMoveAdsorbate(void)                                                 *
@@ -6478,9 +6478,9 @@ int CalculateFrameworkCationBondDipoleBondDipoleEnergyDifference(int m,int comp,
         A1=Components[comp].BondDipoles[j].A;
         A2=Components[comp].BondDipoles[j].B;
         DipoleMagnitudeA=Components[comp].BondDipoleMagnitude[j];
- 
+
         if(New)
-        { 
+        {
           posA1=TrialPosition[CurrentSystem][A1];
           posA2=TrialPosition[CurrentSystem][A2];
           scalingA1=CFChargeScaling[A1];
@@ -6496,9 +6496,9 @@ int CalculateFrameworkCationBondDipoleBondDipoleEnergyDifference(int m,int comp,
           temp=0.5*(scalingA1+scalingA2)*DipoleMagnitudeA/length;
           dipoleA_new.x*=temp; dipoleA_new.y*=temp; dipoleA_new.z*=temp;
         }
-    
+
         if(Old)
-        { 
+        {
           posA1=Cations[CurrentSystem][m].Atoms[A1].Position;
           posA2=Cations[CurrentSystem][m].Atoms[A2].Position;
           scalingA1=Cations[CurrentSystem][m].Atoms[A1].CFChargeScalingParameter;
@@ -6514,7 +6514,7 @@ int CalculateFrameworkCationBondDipoleBondDipoleEnergyDifference(int m,int comp,
           temp=0.5*(scalingA1+scalingA2)*DipoleMagnitudeA/length;
           dipoleA_old.x*=temp; dipoleA_old.y*=temp; dipoleA_old.z*=temp;
         }
-    
+
         for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
         {
           for(k=0;k<Framework[CurrentSystem].NumberOfBondDipoles[f1];k++)
@@ -6524,7 +6524,7 @@ int CalculateFrameworkCationBondDipoleBondDipoleEnergyDifference(int m,int comp,
             B2=Framework[CurrentSystem].BondDipoles[f1][k].B;
             posB1=Framework[CurrentSystem].Atoms[f1][B1].Position;
             posB2=Framework[CurrentSystem].Atoms[f1][B2].Position;
-    
+
             dipoleB.x=posB2.x-posB1.x;
             dipoleB.y=posB2.y-posB1.y;
             dipoleB.z=posB2.z-posB1.z;
@@ -6544,16 +6544,16 @@ int CalculateFrameworkCationBondDipoleBondDipoleEnergyDifference(int m,int comp,
               dr.z=posA_new.z-(posB.z+ReplicaShift[ncell].z);
               dr=ApplyReplicaBoundaryCondition(dr);
               rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-      
+
               if(rr<CutOffBondDipoleBondDipoleSquared)
                 UHostBondDipoleBondDipoleRealDelta[CurrentSystem]+=PotentialValueBondDipoleBondDipole(dipoleA_new,dipoleB,dr,sqrt(r));
-      
+
               dr.x=posA_old.x-(posB.x+ReplicaShift[ncell].x);
               dr.y=posA_old.y-(posB.y+ReplicaShift[ncell].y);
               dr.z=posA_old.z-(posB.z+ReplicaShift[ncell].z);
               dr=ApplyReplicaBoundaryCondition(dr);
               rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-      
+
               if(rr<CutOffBondDipoleBondDipoleSquared)
                 UHostBondDipoleBondDipoleRealDelta[CurrentSystem]-=PotentialValueBondDipoleBondDipole(dipoleA_old,dipoleB,dr,sqrt(r));
             }
@@ -6568,9 +6568,9 @@ int CalculateFrameworkCationBondDipoleBondDipoleEnergyDifference(int m,int comp,
         A1=Components[comp].BondDipoles[j].A;
         A2=Components[comp].BondDipoles[j].B;
         DipoleMagnitudeA=Components[comp].BondDipoleMagnitude[j];
- 
+
         if(New)
-        { 
+        {
           posA1=TrialPosition[CurrentSystem][A1];
           posA2=TrialPosition[CurrentSystem][A2];
           scalingA1=CFChargeScaling[A1];
@@ -6585,10 +6585,10 @@ int CalculateFrameworkCationBondDipoleBondDipoleEnergyDifference(int m,int comp,
           length=sqrt(ri2);
           temp=0.5*(scalingA1+scalingA2)*DipoleMagnitudeA/length;
           dipoleA_new.x*=temp; dipoleA_new.y*=temp; dipoleA_new.z*=temp;
-        } 
- 
+        }
+
         if(Old)
-        { 
+        {
           posA1=Cations[CurrentSystem][m].Atoms[A1].Position;
           posA2=Cations[CurrentSystem][m].Atoms[A2].Position;
           scalingA1=Cations[CurrentSystem][m].Atoms[A1].CFChargeScalingParameter;
@@ -6604,7 +6604,7 @@ int CalculateFrameworkCationBondDipoleBondDipoleEnergyDifference(int m,int comp,
           temp=0.5*(scalingA1+scalingA2)*DipoleMagnitudeA/length;
           dipoleA_old.x*=temp; dipoleA_old.y*=temp; dipoleA_old.z*=temp;
         }
-    
+
         for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
         {
           for(k=0;k<Framework[CurrentSystem].NumberOfBondDipoles[f1];k++)
@@ -6614,7 +6614,7 @@ int CalculateFrameworkCationBondDipoleBondDipoleEnergyDifference(int m,int comp,
             B2=Framework[CurrentSystem].BondDipoles[f1][k].B;
             posB1=Framework[CurrentSystem].Atoms[f1][B1].Position;
             posB2=Framework[CurrentSystem].Atoms[f1][B2].Position;
-    
+
             dipoleB.x=posB2.x-posB1.x;
             dipoleB.y=posB2.y-posB1.y;
             dipoleB.z=posB2.z-posB1.z;
@@ -6628,25 +6628,25 @@ int CalculateFrameworkCationBondDipoleBondDipoleEnergyDifference(int m,int comp,
             dipoleB.x*=temp; dipoleB.y*=temp; dipoleB.z*=temp;
 
             if(New)
-            {  
+            {
               dr.x=posA_new.x-posB.x;
               dr.y=posA_new.y-posB.y;
               dr.z=posA_new.z-posB.z;
               dr=ApplyBoundaryCondition(dr);
               rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-    
+
               if(rr<CutOffBondDipoleBondDipoleSquared)
                 UHostBondDipoleBondDipoleRealDelta[CurrentSystem]+=PotentialValueBondDipoleBondDipole(dipoleA_new,dipoleB,dr,sqrt(r));
             }
- 
+
             if(Old)
-            { 
+            {
               dr.x=posA_old.x-posB.x;
               dr.y=posA_old.y-posB.y;
               dr.z=posA_old.z-posB.z;
               dr=ApplyBoundaryCondition(dr);
               rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-    
+
               if(rr<CutOffBondDipoleBondDipoleSquared)
                 UHostBondDipoleBondDipoleRealDelta[CurrentSystem]-=PotentialValueBondDipoleBondDipole(dipoleA_old,dipoleB,dr,sqrt(r));
             }

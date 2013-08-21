@@ -41,11 +41,11 @@
 #include "thermo_baro_stats.h"
 #include "equations_of_state.h"
 
-// The fugacity coefficity phi is defined through the relationship RT ln phi = G - G^{ideal gas}. 
-// The deviation of phi from unity is a measure of the deviation of the fluid from ideal gas behaviour. 
-// Note that in the special case that phi^liq=phi^vap, the liquid and vapour phases will be at equilibrium 
-// with each other. This enables saturated vapour pressures to be predicted: specify the T of interest and 
-// then vary P until phi^liq=phi^vap. Alternatively boiling points may be predicted by specifying the P of 
+// The fugacity coefficity phi is defined through the relationship RT ln phi = G - G^{ideal gas}.
+// The deviation of phi from unity is a measure of the deviation of the fluid from ideal gas behaviour.
+// Note that in the special case that phi^liq=phi^vap, the liquid and vapour phases will be at equilibrium
+// with each other. This enables saturated vapour pressures to be predicted: specify the T of interest and
+// then vary P until phi^liq=phi^vap. Alternatively boiling points may be predicted by specifying the P of
 // interest and varying T until the fugacity coefficient condition is obeyed.
 
 int EquationOfState;
@@ -77,7 +77,7 @@ void RescaleMolarFractions(void)
     total=0.0;
     for(i=0;i<NumberOfComponents;i++)
       if(Components[i].Swapable)
-        total+=Components[i].MolFraction[j]; 
+        total+=Components[i].MolFraction[j];
 
     if(total>0.0)
     {
@@ -118,7 +118,7 @@ void ComputeGasPropertiesForAllSystems(void)
 
     Framework[CurrentSystem].FrameworkMass=FrameworkMass;
     Framework[CurrentSystem].FrameworkDensity=FrameworkMass/(Volume[CurrentSystem]*CUBE(ANGSTROM)*AVOGADRO_CONSTANT);
-    
+
     number_of_unit_cells=NumberOfUnitCells[CurrentSystem].x*NumberOfUnitCells[CurrentSystem].y*NumberOfUnitCells[CurrentSystem].z;
     for(i=0;i<NumberOfComponents;i++)
     {
@@ -143,7 +143,7 @@ void ComputeGasPropertiesForAllSystems(void)
         {
           if(Components[i].PartialPressure[CurrentSystem]<0.0)
           {
-            printf("Error: Partial pressure of component %d [%s] is NOT set !!\n",
+            fprintf(stderr, "Error: Partial pressure of component %d [%s] is NOT set !!\n",
               i,Components[i].Name);
             exit(-1);
           }
@@ -162,7 +162,7 @@ void ComputeGasPropertiesForAllSystems(void)
         {
           if(Components[i].FugacityCoefficient[CurrentSystem]<0.0)
           {
-            printf("Error: Fugacity coefficient of component %d [%s] is NOT set for system %d,\n"
+            fprintf(stderr, "Error: Fugacity coefficient of component %d [%s] is NOT set for system %d,\n"
                    "       Critial pressure/temperature NOT set either (set to zero in molecule-definition)\n",
               i,Components[i].Name,CurrentSystem);
             exit(-1);
@@ -266,11 +266,11 @@ void ComputeGasPropertiesForAllSystems(void)
     cubic(Coefficients,Compressibility,&NumberOfSolutions);
 
     // sort the compressibilities, Compressibility[0] the highest, Compressibility[2] the lowest
-    if (Compressibility[0]<Compressibility[1]) 
+    if (Compressibility[0]<Compressibility[1])
     {
-      temp=Compressibility[0]; 
+      temp=Compressibility[0];
       Compressibility[0]=Compressibility[1];
-      Compressibility[1]=temp; 
+      Compressibility[1]=temp;
     }
     if (Compressibility[1]<Compressibility[2])
     {
@@ -285,15 +285,15 @@ void ComputeGasPropertiesForAllSystems(void)
       Compressibility[1]=temp;
     }
 
-    // In cases where three roots are obtained, the highest value corresponds to the solution for vapour phase, 
-    // and the lowest value corresponds to the solution for liquid phase. (The intermediate solution has no 
-    // physical meaning). Note that the solutions in this case don't imply that the liquid and vapour phases 
-    // are in equilibrium with each other. Rather, one of the phases will be stable and the other will be a 
-    // metastable state. Only at the special condition that T = Tsat and P = Psat are vapour and liquid in 
+    // In cases where three roots are obtained, the highest value corresponds to the solution for vapour phase,
+    // and the lowest value corresponds to the solution for liquid phase. (The intermediate solution has no
+    // physical meaning). Note that the solutions in this case don't imply that the liquid and vapour phases
+    // are in equilibrium with each other. Rather, one of the phases will be stable and the other will be a
+    // metastable state. Only at the special condition that T = Tsat and P = Psat are vapour and liquid in
     // equilibrium with each other.
 
-    // In other cases, only a single root is obtained. This may correspond to liquid, vapour or supercritical fluid, 
-    // depending on the relative magnitudes of P and Pc, and T and Tc. 
+    // In other cases, only a single root is obtained. This may correspond to liquid, vapour or supercritical fluid,
+    // depending on the relative magnitudes of P and Pc, and T and Tc.
 
     switch(EquationOfState)
     {
@@ -307,7 +307,7 @@ void ComputeGasPropertiesForAllSystems(void)
               temp=0.0;
               for(k=0;k<NumberOfComponents;k++)
                 temp+=2.0*Components[k].MolFraction[CurrentSystem]*Aij[i][k];
-          
+
               FugacityCoefficients[i][j]=exp((B[i]/Bmix)*(Compressibility[j]-1.0)-log(Compressibility[j]-Bmix)-
                   Amix*(temp/Amix-B[i]/Bmix)*log(1.0+Bmix/Compressibility[j])/Bmix);
             }
@@ -326,7 +326,7 @@ void ComputeGasPropertiesForAllSystems(void)
               temp=0.0;
               for(k=0;k<NumberOfComponents;k++)
                 temp+=2.0*Components[k].MolFraction[CurrentSystem]*Aij[i][k];
-         
+
               FugacityCoefficients[i][j]=exp((B[i]/Bmix)*(Compressibility[j]-1.0)-log(Compressibility[j]-Bmix)
                         -(Amix/(2.0*sqrt(2.0)*Bmix))*(temp/Amix-B[i]/Bmix)*
                   log((Compressibility[j]+(1.0+sqrt(2.0))*Bmix)/(Compressibility[j]+(1.0-sqrt(2))*Bmix)));
@@ -344,7 +344,7 @@ void ComputeGasPropertiesForAllSystems(void)
     // get the gas-phase fugacity coefficient
     for(i=0;i<NumberOfComponents;i++)
     {
-     
+
       if(Components[i].Swapable)
       {
         if(NumberOfSolutions==1)
@@ -392,7 +392,7 @@ void ComputeGasPropertiesForAllSystems(void)
                                                             Components[i].Mass/1000.0;
               Components[i].Compressibility[CurrentSystem]=Compressibility[2];
             }
-            else 
+            else
             {
               // vapour (stable) and liquid (stable)
               FluidState[CurrentSystem]=VAPOUR_LIQUID_STABLE;
@@ -457,7 +457,7 @@ void ComputeGasPropertiesForAllSystems(void)
       {
         if(Components[i].PartialPressure[CurrentSystem]<0.0)
         {
-          printf("Error: Partial pressure of component %d [%s] is NOT set !!\n",
+          fprintf(stderr, "Error: Partial pressure of component %d [%s] is NOT set !!\n",
             i,Components[i].Name);
           exit(-1);
         }
@@ -489,7 +489,7 @@ void WriteRestartEquationOfState(FILE *FilePtr)
 void AllocateEquationOfStateMemory(void)
 {
   int i;
-  
+
   BinaryInteractionParameter=(REAL**)calloc(NumberOfComponents,sizeof(REAL*));
   a=(REAL*)calloc(NumberOfComponents,sizeof(REAL));
   A=(REAL*)calloc(NumberOfComponents,sizeof(REAL));
@@ -533,7 +533,7 @@ void ReadRestartEquationOfState(FILE *FilePtr)
   fread(&Check,1,sizeof(REAL),FilePtr);
   if(fabs(Check-123456789.0)>1e-10)
   {
-    printf("Error in binary restart-file (ReadRestartEquationOfState)\n");
+    fprintf(stderr, "Error in binary restart-file (ReadRestartEquationOfState)\n");
     exit(0);
   }
 }

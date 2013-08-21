@@ -46,7 +46,7 @@
 // the code here is the extension to 3D using the transformation matrix of Lekien and Marsden
 //   F. Lakien and J. Marsden, "Tricubic interpolation in three dimensions"
 //   International Journal for Numerical Methods in Engineering, 63, 455-471, 2005
-// 
+//
 // The algorithme is a local tricubic interpolation scheme in three dimensions that is both C^1 and isotropic. It uses
 // a 64x64 matrix that gives the relationship between the derivatives at the corners of the elements and the coefficients of
 // the trcubic interpolant for this element.
@@ -58,13 +58,13 @@
 // of the elements.
 
 static int Coeff[64][64] = {
-{  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, 
+{  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
-{  0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, 
+{  0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
-{ -3,  3,  0,  0,  0,  0,  0,  0, -2, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, 
+{ -3,  3,  0,  0,  0,  0,  0,  0, -2, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
-{  2, -2,  0,  0,  0,  0,  0,  0,  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, 
+{  2, -2,  0,  0,  0,  0,  0,  0,  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
 {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 , 0,
    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
@@ -128,7 +128,7 @@ static int Coeff[64][64] = {
    0,  0,  0,  0,  0,  0,  0,  0, -2,  0,  0,  0, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
 {  9, -9,  0,  0, -9,  9,  0,  0,  6,  3,  0,  0, -6, -3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  6, -6,  0,  0,  3, -3,  0,  0,
    0,  0,  0,  0,  0,  0,  0,  0,  4,  2,  0,  0,  2,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
-{ -6,  6,  0,  0,  6, -6,  0,  0, -3, -3,  0,  0,  3,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -4,  4,  0,  0, -2,  2,  0,  0, 
+{ -6,  6,  0,  0,  6, -6,  0,  0, -3, -3,  0,  0,  3,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -4,  4,  0,  0, -2,  2,  0,  0,
    0,  0,  0,  0,  0,  0,  0,  0, -2, -2,  0,  0, -1, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
 {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -3,  0,  0,  0,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -2,  0,  0,  0, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
@@ -146,7 +146,7 @@ static int Coeff[64][64] = {
  -12, -6, -6, -3, 12,  6,  6,  3,-12, -6, 12,  6, -6, -3,  6,  3,-12, 12, -6,  6, -6,  6, -3,  3, -8, -4, -4, -2, -4, -2, -2, -1},
 { 18,-18,-18, 18,-18, 18, 18,-18,  9,  9, -9, -9, -9, -9,  9,  9, 12,-12,  6, -6,-12, 12, -6,  6, 12,-12,-12, 12,  6, -6, -6,  6,
    6,  6 , 3,  3, -6, -6, -3, -3,  6,  6, -6, -6,  3,  3, -3, -3,  8, -8,  4, -4,  4, -4,  2, -2,  4,  4,  2,  2,  2,  2,  1,  1},
-{ -6,  0,  6,  0,  6,  0, -6,  0,  0,  0,  0,  0,  0,  0,  0,  0, -3,  0, -3,  0,  3,  0,  3,  0, -4,  0,  4,  0, -2,  0,  2,  0, 
+{ -6,  0,  6,  0,  6,  0, -6,  0,  0,  0,  0,  0,  0,  0,  0,  0, -3,  0, -3,  0,  3,  0,  3,  0, -4,  0,  4,  0, -2,  0,  2,  0,
    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -2,  0, -2,  0, -1,  0, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0},
 {  0,  0,  0,  0,  0,  0,  0,  0, -6,  0,  6,  0,  6,  0, -6,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
   -3,  0, -3,  0,  3,  0,  3,  0, -4,  0,  4,  0, -2,  0,  2,  0,  0,  0,  0,  0,  0,  0,  0,  0, -2,  0, -2,  0, -1,  0, -1,  0},
@@ -156,7 +156,7 @@ static int Coeff[64][64] = {
   -3, -3, -3, -3,  3,  3,  3,  3, -4, -4,  4,  4, -2, -2,  2,  2, -4,  4, -4,  4, -2,  2, -2,  2, -2, -2, -2, -2, -1, -1, -1, -1},
 {  2,  0,  0,  0, -2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  0,  0,  1,  0,  0,  0,
    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
-{  0,  0,  0,  0,  0,  0,  0,  0,  2,  0,  0,  0, -2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, 
+{  0,  0,  0,  0,  0,  0,  0,  0,  2,  0,  0,  0, -2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
    0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
 { -6,  6,  0,  0,  6, -6,  0,  0, -4, -2,  0,  0,  4,  2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -3,  3,  0,  0, -3,  3,  0,  0,
    0,  0,  0,  0,  0,  0,  0,  0, -2, -1,  0,  0, -2, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
@@ -178,9 +178,9 @@ static int Coeff[64][64] = {
    8,  4,  4,  2, -8, -4, -4, -2,  6,  3, -6, -3,  6,  3, -6, -3,  6, -6,  3, -3,  6, -6,  3, -3,  4,  2,  2,  1,  4,  2,  2,  1},
 {-12, 12, 12,-12, 12,-12,-12, 12, -6, -6,  6,  6,  6,  6, -6, -6, -8,  8, -4,  4,  8, -8,  4, -4, -6,  6,  6, -6, -6,  6,  6, -6,
   -4, -4, -2, -2 , 4,  4,  2,  2, -3, -3,  3,  3, -3, -3,  3 , 3, -4,  4, -2,  2, -4,  4, -2,  2, -2, -2, -1, -1, -2, -2, -1, -1},
-{  4,  0, -4,  0, -4,  0,  4,  0,  0,  0,  0,  0,  0,  0,  0,  0,  2,  0,  2,  0, -2,  0, -2,  0,  2,  0, -2,  0,  2,  0, -2,  0, 
+{  4,  0, -4,  0, -4,  0,  4,  0,  0,  0,  0,  0,  0,  0,  0,  0,  2,  0,  2,  0, -2,  0, -2,  0,  2,  0, -2,  0,  2,  0, -2,  0,
    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  1,  0,  1,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0},
-{  0,  0,  0,  0,  0,  0,  0,  0,  4,  0, -4,  0, -4,  0,  4,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, 
+{  0,  0,  0,  0,  0,  0,  0,  0,  4,  0, -4,  0, -4,  0,  4,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
    2,  0,  2,  0, -2,  0, -2,  0,  2,  0, -2,  0,  2,  0, -2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  1,  0,  1,  0,  1,  0},
 {-12, 12, 12,-12, 12,-12,-12, 12, -8, -4,  8,  4,  8,  4, -8, -4, -6,  6, -6,  6,  6, -6,  6, -6, -6,  6,  6, -6, -6,  6,  6, -6,
   -4, -2, -4, -2,  4,  2,  4,  2, -4, -2,  4,  2, -4, -2,  4,  2, -3,  3, -3,  3, -3,  3, -3,  3, -2, -1, -2, -1, -2, -1, -2, -1},
@@ -289,10 +289,10 @@ void MakeASCIGrid(void)
   if(MIN3(BoxProperties[CurrentSystem].cx,BoxProperties[CurrentSystem].cy,
           BoxProperties[CurrentSystem].cz)<CutOffVDW)
   {
-     printf("ERROR:  Cutoff smaller than half of one of the perpendicular boxlengths !!!\n");
-     printf("        (Cutoff: %lf perpendicular boxlengths: %lf %lf %lf)\n",(double)CutOffVDW,
+     fprintf(stderr, "ERROR:  Cutoff smaller than half of one of the perpendicular boxlengths !!!\n");
+     fprintf(stderr, "        (Cutoff: %lf perpendicular boxlengths: %lf %lf %lf)\n",(double)CutOffVDW,
              (double)BoxProperties[CurrentSystem].cx,(double)BoxProperties[CurrentSystem].cy,(double)BoxProperties[CurrentSystem].cz);
-     printf("Advice: choose more unitcells for constructing the grid.\n");
+     fprintf(stderr, "Advice: choose more unitcells for constructing the grid.\n");
      exit(0);
   }
 
@@ -339,9 +339,9 @@ void MakeASCIGrid(void)
   DeltaVDWGrid.y=SizeGrid.y/(REAL)NumberOfVDWGridPoints.y;
   DeltaVDWGrid.z=SizeGrid.z/(REAL)NumberOfVDWGridPoints.z;
 
-  printf("ShiftGrid: %g %g %g\n",ShiftGrid.x,ShiftGrid.y,ShiftGrid.z);
-  printf("SizeGrid: %g %g %g\n",SizeGrid.x,SizeGrid.y,SizeGrid.z);
-  printf("Number of grid points: %d %d %d\n",NumberOfVDWGridPoints.x,NumberOfVDWGridPoints.y,NumberOfVDWGridPoints.z);
+  fprintf(stderr, "ShiftGrid: %g %g %g\n",ShiftGrid.x,ShiftGrid.y,ShiftGrid.z);
+  fprintf(stderr, "SizeGrid: %g %g %g\n",SizeGrid.x,SizeGrid.y,SizeGrid.z);
+  fprintf(stderr, "Number of grid points: %d %d %d\n",NumberOfVDWGridPoints.x,NumberOfVDWGridPoints.y,NumberOfVDWGridPoints.z);
 
   percent=100.0/(REAL)((NumberOfVDWGridPoints.x+1)*NumberOfGrids);
   teller=0.0;
@@ -385,7 +385,7 @@ void MakeASCIGrid(void)
           }
 
           // cap the value
-          if(value<EnergyOverlapCriteria) 
+          if(value<EnergyOverlapCriteria)
             fprintf(FilePtr,"%g %g %g %g %g %g %g\n",pos.x,pos.y,pos.z,value*ENERGY_TO_KELVIN,
                     -first_derivative.x*ENERGY_TO_KELVIN,-first_derivative.y*ENERGY_TO_KELVIN,-first_derivative.z*ENERGY_TO_KELVIN);
           else
@@ -412,10 +412,10 @@ void MakeGrid(void)
   if(MIN3(BoxProperties[CurrentSystem].cx,BoxProperties[CurrentSystem].cy,
           BoxProperties[CurrentSystem].cz)<CutOffVDW)
   {
-     printf("ERROR:  Cutoff smaller than half of one of the perpendicular boxlengths !!!\n");
-     printf("        (Cutoff: %lf perpendicular boxlengths: %lf %lf %lf)\n",(double)CutOffVDW,
+     fprintf(stderr, "ERROR:  Cutoff smaller than half of one of the perpendicular boxlengths !!!\n");
+     fprintf(stderr, "        (Cutoff: %lf perpendicular boxlengths: %lf %lf %lf)\n",(double)CutOffVDW,
              (double)BoxProperties[CurrentSystem].cx,(double)BoxProperties[CurrentSystem].cy,(double)BoxProperties[CurrentSystem].cz);
-     printf("Advice: choose more unitcells for constructing the grid.\n");
+     fprintf(stderr, "Advice: choose more unitcells for constructing the grid.\n");
      exit(0);
   }
 
@@ -466,9 +466,9 @@ void MakeGrid(void)
   DeltaVDWGrid.y=SizeGrid.y/(REAL)NumberOfVDWGridPoints.y;
   DeltaVDWGrid.z=SizeGrid.z/(REAL)NumberOfVDWGridPoints.z;
 
-  printf("ShiftGrid: %g %g %g\n",ShiftGrid.x,ShiftGrid.y,ShiftGrid.z);
-  printf("SizeGrid: %g %g %g\n",SizeGrid.x,SizeGrid.y,SizeGrid.z);
-  printf("Number of grid points: %d %d %d\n",NumberOfVDWGridPoints.x,NumberOfVDWGridPoints.y,NumberOfVDWGridPoints.z);
+  fprintf(stderr, "ShiftGrid: %g %g %g\n",ShiftGrid.x,ShiftGrid.y,ShiftGrid.z);
+  fprintf(stderr, "SizeGrid: %g %g %g\n",SizeGrid.x,SizeGrid.y,SizeGrid.z);
+  fprintf(stderr, "Number of grid points: %d %d %d\n",NumberOfVDWGridPoints.x,NumberOfVDWGridPoints.y,NumberOfVDWGridPoints.z);
 
   percent=100.0/(REAL)((NumberOfVDWGridPoints.x+1)*NumberOfGrids);
   teller=0.0;
@@ -479,7 +479,7 @@ void MakeGrid(void)
   fprintf(OutputFilePtr[CurrentSystem],"========================================================\n\n");
   fflush(OutputFilePtr[CurrentSystem]);
 
-  printf("NumberOfGrids: %d\n",NumberOfGrids);
+  fprintf(stderr, "NumberOfGrids: %d\n",NumberOfGrids);
   for(l=0;l<NumberOfGrids;l++)
   {
     fprintf(OutputFilePtr[CurrentSystem],"Creating grid %d [%s]\n",l,PseudoAtoms[GridTypeList[l]].Name);
@@ -521,7 +521,7 @@ void MakeGrid(void)
           }
 
           // cap the value
-          if(value>1.0e12) 
+          if(value>1.0e12)
           {
             value=1.0e12;
             if(first_derivative.x>EnergyOverlapCriteria) first_derivative.x=EnergyOverlapCriteria;
@@ -551,7 +551,7 @@ void MakeGrid(void)
         fprintf(OutputFilePtr[CurrentSystem],"Percentage finished                      : %d\n",(int)(teller*percent));
       fflush(OutputFilePtr[CurrentSystem]);
     }
-    printf("Writing Grid\n");
+    fprintf(stderr, "Writing Grid\n");
     WriteVDWGrid(GridTypeList[l]);
   }
 
@@ -581,7 +581,7 @@ void MakeGrid(void)
               NumberOfCoulombGridPoints.x,NumberOfCoulombGridPoints.y,NumberOfCoulombGridPoints.z);
       break;
     default:
-      printf("Skipping the Coulombic grid\n");
+      fprintf(stderr, "Skipping the Coulombic grid\n");
       exit(0);
       break;
   }
@@ -657,7 +657,7 @@ void MakeGrid(void)
       fprintf(OutputFilePtr[CurrentSystem],"Percentage finished                      : %d\n",(int)(teller*percent));
     fflush(OutputFilePtr[CurrentSystem]);
   }
-  printf("Writing Grid\n");
+  fprintf(stderr, "Writing Grid\n");
   WriteCoulombGrid();
 }
 
@@ -716,7 +716,7 @@ void ReadVDWGrid(void)
   FILE *FilePtr;
   char buffer[256];
 
-  printf("Reading VDW grid\n");
+  fprintf(stderr, "Reading VDW grid\n");
 
   for(i=0;i<NumberOfPseudoAtoms;i++)
     VDWGrid[i]=NULL;
@@ -732,10 +732,10 @@ void ReadVDWGrid(void)
         Framework[CurrentSystem].Name[0],
         PseudoAtoms[GridTypeList[l]].Name,
         ShiftPotentials?"shifted":"truncated");
-    printf("Opening: %s\n",buffer);
+    fprintf(stderr, "Opening: %s\n",buffer);
     if(!(FilePtr=fopen(buffer,"r")))
     {
-      printf("Error:  file %s does not exists.\n",buffer);
+      fprintf(stderr, "Error:  file %s does not exists.\n",buffer);
       exit(1);
     }
 
@@ -750,7 +750,7 @@ void ReadVDWGrid(void)
     if((fabs(UnitCellSize[CurrentSystem].x-unit_cell_size.x)>1e-8)||(fabs(UnitCellSize[CurrentSystem].y-unit_cell_size.y)>1e-8)||
        (fabs(UnitCellSize[CurrentSystem].z-unit_cell_size.z)>1e-8))
     {
-      printf("Error in reading the grid: unit-cell size does not match\n");
+      fprintf(stderr, "Error in reading the grid: unit-cell size does not match\n");
       exit(0);
     }
 
@@ -864,15 +864,15 @@ void ReadCoulombGrid(void)
       RASPA_DIRECTORY,
       ForceField,
       Framework[CurrentSystem].Name[0],
-      (double)SpacingCoulombGrid,  
+      (double)SpacingCoulombGrid,
       NumberOfUnitCells[CurrentSystem].x,NumberOfUnitCells[CurrentSystem].y,NumberOfUnitCells[CurrentSystem].z,
       Framework[CurrentSystem].Name[0],
       "Electrostatics",
       name);
-  printf("Opening: %s\n",buffer);
+  fprintf(stderr, "Opening: %s\n",buffer);
   if(!(FilePtr=fopen(buffer,"r")))
   {
-    printf("Error:  file %s does not exists.\n",buffer);
+    fprintf(stderr, "Error:  file %s does not exists.\n",buffer);
     exit(0);
   }
   else
@@ -885,30 +885,30 @@ void ReadCoulombGrid(void)
     fread(&unit_cell_size,1,sizeof(VECTOR),FilePtr);
     fread(&number_of_unit_cells,1,sizeof(INT_VECTOR3),FilePtr);
     fread(&ewald_precision,1,sizeof(REAL),FilePtr);
-  
+
     if((fabs(UnitCellSize[CurrentSystem].x-unit_cell_size.x)>1e-8)||(fabs(UnitCellSize[CurrentSystem].y-unit_cell_size.y)>1e-8)||
        (fabs(UnitCellSize[CurrentSystem].z-unit_cell_size.z)>1e-8))
     {
-      printf("Error in reading the grid: unit-cell size does not match\n");
+      fprintf(stderr, "Error in reading the grid: unit-cell size does not match\n");
       exit(0);
     }
-  
+
     if((number_of_unit_cells.x!=NumberOfUnitCells[CurrentSystem].x)||
        (number_of_unit_cells.y!=NumberOfUnitCells[CurrentSystem].y)||
        (number_of_unit_cells.z!=NumberOfUnitCells[CurrentSystem].z))
     {
-      printf("Mismatch of number of unitcells, defined: %d,%d,%d, grid: %d,%d,%d\n",
+      fprintf(stderr, "Mismatch of number of unitcells, defined: %d,%d,%d, grid: %d,%d,%d\n",
           NumberOfUnitCells[CurrentSystem].x,NumberOfUnitCells[CurrentSystem].y,NumberOfUnitCells[CurrentSystem].z,
           number_of_unit_cells.x,number_of_unit_cells.y,number_of_unit_cells.z);
       exit(0);
     }
-  
+
     if(fabs(EwaldPrecision-ewald_precision)>1e-8)
     {
-      printf("Mismatch of Ewald precision, currently: %g but the grid had been made using %g\n",
+      fprintf(stderr, "Mismatch of Ewald precision, currently: %g but the grid had been made using %g\n",
              EwaldPrecision,ewald_precision);
     }
-  
+
     // Allocate the memory for this grid
     CoulombGrid=(float****)calloc(NumberOfCoulombGridPoints.x+1,sizeof(float***));
     for(i=0;i<=NumberOfCoulombGridPoints.x;i++)
@@ -921,18 +921,18 @@ void ReadCoulombGrid(void)
           CoulombGrid[i][j][k]=(float*)calloc(8,sizeof(float));
       }
     }
-  
+
     for(m=0;m<8;m++)
       for(i=0;i<=NumberOfCoulombGridPoints.x;i++)
         for(j=0;j<=NumberOfCoulombGridPoints.y;j++)
           for(k=0;k<=NumberOfCoulombGridPoints.z;k++)
             fread(&CoulombGrid[i][j][k][m],1,sizeof(float),FilePtr);
-  
-  
+
+
     fclose(FilePtr);
   }
-  printf("End Reading Coulomb Grid\n");
-  printf("Done !!!\n");
+  fprintf(stderr, "End Reading Coulomb Grid\n");
+  fprintf(stderr, "Done !!!\n");
 }
 
 
@@ -946,7 +946,7 @@ REAL InterpolateVDWGrid(int typeA,VECTOR pos)
 
   if(!VDWGrid[typeA])
   {
-    printf("InterpolateVDWGrid: Pseudoatom %d [%s] not tabulated.\n",typeA,PseudoAtoms[typeA].Name);
+    fprintf(stderr, "InterpolateVDWGrid: Pseudoatom %d [%s] not tabulated.\n",typeA,PseudoAtoms[typeA].Name);
     exit(0);
   }
 
@@ -1046,7 +1046,7 @@ REAL InterpolateVDWForceGrid(int typeA,VECTOR pos,VECTOR *Force)
 
   if(!VDWGrid[typeA])
   {
-    printf("InterpolateVDWGrid: Pseudoatom %d [%s] not tabulated.\n",typeA,PseudoAtoms[typeA].Name);
+    fprintf(stderr, "InterpolateVDWGrid: Pseudoatom %d [%s] not tabulated.\n",typeA,PseudoAtoms[typeA].Name);
     exit(0);
   }
 
@@ -1129,7 +1129,7 @@ REAL InterpolateVDWForceGrid(int typeA,VECTOR pos,VECTOR *Force)
   value=0.0;
   for (i=1;i<4;i++)
     for (j=0;j<4;j++)
-      for (k=0;k<4;k++) 
+      for (k=0;k<4;k++)
         value+=i*a[i+4*j+16*k]*pow(r.x,i-1)*pow(r.y,j)*pow(r.z,k);
   Force->x=-value/DeltaVDWGrid.x;
 
@@ -1167,7 +1167,7 @@ REAL InterpolateCoulombGrid(int typeA,VECTOR pos)
 
   if(!CoulombGrid)
   {
-    printf("InterpolateCoulombGrid: Pseudoatom %d [%s] not tabulated.\n",typeA,PseudoAtoms[typeA].Name);
+    fprintf(stderr, "InterpolateCoulombGrid: Pseudoatom %d [%s] not tabulated.\n",typeA,PseudoAtoms[typeA].Name);
     exit(0);
   }
 
@@ -1264,7 +1264,7 @@ REAL InterpolateCoulombForceGrid(int typeA,VECTOR pos,VECTOR *Force)
 
   if(!CoulombGrid)
   {
-    printf("InterpolateCoulombGrid: Pseudoatom %d [%s] not tabulated.\n",typeA,PseudoAtoms[typeA].Name);
+    fprintf(stderr, "InterpolateCoulombGrid: Pseudoatom %d [%s] not tabulated.\n",typeA,PseudoAtoms[typeA].Name);
     exit(0);
   }
 
@@ -1298,7 +1298,7 @@ REAL InterpolateCoulombForceGrid(int typeA,VECTOR pos,VECTOR *Force)
       pos.y=UnitCellBox[CurrentSystem].ay*s.x+UnitCellBox[CurrentSystem].by*s.y+UnitCellBox[CurrentSystem].cy*s.z;
       pos.z=UnitCellBox[CurrentSystem].az*s.x+UnitCellBox[CurrentSystem].bz*s.y+UnitCellBox[CurrentSystem].cz*s.z;
       break;
-  } 
+  }
 
   s.x=((pos.x-ShiftGrid.x)/SizeGrid.x)*(REAL)NumberOfCoulombGridPoints.x;
   s.y=((pos.y-ShiftGrid.y)/SizeGrid.y)*(REAL)NumberOfCoulombGridPoints.y;
@@ -1343,7 +1343,7 @@ REAL InterpolateCoulombForceGrid(int typeA,VECTOR pos,VECTOR *Force)
   value=0.0;
   for (i=1;i<4;i++)
     for (j=0;j<4;j++)
-      for (k=0;k<4;k++) 
+      for (k=0;k<4;k++)
         value+=i*a[i+4*j+16*k]*pow(r.x,i-1)*pow(r.y,j)*pow(r.z,k);
   Force->x=-PseudoAtoms[typeA].Charge1*value/DeltaCoulombGrid.x;
 
@@ -1412,8 +1412,8 @@ void TestForceGrid(FILE *FilePtr)
       {
         bolt[j]=0.0;
         ebolt[j]=0.0;
-        bolf[j]=0.0; 
-        ebolf[j]=0.0; 
+        bolf[j]=0.0;
+        ebolf[j]=0.0;
         errb[j]=0.0;
         eeb[j]=0.0;
       }
@@ -1443,7 +1443,7 @@ void TestForceGrid(FILE *FilePtr)
         // problem: to which component belongs this type?
         //if(BlockedPocketGridTest(pos))
         //  Vlj=Force.x=Force.y=Force.z=EnergyOverlapCriteria;
- 
+
         resf[0]=Vlj;
         resf[1]=Force.x;
         resf[2]=Force.y;
@@ -1728,7 +1728,7 @@ void FloodFillNonRecursive(int seedx,int seedy,int seedz,int BlockingValue)
         }
       }
       index=w-1;
-      if(index<0) 
+      if(index<0)
       {
         index=NumberOfVDWGridPoints.x;
         if(BlockingGrid[index][j][k]==0)
@@ -1747,7 +1747,7 @@ void FloodFillNonRecursive(int seedx,int seedy,int seedz,int BlockingValue)
 int CheckNumber(VECTOR SeedPoint,int ID)
 {
   VECTOR C,vec,NewSeedPoint;
-  INT_VECTOR3 GridPoint; 
+  INT_VECTOR3 GridPoint;
   int x,y,z;
   int i,j,k;
 
@@ -1924,7 +1924,7 @@ VECTOR FloodFillNonRecursivePockets(int seedx,int seedy,int seedz,int PocketID,i
         dr.z=CurrentCenter.z-SeedCenter.z;
         dr=ApplyBoundaryConditionUnitCell(dr);
         r=sqrt(SQR(dr.x)+SQR(dr.y)+SQR(dr.z));
-        
+
 
         PocketCenter.x+=(SeedCenter.x+dr.x);
         PocketCenter.y+=(SeedCenter.y+dr.y);
@@ -2015,7 +2015,7 @@ REAL FloodFillNonRecursivePocketsRadius(int seedx,int seedy,int seedz,int Pocket
   INT_VECTOR3 temp;
   VECTOR CurrentCenter;
 
-  MaxRadius=0; 
+  MaxRadius=0;
   QueueSize=1;
   Queue[0].x=seedx;
   Queue[0].y=seedy;
@@ -2167,7 +2167,7 @@ void ClassifyPockets(void)
   PocketID=11;
   while(AnyRemainingPockets(&seedx,&seedy,&seedz,0))
   {
-    printf("Pocket ID: %d\n",PocketID);
+    fprintf(stderr, "Pocket ID: %d\n",PocketID);
     FloodFillNonRecursive(seedx,seedy,seedz,PocketID++);
   };
 
@@ -2186,7 +2186,7 @@ void ClassifyPockets(void)
   }
 
   NumberOfFinalCenters=0;
-  printf("NumberOfDoubleCentersL %d\n",NumberOfDoubleCenters);
+  fprintf(stderr, "NumberOfDoubleCentersL %d\n",NumberOfDoubleCenters);
   for(i=0;i<NumberOfDoubleCenters;i++)
   {
     v1=DoubleCenters[i];
@@ -2200,7 +2200,7 @@ void ClassifyPockets(void)
       dr.z=v1.z-v2.z;
       dr=ApplyBoundaryConditionUnitCell(dr);
       r=sqrt(SQR(dr.x)+SQR(dr.y)+SQR(dr.z));
-      if(r<2.0) 
+      if(r<2.0)
       {
         CheckOverlap=TRUE;
         break;
@@ -2210,18 +2210,18 @@ void ClassifyPockets(void)
     {
        StoredCenters[NumberOfFinalCenters]=DoubleCenters[i];
        FinalCenters[NumberOfFinalCenters]=DoubleCenters[i];
-       CountFinalCenters[NumberOfFinalCenters]++; 
+       CountFinalCenters[NumberOfFinalCenters]++;
        NumberOfFinalCenters++;
     }
-    else 
+    else
     {
        FinalCenters[j].x+=DoubleCenters[j].x+dr.x;
        FinalCenters[j].y+=DoubleCenters[j].y+dr.y;
        FinalCenters[j].z+=DoubleCenters[j].z+dr.z;
-       CountFinalCenters[j]++; 
+       CountFinalCenters[j]++;
     }
   }
-  printf("NumberOfFinalCenters: %d\n",NumberOfFinalCenters);
+  fprintf(stderr, "NumberOfFinalCenters: %d\n",NumberOfFinalCenters);
   for(i=0;i<NumberOfFinalCenters;i++)
   {
     center.x=FinalCenters[i].x/CountFinalCenters[i];
@@ -2231,14 +2231,14 @@ void ClassifyPockets(void)
     s.x=InverseUnitCellBox[CurrentSystem].ax*center.x+InverseUnitCellBox[CurrentSystem].bx*center.y+InverseUnitCellBox[CurrentSystem].cx*center.z;
     s.y=InverseUnitCellBox[CurrentSystem].ay*center.x+InverseUnitCellBox[CurrentSystem].by*center.y+InverseUnitCellBox[CurrentSystem].cy*center.z;
     s.z=InverseUnitCellBox[CurrentSystem].az*center.x+InverseUnitCellBox[CurrentSystem].bz*center.y+InverseUnitCellBox[CurrentSystem].cz*center.z;
-    printf("%g %g %g\n",s.x,s.y,s.z);
+    fprintf(stderr, "%g %g %g\n",s.x,s.y,s.z);
 */
     center=ConvertPositionToVTKPosition(center);
-    printf("%g %g %g\n",center.x,center.y,center.z);
+    fprintf(stderr, "%g %g %g\n",center.x,center.y,center.z);
   }
 
 
-  printf("\n\n");
+  fprintf(stderr, "\n\n");
 
   for(i=0;i<NumberOfFinalCenters;i++)
   {
@@ -2258,12 +2258,12 @@ void ClassifyPockets(void)
     s.x=InverseUnitCellBox[CurrentSystem].ax*center.x+InverseUnitCellBox[CurrentSystem].bx*center.y+InverseUnitCellBox[CurrentSystem].cx*center.z;
     s.y=InverseUnitCellBox[CurrentSystem].ay*center.x+InverseUnitCellBox[CurrentSystem].by*center.y+InverseUnitCellBox[CurrentSystem].cy*center.z;
     s.z=InverseUnitCellBox[CurrentSystem].az*center.x+InverseUnitCellBox[CurrentSystem].bz*center.y+InverseUnitCellBox[CurrentSystem].cz*center.z;
-    printf("%g %g %g ",s.x,s.y,s.z);
+    fprintf(stderr, "%g %g %g ",s.x,s.y,s.z);
 
       radius=FloodFillNonRecursivePocketsRadius(bl.x,bl.y,bl.z,ID,center);
-      printf("%d %g\n",i,radius);
+      fprintf(stderr, "%d %g\n",i,radius);
     }
-    
+
     }
   }
   exit(0);
@@ -2332,7 +2332,7 @@ void BlockingVDWGrid(void)
   Queue=(INT_VECTOR3*)calloc((NumberOfVDWGridPoints.x+1)*(NumberOfVDWGridPoints.y+1)*(NumberOfVDWGridPoints.z+1),
                              sizeof(INT_VECTOR3));
 
-  printf("BlockEnergyGridOverlapCriteria: %g\n",BlockEnergyGridOverlapCriteria);
+  fprintf(stderr, "BlockEnergyGridOverlapCriteria: %g\n",BlockEnergyGridOverlapCriteria);
 
   // patch grid: set blocking zones to 'overlap'
   for(l=0;l<NumberOfPseudoAtoms;l++)
@@ -2379,7 +2379,7 @@ void BlockingVDWGrid(void)
     }
   }
 
-  ClassifyPockets();   
+  ClassifyPockets();
 
   int count[200];
   int total_count=0;
@@ -2392,12 +2392,12 @@ void BlockingVDWGrid(void)
         for(k=0;k<=NumberOfVDWGridPoints.z;k++)
           count[(int)BlockingGrid[i][j][k]]++;
     total_count+=count[l];
-    if(count[l]>0) printf("count: %d -> %d\n",l,count[l]);
+    if(count[l]>0) fprintf(stderr, "count: %d -> %d\n",l,count[l]);
   }
-  printf("total: %d %d\n",(1+NumberOfVDWGridPoints.x)*(1+NumberOfVDWGridPoints.y)*(1+NumberOfVDWGridPoints.z),total_count);
+  fprintf(stderr, "total: %d %d\n",(1+NumberOfVDWGridPoints.x)*(1+NumberOfVDWGridPoints.y)*(1+NumberOfVDWGridPoints.z),total_count);
 
 
-  printf("exit\n");
+  fprintf(stderr, "exit\n");
 
   free(Queue);
 }
@@ -2447,7 +2447,7 @@ void ReadRestartGrids(FILE *FilePtr)
   fread(&Check,1,sizeof(REAL),FilePtr);
   if(fabs(Check-123456789.0)>1e-10)
   {
-    printf("Error in binary restart-file (ReadRestartGrids)\n");
+    fprintf(stderr, "Error in binary restart-file (ReadRestartGrids)\n");
     exit(0);
   }
 }

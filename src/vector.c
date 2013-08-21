@@ -103,9 +103,9 @@ VECTOR NormalizeVector(VECTOR a)
   VECTOR c;
 
   length=sqrt(SQR(a.x)+SQR(a.y)+SQR(a.z));
-  c.x=a.x/length; 
-  c.y=a.y/length; 
-  c.z=a.z/length; 
+  c.x=a.x/length;
+  c.y=a.y/length;
+  c.z=a.z/length;
   return c;
 }
 

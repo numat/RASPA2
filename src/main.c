@@ -57,12 +57,12 @@ int main(int argc, char **argv)
 
   // set default name for the input-file
   strcpy(inputfilename,"simulation.input");
-  
+
   // set deault RASPA_DIR
   strcpy(raspa_dir,getenv("HOME"));
   strcat(raspa_dir,"/RASPA/simulations");
   RASPA_DIRECTORY=raspa_dir;
-  
+
   // get the raspa install directory from environement if defined
   if(getenv("RASPA_DIR")&&(strlen(getenv("RASPA_DIR"))>0))
     RASPA_DIRECTORY=getenv("RASPA_DIR");
@@ -76,12 +76,12 @@ int main(int argc, char **argv)
         strcpy(FileNameAppend,optarg);
         break;
       case 'h':
-        printf("usage: simulate [-hv] [-ifile] [-ddir]\n");
-        printf("\t-h help\n");
-        printf("\t-v version\n");
-        printf("\t-i the name of the input-file\n");
-        printf("\t-d the raspa directory\n");
-        printf("\t-a appends the string to output-files\n");
+        fprintf(stderr, "usage: simulate [-hv] [-ifile] [-ddir]\n");
+        fprintf(stderr, "\t-h help\n");
+        fprintf(stderr, "\t-v version\n");
+        fprintf(stderr, "\t-i the name of the input-file\n");
+        fprintf(stderr, "\t-d the raspa directory\n");
+        fprintf(stderr, "\t-a appends the string to output-files\n");
         return 0;
       case 'i': // set the input-filename
         strcpy(inputfilename,optarg);
@@ -91,7 +91,7 @@ int main(int argc, char **argv)
         RASPA_DIRECTORY=raspa_dir;
         break;
       case 'v':
-        printf("RASPA 1.6-2 (2012)\n");
+        fprintf(stderr, "RASPA 1.6-2 (2012)\n");
         return 0;
       default:
         return 1;
@@ -174,7 +174,7 @@ int main(int argc, char **argv)
     case PORE_SIZE_DISTRIBUTION:
       OpenOutputFile();
       PrintPreSimulationStatus();
-      ComputePoreSizeDistribution(); 
+      ComputePoreSizeDistribution();
       PrintPostSimulationStatus();
       CloseOutputFile();
       break;
@@ -196,7 +196,7 @@ int main(int argc, char **argv)
       {
         PotentialGradient(ReturnPseudoAtomNumber("CH4_sp3"),ReturnPseudoAtomNumber("CH4_sp3"),SQR(i*CutOffVDW/1000),&energy,&force_factor,1.0);
         //TestFunction(i*CutOffChargeCharge/1000,&energy,&force_factor);
-        printf("%g %g %g\n",i*CutOffVDW/1000,energy,force_factor);
+        fprintf(stderr, "%g %g %g\n",i*CutOffVDW/1000,energy,force_factor);
       }
       CloseOutputFile();
       break;

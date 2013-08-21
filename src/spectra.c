@@ -129,7 +129,7 @@ void RemoveShellInteractionsFromHessian(REAL_MATRIX Hessian,REAL_MATRIX *Correct
 
   if(ShellSize>0)
   {
-    ss=CreateRealMatrix(ShellSize,ShellSize); 
+    ss=CreateRealMatrix(ShellSize,ShellSize);
 
     for(i=0;i<ShellSize;i++)
       for(j=0;j<ShellSize;j++)
@@ -141,7 +141,7 @@ void RemoveShellInteractionsFromHessian(REAL_MATRIX Hessian,REAL_MATRIX *Correct
     {
       for(j=0;j<CoreSize;j++)
       {
-        CorrectedHessian->element[i][j]=Hessian.element[i][j];      
+        CorrectedHessian->element[i][j]=Hessian.element[i][j];
         for(k=0;k<ShellSize;k++)
         {
           for (l=0;l<ShellSize;l++)
@@ -338,7 +338,7 @@ int RemoveTranslationAndRotationFromHessianMatrix(REAL_MATRIX HessianMatrix,REAL
     {
       dot_produkt=0.0;
       for(k=0;k<n;k++)
-        dot_produkt+=TransRotationMatrix.element[j][k]*HV.element[i][k]; 
+        dot_produkt+=TransRotationMatrix.element[j][k]*HV.element[i][k];
       VHV.element[i][j]=VHV.element[j][i]=dot_produkt;
     }
   }
@@ -356,7 +356,7 @@ int RemoveTranslationAndRotationFromHessianMatrix(REAL_MATRIX HessianMatrix,REAL
           sum+=TransRotationMatrix.element[l][j]*VHV.element[k][l]*TransRotationMatrix.element[k][i];
       }
       HessianMatrix.element[i][j]+=sum;
-    } 
+    }
   DeleteRealMatrix(VHV);
   DeleteRealMatrix(HV);
   DeleteRealMatrix(TransRotationMatrix);
@@ -438,7 +438,7 @@ int RemoveTranslationFromHessianMatrix(REAL_MATRIX HessianMatrix,REAL *Weights,R
     {
       dot_produkt=0.0;
       for(k=0;k<n;k++)
-        dot_produkt+=TransRotationMatrix.element[j][k]*HV.element[i][k]; 
+        dot_produkt+=TransRotationMatrix.element[j][k]*HV.element[i][k];
       VHV.element[i][j]=VHV.element[j][i]=dot_produkt;
     }
   }
@@ -509,7 +509,7 @@ void WriteVibrationalData(REAL_MATRIX HessianMatrix,REAL *Eigenvalues,REAL *Char
 
   for(i=0;i<n;i++)
     Frequencies[i]=SIGN(sqrt(fabs(Eigenvalues[i]))*TO_WAVENUMBERS,Eigenvalues[i]);
-  
+
   mkdir("VibrationalData",S_IRWXU);
   mkdir("VibrationalData/Spectrum",S_IRWXU);
 
@@ -579,7 +579,7 @@ void WriteVibrationalData(REAL_MATRIX HessianMatrix,REAL *Eigenvalues,REAL *Char
       s2[i]=0.5*SQR(dot_produktx)*fabs(Frequencies[i])/(1.0-exp(-f*fabs(Frequencies[i])));
     else
       s2[i]=0.0;
-  
+
     if((fabs(Frequencies[i])>1e-6)&&(SQR(dot_produkty))>0.0)
       s3[i]=0.5*SQR(dot_produkty)*fabs(Frequencies[i])/(1.0-exp(-f*fabs(Frequencies[i])));
     else
@@ -670,12 +670,12 @@ void WriteVibrationalData(REAL_MATRIX HessianMatrix,REAL *Eigenvalues,REAL *Char
 // zheev
 
 extern void dsyev_(char *jobz, char *uplo, int *n, double *a,
-		       int *lda, double *w, double *work, int *lwork,
-		       int *info);
+           int *lda, double *w, double *work, int *lwork,
+           int *info);
 
 extern void dsyevd_(char *jobz, char *uplo, int *n, double *a,
-		       int *lda, double *w, double *work, int *lwork,int* iwork,int *liwork,
-		       int *info);
+           int *lda, double *w, double *work, int *lwork,int* iwork,int *liwork,
+           int *info);
 
 void SolveEigenValuesAndVectorsHessian(REAL_MATRIX HessianMatrix,REAL* Frequencies)
 {
@@ -684,8 +684,8 @@ void SolveEigenValuesAndVectorsHessian(REAL_MATRIX HessianMatrix,REAL* Frequenci
   double  *work;
   int *iwork;
 
-  jobz = 'V'; 
-  uplo = 'U'; 
+  jobz = 'V';
+  uplo = 'U';
   n=HessianMatrix.n;
   lda = n; // The leading dimension of the matrix to be solved.
 
@@ -823,7 +823,7 @@ void StoredPositionsToRealPositions(int NumberOfPositionVariables,int NumberOfBo
           Transform.az=0.0;                   Transform.bz=0.0;                   Transform.cz=1.0+displacement[n+3];
           break;
         default:
-          printf("Unknown NPTPRCellType\n");
+          fprintf(stderr, "Unknown NPTPRCellType\n");
           exit(0);
           break;
       }
@@ -1182,14 +1182,14 @@ void MakeNormalModeMovie(int NumberOfPositionVariables,int NumberOfBoxVariables,
           }
         }
         fprintf(FilePtr,"ENDMDL\n");
-      } 
+      }
       fclose(FilePtr);
     }
   }
   free(displacement);
 }
 
-int HeapSortMillerPlanes(void) 
+int HeapSortMillerPlanes(void)
 {
   unsigned long i,ir,j,l;
   POWDER_DIFF_PEAK rra;
@@ -1199,32 +1199,32 @@ int HeapSortMillerPlanes(void)
   if(n<2) return 0;
   l=(n>>1)+1;
   ir=n;
-  for(;;) 
+  for(;;)
   {
-    if(l>1) 
+    if(l>1)
       rra=PowderDiffractionPeaks[--l-1];
-    else 
-    { 
+    else
+    {
       rra=PowderDiffractionPeaks[ir-1];
       PowderDiffractionPeaks[ir-1]=PowderDiffractionPeaks[0];
-      if(--ir==1) 
+      if(--ir==1)
       {
         PowderDiffractionPeaks[0]=rra;
         break;
       }
     }
-    i=l; 
+    i=l;
     j=l+l;
-    while(j<=ir) 
+    while(j<=ir)
     {
       if(j<ir&&PowderDiffractionPeaks[j-1].d<PowderDiffractionPeaks[j].d) j++;
-      if(rra.d<PowderDiffractionPeaks[j-1].d) 
+      if(rra.d<PowderDiffractionPeaks[j-1].d)
       {
         PowderDiffractionPeaks[i-1]=PowderDiffractionPeaks[j-1];
         i=j;
         j <<= 1;
-      } 
-      else 
+      }
+      else
         break;
     }
     PowderDiffractionPeaks[i-1]=rra;
@@ -1314,7 +1314,7 @@ void FindUniqueMillerPlanes(void)
         PeakIsPresent=FALSE;
         for(i=0;i<NumberOfPeaks;i++)
         {
-          // identical plane when |F_hkl|^2 and d_hkl are the same 
+          // identical plane when |F_hkl|^2 and d_hkl are the same
           if((fabs(PowderDiffractionPeaks[i].ScatteringFactor-scattering_factor)<1e-4)&&
              (fabs(PowderDiffractionPeaks[i].d-d)<1e-4))
           {
@@ -1348,7 +1348,7 @@ void FindUniqueMillerPlanes(void)
           NumberOfPeaks++;
           if(NumberOfPeaks>=MAX_POWDER_DIFFRACTION_PEAKS)
           {
-            printf("Maximum number of pxrd-peaks to large\n");
+            fprintf(stderr, "Maximum number of pxrd-peaks to large\n");
             exit(0);
           }
         }
@@ -1362,7 +1362,7 @@ void FindUniqueMillerPlanes(void)
               PowderDiffractionPeaks[i].Lp*
               PowderDiffractionPeaks[i].ScatteringFactor;
     PowderDiffractionPeaks[i].Intensity=Intensity;
-    if(Intensity>max) max=Intensity; 
+    if(Intensity>max) max=Intensity;
   }
 
   // normalize maximum peak height to 100
@@ -1599,7 +1599,7 @@ int ProjectConstraintsFromHessianMatrixMassWeighted(int np,int nb,REAL *Gradient
             if(index_i.z>=0) PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.z]=1.0/Weights[index_i.z];
             break;
         }
-        
+
       }
     }
 
@@ -1955,7 +1955,7 @@ int ProjectConstraintsFromHessianMatrixMassWeighted(int np,int nb,REAL *Gradient
             if(index_i.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=Weights[index_i.x]*ha.x;
             break;
         }
-        
+
         switch(Dimension)
         {
           case 3:
@@ -2011,7 +2011,7 @@ int ProjectConstraintsFromHessianMatrixMassWeighted(int np,int nb,REAL *Gradient
         if(index_j.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_j.x]=Weights[index_j.x]*hb.x;
         break;
     }
-    
+
     length=0.0;
     for(j=0;j<n;j++)
       length+=SQR(PrimativeUnitvectors.element[NumberOfConstraints][j]);
@@ -2056,7 +2056,7 @@ int ProjectConstraintsFromHessianMatrixMassWeighted(int np,int nb,REAL *Gradient
             if(index_i.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=Weights[index_i.x]*ha.x;
             break;
         }
-        
+
         switch(Dimension)
         {
           case 3:
@@ -2067,7 +2067,7 @@ int ProjectConstraintsFromHessianMatrixMassWeighted(int np,int nb,REAL *Gradient
             if(index_j.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_j.x]=Weights[index_j.x]*hb.x;
             break;
         }
-        
+
         switch(Dimension)
         {
           case 3:
@@ -2108,7 +2108,7 @@ int ProjectConstraintsFromHessianMatrixMassWeighted(int np,int nb,REAL *Gradient
         if(index_i.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=Weights[index_i.x]*ha.x;
         break;
     }
-    
+
     switch(Dimension)
     {
       case 3:
@@ -2166,15 +2166,15 @@ int ProjectConstraintsFromHessianMatrixMassWeighted(int np,int nb,REAL *Gradient
         if(index_i.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=Weights[index_i.x]*ha.x;
         if(index_i.y>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=Weights[index_i.y]*ha.y;
         if(index_i.z>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_i.z]=Weights[index_i.z]*ha.z;
-        
+
         if(index_j.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_j.x]=Weights[index_j.x]*hb.x;
         if(index_j.y>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_j.y]=Weights[index_j.y]*hb.y;
         if(index_j.z>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_j.z]=Weights[index_j.z]*hb.z;
-        
+
         if(index_k.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_k.x]=Weights[index_k.x]*hc.x;
         if(index_k.y>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_k.y]=Weights[index_k.y]*hc.y;
         if(index_k.z>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_k.z]=Weights[index_k.z]*hc.z;
-        
+
         if(index_l.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_l.x]=Weights[index_l.x]*hd.x;
         if(index_l.y>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_l.y]=Weights[index_l.y]*hd.y;
         if(index_l.z>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_l.z]=Weights[index_l.z]*hd.z;
@@ -2213,15 +2213,15 @@ int ProjectConstraintsFromHessianMatrixMassWeighted(int np,int nb,REAL *Gradient
         if(index_i.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=Weights[index_i.x]*ha.x;
         if(index_i.y>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=Weights[index_i.y]*ha.y;
         if(index_i.z>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_i.z]=Weights[index_i.z]*ha.z;
-        
+
         if(index_j.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_j.x]=Weights[index_j.x]*hb.x;
         if(index_j.y>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_j.y]=Weights[index_j.y]*hb.y;
         if(index_j.z>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_j.z]=Weights[index_j.z]*hb.z;
-        
+
         if(index_k.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_k.x]=Weights[index_k.x]*hc.x;
         if(index_k.y>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_k.y]=Weights[index_k.y]*hc.y;
         if(index_k.z>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_k.z]=Weights[index_k.z]*hc.z;
-        
+
         if(index_l.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_l.x]=Weights[index_l.x]*hd.x;
         if(index_l.y>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_l.y]=Weights[index_l.y]*hd.y;
         if(index_l.z>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_l.z]=Weights[index_l.z]*hd.z;
@@ -2250,15 +2250,15 @@ int ProjectConstraintsFromHessianMatrixMassWeighted(int np,int nb,REAL *Gradient
     if(index_i.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=Weights[index_i.x]*ha.x;
     if(index_i.y>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=Weights[index_i.y]*ha.y;
     if(index_i.z>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_i.z]=Weights[index_i.z]*ha.z;
-    
+
     if(index_j.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_j.x]=Weights[index_j.x]*hb.x;
     if(index_j.y>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_j.y]=Weights[index_j.y]*hb.y;
     if(index_j.z>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_j.z]=Weights[index_j.z]*hb.z;
-    
+
     if(index_k.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_k.x]=Weights[index_k.x]*hc.x;
     if(index_k.y>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_k.y]=Weights[index_k.y]*hc.y;
     if(index_k.z>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_k.z]=Weights[index_k.z]*hc.z;
-    
+
     if(index_l.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_l.x]=Weights[index_l.x]*hd.x;
     if(index_l.y>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_l.y]=Weights[index_l.y]*hd.y;
     if(index_l.z>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_l.z]=Weights[index_l.z]*hd.z;
@@ -2284,15 +2284,15 @@ int ProjectConstraintsFromHessianMatrixMassWeighted(int np,int nb,REAL *Gradient
     if(index_i.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=Weights[index_i.x]*ha.x;
     if(index_i.y>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=Weights[index_i.y]*ha.y;
     if(index_i.z>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_i.z]=Weights[index_i.z]*ha.z;
-    
+
     if(index_j.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_j.x]=Weights[index_j.x]*hb.x;
     if(index_j.y>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_j.y]=Weights[index_j.y]*hb.y;
     if(index_j.z>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_j.z]=Weights[index_j.z]*hb.z;
-    
+
     if(index_k.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_k.x]=Weights[index_k.x]*hc.x;
     if(index_k.y>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_k.y]=Weights[index_k.y]*hc.y;
     if(index_k.z>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_k.z]=Weights[index_k.z]*hc.z;
-    
+
     if(index_l.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_l.x]=Weights[index_l.x]*hd.x;
     if(index_l.y>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_l.y]=Weights[index_l.y]*hd.y;
     if(index_l.z>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_l.z]=Weights[index_l.z]*hd.z;
@@ -2331,15 +2331,15 @@ int ProjectConstraintsFromHessianMatrixMassWeighted(int np,int nb,REAL *Gradient
         if(index_i.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=Weights[index_i.x]*ha.x;
         if(index_i.y>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=Weights[index_i.y]*ha.y;
         if(index_i.z>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_i.z]=Weights[index_i.z]*ha.z;
-        
+
         if(index_j.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_j.x]=Weights[index_j.x]*hb.x;
         if(index_j.y>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_j.y]=Weights[index_j.y]*hb.y;
         if(index_j.z>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_j.z]=Weights[index_j.z]*hb.z;
-        
+
         if(index_k.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_k.x]=Weights[index_k.x]*hc.x;
         if(index_k.y>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_k.y]=Weights[index_k.y]*hc.y;
         if(index_k.z>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_k.z]=Weights[index_k.z]*hc.z;
-        
+
         if(index_l.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_l.x]=Weights[index_l.x]*hd.x;
         if(index_l.y>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_l.y]=Weights[index_l.y]*hd.y;
         if(index_l.z>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_l.z]=Weights[index_l.z]*hd.z;
@@ -2369,15 +2369,15 @@ int ProjectConstraintsFromHessianMatrixMassWeighted(int np,int nb,REAL *Gradient
     if(index_i.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=Weights[index_i.x]*ha.x;
     if(index_i.y>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=Weights[index_i.y]*ha.y;
     if(index_i.z>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_i.z]=Weights[index_i.z]*ha.z;
-    
+
     if(index_j.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_j.x]=Weights[index_j.x]*hb.x;
     if(index_j.y>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_j.y]=Weights[index_j.y]*hb.y;
     if(index_j.z>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_j.z]=Weights[index_j.z]*hb.z;
-    
+
     if(index_k.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_k.x]=Weights[index_k.x]*hc.x;
     if(index_k.y>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_k.y]=Weights[index_k.y]*hc.y;
     if(index_k.z>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_k.z]=Weights[index_k.z]*hc.z;
-    
+
     if(index_l.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_l.x]=Weights[index_l.x]*hd.x;
     if(index_l.y>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_l.y]=Weights[index_l.y]*hd.y;
     if(index_l.z>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_l.z]=Weights[index_l.z]*hd.z;
@@ -2526,7 +2526,7 @@ int ProjectConstraintsFromHessianMatrix(int np,int nb,REAL *Gradient,REAL_MATRIX
             if(index_i.z>=0) PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.z]=1.0;
             break;
         }
-        
+
       }
     }
 
@@ -2562,7 +2562,7 @@ int ProjectConstraintsFromHessianMatrix(int np,int nb,REAL *Gradient,REAL_MATRIX
               if(index_i.z>=0) PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.z]=1.0;
               break;
           }
-          
+
         }
         else
         {
@@ -2616,7 +2616,7 @@ int ProjectConstraintsFromHessianMatrix(int np,int nb,REAL *Gradient,REAL_MATRIX
 
               if(index_i.x>=0) PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.x]=0.0;
               if(index_i.y>=0) PrimativeUnitvectors.element[NumberOfConstraints+1][index_i.y]=1.0;
-              break; 
+              break;
             case 3:
               if(index_i.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=1.0;
               if(index_i.y>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=0.0;
@@ -2629,9 +2629,9 @@ int ProjectConstraintsFromHessianMatrix(int np,int nb,REAL *Gradient,REAL_MATRIX
               if(index_i.x>=0) PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.x]=0.0;
               if(index_i.y>=0) PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.y]=0.0;
               if(index_i.z>=0) PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.z]=1.0;
-              break; 
+              break;
           }
-          
+
         }
         else
         {
@@ -2810,7 +2810,7 @@ int ProjectConstraintsFromHessianMatrix(int np,int nb,REAL *Gradient,REAL_MATRIX
               if(index_i.z>=0) PrimativeUnitvectors.element[NumberOfConstraints+2][index_i.z]=0.0;
               break;
           }
-          
+
         }
         else
         {
@@ -2872,7 +2872,7 @@ int ProjectConstraintsFromHessianMatrix(int np,int nb,REAL *Gradient,REAL_MATRIX
 
         ReturnWilsonVectorsBond(posA,posB,&ha,&hb);
 
-        
+
         switch(Dimension)
         {
           case 3:
@@ -2883,7 +2883,7 @@ int ProjectConstraintsFromHessianMatrix(int np,int nb,REAL *Gradient,REAL_MATRIX
             if(index_i.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=ha.x;
             break;
         }
-        
+
         switch(Dimension)
         {
           case 3:
@@ -2894,7 +2894,7 @@ int ProjectConstraintsFromHessianMatrix(int np,int nb,REAL *Gradient,REAL_MATRIX
             if(index_j.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_j.x]=hb.x;
             break;
         }
-        
+
         length=0.0;
         for(j=0;j<n;j++)
           length+=SQR(PrimativeUnitvectors.element[NumberOfConstraints][j]);
@@ -2929,7 +2929,7 @@ int ProjectConstraintsFromHessianMatrix(int np,int nb,REAL *Gradient,REAL_MATRIX
         if(index_i.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=ha.x;
         break;
     }
-    
+
     switch(Dimension)
     {
       case 3:
@@ -2985,7 +2985,7 @@ int ProjectConstraintsFromHessianMatrix(int np,int nb,REAL *Gradient,REAL_MATRIX
             if(index_i.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=ha.x;
             break;
         }
-        
+
         switch(Dimension)
         {
           case 3:
@@ -2996,7 +2996,7 @@ int ProjectConstraintsFromHessianMatrix(int np,int nb,REAL *Gradient,REAL_MATRIX
             if(index_j.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_j.x]=hb.x;
             break;
         }
-        
+
         switch(Dimension)
         {
           case 3:
@@ -3037,7 +3037,7 @@ int ProjectConstraintsFromHessianMatrix(int np,int nb,REAL *Gradient,REAL_MATRIX
         if(index_i.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=ha.x;
         break;
     }
-    
+
     switch(Dimension)
     {
       case 3:
@@ -3048,7 +3048,7 @@ int ProjectConstraintsFromHessianMatrix(int np,int nb,REAL *Gradient,REAL_MATRIX
         if(index_j.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_j.x]=hb.x;
         break;
     }
-    
+
     switch(Dimension)
     {
       case 3:
@@ -3095,19 +3095,19 @@ int ProjectConstraintsFromHessianMatrix(int np,int nb,REAL *Gradient,REAL_MATRIX
         if(index_i.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=ha.x;
         if(index_i.y>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=ha.y;
         if(index_i.z>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_i.z]=ha.z;
-        
+
         if(index_j.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_j.x]=hb.x;
         if(index_j.y>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_j.y]=hb.y;
         if(index_j.z>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_j.z]=hb.z;
-        
+
         if(index_k.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_k.x]=hc.x;
         if(index_k.y>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_k.y]=hc.y;
         if(index_k.z>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_k.z]=hc.z;
-        
+
         if(index_l.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_l.x]=hd.x;
         if(index_l.y>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_l.y]=hd.y;
         if(index_l.z>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_l.z]=hd.z;
-        
+
         NumberOfConstraints++;
       }
     }
@@ -3142,15 +3142,15 @@ int ProjectConstraintsFromHessianMatrix(int np,int nb,REAL *Gradient,REAL_MATRIX
         if(index_i.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=ha.x;
         if(index_i.y>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=ha.y;
         if(index_i.z>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_i.z]=ha.z;
-        
+
         if(index_j.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_j.x]=hb.x;
         if(index_j.y>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_j.y]=hb.y;
         if(index_j.z>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_j.z]=hb.z;
-        
+
         if(index_k.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_k.x]=hc.x;
         if(index_k.y>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_k.y]=hc.y;
         if(index_k.z>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_k.z]=hc.z;
-        
+
         if(index_l.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_l.x]=hd.x;
         if(index_l.y>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_l.y]=hd.y;
         if(index_l.z>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_l.z]=hd.z;
@@ -3179,15 +3179,15 @@ int ProjectConstraintsFromHessianMatrix(int np,int nb,REAL *Gradient,REAL_MATRIX
     if(index_i.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=ha.x;
     if(index_i.y>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=ha.y;
     if(index_i.z>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_i.z]=ha.z;
-    
+
     if(index_j.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_j.x]=hb.x;
     if(index_j.y>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_j.y]=hb.y;
     if(index_j.z>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_j.z]=hb.z;
-    
+
     if(index_k.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_k.x]=hc.x;
     if(index_k.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_k.y]=hc.y;
     if(index_k.z>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_k.z]=hc.z;
-    
+
     if(index_k.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_l.x]=hd.x;
     if(index_k.y>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_l.y]=hd.y;
     if(index_k.z>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_l.z]=hd.z;
@@ -3213,15 +3213,15 @@ int ProjectConstraintsFromHessianMatrix(int np,int nb,REAL *Gradient,REAL_MATRIX
     if(index_i.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=ha.x;
     if(index_i.y>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=ha.y;
     if(index_i.z>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_i.z]=ha.z;
-    
+
     if(index_j.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_j.x]=hb.x;
     if(index_j.y>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_j.y]=hb.y;
     if(index_j.z>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_j.z]=hb.z;
-    
+
     if(index_k.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_k.x]=hc.x;
     if(index_k.y>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_k.y]=hc.y;
     if(index_k.z>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_k.z]=hc.z;
-    
+
     if(index_l.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_l.x]=hd.x;
     if(index_l.y>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_l.y]=hd.y;
     if(index_l.z>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_l.z]=hd.z;
@@ -3260,15 +3260,15 @@ int ProjectConstraintsFromHessianMatrix(int np,int nb,REAL *Gradient,REAL_MATRIX
         if(index_i.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=ha.x;
         if(index_i.y>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=ha.y;
         if(index_i.z>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_i.z]=ha.z;
-        
+
         if(index_j.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_j.x]=hb.x;
         if(index_j.y>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_j.y]=hb.y;
         if(index_j.z>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_j.z]=hb.z;
-        
+
         if(index_k.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_k.x]=hc.x;
         if(index_k.y>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_k.y]=hc.y;
         if(index_k.z>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_k.z]=hc.z;
-        
+
         if(index_l.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_l.x]=hd.x;
         if(index_l.y>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_l.y]=hd.y;
         if(index_l.z>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_l.z]=hd.z;
@@ -3296,19 +3296,19 @@ int ProjectConstraintsFromHessianMatrix(int np,int nb,REAL *Gradient,REAL_MATRIX
     if(index_i.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_i.x]=ha.x;
     if(index_i.y>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_i.y]=ha.y;
     if(index_i.z>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_i.z]=ha.z;
-    
+
     if(index_j.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_j.x]=hb.x;
     if(index_j.y>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_j.y]=hb.y;
     if(index_j.z>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_j.z]=hb.z;
-    
+
     if(index_k.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_k.x]=hc.x;
     if(index_k.y>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_k.y]=hc.y;
     if(index_k.z>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_k.z]=hc.z;
-    
+
     if(index_l.x>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_l.x]=hd.x;
     if(index_l.y>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_l.y]=hd.y;
     if(index_l.z>=0) PrimativeUnitvectors.element[NumberOfConstraints][index_l.z]=hd.z;
-    
+
     NumberOfConstraints++;
   }
 

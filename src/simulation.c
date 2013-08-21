@@ -697,7 +697,7 @@ void InitializeReplicaBox(void)
 //  if((NumberOfCellListCells[CurrentSystem].x>3)&&(NumberOfCellListCells[CurrentSystem].y>3)&&
 //     (NumberOfCellListCells[CurrentSystem].z>3))
     UseCellLists[CurrentSystem]=TRUE;
-  else 
+  else
     UseCellLists[CurrentSystem]=FALSE;
 
   if(UseCellLists[CurrentSystem])
@@ -1665,7 +1665,7 @@ void ReadRestartSimulation(FILE *FilePtr)
   fread(&Check,1,sizeof(REAL),FilePtr);
   if(fabs(Check-123456789.0)>1e-10)
   {
-    printf("Error in binary restart-file (ReadRestartSimulation)\n");
+    fprintf(stderr, "Error in binary restart-file (ReadRestartSimulation)\n");
     exit(0);
   }
 }

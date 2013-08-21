@@ -60,7 +60,7 @@ int AsymmetricIons;
 int SpaceGroupIons;
 REAL CutOffIons;
 
-FRAMEWORK_COMPONENT *Framework;                            // list of frameworks 
+FRAMEWORK_COMPONENT *Framework;                            // list of frameworks
 int CurrentFramework;                                      // global variable: the current framework
 
 int RemoveBondNeighboursFromLongRangeInteraction;          // remove 1-2 interactions only between atoms in a defined bond
@@ -68,11 +68,11 @@ int RemoveBendNeighboursFromLongRangeInteraction;          // remove 1-2 interac
 int RemoveTorsionNeighboursFromLongRangeInteraction;       // remove 1-3 interactions only between atoms in a defined torsion
 
 int Remove12NeighboursFromVDWInteraction;                  // remove 1-2 neighbor interaction from VDW interaction
-int Remove13NeighboursFromVDWInteraction;                  // remove 1-3 neighbor interaction from VDW interaction         
+int Remove13NeighboursFromVDWInteraction;                  // remove 1-3 neighbor interaction from VDW interaction
 int Remove14NeighboursFromVDWInteraction;                  // remove 1-4 neighbor interaction from VDW interaction
 
 int Remove12NeighboursFromChargeChargeInteraction;         // remove 1-2 neighbor interaction from charge-charge interaction
-int Remove13NeighboursFromChargeChargeInteraction;         // remove 1-3 neighbor interaction from charge-charge interaction         
+int Remove13NeighboursFromChargeChargeInteraction;         // remove 1-3 neighbor interaction from charge-charge interaction
 int Remove14NeighboursFromChargeChargeInteraction;         // remove 1-4 neighbor interaction from charge-charge interaction
 
 int Remove11NeighboursFromChargeBondDipoleInteraction;     // remove 1-1 neighbor interaction from charge-bonddipole interaction
@@ -207,7 +207,7 @@ void CheckFrameworkCharges(void)
           if(type==i)
           {
             total_charge+=charge;
-            total_count+=1.0; 
+            total_count+=1.0;
           }
         }
       }
@@ -239,7 +239,7 @@ void RemoveQuotesAroundString(char *string)
     memmove(&string[0],&string[1],strlen(string));
     if(string[strlen(string)-1]=='\'') string[strlen(string)-1]='\0';
   }
-  
+
   if(string[0]=='\"')
   {
     memmove(&string[0],&string[1],strlen(string));
@@ -279,8 +279,8 @@ void RemoveQuotesAroundString(char *string)
 // _atom_site_fract_y
 // _atom_site_fract_z
 // C1 C 0.3671(3) 0.1045(3) 0.2279(5)
-// H1 H 0.3756 0.0732 0.2106 0.131 
-// C2 C 0.3282(3) 0.1718(3) 0.2500 
+// H1 H 0.3756 0.0732 0.2106 0.131
+// C2 C 0.3282(3) 0.1718(3) 0.2500
 //
 // However, we never parse the loop-command here. Instead we check for whether the first keyword starts with
 // '_atom_type_' or '_atom_site_' or '_symmetry_equiv_pos'. This is all the data we require for simulations.
@@ -294,7 +294,7 @@ void RemoveQuotesAroundString(char *string)
 // to find the corresponding closing symbol and treat the found string as one element (with white spaces inside).
 // e.g.
 //
-// loop_ 
+// loop_
 // _atom_type_symbol
 // _atom_type_scat_source
 // C 'International Tables Vol C Tables 4.2.6.8 and 6.1.1.4'
@@ -338,7 +338,7 @@ void ReadFrameworkDefinitionCIF(void)
   char SpaceGroup[192][32];
   int nr_sg_elements;
   REAL A,B,C;
-  REAL alpha,beta,gamma; 
+  REAL alpha,beta,gamma;
   REAL tempd,det;
   PSEUDO_ATOM CurrentPseudoAtom;
   FRAMEWORK_ASYMMETRIC_ATOM CurrentAsymmetricAtom;
@@ -361,7 +361,7 @@ void ReadFrameworkDefinitionCIF(void)
 
   // set the number of pseudo-atoms before reading in the CIF-file
   OriginalNumberOfPseudoAtoms=NumberOfPseudoAtoms;
-  
+
   FoundSpaceGroupSymmetryElements=0;
   FoundSpaceGroupHall=0;
   FoundSpaceGroupHermannMauguinString=0;
@@ -370,12 +370,12 @@ void ReadFrameworkDefinitionCIF(void)
   Framework[CurrentSystem].NumberOfAsymmetricAtoms[CurrentFramework]=0;
   Framework[CurrentSystem].NumberOfAtoms[CurrentFramework]=0;
 
-  
+
   NumberOfAtomTypeElementsInBlock=0;
   NumberOfAtomSiteElementsInBlock=0;
 
   strcpy(FoundSpaceGroupOption,"");
-  
+
   // first try to open the framework-file in the current directory,
   // and next from the repository
   sprintf(buffer,"%s.%s",
@@ -387,21 +387,21 @@ void ReadFrameworkDefinitionCIF(void)
             RASPA_DIRECTORY,
             Framework[CurrentSystem].Name[CurrentFramework],
             "cif");
-    
+
     if(!(FilePtr=fopen(buffer,"r")))
     {
-      printf("Error:  file %s does not exists.\n",buffer);
+      fprintf(stderr, "Error:  file %s does not exists.\n",buffer);
       exit(1);
     }
   }
-  
+
   // read one line of data, and parse in 'keyword' and 'arguments'
   // LoopCondition is TRUE when data can be read and FALSE when end-of-file is reached
   LoopCondition=fgets(line,MAX_CIF_LINE_SIZE,FilePtr);
   strcpy(keyword,"");
   strcpy(arguments,"");
   sscanf(line,"%s%[^\n]",keyword,arguments);
-  
+
   strcpy(CitationInformation.CitationId,"");
   strcpy(CitationInformation.CitationAuthorName,"");
   strcpy(CitationInformation.CitationCoordinateLinkage,"");
@@ -419,8 +419,8 @@ void ReadFrameworkDefinitionCIF(void)
   strcpy(CitationInformation.CitationBookPublisher,"");
   strcpy(CitationInformation.CitationBookID_ISBN,"");
   strcpy(CitationInformation.CitationSpecialDetails,"");
-  
-  
+
+
   do
   {
     // read loop citation info
@@ -429,19 +429,19 @@ void ReadFrameworkDefinitionCIF(void)
     {
       NumberOfAtomSiteElementsInBlock=0;
       DefinedInLoop=TRUE; // assume as default: citations are in loop
-      
+
       for(i=0;i<MAX_NUMBER_OF_CIF_TERMS;i++)
         CifBlockData[i]=-1;
       do
       {
         TrimStringInPlace(arguments);
-        
+
         // parse the '_citation_' data names
-        if(strncasecmp(keyword,"_citation_id",strlen("_citation_id"))==0) 
+        if(strncasecmp(keyword,"_citation_id",strlen("_citation_id"))==0)
         {
           CifBlockData[CITATION_ID]=NumberOfAtomSiteElementsInBlock;
           if((strlen(arguments)>0)&&(arguments[0]!='_'))
-          { 
+          {
             DefinedInLoop=FALSE;
             RemoveQuotesAroundString(arguments);
             strcpy(CitationInformation.CitationId,arguments);
@@ -449,7 +449,7 @@ void ReadFrameworkDefinitionCIF(void)
           else
             NumberOfAtomSiteElementsInBlock++;
         }
-        else if(strncasecmp(keyword,"_citation_author_name",strlen("_citation_author_name"))==0) 
+        else if(strncasecmp(keyword,"_citation_author_name",strlen("_citation_author_name"))==0)
         {
           CifBlockData[CITATION_AUTHOR_NAME]=NumberOfAtomSiteElementsInBlock;
           if((strlen(arguments)>0)&&(arguments[0]!='_'))
@@ -461,7 +461,7 @@ void ReadFrameworkDefinitionCIF(void)
           else
             NumberOfAtomSiteElementsInBlock++;
         }
-        else if(strncasecmp(keyword,"_citation_coordinate_linkage",strlen("_citation_coordinate_linkage"))==0) 
+        else if(strncasecmp(keyword,"_citation_coordinate_linkage",strlen("_citation_coordinate_linkage"))==0)
         {
           CifBlockData[CITATION_COORDINATE_LINKAGE]=NumberOfAtomSiteElementsInBlock;
           if((strlen(arguments)>0)&&(arguments[0]!='_'))
@@ -473,7 +473,7 @@ void ReadFrameworkDefinitionCIF(void)
           else
             NumberOfAtomSiteElementsInBlock++;
         }
-        else if(strncasecmp(keyword,"_citation_title",strlen("_citation_title"))==0) 
+        else if(strncasecmp(keyword,"_citation_title",strlen("_citation_title"))==0)
         {
           CifBlockData[CITATION_TITLE]=NumberOfAtomSiteElementsInBlock;
           if((strlen(arguments)>0)&&(arguments[0]!='_'))
@@ -485,7 +485,7 @@ void ReadFrameworkDefinitionCIF(void)
           else
             NumberOfAtomSiteElementsInBlock++;
         }
-        else if(strncasecmp(keyword,"_citation_country",strlen("_citation_country"))==0) 
+        else if(strncasecmp(keyword,"_citation_country",strlen("_citation_country"))==0)
         {
           CifBlockData[CITATION_COUNTRY]=NumberOfAtomSiteElementsInBlock;
           if((strlen(arguments)>0)&&(arguments[0]!='_'))
@@ -497,7 +497,7 @@ void ReadFrameworkDefinitionCIF(void)
           else
             NumberOfAtomSiteElementsInBlock++;
         }
-        else if(strncasecmp(keyword,"_citation_page_first",strlen("_citation_page_first"))==0) 
+        else if(strncasecmp(keyword,"_citation_page_first",strlen("_citation_page_first"))==0)
         {
           CifBlockData[CITATION_PAGE_FIRST]=NumberOfAtomSiteElementsInBlock;
           if((strlen(arguments)>0)&&(arguments[0]!='_'))
@@ -509,7 +509,7 @@ void ReadFrameworkDefinitionCIF(void)
           else
             NumberOfAtomSiteElementsInBlock++;
         }
-        else if(strncasecmp(keyword,"_citation_page_last",strlen("_citation_page_last"))==0) 
+        else if(strncasecmp(keyword,"_citation_page_last",strlen("_citation_page_last"))==0)
         {
           CifBlockData[CITATION_PAGE_LAST]=NumberOfAtomSiteElementsInBlock;
           if((strlen(arguments)>0)&&(arguments[0]!='_'))
@@ -521,7 +521,7 @@ void ReadFrameworkDefinitionCIF(void)
           else
             NumberOfAtomSiteElementsInBlock++;
         }
-        else if(strncasecmp(keyword,"_citation_year",strlen("_citation_year"))==0) 
+        else if(strncasecmp(keyword,"_citation_year",strlen("_citation_year"))==0)
         {
           CifBlockData[CITATION_YEAR]=NumberOfAtomSiteElementsInBlock;
           if((strlen(arguments)>0)&&(arguments[0]!='_'))
@@ -533,7 +533,7 @@ void ReadFrameworkDefinitionCIF(void)
           else
             NumberOfAtomSiteElementsInBlock++;
         }
-        else if(strncasecmp(keyword,"_citation_journal_abbrev",strlen("_citation_journal_abbrev"))==0) 
+        else if(strncasecmp(keyword,"_citation_journal_abbrev",strlen("_citation_journal_abbrev"))==0)
         {
           CifBlockData[CITATION_JOURNAL_ABBREV]=NumberOfAtomSiteElementsInBlock;
           if((strlen(arguments)>0)&&(arguments[0]!='_'))
@@ -545,7 +545,7 @@ void ReadFrameworkDefinitionCIF(void)
           else
             NumberOfAtomSiteElementsInBlock++;
         }
-        else if(strncasecmp(keyword,"_citation_journal_volume",strlen("_citation_journal_volume"))==0) 
+        else if(strncasecmp(keyword,"_citation_journal_volume",strlen("_citation_journal_volume"))==0)
         {
           CifBlockData[CITATION_JOURNAL_VOLUME]=NumberOfAtomSiteElementsInBlock;
           if((strlen(arguments)>0)&&(arguments[0]!='_'))
@@ -557,7 +557,7 @@ void ReadFrameworkDefinitionCIF(void)
           else
             NumberOfAtomSiteElementsInBlock++;
         }
-        else if(strncasecmp(keyword,"_citation_journal_issue",strlen("_citation_journal_issue"))==0) 
+        else if(strncasecmp(keyword,"_citation_journal_issue",strlen("_citation_journal_issue"))==0)
         {
           CifBlockData[CITATION_JOURNAL_ISSUE]=NumberOfAtomSiteElementsInBlock;
           if((strlen(arguments)>0)&&(arguments[0]!='_'))
@@ -569,7 +569,7 @@ void ReadFrameworkDefinitionCIF(void)
           else
             NumberOfAtomSiteElementsInBlock++;
         }
-        else if(strncasecmp(keyword,"_citation_journal_id_ASTM",strlen("_citation_journal_id_ASTM"))==0) 
+        else if(strncasecmp(keyword,"_citation_journal_id_ASTM",strlen("_citation_journal_id_ASTM"))==0)
         {
           CifBlockData[CITATION_JOURNAL_ID_ASTM]=NumberOfAtomSiteElementsInBlock;
           if((strlen(arguments)>0)&&(arguments[0]!='_'))
@@ -581,7 +581,7 @@ void ReadFrameworkDefinitionCIF(void)
           else
             NumberOfAtomSiteElementsInBlock++;
         }
-        else if(strncasecmp(keyword,"_citation_journal_id_ISSN",strlen("_citation_journal_id_ISSN"))==0) 
+        else if(strncasecmp(keyword,"_citation_journal_id_ISSN",strlen("_citation_journal_id_ISSN"))==0)
         {
           CifBlockData[CITATION_JOURNAL_ID_ISSN]=NumberOfAtomSiteElementsInBlock;
           if((strlen(arguments)>0)&&(arguments[0]!='_'))
@@ -593,7 +593,7 @@ void ReadFrameworkDefinitionCIF(void)
           else
             NumberOfAtomSiteElementsInBlock++;
         }
-        else if(strncasecmp(keyword,"_citation_book_title",strlen("_citation_book_title"))==0) 
+        else if(strncasecmp(keyword,"_citation_book_title",strlen("_citation_book_title"))==0)
         {
           CifBlockData[CITATION_BOOKTITLE]=NumberOfAtomSiteElementsInBlock;
           if((strlen(arguments)>0)&&(arguments[0]!='_'))
@@ -605,7 +605,7 @@ void ReadFrameworkDefinitionCIF(void)
           else
             NumberOfAtomSiteElementsInBlock++;
         }
-        else if(strncasecmp(keyword,"_citation_book_publisher",strlen("_citation_book_publisher"))==0) 
+        else if(strncasecmp(keyword,"_citation_book_publisher",strlen("_citation_book_publisher"))==0)
         {
           CifBlockData[CITATION_BOOK_PUBLISHER]=NumberOfAtomSiteElementsInBlock;
           if((strlen(arguments)>0)&&(arguments[0]!='_'))
@@ -616,7 +616,7 @@ void ReadFrameworkDefinitionCIF(void)
           else
             NumberOfAtomSiteElementsInBlock++;
         }
-        else if(strncasecmp(keyword,"_citation_book_id_ISBN",strlen("_citation_book_id_ISBN"))==0) 
+        else if(strncasecmp(keyword,"_citation_book_id_ISBN",strlen("_citation_book_id_ISBN"))==0)
         {
           CifBlockData[CITATION_BOOK_ID_ISBN]=NumberOfAtomSiteElementsInBlock;
           if((strlen(arguments)>0)&&(arguments[0]!='_'))
@@ -627,7 +627,7 @@ void ReadFrameworkDefinitionCIF(void)
           else
             NumberOfAtomSiteElementsInBlock++;
         }
-        else if(strncasecmp(keyword,"_citation_special_details",strlen("_citation_special_details"))==0) 
+        else if(strncasecmp(keyword,"_citation_special_details",strlen("_citation_special_details"))==0)
         {
           CifBlockData[CITATION_SPECIAL_DETAILS]=NumberOfAtomSiteElementsInBlock;
           if((strlen(arguments)>0)&&(arguments[0]!='_'))
@@ -639,7 +639,7 @@ void ReadFrameworkDefinitionCIF(void)
           else
             NumberOfAtomSiteElementsInBlock++;
         }
-        
+
         // check if another data name follows
         // if so, copy the 'arguments' to 'line'
         // otherwise read 'line' from the file
@@ -647,22 +647,22 @@ void ReadFrameworkDefinitionCIF(void)
           strcpy(line,arguments);
         else
           LoopCondition=fgets(line,MAX_CIF_LINE_SIZE,FilePtr);
-        
+
         // split the new line into 'keyword' and 'arguments'
         TrimStringInPlace(line);
         strcpy(keyword,"");
         strcpy(arguments,"");
         sscanf(line,"%s%[^\n]",keyword,arguments);
-        
+
         // skip comments
-        if(keyword[0]=='#') 
+        if(keyword[0]=='#')
         {
           strcpy(keyword,"");
           strcpy(arguments,"");
         }
       } // continue when new keyword starts with '_atom_type_', also continue when empty line
       while(((strncasecmp(keyword,"_citation_",strlen("_citation_"))==0)||(strlen(keyword)==0))&&LoopCondition);
-      
+
       if(!DefinedInLoop)
       {
         Framework[CurrentSystem].CitationInformation[CurrentFramework]=(CITATION_INFORMATION*)calloc(
@@ -676,10 +676,10 @@ void ReadFrameworkDefinitionCIF(void)
         if(strlen(keyword)>0)
         {
           arg_pointer=line;
-          
+
           // remove spaces
-          TrimStringInPlace(arg_pointer); 
-          
+          TrimStringInPlace(arg_pointer);
+
           strcpy(CitationInformation.CitationId,"");
           strcpy(CitationInformation.CitationAuthorName,"");
           strcpy(CitationInformation.CitationCoordinateLinkage,"");
@@ -697,12 +697,12 @@ void ReadFrameworkDefinitionCIF(void)
           strcpy(CitationInformation.CitationBookPublisher,"");
           strcpy(CitationInformation.CitationBookID_ISBN,"");
           strcpy(CitationInformation.CitationSpecialDetails,"");
-          
+
           for(i=0;i<NumberOfAtomSiteElementsInBlock;i++)
           {
             strcpy(keyword,"");
             strcpy(arguments,"");
-            
+
             if(sscanf(arg_pointer,"%s%n",keyword,&n)==1)
             {
               arg_pointer+=n;
@@ -724,7 +724,7 @@ void ReadFrameworkDefinitionCIF(void)
               LoopCondition=fgets(line,MAX_CIF_LINE_SIZE,FilePtr);
               if(!LoopCondition) // if nothing could be read we have too few data items
               {
-                printf("Too few data items found in loop_ _citation_\n");
+                fprintf(stderr, "Too few data items found in loop_ _citation_\n");
                 exit(0);
               }
               else
@@ -732,13 +732,13 @@ void ReadFrameworkDefinitionCIF(void)
                 strcpy(keyword,"");
                 strcpy(arguments,"");
                 sscanf(line,"%s%[^\n]",keyword,arguments);
-                
+
                 if(keyword[0]=='_') // it should not be a data name (but a data item)
                 {
-                  printf("Too few data items found in loop_ _citation_\n");
+                  fprintf(stderr, "Too few data items found in loop_ _citation_\n");
                   exit(0);
                 }
-                
+
                 arg_pointer=line;
                 if(sscanf(arg_pointer,"%s%n",keyword,&n)==1)
                 {
@@ -757,7 +757,7 @@ void ReadFrameworkDefinitionCIF(void)
                 }
               }
             }
-            
+
             if(i==CifBlockData[CITATION_ID])
             {
               if(!((strcmp(keyword,"?")==0)||(strcmp(keyword,"'?'")==0)||(strcmp(keyword,"\"?\"")==0)))
@@ -844,25 +844,25 @@ void ReadFrameworkDefinitionCIF(void)
                 strcpy(CitationInformation.CitationSpecialDetails,keyword);
             }
             else
-              printf("unknown: %s\n",keyword);
+              fprintf(stderr, "unknown: %s\n",keyword);
           }
-          
+
           if(sscanf(arg_pointer,"%s%n",keyword,&n)==1)
-            printf("Warning Too many data items found in loop_ _citation_, excess data ignored\n");
-          
-          
+            fprintf(stderr, "Warning Too many data items found in loop_ _citation_, excess data ignored\n");
+
+
           Framework[CurrentSystem].CitationInformation[CurrentFramework]=(CITATION_INFORMATION*)realloc(
                                  Framework[CurrentSystem].CitationInformation[CurrentFramework],
                                 (Framework[CurrentSystem].NumberOfCitations[CurrentFramework]+1)*sizeof(CITATION_INFORMATION));
           Framework[CurrentSystem].CitationInformation[CurrentFramework][Framework[CurrentSystem].NumberOfCitations[CurrentFramework]]=CitationInformation;
-          Framework[CurrentSystem].NumberOfCitations[CurrentFramework]++; 
+          Framework[CurrentSystem].NumberOfCitations[CurrentFramework]++;
         }
-        
+
         LoopCondition=fgets(line,MAX_CIF_LINE_SIZE,FilePtr);
         strcpy(keyword,"");
         strcpy(arguments,"");
         sscanf(line,"%s%[^\n]",keyword,arguments);
-        
+
         // skip comments
         if(keyword[0]=='#')
         {
@@ -872,14 +872,14 @@ void ReadFrameworkDefinitionCIF(void)
       } // continue as long as we do not encounter 'loop_' or a new data name and as long as we did not reach EOF
       while(((strncasecmp(keyword,"loop_",strlen("loop_"))!=0)&&(keyword[0]!='_'))&&LoopCondition);
     }
-    
+
     // read loop atom-types
     // ====================================
-    
+
     if(strncasecmp(keyword,"_atom_type_",strlen("_atom_type_"))==0)
     {
       NumberOfAtomSiteElementsInBlock=0;
-      
+
       for(i=0;i<MAX_NUMBER_OF_CIF_TERMS;i++)
         CifBlockData[i]=-1;
       do
@@ -894,11 +894,11 @@ void ReadFrameworkDefinitionCIF(void)
         else if(strncasecmp(keyword,"_atom_type_scat_dispersion_real",strlen("_atom_type_scat_dispersion_real"))==0) CifBlockData[ATOM_TYPE_SCAT_DISPERSION_REAL]=NumberOfAtomSiteElementsInBlock;
         else if(strncasecmp(keyword,"_atom_type_scat_dispersion_imag",strlen("_atom_type_scat_dispersion_imag"))==0) CifBlockData[ATOM_TYPE_SCAT_DISPERSION_IMAG]=NumberOfAtomSiteElementsInBlock;
         else if(strncasecmp(keyword,"_atom_type_scat_source",strlen("_atom_type_scat_source"))==0) CifBlockData[ATOM_TYPE_SCAT_SOURCE]=NumberOfAtomSiteElementsInBlock;
-        
+
         // count the number of elements
         if(strlen(keyword)>0)
           NumberOfAtomSiteElementsInBlock++;
-        
+
         // check if another data name follows
         // if so, copy the 'arguments' to 'line'
         // otherwise read 'line' from the file
@@ -907,32 +907,32 @@ void ReadFrameworkDefinitionCIF(void)
           strcpy(line,arguments);
         else
           LoopCondition=fgets(line,MAX_CIF_LINE_SIZE,FilePtr);
-        
+
         // split the new line into 'keyword' and 'arguments'
         TrimStringInPlace(line);
         strcpy(keyword,"");
         strcpy(arguments,"");
         sscanf(line,"%s%[^\n]",keyword,arguments);
-        
+
         // skip comments
-        if(keyword[0]=='#') 
+        if(keyword[0]=='#')
         {
           strcpy(keyword,"");
           strcpy(arguments,"");
         }
       } // continue when new keyword starts with '_atom_type_', also continue when empty line
       while(((strncasecmp(keyword,"_atom_type_",strlen("_atom_type_"))==0)||(strlen(keyword)==0))&&LoopCondition);
-      
+
       do
       {
         // loop over data items
         if(strlen(keyword)>0)
         {
           arg_pointer=line;
-          
+
           // remove spaces
-          TrimStringInPlace(arg_pointer); 
-          
+          TrimStringInPlace(arg_pointer);
+
           strcpy(CurrentPseudoAtom.Name,"");
           strcpy(CurrentPseudoAtom.PrintToPDBName,"");
           strcpy(CurrentPseudoAtom.ChemicalElement,"");
@@ -968,12 +968,12 @@ void ReadFrameworkDefinitionCIF(void)
           CurrentPseudoAtom.AnisotropicCorrection=FALSE;
           CurrentPseudoAtom.AnisotropicDisplacement=0.0;
           CurrentPseudoAtom.AnisotropicType=0.0;
-          
+
           for(i=0;i<NumberOfAtomSiteElementsInBlock;i++)
           {
             strcpy(keyword,"");
             strcpy(arguments,"");
-            
+
             if(sscanf(arg_pointer,"%s%n",keyword,&n)==1)
             {
               arg_pointer+=n;
@@ -994,7 +994,7 @@ void ReadFrameworkDefinitionCIF(void)
               LoopCondition=fgets(line,MAX_CIF_LINE_SIZE,FilePtr);
               if(!LoopCondition) // if nothing could be read we have too few data items
               {
-                printf("Too few data items found in loop_ _atom_site_\n");
+                fprintf(stderr, "Too few data items found in loop_ _atom_site_\n");
                 exit(0);
               }
               else
@@ -1002,16 +1002,16 @@ void ReadFrameworkDefinitionCIF(void)
                 strcpy(keyword,"");
                 strcpy(arguments,"");
                 sscanf(line,"%s%[^\n]",keyword,arguments);
-                
+
                 if(keyword[0]=='_') // it should not be a data name (but a data item)
                 {
-                  printf("Too few data items found in loop_ _atom_site_\n");
+                  fprintf(stderr, "Too few data items found in loop_ _atom_site_\n");
                   exit(0);
                 }
-                
+
                 arg_pointer=line;
                 TrimStringInPlace(arg_pointer);
-                
+
                 if(sscanf(arg_pointer,"%s%n",keyword,&n)==1)
                 {
                   arg_pointer+=n;
@@ -1029,7 +1029,7 @@ void ReadFrameworkDefinitionCIF(void)
                 }
               }
             }
-            
+
             if(i==CifBlockData[ATOM_TYPE_SYMBOL])
             {
               // must match '_atom_site_type_symbol'
@@ -1057,29 +1057,29 @@ void ReadFrameworkDefinitionCIF(void)
             }
             else if(i==CifBlockData[ATOM_TYPE_SCAT_DISPERSION_REAL])
             {
-              // not read, valuea are used from tables 
+              // not read, valuea are used from tables
             }
             else if(i==CifBlockData[ATOM_TYPE_SCAT_DISPERSION_IMAG])
             {
-              // not read, valuea are used from tables 
+              // not read, valuea are used from tables
             }
             else if(i==CifBlockData[ATOM_TYPE_SCAT_SOURCE])
             {
               // not used
             }
             else
-              printf("unknown: %s\n",keyword);
+              fprintf(stderr, "unknown: %s\n",keyword);
           }
-          
+
           if(sscanf(arg_pointer,"%s%n",keyword,&n)==1)
-            printf("Warning Too many data items found in loop_ _atom_type_, excess data ignored\n");
+            fprintf(stderr, "Warning Too many data items found in loop_ _atom_type_, excess data ignored\n");
         }
-        
+
         LoopCondition=fgets(line,MAX_CIF_LINE_SIZE,FilePtr);
         strcpy(keyword,"");
         strcpy(arguments,"");
         sscanf(line,"%s%[^\n]",keyword,arguments);
-        
+
         // skip comments
         if(keyword[0]=='#')
         {
@@ -1089,14 +1089,14 @@ void ReadFrameworkDefinitionCIF(void)
       } // continue as long as we do not encounter 'loop_' or a new data name and as long as we did not reach EOF
       while(((strncasecmp(keyword,"loop_",strlen("loop_"))!=0)&&(keyword[0]!='_'))&&LoopCondition);
     }
-    
+
     // read loop atom-sites
     // ====================================
-    
+
     if((strncasecmp(keyword,"_atom_site_",strlen("_atom_site_"))==0)&&(strncasecmp(keyword,"_atom_site_aniso",strlen("_atom_site_aniso"))!=0))
     {
       NumberOfAtomSiteElementsInBlock=0;
-      
+
       for(i=0;i<MAX_NUMBER_OF_CIF_TERMS;i++)
         CifBlockData[i]=-1;
       do
@@ -1123,7 +1123,7 @@ void ReadFrameworkDefinitionCIF(void)
         else if(strncasecmp(keyword,"_atom_site_aniso_U_23",strlen("_atom_site_aniso_U_23"))==0) CifBlockData[ATOM_SITE_ANISO_U_23]=NumberOfAtomSiteElementsInBlock;
         else if(strncasecmp(keyword,"_atom_site_aniso_U_13",strlen("_atom_site_aniso_U_13"))==0) CifBlockData[ATOM_SITE_ANISO_U_13]=NumberOfAtomSiteElementsInBlock;
         else if(strncasecmp(keyword,"_atom_site_aniso_U_12",strlen("_atom_site_aniso_U_12"))==0) CifBlockData[ATOM_SITE_ANISO_U_12]=NumberOfAtomSiteElementsInBlock;
-        else if(strncasecmp(keyword,"_atom_site_charge",strlen("_atom_site_charge"))==0) 
+        else if(strncasecmp(keyword,"_atom_site_charge",strlen("_atom_site_charge"))==0)
         {
           BoolChargeDefinedInCIFFile=TRUE;
           CifBlockData[ATOM_SITE_CHARGE]=NumberOfAtomSiteElementsInBlock;
@@ -1133,12 +1133,12 @@ void ReadFrameworkDefinitionCIF(void)
         else if(strncasecmp(keyword,"_atom_site_anisotropic_displacement",strlen("_atom_site_anisotropic_displacement"))==0) CifBlockData[ATOM_SITE_ANISOTROPIC_DISPLACEMENT]=NumberOfAtomSiteElementsInBlock;
         else if(strncasecmp(keyword,"_atom_site_print_to_pdb",strlen("_atom_site_print_to_pdb"))==0) CifBlockData[ATOM_SITE_PRINT_TO_PDB]=NumberOfAtomSiteElementsInBlock;
         else if(strncasecmp(keyword,"_atom_site_hybridization",strlen("_atom_site_hybridization"))==0) CifBlockData[ATOM_SITE_HYBRIDIZATION]=NumberOfAtomSiteElementsInBlock;
-        
-        
+
+
         // count the number of elements
         if(strlen(keyword)>0)
           NumberOfAtomSiteElementsInBlock++;
-        
+
         // check if another data name follows
         // if so, copy the 'arguments' to 'line'
         // otherwise read 'line' from the file
@@ -1147,31 +1147,31 @@ void ReadFrameworkDefinitionCIF(void)
           strcpy(line,arguments);
         else
           LoopCondition=fgets(line,MAX_CIF_LINE_SIZE,FilePtr);
-        
+
         // split the new line into 'keyword' and 'arguments'
         strcpy(keyword,"");
         strcpy(arguments,"");
         sscanf(line,"%s%[^\n]",keyword,arguments);
-        
+
         // skip comments
         if(keyword[0]=='#')
         {
           strcpy(keyword,"");
           strcpy(arguments,"");
         }
-      } 
+      }
       while(((strncasecmp(keyword,"_atom_site_",strlen("_atom_site_"))==0)||(strlen(keyword)==0))&&LoopCondition);
-      
+
       do
       {
         // loop over data items
         if(strlen(keyword)>0)
         {
           arg_pointer=line;
-          
+
           // remove spaces
-          TrimStringInPlace(arg_pointer); 
-          
+          TrimStringInPlace(arg_pointer);
+
           strcpy(CurrentPseudoAtom.Name,"");
           strcpy(CurrentPseudoAtom.PrintToPDBName,"");
           strcpy(CurrentPseudoAtom.ChemicalElement,"");
@@ -1212,24 +1212,24 @@ void ReadFrameworkDefinitionCIF(void)
           CurrentPseudoAtom.AnisotropicType=0.0;
           CurrentPseudoAtom.HasVDWInteraction=TRUE;
           CurrentPseudoAtom.Hybridization=HYBRIDIZATION_UNINITIALIZED;
-          
+
           CurrentAsymmetricAtom.Position.x=0.0;
           CurrentAsymmetricAtom.Position.y=0.0;
           CurrentAsymmetricAtom.Position.z=0.0;
           CurrentAsymmetricAtom.Charge=0.0;
 
           PositionDefined=TRUE;
-          
+
           for(i=0;i<NumberOfAtomSiteElementsInBlock;i++)
           {
             strcpy(keyword,"");
             strcpy(arguments,"");
-            
+
             if(sscanf(arg_pointer,"%s%n",keyword,&n)==1)
             {
               // update the pointer to the next element
               arg_pointer+=n;
-              
+
               // if starting with a single quote then look for next single quote
               // consider everything in between as the 'argument'
               // update the pointer to element after the terminal single quote
@@ -1244,7 +1244,7 @@ void ReadFrameworkDefinitionCIF(void)
                 }
                 else keyword[strlen(keyword)-1]='\0';
               }
-              
+
               // if starting with a double quote then look for next double quote
               // consider everything in between as the 'argument'
               // update the pointer to element after the terminal double quote
@@ -1265,7 +1265,7 @@ void ReadFrameworkDefinitionCIF(void)
               LoopCondition=fgets(line,MAX_CIF_LINE_SIZE,FilePtr);
               if(!LoopCondition) // if nothing could be read we have too few data items
               {
-                printf("Too few data items found in loop_ _atom_site_\n");
+                fprintf(stderr, "Too few data items found in loop_ _atom_site_\n");
                 exit(0);
               }
               else
@@ -1273,21 +1273,21 @@ void ReadFrameworkDefinitionCIF(void)
                 strcpy(keyword,"");
                 strcpy(arguments,"");
                 sscanf(line,"%s%[^\n]",keyword,arguments);
-                
+
                 if(keyword[0]=='_') // it should not be a data name (but a data item)
                 {
-                  printf("Too few data items found in loop_ _atom_site_\n");
+                  fprintf(stderr, "Too few data items found in loop_ _atom_site_\n");
                   exit(0);
                 }
-                
+
                 arg_pointer=line;
                 TrimStringInPlace(arg_pointer);
-                
+
                 if(sscanf(arg_pointer,"%s%n",keyword,&n)==1)
                 {
                   // update the pointer to the next element
                   arg_pointer+=n;
-                  
+
                   // if starting with a single quote then look for next single quote
                   // consider everything in between as the 'argument'
                   // update the pointer to element after the terminal single quote
@@ -1302,7 +1302,7 @@ void ReadFrameworkDefinitionCIF(void)
                     }
                     else keyword[strlen(keyword)-1]='\0';
                   }
-                  
+
                   // if starting with a double quote then look for next double quote
                   // consider everything in between as the 'argument'
                   // update the pointer to element after the terminal double quote
@@ -1320,7 +1320,7 @@ void ReadFrameworkDefinitionCIF(void)
                 }
               }
             }
-            
+
             if(i==CifBlockData[ATOM_SITE_LABEL])
             {
               strcpy(CurrentPseudoAtom.Name,keyword);
@@ -1329,7 +1329,7 @@ void ReadFrameworkDefinitionCIF(void)
                 // remove everything after the first '_'
                 p=strchr(keyword,'_');
                 if(p) *p='\0';
-                
+
                 // get CIF component-0
                 sscanf(keyword,"%[a-zA-Z]%n",CurrentPseudoAtom.ChemicalElement,&n);
                 p=keyword+n;
@@ -1343,7 +1343,7 @@ void ReadFrameworkDefinitionCIF(void)
                 }
                 strcpy(string1,"");
                 sscanf(p,"%s",string1);
-                
+
                 // 'Name' consists of the chemical-element part concatenated with the oxydation state
                 strcpy(CurrentPseudoAtom.Name,CurrentPseudoAtom.ChemicalElement);
                 strcat(CurrentPseudoAtom.Name,CurrentPseudoAtom.OxidationStateString);
@@ -1377,7 +1377,7 @@ void ReadFrameworkDefinitionCIF(void)
                 if(pos.x<0) pos.x+=1.0;
               }
               CurrentAsymmetricAtom.Position.x=pos.x;
-              
+
             }
             else if(i==CifBlockData[ATOM_SITE_FRACT_Y])
             {
@@ -1400,7 +1400,7 @@ void ReadFrameworkDefinitionCIF(void)
                 if(pos.z<0) pos.z+=1.0;
               }
               CurrentAsymmetricAtom.Position.z=pos.z;
-              
+
             }
             else if(i==CifBlockData[ATOM_SITE_CHARGE])
             {
@@ -1409,7 +1409,7 @@ void ReadFrameworkDefinitionCIF(void)
                 // set the charge to the asymmetric atom and to the pseudo-atom
                 sscanf(keyword,"%lf",&CurrentAsymmetricAtom.Charge);
 
-		CurrentPseudoAtom.Charge1=CurrentAsymmetricAtom.Charge;
+    CurrentPseudoAtom.Charge1=CurrentAsymmetricAtom.Charge;
                 CurrentPseudoAtom.ChargeDefinitionType=CHARGE_ATOM_FROM_STRUCTURE_FILE;
               }
             }
@@ -1452,7 +1452,7 @@ void ReadFrameworkDefinitionCIF(void)
             else if(i==CifBlockData[ATOM_SITE_CALC_FLAG])
             {
             }
-            else if(i==CifBlockData[ATOM_SITE_REFINEMENT_FLAG]) 
+            else if(i==CifBlockData[ATOM_SITE_REFINEMENT_FLAG])
             {
             }
             else if(i==CifBlockData[ATOM_SITE_DISORDER_ASSEMBLY])
@@ -1490,22 +1490,22 @@ void ReadFrameworkDefinitionCIF(void)
               if(strncmp(keyword,"sp",MAX2(strlen(keyword),strlen("sp")))==0) CurrentPseudoAtom.Hybridization=SP;
             }
             else
-              printf("unknown: %s\n",keyword);
-            
+              fprintf(stderr, "unknown: %s\n",keyword);
+
           }
           if(sscanf(arg_pointer,"%s%n",keyword,&n)==1)
-            printf("Warning Too many data items found in loop_ _atom_site_, excess data ignored\n");
-          
+            fprintf(stderr, "Warning Too many data items found in loop_ _atom_site_, excess data ignored\n");
+
           // _atom_site_type_symbol not set, get symbol from _atom_site_label component 0
           if(strlen(CurrentPseudoAtom.ChemicalElement)==0)
           {
             sscanf(CurrentPseudoAtom.Name,"%[a-zA-Z]",CurrentPseudoAtom.ChemicalElement);
             strcpy(CurrentPseudoAtom.PrintToPDBName,CurrentPseudoAtom.ChemicalElement);
           }
-          
+
           // chemical element set, remove oxidation state to get element for use in pdb
           sscanf(CurrentPseudoAtom.ChemicalElement,"%[a-zA-Z]",CurrentPseudoAtom.PrintToPDBName);
-          
+
           CurrentPseudoAtom.Mass=GetAtomicMass(CurrentPseudoAtom.PrintToPDBName);
           CurrentPseudoAtom.Radius=GetCovalentRadius(CurrentPseudoAtom.PrintToPDBName);
           if(CurrentPseudoAtom.Polarization.ax<1e-8) // if not yet set, look up in table
@@ -1514,7 +1514,7 @@ void ReadFrameworkDefinitionCIF(void)
             CurrentPseudoAtom.Polarization.by=GetAtomPolarization(CurrentPseudoAtom.ChemicalElement)/COULOMBIC_CONVERSION_FACTOR;
           if(CurrentPseudoAtom.Polarization.cz<1e-8) // if not yet set, look up in table
             CurrentPseudoAtom.Polarization.cz=GetAtomPolarization(CurrentPseudoAtom.ChemicalElement)/COULOMBIC_CONVERSION_FACTOR;
-          
+
           if((!ComputePolarization)||((fabs(CurrentPseudoAtom.Polarization.ax)<1e-10)&&(fabs(CurrentPseudoAtom.Polarization.by)<1e-10)&&(fabs(CurrentPseudoAtom.Polarization.cz)<1e-10)))
             CurrentPseudoAtom.IsPolarizable=FALSE;
           else
@@ -1526,12 +1526,12 @@ void ReadFrameworkDefinitionCIF(void)
             CurrentPseudoAtom.HasCharges=FALSE;
           else
             CurrentPseudoAtom.HasCharges=TRUE;
-          
+
           if(fabs(CurrentPseudoAtom.AnisotropicDisplacement)<1e-10)
             CurrentPseudoAtom.AnisotropicCorrection=FALSE;
           else
             CurrentPseudoAtom.AnisotropicCorrection=TRUE;
-          
+
           // only add when the pseudo-atom type is not yet present
           // this means that the 'pseudo_atoms.def' file has precedence over the cif-file settings
           CurrentAsymmetricAtom.Type=AddPseudoAtom(CurrentPseudoAtom);
@@ -1571,13 +1571,13 @@ void ReadFrameworkDefinitionCIF(void)
           if(PositionDefined)
             AddAsymmetricAtom(CurrentAsymmetricAtom);
         }
-        
+
         // split the new line into 'keyword' and 'arguments'
         LoopCondition=fgets(line,MAX_CIF_LINE_SIZE,FilePtr);
         strcpy(keyword,"");
         strcpy(arguments,"");
         sscanf(line,"%s%[^\n]",keyword,arguments);
-        
+
         // skip comments
         if(keyword[0]=='#')
         {
@@ -1587,7 +1587,7 @@ void ReadFrameworkDefinitionCIF(void)
       } // continue as long as we do not encounter 'loop_' or a new data name and as long as we did not reach EOF
       while(((strncasecmp(keyword,"loop_",strlen("loop_"))!=0)&&(keyword[0]!='_'))&&LoopCondition);
     }
-    
+
     // There are 3 ways of setting the space group
     // a) using '_symmetry_space_group_name_Hall'
     // b) using '_symmetry_equiv_pos_as_xyz'
@@ -1603,7 +1603,7 @@ void ReadFrameworkDefinitionCIF(void)
     // The input methods here use this preference. Also note that we allow for more flexible reading then the strict CIF-definition
     // Space groups should be listed with single spaces between the symmetry elements. But we also allow for more spaces or no spaces,
     // as well as space group names with underscores (common in older CIF-files).
-    
+
     // read loop symmetry elements
     // ====================================
     if(strncasecmp(keyword,"_symmetry_equiv_pos",strlen("_symmetry_equiv_pos"))==0)
@@ -1611,13 +1611,13 @@ void ReadFrameworkDefinitionCIF(void)
       DefinedInLoop=TRUE;
       NumberOfAtomSiteElementsInBlock=0;
       nr_sg_elements=0;
-      
+
       for(i=0;i<MAX_NUMBER_OF_CIF_TERMS;i++)
         CifBlockData[i]=-1;
       do
       {
         // parse the '_symmetry_equiv_pos' data names
-        if(strncasecmp(keyword,"_symmetry_equiv_pos_site_id",strlen("_symmetry_equiv_pos_site_id"))==0) 
+        if(strncasecmp(keyword,"_symmetry_equiv_pos_site_id",strlen("_symmetry_equiv_pos_site_id"))==0)
           CifBlockData[SYMMETRY_EQUIV_POS_SITE_ID]=NumberOfAtomSiteElementsInBlock;
         else if(strncasecmp(keyword,"_symmetry_equiv_pos_as_xyz",strlen("_symmetry_equiv_pos_as_xyz"))==0)
         {
@@ -1632,8 +1632,8 @@ void ReadFrameworkDefinitionCIF(void)
           else
             NumberOfAtomSiteElementsInBlock++;
         }
-        
-        
+
+
         // check if another data name follows
         // if so, copy the 'arguments' to 'line'
         // otherwise read 'line' from the file
@@ -1642,11 +1642,11 @@ void ReadFrameworkDefinitionCIF(void)
           strcpy(line,arguments);
         else
           LoopCondition=fgets(line,MAX_CIF_LINE_SIZE,FilePtr);
-        
+
         strcpy(keyword,"");
         strcpy(arguments,"");
         sscanf(line,"%s%[^\n]",keyword,arguments);
-        
+
         // skip comments
         if(keyword[0]=='#')
         {
@@ -1655,7 +1655,7 @@ void ReadFrameworkDefinitionCIF(void)
         }
       } // also continue when empty line
       while(((strncasecmp(keyword,"_symmetry_equiv_pos",strlen("_symmetry_equiv_pos"))==0)||(strlen(keyword)==0))&&LoopCondition);
-      
+
       if(DefinedInLoop)
       {
         nr_sg_elements=0;
@@ -1665,15 +1665,15 @@ void ReadFrameworkDefinitionCIF(void)
           if(strlen(keyword)>0)
           {
             arg_pointer=line;
-            
+
             // remove spaces
             TrimStringInPlace(arg_pointer);
-            
+
             for(i=0;i<NumberOfAtomSiteElementsInBlock;i++)
             {
               strcpy(keyword,"");
               strcpy(arguments,"");
-              
+
               if(sscanf(arg_pointer,"%s%n",keyword,&n)==1)
               {
                 arg_pointer+=n;
@@ -1691,10 +1691,10 @@ void ReadFrameworkDefinitionCIF(void)
               }
               else
               {
-                printf("Too few data items found in loop_ _symmetry_equiv_pos\n");
+                fprintf(stderr, "Too few data items found in loop_ _symmetry_equiv_pos\n");
                 exit(0);
               }
-              
+
               if(i==CifBlockData[SYMMETRY_EQUIV_POS_SITE_ID])
               {
               }
@@ -1706,19 +1706,19 @@ void ReadFrameworkDefinitionCIF(void)
                 strcpy(SpaceGroup[nr_sg_elements++],keyword);
               }
               else
-                printf("unknown: %s\n",keyword);
-              
+                fprintf(stderr, "unknown: %s\n",keyword);
+
             }
             if(sscanf(arg_pointer,"%s%n",keyword,&n)==1)
-              printf("Warning Too many data items found in loop_ _symmetry_equiv_pos, excess data ignored\n");
+              fprintf(stderr, "Warning Too many data items found in loop_ _symmetry_equiv_pos, excess data ignored\n");
           }
-          
+
           // split the new line into 'keyword' and 'arguments'
           LoopCondition=fgets(line,MAX_CIF_LINE_SIZE,FilePtr);
           strcpy(keyword,"");
           strcpy(arguments,"");
           sscanf(line,"%s%[^\n]",keyword,arguments);
-          
+
           // skip comments
           if(keyword[0]=='#')
           {
@@ -1729,10 +1729,10 @@ void ReadFrameworkDefinitionCIF(void)
         while(((strncasecmp(keyword,"loop_",strlen("loop_"))!=0)&&(keyword[0]!='_'))&&LoopCondition);
       }
       FoundSpaceGroupSymmetryElements=GetSpacegroupFromSymmetryElements(nr_sg_elements,SpaceGroup);
-      
-      printf("space group found from symmetry elements: %d (nr elements: %d)\n",FoundSpaceGroupSymmetryElements,nr_sg_elements);
+
+      fprintf(stderr, "space group found from symmetry elements: %d (nr elements: %d)\n",FoundSpaceGroupSymmetryElements,nr_sg_elements);
     }
-    
+
     // the Hall symbol is always read and overrules '_symmetry_space_group_name_H-M' and '_symmetry_equiv_pos_as_xyz'
     if(strncasecmp(keyword,"_symmetry_space_group_name_Hall",strlen("_symmetry_space_group_name_Hall"))==0)
     {
@@ -1740,21 +1740,21 @@ void ReadFrameworkDefinitionCIF(void)
       StripLeadingAndTrailingQuotesInPlace(arguments); // strip possible leading and trailing quotes
       TrimStringInPlace(arguments);                    // remove leading and trailing spaces
       CompressSpacesInString(arguments);               // reduces multiple spaces to single spaces
-      
+
       FoundSpaceGroupHall=GetSpaceGroupFromHallString(arguments);
-      
+
       if(FoundSpaceGroupHall<1)  // if not found try with all spaces removed
         FoundSpaceGroupHall=GetSpaceGroupFromHallStringWithSpacesRemoved(arguments);
-      
+
       if(FoundSpaceGroupHall<1)  // if not found try if spaces are '_' (common in older cif-files)
       {
         ReplaceCharacterInString(arguments,'_',' ');
         FoundSpaceGroupHall=GetSpaceGroupFromHallString(arguments);
       }
-      
-      printf("_symmetry_space_group_name_Hall: %s found space group: %d\n",arguments,FoundSpaceGroupHall);
+
+      fprintf(stderr, "_symmetry_space_group_name_Hall: %s found space group: %d\n",arguments,FoundSpaceGroupHall);
     }
-    
+
     if((strncasecmp(keyword,"_symmetry_space_group_name_H-M",strlen("_symmetry_space_group_name_H-M"))==0)&&
        (Framework[CurrentSystem].SpaceGroupIdentifier[CurrentFramework]<1))
     {
@@ -1762,21 +1762,21 @@ void ReadFrameworkDefinitionCIF(void)
       StripLeadingAndTrailingQuotesInPlace(arguments); // strip possible leading and trailing quotes
       TrimStringInPlace(arguments);                    // remove leading and trailing spaces
       CompressSpacesInString(arguments);               // reduces multiple spaces to single spaces
-      
+
       FoundSpaceGroupHermannMauguinString=GetSpaceGroupFromHermannMauguinString(arguments);
-      
+
       if(FoundSpaceGroupHermannMauguinString<1)  // if not found try with all spaces removed
         FoundSpaceGroupHermannMauguinString=GetSpaceGroupFromHermannMauguinStringWithSpacesRemoved(arguments);
-      
+
       if(FoundSpaceGroupHermannMauguinString<1)  // if not found try if spaces are '_' (common in older cif-files)
       {
         ReplaceCharacterInString(arguments,'_',' ');
         FoundSpaceGroupHermannMauguinString=GetSpaceGroupFromHermannMauguinString(arguments);
       }
-      
-      printf("_symmetry_space_group_name_H-M: %s found space group: %d\n",arguments,FoundSpaceGroupHermannMauguinString);
+
+      fprintf(stderr, "_symmetry_space_group_name_H-M: %s found space group: %d\n",arguments,FoundSpaceGroupHermannMauguinString);
     }
-    
+
     if((strncasecmp(keyword,"_symmetry_Int_Tables_number",strlen("_symmetry_Int_Tables_number"))==0)&&
        (Framework[CurrentSystem].SpaceGroupIdentifier[CurrentFramework]<1))
     {
@@ -1785,14 +1785,14 @@ void ReadFrameworkDefinitionCIF(void)
       TrimStringInPlace(arguments);                    // remove leading and trailing spaces
       sscanf(arguments,"%d",&FoundSpaceGroupIntTables);
       FoundSpaceGroupIntTables=GetSpaceGroupFromITSpaceGroupNumber(FoundSpaceGroupIntTables);
-      
-      printf("_symmetry_Int_Tables_number: %d\n",FoundSpaceGroupIntTables);
+
+      fprintf(stderr, "_symmetry_Int_Tables_number: %d\n",FoundSpaceGroupIntTables);
     }
-    
+
     if(strncasecmp(keyword,"_symmetry_cell_setting",strlen("_symmetry_cell_setting"))==0)
     {
       // not necessary to read
-      // printf("_symmetry_cell_setting: %s\n",arguments);
+      // fprintf(stderr, "_symmetry_cell_setting: %s\n",arguments);
     }
 
     if(strncasecmp(keyword,"_space_group.IT_coordinate_system_code",strlen("_space_group.IT_coordinate_system_code"))==0)
@@ -1801,79 +1801,79 @@ void ReadFrameworkDefinitionCIF(void)
       StripLeadingAndTrailingQuotesInPlace(arguments); // strip possible leading and trailing quotes
       TrimStringInPlace(arguments);                    // remove leading and trailing spaces
       sscanf(arguments,"%s",FoundSpaceGroupOption);
-      printf("_space_group.IT_coordinate_system_code: %s\n",FoundSpaceGroupOption);
+      fprintf(stderr, "_space_group.IT_coordinate_system_code: %s\n",FoundSpaceGroupOption);
     }
-    
+
     if(strncasecmp(keyword,"_cell_length_a",strlen("_cell_length_a"))==0)
     {
       if(sscanf(arguments,"%lf",&A)!=1)
       {
-        printf("ERROR in cif-file: cell length A not recognized\n");
+        fprintf(stderr, "ERROR in cif-file: cell length A not recognized\n");
         exit(0);
       }
-      printf("_cell_length_a: %lf\n",A);
+      fprintf(stderr, "_cell_length_a: %lf\n",A);
     }
-    
+
     if(strncasecmp(keyword,"_cell_length_b",strlen("_cell_length_b"))==0)
     {
       if(sscanf(arguments,"%lf",&B)!=1)
       {
-        printf("ERROR in cif-file: cell length B not recognized\n");
+        fprintf(stderr, "ERROR in cif-file: cell length B not recognized\n");
         exit(0);
       }
-      printf("_cell_length_b: %lf\n",B);
+      fprintf(stderr, "_cell_length_b: %lf\n",B);
     }
-    
+
     if(strncasecmp(keyword,"_cell_length_c",strlen("_cell_length_c"))==0)
     {
       if(sscanf(arguments,"%lf",&C)!=1)
       {
-        printf("ERROR in cif-file: cell length C not recognized\n");
+        fprintf(stderr, "ERROR in cif-file: cell length C not recognized\n");
         exit(0);
       }
-      printf("_cell_length_c: %lf\n",C);
+      fprintf(stderr, "_cell_length_c: %lf\n",C);
     }
-    
+
     if(strncasecmp(keyword,"_cell_angle_alpha",strlen("_cell_angle_alpha"))==0)
     {
       if(sscanf(arguments,"%lf",&alpha)!=1)
       {
-        printf("ERROR in cif-file: cell angle alpha not recognized\n");
+        fprintf(stderr, "ERROR in cif-file: cell angle alpha not recognized\n");
         exit(0);
       }
-      printf("_cell_length_alpha: %lf\n",alpha);
+      fprintf(stderr, "_cell_length_alpha: %lf\n",alpha);
     }
-    
+
     if(strncasecmp(keyword,"_cell_angle_beta",strlen("_cell_angle_beta"))==0)
     {
       if(sscanf(arguments,"%lf",&beta)!=1)
       {
-        printf("ERROR in cif-file: cell angle beta not recognized\n");
+        fprintf(stderr, "ERROR in cif-file: cell angle beta not recognized\n");
         exit(0);
       }
-      printf("_cell_length_beta: %lf\n",beta);
+      fprintf(stderr, "_cell_length_beta: %lf\n",beta);
     }
-    
+
     if(strncasecmp(keyword,"_cell_angle_gamma",strlen("_cell_angle_gamma"))==0)
     {
       if(sscanf(arguments,"%lf",&gamma)!=1)
       {
-        printf("ERROR in cif-file: cell angle gamma not recognized\n");
+        fprintf(stderr, "ERROR in cif-file: cell angle gamma not recognized\n");
         exit(0);
       }
-      printf("_cell_length_gamma: %lf\n",gamma);
+      fprintf(stderr, "_cell_length_gamma: %lf\n",gamma);
     }
-    
+
     TrimStringInPlace(arguments);
     if((strlen(arguments)>0)&&(arguments[0]=='_'))
       strcpy(line,arguments);
     else
       LoopCondition=fgets(line,MAX_CIF_LINE_SIZE,FilePtr);
-    
+
     strcpy(keyword,"");
     strcpy(arguments,"");
     sscanf(line,"%s%[^\n]",keyword,arguments);
-    
+
     // skip comments
     if(keyword[0]=='#')
     {
@@ -1882,15 +1882,15 @@ void ReadFrameworkDefinitionCIF(void)
     }
   }
   while(LoopCondition);
-  
+
   fclose(FilePtr);
-  
+
   // Preference of finding spacegroups: Hall > Symmetry elements > HM symbol > IT number
   if(FoundSpaceGroupHall>=1)
     Framework[CurrentSystem].SpaceGroupIdentifier[CurrentFramework]=FoundSpaceGroupHall;
   else if(FoundSpaceGroupSymmetryElements>=1)
     Framework[CurrentSystem].SpaceGroupIdentifier[CurrentFramework]=FoundSpaceGroupSymmetryElements;
-  else 
+  else
   {
     if(FoundSpaceGroupHermannMauguinString>=1)
       Framework[CurrentSystem].SpaceGroupIdentifier[CurrentFramework]=FoundSpaceGroupHermannMauguinString;
@@ -1898,14 +1898,14 @@ void ReadFrameworkDefinitionCIF(void)
       Framework[CurrentSystem].SpaceGroupIdentifier[CurrentFramework]=FoundSpaceGroupIntTables;
     else
     {
-      printf("ERROR in cif-file: no proper space group definition found\n");
+      fprintf(stderr, "ERROR in cif-file: no proper space group definition found\n");
       exit(0);
     }
 
     if(strlen(FoundSpaceGroupOption)>0)
     {
       Framework[CurrentSystem].SpaceGroupIdentifier[CurrentFramework]=AdjustForNonStandardCIFOption(Framework[CurrentSystem].SpaceGroupIdentifier[CurrentFramework],FoundSpaceGroupOption);
-      printf("After adjustement: %d\n",Framework[CurrentSystem].SpaceGroupIdentifier[CurrentFramework]);
+      fprintf(stderr, "After adjustement: %d\n",Framework[CurrentSystem].SpaceGroupIdentifier[CurrentFramework]);
     }
   }
 
@@ -1980,8 +1980,8 @@ void ReadFrameworkDefinitionCIF(void)
 
   // expand asymmetric to full framework
   ExpandAsymmetricFrameworkToFullFramework();
-  
-  printf("End reading cif-file\n");
+
+  fprintf(stderr, "End reading cif-file\n");
 }
 
 /*********************************************************************************************************
@@ -2009,12 +2009,12 @@ void WriteFrameworkDefinitionCIF(char * string)
   char fullname[256];
   char symbol[256];
   struct passwd *p;
-  
+
   AtomIdentifier=(int*)calloc(NumberOfPseudoAtoms,sizeof(int));
-  
+
   curtime = time (NULL);
   loctime = localtime (&curtime);
-  
+
   for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
   {
     A=(REAL)UnitCellSize[CurrentSystem].x;
@@ -2030,11 +2030,11 @@ void WriteFrameworkDefinitionCIF(char * string)
               CurrentSystem,CurrentFramework,string,
               NumberOfUnitCells[CurrentSystem].x,NumberOfUnitCells[CurrentSystem].y,NumberOfUnitCells[CurrentSystem].z,
               FileNameAppend);
-      
+
       FilePtr=fopen(buffer,"w");
-      
+
       fprintf(FilePtr,"data_%s\n\n",Framework[CurrentSystem].Name[CurrentFramework]);
-      
+
       fprintf(FilePtr,"_audit_creation_method RASPA-1.0\n");
       fprintf(FilePtr,"_audit_creation_date %d-%d-%d\n",loctime->tm_year+1900,loctime->tm_mon+1,loctime->tm_mday);
 
@@ -2053,7 +2053,7 @@ void WriteFrameworkDefinitionCIF(char * string)
         }
       #endif
       fprintf(FilePtr,"\n");
-      
+
       if(Framework[CurrentSystem].NumberOfCitations[CurrentFramework]>0)
       {
         //for(i=0;i<Framework[CurrentSystem].NumberOfCitations[CurrentFramework];i++)
@@ -2098,17 +2098,17 @@ void WriteFrameworkDefinitionCIF(char * string)
         else
         {
           fprintf(FilePtr,"loop_\n");
-          
+
           if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationId)>0) fprintf(FilePtr,"_citation_id\n");
           if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationAuthorName)>0) fprintf(FilePtr,"_citation_author_name\n");
-          if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationCoordinateLinkage)>0) fprintf(FilePtr,"_citation_coordinate_linkage\n"); 
-          if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationTitle)>0) fprintf(FilePtr,"_citation_title\n"); 
-          if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationCountry)>0) fprintf(FilePtr,"_citation_country\n"); 
+          if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationCoordinateLinkage)>0) fprintf(FilePtr,"_citation_coordinate_linkage\n");
+          if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationTitle)>0) fprintf(FilePtr,"_citation_title\n");
+          if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationCountry)>0) fprintf(FilePtr,"_citation_country\n");
           if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationJournalAbbrev)>0) fprintf(FilePtr,"_citation_journal_abbrev\n");
           if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationJournalVolume)>0) fprintf(FilePtr,"_citation_journal_volume\n");
           if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationJournalIssue)>0) fprintf(FilePtr,"_citation_journal_issue\n");
           if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationPageFirst)>0) fprintf(FilePtr,"_citation_page_first\n");
-          if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationPageLast)>0) fprintf(FilePtr,"_citation_page_last\n"); 
+          if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationPageLast)>0) fprintf(FilePtr,"_citation_page_last\n");
           if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationYear)>0) fprintf(FilePtr,"_citation_year\n");
           if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationJournalID_ASTM)>0) fprintf(FilePtr,"_citation_journal_ID_ASTM\n");
           if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationJournalID_ISSN)>0) fprintf(FilePtr,"_citation_journal_ID_ISSN\n");
@@ -2116,7 +2116,7 @@ void WriteFrameworkDefinitionCIF(char * string)
           if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationBookPublisher)>0) fprintf(FilePtr,"_citation_book_publisher\n");
           if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationBookID_ISBN)>0) fprintf(FilePtr,"_citation_book_ID_ISBN\n");
           if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationSpecialDetails)>0) fprintf(FilePtr,"_citation_special_details\n");
-          
+
           for(i=0;i<Framework[CurrentSystem].NumberOfCitations[CurrentFramework];i++)
           {
             if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][i].CitationId)>0)
@@ -2157,8 +2157,8 @@ void WriteFrameworkDefinitionCIF(char * string)
           fprintf(FilePtr,"\n");
         }
       }
-      
-      
+
+
       fprintf(FilePtr,"_cell_length_a    %g\n",BoxProperties[CurrentSystem].ax/(REAL)NumberOfUnitCells[CurrentSystem].x);
       fprintf(FilePtr,"_cell_length_b    %g\n",BoxProperties[CurrentSystem].ay/(REAL)NumberOfUnitCells[CurrentSystem].y);
       fprintf(FilePtr,"_cell_length_c    %g\n",BoxProperties[CurrentSystem].az/(REAL)NumberOfUnitCells[CurrentSystem].z);
@@ -2167,7 +2167,7 @@ void WriteFrameworkDefinitionCIF(char * string)
       fprintf(FilePtr,"_cell_angle_beta  %g\n",(REAL)BetaAngle[CurrentSystem]*RAD2DEG);
       fprintf(FilePtr,"_cell_angle_gamma %g\n",(REAL)GammaAngle[CurrentSystem]*RAD2DEG);
       fprintf(FilePtr,"_cell_volume      %g\n\n",(REAL)Volume[CurrentSystem]);
-      
+
       switch(SpaceGroupData[Framework[CurrentSystem].SpaceGroupIdentifier[CurrentFramework]].CrystalSystem)
       {
         case TRICLINIC_SPACEGROUP:
@@ -2195,12 +2195,12 @@ void WriteFrameworkDefinitionCIF(char * string)
       fprintf(FilePtr,"_symmetry_space_group_name_Hall '%s'\n",SpaceGroupData[1].HallSpaceGroupSymbol);
       fprintf(FilePtr,"_symmetry_space_group_name_H-M  '%s'\n",SpaceGroupData[1].ShortInternationalHermannMauguinSpaceGroupSymbol);
       fprintf(FilePtr,"_symmetry_Int_Tables_number     %d\n\n",SpaceGroupData[1].Number);
-      
-      
+
+
       fprintf(FilePtr,"_symmetry_equiv_pos_as_xyz 'x,y,z'\n");
       fprintf(FilePtr,"\n");
-      
-      
+
+
       fprintf(FilePtr,"loop_\n");
       fprintf(FilePtr,"_atom_site_label\n");
       fprintf(FilePtr,"_atom_site_type_symbol\n");
@@ -2208,10 +2208,10 @@ void WriteFrameworkDefinitionCIF(char * string)
       fprintf(FilePtr,"_atom_site_fract_y\n");
       fprintf(FilePtr,"_atom_site_fract_z\n");
       fprintf(FilePtr,"_atom_site_charge\n");
-      
+
       for(i=0;i<NumberOfPseudoAtoms;i++)
         AtomIdentifier[i]=0;
-     
+
       for(i=0;i<NumberOfPseudoAtoms;i++)
       {
         for(j=0;j<Framework[CurrentSystem].NumberOfAtoms[CurrentFramework];j++)
@@ -2248,16 +2248,16 @@ void WriteFrameworkDefinitionCIF(char * string)
       }
       fprintf(FilePtr,"\n\n");
       fclose(FilePtr);
-      
+
       sprintf(buffer,"Movies/System_%d/Framework_%d_%s_%d_%d_%d_P1%s.cif",
               CurrentSystem,CurrentFramework,string,
               NumberOfUnitCells[CurrentSystem].x,NumberOfUnitCells[CurrentSystem].y,NumberOfUnitCells[CurrentSystem].z,
               FileNameAppend);
-      
+
       FilePtr=fopen(buffer,"w");
-      
+
       fprintf(FilePtr,"data_%s\n\n",Framework[CurrentSystem].Name[CurrentFramework]);
-      
+
       fprintf(FilePtr,"_audit_creation_method RASPA-1.0\n");
       fprintf(FilePtr,"_audit_creation_date %d-%d-%d\n",loctime->tm_year+1900,loctime->tm_mon+1,loctime->tm_mday);
       #if defined(__INTEL_COMPILER)
@@ -2274,7 +2274,7 @@ void WriteFrameworkDefinitionCIF(char * string)
         }
       #endif
       fprintf(FilePtr,"\n");
-      
+
       if(Framework[CurrentSystem].NumberOfCitations[CurrentFramework]>0)
       {
         //for(i=0;i<Framework[CurrentSystem].NumberOfCitations[CurrentFramework];i++)
@@ -2319,17 +2319,17 @@ void WriteFrameworkDefinitionCIF(char * string)
         else
         {
           fprintf(FilePtr,"loop_\n");
-          
+
           if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationId)>0) fprintf(FilePtr,"_citation_id\n");
           if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationAuthorName)>0) fprintf(FilePtr,"_citation_author_name\n");
-          if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationCoordinateLinkage)>0) fprintf(FilePtr,"_citation_coordinate_linkage\n"); 
-          if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationTitle)>0) fprintf(FilePtr,"_citation_title\n"); 
-          if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationCountry)>0) fprintf(FilePtr,"_citation_country\n"); 
+          if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationCoordinateLinkage)>0) fprintf(FilePtr,"_citation_coordinate_linkage\n");
+          if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationTitle)>0) fprintf(FilePtr,"_citation_title\n");
+          if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationCountry)>0) fprintf(FilePtr,"_citation_country\n");
           if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationJournalAbbrev)>0) fprintf(FilePtr,"_citation_journal_abbrev\n");
           if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationJournalVolume)>0) fprintf(FilePtr,"_citation_journal_volume\n");
           if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationJournalIssue)>0) fprintf(FilePtr,"_citation_journal_issue\n");
           if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationPageFirst)>0) fprintf(FilePtr,"_citation_page_first\n");
-          if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationPageLast)>0) fprintf(FilePtr,"_citation_page_last\n"); 
+          if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationPageLast)>0) fprintf(FilePtr,"_citation_page_last\n");
           if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationYear)>0) fprintf(FilePtr,"_citation_year\n");
           if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationJournalID_ASTM)>0) fprintf(FilePtr,"_citation_journal_ID_ASTM\n");
           if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationJournalID_ISSN)>0) fprintf(FilePtr,"_citation_journal_ID_ISSN\n");
@@ -2337,7 +2337,7 @@ void WriteFrameworkDefinitionCIF(char * string)
           if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationBookPublisher)>0) fprintf(FilePtr,"_citation_book_publisher\n");
           if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationBookID_ISBN)>0) fprintf(FilePtr,"_citation_book_ID_ISBN\n");
           if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationSpecialDetails)>0) fprintf(FilePtr,"_citation_special_details\n");
-          
+
           for(i=0;i<Framework[CurrentSystem].NumberOfCitations[CurrentFramework];i++)
           {
             if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][i].CitationId)>0)
@@ -2378,8 +2378,8 @@ void WriteFrameworkDefinitionCIF(char * string)
           fprintf(FilePtr,"\n");
         }
       }
-      
-      
+
+
       fprintf(FilePtr,"_cell_length_a    %g\n",BoxProperties[CurrentSystem].ax/(REAL)NumberOfUnitCells[CurrentSystem].x);
       fprintf(FilePtr,"_cell_length_b    %g\n",BoxProperties[CurrentSystem].ay/(REAL)NumberOfUnitCells[CurrentSystem].y);
       fprintf(FilePtr,"_cell_length_c    %g\n",BoxProperties[CurrentSystem].az/(REAL)NumberOfUnitCells[CurrentSystem].z);
@@ -2387,7 +2387,7 @@ void WriteFrameworkDefinitionCIF(char * string)
       fprintf(FilePtr,"_cell_angle_beta  %g\n",(REAL)BetaAngle[CurrentSystem]*RAD2DEG);
       fprintf(FilePtr,"_cell_angle_gamma %g\n",(REAL)GammaAngle[CurrentSystem]*RAD2DEG);
       fprintf(FilePtr,"_cell_volume      %g\n\n",(REAL)Volume[CurrentSystem]);
-      
+
       switch(SpaceGroupData[Framework[CurrentSystem].SpaceGroupIdentifier[CurrentFramework]].CrystalSystem)
       {
         case TRICLINIC_SPACEGROUP:
@@ -2415,12 +2415,12 @@ void WriteFrameworkDefinitionCIF(char * string)
       fprintf(FilePtr,"_symmetry_space_group_name_Hall '%s'\n",SpaceGroupData[1].HallSpaceGroupSymbol);
       fprintf(FilePtr,"_symmetry_space_group_name_H-M  '%s'\n",SpaceGroupData[1].ShortInternationalHermannMauguinSpaceGroupSymbol);
       fprintf(FilePtr,"_symmetry_Int_Tables_number     %d\n\n",SpaceGroupData[1].Number);
-      
-      
+
+
       fprintf(FilePtr,"_symmetry_equiv_pos_as_xyz 'x,y,z'\n");
       fprintf(FilePtr,"\n");
-      
-      
+
+
       fprintf(FilePtr,"loop_\n");
       fprintf(FilePtr,"_atom_site_label\n");
       fprintf(FilePtr,"_atom_site_type_symbol\n");
@@ -2428,16 +2428,16 @@ void WriteFrameworkDefinitionCIF(char * string)
       fprintf(FilePtr,"_atom_site_fract_y\n");
       fprintf(FilePtr,"_atom_site_fract_z\n");
       fprintf(FilePtr,"_atom_site_charge\n");
-      
+
       for(i=0;i<NumberOfPseudoAtoms;i++)
         AtomIdentifier[i]=0;
-      
+
       for(i=0;i<Framework[CurrentSystem].NumberOfAtoms[CurrentFramework];i++)
       {
         // convert position from Cartesian to fractional positions
         pos=ConvertFromXYZtoABC(Framework[CurrentSystem].Atoms[CurrentFramework][i].Position);
         Type=Framework[CurrentSystem].Atoms[CurrentFramework][i].Type;
-        
+
         if(Framework[CurrentSystem].AddAtomNumberCodeToLabel[CurrentFramework])
         {
           AtomIdentifier[Type]++;
@@ -2458,19 +2458,19 @@ void WriteFrameworkDefinitionCIF(char * string)
                 fabs(pos.z)<1e-12?0.0:pos.z,
                 Framework[CurrentSystem].Atoms[CurrentFramework][i].Charge);
       }
-      
+
       fprintf(FilePtr,"\n\n");
       fclose(FilePtr);
-      
+
       if(Framework[CurrentSystem].SpaceGroupIdentifier[CurrentFramework]>1)
       {
         sprintf(buffer,"Movies/System_%d/Framework_%d_%s_%d_%d_%d%s.cif",
                 CurrentSystem,CurrentFramework,string,1,1,1,FileNameAppend);
-        
+
         FilePtr=fopen(buffer,"w");
-        
+
         fprintf(FilePtr,"data_%s\n\n",Framework[CurrentSystem].Name[CurrentFramework]);
-        
+
         fprintf(FilePtr,"_audit_creation_method RASPA-1.0\n");
         fprintf(FilePtr,"_audit_creation_date %d-%d-%d\n",loctime->tm_year+1900,loctime->tm_mon+1,loctime->tm_mday);
         #if defined(__INTEL_COMPILER)
@@ -2487,7 +2487,7 @@ void WriteFrameworkDefinitionCIF(char * string)
           }
         #endif
         fprintf(FilePtr,"\n");
-        
+
         if(Framework[CurrentSystem].NumberOfCitations[CurrentFramework]>0)
         {
           if(Framework[CurrentSystem].NumberOfCitations[CurrentFramework]==1)
@@ -2531,17 +2531,17 @@ void WriteFrameworkDefinitionCIF(char * string)
           else
           {
             fprintf(FilePtr,"loop_\n");
-            
+
             if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationId)>0) fprintf(FilePtr,"_citation_id\n");
             if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationAuthorName)>0) fprintf(FilePtr,"_citation_author_name\n");
-            if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationCoordinateLinkage)>0) fprintf(FilePtr,"_citation_coordinate_linkage\n"); 
-            if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationTitle)>0) fprintf(FilePtr,"_citation_title\n"); 
-            if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationCountry)>0) fprintf(FilePtr,"_citation_country\n"); 
+            if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationCoordinateLinkage)>0) fprintf(FilePtr,"_citation_coordinate_linkage\n");
+            if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationTitle)>0) fprintf(FilePtr,"_citation_title\n");
+            if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationCountry)>0) fprintf(FilePtr,"_citation_country\n");
             if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationJournalAbbrev)>0) fprintf(FilePtr,"_citation_journal_abbrev\n");
             if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationJournalVolume)>0) fprintf(FilePtr,"_citation_journal_volume\n");
             if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationJournalIssue)>0) fprintf(FilePtr,"_citation_journal_issue\n");
             if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationPageFirst)>0) fprintf(FilePtr,"_citation_page_first\n");
-            if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationPageLast)>0) fprintf(FilePtr,"_citation_page_last\n"); 
+            if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationPageLast)>0) fprintf(FilePtr,"_citation_page_last\n");
             if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationYear)>0) fprintf(FilePtr,"_citation_year\n");
             if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationJournalID_ASTM)>0) fprintf(FilePtr,"_citation_journal_ID_ASTM\n");
             if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationJournalID_ISSN)>0) fprintf(FilePtr,"_citation_journal_ID_ISSN\n");
@@ -2549,7 +2549,7 @@ void WriteFrameworkDefinitionCIF(char * string)
             if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationBookPublisher)>0) fprintf(FilePtr,"_citation_book_publisher\n");
             if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationBookID_ISBN)>0) fprintf(FilePtr,"_citation_book_ID_ISBN\n");
             if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][0].CitationSpecialDetails)>0) fprintf(FilePtr,"_citation_special_details\n");
-            
+
             for(i=0;i<Framework[CurrentSystem].NumberOfCitations[CurrentFramework];i++)
             {
               if(strlen(Framework[CurrentSystem].CitationInformation[CurrentFramework][i].CitationId)>0)
@@ -2590,8 +2590,8 @@ void WriteFrameworkDefinitionCIF(char * string)
             fprintf(FilePtr,"\n");
           }
         }
-        
-        
+
+
         fprintf(FilePtr,"_cell_length_a    %g\n",UnitCellSize[CurrentSystem].x);
         fprintf(FilePtr,"_cell_length_b    %g\n",UnitCellSize[CurrentSystem].y);
         fprintf(FilePtr,"_cell_length_c    %g\n",UnitCellSize[CurrentSystem].z);
@@ -2599,7 +2599,7 @@ void WriteFrameworkDefinitionCIF(char * string)
         fprintf(FilePtr,"_cell_angle_beta  %g\n",(REAL)BetaAngle[CurrentSystem]*RAD2DEG);
         fprintf(FilePtr,"_cell_angle_gamma %g\n",(REAL)GammaAngle[CurrentSystem]*RAD2DEG);
         fprintf(FilePtr,"_cell_volume      %g\n\n",(REAL)Volume[CurrentSystem]);
-        
+
         switch(SpaceGroupData[Framework[CurrentSystem].SpaceGroupIdentifier[CurrentFramework]].CrystalSystem)
         {
           case TRICLINIC_SPACEGROUP:
@@ -2629,7 +2629,7 @@ void WriteFrameworkDefinitionCIF(char * string)
         sscanf(SpaceGroupData[Framework[CurrentSystem].SpaceGroupIdentifier[CurrentFramework]].ShortInternationalHermannMauguinSpaceGroupSymbol,"%[^:]%*[^\n]",buffer);
         fprintf(FilePtr,"_symmetry_space_group_name_H-M  '%s'\n",buffer);
         fprintf(FilePtr,"_symmetry_Int_Tables_number     %d\n\n",SpaceGroupData[Framework[CurrentSystem].SpaceGroupIdentifier[CurrentFramework]].Number);
-        
+
         // printf _symmetry_equiv_pos_as_xyz for all space groups that have different origins
         // for these space groups, the H-M symbol is not sufficient to uniquely set the spacegroup
         fprintf(FilePtr,"loop_\n");
@@ -2637,7 +2637,7 @@ void WriteFrameworkDefinitionCIF(char * string)
         for(j=0;j<SpaceGroupData[Framework[CurrentSystem].SpaceGroupIdentifier[CurrentFramework]].NumberOfOperators;j++)
           fprintf(FilePtr," '%s'\n",StringSpaceGroupElements[Framework[CurrentSystem].SpaceGroupIdentifier[CurrentFramework]][j]);
         fprintf(FilePtr,"\n");
-        
+
         fprintf(FilePtr,"loop_\n");
         fprintf(FilePtr,"_atom_site_label\n");
         fprintf(FilePtr,"_atom_site_type_symbol\n");
@@ -2645,14 +2645,14 @@ void WriteFrameworkDefinitionCIF(char * string)
         fprintf(FilePtr,"_atom_site_fract_y\n");
         fprintf(FilePtr,"_atom_site_fract_z\n");
         fprintf(FilePtr,"_atom_site_charge\n");
-        
+
         for(i=0;i<NumberOfPseudoAtoms;i++)
           AtomIdentifier[i]=0;
-        
+
         for(i=0;i<Framework[CurrentSystem].NumberOfAsymmetricAtoms[CurrentFramework];i++)
         {
           Type=Framework[CurrentSystem].AtomsAsymmetric[CurrentFramework][i].Type;
-          
+
           if(Framework[CurrentSystem].AddAtomNumberCodeToLabel[CurrentFramework])
           {
             AtomIdentifier[Type]++;
@@ -2660,10 +2660,10 @@ void WriteFrameworkDefinitionCIF(char * string)
           }
           else
             sprintf(name,"%s",PseudoAtoms[Type].Name);
-          
+
           // for asymmetric atoms the position is already in fractional coordinates
           pos=Framework[CurrentSystem].AtomsAsymmetric[CurrentFramework][i].Position;
-          
+
           //fprintf(FilePtr,"%-8s %-5s %-4s % -12g % -12g % -12g % -7g % -7g\n",
           fprintf(FilePtr,"%-8s %-5s % -18.12f % -18.12f % -18.12f % -7g\n",
                   name,
@@ -2677,7 +2677,7 @@ void WriteFrameworkDefinitionCIF(char * string)
                   //PseudoAtoms[Type].Charge1);
                   //ComputePolarization?PseudoAtoms[Type].Polarization*COULOMBIC_CONVERSION_FACTOR:0);
         }
-        
+
         fprintf(FilePtr,"\n\n");
         fclose(FilePtr);
       }
@@ -2704,48 +2704,48 @@ void ReadFrameworkDefinitionMOL(void)
   VECTOR shift;
   double A,B,C;
   int Type=0;
-  
+
   Framework[CurrentSystem].FrameworkDensityPerComponent[CurrentFramework]=0.0;
   Framework[CurrentSystem].FrameworkMassPerComponent[CurrentFramework]=0.0;
-  
+
   // first try to open the framework-file in the current directory,
   // and next from the repository
   sprintf(buffer,"%s.%s",
           Framework[CurrentSystem].Name[CurrentFramework],
           "mol");
-  
+
   if(!(FilePtr=fopen(buffer,"r")))
   {
     sprintf(buffer,"%s/share/raspa/structures/xyz/%s.%s",
             RASPA_DIRECTORY,
             Framework[CurrentSystem].Name[CurrentFramework],
             "mol");
-    
+
     if(!(FilePtr=fopen(buffer,"r")))
     {
-      printf("Error:  file %s does not exists.\n",buffer);
+      fprintf(stderr, "Error:  file %s does not exists.\n",buffer);
       exit(1);
     }
   }
-  
+
   // skip the first 3 lines
   fscanf(FilePtr,"%[^\n]\n",buffer);
   fscanf(FilePtr,"%[^\n]\n",buffer);
-  
+
   // get number of atoms of one unitcell
   fscanf(FilePtr,"%d%*[^\n]]",&temp);
   Framework[CurrentSystem].NumberOfUnitCellAtoms[CurrentFramework]=temp;
-  
+
   temp=temp*NumberOfUnitCells[CurrentSystem].x*NumberOfUnitCells[CurrentSystem].y*NumberOfUnitCells[CurrentSystem].z;
   Framework[CurrentSystem].NumberOfAtoms[CurrentFramework]=temp;
   Framework[CurrentSystem].MaxNumberOfAtoms[CurrentFramework]=temp;
-  
+
   Framework[CurrentSystem].Atoms[CurrentFramework]=(ATOM*)calloc(temp,sizeof(ATOM));
-  
+
   for(i=0;i<Framework[CurrentSystem].NumberOfUnitCellAtoms[CurrentFramework];i++)
   {
     fscanf(FilePtr,"%d %lf %lf %lf %s %lf %lf %lf\n",&index,&tempx,&tempy,&tempz,(char*)AtomType,&charge,&B,&C);
-    
+
     // set type of the atom
     Type=-1;
     for(m=0;m<NumberOfPseudoAtoms;m++)
@@ -2755,7 +2755,7 @@ void ReadFrameworkDefinitionMOL(void)
     }
     if(Type<0)
     {
-      printf("Unknown PseudoAtom-type %s !!\n",AtomType);
+      fprintf(stderr, "Unknown PseudoAtom-type %s !!\n",AtomType);
       exit(0);
     }
 
@@ -2766,7 +2766,7 @@ void ReadFrameworkDefinitionMOL(void)
     }
     else
       Framework[CurrentSystem].Atoms[CurrentFramework][i].Charge=PseudoAtoms[Type].Charge1;
-    
+
     Framework[CurrentSystem].Atoms[CurrentFramework][i].Type=Type;
     PseudoAtoms[Type].FrameworkAtom=TRUE;
     NumberOfPseudoAtomsCount[CurrentSystem][Type]++;
@@ -2781,7 +2781,7 @@ void ReadFrameworkDefinitionMOL(void)
       Framework[CurrentSystem].TotalNumberOfCharges++;
     }
   }
-  
+
   // skip the 4 lines
   fscanf(FilePtr,"%[^\n]",buffer);
   fscanf(FilePtr,"%[^\n]",buffer);
@@ -2795,15 +2795,15 @@ void ReadFrameworkDefinitionMOL(void)
   A=(REAL)NumberOfUnitCells[CurrentSystem].x*UnitCellSize[CurrentSystem].x;
   B=(REAL)NumberOfUnitCells[CurrentSystem].y*UnitCellSize[CurrentSystem].y;
   C=(REAL)NumberOfUnitCells[CurrentSystem].z*UnitCellSize[CurrentSystem].z;
-  
+
   // read cell angles and convert to radians
   fscanf(FilePtr,"%lf %lf %lf%*[^\n]",&tempx,&tempy,&tempz);
   AlphaAngle[CurrentSystem]=tempx;
   BetaAngle[CurrentSystem]=tempy;
   GammaAngle[CurrentSystem]=tempz;
- 
+
   if(BoundaryCondition[CurrentSystem]==UNINITIALIZED_BOUNDARY_CONDITION)
-  { 
+  {
     // determine boundary conditions from angles
     if((fabs(AlphaAngle[CurrentSystem]-90.0)>0.01)||
        (fabs(BetaAngle[CurrentSystem]-90.0)>0.01)||
@@ -2819,59 +2819,59 @@ void ReadFrameworkDefinitionMOL(void)
   AlphaAngle[CurrentSystem]*=M_PI/180.0;
   BetaAngle[CurrentSystem]*=M_PI/180.0;
   GammaAngle[CurrentSystem]*=M_PI/180.0;
-  
+
   // construct transformation matrix Box to go from abc-coordinates to xyz-coordinates
   A=UnitCellSize[CurrentSystem].x;
   B=UnitCellSize[CurrentSystem].y;
   C=UnitCellSize[CurrentSystem].z;
   tempd=(cos(AlphaAngle[CurrentSystem])-cos(GammaAngle[CurrentSystem])*cos(BetaAngle[CurrentSystem]))/sin(GammaAngle[CurrentSystem]);
-  
+
   // first vector
   UnitCellBox[CurrentSystem].ax=A;
   UnitCellBox[CurrentSystem].ay=0.0;
   UnitCellBox[CurrentSystem].az=0.0;
-  
+
   // second vector
   UnitCellBox[CurrentSystem].bx=B*cos(GammaAngle[CurrentSystem]);
   UnitCellBox[CurrentSystem].by=B*sin(GammaAngle[CurrentSystem]);
   UnitCellBox[CurrentSystem].bz=0.0;
-  
+
   // third vector
   UnitCellBox[CurrentSystem].cx=C*cos(BetaAngle[CurrentSystem]);
   UnitCellBox[CurrentSystem].cy=C*tempd;
-  UnitCellBox[CurrentSystem].cz=C*sqrt(1.0-SQR(cos(BetaAngle[CurrentSystem]))-SQR(tempd)); 
-  
+  UnitCellBox[CurrentSystem].cz=C*sqrt(1.0-SQR(cos(BetaAngle[CurrentSystem]))-SQR(tempd));
+
   Invert3x3Matrix(&UnitCellBox[CurrentSystem],&InverseUnitCellBox[CurrentSystem],&det);
-  
+
   A=(REAL)NumberOfUnitCells[CurrentSystem].x*UnitCellSize[CurrentSystem].x;
   B=(REAL)NumberOfUnitCells[CurrentSystem].y*UnitCellSize[CurrentSystem].y;
   C=(REAL)NumberOfUnitCells[CurrentSystem].z*UnitCellSize[CurrentSystem].z;
   tempd=(cos(AlphaAngle[CurrentSystem])-cos(GammaAngle[CurrentSystem])*cos(BetaAngle[CurrentSystem]))/sin(GammaAngle[CurrentSystem]);
-  
+
   // first vector
   Box[CurrentSystem].ax=A;
   Box[CurrentSystem].ay=0.0;
   Box[CurrentSystem].az=0.0;
-  
+
   // second vector
   Box[CurrentSystem].bx=B*cos(GammaAngle[CurrentSystem]);
   Box[CurrentSystem].by=B*sin(GammaAngle[CurrentSystem]);
   Box[CurrentSystem].bz=0.0;
-  
+
   // third vector
   Box[CurrentSystem].cx=C*cos(BetaAngle[CurrentSystem]);
   Box[CurrentSystem].cy=C*tempd;
   Box[CurrentSystem].cz=C*sqrt(1.0-SQR(cos(BetaAngle[CurrentSystem]))-SQR(tempd));
-  
+
   // calculate box-properties
   CellProperties(&Box[CurrentSystem],&BoxProperties[CurrentSystem],&Volume[CurrentSystem]);
-  
+
   // calculate inverse box
   Invert3x3Matrix(&Box[CurrentSystem],&InverseBox[CurrentSystem],&det);
-  
+
   // calculate box-properties
   CellProperties(&InverseBox[CurrentSystem],&InverseBoxProperties[CurrentSystem],&det);
-  
+
   index=Framework[CurrentSystem].NumberOfUnitCellAtoms[CurrentFramework];
   for(i=0;i<Framework[CurrentSystem].NumberOfUnitCellAtoms[CurrentFramework];i++)
   {
@@ -2881,7 +2881,7 @@ void ReadFrameworkDefinitionMOL(void)
     tempz=Framework[CurrentSystem].Atoms[CurrentFramework][i].Position.z;
     Type=Framework[CurrentSystem].Atoms[CurrentFramework][i].Type;
     charge=Framework[CurrentSystem].Atoms[CurrentFramework][i].Charge;
-    
+
     for(j=0;j<NumberOfUnitCells[CurrentSystem].x;j++)
       for(k=0;k<NumberOfUnitCells[CurrentSystem].y;k++)
         for(l=0;l<NumberOfUnitCells[CurrentSystem].z;l++)
@@ -2910,12 +2910,12 @@ void ReadFrameworkDefinitionMOL(void)
         }
   }
   fclose(FilePtr);
-  
+
   Framework[CurrentSystem].FrameworkDensityPerComponent[CurrentFramework]=
   Framework[CurrentSystem].FrameworkMassPerComponent[CurrentFramework]/
   (Volume[CurrentSystem]*CUBE(ANGSTROM)*AVOGADRO_CONSTANT);
   Framework[CurrentSystem].NumberOfAtoms[CurrentFramework]=index;
-  
+
   Framework[CurrentSystem].TotalNumberOfAtoms+=Framework[CurrentSystem].NumberOfAtoms[CurrentFramework];
   Framework[CurrentSystem].FrameworkDensity+=Framework[CurrentSystem].FrameworkDensityPerComponent[CurrentFramework];
   Framework[CurrentSystem].FrameworkMass+=Framework[CurrentSystem].FrameworkMassPerComponent[CurrentFramework];
@@ -2930,10 +2930,10 @@ void WriteFrameworkDefinitionMOL(char *string)
   VECTOR r;
   REAL charge;
   char Name[256];
-  
+
   AtomId=(int*)calloc(NumberOfPseudoAtoms,sizeof(int));
   mkdir("Movies",S_IRWXU);
-  
+
   for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
   {
     if(Framework[CurrentSystem].FrameworkModel!=NONE)
@@ -2942,7 +2942,7 @@ void WriteFrameworkDefinitionMOL(char *string)
       {
         sprintf(buffer,"Movies/System_%d",CurrentSystem);
         mkdir(buffer,S_IRWXU);
-        
+
         // write mol-format
         sprintf(buffer,"Movies/System_%d/Framework_%d_%s%s.mol",CurrentSystem,CurrentFramework,string,FileNameAppend);
         FilePtr=fopen(buffer,"w");
@@ -2954,12 +2954,12 @@ void WriteFrameworkDefinitionMOL(char *string)
         {
           Type=Framework[CurrentSystem].Atoms[CurrentFramework][j].Type;
           AtomId[Type]++;
-          
+
           sprintf(Name,"%s",PseudoAtoms[Type].PrintToPDBName);
-          
+
           r=Framework[CurrentSystem].Atoms[CurrentFramework][j].Position;
           charge=Framework[CurrentSystem].Atoms[CurrentFramework][j].Charge;
-          
+
           fprintf(FilePtr,"%5d %9.5lf %9.5lf %9.5lf   %-10s % lf  0  0\n",
                   j+1,(double)r.x,(double)r.y,(double)r.z,Name,(double)charge);
         }
@@ -2971,7 +2971,7 @@ void WriteFrameworkDefinitionMOL(char *string)
         fprintf(FilePtr," %14.5lf %14.5lf%14.5lf\n",0.0,0.0,0.0);
         fprintf(FilePtr," %14.5lf %14.5lf%14.5lf\n",(double)BoxProperties[CurrentSystem].ax,(double)BoxProperties[CurrentSystem].ay,                    (double)BoxProperties[CurrentSystem].az);
         fclose(FilePtr);
-        
+
         // write asymetric unit-cell in pdb-format
         /*
          SerialNumber=1;
@@ -2984,11 +2984,11 @@ void WriteFrameworkDefinitionMOL(char *string)
          if(PseudoAtoms[Type].PrintToPDB)
          {
          pos=Framework[CurrentSystem].AtomsAsymmetric[CurrentFramework][j].Position;
-         
+
          r.x=Box[CurrentSystem].ax*pos.x+Box[CurrentSystem].ay*pos.y+Box[CurrentSystem].az*pos.z;
          r.y=Box[CurrentSystem].bx*pos.x+Box[CurrentSystem].by*pos.y+Box[CurrentSystem].bz*pos.z;
          r.z=Box[CurrentSystem].cx*pos.x+Box[CurrentSystem].cy*pos.y+Box[CurrentSystem].cz*pos.z;
-         
+
          sprintf(AtomName,"%2s",PseudoAtoms[Type].PrintToPDBName);
          sprintf(Element,"%2s",PseudoAtoms[Type].PrintToPDBName);
          fprintf(FilePtr,"%s%5d %2s%c%c%c%3s %c%4s%c   %8.3lf%8.3lf%8.3lf%6.2lf%6.2lf%-4s%2s%2s\n",
@@ -3024,7 +3024,7 @@ void ReadFrameworkDefinitionDLPOLY(void)
   REAL_MATRIX3x3 UnitCellBoxProperties;
   VECTOR pos;
 
-  printf("CurrentSystem: %d CurrentFramework: %d\n",CurrentSystem,CurrentFramework);
+  fprintf(stderr, "CurrentSystem: %d CurrentFramework: %d\n",CurrentSystem,CurrentFramework);
   Framework[CurrentSystem].SpaceGroupIdentifier[CurrentFramework]=1;
 
   // first try to open the framework-file in the current directory,
@@ -3034,14 +3034,14 @@ void ReadFrameworkDefinitionDLPOLY(void)
         "dlpoly");
   if(!(FilePtr=fopen(buffer,"r")))
   {
-    printf("Error:  file %s does not exists.\n",buffer);
+    fprintf(stderr, "Error:  file %s does not exists.\n",buffer);
     exit(1);
   }
 
   fscanf(FilePtr,"%*[^\n]"); // skip first line
   fscanf(FilePtr,"%d %d %d %d %lf %lf\n",&int_temp1,&int_temp2,&int_temp3,&int_temp4,&real_temp1,&real_temp2);
 
-  // NOTE: transposed for DLPOLY input (vectors in DLPOLY are given at line 1,2,3. 
+  // NOTE: transposed for DLPOLY input (vectors in DLPOLY are given at line 1,2,3.
   fscanf(FilePtr,"%lf %lf %lf\n",&UnitCellBox[CurrentSystem].ax,&UnitCellBox[CurrentSystem].ay,&UnitCellBox[CurrentSystem].az);
   fscanf(FilePtr,"%lf %lf %lf\n",&UnitCellBox[CurrentSystem].bx,&UnitCellBox[CurrentSystem].by,&UnitCellBox[CurrentSystem].bz);
   fscanf(FilePtr,"%lf %lf %lf\n",&UnitCellBox[CurrentSystem].cx,&UnitCellBox[CurrentSystem].cy,&UnitCellBox[CurrentSystem].cz);
@@ -3089,8 +3089,8 @@ void ReadFrameworkDefinitionDLPOLY(void)
   Framework[CurrentSystem].NumberOfAsymmetricAtoms[CurrentFramework]=int_temp3;
   Framework[CurrentSystem].AtomsAsymmetric[CurrentFramework]=(FRAMEWORK_ASYMMETRIC_ATOM*)calloc(int_temp3,sizeof(FRAMEWORK_ASYMMETRIC_ATOM));
 
-  printf("int_temp3: %d\n",int_temp3);
-  
+  fprintf(stderr, "int_temp3: %d\n",int_temp3);
+
   for(i=0;i<int_temp3;i++)
   {
     fscanf(FilePtr,"%s%*[^\n]\n",AtomType);
@@ -3102,7 +3102,7 @@ void ReadFrameworkDefinitionDLPOLY(void)
     Type=ReturnPseudoAtomNumber(AtomType);
     if(Type<0)
     {
-      printf("Unknown PseudoAtom-type %s !! (in'ReadFrameworkDefinitionDLPOLY')\n",AtomType);
+      fprintf(stderr, "Unknown PseudoAtom-type %s !! (in'ReadFrameworkDefinitionDLPOLY')\n",AtomType);
       exit(0);
     }
 
@@ -3157,7 +3157,7 @@ void ReadFrameworkDefinitionCSSR(void)
 
     if(!(FilePtr=fopen(buffer,"r")))
     {
-      printf("Error:  file %s does not exists.\n",buffer);
+      fprintf(stderr, "Error:  file %s does not exists.\n",buffer);
       exit(1);
     }
   }
@@ -3174,15 +3174,15 @@ void ReadFrameworkDefinitionCSSR(void)
   strcpy(SpaceGroupName,"");
   if(sscanf(buffer,"SPGR =%3d %11[a-zA-Z0-9-/ ] OPT =%2d",&SpaceGroup,SpaceGroupName,&Option)<1)
   {
-    printf("Error reading cssr file \n");
+    fprintf(stderr, "Error reading cssr file \n");
   }
-  printf("%d %s %d\n",SpaceGroup,SpaceGroupName,Option);
+  fprintf(stderr, "%d %s %d\n",SpaceGroup,SpaceGroupName,Option);
 
   if(strlen(SpaceGroupName)==0)
   {
     if((SpaceGroup<1)||(SpaceGroup>230))
     {
-      printf("Wrong space group number: %d\n",SpaceGroup);
+      fprintf(stderr, "Wrong space group number: %d\n",SpaceGroup);
       exit(0);
     }
     Framework[CurrentSystem].SpaceGroupIdentifier[CurrentFramework]=GetSpaceGroupFromITSpaceGroupNumber(SpaceGroup);
@@ -3192,7 +3192,7 @@ void ReadFrameworkDefinitionCSSR(void)
     TrimStringInPlace(SpaceGroupName);
     CompressSpacesInString(SpaceGroupName);
     Framework[CurrentSystem].SpaceGroupIdentifier[CurrentFramework]=GetSpaceGroupFromHermannMauguinString(SpaceGroupName);
-    printf("Framework[CurrentSystem].SpaceGroupIdentifier[CurrentFramework]: %d %s\n",Framework[CurrentSystem].SpaceGroupIdentifier[CurrentFramework],SpaceGroupName);
+    fprintf(stderr, "Framework[CurrentSystem].SpaceGroupIdentifier[CurrentFramework]: %d %s\n",Framework[CurrentSystem].SpaceGroupIdentifier[CurrentFramework],SpaceGroupName);
   }
   Framework[CurrentSystem].SpaceGroupIdentifier[CurrentFramework]=AdjustForNonStandardCSSROption(Framework[CurrentSystem].SpaceGroupIdentifier[CurrentFramework],Option);
 
@@ -3278,12 +3278,12 @@ void ReadFrameworkDefinitionCSSR(void)
     {
       pos.x-=(REAL)NINT(pos.x);
       pos.y-=(REAL)NINT(pos.y);
-      pos.z-=(REAL)NINT(pos.z);              
+      pos.z-=(REAL)NINT(pos.z);
       if(pos.x<0.0) pos.x+=1.0;
       if(pos.y<0.0) pos.y+=1.0;
       if(pos.z<0.0) pos.z+=1.0;
     }
-    
+
     if(Framework[CurrentSystem].RemoveAtomNumberCodeFromLabel[CurrentFramework])
       sscanf(AtomType,"%[a-zA-Z]",AtomType);
 
@@ -3291,7 +3291,7 @@ void ReadFrameworkDefinitionCSSR(void)
     Type=ReturnPseudoAtomNumber(AtomType);
     if(Type<0)
     {
-      printf("Unknown PseudoAtom-type %s !!\n",AtomType);
+      fprintf(stderr, "Unknown PseudoAtom-type %s !!\n",AtomType);
       exit(0);
     }
 
@@ -3301,7 +3301,7 @@ void ReadFrameworkDefinitionCSSR(void)
     PseudoAtoms[Type].FrameworkAtom=TRUE;
   }
   fclose(FilePtr);
-  
+
   // create the full framework from the asymmetric definition
   ExpandAsymmetricFrameworkToFullFramework();
 }
@@ -3323,7 +3323,7 @@ void WriteFrameworkDefinitionCSSR(char *string)
   char AtomName[10]="      C";                         // Atom Name
   int  SerialNumber;                             // Atom serial number
   int *AtomId;
-  
+
   AtomId=(int*)calloc(NumberOfPseudoAtoms,sizeof(int));
   mkdir("Movies",S_IRWXU);
   for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
@@ -3334,10 +3334,10 @@ void WriteFrameworkDefinitionCSSR(char *string)
       {
         sprintf(buffer,"Movies/System_%d",CurrentSystem);
         mkdir(buffer,S_IRWXU);
-        
+
         sprintf(buffer,"Movies/System_%d/Framework_%d_%s%s.cssr",CurrentSystem,CurrentFramework,string,FileNameAppend);
         FilePtr=fopen(buffer,"w");
-        
+
         A=(REAL)NumberOfUnitCells[CurrentSystem].x*UnitCellSize[CurrentSystem].x;
         B=(REAL)NumberOfUnitCells[CurrentSystem].y*UnitCellSize[CurrentSystem].y;
         C=(REAL)NumberOfUnitCells[CurrentSystem].z*UnitCellSize[CurrentSystem].z;
@@ -3346,7 +3346,7 @@ void WriteFrameworkDefinitionCSSR(char *string)
                 (double)A,
                 (double)B,
                 (double)C);
-        
+
         sscanf(SpaceGroupData[Framework[CurrentSystem].SpaceGroupIdentifier[CurrentFramework]].ShortInternationalHermannMauguinSpaceGroupSymbol,"%[^:]%*[^\n]",buffer);
         fprintf(FilePtr,"%21c %7.3lf %7.3lf %7.3lf    SPGR =%3d %-11s",
                 ' ',
@@ -3357,7 +3357,7 @@ void WriteFrameworkDefinitionCSSR(char *string)
         if(SpaceGroupData[Framework[CurrentSystem].SpaceGroupIdentifier[CurrentFramework]].SpaceGroupOptionCSSR>1)
           fprintf(FilePtr," OPT = %d",SpaceGroupData[Framework[CurrentSystem].SpaceGroupIdentifier[CurrentFramework]].SpaceGroupOptionCSSR);
         fprintf(FilePtr,"\n");
-        
+
         if(SpaceGroupData[Framework[CurrentSystem].SpaceGroupIdentifier[CurrentFramework]].Number==1)
         {
           fprintf(FilePtr,"%4d   %d %s\n",Framework[CurrentSystem].TotalNumberOfAtoms,0,"Created by Raspa-1.0");
@@ -3369,11 +3369,11 @@ void WriteFrameworkDefinitionCSSR(char *string)
             if(PseudoAtoms[Framework[CurrentSystem].Atoms[CurrentFramework][j].Type].PrintToPDB)
             {
               pos=ConvertFromXYZtoABC(Framework[CurrentSystem].Atoms[CurrentFramework][j].Position);
-              
+
               if(fabs(pos.x)<1e-10) pos.x=fabs(pos.x);
               if(fabs(pos.y)<1e-10) pos.y=fabs(pos.y);
               if(fabs(pos.z)<1e-10) pos.z=fabs(pos.z);
-              
+
               snprintf(AtomName,10,"%-6s",PseudoAtoms[Framework[CurrentSystem].Atoms[CurrentFramework][j].Type].PrintToPDBName);
               fprintf(FilePtr,"%4d %-4s  %9.5f %9.5f %9.5f %4d%4d%4d%4d%4d%4d%4d%4d %7.3f\n",
                       SerialNumber++,
@@ -3397,11 +3397,11 @@ void WriteFrameworkDefinitionCSSR(char *string)
             if(PseudoAtoms[Framework[CurrentSystem].AtomsAsymmetric[CurrentFramework][j].Type].PrintToPDB)
             {
               pos=Framework[CurrentSystem].AtomsAsymmetric[CurrentFramework][j].Position;
-              
+
               if(fabs(pos.x)<1e-10) pos.x=fabs(pos.x);
               if(fabs(pos.y)<1e-10) pos.y=fabs(pos.y);
               if(fabs(pos.z)<1e-10) pos.z=fabs(pos.z);
-              
+
               snprintf(AtomName,10,"%-6s",PseudoAtoms[Framework[CurrentSystem].AtomsAsymmetric[CurrentFramework][j].Type].PrintToPDBName);
               fprintf(FilePtr,"%4d %-4s  %9.5f %9.5f %9.5f %4d%4d%4d%4d%4d%4d%4d%4d %7.3f\n",
                       SerialNumber++,
@@ -3451,10 +3451,10 @@ void WriteFrameworkDefinitionPDB(char *string)
   char Element[10]="         "; // Element symbol, right-justified
   char charge[3]="  ";          // Charge
   VECTOR r;
-  REAL MovieScale=1.0; 
-  
+  REAL MovieScale=1.0;
+
   mkdir("Movies",S_IRWXU);
-  
+
   for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
   {
     if(Framework[CurrentSystem].FrameworkModel!=NONE)
@@ -3464,14 +3464,14 @@ void WriteFrameworkDefinitionPDB(char *string)
 
       sprintf(buffer,"Movies/System_%d/Framework_%s%s.pdb",CurrentSystem,string,FileNameAppend);
       FilePtrAll=fopen(buffer,"w");
-      SerialNumberAll=1; 
+      SerialNumberAll=1;
 
       for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
       {
         // write pdb-format
         sprintf(buffer,"Movies/System_%d/Framework_%d_%s%s.pdb",CurrentSystem,CurrentFramework,string,FileNameAppend);
         FilePtr=fopen(buffer,"w");
-        SerialNumber=1; 
+        SerialNumber=1;
         fprintf(FilePtr,"REMARK   Raspa-1.0 PDB file\n");
         fprintf(FilePtr,"CRYST1%9.3lf%9.3lf%9.3lf%7.2lf%7.2lf%7.2lf\n",
                 (double)(MovieScale*BoxProperties[CurrentSystem].ax),
@@ -3519,10 +3519,10 @@ void WriteFrameworkDefinitionGulp(char *string)
   int nr_cores;
   int count;
   int TypeA,TypeB,TypeC;
-  
+
   AtomId=(int*)calloc(NumberOfPseudoAtoms,sizeof(int));
   mkdir("Movies",S_IRWXU);
-  
+
   for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
   {
     if(Framework[CurrentSystem].FrameworkModel!=NONE)
@@ -3615,11 +3615,11 @@ void WriteFrameworkDefinitionGulp(char *string)
         for(j=0;j<Framework[CurrentSystem].NumberOfAtoms[CurrentFramework];j++)
         {
           pos=ConvertFromXYZtoABC(Framework[CurrentSystem].Atoms[CurrentFramework][j].Position);
-          
+
           if(fabs(pos.x)<1e-10) pos.x=fabs(pos.x);
           if(fabs(pos.y)<1e-10) pos.y=fabs(pos.y);
           if(fabs(pos.z)<1e-10) pos.z=fabs(pos.z);
-          
+
           fprintf(FilePtr,"%-6s %s %9.5lf %9.5lf %9.5lf\n",
                   PseudoAtoms[Framework[CurrentSystem].Atoms[CurrentFramework][j].Type].PrintToPDBName,
                   j<nr_cores?"core":"shel",
@@ -3649,10 +3649,10 @@ void WriteFrameworkDefinitionVASP(char *string)
   FILE *FilePtr;
   int *AtomId;
   int count;
-  
+
   AtomId=(int*)calloc(NumberOfPseudoAtoms,sizeof(int));
   mkdir("Movies",S_IRWXU);
-  
+
   for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
   {
     if(Framework[CurrentSystem].FrameworkModel!=NONE)
@@ -3693,7 +3693,7 @@ void WriteFrameworkDefinitionVASP(char *string)
             }
           }
         fprintf(FilePtr,"\n");
- 
+
 
         for(i=0;i<NumberOfPseudoAtoms;i++)
         {
@@ -3712,11 +3712,11 @@ void WriteFrameworkDefinitionVASP(char *string)
             if((Framework[CurrentSystem].Atoms[CurrentFramework][j].Type==i)&&(PseudoAtoms[Framework[CurrentSystem].Atoms[CurrentFramework][j].Type].PrintToPDB))
             {
               pos=ConvertFromXYZtoABC(Framework[CurrentSystem].Atoms[CurrentFramework][j].Position);
-              
+
               if(fabs(pos.x)<1e-10) pos.x=fabs(pos.x);
               if(fabs(pos.y)<1e-10) pos.y=fabs(pos.y);
               if(fabs(pos.z)<1e-10) pos.z=fabs(pos.z);
-              
+
               fprintf(FilePtr,"%4.16lf %4.16lf %4.16lf\n",
                       (double)pos.x,
                       (double)pos.y,
@@ -3747,10 +3747,10 @@ void WriteFrameworkDefinitionTinker(char *string)
   char AtomName[10]="      C"; // Atom Name
   int *AtomId;
   VECTOR r;
-  
+
   AtomId=(int*)calloc(NumberOfPseudoAtoms,sizeof(int));
   mkdir("Movies",S_IRWXU);
-  
+
   for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
   {
     if(Framework[CurrentSystem].FrameworkModel!=NONE)
@@ -3815,7 +3815,7 @@ void ExpandAsymmetricFrameworkToFullFramework(void)
   Framework[CurrentSystem].FrameworkMassPerComponent[CurrentFramework]=0.0;
 
   // get the size of the spacegroup
-  pos.x=pos.y=pos.z=0.0; 
+  pos.x=pos.y=pos.z=0.0;
   SpaceGroupSymmetry(Framework[CurrentSystem].SpaceGroupIdentifier[CurrentFramework],pos);
 
   // loop over the unit cells, then space group elements, and then the asymmetric atoms
@@ -3869,7 +3869,7 @@ void ExpandAsymmetricFrameworkToFullFramework(void)
               rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
               if(rr<1e-4) index=k;
             }
-            
+
             // the symmetry position is new -> insert it as a framework atom
             if(index<0)
             {
@@ -3887,24 +3887,24 @@ void ExpandAsymmetricFrameworkToFullFramework(void)
 
               // Fill in charge from the pseudo-atom definition
               Framework[CurrentSystem].Atoms[CurrentFramework][insert_index].Charge=charge;
-              
+
               // adjust the counter for the type of pseudo atoms
               NumberOfPseudoAtomsCount[CurrentSystem][Type]++;
               NumberOfPseudoAtomsType[CurrentSystem][Type]++;
 
               if(PseudoAtoms[Type].HasCharges)
                 Framework[CurrentSystem].NumberOfCharges[CurrentFramework]++;
-              
+
               // add the mass of the atom to the total framework mass
               Framework[CurrentSystem].FrameworkMassPerComponent[CurrentFramework]+=PseudoAtoms[Type].Mass;
-              
+
               // increase the number of atoms by one
               insert_index++;
             }
           }
     }
   }
-  
+
   // update bookkeeping for framework properties
   Framework[CurrentSystem].NumberOfAtoms[CurrentFramework]=insert_index;
   Framework[CurrentSystem].NumberOfUnitCellAtoms[CurrentFramework]=insert_index/(NumberOfUnitCells[CurrentSystem].x*
@@ -3956,7 +3956,7 @@ void ExpandAsymmetricIonsToFullCell(void)
   Framework[CurrentSystem].Ions=(ATOM*)calloc(Framework[CurrentSystem].MaxNumberOfIons,sizeof(ATOM));
 
   // get the size of the spacegroup
-  pos.x=pos.y=pos.z=0.0; 
+  pos.x=pos.y=pos.z=0.0;
   SpaceGroupSymmetry(Framework[CurrentSystem].SpaceGroupIdentifier[CurrentFramework],pos);
 
   // loop over the unit cells, then space group elements, and then the asymmetric atoms
@@ -3972,7 +3972,7 @@ void ExpandAsymmetricIonsToFullCell(void)
           {
             Type=Framework[CurrentSystem].IonsAsymmetric[i].Type;
             pos=Framework[CurrentSystem].IonsAsymmetric[i].Position;
-            
+
             // get all the symmetric positions for the current asymmetric atom position
             SpaceGroupSymmetry(Framework[CurrentSystem].SpaceGroupIdentifier[CurrentFramework],pos);
 
@@ -4003,7 +4003,7 @@ void ExpandAsymmetricIonsToFullCell(void)
               rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
               if(rr<1e-4) index=k;
             }
-            
+
             // the symmetry position is new -> insert it as a framework atom
             if(index<0)
             {
@@ -4021,14 +4021,14 @@ void ExpandAsymmetricIonsToFullCell(void)
               Framework[CurrentSystem].Ions[insert_index].AssymetricType=i;
 
               crystallographic_stats[CurrentSystem].NumberOfCationSites[i]++;
-              
+
               // increase the number of atoms by one
               insert_index++;
             }
           }
     }
   }
-  
+
   // update bookkeeping for framework properties
   Framework[CurrentSystem].NumberOfIons=insert_index;
 
@@ -4104,8 +4104,8 @@ void PrintStack(int stack)
   int i;
 
   for(i=0;i<StackSize[stack];i++)
-    printf("%d ",Stack[stack][i]);
-  printf("\n");
+    fprintf(stderr, "%d ",Stack[stack][i]);
+  fprintf(stderr, "\n");
 }
 
 void DeallocateStack(int stack)
@@ -4126,12 +4126,12 @@ enum{DISORDER,NO_DISORDER,SELECTED,DELETED};
 void FollowHydrogens(int A)
 {
   int j,B;
-   
+
   // stop criteria for recursion
   if(IsElementInStack(0,A)) return;
-  
+
   Push(0,A);
-  
+
   // Recursively handle all neighboring atoms
   for(j=0;j<Framework[CurrentSystem].Connectivity[0][A];j++)
   {
@@ -4183,10 +4183,10 @@ void FollowFrameworkGetLargestSet(int A)
   // stop criteria for recursion
   //if(IsElementInStack(0,A)||Framework[CurrentSystem].Atoms[0][A].AssymetricType<0) return;
   if(IsElementInStack(1,A)||(Framework[CurrentSystem].Atoms[0][A].CreationState==NO_DISORDER)) return;
-  
+
 
   Push(1,A);
-  
+
   // Find the framework with the lowest connectivity
   // Sometimes a certain choice can lead to two configurations being too close together, i.e. they appear bonded
   // By taking the lowest conenctivity we follow the configurations as if they were not-bonded
@@ -4213,15 +4213,15 @@ void FollowFrameworkDisorderedSet(int fr,int stack,int A)
 {
   int j,B;
   int TypeA,TypeB;
-  
+
   // stop criteria for recursion: if element is already in set or no disorder for this atom
   if(IsElementInStack(0,A)||(Framework[CurrentSystem].Atoms[0][A].CreationState==NO_DISORDER)) return;
-  
-  printf("add %d (%s) to stack %d\n",A,PseudoAtoms[Framework[CurrentSystem].Atoms[fr][A].Type].Name,stack);
+
+  fprintf(stderr, "add %d (%s) to stack %d\n",A,PseudoAtoms[Framework[CurrentSystem].Atoms[fr][A].Type].Name,stack);
   Push(0,A);
   Push((stack%2)+1,A);
-  
-    
+
+
   // Recursively handle all neighboring atoms
   for(j=0;j<Framework[CurrentSystem].Connectivity[fr][A];j++)
   {
@@ -4229,14 +4229,14 @@ void FollowFrameworkDisorderedSet(int fr,int stack,int A)
 
     TypeA=Framework[CurrentSystem].Atoms[fr][A].Type;
     TypeB=Framework[CurrentSystem].Atoms[fr][B].Type;
-    
+
     // keep track of crossing intra-hydrogen-bonds
     if((strcasecmp(PseudoAtoms[TypeA].PrintToPDBName,"H")==0)&&
        (strcasecmp(PseudoAtoms[TypeB].PrintToPDBName,"H")==0)&&
        (!IsElementInStack(0,B))&&
        (Framework[CurrentSystem].Atoms[0][B].CreationState!=NO_DISORDER))
     {
-      printf("hydrogen-hydrogen bond between %d and %d\n",A,B);
+      fprintf(stderr, "hydrogen-hydrogen bond between %d and %d\n",A,B);
       FollowFrameworkDisorderedSet(fr,stack+1,B);
     }
     else
@@ -4252,7 +4252,7 @@ void TypeAtomsInStack(int stack,int fr)
   for(i=0;i<StackSize[stack];i++)
   {
     A=Stack[stack][i];
-    
+
     // set the type to the type of the selected framework
     Framework[CurrentSystem].Atoms[0][A].Type=Framework[CurrentSystem].Atoms[fr][A].Type;
 
@@ -4260,7 +4260,7 @@ void TypeAtomsInStack(int stack,int fr)
       Framework[CurrentSystem].Atoms[j][A].CreationState=NO_DISORDER;
 
     Framework[CurrentSystem].Atoms[fr][A].AssymetricType=-1;
-    printf("Type: fr: %d atom: %d\n",fr,A);
+    fprintf(stderr, "Type: fr: %d atom: %d\n",fr,A);
   }
 }
 
@@ -4332,7 +4332,7 @@ void GenerateFramework(void)
       dr.z=posA.z-posB.z;
       dr=ApplyBoundaryCondition(dr);
       rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-      
+
       // detect disorder (the distance between atoms in the different frameworks is non-zero)
       if(rr>1e-4)
       {
@@ -4352,7 +4352,7 @@ void GenerateFramework(void)
       count++;
     else
       count2++;
-  printf("Disorder: %d no-disorder: %d\n",count,count2);
+  fprintf(stderr, "Disorder: %d no-disorder: %d\n",count,count2);
 
 
   AllocateStacks(9); // allocate space for 3 stacks
@@ -4387,7 +4387,7 @@ void GenerateFramework(void)
       break;
     }
   }
-  
+
 //  for(A=0;A<Framework[CurrentSystem].NumberOfAtoms[0];A++)
 //  {
 //    if(Framework[CurrentSystem].Atoms[0][A].CreationState==DISORDER)
@@ -4399,22 +4399,22 @@ void GenerateFramework(void)
 //      InitializeStack(3);
 //      InitializeStack(4);
 //      InitializeStack(5);
-//      
-//      printf("A: %d\n",A);
-//      printf("====================\n");
-//      
+//
+//      fprintf(stderr, "A: %d\n",A);
+//      fprintf(stderr, "====================\n");
+//
 //      FollowFrameworkDisorderedSet(0,1,A);
-//          
-//      printf("(size: %d): ",StackSize[0]);    
+//
+//      fprintf(stderr, "(size: %d): ",StackSize[0]);
 //      PrintStack(0);
-//      printf("(size: %d): ",StackSize[1]);    
+//      fprintf(stderr, "(size: %d): ",StackSize[1]);
 //      PrintStack(1);
-//      printf("(size: %d): ",StackSize[2]);    
+//      fprintf(stderr, "(size: %d): ",StackSize[2]);
 //      PrintStack(2);
-//      printf("(size: %d): \n",StackSize[3]);    
-//      printf("(size: %d): \n",StackSize[4]);    
-//      printf("(size: %d): \n",StackSize[5]);    
-//      printf("\n\n\n");
+//      fprintf(stderr, "(size: %d): \n",StackSize[3]);
+//      fprintf(stderr, "(size: %d): \n",StackSize[4]);
+//      fprintf(stderr, "(size: %d): \n",StackSize[5]);
+//      fprintf(stderr, "\n\n\n");
 //    }
 //  }
 
@@ -4424,20 +4424,20 @@ void GenerateFramework(void)
     // initialize the 3 stacks
     InitializeStack(0);
     InitializeStack(1);
-    InitializeStack(2);    
-   
-    
-//    printf("i %d (size: %d): \n",A,StackSize[0]);    
+    InitializeStack(2);
+
+
+//    fprintf(stderr, "i %d (size: %d): \n",A,StackSize[0]);
 //    PrintStack(0);
-//    printf("i %d (size: %d): \n",A,StackSize[1]);    
+//    fprintf(stderr, "i %d (size: %d): \n",A,StackSize[1]);
 //    PrintStack(1);
-//    printf("i %d (size: %d): \n",A,StackSize[2]);    
+//    fprintf(stderr, "i %d (size: %d): \n",A,StackSize[2]);
 //    PrintStack(2);
-//    printf("i %d (size: %d): \n",A,StackSize[3]);    
+//    fprintf(stderr, "i %d (size: %d): \n",A,StackSize[3]);
 //    PrintStack(3);
-//    printf("i %d (size: %d): \n",A,StackSize[4]);    
+//    fprintf(stderr, "i %d (size: %d): \n",A,StackSize[4]);
 //    PrintStack(4);
-//    printf("i %d (size: %d): \n",A,StackSize[5]);    
+//    fprintf(stderr, "i %d (size: %d): \n",A,StackSize[5]);
 //    PrintStack(5);
 
 
@@ -4447,43 +4447,43 @@ void GenerateFramework(void)
 //    FollowFrameworkGetLargestSet(A); // stack 1 is the largest set starting with A
 //    SetDifference(2,1,0);            // stack 2 is the difference between A and B
 
-    //printf("i %d (size: %d): \n",A,StackSize[0]);    
+    //printf("i %d (size: %d): \n",A,StackSize[0]);
     //PrintStack(0);
-    
+
     //printf("i %d (size: %d): \n",A,StackSize[1]);
     //PrintStack(1);
-    
+
     //printf("i %d (size: %d): \n",A,StackSize[2]);
     //PrintStack(2);
-    
-    printf("size [%d] 0: %d, 1: %d, 2: %d\n",A,StackSize[0],StackSize[1],StackSize[2]);
-    
+
+    fprintf(stderr, "size [%d] 0: %d, 1: %d, 2: %d\n",A,StackSize[0],StackSize[1],StackSize[2]);
+
     if(Framework[CurrentSystem].FrameworkExclusion) // exlusion between two groups of disordered atoms
     {
       selected=SelectFramework();
-      
+
       FollowFrameworkDisorderedSet(1,1,A);
-      
+
       SelectionProbability[selected]+=1.0;
-      
+
       // type the atoms in framework 'fr' as "disorder resolved"
       TypeAtomsInStack(0,selected);
-            
+
       if(selected==0) selected2=1;
       else selected2=0;
-      
+
       TypeAtomsInStack(1,selected);
       TypeAtomsInStack(2,selected2);
-      
+
       SelectionProbability[selected2]+=1.0;
     }
     else
     {
       // select a framework with the correct probability
       selected=SelectFramework();
-      
+
       SelectionProbability[selected]+=1.0;
-      
+
       // type the atoms in framework 'fr' as "disorder resolved"
       TypeAtomsInStack(0,selected);
     }
@@ -4500,18 +4500,18 @@ void GenerateFramework(void)
     }
   }
 
-  printf("Framework[CurrentSystem].NumberOfAtoms[0]: %d\n",Framework[CurrentSystem].NumberOfAtoms[0]);
-  printf("Framework[CurrentSystem].NumberOfAtoms[1]: %d\n",Framework[CurrentSystem].NumberOfAtoms[1]);
-  printf("All disorder removed!\n");
+  fprintf(stderr, "Framework[CurrentSystem].NumberOfAtoms[0]: %d\n",Framework[CurrentSystem].NumberOfAtoms[0]);
+  fprintf(stderr, "Framework[CurrentSystem].NumberOfAtoms[1]: %d\n",Framework[CurrentSystem].NumberOfAtoms[1]);
+  fprintf(stderr, "All disorder removed!\n");
 
   TotalProbability=0.0;
   for(fr=0;fr<Framework[CurrentSystem].NumberOfFrameworks;fr++)
     TotalProbability+=SelectionProbability[fr];
   for(fr=0;fr<Framework[CurrentSystem].NumberOfFrameworks;fr++)
-    printf("%d selected: %g (%g percent)\n",fr,SelectionProbability[fr],100.0*SelectionProbability[fr]/TotalProbability);
+    fprintf(stderr, "%d selected: %g (%g percent)\n",fr,SelectionProbability[fr],100.0*SelectionProbability[fr]/TotalProbability);
 
   //for(i=0;i<Framework[CurrentSystem].NumberOfAtoms[0];i++)
-  //    printf("%d %d %d\n",i,Framework[CurrentSystem].Atoms[0][i].AssymetricType,Framework[CurrentSystem].Atoms[1][i].AssymetricType);
+  //    fprintf(stderr, "%d %d %d\n",i,Framework[CurrentSystem].Atoms[0][i].AssymetricType,Framework[CurrentSystem].Atoms[1][i].AssymetricType);
   //printf("\n");
 
 
@@ -4550,7 +4550,7 @@ void GenerateFramework(void)
   //        strategy is to find a 6 ring of hydrogens and either delete the odd or the even hdyrogens.
   //        the remaining hydrogens have the proper 120 degree angles.
   if(Framework[CurrentSystem].RemoveHydrogenDisorder)
-  {    
+  {
     for(i=0;i<Framework[CurrentSystem].NumberOfAtoms[0];i++)
       Framework[CurrentSystem].Atoms[0][i].CreationState=DISORDER;
 
@@ -4560,21 +4560,21 @@ void GenerateFramework(void)
     {
       if(Framework[CurrentSystem].Atoms[0][i].CreationState==DISORDER)
       {
-        Type=Framework[CurrentSystem].Atoms[0][i].Type; 
+        Type=Framework[CurrentSystem].Atoms[0][i].Type;
         if(strcmp(PseudoAtoms[Type].PrintToPDBName,"H")==0) // select hydrogen
         {
           InitializeStack(0);
-          
+
           // follow the chain of hydrogens
           FollowHydrogens(i);
-          
-          printf("hydro i %d  %s (size: %d): ",i,PseudoAtoms[Type].Name,StackSize[0]);    
+
+          fprintf(stderr, "hydro i %d  %s (size: %d): ",i,PseudoAtoms[Type].Name,StackSize[0]);
           PrintStack(0);
-          
+
           switch(StackSize[0])
           {
             case 2:
-              printf("Deleted hydrogen\n");
+              fprintf(stderr, "Deleted hydrogen\n");
               if(RandomNumber()<0.5)
               {
                 Framework[CurrentSystem].Atoms[0][Stack[0][0]].CreationState=DELETED;
@@ -4607,10 +4607,10 @@ void GenerateFramework(void)
               }
               break;
             default:
-              printf("SIZE: %d\n",StackSize[0]);
+              fprintf(stderr, "SIZE: %d\n",StackSize[0]);
               break;
           }
-          
+
         }
       }
     }
@@ -4618,9 +4618,9 @@ void GenerateFramework(void)
     count2=0;
     for(i=0;i<Framework[CurrentSystem].NumberOfAtoms[0];i++)
       if(Framework[CurrentSystem].Atoms[0][i].CreationState==DELETED) count++; else count2++;
-      
-    printf("Deleting %d hydrogens, number of atoms: %d\n",count,count2);
-    
+
+    fprintf(stderr, "Deleting %d hydrogens, number of atoms: %d\n",count,count2);
+
     for(i=0;i<Framework[CurrentSystem].NumberOfAtoms[0];i++)
       if(Framework[CurrentSystem].Atoms[0][i].CreationState==DELETED)
       {
@@ -4629,14 +4629,14 @@ void GenerateFramework(void)
         Framework[CurrentSystem].NumberOfAtoms[0]--;
         i--;
       }
-    
+
     count=0;
     count2=0;
     for(i=0;i<Framework[CurrentSystem].NumberOfAtoms[0];i++)
       if(Framework[CurrentSystem].Atoms[0][i].CreationState==DELETED) count++; else count2++;
-    
-    printf("Deleting %d hydrogens, number of atoms: %d\n",count,count2);
-    printf("Number of atoms: %d\n",Framework[CurrentSystem].NumberOfAtoms[0]);
+
+    fprintf(stderr, "Deleting %d hydrogens, number of atoms: %d\n",count,count2);
+    fprintf(stderr, "Number of atoms: %d\n",Framework[CurrentSystem].NumberOfAtoms[0]);
 
   }
 
@@ -4646,10 +4646,10 @@ void GenerateFramework(void)
   //PrintConnectivityList();
 
 
-  
-  char buffer[1024]; 
+
+  char buffer[1024];
   sprintf(buffer,"framework_generated_%d_%d_%d_%d_%ld%s.cssr",(int)SelectionProbability[0],(int)SelectionProbability[1],(int)SelectionProbability[2],(int)SelectionProbability[3],seed,FileNameAppend);
-  
+
   FilePtr=fopen(buffer,"w");
   fprintf(FilePtr,"%38c%7.4lf %7.4lf% 7.4lf\n",' ',
           (double)Box[CurrentSystem].ax,
@@ -4680,7 +4680,7 @@ void GenerateFramework(void)
     }
   }
   fclose(FilePtr);
-  
+
   WriteFrameworkDefinitionCIF("generated");
 }
 
@@ -4700,7 +4700,7 @@ void ReadIonSitingDefinition(void)
             "ions");
     if(!(FilePtr=fopen(buffer,"r")))
     {
-      printf("Error:  file %s does not exists.\n",buffer);
+      fprintf(stderr, "Error:  file %s does not exists.\n",buffer);
       exit(1);
     }
   }
@@ -4900,7 +4900,7 @@ int ReturnNumberOfAsymmetricAtoms(int sg)
   {
     pos=Framework[CurrentSystem].Atoms[CurrentFramework][k].Position;
 
-    s=ConvertFromXYZtoABC(pos); 
+    s=ConvertFromXYZtoABC(pos);
     if(s.x<0.0) s.x+=1.0;
     if(s.y<0.0) s.y+=1.0;
     if(s.z<0.0) s.z+=1.0;
@@ -5078,7 +5078,7 @@ l1:;
       }
     }
   }
-  printf("nr of atoms: %d\n",nr_atoms);
+  fprintf(stderr, "nr of atoms: %d\n",nr_atoms);
   //if(nr_atoms!=Framework[CurrentSystem].NumberOfAtoms[CurrentFramework])
   //  Framework[CurrentSystem].NumberOfAsymmetricAtoms[CurrentFramework]=0;
 }
@@ -5244,7 +5244,7 @@ void PrintConnectivityList(void)
         {
           index_i=i+ncell*Framework[CurrentSystem].NumberOfAtoms[f];
 
-          printf("%d connectivity: %d type: %s %d %d %d %d %d %d %d %d %lf %lf %lf\n",
+          fprintf(stderr, "%d connectivity: %d type: %s %d %d %d %d %d %d %d %d %lf %lf %lf\n",
             index_i,
             Framework[CurrentSystem].Connectivity[f][index_i],
             PseudoAtoms[Framework[CurrentSystem].Atoms[f][i].Type].Name,
@@ -5269,7 +5269,7 @@ void PrintConnectivityList(void)
     {
       for(i=0;i<Framework[CurrentSystem].NumberOfAtoms[CurrentFramework];i++)
       {
-        printf("%d connectivity: %d type: %s %d %d %d %d %d %d %d %d %lf %lf %lf\n",
+        fprintf(stderr, "%d connectivity: %d type: %s %d %d %d %d %d %d %d %d %lf %lf %lf\n",
            i,
            Framework[CurrentSystem].Connectivity[CurrentFramework][i],
            PseudoAtoms[Framework[CurrentSystem].Atoms[CurrentFramework][i].Type].Name,
@@ -5476,8 +5476,8 @@ void ModifyAtomsConnectedToDefinedNeighbours(void)
                   }
                 }
               }
-              printf("found: %d\n",nr_found);
-                
+              fprintf(stderr, "found: %d\n",nr_found);
+
               Angle1=ReturnConstraintBendAngle(Framework[CurrentSystem].Atoms[f1][found[0]].Position,Framework[CurrentSystem].Atoms[f1][A].Position,
                      Framework[CurrentSystem].Atoms[f1][found[1]].Position);
               Angle2=ReturnConstraintBendAngle(Framework[CurrentSystem].Atoms[f1][found[0]].Position,Framework[CurrentSystem].Atoms[f1][A].Position,
@@ -5857,7 +5857,7 @@ void ModifyAtomsConnectedToDefinedNeighbours(void)
                   }
                   break;
                 default:
-                  printf("Routine ModifyAtomsConnectedToDefinedNeighbours: case of >6 neighbors not implemented\n");
+                  fprintf(stderr, "Routine ModifyAtomsConnectedToDefinedNeighbours: case of >6 neighbors not implemented\n");
                   exit(0);
                   break;
               }
@@ -5886,7 +5886,7 @@ void ModifyAtomsConnectedToDefinedNeighbours(void)
                 C=GetNeighbour(CurrentSystem,f1,B,k);
                 if((Framework[CurrentSystem].Atoms[f1][C].Type==ForbiddenConnectivityTypes[l][2])&&(A!=C))
                 {
-                  printf("Illegal framework atom sequence (%s-%s-%s) found! (rule: %d)\n",
+                  fprintf(stderr, "Illegal framework atom sequence (%s-%s-%s) found! (rule: %d)\n",
                     ForbiddenConnectivityAtoms[l][0],ForbiddenConnectivityAtoms[l][1],ForbiddenConnectivityAtoms[l][2],
                     l);
                   exit(0);
@@ -5950,7 +5950,7 @@ void ReadBlockingPockets(void)
                 for(l=0;l<NumberOfUnitCells[CurrentSystem].z;l++)
                 {
                   // convert to xyz (zeolite atoms are stored in xyz)
-                  
+
                   vec.x=(tempr.x+j)/NumberOfUnitCells[CurrentSystem].x;
                   vec.y=(tempr.y+k)/NumberOfUnitCells[CurrentSystem].y;
                   vec.z=(tempr.z+l)/NumberOfUnitCells[CurrentSystem].z;
@@ -5966,7 +5966,7 @@ void ReadBlockingPockets(void)
           fclose(FilePtr);
         }
         else
-          printf("Warning:  file %s does not exists.\n",buffer);
+          fprintf(stderr, "Warning:  file %s does not exists.\n",buffer);
       }
     }
   }
@@ -5996,7 +5996,7 @@ int BlockedPocket(VECTOR pos)
       dr.z=Components[CurrentComponent].BlockCenters[CurrentSystem][i].z-pos.z;
       dr=ApplyBoundaryConditionUnitCell(dr);
       r=sqrt(SQR(dr.x)+SQR(dr.y)+SQR(dr.z));
-      if(r<Components[CurrentComponent].BlockDistance[CurrentSystem][i]) 
+      if(r<Components[CurrentComponent].BlockDistance[CurrentSystem][i])
       {
         return TRUE;
       }
@@ -6105,12 +6105,12 @@ void PrintFrameworkStatus(void)
   int i;
   VECTOR pos;
 
-  printf("Framework contains %d atoms\n",Framework[CurrentSystem].TotalNumberOfAtoms);
-  printf("===================================================\n");
+  fprintf(stderr, "Framework contains %d atoms\n",Framework[CurrentSystem].TotalNumberOfAtoms);
+  fprintf(stderr, "===================================================\n");
   for(i=0;i<Framework[CurrentSystem].TotalNumberOfAtoms;i++)
   {
-    pos=Framework[CurrentSystem].Atoms[0][i].Position; 
-    printf("%d %lf %lf %lf\n",i,(double)pos.x,(double)pos.y,(double)pos.z);
+    pos=Framework[CurrentSystem].Atoms[0][i].Position;
+    fprintf(stderr, "%d %lf %lf %lf\n",i,(double)pos.x,(double)pos.y,(double)pos.z);
   }
 }
 
@@ -6162,23 +6162,23 @@ VECTOR GetIndividualFrameworkCenterOfMass(int f1)
 }
 
 VECTOR GetFrameworkCenterOfMass(void)
-{ 
+{
   int i,f1;
   REAL Mass,TotalMass;
   VECTOR com;
-    
+
   TotalMass=0.0;
   com.x=com.y=com.z=0.0;
   for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
   {
     for(i=0;i<Framework[CurrentSystem].NumberOfAtoms[f1];i++)
-    {     
+    {
       Mass=PseudoAtoms[Framework[CurrentSystem].Atoms[f1][i].Type].Mass;
       TotalMass+=Mass;
       com.x=com.x+Mass*Framework[CurrentSystem].Atoms[f1][i].Position.x;
       com.y=com.y+Mass*Framework[CurrentSystem].Atoms[f1][i].Position.y;
       com.z=com.z+Mass*Framework[CurrentSystem].Atoms[f1][i].Position.z;
-    }     
+    }
   }
   com.x=com.x/TotalMass;
   com.y=com.y/TotalMass;
@@ -6187,23 +6187,23 @@ VECTOR GetFrameworkCenterOfMass(void)
 }
 
 VECTOR GetFrameworkCenterOfMassVelocity(void)
-{ 
+{
   int i,f1;
   REAL Mass,TotalMass;
   VECTOR com;
-    
+
   TotalMass=0.0;
   com.x=com.y=com.z=0.0;
   for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
   {
     for(i=0;i<Framework[CurrentSystem].NumberOfAtoms[f1];i++)
-    {     
+    {
       Mass=PseudoAtoms[Framework[CurrentSystem].Atoms[f1][i].Type].Mass;
       TotalMass+=Mass;
       com.x+=Mass*Framework[CurrentSystem].Atoms[f1][i].Velocity.x;
       com.y+=Mass*Framework[CurrentSystem].Atoms[f1][i].Velocity.y;
       com.z+=Mass*Framework[CurrentSystem].Atoms[f1][i].Velocity.z;
-    }     
+    }
   }
   com.x/=TotalMass;
   com.y/=TotalMass;
@@ -6278,7 +6278,7 @@ VECTOR MeasureFrameworkVelocityDrift(void)
   com.y=com.y/TotalMass;
   com.z=com.z/TotalMass;
   return com;
-} 
+}
 
 void RemoveFrameworkVelocityDrift(void)
 {
@@ -6347,21 +6347,21 @@ void ScaleFrameworkVelocitesToTemperature(void)
 {
   int i,f1;
   REAL Factor;
-  
+
   UHostKinetic[CurrentSystem]=GetFrameworkKineticEnergy();
-  
+
   Factor=sqrt(DegreesOfFreedomFramework[CurrentSystem]*K_B*therm_baro_stats.ExternalTemperature[CurrentSystem]/(2.0*UHostKinetic[CurrentSystem]));
   for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
   {
     for(i=0;i<Framework[CurrentSystem].NumberOfAtoms[f1];i++)
-    { 
+    {
      Framework[CurrentSystem].Atoms[f1][i].Velocity.x*=Factor;
      Framework[CurrentSystem].Atoms[f1][i].Velocity.y*=Factor;
      Framework[CurrentSystem].Atoms[f1][i].Velocity.z*=Factor;
     }
   }
   UHostKinetic[CurrentSystem]=GetFrameworkKineticEnergy();
-} 
+}
 
 int BondNeighbours(int A,int B)
 {
@@ -6495,7 +6495,7 @@ void AddBondTypeToDefinitions(int TypeA,int TypeB,int BondType,REAL *parms)
       for(j=0;j<NumberOfArguments;j++)
         Framework[CurrentSystem].BondArgumentDefinitions[index][j]=parameters[j];
     }
-    
+
   }
 }
 
@@ -6577,7 +6577,7 @@ void AddBendTypeToDefinitions(int TypeA,int TypeB,int TypeC,int BendType,REAL *p
       for(j=0;j<NumberOfArguments;j++)
         Framework[CurrentSystem].BendArgumentDefinitions[index][j]=parameters[j];
     }
-    
+
   }
 }
 
@@ -6668,7 +6668,7 @@ void AddTorsionTypeToDefinitions(int TypeA,int TypeB,int TypeC,int TypeD,int Tor
       for(j=0;j<NumberOfArguments;j++)
         Framework[CurrentSystem].TorsionArgumentDefinitions[index][j]=parameters[j];
     }
-    
+
   }
 }
 
@@ -6808,7 +6808,7 @@ void ReadFrameworkSpecificDefinition(void)
         sprintf(buffer,"%s.%s","Framework","dlpoly");
         if(!(FilePtr=fopen(buffer,"r")))
         {
-          printf("Error:  file %s does not exists.\n",buffer);
+          fprintf(stderr, "Error:  file %s does not exists.\n",buffer);
           return 0;
           exit(1);
         }
@@ -6829,10 +6829,10 @@ void ReadFrameworkSpecificDefinition(void)
           if(strcasecmp("Kelvin",firstargument)==0) UnitConverter=KELVIN_TO_ENERGY;
           if(strcasecmp("internal",firstargument)==0) UnitConverter=1.0;
         }
-        if(strcasecmp("ATOMS",keyword)==0) 
+        if(strcasecmp("ATOMS",keyword)==0)
         {
-          sscanf(arguments,"%d",&NumberOfAtoms); 
-          printf("Reading atoms: %d\n",NumberOfAtoms);
+          sscanf(arguments,"%d",&NumberOfAtoms);
+          fprintf(stderr, "Reading atoms: %d\n",NumberOfAtoms);
 
           for(i=0;i<NumberOfAtoms;i++)
           {
@@ -6842,10 +6842,10 @@ void ReadFrameworkSpecificDefinition(void)
               Framework[CurrentSystem].Atoms[CurrentFramework][i].Charge=temp;
           }
         }
-        if(strcasecmp("BONDS",keyword)==0) 
+        if(strcasecmp("BONDS",keyword)==0)
         {
-          sscanf(arguments,"%d",&NumberOfBonds); 
-          printf("Reading bonds: %d\n",NumberOfBonds);
+          sscanf(arguments,"%d",&NumberOfBonds);
+          fprintf(stderr, "Reading bonds: %d\n",NumberOfBonds);
 
           // realloc memory
 
@@ -6869,7 +6869,7 @@ void ReadFrameworkSpecificDefinition(void)
                     calloc(Framework[CurrentSystem].MaxNumberOfBonds[CurrentFramework],sizeof(REAL[MAX_BOND_POTENTIAL_ARGUMENTS]));
           }
 
-       
+
           index=Framework[CurrentSystem].NumberOfBonds[CurrentFramework];
           for(i=index;i<index+NumberOfBonds;i++)
           {
@@ -6903,18 +6903,18 @@ void ReadFrameworkSpecificDefinition(void)
 
             A=Framework[CurrentSystem].Bonds[CurrentFramework][i].A;
             B=Framework[CurrentSystem].Bonds[CurrentFramework][i].B;
-            TypeA=Framework[CurrentSystem].Atoms[CurrentFramework][A].Type; 
-            TypeB=Framework[CurrentSystem].Atoms[CurrentFramework][B].Type; 
+            TypeA=Framework[CurrentSystem].Atoms[CurrentFramework][A].Type;
+            TypeB=Framework[CurrentSystem].Atoms[CurrentFramework][B].Type;
             AddBondTypeToDefinitions(TypeA,TypeB,BondType,Framework[CurrentSystem].BondArguments[CurrentFramework][i]);
           }
 
           Framework[CurrentSystem].NumberOfBonds[CurrentFramework]+=NumberOfBonds;
         }
 
-        if(strcasecmp("ANGLES",keyword)==0) 
+        if(strcasecmp("ANGLES",keyword)==0)
         {
-          sscanf(arguments,"%d",&NumberOfBends); 
-          printf("Reading bends: %d\n",NumberOfBends);
+          sscanf(arguments,"%d",&NumberOfBends);
+          fprintf(stderr, "Reading bends: %d\n",NumberOfBends);
 
           if(Framework[CurrentSystem].MaxNumberOfBonds[CurrentFramework]>0)
           {
@@ -6959,19 +6959,19 @@ void ReadFrameworkSpecificDefinition(void)
             A=Framework[CurrentSystem].Bends[CurrentFramework][i].A;
             B=Framework[CurrentSystem].Bends[CurrentFramework][i].B;
             C=Framework[CurrentSystem].Bends[CurrentFramework][i].C;
-            TypeA=Framework[CurrentSystem].Atoms[CurrentFramework][A].Type; 
-            TypeB=Framework[CurrentSystem].Atoms[CurrentFramework][B].Type; 
-            TypeC=Framework[CurrentSystem].Atoms[CurrentFramework][C].Type; 
+            TypeA=Framework[CurrentSystem].Atoms[CurrentFramework][A].Type;
+            TypeB=Framework[CurrentSystem].Atoms[CurrentFramework][B].Type;
+            TypeC=Framework[CurrentSystem].Atoms[CurrentFramework][C].Type;
             AddBendTypeToDefinitions(TypeA,TypeB,TypeC,BendType,Framework[CurrentSystem].BendArguments[CurrentFramework][i]);
           }
 
           Framework[CurrentSystem].NumberOfBends[CurrentFramework]+=NumberOfBends;
         }
 
-        if(strcasecmp("DIHEDRALS",keyword)==0) 
+        if(strcasecmp("DIHEDRALS",keyword)==0)
         {
-          sscanf(arguments,"%d",&NumberOfTorsions); 
-          printf("Reading torsions: %d\n",NumberOfTorsions);
+          sscanf(arguments,"%d",&NumberOfTorsions);
+          fprintf(stderr, "Reading torsions: %d\n",NumberOfTorsions);
 
           if(Framework[CurrentSystem].MaxNumberOfTorsions[CurrentFramework]>0)
           {
@@ -7015,7 +7015,7 @@ void ReadFrameworkSpecificDefinition(void)
 
           index=Framework[CurrentSystem].NumberOfTorsions[CurrentFramework];
           index2=Framework[CurrentSystem].NumberOfImproperTorsions[CurrentFramework];
-         
+
           for(i=0;i<NumberOfTorsions;i++)
           {
             ReadLine(line,16384,FilePtr);
@@ -7062,10 +7062,10 @@ void ReadFrameworkSpecificDefinition(void)
               B=Framework[CurrentSystem].Torsions[CurrentFramework][index].B;
               C=Framework[CurrentSystem].Torsions[CurrentFramework][index].C;
               D=Framework[CurrentSystem].Torsions[CurrentFramework][index].D;
-              TypeA=Framework[CurrentSystem].Atoms[CurrentFramework][A].Type; 
-              TypeB=Framework[CurrentSystem].Atoms[CurrentFramework][B].Type; 
-              TypeC=Framework[CurrentSystem].Atoms[CurrentFramework][C].Type; 
-              TypeD=Framework[CurrentSystem].Atoms[CurrentFramework][D].Type; 
+              TypeA=Framework[CurrentSystem].Atoms[CurrentFramework][A].Type;
+              TypeB=Framework[CurrentSystem].Atoms[CurrentFramework][B].Type;
+              TypeC=Framework[CurrentSystem].Atoms[CurrentFramework][C].Type;
+              TypeD=Framework[CurrentSystem].Atoms[CurrentFramework][D].Type;
               AddTorsionTypeToDefinitions(TypeA,TypeB,TypeC,TypeD,TorsionType,Framework[CurrentSystem].TorsionArguments[CurrentFramework][index]);
               index++;
             }
@@ -7108,10 +7108,10 @@ void ReadFrameworkSpecificDefinition(void)
               B=Framework[CurrentSystem].ImproperTorsions[CurrentFramework][index2].B;
               C=Framework[CurrentSystem].ImproperTorsions[CurrentFramework][index2].C;
               D=Framework[CurrentSystem].ImproperTorsions[CurrentFramework][index2].D;
-              TypeA=Framework[CurrentSystem].Atoms[CurrentFramework][A].Type; 
-              TypeB=Framework[CurrentSystem].Atoms[CurrentFramework][B].Type; 
-              TypeC=Framework[CurrentSystem].Atoms[CurrentFramework][C].Type; 
-              TypeD=Framework[CurrentSystem].Atoms[CurrentFramework][D].Type; 
+              TypeA=Framework[CurrentSystem].Atoms[CurrentFramework][A].Type;
+              TypeB=Framework[CurrentSystem].Atoms[CurrentFramework][B].Type;
+              TypeC=Framework[CurrentSystem].Atoms[CurrentFramework][C].Type;
+              TypeD=Framework[CurrentSystem].Atoms[CurrentFramework][D].Type;
               AddImproperTorsionTypeToDefinitions(TypeA,TypeB,TypeC,TypeD,ImproperTorsionType,Framework[CurrentSystem].ImproperTorsionArguments[CurrentFramework][index2]);
               index2++;
             }
@@ -7120,17 +7120,17 @@ void ReadFrameworkSpecificDefinition(void)
           Framework[CurrentSystem].NumberOfImproperTorsions[CurrentFramework]=index2;
         }
 
-        if(strcasecmp("VDW",keyword)==0) 
+        if(strcasecmp("VDW",keyword)==0)
         {
-          sscanf(arguments,"%d",&NumberOfVDW); 
-          printf("Reading VDW: %d\n",NumberOfVDW);
+          sscanf(arguments,"%d",&NumberOfVDW);
+          fprintf(stderr, "Reading VDW: %d\n",NumberOfVDW);
           for(i=0;i<NumberOfVDW;i++)
           {
             ReadLine(line,16384,FilePtr);
             sscanf(line,"%s %s %s %lf %lf %[^\n]",TypeNameA,TypeNameB,buffer,&potential_arguments[0],&potential_arguments[1],arguments);
             if(strcasecmp(buffer,"lj")==0)
             {
-            } 
+            }
           }
         }
       }
@@ -7181,7 +7181,7 @@ void WriteFrameworkDefinition(void)
       fprintf(FilePtr,"ensemble nst lang    1.0  5.0\n");
       break;
   }
-  
+
   fprintf(FilePtr,"vdw direct\n");
   fprintf(FilePtr,"spme precision  1.0E-20\n");
   fprintf(FilePtr,"\n");
@@ -7687,7 +7687,7 @@ int ReadFrameworkDefinition(void)
     {
       sprintf(buffer,"%s/share/raspa/framework/%s/%s.%s",RASPA_DIRECTORY,
               Framework[CurrentSystem].FrameworkDefinitions,"framework","def");
-  
+
       if(!(FilePtr=fopen(buffer,"r")))
       {
         sprintf(buffer,"%s/share/raspa/framework/%s/%s.%s",RASPA_DIRECTORY,
@@ -7695,15 +7695,15 @@ int ReadFrameworkDefinition(void)
 
         if(!(FilePtr=fopen(buffer,"r")))
         {
-          printf("Error:  file %s does not exists.\n",buffer);
+          fprintf(stderr, "Error:  file %s does not exists.\n",buffer);
           exit(1);
         }
       }
     }
   }
-  
+
   ReadLine(line,1024,FilePtr); // skip line
-  
+
   ReadLine(line,1024,FilePtr);
   sscanf(line,"%d%d%d%d%d%d%d%d%d%d%d%d%d",
        &Framework[CurrentSystem].NumberOfCoreShellDefinitions,
@@ -7720,20 +7720,20 @@ int ReadFrameworkDefinition(void)
        &Framework[CurrentSystem].NumberOfBendBendDefinitions,
        &Framework[CurrentSystem].NumberOfBondTorsionDefinitions,
        &Framework[CurrentSystem].NumberOfBendTorsionDefinitions);
-  
-  
+
+
   // read the core and the shells
   index_excluded=0;
   if(Framework[CurrentSystem].NumberOfCoreShellDefinitions>0)
   {
     Framework[CurrentSystem].CoreShellConnectivity=(int**)calloc(Framework[CurrentSystem].NumberOfFrameworks,sizeof(int*));
-  
+
     for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
       Framework[CurrentSystem].NumberOfCoreShells[f1]=0;
-  
+
     Framework[CurrentSystem].CoreShellDefinitions=(PAIR*)calloc(Framework[CurrentSystem].NumberOfCoreShellDefinitions,sizeof(PAIR));
     Framework[CurrentSystem].NumberOfCoreShellsPerType=(int*)calloc(Framework[CurrentSystem].NumberOfCoreShellDefinitions,sizeof(int));
-  
+
     ReadLine(line,1024,FilePtr); // skip line
     for(i=0;i<Framework[CurrentSystem].NumberOfCoreShellDefinitions;i++)
     {
@@ -7743,11 +7743,11 @@ int ReadFrameworkDefinition(void)
       TypeB=ReturnPseudoAtomNumber(TypeNameB);
       PseudoAtoms[TypeA].CoreShell=CORE;
       PseudoAtoms[TypeB].CoreShell=SHELL;
-  
+
       Framework[CurrentSystem].CoreShellDefinitions[i].A=TypeA;
       Framework[CurrentSystem].CoreShellDefinitions[i].B=TypeB;
-  
-      // count shells 
+
+      // count shells
       for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
       {
         for(A=0;A<Framework[CurrentSystem].NumberOfAtoms[f1];A++)
@@ -7756,7 +7756,7 @@ int ReadFrameworkDefinition(void)
       }
     }
   }
-  
+
   if(Framework[CurrentSystem].NumberOfCoreShellDefinitions>0)
   {
     // allocate the shells
@@ -7765,20 +7765,20 @@ int ReadFrameworkDefinition(void)
       if(Framework[CurrentSystem].NumberOfCoreShells[f1]>0)
       {
         nr_atoms=Framework[CurrentSystem].NumberOfAtoms[f1]+Framework[CurrentSystem].NumberOfCoreShells[f1];
-  
+
         // create memory for the core-shell connectivity array
         Framework[CurrentSystem].CoreShellConnectivity[f1]=(int*)calloc(nr_atoms,sizeof(int));
         for(i=0;i<nr_atoms;i++)
           Framework[CurrentSystem].CoreShellConnectivity[f1][i]=-1;
-  
-        // create additional memory for the shells 
+
+        // create additional memory for the shells
         Framework[CurrentSystem].Atoms[f1]=(ATOM*)realloc(Framework[CurrentSystem].Atoms[f1],
               nr_atoms*sizeof(ATOM));
       }
     }
   }
-  
-  
+
+
   // create shells around the cores
   for(i=0;i<Framework[CurrentSystem].NumberOfCoreShellDefinitions;i++)
   {
@@ -7791,36 +7791,36 @@ int ReadFrameworkDefinition(void)
         if(Framework[CurrentSystem].Atoms[f1][A].Type==TypeA)
         {
           Framework[CurrentSystem].Atoms[f1][index].Type=TypeB;
-  
+
           NumberOfPseudoAtomsCount[CurrentSystem][TypeB]++;
           NumberOfPseudoAtomsType[CurrentSystem][TypeB]++;
           Framework[CurrentSystem].FrameworkMass+=PseudoAtoms[TypeB].Mass;
           Framework[CurrentSystem].Atoms[f1][index].Charge+=PseudoAtoms[TypeB].Charge1;
-  
+
           // set position of the shell close to the core
           Framework[CurrentSystem].Atoms[f1][index].Position.x=Framework[CurrentSystem].Atoms[f1][A].Position.x+(RandomNumber()*0.1);
           Framework[CurrentSystem].Atoms[f1][index].Position.y=Framework[CurrentSystem].Atoms[f1][A].Position.y+(RandomNumber()*0.1);
           Framework[CurrentSystem].Atoms[f1][index].Position.z=Framework[CurrentSystem].Atoms[f1][A].Position.z+(RandomNumber()*0.1);
-  
+
           Framework[CurrentSystem].CoreShellConnectivity[f1][index]=A;
           Framework[CurrentSystem].CoreShellConnectivity[f1][A]=index;
 
           Framework[CurrentSystem].NumberOfCoreShellsPerType[i]++;
-  
+
           index++;
           Framework[CurrentSystem].TotalNumberOfAtoms++;
         }
       Framework[CurrentSystem].NumberOfAtoms[f1]=index;
     }
   }
-  
+
   // Now that shells have been created the list has to be recreated including the shells around the cores
   FreeAllocateConnectivityList();
   AllocateConnectivityList();
   MakeConnectivityList();
   //PrintConnectivityList();
   ModifyAtomsConnectedToDefinedNeighbours();
-  
+
   // reading Bond-data
   if(Framework[CurrentSystem].NumberOfBondsDefinitions>0)
   {
@@ -7830,7 +7830,7 @@ int ReadFrameworkDefinition(void)
     Framework[CurrentSystem].BondArgumentDefinitions=(REAL(*)[MAX_BOND_POTENTIAL_ARGUMENTS])
       calloc(Framework[CurrentSystem].NumberOfBondsDefinitions,sizeof(REAL[MAX_BOND_POTENTIAL_ARGUMENTS]));
     Framework[CurrentSystem].NumberOfBondsPerType=(int*)calloc(Framework[CurrentSystem].NumberOfBondsDefinitions,sizeof(int));
-  
+
     for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
     {
       Framework[CurrentSystem].MaxNumberOfBonds[CurrentFramework]=4096;
@@ -7839,10 +7839,10 @@ int ReadFrameworkDefinition(void)
       Framework[CurrentSystem].BondType[CurrentFramework]=(int*)calloc(Framework[CurrentSystem].MaxNumberOfBonds[CurrentFramework],sizeof(int));
       Framework[CurrentSystem].BondArguments[CurrentFramework]=(REAL(*)[MAX_BOND_POTENTIAL_ARGUMENTS])
               calloc(Framework[CurrentSystem].MaxNumberOfBonds[CurrentFramework],sizeof(REAL[MAX_BOND_POTENTIAL_ARGUMENTS]));
-  
+
       Framework[CurrentSystem].NumberOfBonds[CurrentFramework]=0;
     }
-  
+
     ReadLine(line,1024,FilePtr); // skip line
     for(i=0;i<Framework[CurrentSystem].NumberOfBondsDefinitions;i++)
     {
@@ -7851,12 +7851,12 @@ int ReadFrameworkDefinition(void)
       sscanf(line,"%s%s%s%n",TypeNameA,TypeNameB,buffer,&n);
       TypeA=ReturnPseudoAtomNumber(TypeNameA);
       TypeB=ReturnPseudoAtomNumber(TypeNameB);
-  
+
       // determine bond-type
       for(j=0;j<NR_BOND_TYPES;j++)
         if(strcasecmp(BondTypes[j].Name,buffer)==0)
           BondType=j;
-  
+
       // read arguments
       for(j=0;j<BondTypes[BondType].nr_args;j++)
       {
@@ -7864,13 +7864,13 @@ int ReadFrameworkDefinition(void)
         sscanf(arg_pointer,"%lf%n",&temp,&n);
         arguments[j]=(REAL)temp;
       }
-  
+
       Framework[CurrentSystem].BondDefinitionType[i]=BondType;
       Framework[CurrentSystem].BondDefinitions[i].A=TypeA;
       Framework[CurrentSystem].BondDefinitions[i].B=TypeB;
       for(j=0;j<BondTypes[BondType].nr_args;j++)
-        Framework[CurrentSystem].BondArgumentDefinitions[i][j]=arguments[j]; 
-  
+        Framework[CurrentSystem].BondArgumentDefinitions[i][j]=arguments[j];
+
       // fill the appropriate bond-data
       for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
       {
@@ -7887,14 +7887,14 @@ int ReadFrameworkDefinition(void)
             {
               Framework[CurrentSystem].Bonds[CurrentFramework][index].A=A;
               Framework[CurrentSystem].Bonds[CurrentFramework][index].B=B;
-  
+
               Framework[CurrentSystem].BondType[CurrentFramework][index]=BondType;
-  
+
               Framework[CurrentSystem].NumberOfBondsPerType[i]++;
-  
+
               for(j=0;j<BondTypes[BondType].nr_args;j++)
                 Framework[CurrentSystem].BondArguments[CurrentFramework][index][j]=arguments[j];
-  
+
               // set to appropriate bond-distance
               switch(BondType)
               {
@@ -8034,7 +8034,7 @@ int ReadFrameworkDefinition(void)
                 case MEASURE_BOND:
                   break;
                 default:
-                  printf("Undefined Bond potential in routine 'ReadFrameworkDefinition' ('framework.c')\n");
+                  fprintf(stderr, "Undefined Bond potential in routine 'ReadFrameworkDefinition' ('framework.c')\n");
                   exit(0);
                   break;
               }
@@ -8057,7 +8057,7 @@ int ReadFrameworkDefinition(void)
       }
     }
   }
-  
+
   // reading Bond-Dipole-data
   index=0;
   if(Framework[CurrentSystem].NumberOfBondDipoleDefinitions>0)
@@ -8065,28 +8065,28 @@ int ReadFrameworkDefinition(void)
     Framework[CurrentSystem].BondDipoleDefinitions=(PAIR*)calloc(Framework[CurrentSystem].NumberOfBondDipoleDefinitions,sizeof(PAIR));
     Framework[CurrentSystem].BondDipoleArgumentDefinition=(REAL*)calloc(Framework[CurrentSystem].NumberOfBondDipoleDefinitions,sizeof(REAL));
     Framework[CurrentSystem].NumberOfBondDipolesPerType=(int*)calloc(Framework[CurrentSystem].NumberOfBondDipoleDefinitions,sizeof(int));
-  
+
       // allocate first dimension of bond-dipoles
     for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
     {
       Framework[CurrentSystem].MaxNumberOfBondDipoles[CurrentFramework]=4096;
-  
+
       Framework[CurrentSystem].BondDipoles[CurrentFramework]=(PAIR*)calloc(Framework[CurrentSystem].MaxNumberOfBondDipoles[CurrentFramework],sizeof(PAIR));
       Framework[CurrentSystem].BondDipoleMagnitude[CurrentFramework]=(REAL*)calloc(Framework[CurrentSystem].MaxNumberOfBondDipoles[CurrentFramework],sizeof(REAL));
     }
-  
+
     ReadLine(line,1024,FilePtr); // skip line
     for(i=0;i<Framework[CurrentSystem].NumberOfBondDipoleDefinitions;i++)
     {
-      ReadLine(line,1024,FilePtr); 
+      ReadLine(line,1024,FilePtr);
       sscanf(line,"%s%s%lf",TypeNameA,TypeNameB,&arguments[0]);
       TypeA=ReturnPseudoAtomNumber(TypeNameA);
       TypeB=ReturnPseudoAtomNumber(TypeNameB);
-  
+
       Framework[CurrentSystem].BondDipoleDefinitions[i].A=TypeA;
       Framework[CurrentSystem].BondDipoleDefinitions[i].B=TypeB;
-      Framework[CurrentSystem].BondDipoleArgumentDefinition[i]=arguments[0]/DEBYE_CONVERSION_FACTOR; 
-  
+      Framework[CurrentSystem].BondDipoleArgumentDefinition[i]=arguments[0]/DEBYE_CONVERSION_FACTOR;
+
       // fill the appropriate bonddipole-data
       for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
       {
@@ -8103,17 +8103,17 @@ int ReadFrameworkDefinition(void)
             {
               Framework[CurrentSystem].BondDipoles[CurrentFramework][index].A=A;
               Framework[CurrentSystem].BondDipoles[CurrentFramework][index].B=B;
-  
+
               Framework[CurrentSystem].NumberOfBondDipolesPerType[i]++;
-  
+
               Framework[CurrentSystem].BondDipoleMagnitude[CurrentFramework][index]=arguments[0]/DEBYE_CONVERSION_FACTOR;
-  
+
               Framework[CurrentSystem].NumberOfBondDipoles[CurrentFramework]++;
               index=Framework[CurrentSystem].NumberOfBondDipoles[CurrentFramework];
               if(index>=Framework[CurrentSystem].MaxNumberOfBondDipoles[CurrentFramework])
               {
                  Framework[CurrentSystem].MaxNumberOfBondDipoles[CurrentFramework]+=4096;
-  
+
                  Framework[CurrentSystem].BondDipoles[CurrentFramework]=(PAIR*)realloc(Framework[CurrentSystem].BondDipoles[CurrentFramework],
                    Framework[CurrentSystem].MaxNumberOfBondDipoles[CurrentFramework]*sizeof(PAIR));
                  Framework[CurrentSystem].BondDipoleMagnitude[CurrentFramework]=(REAL*)realloc(Framework[CurrentSystem].BondDipoleMagnitude[CurrentFramework],
@@ -8125,7 +8125,7 @@ int ReadFrameworkDefinition(void)
       }
     }
   }
-  
+
   // reading Urey-Bradley-data
   if(Framework[CurrentSystem].NumberOfUreyBradleyDefinitions>0)
   {
@@ -8135,7 +8135,7 @@ int ReadFrameworkDefinition(void)
     Framework[CurrentSystem].UreyBradleyArgumentDefinitions=(REAL(*)[MAX_UREYBRADLEY_POTENTIAL_ARGUMENTS])
       calloc(Framework[CurrentSystem].NumberOfUreyBradleyDefinitions,sizeof(REAL[MAX_UREYBRADLEY_POTENTIAL_ARGUMENTS]));
     Framework[CurrentSystem].NumberOfUreyBradleysPerType=(int*)calloc(Framework[CurrentSystem].NumberOfUreyBradleyDefinitions,sizeof(int));
-  
+
     for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
     {
       Framework[CurrentSystem].MaxNumberOfUreyBradleys[CurrentFramework]=4096;
@@ -8145,7 +8145,7 @@ int ReadFrameworkDefinition(void)
       Framework[CurrentSystem].UreyBradleyArguments[CurrentFramework]=(REAL(*)[MAX_UREYBRADLEY_POTENTIAL_ARGUMENTS])
               calloc(Framework[CurrentSystem].MaxNumberOfUreyBradleys[CurrentFramework],sizeof(REAL[MAX_UREYBRADLEY_POTENTIAL_ARGUMENTS]));
     }
-  
+
     ReadLine(line,1024,FilePtr); // skip line
     for(i=0;i<Framework[CurrentSystem].NumberOfUreyBradleyDefinitions;i++)
     {
@@ -8155,12 +8155,12 @@ int ReadFrameworkDefinition(void)
       TypeA=ReturnPseudoAtomNumber(TypeNameA);
       TypeB=ReturnPseudoAtomNumber(TypeNameB);
       TypeC=ReturnPseudoAtomNumber(TypeNameC);
-  
+
       // determine bond-type
       for(j=0;j<NR_BOND_TYPES;j++)
         if(strcasecmp(BondTypes[j].Name,buffer)==0)
           BondType=j;
-  
+
       // read arguments
       for(j=0;j<BondTypes[BondType].nr_args;j++)
       {
@@ -8168,14 +8168,14 @@ int ReadFrameworkDefinition(void)
         sscanf(arg_pointer,"%lf%n",&temp,&n);
         arguments[j]=(REAL)temp;
       }
-  
+
       Framework[CurrentSystem].UreyBradleyDefinitionType[i]=BondType;
       Framework[CurrentSystem].UreyBradleyDefinitions[i].A=TypeA;
       Framework[CurrentSystem].UreyBradleyDefinitions[i].B=TypeB;
       Framework[CurrentSystem].UreyBradleyDefinitions[i].C=TypeC;
       for(j=0;j<UreyBradleyTypes[BondType].nr_args;j++)
-        Framework[CurrentSystem].UreyBradleyArgumentDefinitions[i][j]=arguments[j]; 
-  
+        Framework[CurrentSystem].UreyBradleyArgumentDefinitions[i][j]=arguments[j];
+
       // fill the appropriate bond-data
       for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
       {
@@ -8187,26 +8187,26 @@ int ReadFrameworkDefinition(void)
           {
             B=GetNeighbour(CurrentSystem,CurrentFramework,A,k);
             CurrentTypeB=Framework[CurrentSystem].Atoms[CurrentFramework][B].Type;
-  
+
             if(CurrentTypeB==TypeB)
             {
               for(l=0;l<Framework[CurrentSystem].Connectivity[CurrentFramework][B];l++)
               {
                 C=GetNeighbour(CurrentSystem,CurrentFramework,B,l);
                 CurrentTypeC=Framework[CurrentSystem].Atoms[CurrentFramework][C].Type;
-  
+
                 if((A<C)&&((CurrentTypeA==TypeA&&CurrentTypeC==TypeC)||(CurrentTypeA==TypeC&&CurrentTypeC==TypeA)))
                 {
                   Framework[CurrentSystem].UreyBradleys[CurrentFramework][index].A=A;
                   Framework[CurrentSystem].UreyBradleys[CurrentFramework][index].B=B;
                   Framework[CurrentSystem].UreyBradleys[CurrentFramework][index].C=C;
-  
+
                   Framework[CurrentSystem].UreyBradleyType[CurrentFramework][index]=BondType;
                   Framework[CurrentSystem].NumberOfUreyBradleysPerType[i]++;
-  
+
                   for(j=0;j<BondTypes[BondType].nr_args;j++)
                     Framework[CurrentSystem].UreyBradleyArguments[CurrentFramework][index][j]=arguments[j];
-  
+
                   // set to appropriate bond-distance
                   switch(BondType)
                   {
@@ -8338,13 +8338,13 @@ int ReadFrameworkDefinition(void)
                       Framework[CurrentSystem].UreyBradleyArguments[CurrentFramework][index][0]*=71.94*KCAL_PER_MOL_TO_ENERGY;
                       break;
                     default:
-                      printf("Undefined Urey-Bradley potential in routine 'ReadFrameworkDefinition' ('framework.c')\n");
+                      fprintf(stderr, "Undefined Urey-Bradley potential in routine 'ReadFrameworkDefinition' ('framework.c')\n");
                       exit(0);
                       break;
                   }
                   Framework[CurrentSystem].NumberOfUreyBradleys[CurrentFramework]++;
                   index=Framework[CurrentSystem].NumberOfUreyBradleys[CurrentFramework];
-  
+
                   if(index>=Framework[CurrentSystem].MaxNumberOfUreyBradleys[CurrentFramework])
                   {
                     Framework[CurrentSystem].MaxNumberOfUreyBradleys[CurrentFramework]+=4096;
@@ -8364,7 +8364,7 @@ int ReadFrameworkDefinition(void)
       }
     }
   }
-  
+
   // reading Bend-data
   if(Framework[CurrentSystem].NumberOfBendDefinitions>0)
   {
@@ -8374,7 +8374,7 @@ int ReadFrameworkDefinition(void)
     Framework[CurrentSystem].BendArgumentDefinitions=(REAL(*)[MAX_BEND_POTENTIAL_ARGUMENTS])
       calloc(Framework[CurrentSystem].NumberOfBendDefinitions,sizeof(REAL[MAX_BEND_POTENTIAL_ARGUMENTS]));
     Framework[CurrentSystem].NumberOfBendsPerType=(int*)calloc(Framework[CurrentSystem].NumberOfBendDefinitions,sizeof(int));
-  
+
     for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
     {
       Framework[CurrentSystem].MaxNumberOfBends[CurrentFramework]=4096;
@@ -8384,7 +8384,7 @@ int ReadFrameworkDefinition(void)
       Framework[CurrentSystem].BendArguments[CurrentFramework]=(REAL(*)[MAX_BEND_POTENTIAL_ARGUMENTS])
               calloc(Framework[CurrentSystem].MaxNumberOfBends[CurrentFramework],sizeof(REAL[MAX_BEND_POTENTIAL_ARGUMENTS]));
     }
-  
+
     ReadLine(line,1024,FilePtr); // skip line
     for(i=0;i<Framework[CurrentSystem].NumberOfBendDefinitions;i++)
     {
@@ -8394,12 +8394,12 @@ int ReadFrameworkDefinition(void)
       TypeA=ReturnPseudoAtomNumber(TypeNameA);
       TypeB=ReturnPseudoAtomNumber(TypeNameB);
       TypeC=ReturnPseudoAtomNumber(TypeNameC);
-  
+
       // determine bend-type
       for(j=0;j<NR_BEND_TYPES;j++)
         if(strncasecmp(BendTypes[j].Name,buffer,MAX2(strlen(BendTypes[j].Name),strlen(buffer)))==0)
           BendType=j;
-  
+
       // read arguments
       for(j=0;j<BendTypes[BendType].nr_args;j++)
       {
@@ -8407,14 +8407,14 @@ int ReadFrameworkDefinition(void)
         sscanf(arg_pointer,"%lf%n",&temp,&n);
         arguments[j]=(REAL)temp;
       }
-  
+
       Framework[CurrentSystem].BendDefinitionType[i]=BendType;
       Framework[CurrentSystem].BendDefinitions[i].A=TypeA;
       Framework[CurrentSystem].BendDefinitions[i].B=TypeB;
       Framework[CurrentSystem].BendDefinitions[i].C=TypeC;
       for(j=0;j<BendTypes[BendType].nr_args;j++)
-        Framework[CurrentSystem].BendArgumentDefinitions[i][j]=arguments[j]; 
-  
+        Framework[CurrentSystem].BendArgumentDefinitions[i][j]=arguments[j];
+
       // fill the appropriate bend-data
       for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
       {
@@ -8435,7 +8435,7 @@ int ReadFrameworkDefinition(void)
                   // loop not over the core, but its shell
                   A=Framework[CurrentSystem].CoreShellConnectivity[CurrentFramework][A];
                   CurrentTypeA=Framework[CurrentSystem].Atoms[CurrentFramework][A].Type;
-  
+
                   for(l=0;l<Framework[CurrentSystem].Connectivity[CurrentFramework][B];l++)
                   {
                     C=GetNeighbour(CurrentSystem,CurrentFramework,B,l);
@@ -8444,7 +8444,7 @@ int ReadFrameworkDefinition(void)
                       // loop not over the core, but its shell
                       C=Framework[CurrentSystem].CoreShellConnectivity[CurrentFramework][C];
                       CurrentTypeC=Framework[CurrentSystem].Atoms[CurrentFramework][C].Type;
-  
+
                       // A<C removes duplicates
                       if((A!=C)&&((CurrentTypeA==TypeA&&CurrentTypeC==TypeC)||(CurrentTypeA==TypeC&&CurrentTypeC==TypeA)))
                       {
@@ -8465,13 +8465,13 @@ int ReadFrameworkDefinition(void)
                           Framework[CurrentSystem].Bends[CurrentFramework][index].B=B;
                           Framework[CurrentSystem].Bends[CurrentFramework][index].C=C;
                           Framework[CurrentSystem].Bends[CurrentFramework][index].D=-1;
-  
+
                           Framework[CurrentSystem].BendType[CurrentFramework][index]=BendType;
                           Framework[CurrentSystem].NumberOfBendsPerType[i]++;
-  
+
                           for(j=0;j<BendTypes[BendType].nr_args;j++)
                             Framework[CurrentSystem].BendArguments[CurrentFramework][index][j]=arguments[j];
-  
+
                           // set to appropriate bend-angle
                           switch(BendType)
                           {
@@ -8481,13 +8481,13 @@ int ReadFrameworkDefinition(void)
                               Framework[CurrentSystem].BendArguments[CurrentFramework][index][1]=theta;
                               break;
                             default:
-                              printf("Undefined Core-Shell Bend potential in routine 'ReadFrameworkDefinition' ('framework.c')\n");
+                              fprintf(stderr, "Undefined Core-Shell Bend potential in routine 'ReadFrameworkDefinition' ('framework.c')\n");
                               exit(0);
                               break;
                           }
                           Framework[CurrentSystem].NumberOfBends[CurrentFramework]++;
                           index=Framework[CurrentSystem].NumberOfBends[CurrentFramework];
-  
+
                           if(index>=Framework[CurrentSystem].MaxNumberOfBends[CurrentFramework])
                           {
                             Framework[CurrentSystem].MaxNumberOfBends[CurrentFramework]+=4096;
@@ -8506,18 +8506,18 @@ int ReadFrameworkDefinition(void)
                 }
               }
             }
-  
-  
+
+
             for(k=0;k<Framework[CurrentSystem].Connectivity[CurrentFramework][B];k++)
             {
               A=GetNeighbour(CurrentSystem,CurrentFramework,B,k);
               CurrentTypeA=Framework[CurrentSystem].Atoms[CurrentFramework][A].Type;
-  
+
               for(l=0;l<Framework[CurrentSystem].Connectivity[CurrentFramework][B];l++)
               {
                 C=GetNeighbour(CurrentSystem,CurrentFramework,B,l);
                 CurrentTypeC=Framework[CurrentSystem].Atoms[CurrentFramework][C].Type;
-  
+
                 // A<C removes duplicates
                 if((A!=C)&&((CurrentTypeA==TypeA&&CurrentTypeC==TypeC)||(CurrentTypeA==TypeC&&CurrentTypeC==TypeA)))
                 {
@@ -8539,13 +8539,13 @@ int ReadFrameworkDefinition(void)
                     Framework[CurrentSystem].Bends[CurrentFramework][index].B=B;
                     Framework[CurrentSystem].Bends[CurrentFramework][index].C=C;
                     Framework[CurrentSystem].Bends[CurrentFramework][index].D=-1;
-  
+
                     Framework[CurrentSystem].BendType[CurrentFramework][index]=BendType;
                     Framework[CurrentSystem].NumberOfBendsPerType[i]++;
-  
+
                     for(j=0;j<BendTypes[BendType].nr_args;j++)
                       Framework[CurrentSystem].BendArguments[CurrentFramework][index][j]=arguments[j];
-  
+
                     // set to appropriate bend-angle
                     switch(BendType)
                     {
@@ -8568,7 +8568,7 @@ int ReadFrameworkDefinition(void)
                           Rab.x/=rab;
                           Rab.y/=rab;
                           Rab.z/=rab;
-  
+
                           Rbc.x=Framework[CurrentSystem].Atoms[CurrentFramework][C].Position.x-
                                 Framework[CurrentSystem].Atoms[CurrentFramework][B].Position.x;
                           Rbc.y=Framework[CurrentSystem].Atoms[CurrentFramework][C].Position.y-
@@ -8580,7 +8580,7 @@ int ReadFrameworkDefinition(void)
                           Rbc.x/=rbc;
                           Rbc.y/=rbc;
                           Rbc.z/=rbc;
-  
+
                           theta=acos(Rab.x*Rbc.x+Rab.y*Rbc.y+Rab.z*Rbc.z);
                         }
                         Framework[CurrentSystem].BendArguments[CurrentFramework][index][0]*=KELVIN_TO_ENERGY;
@@ -8614,7 +8614,7 @@ int ReadFrameworkDefinition(void)
                           Rab.x/=rab;
                           Rab.y/=rab;
                           Rab.z/=rab;
-  
+
                           Rbc.x=Framework[CurrentSystem].Atoms[CurrentFramework][C].Position.x-
                                 Framework[CurrentSystem].Atoms[CurrentFramework][B].Position.x;
                           Rbc.y=Framework[CurrentSystem].Atoms[CurrentFramework][C].Position.y-
@@ -8626,7 +8626,7 @@ int ReadFrameworkDefinition(void)
                           Rbc.x=Rbc.x/rbc;
                           Rbc.y=Rbc.y/rbc;
                           Rbc.z=Rbc.z/rbc;
-  
+
                           theta=acos(Rab.x*Rbc.x+Rab.y*Rbc.y+Rab.z*Rbc.z);
                         }
                         Framework[CurrentSystem].BendArguments[CurrentFramework][index][0]*=KELVIN_TO_ENERGY;
@@ -8653,7 +8653,7 @@ int ReadFrameworkDefinition(void)
                           Rab.x/=rab;
                           Rab.y/=rab;
                           Rab.z/=rab;
-  
+
                           Rbc.x=Framework[CurrentSystem].Atoms[CurrentFramework][C].Position.x-
                                 Framework[CurrentSystem].Atoms[CurrentFramework][B].Position.x;
                           Rbc.y=Framework[CurrentSystem].Atoms[CurrentFramework][C].Position.y-
@@ -8665,7 +8665,7 @@ int ReadFrameworkDefinition(void)
                           Rbc.x/=rbc;
                           Rbc.y/=rbc;
                           Rbc.z/=rbc;
-  
+
                           theta=Rab.x*Rbc.x+Rab.y*Rbc.y+Rab.z*Rbc.z;
                         }
                         Framework[CurrentSystem].BendArguments[CurrentFramework][index][0]*=KELVIN_TO_ENERGY;
@@ -8691,7 +8691,7 @@ int ReadFrameworkDefinition(void)
                           Rab.x/=rab;
                           Rab.y/=rab;
                           Rab.z/=rab;
-  
+
                           Rbc.x=Framework[CurrentSystem].Atoms[CurrentFramework][C].Position.x-
                                 Framework[CurrentSystem].Atoms[CurrentFramework][B].Position.x;
                           Rbc.y=Framework[CurrentSystem].Atoms[CurrentFramework][C].Position.y-
@@ -8703,7 +8703,7 @@ int ReadFrameworkDefinition(void)
                           Rbc.x/=rbc;
                           Rbc.y/=rbc;
                           Rbc.z/=rbc;
-  
+
                           theta=Rab.x*Rbc.x+Rab.y*Rbc.y+Rab.z*Rbc.z;
                         }
                         Framework[CurrentSystem].BendArguments[CurrentFramework][index][0]*=KELVIN_TO_ENERGY;
@@ -8729,7 +8729,7 @@ int ReadFrameworkDefinition(void)
                           Rab.x/=rab;
                           Rab.y/=rab;
                           Rab.z/=rab;
-  
+
                           Rbc.x=Framework[CurrentSystem].Atoms[CurrentFramework][C].Position.x-
                                 Framework[CurrentSystem].Atoms[CurrentFramework][B].Position.x;
                           Rbc.y=Framework[CurrentSystem].Atoms[CurrentFramework][C].Position.y-
@@ -8741,7 +8741,7 @@ int ReadFrameworkDefinition(void)
                           Rbc.x=Rbc.x/rbc;
                           Rbc.y=Rbc.y/rbc;
                           Rbc.z=Rbc.z/rbc;
-  
+
                           theta=acos(Rab.x*Rbc.x+Rab.y*Rbc.y+Rab.z*Rbc.z);
                         }
                         // MM3 input is in mdyne A/rad^2
@@ -8752,13 +8752,13 @@ int ReadFrameworkDefinition(void)
                       case MEASURE_BEND:
                         break;
                       default:
-                        printf("Undefined Bend potential in routine 'ReadFrameworkDefinition' ('framework.c')\n");
+                        fprintf(stderr, "Undefined Bend potential in routine 'ReadFrameworkDefinition' ('framework.c')\n");
                         exit(0);
                         break;
                     }
                     Framework[CurrentSystem].NumberOfBends[CurrentFramework]++;
                     index=Framework[CurrentSystem].NumberOfBends[CurrentFramework];
-  
+
                     if(index>=Framework[CurrentSystem].MaxNumberOfBends[CurrentFramework])
                     {
                       Framework[CurrentSystem].MaxNumberOfBends[CurrentFramework]+=4096;
@@ -8779,7 +8779,7 @@ int ReadFrameworkDefinition(void)
       }
     }
   }
-  
+
   // reading InversionBend-data
   index=0;
   if(Framework[CurrentSystem].NumberOfInversionBendDefinitions>0)
@@ -8790,7 +8790,7 @@ int ReadFrameworkDefinition(void)
     Framework[CurrentSystem].InversionBendArgumentDefinitions=(REAL(*)[MAX_INVERSION_BEND_POTENTIAL_ARGUMENTS])
       calloc(Framework[CurrentSystem].NumberOfInversionBendDefinitions,sizeof(REAL[MAX_INVERSION_BEND_POTENTIAL_ARGUMENTS]));
     Framework[CurrentSystem].NumberOfInversionBendsPerType=(int*)calloc(Framework[CurrentSystem].NumberOfInversionBendDefinitions,sizeof(int));
-  
+
     for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
     {
       Framework[CurrentSystem].MaxNumberOfInversionBends[CurrentFramework]=4096;
@@ -8800,7 +8800,7 @@ int ReadFrameworkDefinition(void)
       Framework[CurrentSystem].InversionBendArguments[CurrentFramework]=(REAL(*)[MAX_INVERSION_BEND_POTENTIAL_ARGUMENTS])
               calloc(Framework[CurrentSystem].MaxNumberOfInversionBends[CurrentFramework],sizeof(REAL[MAX_INVERSION_BEND_POTENTIAL_ARGUMENTS]));
     }
-  
+
     ReadLine(line,1024,FilePtr); // skip line
     for(i=0;i<Framework[CurrentSystem].NumberOfInversionBendDefinitions;i++)
     {
@@ -8811,12 +8811,12 @@ int ReadFrameworkDefinition(void)
       TypeB=ReturnPseudoAtomNumber(TypeNameB);
       TypeC=ReturnPseudoAtomNumber(TypeNameC);
       TypeD=ReturnPseudoAtomNumber(TypeNameD);
-  
+
       // determine inversionbend-type
       for(j=0;j<NR_INVERSION_BEND_TYPES;j++)
         if(strcasecmp(InversionBendTypes[j].Name,buffer)==0)
           InversionBendType=j;
-  
+
       // read arguments
       for(j=0;j<InversionBendTypes[InversionBendType].nr_args;j++)
       {
@@ -8824,16 +8824,16 @@ int ReadFrameworkDefinition(void)
         sscanf(arg_pointer,"%lf%n",&temp,&n);
         arguments[j]=(REAL)temp;
       }
-  
+
       Framework[CurrentSystem].InversionBendDefinitionType[i]=InversionBendType;
       Framework[CurrentSystem].InversionBendDefinitions[i].A=TypeA;
       Framework[CurrentSystem].InversionBendDefinitions[i].B=TypeB;
       Framework[CurrentSystem].InversionBendDefinitions[i].C=TypeC;
       Framework[CurrentSystem].InversionBendDefinitions[i].D=TypeD;
-  
+
       for(j=0;j<InversionBendTypes[InversionBendType].nr_args;j++)
         Framework[CurrentSystem].InversionBendArgumentDefinitions[i][j]=arguments[j];
-  
+
       // fill the appropriate inversion bend-data
       for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
       {
@@ -8841,7 +8841,7 @@ int ReadFrameworkDefinition(void)
         for(A=0;A<Framework[CurrentSystem].NumberOfAtoms[CurrentFramework];A++)
         {
           CurrentTypeA=Framework[CurrentSystem].Atoms[CurrentFramework][A].Type;
-  
+
           if(CurrentTypeA==TypeA)
           {
             // atom A is of type 'TypeA'
@@ -8849,7 +8849,7 @@ int ReadFrameworkDefinition(void)
             {
               B=GetNeighbour(CurrentSystem,CurrentFramework,A,k);
               CurrentTypeB=Framework[CurrentSystem].Atoms[CurrentFramework][B].Type;
-  
+
               if(CurrentTypeB==TypeB)
               {
                 // atom B is of type 'TypeB'
@@ -8879,17 +8879,17 @@ int ReadFrameworkDefinition(void)
                             if(present) break;
                           }
                         }
-  
+
                         if(!present)
                         {
                           Framework[CurrentSystem].InversionBends[CurrentFramework][index].A=A;
                           Framework[CurrentSystem].InversionBends[CurrentFramework][index].B=B;
                           Framework[CurrentSystem].InversionBends[CurrentFramework][index].C=C;
                           Framework[CurrentSystem].InversionBends[CurrentFramework][index].D=D;
-  
+
                           Framework[CurrentSystem].InversionBendType[CurrentFramework][index]=InversionBendType;
                           Framework[CurrentSystem].NumberOfInversionBendsPerType[i]++;
-  
+
                           for(j=0;j<InversionBendTypes[InversionBendType].nr_args;j++)
                             Framework[CurrentSystem].InversionBendArguments[CurrentFramework][index][j]=arguments[j];
                           switch(InversionBendType)
@@ -8928,13 +8928,13 @@ int ReadFrameworkDefinition(void)
                               Framework[CurrentSystem].InversionBendArguments[CurrentFramework][index][1]*=DEG2RAD;
                               break;
                             default:
-                              printf("Undefined Inversion Bend potential in routine 'ReadFrameworkDefinition' ('framework.c')\n");
+                              fprintf(stderr, "Undefined Inversion Bend potential in routine 'ReadFrameworkDefinition' ('framework.c')\n");
                               exit(0);
                               break;
                           }
                           Framework[CurrentSystem].NumberOfInversionBends[CurrentFramework]++;
                           index=Framework[CurrentSystem].NumberOfInversionBends[CurrentFramework];
-  
+
                           if(index>=Framework[CurrentSystem].MaxNumberOfInversionBends[CurrentFramework])
                           {
                             Framework[CurrentSystem].MaxNumberOfInversionBends[CurrentFramework]+=4096;
@@ -8958,8 +8958,8 @@ int ReadFrameworkDefinition(void)
       }
     }
   }
-  
-  
+
+
   // determine the fourth atom for in-plane bends by searching the bends in the list of inversion-bends
   for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
   {
@@ -8969,7 +8969,7 @@ int ReadFrameworkDefinition(void)
       B=Framework[CurrentSystem].InversionBends[CurrentFramework][i].B;
       C=Framework[CurrentSystem].InversionBends[CurrentFramework][i].C;
       D=Framework[CurrentSystem].InversionBends[CurrentFramework][i].D;
-  
+
       for(j=0;j<Framework[CurrentSystem].NumberOfBends[CurrentFramework];j++)
       {
         if(Framework[CurrentSystem].BendType[CurrentFramework][j]==MM3_IN_PLANE_BEND)
@@ -8977,7 +8977,7 @@ int ReadFrameworkDefinition(void)
           A1=Framework[CurrentSystem].Bends[CurrentFramework][j].A;
           B1=Framework[CurrentSystem].Bends[CurrentFramework][j].B;
           C1=Framework[CurrentSystem].Bends[CurrentFramework][j].C;
-  
+
           if(B1==B)
           {
             if(((A1==A)&&(C1==C))||((A1==C)&&(C1==A))) Framework[CurrentSystem].Bends[CurrentFramework][j].D=D;
@@ -8988,8 +8988,8 @@ int ReadFrameworkDefinition(void)
       }
     }
   }
-  
-  
+
+
   // reading Torsion-data
   // Note: Torsions on the same four atoms but different potential and/or arguments are consider different
   if(Framework[CurrentSystem].NumberOfTorsionDefinitions>0)
@@ -9000,7 +9000,7 @@ int ReadFrameworkDefinition(void)
     Framework[CurrentSystem].TorsionArgumentDefinitions=(REAL(*)[MAX_TORSION_POTENTIAL_ARGUMENTS])
       calloc(Framework[CurrentSystem].NumberOfTorsionDefinitions,sizeof(REAL[MAX_TORSION_POTENTIAL_ARGUMENTS]));
     Framework[CurrentSystem].NumberOfTorsionsPerType=(int*)calloc(Framework[CurrentSystem].NumberOfTorsionDefinitions,sizeof(int));
-  
+
     for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
     {
       Framework[CurrentSystem].MaxNumberOfTorsions[CurrentFramework]=4096;
@@ -9010,7 +9010,7 @@ int ReadFrameworkDefinition(void)
       Framework[CurrentSystem].TorsionArguments[CurrentFramework]=(REAL(*)[MAX_TORSION_POTENTIAL_ARGUMENTS])
               calloc(Framework[CurrentSystem].MaxNumberOfTorsions[CurrentFramework],sizeof(REAL[MAX_TORSION_POTENTIAL_ARGUMENTS]));
     }
-  
+
     ReadLine(line,1024,FilePtr); // skip line
     for(i=0;i<Framework[CurrentSystem].NumberOfTorsionDefinitions;i++)
     {
@@ -9021,14 +9021,14 @@ int ReadFrameworkDefinition(void)
       TypeB=ReturnPseudoAtomNumber(TypeNameB);
       TypeC=ReturnPseudoAtomNumber(TypeNameC);
       TypeD=ReturnPseudoAtomNumber(TypeNameD);
-  
+
       // determine torsion-type
       for(j=0;j<NR_TORSION_TYPES;j++)
       {
         if(strcasecmp(TorsionTypes[j].Name,buffer)==0)
           TorsionType=j;
       }
-  
+
       // read arguments
       arg_pointer+=n;
       for(j=0;j<TorsionTypes[TorsionType].nr_args+2;j++)
@@ -9044,18 +9044,18 @@ int ReadFrameworkDefinition(void)
           arg_pointer+=n;
         }
       }
-  
+
       Framework[CurrentSystem].TorsionDefinitionType[i]=TorsionType;
       Framework[CurrentSystem].TorsionDefinitions[i].A=TypeA;
       Framework[CurrentSystem].TorsionDefinitions[i].B=TypeB;
       Framework[CurrentSystem].TorsionDefinitions[i].C=TypeC;
       Framework[CurrentSystem].TorsionDefinitions[i].D=TypeD;
-  
+
       for(j=0;j<TorsionTypes[TorsionType].nr_args;j++)
-        Framework[CurrentSystem].TorsionArgumentDefinitions[i][j]=arguments[j]; 
+        Framework[CurrentSystem].TorsionArgumentDefinitions[i][j]=arguments[j];
       Framework[CurrentSystem].TorsionArgumentDefinitions[i][6]=arguments[TorsionTypes[TorsionType].nr_args];
       Framework[CurrentSystem].TorsionArgumentDefinitions[i][7]=arguments[TorsionTypes[TorsionType].nr_args+1];
-  
+
       // fill the appropriate torsion-data
       for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
       {
@@ -9063,14 +9063,14 @@ int ReadFrameworkDefinition(void)
         for(B=0;B<Framework[CurrentSystem].NumberOfAtoms[CurrentFramework];B++)
         {
           CurrentTypeB=Framework[CurrentSystem].Atoms[CurrentFramework][B].Type;
-  
+
           if(CurrentTypeB==TypeB)
           {
             for(k=0;k<Framework[CurrentSystem].Connectivity[CurrentFramework][B];k++)
             {
               C=GetNeighbour(CurrentSystem,CurrentFramework,B,k);
               CurrentTypeC=Framework[CurrentSystem].Atoms[CurrentFramework][C].Type;
-  
+
               if(CurrentTypeC==TypeC)
               {
                 for(l=0;l<Framework[CurrentSystem].Connectivity[CurrentFramework][B];l++)
@@ -9228,7 +9228,7 @@ int ReadFrameworkDefinition(void)
                             arguments[5]=Framework[CurrentSystem].TorsionArgumentDefinitions[i][5]*KELVIN_TO_ENERGY;
                             break;
                           default:
-                            printf("Undefined Torsion potential in routine 'ReadFrameworkDefinition' ('framework.c')\n");
+                            fprintf(stderr, "Undefined Torsion potential in routine 'ReadFrameworkDefinition' ('framework.c')\n");
                             exit(0);
                             break;
                         }
@@ -9243,34 +9243,34 @@ int ReadFrameworkDefinition(void)
                             (Framework[CurrentSystem].Torsions[CurrentFramework][n].C==B)&&(Framework[CurrentSystem].Torsions[CurrentFramework][n].D==A)))&&
                             (Framework[CurrentSystem].TorsionType[CurrentFramework][n]==TorsionType))
                             {
-                               present=TRUE; 
+                               present=TRUE;
                                for(j=0;j<TorsionTypes[TorsionType].nr_args;j++)
                                  present=present&&(fabs(Framework[CurrentSystem].TorsionArguments[CurrentFramework][n][j]-arguments[j])<1e-5);
 
                                if(present) break;
                             }
                         }
-  
+
                         if(!present)
                         {
                           Framework[CurrentSystem].Torsions[CurrentFramework][index].A=A;
                           Framework[CurrentSystem].Torsions[CurrentFramework][index].B=B;
                           Framework[CurrentSystem].Torsions[CurrentFramework][index].C=C;
                           Framework[CurrentSystem].Torsions[CurrentFramework][index].D=D;
-  
+
                           Framework[CurrentSystem].TorsionType[CurrentFramework][index]=TorsionType;
                           Framework[CurrentSystem].NumberOfTorsionsPerType[i]++;
- 
+
                           // copy parsed and converted arguments to the torsion-potential parameters
                           for(j=0;j<TorsionTypes[TorsionType].nr_args;j++)
                             Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][j]=arguments[j];
 
                           Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][6]=Framework[CurrentSystem].TorsionArgumentDefinitions[i][6];
                           Framework[CurrentSystem].TorsionArguments[CurrentFramework][index][7]=Framework[CurrentSystem].TorsionArgumentDefinitions[i][7];
-  
+
                           Framework[CurrentSystem].NumberOfTorsions[CurrentFramework]++;
                           index=Framework[CurrentSystem].NumberOfTorsions[CurrentFramework];
-  
+
                           if(index>=Framework[CurrentSystem].MaxNumberOfTorsions[CurrentFramework])
                           {
                             Framework[CurrentSystem].MaxNumberOfTorsions[CurrentFramework]+=4096;
@@ -9294,7 +9294,7 @@ int ReadFrameworkDefinition(void)
       }
     }
   }
-  
+
   // reading Improper torsion-data
   if(Framework[CurrentSystem].NumberOfImproperTorsionDefinitions>0)
   {
@@ -9304,7 +9304,7 @@ int ReadFrameworkDefinition(void)
     Framework[CurrentSystem].ImproperTorsionArgumentDefinitions=(REAL(*)[MAX_IMPROPER_TORSION_POTENTIAL_ARGUMENTS])
       calloc(Framework[CurrentSystem].NumberOfImproperTorsionDefinitions,sizeof(REAL[MAX_IMPROPER_TORSION_POTENTIAL_ARGUMENTS]));
     Framework[CurrentSystem].NumberOfImproperTorsionsPerType=(int*)calloc(Framework[CurrentSystem].NumberOfImproperTorsionDefinitions,sizeof(int));
-  
+
     for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
     {
       Framework[CurrentSystem].MaxNumberOfImproperTorsions[CurrentFramework]=4096;
@@ -9314,7 +9314,7 @@ int ReadFrameworkDefinition(void)
       Framework[CurrentSystem].ImproperTorsionArguments[CurrentFramework]=(REAL(*)[MAX_IMPROPER_TORSION_POTENTIAL_ARGUMENTS])
               calloc(Framework[CurrentSystem].MaxNumberOfImproperTorsions[CurrentFramework],sizeof(REAL[MAX_IMPROPER_TORSION_POTENTIAL_ARGUMENTS]));
     }
-  
+
     ReadLine(line,1024,FilePtr); // skip line
     for(i=0;i<Framework[CurrentSystem].NumberOfImproperTorsionDefinitions;i++)
     {
@@ -9325,12 +9325,12 @@ int ReadFrameworkDefinition(void)
       TypeB=ReturnPseudoAtomNumber(TypeNameB);
       TypeC=ReturnPseudoAtomNumber(TypeNameC);
       TypeD=ReturnPseudoAtomNumber(TypeNameD);
-  
+
       // determine inversionbend-type
       for(j=0;j<NR_IMPROPER_TORSION_TYPES;j++)
         if(strncasecmp(ImproperTorsionTypes[j].Name,buffer,MAX2(strlen(ImproperTorsionTypes[j].Name),strlen(buffer)))==0)
           ImproperTorsionType=j;
-  
+
       // read arguments
       for(j=0;j<ImproperTorsionTypes[ImproperTorsionType].nr_args;j++)
       {
@@ -9338,16 +9338,16 @@ int ReadFrameworkDefinition(void)
         sscanf(arg_pointer,"%lf%n",&temp,&n);
         arguments[j]=(REAL)temp;
       }
-  
+
       Framework[CurrentSystem].ImproperTorsionDefinitionType[i]=ImproperTorsionType;
       Framework[CurrentSystem].ImproperTorsionDefinitions[i].A=TypeA;
       Framework[CurrentSystem].ImproperTorsionDefinitions[i].B=TypeB;
       Framework[CurrentSystem].ImproperTorsionDefinitions[i].C=TypeC;
       Framework[CurrentSystem].ImproperTorsionDefinitions[i].D=TypeD;
-  
+
       for(j=0;j<ImproperTorsionTypes[ImproperTorsionType].nr_args;j++)
         Framework[CurrentSystem].ImproperTorsionArgumentDefinitions[i][j]=arguments[j];
-  
+
       // fill the appropriate improper torsion-data
       for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
       {
@@ -9355,14 +9355,14 @@ int ReadFrameworkDefinition(void)
         for(A=0;A<Framework[CurrentSystem].NumberOfAtoms[CurrentFramework];A++)
         {
           CurrentTypeA=Framework[CurrentSystem].Atoms[CurrentFramework][A].Type;
-  
+
           if(CurrentTypeA==TypeA)
           {
             for(k=0;k<Framework[CurrentSystem].Connectivity[CurrentFramework][A];k++)
             {
               B=GetNeighbour(CurrentSystem,CurrentFramework,A,k);
               CurrentTypeB=Framework[CurrentSystem].Atoms[CurrentFramework][B].Type;
-  
+
               if(CurrentTypeB==TypeB)
               {
                 for(l=0;l<Framework[CurrentSystem].Connectivity[CurrentFramework][B];l++)
@@ -9415,10 +9415,10 @@ int ReadFrameworkDefinition(void)
                           Framework[CurrentSystem].ImproperTorsions[CurrentFramework][index].B=B;
                           Framework[CurrentSystem].ImproperTorsions[CurrentFramework][index].C=C;
                           Framework[CurrentSystem].ImproperTorsions[CurrentFramework][index].D=D;
-  
+
                           Framework[CurrentSystem].ImproperTorsionType[CurrentFramework][index]=ImproperTorsionType;
                           Framework[CurrentSystem].NumberOfImproperTorsionsPerType[i]++;
-  
+
                           for(j=0;j<ImproperTorsionTypes[ImproperTorsionType].nr_args;j++)
                             Framework[CurrentSystem].ImproperTorsionArguments[CurrentFramework][index][j]=arguments[j];
                           switch(ImproperTorsionType)
@@ -9562,13 +9562,13 @@ int ReadFrameworkDefinition(void)
                               Framework[CurrentSystem].ImproperTorsionArguments[CurrentFramework][index][5]*=KELVIN_TO_ENERGY;
                               break;
                             default:
-                              printf("Undefined Improper Torsion potential in routine 'ReadFrameworkDefinition' ('framework.c')\n");
+                              fprintf(stderr, "Undefined Improper Torsion potential in routine 'ReadFrameworkDefinition' ('framework.c')\n");
                               exit(0);
                               break;
                           }
                           Framework[CurrentSystem].NumberOfImproperTorsions[CurrentFramework]++;
                           index=Framework[CurrentSystem].NumberOfImproperTorsions[CurrentFramework];
-  
+
                           if(index>=Framework[CurrentSystem].MaxNumberOfImproperTorsions[CurrentFramework])
                           {
                             Framework[CurrentSystem].MaxNumberOfImproperTorsions[CurrentFramework]+=4096;
@@ -9592,10 +9592,10 @@ int ReadFrameworkDefinition(void)
       }
     }
   }
-  
+
   // READ OUT_OF_PLANE TODO
-  
-  
+
+
   // reading Bond-Bond cross-term data
   index=0;
   if(Framework[CurrentSystem].NumberOfBondBondDefinitions>0)
@@ -9606,7 +9606,7 @@ int ReadFrameworkDefinition(void)
     Framework[CurrentSystem].BondBondArgumentDefinitions=(REAL(*)[MAX_BOND_BOND_POTENTIAL_ARGUMENTS])
       calloc(Framework[CurrentSystem].NumberOfBondBondDefinitions,sizeof(REAL[MAX_BOND_BOND_POTENTIAL_ARGUMENTS]));
     Framework[CurrentSystem].NumberOfBondBondsPerType=(int*)calloc(Framework[CurrentSystem].NumberOfBondBondDefinitions,sizeof(int));
-  
+
     for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
     {
       Framework[CurrentSystem].MaxNumberOfBondBonds[CurrentFramework]=4096;
@@ -9616,7 +9616,7 @@ int ReadFrameworkDefinition(void)
       Framework[CurrentSystem].BondBondArguments[CurrentFramework]=(REAL(*)[MAX_BOND_BOND_POTENTIAL_ARGUMENTS])
               calloc(Framework[CurrentSystem].MaxNumberOfBondBonds[CurrentFramework],sizeof(REAL[MAX_BOND_BOND_POTENTIAL_ARGUMENTS]));
     }
-  
+
     ReadLine(line,1024,FilePtr); // skip line
     for(i=0;i<Framework[CurrentSystem].NumberOfBondBondDefinitions;i++)
     {
@@ -9626,12 +9626,12 @@ int ReadFrameworkDefinition(void)
       TypeA=ReturnPseudoAtomNumber(TypeNameA);
       TypeB=ReturnPseudoAtomNumber(TypeNameB);
       TypeC=ReturnPseudoAtomNumber(TypeNameC);
-  
+
       // determine bond/bond-type
       for(j=0;j<NR_BOND_BOND_TYPES;j++)
         if(strncasecmp(BondBondTypes[j].Name,buffer,MAX2(strlen(BondBondTypes[j].Name),strlen(buffer)))==0)
           BondBondType=j;
-  
+
       // read arguments
       for(j=0;j<BondBondTypes[BondBondType].nr_args;j++)
       {
@@ -9639,14 +9639,14 @@ int ReadFrameworkDefinition(void)
         sscanf(arg_pointer,"%lf%n",&temp,&n);
         arguments[j]=(REAL)temp;
       }
-  
+
       Framework[CurrentSystem].BondBondDefinitionType[i]=BondBondType;
       Framework[CurrentSystem].BondBondDefinitions[i].A=TypeA;
       Framework[CurrentSystem].BondBondDefinitions[i].B=TypeB;
       Framework[CurrentSystem].BondBondDefinitions[i].C=TypeC;
       for(j=0;j<BondBondTypes[BondBondType].nr_args;j++)
         Framework[CurrentSystem].BondBondArgumentDefinitions[i][j]=arguments[j];
-  
+
       // fill the appropriate bond-bond data
       for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
       {
@@ -9660,14 +9660,14 @@ int ReadFrameworkDefinition(void)
             {
               A=GetNeighbour(CurrentSystem,CurrentFramework,B,k);
               CurrentTypeA=Framework[CurrentSystem].Atoms[CurrentFramework][A].Type;
-  
+
               if(CurrentTypeA==TypeA)
               {
                 for(l=0;l<Framework[CurrentSystem].Connectivity[CurrentFramework][B];l++)
                 {
                   C=GetNeighbour(CurrentSystem,CurrentFramework,B,l);
                   CurrentTypeC=Framework[CurrentSystem].Atoms[CurrentFramework][C].Type;
-  
+
                   if((A!=C)&&(CurrentTypeC==TypeC))
                   {
                     // check whether triplet A-B-C is already present in the list
@@ -9682,13 +9682,13 @@ int ReadFrameworkDefinition(void)
                       Framework[CurrentSystem].BondBonds[CurrentFramework][index].A=A;
                       Framework[CurrentSystem].BondBonds[CurrentFramework][index].B=B;
                       Framework[CurrentSystem].BondBonds[CurrentFramework][index].C=C;
-  
+
                       Framework[CurrentSystem].BondBondType[CurrentFramework][index]=BondBondType;
                       Framework[CurrentSystem].NumberOfBondBondsPerType[i]++;
-   
+
                       for(j=0;j<BondBondTypes[BondBondType].nr_args;j++)
                         Framework[CurrentSystem].BondBondArguments[CurrentFramework][index][j]=arguments[j];
-  
+
                       // set to appropriate parameters
                       // the order of the A-B-C triplet does matter for bond-bond cross terms
                       // if C-B-A was found reverse the appropriate arguments
@@ -9704,13 +9704,13 @@ int ReadFrameworkDefinition(void)
                           Framework[CurrentSystem].BondBondArguments[CurrentFramework][index][0]*=KELVIN_TO_ENERGY;
                           break;
                         default:
-                          printf("Undefined Bond-Bond potential in routine 'ReadFrameworkDefinition' ('framework.c')\n");
+                          fprintf(stderr, "Undefined Bond-Bond potential in routine 'ReadFrameworkDefinition' ('framework.c')\n");
                           exit(0);
                           break;
                       }
                       Framework[CurrentSystem].NumberOfBondBonds[CurrentSystem]++;
                       index=Framework[CurrentSystem].NumberOfBondBonds[CurrentSystem];
-  
+
                       if(index>=Framework[CurrentSystem].MaxNumberOfBondBonds[CurrentFramework])
                       {
                         Framework[CurrentSystem].MaxNumberOfBondBonds[CurrentFramework]+=4096;
@@ -9732,7 +9732,7 @@ int ReadFrameworkDefinition(void)
       }
     }
   }
-  
+
   // reading Bond-Bend cross-term data
   index=0;
   if(Framework[CurrentSystem].NumberOfBondBendDefinitions>0)
@@ -9743,7 +9743,7 @@ int ReadFrameworkDefinition(void)
     Framework[CurrentSystem].BondBendArgumentDefinitions=(REAL(*)[MAX_BOND_BEND_POTENTIAL_ARGUMENTS])
       calloc(Framework[CurrentSystem].NumberOfBondBendDefinitions,sizeof(REAL[MAX_BOND_BEND_POTENTIAL_ARGUMENTS]));
     Framework[CurrentSystem].NumberOfBondBendsPerType=(int*)calloc(Framework[CurrentSystem].NumberOfBondBendDefinitions,sizeof(int));
-  
+
     for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
     {
       Framework[CurrentSystem].MaxNumberOfBondBends[CurrentFramework]=4096;
@@ -9753,7 +9753,7 @@ int ReadFrameworkDefinition(void)
       Framework[CurrentSystem].BondBendArguments[CurrentFramework]=(REAL(*)[MAX_BOND_BEND_POTENTIAL_ARGUMENTS])
               calloc(Framework[CurrentSystem].MaxNumberOfBondBends[CurrentFramework],sizeof(REAL[MAX_BOND_BEND_POTENTIAL_ARGUMENTS]));
     }
-  
+
     ReadLine(line,1024,FilePtr); // skip line
     for(i=0;i<Framework[CurrentSystem].NumberOfBondBendDefinitions;i++)
     {
@@ -9763,12 +9763,12 @@ int ReadFrameworkDefinition(void)
       TypeA=ReturnPseudoAtomNumber(TypeNameA);
       TypeB=ReturnPseudoAtomNumber(TypeNameB);
       TypeC=ReturnPseudoAtomNumber(TypeNameC);
-  
+
       // determine bond/bond-type
       for(j=0;j<NR_BOND_BEND_TYPES;j++)
         if(strcasecmp(BondBendTypes[j].Name,buffer)==0)
           BondBendType=j;
-  
+
       // read arguments
       for(j=0;j<BondBendTypes[BondBendType].nr_args;j++)
       {
@@ -9776,14 +9776,14 @@ int ReadFrameworkDefinition(void)
         sscanf(arg_pointer,"%lf%n",&temp,&n);
         arguments[j]=(REAL)temp;
       }
-  
+
       Framework[CurrentSystem].BondBendDefinitionType[i]=BondBendType;
       Framework[CurrentSystem].BondBendDefinitions[i].A=TypeA;
       Framework[CurrentSystem].BondBendDefinitions[i].B=TypeB;
       Framework[CurrentSystem].BondBendDefinitions[i].C=TypeC;
       for(j=0;j<BondBendTypes[BondBendType].nr_args;j++)
         Framework[CurrentSystem].BondBendArgumentDefinitions[i][j]=arguments[j];
-  
+
       // fill the appropriate stretch bend-data
       for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
       {
@@ -9797,13 +9797,13 @@ int ReadFrameworkDefinition(void)
             {
               B=GetNeighbour(CurrentSystem,CurrentFramework,A,k);
               CurrentTypeB=Framework[CurrentSystem].Atoms[CurrentFramework][B].Type;
-  
+
               if(CurrentTypeB==TypeB)
               for(l=0;l<Framework[CurrentSystem].Connectivity[CurrentFramework][B];l++)
               {
                 C=GetNeighbour(CurrentSystem,CurrentFramework,B,l);
                 CurrentTypeC=Framework[CurrentSystem].Atoms[CurrentFramework][C].Type;
-  
+
                 if((A!=C)&&(CurrentTypeC==TypeC))
                 {
                   // check whether triplet A-B-C is already present in the list
@@ -9823,13 +9823,13 @@ int ReadFrameworkDefinition(void)
                     Framework[CurrentSystem].BondBends[CurrentFramework][index].A=A;
                     Framework[CurrentSystem].BondBends[CurrentFramework][index].B=B;
                     Framework[CurrentSystem].BondBends[CurrentFramework][index].C=C;
-  
+
                     Framework[CurrentSystem].BondBendType[CurrentFramework][index]=BondBendType;
                     Framework[CurrentSystem].NumberOfBondBendsPerType[i]++;
-  
+
                     for(j=0;j<BondBendTypes[BondBendType].nr_args;j++)
                       Framework[CurrentSystem].BondBendArguments[CurrentFramework][index][j]=arguments[j];
-  
+
                     // set to appropriate parameters
                     // the order of the A-B-C triplet does matter for bond-bond cross terms
                     // if C-B-A was found reverse the appropriate arguments
@@ -9857,7 +9857,7 @@ int ReadFrameworkDefinition(void)
                         // p_3     [degrees]
                         Framework[CurrentSystem].BondBendArguments[CurrentFramework][index][0]*=2.51118*KCAL_PER_MOL_TO_ENERGY;
                         Framework[CurrentSystem].BondBendArguments[CurrentFramework][index][3]*=DEG2RAD;
-                        break; 
+                        break;
                       case TRUNCATED_HARMONIC:
                         // (1/2)*p_0*(Theta-p_1)^2*exp(-(pow(rab,8)+pow(rbc,8))/pow(p_2,8))
                         // ================================================================
@@ -9899,13 +9899,13 @@ int ReadFrameworkDefinition(void)
                         Framework[CurrentSystem].BondBendArguments[CurrentFramework][index][1]*=DEG2RAD;
                         break;
                       default:
-                        printf("Undefined Bond-Bend potential in routine 'ReadFrameworkDefinition' ('framework.c')\n");
+                        fprintf(stderr, "Undefined Bond-Bend potential in routine 'ReadFrameworkDefinition' ('framework.c')\n");
                         exit(0);
                         break;
                     }
                     Framework[CurrentSystem].NumberOfBondBends[CurrentFramework]++;
                     index=Framework[CurrentSystem].NumberOfBondBends[CurrentFramework];
-  
+
                     if(index>=Framework[CurrentSystem].MaxNumberOfBondBends[CurrentFramework])
                     {
                       Framework[CurrentSystem].MaxNumberOfBondBends[CurrentFramework]+=4096;
@@ -9926,7 +9926,7 @@ int ReadFrameworkDefinition(void)
       }
     }
   }
-  
+
   // reading Bend-Bend cross-term data
   index=0;
   if(Framework[CurrentSystem].NumberOfBendBendDefinitions>0)
@@ -9937,7 +9937,7 @@ int ReadFrameworkDefinition(void)
     Framework[CurrentSystem].BendBendArgumentDefinitions=(REAL(*)[MAX_BEND_BEND_POTENTIAL_ARGUMENTS])
       calloc(Framework[CurrentSystem].NumberOfBendBendDefinitions,sizeof(REAL[MAX_BEND_BEND_POTENTIAL_ARGUMENTS]));
     Framework[CurrentSystem].NumberOfBendBendsPerType=(int*)calloc(Framework[CurrentSystem].NumberOfBendBendDefinitions,sizeof(int));
-  
+
     for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
     {
       Framework[CurrentSystem].MaxNumberOfBendBends[CurrentFramework]=4096;
@@ -9947,7 +9947,7 @@ int ReadFrameworkDefinition(void)
       Framework[CurrentSystem].BendBendArguments[CurrentFramework]=(REAL(*)[MAX_BEND_BEND_POTENTIAL_ARGUMENTS])
               calloc(Framework[CurrentSystem].MaxNumberOfBendBends[CurrentFramework],sizeof(REAL[MAX_BEND_BEND_POTENTIAL_ARGUMENTS]));
     }
-  
+
     ReadLine(line,1024,FilePtr); // skip line
     for(i=0;i<Framework[CurrentSystem].NumberOfBendBendDefinitions;i++)
     {
@@ -9958,12 +9958,12 @@ int ReadFrameworkDefinition(void)
       TypeB=ReturnPseudoAtomNumber(TypeNameB);
       TypeC=ReturnPseudoAtomNumber(TypeNameC);
       TypeD=ReturnPseudoAtomNumber(TypeNameD);
-  
+
       // determine bend/bend-type
       for(j=0;j<NR_BEND_BEND_TYPES;j++)
         if(strncasecmp(BendBendTypes[j].Name,buffer,MAX2(strlen(BendBendTypes[j].Name),strlen(buffer)))==0)
           BendBendType=j;
-  
+
       // read arguments
       for(j=0;j<BendBendTypes[BendBendType].nr_args;j++)
       {
@@ -9971,7 +9971,7 @@ int ReadFrameworkDefinition(void)
         sscanf(arg_pointer,"%lf%n",&temp,&n);
         arguments[j]=(REAL)temp;
       }
-  
+
       Framework[CurrentSystem].BendBendDefinitionType[i]=BendBendType;
       Framework[CurrentSystem].BendBendDefinitions[i].A=TypeA;
       Framework[CurrentSystem].BendBendDefinitions[i].B=TypeB;
@@ -9979,7 +9979,7 @@ int ReadFrameworkDefinition(void)
       Framework[CurrentSystem].BendBendDefinitions[i].D=TypeD;
       for(j=0;j<BendBendTypes[BendBendType].nr_args;j++)
         Framework[CurrentSystem].BendBendArgumentDefinitions[i][j]=arguments[j];
-  
+
       // fill the appropriate bend/bend-data
       for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
       {
@@ -9987,14 +9987,14 @@ int ReadFrameworkDefinition(void)
         for(A=0;A<Framework[CurrentSystem].NumberOfAtoms[CurrentFramework];A++)
         {
           CurrentTypeA=Framework[CurrentSystem].Atoms[CurrentFramework][A].Type;
-  
+
           if(CurrentTypeA==TypeA)
           {
             for(k=0;k<Framework[CurrentSystem].Connectivity[CurrentFramework][A];k++)
             {
               B=GetNeighbour(CurrentSystem,CurrentFramework,A,k);
               CurrentTypeB=Framework[CurrentSystem].Atoms[CurrentFramework][B].Type;
-  
+
               if(CurrentTypeB==TypeB)
               {
                 for(l=0;l<Framework[CurrentSystem].Connectivity[CurrentFramework][B];l++)
@@ -10026,10 +10026,10 @@ int ReadFrameworkDefinition(void)
                           Framework[CurrentSystem].BendBends[CurrentFramework][index].B=B;
                           Framework[CurrentSystem].BendBends[CurrentFramework][index].C=C;
                           Framework[CurrentSystem].BendBends[CurrentFramework][index].D=D;
-  
+
                           Framework[CurrentSystem].BendBendType[CurrentFramework][index]=BendBendType;
                           Framework[CurrentSystem].NumberOfBendBendsPerType[i]++;
-  
+
                           for(j=0;j<BendBendTypes[BendBendType].nr_args;j++)
                             Framework[CurrentSystem].BendBendArguments[CurrentFramework][index][j]=arguments[j];
                           switch(BendBendType)
@@ -10056,13 +10056,13 @@ int ReadFrameworkDefinition(void)
                               Framework[CurrentSystem].BendBendArguments[CurrentFramework][index][2]*=DEG2RAD;
                               break;
                             default:
-                              printf("Undefined Bend-Bend potential in routine 'ReadFrameworkDefinition' ('framework.c')\n");
+                              fprintf(stderr, "Undefined Bend-Bend potential in routine 'ReadFrameworkDefinition' ('framework.c')\n");
                               exit(0);
                               break;
                           }
                           Framework[CurrentSystem].NumberOfBendBends[CurrentFramework]++;
                           index=Framework[CurrentSystem].NumberOfBendBends[CurrentFramework];
-  
+
                           if(index>=Framework[CurrentSystem].MaxNumberOfBendBends[CurrentFramework])
                           {
                             Framework[CurrentSystem].MaxNumberOfBendBends[CurrentFramework]+=4096;
@@ -10074,7 +10074,7 @@ int ReadFrameworkDefinition(void)
                                  realloc(Framework[CurrentSystem].BendBendArguments[CurrentFramework],
                             Framework[CurrentSystem].MaxNumberOfBendBends[CurrentFramework]*sizeof(REAL[MAX_BEND_BEND_POTENTIAL_ARGUMENTS]));
                           }
-  
+
                         }
                       }
                     }
@@ -10087,7 +10087,7 @@ int ReadFrameworkDefinition(void)
       }
     }
   }
-  
+
   // reading Bond/Torsion-data
   if(Framework[CurrentSystem].NumberOfBondTorsionDefinitions>0)
   {
@@ -10097,7 +10097,7 @@ int ReadFrameworkDefinition(void)
     Framework[CurrentSystem].BondTorsionArgumentDefinitions=(REAL(*)[MAX_BOND_TORSION_POTENTIAL_ARGUMENTS])
       calloc(Framework[CurrentSystem].NumberOfBondTorsionDefinitions,sizeof(REAL[MAX_BOND_TORSION_POTENTIAL_ARGUMENTS]));
     Framework[CurrentSystem].NumberOfBondTorsionsPerType=(int*)calloc(Framework[CurrentSystem].NumberOfBondTorsionDefinitions,sizeof(int));
-  
+
     for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
     {
       Framework[CurrentSystem].MaxNumberOfBondTorsions[CurrentFramework]=4096;
@@ -10107,7 +10107,7 @@ int ReadFrameworkDefinition(void)
       Framework[CurrentSystem].BondTorsionArguments[CurrentFramework]=(REAL(*)[MAX_BOND_TORSION_POTENTIAL_ARGUMENTS])
               calloc(Framework[CurrentSystem].MaxNumberOfBondTorsions[CurrentFramework],sizeof(REAL[MAX_BOND_TORSION_POTENTIAL_ARGUMENTS]));
     }
-  
+
     ReadLine(line,1024,FilePtr); // skip line
     for(i=0;i<Framework[CurrentSystem].NumberOfBondTorsionDefinitions;i++)
     {
@@ -10118,12 +10118,12 @@ int ReadFrameworkDefinition(void)
       TypeB=ReturnPseudoAtomNumber(TypeNameB);
       TypeC=ReturnPseudoAtomNumber(TypeNameC);
       TypeD=ReturnPseudoAtomNumber(TypeNameD);
-  
+
       // determine torsion-type
       for(j=0;j<NR_BOND_TORSION_TYPES;j++)
         if(strncasecmp(BondTorsionTypes[j].Name,buffer,MAX2(strlen(BondTorsionTypes[j].Name),strlen(buffer)))==0)
           BondTorsionType=j;
-  
+
       // read arguments
       for(j=0;j<BondTorsionTypes[BondTorsionType].nr_args;j++)
       {
@@ -10131,7 +10131,7 @@ int ReadFrameworkDefinition(void)
         sscanf(arg_pointer,"%lf%n",&temp,&n);
         arguments[j]=(REAL)temp;
       }
-  
+
       Framework[CurrentSystem].BondTorsionDefinitionType[i]=BondTorsionType;
       Framework[CurrentSystem].BondTorsionDefinitions[i].A=TypeA;
       Framework[CurrentSystem].BondTorsionDefinitions[i].B=TypeB;
@@ -10139,23 +10139,23 @@ int ReadFrameworkDefinition(void)
       Framework[CurrentSystem].BondTorsionDefinitions[i].D=TypeD;
       for(j=0;j<BondTorsionTypes[BondTorsionType].nr_args;j++)
         Framework[CurrentSystem].BondTorsionArgumentDefinitions[i][j]=arguments[j];
-  
+
       // fill the appropriate stretch/torsion-data
       for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
       {
         index=Framework[CurrentSystem].NumberOfBondTorsions[CurrentFramework];
-  
+
         for(B=0;B<Framework[CurrentSystem].TotalNumberOfAtoms;B++)
         {
           CurrentTypeB=Framework[CurrentSystem].Atoms[CurrentFramework][B].Type;
-  
+
           if(CurrentTypeB==TypeB)
           {
             for(k=0;k<Framework[CurrentSystem].Connectivity[CurrentFramework][B];k++)
             {
               C=GetNeighbour(CurrentSystem,CurrentFramework,B,k);
               CurrentTypeC=Framework[CurrentSystem].Atoms[CurrentFramework][C].Type;
-  
+
               if((CurrentTypeC==TypeC)&&(B<C))
               {
                 // we now have pairs B-C with B<C
@@ -10175,10 +10175,10 @@ int ReadFrameworkDefinition(void)
                         Framework[CurrentSystem].BondTorsions[CurrentFramework][index].B=B;
                         Framework[CurrentSystem].BondTorsions[CurrentFramework][index].C=C;
                         Framework[CurrentSystem].BondTorsions[CurrentFramework][index].D=D;
-  
+
                         Framework[CurrentSystem].BondTorsionType[CurrentFramework][index]=BondTorsionType;
                         Framework[CurrentSystem].NumberOfBondTorsionsPerType[i]++;
-  
+
                         for(j=0;j<BondTorsionTypes[BondTorsionType].nr_args;j++)
                           Framework[CurrentSystem].BondTorsionArguments[CurrentFramework][index][j]=arguments[j];
                         switch(BondTorsionType)
@@ -10195,13 +10195,13 @@ int ReadFrameworkDefinition(void)
                             Framework[CurrentSystem].BondTorsionArguments[CurrentFramework][index][2]*=KCAL_PER_MOL_TO_ENERGY;
                             break;
                           default:
-                            printf("Undefined Bond-Torsion potential in routine 'ReadFrameworkDefinition' ('framework.c')\n");
+                            fprintf(stderr, "Undefined Bond-Torsion potential in routine 'ReadFrameworkDefinition' ('framework.c')\n");
                             exit(0);
                             break;
                         }
                         Framework[CurrentSystem].NumberOfBondTorsions[CurrentFramework]++;
                         index=Framework[CurrentSystem].NumberOfBondTorsions[CurrentFramework];
-  
+
                         if(index>=Framework[CurrentSystem].MaxNumberOfBondTorsions[CurrentFramework])
                         {
                           Framework[CurrentSystem].MaxNumberOfBondTorsions[CurrentFramework]+=4096;
@@ -10224,7 +10224,7 @@ int ReadFrameworkDefinition(void)
       }
     }
   }
-  
+
   // reading Bend/Torsion-data
   index=0;
   if(Framework[CurrentSystem].NumberOfBendTorsionDefinitions>0)
@@ -10235,7 +10235,7 @@ int ReadFrameworkDefinition(void)
     Framework[CurrentSystem].BendTorsionArgumentDefinitions=(REAL(*)[MAX_BEND_TORSION_POTENTIAL_ARGUMENTS])
       calloc(Framework[CurrentSystem].NumberOfBendTorsionDefinitions,sizeof(REAL[MAX_BEND_TORSION_POTENTIAL_ARGUMENTS]));
     Framework[CurrentSystem].NumberOfBendTorsionsPerType=(int*)calloc(Framework[CurrentSystem].NumberOfBendTorsionDefinitions,sizeof(int));
-  
+
     for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
     {
       Framework[CurrentSystem].MaxNumberOfBendTorsions[CurrentFramework]=4096;
@@ -10245,7 +10245,7 @@ int ReadFrameworkDefinition(void)
       Framework[CurrentSystem].BendTorsionArguments[CurrentFramework]=(REAL(*)[MAX_BEND_TORSION_POTENTIAL_ARGUMENTS])
               calloc(Framework[CurrentSystem].MaxNumberOfBendTorsions[CurrentFramework],sizeof(REAL[MAX_BEND_TORSION_POTENTIAL_ARGUMENTS]));
     }
-  
+
     ReadLine(line,1024,FilePtr); // skip line
     for(i=0;i<Framework[CurrentSystem].NumberOfBendTorsionDefinitions;i++)
     {
@@ -10256,14 +10256,14 @@ int ReadFrameworkDefinition(void)
       TypeB=ReturnPseudoAtomNumber(TypeNameB);
       TypeC=ReturnPseudoAtomNumber(TypeNameC);
       TypeD=ReturnPseudoAtomNumber(TypeNameD);
-  
+
       // determine torsion-type
       for(j=0;j<NR_BEND_TORSION_TYPES;j++)
       {
         if(strcasecmp(BendTorsionTypes[j].Name,buffer)==0)
           BendTorsionType=j;
       }
-  
+
       // read arguments
       for(j=0;j<BendTorsionTypes[BendTorsionType].nr_args;j++)
       {
@@ -10271,7 +10271,7 @@ int ReadFrameworkDefinition(void)
         sscanf(arg_pointer,"%lf%n",&temp,&n);
         arguments[j]=(REAL)temp;
       }
-  
+
       Framework[CurrentSystem].BendTorsionDefinitionType[i]=BendTorsionType;
       Framework[CurrentSystem].BendTorsionDefinitions[i].A=TypeA;
       Framework[CurrentSystem].BendTorsionDefinitions[i].B=TypeB;
@@ -10279,7 +10279,7 @@ int ReadFrameworkDefinition(void)
       Framework[CurrentSystem].BendTorsionDefinitions[i].D=TypeD;
       for(j=0;j<BendTorsionTypes[BendTorsionType].nr_args;j++)
         Framework[CurrentSystem].BendTorsionArgumentDefinitions[i][j]=arguments[j];
-  
+
       // fill the appropriate bend/torsion-data
       for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
       {
@@ -10287,14 +10287,14 @@ int ReadFrameworkDefinition(void)
         for(B=0;B<Framework[CurrentSystem].NumberOfAtoms[CurrentFramework];B++)
         {
           CurrentTypeB=Framework[CurrentSystem].Atoms[CurrentFramework][B].Type;
-  
+
           if(CurrentTypeB==TypeB)
           {
             for(k=0;k<Framework[CurrentSystem].Connectivity[CurrentFramework][B];k++)
             {
               C=GetNeighbour(CurrentSystem,CurrentFramework,B,k);
               CurrentTypeC=Framework[CurrentSystem].Atoms[CurrentFramework][C].Type;
-  
+
               if(CurrentTypeC==TypeC)
               {
                 // we now have pairs A-B
@@ -10330,13 +10330,13 @@ int ReadFrameworkDefinition(void)
                           Framework[CurrentSystem].BendTorsions[CurrentFramework][index].B=B;
                           Framework[CurrentSystem].BendTorsions[CurrentFramework][index].C=C;
                           Framework[CurrentSystem].BendTorsions[CurrentFramework][index].D=D;
-  
+
                           Framework[CurrentSystem].BendTorsionType[CurrentFramework][index]=BendTorsionType;
                           Framework[CurrentSystem].NumberOfBendTorsionsPerType[i]++;
-  
+
                           for(j=0;j<BendTorsionTypes[BendTorsionType].nr_args;j++)
                             Framework[CurrentSystem].BendTorsionArguments[CurrentFramework][index][j]=arguments[j];
-  
+
                           switch(BendTorsionType)
                           {
                             case SMOOTHED_DIHEDRAL:
@@ -10410,13 +10410,13 @@ int ReadFrameworkDefinition(void)
                               Framework[CurrentSystem].BendTorsionArguments[CurrentFramework][index][2]*=DEG2RAD;
                               break;
                             default:
-                              printf("Undefined Bend-Torsion potential in routine 'ReadFrameworkDefinition' ('framework.c')\n");
+                              fprintf(stderr, "Undefined Bend-Torsion potential in routine 'ReadFrameworkDefinition' ('framework.c')\n");
                               exit(0);
                               break;
                           }
                           Framework[CurrentSystem].NumberOfBendTorsions[CurrentFramework]++;
                           index=Framework[CurrentSystem].NumberOfBendTorsions[CurrentFramework];
-  
+
                           if(index>=Framework[CurrentSystem].MaxNumberOfBendTorsions[CurrentFramework])
                           {
                             Framework[CurrentSystem].MaxNumberOfBendTorsions[CurrentFramework]+=4096;
@@ -10441,7 +10441,7 @@ int ReadFrameworkDefinition(void)
     }
   }
 
-  printf("Number of bonds: %d %d %d\n",Framework[0].NumberOfBonds[0],CurrentSystem,CurrentFramework);
+  fprintf(stderr, "Number of bonds: %d %d %d\n",Framework[0].NumberOfBonds[0],CurrentSystem,CurrentFramework);
   return 0;
 }
 
@@ -10676,13 +10676,13 @@ void MakeExclusionMatrix(int system)
   }
   for(f1=0;f1<Framework[system].NumberOfFrameworks;f1++)
   {
-    for(i=0;i<Framework[system].NumberOfAtoms[f1];i++) 
+    for(i=0;i<Framework[system].NumberOfAtoms[f1];i++)
     {
       for(j=0;j<Framework[system].NumberOfAtoms[f1];j++)
       {
-        CLEARBIT(Framework[system].ExclusionMatrix[f1][i][j],0); 
-        CLEARBIT(Framework[system].ExclusionMatrix[f1][i][j],1); 
-        CLEARBIT(Framework[system].ExclusionMatrix[f1][i][j],2); 
+        CLEARBIT(Framework[system].ExclusionMatrix[f1][i][j],0);
+        CLEARBIT(Framework[system].ExclusionMatrix[f1][i][j],1);
+        CLEARBIT(Framework[system].ExclusionMatrix[f1][i][j],2);
       }
     }
   }
@@ -11231,38 +11231,38 @@ void PrintFlexibleFrameworkModel(void)
   int i,j;
   int A,B,C,D,BondType,BendType,TorsionType;
 
-  printf("Number of bonds: %d\n",Framework[CurrentSystem].NumberOfBonds[CurrentFramework]);
+  fprintf(stderr, "Number of bonds: %d\n",Framework[CurrentSystem].NumberOfBonds[CurrentFramework]);
   for(i=0;i<Framework[CurrentSystem].NumberOfBonds[CurrentFramework];i++)
   {
     A=Framework[CurrentSystem].Bonds[CurrentFramework][i].A;
     B=Framework[CurrentSystem].Bonds[CurrentFramework][i].B;
     BondType=Framework[CurrentSystem].BondType[CurrentFramework][i];
-    printf("Bond %s--%s [%d-%d]  Type: %d ",
+    fprintf(stderr, "Bond %s--%s [%d-%d]  Type: %d ",
             PseudoAtoms[Framework[CurrentSystem].Atoms[CurrentFramework][A].Type].Name,
             PseudoAtoms[Framework[CurrentSystem].Atoms[CurrentFramework][B].Type].Name,
             A,
             B,
             BondType);
     for(j=0;j<BondTypes[BondType].nr_args;j++)
-      printf(" %lf",(double)Framework[CurrentSystem].BondArguments[CurrentFramework][i][j]);
-    printf("\n");
-  }    
+      fprintf(stderr, " %lf",(double)Framework[CurrentSystem].BondArguments[CurrentFramework][i][j]);
+    fprintf(stderr, "\n");
+  }
 
-  printf("Number of Urey-Bradley: %d\n",Framework[CurrentSystem].NumberOfUreyBradleys[CurrentFramework]);
+  fprintf(stderr, "Number of Urey-Bradley: %d\n",Framework[CurrentSystem].NumberOfUreyBradleys[CurrentFramework]);
   for(i=0;i<Framework[CurrentSystem].NumberOfUreyBradleys[CurrentFramework];i++)
   {
     A=Framework[CurrentSystem].UreyBradleys[CurrentFramework][i].A;
     B=Framework[CurrentSystem].UreyBradleys[CurrentFramework][i].B;
     BondType=Framework[CurrentSystem].UreyBradleyType[CurrentFramework][i];
-    printf("Urey-Bradley %s--%s [%d-%d]  Type: %d ",
+    fprintf(stderr, "Urey-Bradley %s--%s [%d-%d]  Type: %d ",
             PseudoAtoms[Framework[CurrentSystem].Atoms[CurrentFramework][A].Type].Name,
             PseudoAtoms[Framework[CurrentSystem].Atoms[CurrentFramework][B].Type].Name,
             A,
             B,
             BondType);
     for(j=0;j<BondTypes[BondType].nr_args;j++)
-      printf(" %lf",(double)Framework[CurrentSystem].UreyBradleyArguments[CurrentFramework][i][j]);
-    printf("\n");
+      fprintf(stderr, " %lf",(double)Framework[CurrentSystem].UreyBradleyArguments[CurrentFramework][i][j]);
+    fprintf(stderr, "\n");
   }
 
   for(i=0;i<Framework[CurrentSystem].NumberOfBends[CurrentFramework];i++)
@@ -11271,7 +11271,7 @@ void PrintFlexibleFrameworkModel(void)
     B=Framework[CurrentSystem].Bends[CurrentFramework][i].B;
     C=Framework[CurrentSystem].Bends[CurrentFramework][i].C;
     BendType=Framework[CurrentSystem].BendType[CurrentFramework][i];
-    printf("Bend %s--%s--%s [%d-%d-%d]  Type: %d ",
+    fprintf(stderr, "Bend %s--%s--%s [%d-%d-%d]  Type: %d ",
             PseudoAtoms[Framework[CurrentSystem].Atoms[CurrentFramework][A].Type].Name,
             PseudoAtoms[Framework[CurrentSystem].Atoms[CurrentFramework][B].Type].Name,
             PseudoAtoms[Framework[CurrentSystem].Atoms[CurrentFramework][C].Type].Name,
@@ -11280,11 +11280,11 @@ void PrintFlexibleFrameworkModel(void)
             C,
             BendType);
     for(j=0;j<BendTypes[BendType].nr_args;j++)
-      printf(" %lf",(double)(RAD2DEG*(Framework[CurrentSystem].BendArguments[CurrentFramework][i][j])));
-    printf("\n");
+      fprintf(stderr, " %lf",(double)(RAD2DEG*(Framework[CurrentSystem].BendArguments[CurrentFramework][i][j])));
+    fprintf(stderr, "\n");
   }
 
-  printf("Number of Torsions: %d\n",Framework[CurrentSystem].NumberOfTorsions[CurrentFramework]);
+  fprintf(stderr, "Number of Torsions: %d\n",Framework[CurrentSystem].NumberOfTorsions[CurrentFramework]);
   for(i=0;i<Framework[CurrentSystem].NumberOfTorsions[CurrentFramework];i++)
   {
     A=Framework[CurrentSystem].Torsions[CurrentFramework][i].A;
@@ -11292,7 +11292,7 @@ void PrintFlexibleFrameworkModel(void)
     C=Framework[CurrentSystem].Torsions[CurrentFramework][i].C;
     D=Framework[CurrentSystem].Torsions[CurrentFramework][i].D;
     TorsionType=Framework[CurrentSystem].TorsionType[CurrentFramework][i];
-    printf("Torsion %s--%s--%s--%s [%d-%d-%d-%d]  Type: %d ",
+    fprintf(stderr, "Torsion %s--%s--%s--%s [%d-%d-%d-%d]  Type: %d ",
             PseudoAtoms[Framework[CurrentSystem].Atoms[CurrentFramework][A].Type].Name,
             PseudoAtoms[Framework[CurrentSystem].Atoms[CurrentFramework][B].Type].Name,
             PseudoAtoms[Framework[CurrentSystem].Atoms[CurrentFramework][C].Type].Name,
@@ -11303,8 +11303,8 @@ void PrintFlexibleFrameworkModel(void)
             D,
             TorsionType);
     for(j=0;j<TorsionTypes[TorsionType].nr_args;j++)
-      printf(" %lf",(double)Framework[CurrentSystem].TorsionArguments[CurrentFramework][i][j]);
-    printf("\n");
+      fprintf(stderr, " %lf",(double)Framework[CurrentSystem].TorsionArguments[CurrentFramework][i][j]);
+    fprintf(stderr, "\n");
   }
 }
 
@@ -11550,16 +11550,16 @@ void DetermineSpaceGroup(void)
   {
     // space group P1 is always possible
     LowestNumberOfAsymmetricUnits=Framework[CurrentSystem].NumberOfAtoms[CurrentFramework];
-  
+
     Framework[CurrentSystem].AtomsAsymmetric[CurrentFramework]=(FRAMEWORK_ASYMMETRIC_ATOM*)realloc(Framework[CurrentSystem].AtomsAsymmetric[CurrentFramework],
                        Framework[CurrentSystem].NumberOfAtoms[CurrentFramework]*sizeof(FRAMEWORK_ASYMMETRIC_ATOM));
-  
+
     // loop over all space-groups and try them one by one
     for(sg=1;sg<=NUMBER_OF_SPACEGROUPS;sg++)
     {
       // assume a certain space-group
       Framework[CurrentSystem].SpaceGroupIdentifier[CurrentFramework]=sg;
-  
+
       Framework[CurrentSystem].NumberOfAsymmetricAtoms[CurrentFramework]=0;
       for(k=0;k<Framework[CurrentSystem].NumberOfUnitCellAtoms[CurrentFramework];k++)
       {
@@ -11571,14 +11571,14 @@ void DetermineSpaceGroup(void)
         s.x*=NumberOfUnitCells[CurrentSystem].x;
         s.y*=NumberOfUnitCells[CurrentSystem].y;
         s.z*=NumberOfUnitCells[CurrentSystem].z;
-  
+
         // if no asymmetric atom is found the loop over atoms is stopped, otherwise the found asymmetric atom is 't'
-        if(!FindAsymmetricAtom(sg,s,&t)) 
+        if(!FindAsymmetricAtom(sg,s,&t))
         {
           Framework[CurrentSystem].NumberOfAsymmetricAtoms[CurrentFramework]=0;
           break;
         }
-    
+
         index=-1;
         for(i=0;i<Framework[CurrentSystem].NumberOfAsymmetricAtoms[CurrentFramework];i++)
         {
@@ -11586,7 +11586,7 @@ void DetermineSpaceGroup(void)
           dr.y=Framework[CurrentSystem].AtomsAsymmetric[CurrentFramework][i].Position.y-t.y;
           dr.z=Framework[CurrentSystem].AtomsAsymmetric[CurrentFramework][i].Position.z-t.z;
           rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-          if((rr<1e-8)&&(Type==Framework[CurrentSystem].AtomsAsymmetric[CurrentFramework][i].Type)) 
+          if((rr<1e-8)&&(Type==Framework[CurrentSystem].AtomsAsymmetric[CurrentFramework][i].Type))
           {
             index=i;
             break;
@@ -11599,7 +11599,7 @@ void DetermineSpaceGroup(void)
           Framework[CurrentSystem].NumberOfAsymmetricAtoms[CurrentFramework]++;
         }
       }
-  
+
       // we have the asymmetric atoms, let's form the framework atoms from these and check whether we get the same number of atoms
       nr_atoms=0;
       sg_possible=TRUE;
@@ -11608,18 +11608,18 @@ void DetermineSpaceGroup(void)
         Type=Framework[CurrentSystem].AtomsAsymmetric[CurrentFramework][i].Type;
         s=Framework[CurrentSystem].AtomsAsymmetric[CurrentFramework][i].Position;
         SpaceGroupSymmetry(sg,s);
-      
+
         for(j=0;sg_possible&&(j<SpaceGroupSize);j++)
         {
           // apply boundary condition
           SpaceGroupElement[j].x-=NINT(SpaceGroupElement[j].x);
           SpaceGroupElement[j].y-=NINT(SpaceGroupElement[j].y);
           SpaceGroupElement[j].z-=NINT(SpaceGroupElement[j].z);
-      
+
           if(SpaceGroupElement[j].x<0.0) SpaceGroupElement[j].x+=1.0;
           if(SpaceGroupElement[j].y<0.0) SpaceGroupElement[j].y+=1.0;
           if(SpaceGroupElement[j].z<0.0) SpaceGroupElement[j].z+=1.0;
-      
+
           index=-1;
           for(k=0;k<nr_atoms;k++)
           {
@@ -11637,17 +11637,17 @@ void DetermineSpaceGroup(void)
             Framework[CurrentSystem].Atoms[CurrentFramework][nr_atoms].ReferencePosition=SpaceGroupElement[j];
             nr_atoms++;
           }
-          if(nr_atoms>Framework[CurrentSystem].NumberOfUnitCellAtoms[CurrentFramework]) 
+          if(nr_atoms>Framework[CurrentSystem].NumberOfUnitCellAtoms[CurrentFramework])
           {
             sg_possible=FALSE;
             break;
           }
         }
       }
-  
+
       // if the asymmetric unit does not generate the proper amount of atoms then it is certainly the wrong space group
       if(nr_atoms!=Framework[CurrentSystem].NumberOfUnitCellAtoms[CurrentFramework]) sg_possible=FALSE;
-  
+
       // choice the space group with the lowest amount of atoms and the highest symmetry (Note the '<=')
       if(sg_possible&&(Framework[CurrentSystem].NumberOfAsymmetricAtoms[CurrentFramework]<=LowestNumberOfAsymmetricUnits))
       {
@@ -11655,9 +11655,9 @@ void DetermineSpaceGroup(void)
         FoundSpaceGroup=sg;
         //WriteAsymmetricUnitCell(FoundSpaceGroup);
       }
-      if(sg_possible) printf("Possible space group: %d\n",FoundSpaceGroup);
+      if(sg_possible) fprintf(stderr, "Possible space group: %d\n",FoundSpaceGroup);
     }
-  
+
     // assume a certain space-group
     Framework[CurrentSystem].SpaceGroupIdentifier[CurrentFramework]=FoundSpaceGroup;
   }
@@ -11754,14 +11754,14 @@ void FindSpatialGroup2(void)
   int spaceGroupNumber,nAtoms,type;
   int *atomInList,nAtomsInList;
   int inverseAtomsFound,newAtomFound;
-  
+
   VECTOR pos,dr,*positionAtomAsymmetric;
   int *typeAsymmetric,sizeLastSpaceGroup;
   REAL rr;
 
   pos.x=pos.y=pos.z=0.0;
 
-  //Reserve enough memory for the asymmetric atoms 
+  //Reserve enough memory for the asymmetric atoms
   nAtoms=Framework[CurrentSystem].NumberOfAtoms[CurrentFramework];
   atomInList=(int*)calloc(nAtoms,sizeof(int));
   positionAtomAsymmetric=(VECTOR *)calloc(nAtoms,sizeof(VECTOR));
@@ -11842,12 +11842,12 @@ void FindSpatialGroup2(void)
                   atomInList[k]=TRUE;
                   nAtomsInList++;
                 }
-                break;                
+                break;
               }
             }
           }
-          
-        } //for SpaceGroupSize      
+
+        } //for SpaceGroupSize
 
         //If only one atom has been found it is due to the identity element and the group is discarded
         if(inverseAtomsFound==1)
@@ -11861,7 +11861,7 @@ void FindSpatialGroup2(void)
           nAtoms++;
           positionAtomAsymmetric[nAtoms-1]=Framework[CurrentSystem].Atoms[CurrentFramework][i].Position;
           typeAsymmetric[nAtoms-1]=Framework[CurrentSystem].Atoms[CurrentFramework][i].Type;
-        } 
+        }
       } //if !atomInList
     } //for Atoms in framework
 
@@ -11869,11 +11869,11 @@ void FindSpatialGroup2(void)
     //If the current space group is a candidate, check the best space group
     if(PossibleSpaceGroup&&nAtomsInList==Framework[CurrentSystem].NumberOfAtoms[CurrentFramework])
     {
-      //If we successully generate the original framework with this space group, check the best successful space group 
+      //If we successully generate the original framework with this space group, check the best successful space group
       //(larger size, then the asymmetric cell is smaller, and larger symmetry) and copy asymmetric cell to the original framework
 
       if(nAtoms<Framework[CurrentSystem].NumberOfAsymmetricAtoms[CurrentFramework]||
-        ((nAtoms==Framework[CurrentSystem].NumberOfAsymmetricAtoms[CurrentFramework])&&(SpaceGroupSize>sizeLastSpaceGroup))) 
+        ((nAtoms==Framework[CurrentSystem].NumberOfAsymmetricAtoms[CurrentFramework])&&(SpaceGroupSize>sizeLastSpaceGroup)))
       //if(nAtoms<Framework[CurrentSystem].NumberOfAsymmetricAtoms[CurrentFramework])
       {
         //Prepare the memory needed to store the asymmetric atoms
@@ -11890,7 +11890,7 @@ void FindSpatialGroup2(void)
         Framework[CurrentSystem].SpaceGroupIdentifier[CurrentFramework]=spaceGroupNumber;
         Framework[CurrentSystem].NumberOfAsymmetricAtoms[CurrentFramework]=nAtoms;
 
-        printf("Possible: %d %s %d nr. asym: %d %s\n",spaceGroupNumber,SpaceGroupData[spaceGroupNumber].ShortInternationalHermannMauguinSpaceGroupSymbol,
+        fprintf(stderr, "Possible: %d %s %d nr. asym: %d %s\n",spaceGroupNumber,SpaceGroupData[spaceGroupNumber].ShortInternationalHermannMauguinSpaceGroupSymbol,
                          SpaceGroupData[spaceGroupNumber].Number,Framework[CurrentSystem].NumberOfAsymmetricAtoms[CurrentFramework],
                          SpaceGroupData[spaceGroupNumber].Standard?"standard":"non-standard");
 
@@ -11898,7 +11898,7 @@ void FindSpatialGroup2(void)
         {
           Framework[CurrentSystem].AtomsAsymmetric[CurrentFramework][i].Position=positionAtomAsymmetric[i];
           Framework[CurrentSystem].AtomsAsymmetric[CurrentFramework][i].Type=typeAsymmetric[i];
-        } 
+        }
         sizeLastSpaceGroup=SpaceGroupSize;
 
         WriteAsymmetricUnitCell(spaceGroupNumber);
@@ -11915,7 +11915,7 @@ void FindSpatialGroup2(void)
   free(positionAtomAsymmetric);
   free(typeAsymmetric);
 
-  printf("Framework[CurrentSystem].NumberOfAsymmetricAtoms[CurrentFramework]: %d\n",Framework[CurrentSystem].NumberOfAsymmetricAtoms[CurrentFramework]);
+  fprintf(stderr, "Framework[CurrentSystem].NumberOfAsymmetricAtoms[CurrentFramework]: %d\n",Framework[CurrentSystem].NumberOfAsymmetricAtoms[CurrentFramework]);
 
   //If we have not found the space group, it is set to 1 by default
   if(Framework[CurrentSystem].NumberOfAsymmetricAtoms[CurrentFramework]==Framework[CurrentSystem].NumberOfAtoms[CurrentFramework])
@@ -12089,7 +12089,7 @@ void WriteRestartFramework(FILE *FilePtr)
         {
           if(Framework[i].NumberOfCoreShells[j]>0)
             fwrite(Framework[i].CoreShellConnectivity[j],sizeof(int),Framework[i].NumberOfAtoms[j],FilePtr);
-        } 
+        }
       }
 
       fwrite(&Framework[i].NumberOfBondsDefinitions,sizeof(int),1,FilePtr);
@@ -12528,20 +12528,20 @@ void ReadRestartFramework(FILE *FilePtr)
       fread(&crystallographic_stats[i].NumberOfCationSites,sizeof(int),Framework[i].NumberOfAsymmetricIons,FilePtr);
       fread(&crystallographic_stats[i].Count,sizeof(REAL),Framework[i].NumberOfAsymmetricIons,FilePtr);
       fread(&crystallographic_stats[i].TemperatureFactor,sizeof(REAL_MATRIX3x3),Framework[i].NumberOfAsymmetricIons,FilePtr);
-    }   
+    }
 
     fread(&Framework[i].NumberOfIons,sizeof(int),1,FilePtr);
     fread(&Framework[i].MaxNumberOfIons,sizeof(int),1,FilePtr);
     Framework[i].MaxNumberOfIons=Framework[i].NumberOfIons;
     if(Framework[i].NumberOfIons>0)
-    { 
+    {
       Framework[i].Ions=(ATOM*)calloc(Framework[i].NumberOfIons,sizeof(ATOM));
       fread(Framework[i].Ions,Framework[i].NumberOfIons,sizeof(ATOM),FilePtr);
     }
 
     fread(&Framework[i].NumberOfFrameworks,sizeof(int),1,FilePtr);
 
-    if(Framework[i].NumberOfFrameworks==0) 
+    if(Framework[i].NumberOfFrameworks==0)
     {
       Framework[i].NumberOfAtoms=(int*)calloc(1,sizeof(int));
       Framework[i].NumberOfAtoms[0]=0;
@@ -13282,11 +13282,11 @@ void ReadRestartFramework(FILE *FilePtr)
       Framework[i].ExcludedIntraBondDipoleBondDipole=(PAIR**)calloc(Framework[i].NumberOfFrameworks,sizeof(PAIR*));
 
 
-      if(Framework[i].FrameworkModel==FLEXIBLE) 
+      if(Framework[i].FrameworkModel==FLEXIBLE)
       {
         for(j=0;j<Framework[i].NumberOfFrameworks;j++)
         {
-          if(Framework[i].FrameworkModels[j]==FLEXIBLE) 
+          if(Framework[i].FrameworkModels[j]==FLEXIBLE)
           {
             Framework[i].MaxNumberOfExcludedIntraChargeCharge[j]=Framework[i].NumberOfExcludedIntraChargeCharge[j];
             Framework[i].ExcludedIntraChargeCharge[j]=(PAIR*)calloc(Framework[i].NumberOfExcludedIntraChargeCharge[j],sizeof(PAIR));
@@ -13302,7 +13302,7 @@ void ReadRestartFramework(FILE *FilePtr)
           }
         }
 
-        // rather then store the exclusion matrix, recompute it when all required information is read 
+        // rather then store the exclusion matrix, recompute it when all required information is read
         CurrentSystem=i;
         MakeExclusionMatrix(i);
       }
@@ -13361,7 +13361,7 @@ void ReadRestartFramework(FILE *FilePtr)
   fread(&Check,1,sizeof(REAL),FilePtr);
   if(fabs(Check-123456789.0)>1e-10)
   {
-    printf("Error in binary restart-file (ReadRestartFramework)\n");
+    fprintf(stderr, "Error in binary restart-file (ReadRestartFramework)\n");
     exit(0);
   }
 

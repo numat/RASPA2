@@ -49,23 +49,23 @@
 
   The algorithms are modified for rigid molecules.
 
-  With the Andersen method (1980) of pressure control, the volume of the cell can change, 
-  but its shape is preserved by allowing the cell to change isotropically. 
-  The Anderson method is useful for liquid simulations since the box could become quite 
-  elongated in the absence of restoring forces if the shape of the cell were allowed to 
-  change. A constant shape also makes the dynamics analysis easier. 
-  However, this method is not very useful for studying materials under nonisotropic 
-  stress or phase transitions, which involve changes in both cell lengths and cell angles 
-  (for these conditions, the Parrinello-Rahman method should be used). 
+  With the Andersen method (1980) of pressure control, the volume of the cell can change,
+  but its shape is preserved by allowing the cell to change isotropically.
+  The Anderson method is useful for liquid simulations since the box could become quite
+  elongated in the absence of restoring forces if the shape of the cell were allowed to
+  change. A constant shape also makes the dynamics analysis easier.
+  However, this method is not very useful for studying materials under nonisotropic
+  stress or phase transitions, which involve changes in both cell lengths and cell angles
+  (for these conditions, the Parrinello-Rahman method should be used).
 
-  The Parrinello-Rahman method of pressure and stress control can allow simulation of a 
-  model under externally applied stress. This is useful for studying the stress-strain 
-  relationship of materials. Both the shape and the volume of the cell can change, so 
-  that the internal stress of the system can match the externally applied stress.  
+  The Parrinello-Rahman method of pressure and stress control can allow simulation of a
+  model under externally applied stress. This is useful for studying the stress-strain
+  relationship of materials. Both the shape and the volume of the cell can change, so
+  that the internal stress of the system can match the externally applied stress.
 
-  Raspa performs atomic scaling. The major advantage of using atomic scaling of the 
-  coordinates is that atom overlapping can be avoided. Such overlap can occur if centers 
-  of mass are moved instead of individual atoms. In addition, for large models having 
+  Raspa performs atomic scaling. The major advantage of using atomic scaling of the
+  coordinates is that atom overlapping can be avoided. Such overlap can occur if centers
+  of mass are moved instead of individual atoms. In addition, for large models having
   internal flexibility, atomic scaling yields a smoother response to pressure changes.
   For rigid molecules the molecular scaling and molecular virial is computed.
  *************************************************************************************/
@@ -100,7 +100,7 @@ static REAL **BarostatVelocity;
 static REAL **BarostatPosition;
 static REAL **BarostatMass;
 
-// the translational degrees of freedom are splitted into 
+// the translational degrees of freedom are splitted into
 // a) framework
 // b) adsorbates
 // c) cations
@@ -306,7 +306,7 @@ REAL GetCoreShellTemperature(void)
     }
   }
   return CoreShellKineticEnergy/total_nr_core_shells;
-}       
+}
 
 void AdjustCoreShellVelocities(void)
 {
@@ -543,26 +543,26 @@ void InitializeNoseHooverAllSystems(void)
 
   if(M<1)
   {
-    printf("Error: Number of thermostats in the NHC chain %d has to be larger than 0\n",M);
+    fprintf(stderr, "Error: Number of thermostats in the NHC chain %d has to be larger than 0\n",M);
     exit(0);
   }
 
   if(M>=MAXIMUM_LENGTH_THERMOSTATS)
   {
-    printf("Number of thermostats in the NHC chain %d exceed the limit of %d\n",
+    fprintf(stderr, "Number of thermostats in the NHC chain %d exceed the limit of %d\n",
       M,MAXIMUM_LENGTH_THERMOSTATS);
     exit(0);
   }
 
   if(N<1)
   {
-    printf("Error: Number of barostats in the NHC chain %d has to be larger than 0\n",N);
+    fprintf(stderr, "Error: Number of barostats in the NHC chain %d has to be larger than 0\n",N);
     exit(0);
   }
 
   if(N>=MAXIMUM_LENGTH_BAROSTATS)
   {
-    printf("Number of barostats in the NHC chain %d exceed the limit of %d\n",
+    fprintf(stderr, "Number of barostats in the NHC chain %d exceed the limit of %d\n",
       M,MAXIMUM_LENGTH_BAROSTATS);
     exit(0);
   }
@@ -606,7 +606,7 @@ void InitializeNoseHooverAllSystems(void)
       w[8]=0.192;
       break;
     default:
-      printf("Error: Yoshida-Suzuki-steps should be: 1,3,5,7 or 9\n");
+      fprintf(stderr, "Error: Yoshida-Suzuki-steps should be: 1,3,5,7 or 9\n");
       exit(0);
       break;
   }
@@ -661,7 +661,7 @@ void InitializeNoseHooverAllSystems(void)
         BarostatDegreesOfFreedom[CurrentSystem][0]=K_B*therm_baro_stats.ExternalTemperature[CurrentSystem];
         break;
     }
-    
+
     for(i=1;i<N;i++)
       BarostatDegreesOfFreedom[CurrentSystem][i]=K_B*therm_baro_stats.ExternalTemperature[CurrentSystem];
 
@@ -1162,8 +1162,8 @@ void UpdatePositions(void)
       bb=DeltaT;
       break;
   }
-  
-  for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)   
+
+  for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
   {
     for(i=0;i<Framework[CurrentSystem].NumberOfAtoms[f1];i++)
     {
@@ -1260,8 +1260,8 @@ void UpdatePositions(void)
     if(MIN3(BoxProperties[CurrentSystem].cx,BoxProperties[CurrentSystem].cy,
             BoxProperties[CurrentSystem].cz)<2.0*CutOffVDW)
     {
-       printf("ERROR: (System (%d) Cutoff smaller than half of one of the perpendicular boxlengths !!!\n",CurrentSystem);
-       printf("       Cutoff: %lf perpendicular boxlengths: %lf %lf %lf\n",(double)CutOffVDW,
+       fprintf(stderr, "ERROR: (System (%d) Cutoff smaller than half of one of the perpendicular boxlengths !!!\n",CurrentSystem);
+       fprintf(stderr, "       Cutoff: %lf perpendicular boxlengths: %lf %lf %lf\n",(double)CutOffVDW,
                (double)BoxProperties[CurrentSystem].cx,(double)BoxProperties[CurrentSystem].cy,(double)BoxProperties[CurrentSystem].cz);
        exit(0);
     }
@@ -1425,7 +1425,7 @@ REAL GetTranslationKineticEnergyCations(void)
   {
     Type=Cations[CurrentSystem][i].Type;
     for(l=0;l<Components[Type].NumberOfGroups;l++)
-    { 
+    {
       if(Components[Type].Groups[l].Rigid)
       {
         Mass=Components[Type].Groups[l].Mass;
@@ -1554,7 +1554,7 @@ REAL GetRotationalKineticEnergy(void)
     {
       if(Components[Type].Groups[l].Rigid)
       {
-        I=Components[Type].Groups[l].InverseInertiaVector; 
+        I=Components[Type].Groups[l].InverseInertiaVector;
         p=Adsorbates[CurrentSystem][i].Groups[l].QuaternionMomentum;
         q=Adsorbates[CurrentSystem][i].Groups[l].Quaternion;
         RotationalEnergy+=SQR(-p.r*q.i+p.i*q.r+p.j*q.k-p.k*q.j)*I.x/8.0;
@@ -2100,7 +2100,7 @@ void NoseHooverNPTPR(void)
   for(i=0;i<nc;i++)
     for(j=0;j<nyosh;j++)
     {
-      // update the framework thermostat velocities 
+      // update the framework thermostat velocities
       ThermostatVelocityTranslationFramework[CurrentSystem][M-1]+=ThermostatForceTranslationFramework[CurrentSystem][M-1]*w[j]*DeltaT/(4.0*nc);
       for(k=0;k<M-1;k++)
       {
@@ -2108,7 +2108,7 @@ void NoseHooverNPTPR(void)
         ThermostatVelocityTranslationFramework[CurrentSystem][M-k-2]=ThermostatVelocityTranslationFramework[CurrentSystem][M-k-2]*SQR(AA)+
                                      ThermostatForceTranslationFramework[CurrentSystem][M-k-2]*AA*w[j]*DeltaT/(4.0*nc);
       }
-      // update the adsorbate thermostat velocities 
+      // update the adsorbate thermostat velocities
       ThermostatVelocityTranslationAdsorbates[CurrentSystem][M-1]+=ThermostatForceTranslationAdsorbates[CurrentSystem][M-1]*w[j]*DeltaT/(4.0*nc);
       for(k=0;k<M-1;k++)
       {
@@ -2116,7 +2116,7 @@ void NoseHooverNPTPR(void)
         ThermostatVelocityTranslationAdsorbates[CurrentSystem][M-k-2]=ThermostatVelocityTranslationAdsorbates[CurrentSystem][M-k-2]*SQR(AA)+
                                      ThermostatForceTranslationAdsorbates[CurrentSystem][M-k-2]*AA*w[j]*DeltaT/(4.0*nc);
       }
-      // update the cation thermostat velocities 
+      // update the cation thermostat velocities
       ThermostatVelocityTranslationCations[CurrentSystem][M-1]+=ThermostatForceTranslationCations[CurrentSystem][M-1]*w[j]*DeltaT/(4.0*nc);
       for(k=0;k<M-1;k++)
       {
@@ -2225,7 +2225,7 @@ void NoseHooverNPTPR(void)
       for(k=0;k<N;k++)
         BarostatPosition[CurrentSystem][k]+=BarostatVelocity[CurrentSystem][k]*w[j]*DeltaT/(2.0*nc);
 
-      // update the particle velocities 
+      // update the particle velocities
       vtemps=CellVelocity[CurrentSystem];
       trace=(CellVelocity[CurrentSystem].ax+CellVelocity[CurrentSystem].by+CellVelocity[CurrentSystem].cz)/(REAL)DegreesOfFreedomTranslation[CurrentSystem];
       vtemps.ax+=trace; vtemps.by+=trace; vtemps.bz+=trace;
@@ -2684,7 +2684,7 @@ void UpdatePositionsVelocitiesNPTPR(void)
       gamma11  = (CellVelocity[CurrentSystem].ax*dt_res)/2.0;
       arg2     = gamma11*gamma11;
       sinh11   = (((e8*arg2+e6)*arg2+e4)*arg2+e2)*arg2+1.0;
-  
+
       gamma22  = (CellVelocity[CurrentSystem].by*dt_res)/2.0;
       arg2     = gamma22*gamma22;
       sinh22   = (((e8*arg2+e6)*arg2+e4)*arg2+e2)*arg2+1.0;
@@ -3025,7 +3025,7 @@ void UpdatePositionsVelocitiesNPTPR(void)
                 pos.z=u.x*eigenvectors.cx+u.y*eigenvectors.cy+u.z*eigenvectors.cz;
                 Cations[CurrentSystem][i].Atoms[A].Position=pos;
               }
-          } 
+          }
         }
       }
 
@@ -3049,7 +3049,7 @@ void UpdatePositionsVelocitiesNPTPR(void)
       vtemps.bx*=aa2.y;
       vtemps.by*=aa2.y;
       vtemps.bz*=aa2.y;
- 
+
       vtemps.cx*=aa2.z;
       vtemps.cy*=aa2.z;
       vtemps.cz*=aa2.z;
@@ -3166,7 +3166,7 @@ void NoseHooverNPHPR(void)
       CellVelocity[CurrentSystem].cy+=CellForce.cy*w[j]*DeltaT/(4.0*(REAL)nc);
       CellVelocity[CurrentSystem].cz+=CellForce.cz*w[j]*DeltaT/(4.0*(REAL)nc);
 
-      // update the particle velocities 
+      // update the particle velocities
       vtemps=CellVelocity[CurrentSystem];
       trace=(CellVelocity[CurrentSystem].ax+CellVelocity[CurrentSystem].by+CellVelocity[CurrentSystem].cz)/(REAL)DegreesOfFreedomTranslation[CurrentSystem];
       vtemps.ax+=trace; vtemps.by+=trace; vtemps.bz+=trace;
@@ -3711,7 +3711,7 @@ void ReadRestartThermoBarostats(FILE *FilePtr)
   fread(&Check,1,sizeof(REAL),FilePtr);
   if(fabs(Check-123456789.0)>1e-10)
   {
-    printf("Error in binary restart-file (ReadRestartThermoBarostats)\n");
+    fprintf(stderr, "Error in binary restart-file (ReadRestartThermoBarostats)\n");
     exit(0);
   }
 }

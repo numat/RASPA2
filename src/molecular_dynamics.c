@@ -185,7 +185,7 @@ void MolecularDynamicsSimulation(void)
 
     if((CurrentCycle>0)&&(WriteBinaryRestartFileEvery>0)&&(CurrentCycle%WriteBinaryRestartFileEvery==0))
       WriteBinaryRestartFiles();
-    
+
     ContinueAfterCrashLabel1:;
   }
 
@@ -287,7 +287,7 @@ void MolecularDynamicsSimulation(void)
 
     if((CurrentCycle>0)&&(WriteBinaryRestartFileEvery>0)&&(CurrentCycle%WriteBinaryRestartFileEvery==0))
       WriteBinaryRestartFiles();
-    
+
     ContinueAfterCrashLabel2:;
   }
 

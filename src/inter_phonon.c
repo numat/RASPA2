@@ -57,7 +57,7 @@ static inline void HessianAtomicPositionPosition(COMPLEX phase_factor,COMPLEX_MA
 
   // case [I,I]: Center of mass - Center of mass
   if(index_i>=0)
-  { 
+  {
     switch(Dimension)
     {
       case 3:
@@ -75,7 +75,7 @@ static inline void HessianAtomicPositionPosition(COMPLEX phase_factor,COMPLEX_MA
 
   // case [J,J]: Center of mass - Center of mass
   if(index_j>=0)
-  { 
+  {
     switch(Dimension)
     {
       case 3:
@@ -602,7 +602,7 @@ static inline void GradientStrain(REAL *Gradient,REAL f1,VECTOR dr)
           }
           break;
         default:
-          printf("Unknown NPTPRCellType\n");
+          fprintf(stderr, "Unknown NPTPRCellType\n");
           exit(0);
           break;
       }
@@ -732,7 +732,7 @@ static inline void GradientStrainI(REAL *Gradient,REAL f1,VECTOR dr,VECTOR posA,
           }
           break;
         default:
-          printf("Unknown NPTPRCellType\n");
+          fprintf(stderr, "Unknown NPTPRCellType\n");
           exit(0);
           break;
       }
@@ -872,7 +872,7 @@ static inline void GradientStrainJ(REAL *Gradient,REAL f1,VECTOR dr,VECTOR posB,
           }
           break;
         default:
-          printf("Unknown NPTPRCellType\n");
+          fprintf(stderr, "Unknown NPTPRCellType\n");
           exit(0);
           break;
       }
@@ -955,7 +955,7 @@ void ComputeInterVDWMolecularPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX
                   for(ja=0;ja<Components[TypeMolB].Groups[jg].NumberOfGroupAtoms;ja++)
                   {
                     j=Components[TypeMolB].Groups[jg].Atoms[ja];
- 
+
                     if(RigidJ)
                     {
                       index_j=Adsorbates[CurrentSystem][J].Groups[jg].HessianIndex;
@@ -1047,7 +1047,7 @@ void ComputeInterVDWMolecularPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX
 
                       // add contribution to the first derivatives
                       if(ComputeGradient)
-                      { 
+                      {
                         if(index_i>=0)
                         {
                           Gradient[index_i]+=f1*dr.x;
@@ -1069,7 +1069,7 @@ void ComputeInterVDWMolecularPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX
                         }
 
                         GradientStrain(Gradient,ReplicaFactor*f1,dr);
-  
+
                         if(ncell==0)
                         {
                           if(index_j>=0)
@@ -1082,7 +1082,7 @@ void ComputeInterVDWMolecularPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX
                           if(RigidJ)
                           {
                             GradientStrainJ(Gradient,f1,dr,posB,comB);
- 
+
                             // add contribution to the first derivatives
                             if(index_j2>=0)
                             {
@@ -1361,7 +1361,7 @@ void ComputeInterVDWMolecularPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX
                   for(ja=0;ja<Components[TypeMolB].Groups[jg].NumberOfGroupAtoms;ja++)
                   {
                     j=Components[TypeMolB].Groups[jg].Atoms[ja];
- 
+
                     if(RigidJ)
                     {
                       index_j=Cations[CurrentSystem][J].Groups[jg].HessianIndex;
@@ -1454,7 +1454,7 @@ void ComputeInterVDWMolecularPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX
 
                       // add contribution to the first derivatives
                       if(ComputeGradient)
-                      { 
+                      {
                         if(index_i>=0)
                         {
                           Gradient[index_i]+=f1*dr.x;
@@ -1476,7 +1476,7 @@ void ComputeInterVDWMolecularPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX
                         }
 
                         GradientStrain(Gradient,ReplicaFactor*f1,dr);
-  
+
                         if(ncell==0)
                         {
                           if(index_j>=0)
@@ -1489,7 +1489,7 @@ void ComputeInterVDWMolecularPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX
                           if(RigidJ)
                           {
                             GradientStrainJ(Gradient,f1,dr,posB,comB);
- 
+
                             // add contribution to the first derivatives
                             if(index_j2>=0)
                             {
@@ -1615,7 +1615,7 @@ void ComputeInterChargeChargeMolecularPhonon(VECTOR k,REAL *Energy,REAL* Gradien
                   for(ja=0;ja<Components[TypeMolB].Groups[jg].NumberOfGroupAtoms;ja++)
                   {
                     j=Components[TypeMolB].Groups[jg].Atoms[ja];
- 
+
                     if(RigidJ)
                     {
                       index_j=Adsorbates[CurrentSystem][J].Groups[jg].HessianIndex;
@@ -1793,7 +1793,7 @@ void ComputeInterChargeChargeMolecularPhonon(VECTOR k,REAL *Energy,REAL* Gradien
                         }
 
                         GradientStrain(Gradient,ReplicaFactor*f1,dr);
-  
+
                         if(ncell==0)
                         {
                           if(index_j>=0)
@@ -1806,7 +1806,7 @@ void ComputeInterChargeChargeMolecularPhonon(VECTOR k,REAL *Energy,REAL* Gradien
                           if(RigidJ)
                           {
                             GradientStrainJ(Gradient,f1,dr,posB,comB);
- 
+
                             // add contribution to the first derivatives
                             if(index_j2>=0)
                             {
@@ -2099,7 +2099,7 @@ void ComputeInterChargeChargeMolecularPhonon(VECTOR k,REAL *Energy,REAL* Gradien
                   for(ja=0;ja<Components[TypeMolB].Groups[jg].NumberOfGroupAtoms;ja++)
                   {
                     j=Components[TypeMolB].Groups[jg].Atoms[ja];
- 
+
                     if(RigidJ)
                     {
                       index_j=Cations[CurrentSystem][J].Groups[jg].HessianIndex;
@@ -2241,7 +2241,7 @@ void ComputeInterChargeChargeMolecularPhonon(VECTOR k,REAL *Energy,REAL* Gradien
                         }
 
                         GradientStrain(Gradient,ReplicaFactor*f1,dr);
-  
+
                         if(ncell==0)
                         {
                           if(index_j>=0)
@@ -2254,7 +2254,7 @@ void ComputeInterChargeChargeMolecularPhonon(VECTOR k,REAL *Energy,REAL* Gradien
                           if(RigidJ)
                           {
                             GradientStrainJ(Gradient,f1,dr,posB,comB);
- 
+
                             // add contribution to the first derivatives
                             if(index_j2>=0)
                             {

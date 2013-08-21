@@ -251,7 +251,7 @@ int *WriteMoviesEvery;
 //  7 - 11        Integer         serial        Atom serial number
 // 13 - 14        Atom            name          Chemical symbol (right justified)
 //      15        Remoteness indicator
-//      16        Branch designator    
+//      16        Branch designator
 // 17             Character       altLoc        Alternate location indicator
 // 18 - 20        Residue name    resName       Residue name
 //      21        Reserved
@@ -284,7 +284,7 @@ int *WriteMoviesEvery;
 
 // transformation from the orthogonal coordinates contained in the entry to fractional
 // crystallographic coordinates
-// # Notes:	If the orthogonal Angstroms coordinates are X, Y, Z, and the fractional
+// # Notes:  If the orthogonal Angstroms coordinates are X, Y, Z, and the fractional
 // cell coordinates are xfrac, yfrac, zfrac, then:
 // xfrac = S11X + S12Y + S13Z + U1
 // yfrac = S21X + S22Y + S23Z + U2
@@ -292,27 +292,27 @@ int *WriteMoviesEvery;
 
 // Col. 1-6     Record name SCALEn
 //  1 -  6       Record name    "SCALEn" (n=1, 2, or 3)
-// 11 - 20       Real(10.6)     s[n][1]                         
-// 21 - 30       Real(10.6)     s[n][2]                       
-// 31 - 40       Real(10.6)     s[n][3]                         
-// 46 - 55       Real(10.5)     u[n] 
+// 11 - 20       Real(10.6)     s[n][1]
+// 21 - 30       Real(10.6)     s[n][2]
+// 31 - 40       Real(10.6)     s[n][3]
+// 46 - 55       Real(10.5)     u[n]
 
 // Record:   MODEL
-// Contains:	the model serial number when a single coordinate entry contains multiple structures
-// # Notes:	Models are numbered sequentially beginning with 1.
+// Contains:  the model serial number when a single coordinate entry contains multiple structures
+// # Notes:  Models are numbered sequentially beginning with 1.
 // # If an entry contains more than 99,999 total atoms,
 // then it must be divided among multiple models.
 // # Each MODEL must have a corresponding ENDMDL record.
 // # In the case of an NMR entry the EXPDTA record states the number of model structures
 // that are present in the individual entry.
-//  1 -  6       Record name    "MODEL "                                            
+//  1 -  6       Record name    "MODEL "
 // 11 - 14       Integer        Model serial number
 
 // Record: ENDMDL
-// Contains:	these records are paired with MODEL records to group individual structures found in a coordinate entry
-// # Notes: 	MODEL/ENDMDL records are used only when more than one structure
+// Contains:  these records are paired with MODEL records to group individual structures found in a coordinate entry
+// # Notes:   MODEL/ENDMDL records are used only when more than one structure
 // is presented in the entry, or if there are more than 99,999 atoms.
-// # Every MODEL record has an associated ENDMDL record. 
+// # Every MODEL record has an associated ENDMDL record.
 //  1 -  6         Record name      "ENDMDL"
 
 static FILE ***PDBFilePtr;
@@ -329,7 +329,7 @@ VECTOR ConvertPositionToVTKPosition(VECTOR pos3)
   int system;
   VECTOR Size,shift,C,pos2,pos;
   REAL max;
-  
+
 
   system=0;
   Size.x=Size.y=Size.z=0.0;
@@ -646,7 +646,7 @@ void WriteVTK(int system)
     for(i=0;i<NumberOfListAtoms[f1];i++)
     {
       Type=AtomTypes[i];
-      fprintf(FilePtr,"%g\n",GetVDWRadius(Type));    
+      fprintf(FilePtr,"%g\n",GetVDWRadius(Type));
     }
   }
 
@@ -659,7 +659,7 @@ void WriteVTK(int system)
       Type=AtomTypes[i];
 
       // transform color to a number between 0 and 1 (required by VTK)
-      fprintf(FilePtr,"%g 0 0\n",(REAL)GetColorIndex(Type)/(NUMBER_OF_COLORS-1.0));    
+      fprintf(FilePtr,"%g 0 0\n",(REAL)GetColorIndex(Type)/(NUMBER_OF_COLORS-1.0));
     }
   }
   fclose(FilePtr);
@@ -799,7 +799,7 @@ void WriteVTK(int system)
 
 
 
-  // precompute the number of adsorbate atoms 
+  // precompute the number of adsorbate atoms
   // this is needed at the top of the VTK-file
   // example of a skipped atoms are virtual charge sites (Tip5p model)
   nr_atoms=0;
@@ -997,7 +997,7 @@ void WriteVTK(int system)
           Type=Adsorbates[system][i].Atoms[j].Type;
           if(PseudoAtoms[Type].PrintToPDB)
             fprintf(FilePtr,"%g 0 0\n",(REAL)GetColorIndex(Type)/(NUMBER_OF_COLORS-1.0));
-          else 
+          else
             fprintf(FilePtr,"0 0 0\n");
         }
       }
@@ -1173,7 +1173,7 @@ void WriteVTK(int system)
           Type=Cations[system][i].Atoms[j].Type;
           if(PseudoAtoms[Type].PrintToPDB)
             fprintf(FilePtr,"%g 0 0\n",(REAL)GetColorIndex(Type)/(NUMBER_OF_COLORS-1.0));
-          else 
+          else
             fprintf(FilePtr,"0 0 0\n");
         }
       }
@@ -1506,7 +1506,7 @@ int SamplePDBMovies(int Choice,int Subdir)
           (double)AlphaAngle[CurrentSystem]*RAD2DEG,
           (double)BetaAngle[CurrentSystem]*RAD2DEG,
           (double)GammaAngle[CurrentSystem]*RAD2DEG);
-  
+
         SerialNumber[j]=1;
       }
       nr_frame[CurrentSystem]++;
@@ -1707,7 +1707,7 @@ void WriteSnapshotIonsCssrUsingSymmetry(void)
   {
     pos=Cations[CurrentSystem][i].Atoms[0].Position;
     s=ConvertToAsymetricUnitCell(pos);
-  
+
     SpaceGroupSymmetry(Framework[CurrentSystem].SpaceGroupIdentifier[CurrentFramework],s);
     for(j=0;j<SpaceGroupSize;j++)
     {
@@ -1900,13 +1900,13 @@ void FreeEnergyProfile3D(void)
 
   max=MAX2(Size.x,MAX2(Size.y,Size.z));
 
-  printf("Shift: %lf %lf %lf\n",(double)shift.x,(double)shift.y,(double)shift.z);
-  printf("Size: %lf %lf %lf\n",(double)Size.x,(double)Size.y,(double)Size.z);
+  fprintf(stderr, "Shift: %lf %lf %lf\n",(double)shift.x,(double)shift.y,(double)shift.z);
+  fprintf(stderr, "Size: %lf %lf %lf\n",(double)Size.x,(double)Size.y,(double)Size.z);
   max=MAX2(Size.x,MAX2(Size.y,Size.z));
 
   for(i=0;i<NumberOfCycles;i++)
   {
-    if(i%PrintEvery==0) printf("iteration: %d\n",i);
+    if(i%PrintEvery==0) fprintf(stderr, "iteration: %d\n",i);
 
     // generate random number in enclosed box
     pos.x=RandomNumber()*Size.x;
@@ -1975,7 +1975,7 @@ void FreeEnergyProfile3D(void)
               if(value<min) min=value;
             }
           }
-      printf("min: %lf\n",(double)min);
+      fprintf(stderr, "min: %lf\n",(double)min);
 
       for(z=0;z<SIZE_Z;z++)
         for(y=0;y<SIZE_Y;y++)
@@ -2026,21 +2026,21 @@ void WriteRestartMovies(FILE *FilePtr)
         if(PDBFilePtr[i][j])
         {
           fflush(PDBFilePtr[i][j]);
-          fgetpos(PDBFilePtr[i][j],&pos);  
+          fgetpos(PDBFilePtr[i][j],&pos);
         }
         fwrite(&pos,1,sizeof(fpos_t),FilePtr);
       }
       if(PDBFilePtrAll[i])
       {
         fflush(PDBFilePtrAll[i]);
-        fgetpos(PDBFilePtrAll[i],&pos);  
+        fgetpos(PDBFilePtrAll[i],&pos);
       }
       fwrite(&pos,1,sizeof(fpos_t),FilePtr);
 
       if(PDBFilePtrwork[i])
       {
         fflush(PDBFilePtrwork[i]);
-        fgetpos(PDBFilePtrwork[i],&pos);  
+        fgetpos(PDBFilePtrwork[i],&pos);
       }
       fwrite(&pos,1,sizeof(fpos_t),FilePtr);
     }
@@ -2121,7 +2121,7 @@ void ReadRestartMovies(FILE *FilePtr)
   fread(&Check,1,sizeof(REAL),FilePtr);
   if(fabs(Check-123456789.0)>1e-10)
   {
-    printf("Error in binary restart-file (ReadRestartMovies)\n");
+    fprintf(stderr, "Error in binary restart-file (ReadRestartMovies)\n");
     exit(0);
   }
 }

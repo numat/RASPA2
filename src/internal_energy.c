@@ -160,14 +160,14 @@ REAL GenerateBondlength(int i)
       break;
     case RIGID_BOND:
       BondLength=parms[0];
-      printf("Error !!! in generate RIGID_BOND\n");
+      fprintf(stderr, "Error !!! in generate RIGID_BOND\n");
       exit(0);
       break;
     case FIXED_BOND:
       BondLength=parms[0];
       break;
     default:
-      printf("Undefined Bond potential in routine 'GenerateBondlength' ('internal_energy.c')\n");
+      fprintf(stderr, "Undefined Bond potential in routine 'GenerateBondlength' ('internal_energy.c')\n");
       exit(0);
       break;
   }
@@ -266,7 +266,7 @@ REAL GenerateBendAngle(int i)
       theta=parms[0];
       break;
     default:
-      printf("Undefined Bend potential in routine 'GenerateBendAngle' ('internal_energy.c')\n");
+      fprintf(stderr, "Undefined Bend potential in routine 'GenerateBendAngle' ('internal_energy.c')\n");
       exit(0);
       break;
   }
@@ -453,7 +453,7 @@ REAL CalculateBondEnergy(int Itype,int Iu)
       U=0.0;
       break;
     default:
-      printf("Undefined Bond potential in routine 'CalculateBondEnergy' ('internal_energy.c')\n");
+      fprintf(stderr, "Undefined Bond potential in routine 'CalculateBondEnergy' ('internal_energy.c')\n");
       exit(0);
       break;
   }
@@ -584,7 +584,7 @@ REAL CalculateBondEnergyAdsorbate(int m)
         UBond+=0.0;
         break;
       default:
-        printf("Undefined Bond potential in routine 'CalculateBondEnergyAdsorbate' ('internal_energy.c')\n");
+        fprintf(stderr, "Undefined Bond potential in routine 'CalculateBondEnergyAdsorbate' ('internal_energy.c')\n");
         exit(0);
         break;
     }
@@ -725,7 +725,7 @@ REAL CalculateBondEnergyCation(int m)
         UBond+=0.0;
         break;
       default:
-        printf("Undefined Bond potential in routine 'CalculateBondEnergyCation' ('internal_energy.c')\n");
+        fprintf(stderr, "Undefined Bond potential in routine 'CalculateBondEnergyCation' ('internal_energy.c')\n");
         exit(0);
         break;
     }
@@ -853,7 +853,7 @@ REAL CalculateUreyBradleyEnergy(int Itype,int Iu)
       energy=0.0;
       break;
     default:
-      printf("Undefined Urey-Bradley potential in routine 'CalculateUreyBradleyEnergy' ('internal_energy.c')\n");
+      fprintf(stderr, "Undefined Urey-Bradley potential in routine 'CalculateUreyBradleyEnergy' ('internal_energy.c')\n");
       exit(0);
       break;
   }
@@ -981,7 +981,7 @@ REAL CalculateUreyBradleyEnergyAdsorbate(int m)
         UUreyBradley+=0.0;
         break;
       default:
-        printf("Undefined Urey-Bradley potential in routine 'CalculateUreyBradleyEnergyAdsorbate' ('internal_energy.c')\n");
+        fprintf(stderr, "Undefined Urey-Bradley potential in routine 'CalculateUreyBradleyEnergyAdsorbate' ('internal_energy.c')\n");
         exit(0);
         break;
     }
@@ -1119,7 +1119,7 @@ REAL CalculateUreyBradleyEnergyCation(int m)
         UUreyBradley+=0.0;
         break;
       default:
-        printf("Undefined Urey-Bradley potential in routine 'CalculateUreyBradleyEnergyCations' ('internal_energy.c')\n");
+        fprintf(stderr, "Undefined Urey-Bradley potential in routine 'CalculateUreyBradleyEnergyCations' ('internal_energy.c')\n");
         exit(0);
         break;
     }
@@ -1299,7 +1299,7 @@ REAL CalculateBendEnergy(int Itype,int Iu)
       U=0.0;
       break;
     default:
-      printf("Undefined Bend potential in routine 'CalculateBendEnergy' ('internal_energy.c')\n");
+      fprintf(stderr, "Undefined Bend potential in routine 'CalculateBendEnergy' ('internal_energy.c')\n");
       exit(0);
       break;
   }
@@ -1474,7 +1474,7 @@ REAL CalculateBendEnergyAdsorbate(int m)
         U=0.0;
         break;
       default:
-        printf("Undefined Bend potential in routine 'CalculateBendEnergyAdsorbate' ('internal_energy.c')\n");
+        fprintf(stderr, "Undefined Bend potential in routine 'CalculateBendEnergyAdsorbate' ('internal_energy.c')\n");
         exit(0);
         break;
     }
@@ -1662,7 +1662,7 @@ REAL CalculateBendEnergyCation(int m)
         U=0.0;
         break;
       default:
-        printf("Undefined Bend potential in routine 'CalculateBendEnergyCation' ('internal_energy.c')\n");
+        fprintf(stderr, "Undefined Bend potential in routine 'CalculateBendEnergyCation' ('internal_energy.c')\n");
         exit(0);
         break;
     }
@@ -1746,7 +1746,7 @@ REAL CalculateInversionBendEnergy(int Itype,int Iu)
       c=(Rcd.x*Rcd.x+Rcd.y*Rcd.y+Rcd.z*Rcd.z)*(Rad.x*Rad.x+Rad.y*Rad.y+Rad.z*Rad.z)-SQR(Rad.x*Rcd.x+Rad.y*Rcd.y+Rad.z*Rcd.z);
       break;
     default:
-      printf("Undefined Inversion-Bend potential in routine 'CalculateInversionBendEnergy' ('internal_energy.c')\n");
+      fprintf(stderr, "Undefined Inversion-Bend potential in routine 'CalculateInversionBendEnergy' ('internal_energy.c')\n");
       exit(0);
       break;
   }
@@ -1795,7 +1795,7 @@ REAL CalculateInversionBendEnergy(int Itype,int Iu)
       energy=parms[0]*temp2*(1.0-0.014*temp+5.6e-5*temp2-7.0e-7*temp*temp2+2.2e-8*SQR(temp2));
       break;
     default:
-      printf("Undefined Inversion-Bend potential in routine 'CalculateInversionBendEnergy' ('internal_energy.c')\n");
+      fprintf(stderr, "Undefined Inversion-Bend potential in routine 'CalculateInversionBendEnergy' ('internal_energy.c')\n");
       exit(0);
       break;
   }
@@ -1872,7 +1872,7 @@ REAL CalculateInversionBendEnergyAdsorbate(int m)
         c=(Rcd.x*Rcd.x+Rcd.y*Rcd.y+Rcd.z*Rcd.z)*(Rad.x*Rad.x+Rad.y*Rad.y+Rad.z*Rad.z)-SQR(Rad.x*Rcd.x+Rad.y*Rcd.y+Rad.z*Rcd.z);
         break;
       default:
-        printf("Undefined Inversion-Bend potential in routine 'CalculateInversionBendEnergyAdsorbate' ('internal_energy.c')\n");
+        fprintf(stderr, "Undefined Inversion-Bend potential in routine 'CalculateInversionBendEnergyAdsorbate' ('internal_energy.c')\n");
         exit(0);
         break;
     }
@@ -1920,7 +1920,7 @@ REAL CalculateInversionBendEnergyAdsorbate(int m)
         UAdsorbateInversionBend+=parms[0]*temp2*(1.0-0.014*temp+5.6e-5*temp2-7.0e-7*temp*temp2+2.2e-8*SQR(temp2));
         break;
       default:
-        printf("Undefined Inversion-Bend potential in routine 'CalculateInversionBendEnergyAdsorbate' ('internal_energy.c')\n");
+        fprintf(stderr, "Undefined Inversion-Bend potential in routine 'CalculateInversionBendEnergyAdsorbate' ('internal_energy.c')\n");
         exit(0);
         break;
     }
@@ -2008,7 +2008,7 @@ REAL CalculateInversionBendEnergyCation(int m)
         c=(Rcd.x*Rcd.x+Rcd.y*Rcd.y+Rcd.z*Rcd.z)*(Rad.x*Rad.x+Rad.y*Rad.y+Rad.z*Rad.z)-SQR(Rad.x*Rcd.x+Rad.y*Rcd.y+Rad.z*Rcd.z);
         break;
       default:
-        printf("Undefined Inversion-Bend potential in routine 'CalculateInversionBendEnergyCation' ('internal_energy.c')\n");
+        fprintf(stderr, "Undefined Inversion-Bend potential in routine 'CalculateInversionBendEnergyCation' ('internal_energy.c')\n");
         exit(0);
         break;
     }
@@ -2056,7 +2056,7 @@ REAL CalculateInversionBendEnergyCation(int m)
         UCationInversionBend+=parms[0]*temp2*(1.0-0.014*temp+5.6e-5*temp2-7.0e-7*temp*temp2+2.2e-8*SQR(temp2));
         break;
       default:
-        printf("Undefined Inversion-Bend potential in routine 'CalculateInversionBendEnergyCation' ('internal_energy.c')\n");
+        fprintf(stderr, "Undefined Inversion-Bend potential in routine 'CalculateInversionBendEnergyCation' ('internal_energy.c')\n");
         exit(0);
         break;
     }
@@ -2333,7 +2333,7 @@ REAL CalculateTorsionEnergy(int Itype,int Iu)
       energy=0.0;
       break;
     default:
-      printf("Undefined Torsion potential in routine 'CalculateTorsionEnergy' ('internal_energy.c')\n");
+      fprintf(stderr, "Undefined Torsion potential in routine 'CalculateTorsionEnergy' ('internal_energy.c')\n");
       exit(0);
       break;
   }
@@ -2509,7 +2509,7 @@ REAL CalculateTorsionEnergyAdsorbate(int m)
               +Dbc.z*(Pc.y*Pb.x-Pc.x*Pb.y));
         Phi=SIGN(acos(CosPhi),sign);
         UTorsion+=parms[0]*(1.0+cos(parms[1]*Phi-parms[2]));
-        break; 
+        break;
       case OPLS_DIHEDRAL:
         // (1/2)p_0[0]+(1/2)p_1*(1+cos(phi))+(1/2)p_2*(1-cos(2*phi))+(1/2)p_3*(1+cos(3*phi))
         // =================================================================================
@@ -2550,7 +2550,7 @@ REAL CalculateTorsionEnergyAdsorbate(int m)
       case FIXED_DIHEDRAL:
         break;
       default:
-        printf("Undefined Torsion potential in routine 'CalculateTorsionEnergyAdsorbate' ('internal_energy.c')\n");
+        fprintf(stderr, "Undefined Torsion potential in routine 'CalculateTorsionEnergyAdsorbate' ('internal_energy.c')\n");
         exit(0);
         break;
     }
@@ -2778,7 +2778,7 @@ REAL CalculateTorsionEnergyCation(int m)
       case FIXED_DIHEDRAL:
         break;
       default:
-        printf("Undefined Torsion potential in routine 'CalculateTorsionEnergyCation' ('internal_energy.c')\n");
+        fprintf(stderr, "Undefined Torsion potential in routine 'CalculateTorsionEnergyCation' ('internal_energy.c')\n");
         exit(0);
         break;
     }
@@ -2996,7 +2996,7 @@ REAL CalculateImproperTorsionEnergy(int Itype,int Iu)
       U=0;
       break;
     default:
-      printf("Undefined Imporper-Torsion potential in routine 'CalculateImproperTorsionEnergy' ('internal_energy.c')\n");
+      fprintf(stderr, "Undefined Imporper-Torsion potential in routine 'CalculateImproperTorsionEnergy' ('internal_energy.c')\n");
       exit(0);
       break;
   }
@@ -3197,7 +3197,7 @@ REAL CalculateImproperTorsionEnergyAdsorbate(int m)
       case FIXED_IMPROPER_DIHEDRAL:
         break;
       default:
-        printf("Undefined Imporper-Torsion potential in routine 'CalculateImproperTorsionEnergyAdsorbate' ('internal_energy.c')\n");
+        fprintf(stderr, "Undefined Imporper-Torsion potential in routine 'CalculateImproperTorsionEnergyAdsorbate' ('internal_energy.c')\n");
         exit(0);
         break;
     }
@@ -3408,7 +3408,7 @@ REAL CalculateImproperTorsionEnergyCation(int m)
       case FIXED_IMPROPER_DIHEDRAL:
         break;
       default:
-        printf("Undefined Imporper-Torsion potential in routine 'CalculateImproperTorsionEnergyCation' ('internal_energy.c')\n");
+        fprintf(stderr, "Undefined Imporper-Torsion potential in routine 'CalculateImproperTorsionEnergyCation' ('internal_energy.c')\n");
         exit(0);
         break;
     }
@@ -3467,7 +3467,7 @@ REAL CalculateBondBondEnergy(int Itype,int Iu)
       UBondBond+=parms[0]*(rab-parms[1])*(rbc-parms[2]);
       break;
     default:
-      printf("Undefined Bond-Bond potential in routine 'CalculateBondBondEnergy' ('internal_energy.c')\n");
+      fprintf(stderr, "Undefined Bond-Bond potential in routine 'CalculateBondBondEnergy' ('internal_energy.c')\n");
       exit(0);
       break;
   }
@@ -3520,7 +3520,7 @@ REAL CalculateBondBondEnergyAdsorbate(int m)
         UBondBond+=parms[0]*(rab-parms[1])*(rbc-parms[2]);
         break;
       default:
-        printf("Undefined Bond-Bond potential in routine 'CalculateBondBondEnergyAdsorbate' ('internal_energy.c')\n");
+        fprintf(stderr, "Undefined Bond-Bond potential in routine 'CalculateBondBondEnergyAdsorbate' ('internal_energy.c')\n");
         exit(0);
         break;
     }
@@ -3583,7 +3583,7 @@ REAL CalculateBondBondEnergyCation(int m)
         UBondBond+=parms[0]*(rab-parms[1])*(rbc-parms[2]);
         break;
       default:
-        printf("Undefined Bond-Bond potential in routine 'CalculateBondBondEnergyCation' ('internal_energy.c')\n");
+        fprintf(stderr, "Undefined Bond-Bond potential in routine 'CalculateBondBondEnergyCation' ('internal_energy.c')\n");
         exit(0);
         break;
     }
@@ -3705,7 +3705,7 @@ REAL CalculateBondBendEnergy(int Itype,int Iu)
             *exp(-(pow(rab,8)+pow(rbc,8))/pow(parms[3],8));
       break;
     default:
-      printf("Undefined Bond-Bend potential in routine 'CalculateBondBendEnergy' ('internal_energy.c')\n");
+      fprintf(stderr, "Undefined Bond-Bend potential in routine 'CalculateBondBendEnergy' ('internal_energy.c')\n");
       exit(0);
       break;
   }
@@ -3818,7 +3818,7 @@ REAL CalculateBondBendEnergyAdsorbate(int m)
               *exp(-(pow(rab,8)+pow(rbc,8))/pow(parms[3],8));
         break;
       default:
-        printf("Undefined Bond-Bend potential in routine 'CalculateBondBendEnergyAdsorbate' ('internal_energy.c')\n");
+        fprintf(stderr, "Undefined Bond-Bend potential in routine 'CalculateBondBendEnergyAdsorbate' ('internal_energy.c')\n");
         exit(0);
         break;
     }
@@ -3939,7 +3939,7 @@ REAL CalculateBondBendEnergyCation(int m)
               *exp(-(pow(rab,8)+pow(rbc,8))/pow(parms[3],8));
         break;
       default:
-        printf("Undefined Bond-Bend potential in routine 'CalculateBondBendEnergyCation' ('internal_energy.c')\n");
+        fprintf(stderr, "Undefined Bond-Bend potential in routine 'CalculateBondBendEnergyCation' ('internal_energy.c')\n");
         exit(0);
         break;
     }
@@ -4030,7 +4030,7 @@ REAL CalculateBendBendEnergy(int Itype,int Iu)
       energy=-parms[0]*SQR(RAD2DEG)*(Theta1-parms[1])*(Theta2-parms[2]);
       break;
     default:
-      printf("Undefined Bend-Bend potential in routine 'CalculateBendBendEnergy' ('internal_energy.c')\n");
+      fprintf(stderr, "Undefined Bend-Bend potential in routine 'CalculateBendBendEnergy' ('internal_energy.c')\n");
       exit(0);
       break;
   }
@@ -4115,7 +4115,7 @@ REAL CalculateBendBendEnergyAdsorbate(int m)
         UBendBend-=parms[0]*SQR(RAD2DEG)*(Theta1-parms[1])*(Theta2-parms[2]);
         break;
       default:
-        printf("Undefined Bend-Bend potential in routine 'CalculateBendBendEnergyAdsorbate' ('internal_energy.c')\n");
+        fprintf(stderr, "Undefined Bend-Bend potential in routine 'CalculateBendBendEnergyAdsorbate' ('internal_energy.c')\n");
         exit(0);
         break;
     }
@@ -4209,7 +4209,7 @@ REAL CalculateBendBendEnergyCation(int m)
         UBendBend-=parms[0]*SQR(RAD2DEG)*(Theta1-parms[1])*(Theta2-parms[2]);
         break;
       default:
-        printf("Undefined Bend-Bend potential in routine 'CalculateBendBendEnergyCation' ('internal_energy.c')\n");
+        fprintf(stderr, "Undefined Bend-Bend potential in routine 'CalculateBendBendEnergyCation' ('internal_energy.c')\n");
         exit(0);
         break;
     }
@@ -4303,7 +4303,7 @@ REAL CalculateBondTorsionEnergy(int Itype,int Iu)
       UBondTorsion=parms[0]*temp*CosPhi+parms[1]*temp*(2.0*CosPhi2-1.0)+parms[2]*temp*(4.0*CosPhi2*CosPhi-3.0*CosPhi);
       break;
     default:
-      printf("Undefined Bond-Torsion potential in routine 'CalculateBondTorsionEnergy' ('internal_energy.c')\n");
+      fprintf(stderr, "Undefined Bond-Torsion potential in routine 'CalculateBondTorsionEnergy' ('internal_energy.c')\n");
       exit(0);
       break;
   }
@@ -4388,7 +4388,7 @@ REAL CalculateBondTorsionEnergyAdsorbate(int m)
         UBondTorsion+=parms[0]*temp*CosPhi+parms[1]*temp*(2.0*CosPhi2-1.0)+parms[2]*temp*(4.0*CosPhi2*CosPhi-3.0*CosPhi);
         break;
       default:
-        printf("Undefined Bond-Torsion potential in routine 'CalculateBondTorsionEnergyAdsorbate' ('internal_energy.c')\n");
+        fprintf(stderr, "Undefined Bond-Torsion potential in routine 'CalculateBondTorsionEnergyAdsorbate' ('internal_energy.c')\n");
         exit(0);
         break;
     }
@@ -4483,7 +4483,7 @@ REAL CalculateBondTorsionEnergyCation(int m)
         UBondTorsion+=parms[0]*temp*CosPhi+parms[1]*temp*(2.0*CosPhi2-1.0)+parms[2]*temp*(4.0*CosPhi2*CosPhi-3.0*CosPhi);
         break;
       default:
-        printf("Undefined Bond-Torsion potential in routine 'CalculateBondTorsionEnergyCation' ('internal_energy.c')\n");
+        fprintf(stderr, "Undefined Bond-Torsion potential in routine 'CalculateBondTorsionEnergyCation' ('internal_energy.c')\n");
         exit(0);
         break;
     }
@@ -4647,7 +4647,7 @@ REAL CalculateBendTorsionEnergy(int Itype,int Iu)
       UBendTorsion=parms[0]*(Theta1-parms[1])*(Theta2-parms[2])*CosPhi*Smoothing(Theta1)*Smoothing(Theta2);
       break;
     default:
-      printf("Undefined Bend-Torsion potential in routine 'CalculateBendTorsionEnergy' ('internal_energy.c')\n");
+      fprintf(stderr, "Undefined Bend-Torsion potential in routine 'CalculateBendTorsionEnergy' ('internal_energy.c')\n");
       exit(0);
       break;
   }
@@ -4806,12 +4806,12 @@ REAL CalculateBendTorsionEnergyAdsorbate(int m)
         UBendTorsion=parms[0]*(Theta1-parms[1])*(Theta2-parms[2])*CosPhi*Smoothing(Theta1)*Smoothing(Theta2);
         break;
       default:
-        printf("Undefined Bend-Torsion potential in routine 'CalculateBendTorsionEnergyAdsorbate' ('internal_energy.c')\n");
+        fprintf(stderr, "Undefined Bend-Torsion potential in routine 'CalculateBendTorsionEnergyAdsorbate' ('internal_energy.c')\n");
         exit(0);
         break;
     }
   }
-  return UBendTorsion; 
+  return UBendTorsion;
 }
 
 void CalculateBendTorsionEnergyAdsorbates(void)
@@ -4973,7 +4973,7 @@ REAL CalculateBendTorsionEnergyCation(int m)
         UBendTorsion=parms[0]*(Theta1-parms[1])*(Theta2-parms[2])*CosPhi*Smoothing(Theta1)*Smoothing(Theta2);
         break;
       default:
-        printf("Undefined Bend-Torsion potential in routine 'CalculateBendTorsionEnergyCation' ('internal_energy.c')\n");
+        fprintf(stderr, "Undefined Bend-Torsion potential in routine 'CalculateBendTorsionEnergyCation' ('internal_energy.c')\n");
         exit(0);
         break;
     }

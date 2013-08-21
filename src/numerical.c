@@ -254,7 +254,7 @@ void NumericallyComputeDerivatives(int np,int nb,REAL *x,REAL *GradientNumerical
 
     CreatePositionsFromGeneralizedCoordinates(np,nb,x);
     EvaluateDerivatives(np,&EnergyForward1,GradientForward1,Hessian,&StrainDerivative,TRUE,FALSE);
-    if(MinimizationVariables==FRACTIONAL) 
+    if(MinimizationVariables==FRACTIONAL)
       ConvertGradientFromCartesianToFractional(GradientForward1);
 
     EnergyForward2=0.0;
@@ -263,7 +263,7 @@ void NumericallyComputeDerivatives(int np,int nb,REAL *x,REAL *GradientNumerical
     x[i]=store+delta;
     CreatePositionsFromGeneralizedCoordinates(np,nb,x);
     EvaluateDerivatives(np,&EnergyForward2,GradientForward2,Hessian,&StrainDerivative,TRUE,FALSE);
-    if(MinimizationVariables==FRACTIONAL) 
+    if(MinimizationVariables==FRACTIONAL)
       ConvertGradientFromCartesianToFractional(GradientForward2);
 
     EnergyBackward1=0.0;
@@ -272,7 +272,7 @@ void NumericallyComputeDerivatives(int np,int nb,REAL *x,REAL *GradientNumerical
     x[i]=store-0.5*delta;
     CreatePositionsFromGeneralizedCoordinates(np,nb,x);
     EvaluateDerivatives(np,&EnergyBackward1,GradientBackward1,Hessian,&StrainDerivative,TRUE,FALSE);
-    if(MinimizationVariables==FRACTIONAL) 
+    if(MinimizationVariables==FRACTIONAL)
       ConvertGradientFromCartesianToFractional(GradientBackward1);
 
     EnergyBackward2=0.0;
@@ -281,7 +281,7 @@ void NumericallyComputeDerivatives(int np,int nb,REAL *x,REAL *GradientNumerical
     x[i]=store-delta;
     CreatePositionsFromGeneralizedCoordinates(np,nb,x);
     EvaluateDerivatives(np,&EnergyBackward2,GradientBackward2,Hessian,&StrainDerivative,TRUE,FALSE);
-    if(MinimizationVariables==FRACTIONAL) 
+    if(MinimizationVariables==FRACTIONAL)
       ConvertGradientFromCartesianToFractional(GradientBackward2);
 
     x[i]=store;
@@ -1098,7 +1098,7 @@ void TestForcesNumerically(void)
   second_derivative.x=second_derivative.y=second_derivative.z=0.0;
   largest_difference.x=largest_difference.y=largest_difference.z=0.0;
 
-  mkdir("Numerical",S_IRWXU); 
+  mkdir("Numerical",S_IRWXU);
 
   sprintf(buffer,"Numerical/System_%d",CurrentSystem);
   mkdir(buffer,S_IRWXU);
@@ -1234,7 +1234,7 @@ void TestForcesNumerically(void)
        largest_difference.x,largest_difference.y,largest_difference.z);
   fflush(FilePtr);
   fflush(OutputFilePtr[CurrentSystem]);
-     
+
 
   largest_difference.x=largest_difference.y=largest_difference.z=0.0;
   if(NumberOfAdsorbateMolecules[CurrentSystem]>0)
@@ -2823,7 +2823,7 @@ REAL_MATRIX3x3 ComputeStrainDerivativeNumerically(void)
   PlaceFrameworkInBoxFromReferenceValues();
   PlaceAdsorbateAtomsInBoxFromReferenceValues();
   PlaceCationAtomsInBoxFromReferenceValues();
-  BoundaryCondition[CurrentSystem]=StoredBoundaryCondition; 
+  BoundaryCondition[CurrentSystem]=StoredBoundaryCondition;
   SetupKVectors();
 
 
@@ -2866,7 +2866,7 @@ REAL_MATRIX9x9 ComputeStrainSecondDerivativeNumerically(void)
 
   StoredBox=Box[CurrentSystem];
   StoredReplicaBox=ReplicaBox[CurrentSystem];
-  StoredBoundaryCondition=BoundaryCondition[CurrentSystem]; 
+  StoredBoundaryCondition=BoundaryCondition[CurrentSystem];
   BoundaryCondition[CurrentSystem]=TRICLINIC;
 
   ComputeBornTerm=TRUE;
@@ -3601,7 +3601,7 @@ REAL_MATRIX9x9 ComputeStrainSecondDerivativeNumerically(void)
   PlaceAdsorbateAtomsInBoxFromReferenceValues();
   PlaceCationAtomsInBoxFromReferenceValues();
 
-  BoundaryCondition[CurrentSystem]=StoredBoundaryCondition; 
+  BoundaryCondition[CurrentSystem]=StoredBoundaryCondition;
   return StrainSecondDerivative;
 }
 
@@ -3623,7 +3623,7 @@ void TestStressTensorNumerically(void)
   FilePtr=fopen(buffer,"w");
 
   for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
-  {    
+  {
     for(i=0;i<Framework[CurrentSystem].NumberOfAtoms[f1];i++)
     {
       Framework[CurrentSystem].Atoms[f1][i].Velocity.x=0.0;
@@ -3949,7 +3949,7 @@ void TestEnergyForcesHessian(void)
   }
 
   for(m=0;m<NumberOfAdsorbateMolecules[CurrentSystem];m++)
-  { 
+  {
     MolType=Adsorbates[CurrentSystem][m].Type;
     for(l=0;l<Components[MolType].NumberOfGroups;l++)
     {
@@ -4084,7 +4084,7 @@ void TestElectricField2(void)
       Adsorbates[CurrentSystem][m].Atoms[l].Position=pos;
 
       //charge=1.0;
-      printf("%d %d, electric field numerically: %g %g %g Force/q: %g %g %g Elec: %g %g %g diff: %g %g %g\n",m,l,-der.x,-der.y,-der.z,
+      fprintf(stderr, "%d %d, electric field numerically: %g %g %g Force/q: %g %g %g Elec: %g %g %g diff: %g %g %g\n",m,l,-der.x,-der.y,-der.z,
          Adsorbates[CurrentSystem][m].Atoms[l].Force.x/charge,
          Adsorbates[CurrentSystem][m].Atoms[l].Force.y/charge,
          Adsorbates[CurrentSystem][m].Atoms[l].Force.z/charge,
@@ -4142,7 +4142,7 @@ void TestElectricField2(void)
       Cations[CurrentSystem][m].Atoms[l].Position=pos;
 
       charge=1.0;
-      printf("%d %d, electric field numerically: %g %g %g Force/q: %g %g %g Elec: %g %g %g diff: %g %g %g\n",m,l,-der.x,-der.y,-der.z,
+      fprintf(stderr, "%d %d, electric field numerically: %g %g %g Force/q: %g %g %g Elec: %g %g %g diff: %g %g %g\n",m,l,-der.x,-der.y,-der.z,
          Cations[CurrentSystem][m].Atoms[l].Force.x/charge,
          Cations[CurrentSystem][m].Atoms[l].Force.y/charge,
          Cations[CurrentSystem][m].Atoms[l].Force.z/charge,
@@ -4196,7 +4196,7 @@ void TestElectricField2(void)
   {
     for(l=0;l<Adsorbates[CurrentSystem][m].NumberOfAtoms;l++)
     {
-       printf("%d %d, electric field: %g %g %g\n",m,l,
+       fprintf(stderr, "%d %d, electric field: %g %g %g\n",m,l,
           Adsorbates[CurrentSystem][m].Atoms[l].ElectricField.x,
           Adsorbates[CurrentSystem][m].Atoms[l].ElectricField.y,
           Adsorbates[CurrentSystem][m].Atoms[l].ElectricField.z);
@@ -4207,7 +4207,7 @@ void TestElectricField2(void)
   {
     for(l=0;l<Cations[CurrentSystem][m].NumberOfAtoms;l++)
     {
-       printf("%d %d, electric field: %g %g %g\n",m,l,
+       fprintf(stderr, "%d %d, electric field: %g %g %g\n",m,l,
           Cations[CurrentSystem][m].Atoms[l].ElectricField.x,
           Cations[CurrentSystem][m].Atoms[l].ElectricField.y,
           Cations[CurrentSystem][m].Atoms[l].ElectricField.z);
@@ -4215,7 +4215,7 @@ void TestElectricField2(void)
   }
   for(l=0;l<Components[CurrentComponent].NumberOfAtoms;l++)
   {
-    printf("trial: %g %g %g\n",ElectricFieldAtTrialPosition[CurrentSystem][l].x,
+    fprintf(stderr, "trial: %g %g %g\n",ElectricFieldAtTrialPosition[CurrentSystem][l].x,
                                ElectricFieldAtTrialPosition[CurrentSystem][l].y,
                                ElectricFieldAtTrialPosition[CurrentSystem][l].z);
   }
@@ -4296,29 +4296,29 @@ void TestElectricField3(void)
 
   ComputeElectricFieldFromInducedDipolesEwald();
 
-  printf("Framework Atom 0: %g %g %g\n",
+  fprintf(stderr, "Framework Atom 0: %g %g %g\n",
      Framework[CurrentSystem].Atoms[0][0].ElectricField.x,
      Framework[CurrentSystem].Atoms[0][0].ElectricField.y,
      Framework[CurrentSystem].Atoms[0][0].ElectricField.z);
-  printf("Framework Atom 0: %g %g %g\n",
+  fprintf(stderr, "Framework Atom 0: %g %g %g\n",
      Framework[CurrentSystem].Atoms[0][1].ElectricField.x,
      Framework[CurrentSystem].Atoms[0][1].ElectricField.y,
      Framework[CurrentSystem].Atoms[0][1].ElectricField.z);
 
-  printf("Atom 0: %g %g %g\n",
+  fprintf(stderr, "Atom 0: %g %g %g\n",
      Adsorbates[CurrentSystem][0].Atoms[0].ElectricField.x,
      Adsorbates[CurrentSystem][0].Atoms[0].ElectricField.y,
      Adsorbates[CurrentSystem][0].Atoms[0].ElectricField.z);
-  printf("Atom 0: %g %g %g\n\n",
+  fprintf(stderr, "Atom 0: %g %g %g\n\n",
      Adsorbates[CurrentSystem][1].Atoms[0].ElectricField.x,
      Adsorbates[CurrentSystem][1].Atoms[0].ElectricField.y,
      Adsorbates[CurrentSystem][1].Atoms[0].ElectricField.z);
 
-  printf("Atom 0: %g %g %g\n",
+  fprintf(stderr, "Atom 0: %g %g %g\n",
      Cations[CurrentSystem][0].Atoms[0].ElectricField.x,
      Cations[CurrentSystem][0].Atoms[0].ElectricField.y,
      Cations[CurrentSystem][0].Atoms[0].ElectricField.z);
-  printf("Atom 0: %g %g %g\n",
+  fprintf(stderr, "Atom 0: %g %g %g\n",
      Cations[CurrentSystem][1].Atoms[0].ElectricField.x,
      Cations[CurrentSystem][1].Atoms[0].ElectricField.y,
      Cations[CurrentSystem][1].Atoms[0].ElectricField.z);
@@ -4480,7 +4480,7 @@ void ComputeCrossTermNumerically(REAL_MATRIX CrossTerm)
     Framework[CurrentSystem].Atoms[0][i].Position.z=pos.z+0.5*delta;
     CalculateForce();
     StrainDerivativeForward1=StrainDerivativeTensor[0];
-  
+
     Framework[CurrentSystem].Atoms[0][i].Position.z=pos.z-0.5*delta;
     CalculateForce();
     StrainDerivativeBackward1=StrainDerivativeTensor[0];
@@ -4512,7 +4512,7 @@ void ComputeCrossTermNumerically(REAL_MATRIX CrossTerm)
 
     CrossTerm.element[3*index+2][0]=StrainSecondDerivativeX.az; CrossTerm.element[3*index+2][3]=StrainSecondDerivativeY.az; CrossTerm.element[3*index+2][6]=StrainSecondDerivativeZ.az;
     CrossTerm.element[3*index+2][1]=StrainSecondDerivativeX.bz; CrossTerm.element[3*index+2][4]=StrainSecondDerivativeY.bz; CrossTerm.element[3*index+2][7]=StrainSecondDerivativeZ.bz;
-    CrossTerm.element[3*index+2][2]=StrainSecondDerivativeX.cz; CrossTerm.element[3*index+2][5]=StrainSecondDerivativeY.cz; CrossTerm.element[3*index+2][8]=StrainSecondDerivativeZ.cz; 
+    CrossTerm.element[3*index+2][2]=StrainSecondDerivativeX.cz; CrossTerm.element[3*index+2][5]=StrainSecondDerivativeY.cz; CrossTerm.element[3*index+2][8]=StrainSecondDerivativeZ.cz;
 
     index++;
   }
@@ -4591,7 +4591,7 @@ void ComputeCrossTermNumerically(REAL_MATRIX CrossTerm)
       Adsorbates[CurrentSystem][i].Atoms[j].Position.z=pos.z+0.5*delta;
       CalculateForce();
       StrainDerivativeForward1=StrainDerivativeTensor[CurrentSystem];
-  
+
       Adsorbates[CurrentSystem][i].Atoms[j].Position.z=pos.z-0.5*delta;
       CalculateForce();
       StrainDerivativeBackward1=StrainDerivativeTensor[CurrentSystem];
@@ -4702,7 +4702,7 @@ void ComputeCrossTermNumerically(REAL_MATRIX CrossTerm)
       Cations[CurrentSystem][i].Atoms[j].Position.z=pos.z+0.5*delta;
       CalculateForce();
       StrainDerivativeForward1=StrainDerivativeTensor[CurrentSystem];
-  
+
       Cations[CurrentSystem][i].Atoms[j].Position.z=pos.z-0.5*delta;
       CalculateForce();
       StrainDerivativeBackward1=StrainDerivativeTensor[CurrentSystem];
@@ -4808,7 +4808,7 @@ void ComputeNormalModeDerivativeNumerically(REAL_MATRIX GeneralizedHessianMatrix
   CalculateForce();
   ReferenceEnergy=UTotal[CurrentSystem];
 
-  printf("Creating normal mode derivatives\n");
+  fprintf(stderr, "Creating normal mode derivatives\n");
   for(mode=6;mode<27;mode++)
   {
     frequency=SIGN(sqrt(fabs(Eigenvalues[mode]))*TO_WAVENUMBERS,Eigenvalues[mode]);
@@ -4824,14 +4824,14 @@ void ComputeNormalModeDerivativeNumerically(REAL_MATRIX GeneralizedHessianMatrix
 
       //StoredPositionsToRealPositions(Positions,displacement,GeneralizedHessianMatrix,StoredBox,StoredInverseBox);
       CalculateForce();
-     
-      x[frames]=factor; 
+
+      x[frames]=factor;
       y[frames]=UTotal[CurrentSystem]-ReferenceEnergy;
     }
-    printf("Creating spline for mode: %d\n",mode);
+    fprintf(stderr, "Creating spline for mode: %d\n",mode);
     Splines[mode]=CreateCubicSpline(size,x,y,SECOND_DERIVATIVE,0,0);
   }
-  printf("Done (Creating normal mode derivatives)\n");
+  fprintf(stderr, "Done (Creating normal mode derivatives)\n");
   free(displacement);
 }
 
@@ -4961,7 +4961,7 @@ void AddRemainderOfCrossTermNumerically(REAL_MATRIX HessianMatrix)
     Framework[CurrentSystem].Atoms[0][i].Position.z=pos.z+0.5*delta;
     CalculateStrainDerivativeOfNumericalParts();
     StrainDerivativeForward1=StrainDerivativeTensor[0];
-  
+
     Framework[CurrentSystem].Atoms[0][i].Position.z=pos.z-0.5*delta;
     CalculateStrainDerivativeOfNumericalParts();
     StrainDerivativeBackward1=StrainDerivativeTensor[0];
@@ -5078,7 +5078,7 @@ void AddRemainderOfCrossTermNumerically(REAL_MATRIX HessianMatrix)
             }
             break;
           default:
-            printf("Unknown NPTPRCellType\n");
+            fprintf(stderr, "Unknown NPTPRCellType\n");
             exit(0);
             break;
         }
@@ -6178,7 +6178,7 @@ void AddRemainderOfBornTermNumerically(REAL_MATRIX HessianMatrix)
           }
           break;
         default:
-          printf("Unknown NPTPRCellType\n");
+          fprintf(stderr, "Unknown NPTPRCellType\n");
           exit(0);
           break;
       }
@@ -6187,7 +6187,7 @@ void AddRemainderOfBornTermNumerically(REAL_MATRIX HessianMatrix)
     case NVE:
       break;
   }
-  
+
 
   // restore initial box, positions, and boundary condition
   Box[CurrentSystem]=StoredBox;
@@ -6197,7 +6197,7 @@ void AddRemainderOfBornTermNumerically(REAL_MATRIX HessianMatrix)
   PlaceAdsorbateAtomsInBoxFromReferenceValues();
   PlaceCationAtomsInBoxFromReferenceValues();
 
-  BoundaryCondition[CurrentSystem]=StoredBoundaryCondition; 
+  BoundaryCondition[CurrentSystem]=StoredBoundaryCondition;
   ComputeBornTerm=StoreComputeBornTerm;
 }
 
@@ -6250,48 +6250,48 @@ void ComputeCrossTermNumericallyMinimalSet(REAL_MATRIX CrossTerm)
       {
         pos=Framework[CurrentSystem].Atoms[f1][i].Position;
         type=Framework[CurrentSystem].Atoms[f1][i].Type;
-  
+
         // x-direction
         Framework[CurrentSystem].Atoms[f1][i].Position.x=pos.x+delta;
-  
+
         StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
         StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
         StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
-  
+
         ComputeForcesForMinimalSet();
-  
+
         StrainDerivativeForward2=StrainDerivativeTensor[CurrentSystem];
-  
+
         Framework[CurrentSystem].Atoms[f1][i].Position.x=pos.x+0.5*delta;
-  
+
         StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
         StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
         StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
-  
+
         ComputeForcesForMinimalSet();
-  
+
         StrainDerivativeForward1=StrainDerivativeTensor[CurrentSystem];
-  
+
         Framework[CurrentSystem].Atoms[f1][i].Position.x=pos.x-0.5*delta;
-  
+
         StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
         StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
         StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
-  
+
         ComputeForcesForMinimalSet();
-  
+
         StrainDerivativeBackward1=StrainDerivativeTensor[CurrentSystem];
-  
+
         Framework[CurrentSystem].Atoms[f1][i].Position.x=pos.x-delta;
-  
+
         StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
         StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
         StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
-  
+
         ComputeForcesForMinimalSet();
-  
+
         StrainDerivativeBackward2=StrainDerivativeTensor[CurrentSystem];
-  
+
         StrainSecondDerivativeX.ax=(-StrainDerivativeForward2.ax+8.0*StrainDerivativeForward1.ax-8.0*StrainDerivativeBackward1.ax+StrainDerivativeBackward2.ax)/(6.0*delta);
         StrainSecondDerivativeX.ay=(-StrainDerivativeForward2.ay+8.0*StrainDerivativeForward1.ay-8.0*StrainDerivativeBackward1.ay+StrainDerivativeBackward2.ay)/(6.0*delta);
         StrainSecondDerivativeX.az=(-StrainDerivativeForward2.az+8.0*StrainDerivativeForward1.az-8.0*StrainDerivativeBackward1.az+StrainDerivativeBackward2.az)/(6.0*delta);
@@ -6301,51 +6301,51 @@ void ComputeCrossTermNumericallyMinimalSet(REAL_MATRIX CrossTerm)
         StrainSecondDerivativeX.cx=(-StrainDerivativeForward2.cx+8.0*StrainDerivativeForward1.cx-8.0*StrainDerivativeBackward1.cx+StrainDerivativeBackward2.cx)/(6.0*delta);
         StrainSecondDerivativeX.cy=(-StrainDerivativeForward2.cy+8.0*StrainDerivativeForward1.cy-8.0*StrainDerivativeBackward1.cy+StrainDerivativeBackward2.cy)/(6.0*delta);
         StrainSecondDerivativeX.cz=(-StrainDerivativeForward2.cz+8.0*StrainDerivativeForward1.cz-8.0*StrainDerivativeBackward1.cz+StrainDerivativeBackward2.cz)/(6.0*delta);
-  
+
         // restore original position
         Framework[CurrentSystem].Atoms[f1][i].Position.x=pos.x;
-  
+
         // y-direction
         Framework[CurrentSystem].Atoms[f1][i].Position.y=pos.y+delta;
-  
+
         StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
         StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
         StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
-  
+
         ComputeForcesForMinimalSet();
-  
+
         StrainDerivativeForward2=StrainDerivativeTensor[CurrentSystem];
-  
+
         Framework[CurrentSystem].Atoms[f1][i].Position.y=pos.y+0.5*delta;
-  
+
         StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
         StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
         StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
-  
+
         ComputeForcesForMinimalSet();
-  
+
         StrainDerivativeForward1=StrainDerivativeTensor[CurrentSystem];
-  
+
         Framework[CurrentSystem].Atoms[f1][i].Position.y=pos.y-0.5*delta;
-  
+
         StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
         StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
         StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
-  
+
         ComputeForcesForMinimalSet();
-  
+
         StrainDerivativeBackward1=StrainDerivativeTensor[CurrentSystem];
-  
+
         Framework[CurrentSystem].Atoms[f1][i].Position.y=pos.y-delta;
-  
+
         StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
         StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
         StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
-  
+
         ComputeForcesForMinimalSet();
-  
+
         StrainDerivativeBackward2=StrainDerivativeTensor[CurrentSystem];
-  
+
         StrainSecondDerivativeY.ax=(-StrainDerivativeForward2.ax+8.0*StrainDerivativeForward1.ax-8.0*StrainDerivativeBackward1.ax+StrainDerivativeBackward2.ax)/(6.0*delta);
         StrainSecondDerivativeY.ay=(-StrainDerivativeForward2.ay+8.0*StrainDerivativeForward1.ay-8.0*StrainDerivativeBackward1.ay+StrainDerivativeBackward2.ay)/(6.0*delta);
         StrainSecondDerivativeY.az=(-StrainDerivativeForward2.az+8.0*StrainDerivativeForward1.az-8.0*StrainDerivativeBackward1.az+StrainDerivativeBackward2.az)/(6.0*delta);
@@ -6355,51 +6355,51 @@ void ComputeCrossTermNumericallyMinimalSet(REAL_MATRIX CrossTerm)
         StrainSecondDerivativeY.cx=(-StrainDerivativeForward2.cx+8.0*StrainDerivativeForward1.cx-8.0*StrainDerivativeBackward1.cx+StrainDerivativeBackward2.cx)/(6.0*delta);
         StrainSecondDerivativeY.cy=(-StrainDerivativeForward2.cy+8.0*StrainDerivativeForward1.cy-8.0*StrainDerivativeBackward1.cy+StrainDerivativeBackward2.cy)/(6.0*delta);
         StrainSecondDerivativeY.cz=(-StrainDerivativeForward2.cz+8.0*StrainDerivativeForward1.cz-8.0*StrainDerivativeBackward1.cz+StrainDerivativeBackward2.cz)/(6.0*delta);
-  
+
         // restore original position
         Framework[CurrentSystem].Atoms[f1][i].Position.y=pos.y;
-  
+
         // z-direction
         Framework[CurrentSystem].Atoms[f1][i].Position.z=pos.z+delta;
-  
+
         StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
         StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
         StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
-  
+
         ComputeForcesForMinimalSet();
-  
+
         StrainDerivativeForward2=StrainDerivativeTensor[CurrentSystem];
-  
+
         Framework[CurrentSystem].Atoms[f1][i].Position.z=pos.z+0.5*delta;
-  
+
         StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
         StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
         StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
-  
+
         ComputeForcesForMinimalSet();
-  
+
         StrainDerivativeForward1=StrainDerivativeTensor[CurrentSystem];
-    
+
         Framework[CurrentSystem].Atoms[f1][i].Position.z=pos.z-0.5*delta;
-  
+
         StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
         StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
         StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
-  
+
         ComputeForcesForMinimalSet();
-  
+
         StrainDerivativeBackward1=StrainDerivativeTensor[CurrentSystem];
-  
+
         Framework[CurrentSystem].Atoms[f1][i].Position.z=pos.z-delta;
-  
+
         StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
         StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
         StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
-  
+
         ComputeForcesForMinimalSet();
-  
+
         StrainDerivativeBackward2=StrainDerivativeTensor[CurrentSystem];
-  
+
         StrainSecondDerivativeZ.ax=(-StrainDerivativeForward2.ax+8.0*StrainDerivativeForward1.ax-8.0*StrainDerivativeBackward1.ax+StrainDerivativeBackward2.ax)/(6.0*delta);
         StrainSecondDerivativeZ.ay=(-StrainDerivativeForward2.ay+8.0*StrainDerivativeForward1.ay-8.0*StrainDerivativeBackward1.ay+StrainDerivativeBackward2.ay)/(6.0*delta);
         StrainSecondDerivativeZ.az=(-StrainDerivativeForward2.az+8.0*StrainDerivativeForward1.az-8.0*StrainDerivativeBackward1.az+StrainDerivativeBackward2.az)/(6.0*delta);
@@ -6409,22 +6409,22 @@ void ComputeCrossTermNumericallyMinimalSet(REAL_MATRIX CrossTerm)
         StrainSecondDerivativeZ.cx=(-StrainDerivativeForward2.cx+8.0*StrainDerivativeForward1.cx-8.0*StrainDerivativeBackward1.cx+StrainDerivativeBackward2.cx)/(6.0*delta);
         StrainSecondDerivativeZ.cy=(-StrainDerivativeForward2.cy+8.0*StrainDerivativeForward1.cy-8.0*StrainDerivativeBackward1.cy+StrainDerivativeBackward2.cy)/(6.0*delta);
         StrainSecondDerivativeZ.cz=(-StrainDerivativeForward2.cz+8.0*StrainDerivativeForward1.cz-8.0*StrainDerivativeBackward1.cz+StrainDerivativeBackward2.cz)/(6.0*delta);
-  
+
         // restore original position
         Framework[CurrentSystem].Atoms[f1][i].Position.z=pos.z;
-  
+
         CrossTerm.element[3*index][0]=StrainSecondDerivativeX.ax; CrossTerm.element[3*index][3]=StrainSecondDerivativeY.ax; CrossTerm.element[3*index][6]=StrainSecondDerivativeZ.ax;
         CrossTerm.element[3*index][1]=StrainSecondDerivativeX.bx; CrossTerm.element[3*index][4]=StrainSecondDerivativeY.bx; CrossTerm.element[3*index][7]=StrainSecondDerivativeZ.bx;
         CrossTerm.element[3*index][2]=StrainSecondDerivativeX.cx; CrossTerm.element[3*index][5]=StrainSecondDerivativeY.cx; CrossTerm.element[3*index][8]=StrainSecondDerivativeZ.cx;
-  
+
         CrossTerm.element[3*index+1][0]=StrainSecondDerivativeX.ay; CrossTerm.element[3*index+1][3]=StrainSecondDerivativeY.ay; CrossTerm.element[3*index+1][6]=StrainSecondDerivativeZ.ay;
         CrossTerm.element[3*index+1][1]=StrainSecondDerivativeX.by; CrossTerm.element[3*index+1][4]=StrainSecondDerivativeY.by; CrossTerm.element[3*index+1][7]=StrainSecondDerivativeZ.by;
         CrossTerm.element[3*index+1][2]=StrainSecondDerivativeX.cy; CrossTerm.element[3*index+1][5]=StrainSecondDerivativeY.cy; CrossTerm.element[3*index+1][8]=StrainSecondDerivativeZ.cy;
-  
+
         CrossTerm.element[3*index+2][0]=StrainSecondDerivativeX.az; CrossTerm.element[3*index+2][3]=StrainSecondDerivativeY.az; CrossTerm.element[3*index+2][6]=StrainSecondDerivativeZ.az;
         CrossTerm.element[3*index+2][1]=StrainSecondDerivativeX.bz; CrossTerm.element[3*index+2][4]=StrainSecondDerivativeY.bz; CrossTerm.element[3*index+2][7]=StrainSecondDerivativeZ.bz;
-        CrossTerm.element[3*index+2][2]=StrainSecondDerivativeX.cz; CrossTerm.element[3*index+2][5]=StrainSecondDerivativeY.cz; CrossTerm.element[3*index+2][8]=StrainSecondDerivativeZ.cz; 
-  
+        CrossTerm.element[3*index+2][2]=StrainSecondDerivativeX.cz; CrossTerm.element[3*index+2][5]=StrainSecondDerivativeY.cz; CrossTerm.element[3*index+2][8]=StrainSecondDerivativeZ.cz;
+
         index++;
       }
     }
