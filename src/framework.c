@@ -6232,12 +6232,18 @@ void InitializeFrameworkVelocities(void)
       if(!Framework[CurrentSystem].Atoms[f1][i].Fixed.x)
         Framework[CurrentSystem].Atoms[f1][i].Velocity.x=RandomGaussianNumber()*
           sqrt(K_B*therm_baro_stats.ExternalTemperature[CurrentSystem]/Mass);
+      else
+        Framework[CurrentSystem].Atoms[f1][i].Velocity.x=0.0;
       if(!Framework[CurrentSystem].Atoms[f1][i].Fixed.y)
         Framework[CurrentSystem].Atoms[f1][i].Velocity.y=RandomGaussianNumber()*
           sqrt(K_B*therm_baro_stats.ExternalTemperature[CurrentSystem]/Mass);
+      else
+        Framework[CurrentSystem].Atoms[f1][i].Velocity.y=0.0;
       if(!Framework[CurrentSystem].Atoms[f1][i].Fixed.z)
         Framework[CurrentSystem].Atoms[f1][i].Velocity.z=RandomGaussianNumber()*
           sqrt(K_B*therm_baro_stats.ExternalTemperature[CurrentSystem]/Mass);
+      else
+        Framework[CurrentSystem].Atoms[f1][i].Velocity.z=0.0;
     }
     if(Framework[CurrentSystem].NumberOfCoreShells[f1]>0)
     {

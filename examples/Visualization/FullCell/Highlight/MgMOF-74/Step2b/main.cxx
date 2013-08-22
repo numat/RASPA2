@@ -218,7 +218,9 @@ double AdditionalAzimuth=0.0;
 double AdditionalElevation=0.0;
 double AdditionalRoll=0.0;
 
-VECTOR VisibilityFractionMax={1.0,1.0,1.0};
+VECTOR VisibilityFractionSurfaceMax={1.0,1.0,1.0};
+VECTOR VisibilityFractionAdsorbateMax={1.0,1.0,1.0};
+VECTOR VisibilityFractionCationMax={1.0,1.0,1.0};
 
 // control of the cell-frame
 int Frame=FULL_CELL;
@@ -535,19 +537,19 @@ int main( int argc, char *argv[] )
      p1->SetOrigin(0,0,0);
      p1->SetNormal(plane_normal1.x,plane_normal1.y,plane_normal1.z);
   vtkPlane *p2=vtkPlane::New();
-     p2->SetOrigin(VisibilityFractionMax.x*CellBox.ax*SIZE_X/max,VisibilityFractionMax.x*CellBox.ay*SIZE_Y/max,VisibilityFractionMax.x*CellBox.az*SIZE_Z/max);
+     p2->SetOrigin(VisibilityFractionSurfaceMax.x*CellBox.ax*SIZE_X/max,VisibilityFractionSurfaceMax.x*CellBox.ay*SIZE_Y/max,VisibilityFractionSurfaceMax.x*CellBox.az*SIZE_Z/max);
      p2->SetNormal(-plane_normal1.x,-plane_normal1.y,-plane_normal1.z);
   vtkPlane *p3=vtkPlane::New();
      p3->SetOrigin(0,0,0);
      p3->SetNormal(plane_normal2.x,plane_normal2.y,plane_normal2.z);
   vtkPlane *p4=vtkPlane::New();
-     p4->SetOrigin(VisibilityFractionMax.y*CellBox.bx*SIZE_X/max,VisibilityFractionMax.y*CellBox.by*SIZE_Y/max,VisibilityFractionMax.z*CellBox.bz*SIZE_Z/max);
+     p4->SetOrigin(VisibilityFractionSurfaceMax.y*CellBox.bx*SIZE_X/max,VisibilityFractionSurfaceMax.y*CellBox.by*SIZE_Y/max,VisibilityFractionSurfaceMax.z*CellBox.bz*SIZE_Z/max);
      p4->SetNormal(-plane_normal2.x,-plane_normal2.y,-plane_normal2.z);
   vtkPlane *p5=vtkPlane::New();
      p5->SetOrigin(0,0,0);
      p5->SetNormal(plane_normal3.x,plane_normal3.y,plane_normal3.z);
   vtkPlane *p6=vtkPlane::New();
-     p6->SetOrigin(VisibilityFractionMax.z*CellBox.cx*SIZE_X/max,VisibilityFractionMax.z*CellBox.cy*SIZE_Y/max,VisibilityFractionMax.z*CellBox.cz*SIZE_Z/max);
+     p6->SetOrigin(VisibilityFractionSurfaceMax.z*CellBox.cx*SIZE_X/max,VisibilityFractionSurfaceMax.z*CellBox.cy*SIZE_Y/max,VisibilityFractionSurfaceMax.z*CellBox.cz*SIZE_Z/max);
      p6->SetNormal(-plane_normal3.x,-plane_normal3.y,-plane_normal3.z);
 
   vtkPlaneCollection *BoxClipPlaneCollection=vtkPlaneCollection::New();
@@ -628,27 +630,45 @@ int main( int argc, char *argv[] )
   FrameworkBondClipPlanes->SetPoints(points2);
   FrameworkBondClipPlanes->SetNormals(norms2);
 
-
   // the clipping of adsorbates and cations is done with surface-closing.
   // the vtkClipClosedSurface expects a vtkPlaneCollection
   vtkPlane *q1=vtkPlane::New();
      q1->SetOrigin(0,0,0);
      q1->SetNormal(plane_normal1.x,plane_normal1.y,plane_normal1.z);
   vtkPlane *q2=vtkPlane::New();
-     q2->SetOrigin(CellBox.ax,CellBox.ay,CellBox.az);
+     q2->SetOrigin(VisibilityFractionAdsorbateMax.x*CellBox.ax,VisibilityFractionAdsorbateMax.x*CellBox.ay,VisibilityFractionAdsorbateMax.x*CellBox.az);
      q2->SetNormal(-plane_normal1.x,-plane_normal1.y,-plane_normal1.z);
   vtkPlane *q3=vtkPlane::New();
      q3->SetOrigin(0,0,0);
      q3->SetNormal(plane_normal2.x,plane_normal2.y,plane_normal2.z);
   vtkPlane *q4=vtkPlane::New();
-     q4->SetOrigin(CellBox.bx,CellBox.by,CellBox.bz);
+     q4->SetOrigin(VisibilityFractionAdsorbateMax.y*CellBox.bx,VisibilityFractionAdsorbateMax.y*CellBox.by,VisibilityFractionAdsorbateMax.y*CellBox.bz);
      q4->SetNormal(-plane_normal2.x,-plane_normal2.y,-plane_normal2.z);
   vtkPlane *q5=vtkPlane::New();
      q5->SetOrigin(0,0,0);
      q5->SetNormal(plane_normal3.x,plane_normal3.y,plane_normal3.z);
   vtkPlane *q6=vtkPlane::New();
-     q6->SetOrigin(CellBox.cx,CellBox.cy,CellBox.cz);
+     q6->SetOrigin(VisibilityFractionAdsorbateMax.z*CellBox.cx,VisibilityFractionAdsorbateMax.z*CellBox.cy,VisibilityFractionAdsorbateMax.z*CellBox.cz);
      q6->SetNormal(-plane_normal3.x,-plane_normal3.y,-plane_normal3.z);
+
+  vtkPlane *q7=vtkPlane::New();
+     q7->SetOrigin(0,0,0);
+     q7->SetNormal(plane_normal1.x,plane_normal1.y,plane_normal1.z);
+  vtkPlane *q8=vtkPlane::New();
+     q8->SetOrigin(VisibilityFractionCationMax.x*CellBox.ax,VisibilityFractionCationMax.x*CellBox.ay,VisibilityFractionCationMax.x*CellBox.az);
+     q8->SetNormal(-plane_normal1.x,-plane_normal1.y,-plane_normal1.z);
+  vtkPlane *q9=vtkPlane::New();
+     q9->SetOrigin(0,0,0);
+     q9->SetNormal(plane_normal2.x,plane_normal2.y,plane_normal2.z);
+  vtkPlane *q10=vtkPlane::New();
+     q10->SetOrigin(VisibilityFractionCationMax.y*CellBox.bx,VisibilityFractionCationMax.y*CellBox.by,VisibilityFractionCationMax.y*CellBox.bz);
+     q10->SetNormal(-plane_normal2.x,-plane_normal2.y,-plane_normal2.z);
+  vtkPlane *q11=vtkPlane::New();
+     q11->SetOrigin(0,0,0);
+     q11->SetNormal(plane_normal3.x,plane_normal3.y,plane_normal3.z);
+  vtkPlane *q12=vtkPlane::New();
+     q12->SetOrigin(VisibilityFractionCationMax.z*CellBox.cx,VisibilityFractionCationMax.z*CellBox.cy,VisibilityFractionCationMax.z*CellBox.cz);
+     q12->SetNormal(-plane_normal3.x,-plane_normal3.y,-plane_normal3.z);
 
   vtkPlaneCollection *PlanesCollectionAdsorbate=vtkPlaneCollection::New();
   switch(ClipAdsorbates)
@@ -689,30 +709,30 @@ int main( int argc, char *argv[] )
     case NONE:
       break;
     case X:
-      PlanesCollectionCation->AddItem(q1); PlanesCollectionCation->AddItem(q2);
+      PlanesCollectionCation->AddItem(q7); PlanesCollectionCation->AddItem(q8);
       break;
     case Y:
-      PlanesCollectionCation->AddItem(q3); PlanesCollectionCation->AddItem(q4);
+      PlanesCollectionCation->AddItem(q9); PlanesCollectionCation->AddItem(q10);
       break;
     case Z:
-      PlanesCollectionCation->AddItem(q5); PlanesCollectionCation->AddItem(q6);
+      PlanesCollectionCation->AddItem(q11); PlanesCollectionCation->AddItem(q12);
       break;
     case XY:
-      PlanesCollectionCation->AddItem(p1); PlanesCollectionCation->AddItem(q2);
-      PlanesCollectionCation->AddItem(q3); PlanesCollectionCation->AddItem(q4);
+      PlanesCollectionCation->AddItem(q7); PlanesCollectionCation->AddItem(q8);
+      PlanesCollectionCation->AddItem(q9); PlanesCollectionCation->AddItem(q10);
       break;
     case XZ:
-      PlanesCollectionCation->AddItem(q1); PlanesCollectionCation->AddItem(q2);
-      PlanesCollectionCation->AddItem(q5); PlanesCollectionCation->AddItem(q6);
+      PlanesCollectionCation->AddItem(q7); PlanesCollectionCation->AddItem(q8);
+      PlanesCollectionCation->AddItem(q11); PlanesCollectionCation->AddItem(q12);
       break;
     case YZ:
-      PlanesCollectionCation->AddItem(q3); PlanesCollectionCation->AddItem(q4);
-      PlanesCollectionCation->AddItem(q5); PlanesCollectionCation->AddItem(q6);
+      PlanesCollectionCation->AddItem(q9); PlanesCollectionCation->AddItem(q10);
+      PlanesCollectionCation->AddItem(q11); PlanesCollectionCation->AddItem(q12);
       break;
     case XYZ:
-      PlanesCollectionCation->AddItem(q1); PlanesCollectionCation->AddItem(q2);
-      PlanesCollectionCation->AddItem(q3); PlanesCollectionCation->AddItem(q4);
-      PlanesCollectionCation->AddItem(q5); PlanesCollectionCation->AddItem(q6);
+      PlanesCollectionCation->AddItem(q7); PlanesCollectionCation->AddItem(q8);
+      PlanesCollectionCation->AddItem(q9); PlanesCollectionCation->AddItem(q10);
+      PlanesCollectionCation->AddItem(q11); PlanesCollectionCation->AddItem(q12);
       break;
   }
 
@@ -1892,8 +1912,12 @@ int ReadInputFile(void)
         sscanf(arguments,"%lf %lf %lf",&AlphaAngle,&BetaAngle,&GammaAngle);
       if(strcasecmp("ZoomFactor",keyword)==0) sscanf(arguments,"%lf",&ZoomFactor);
       if(strcasecmp("ScaleFactor",keyword)==0) sscanf(arguments,"%lf",&ScaleFactor);
-      if(strcasecmp("VisibilityFractionMax",keyword)==0) sscanf(arguments,"%lf %lf %lf",&VisibilityFractionMax.x,
-         &VisibilityFractionMax.y,&VisibilityFractionMax.z);
+      if(strcasecmp("VisibilityFractionSurfaceMax",keyword)==0) sscanf(arguments,"%lf %lf %lf",&VisibilityFractionSurfaceMax.x,
+         &VisibilityFractionSurfaceMax.y,&VisibilityFractionSurfaceMax.z);
+      if(strcasecmp("VisibilityFractionAdsorbateMax",keyword)==0) sscanf(arguments,"%lf %lf %lf",&VisibilityFractionAdsorbateMax.x,
+         &VisibilityFractionAdsorbateMax.y,&VisibilityFractionAdsorbateMax.z);
+      if(strcasecmp("VisibilityFractionCationMax",keyword)==0) sscanf(arguments,"%lf %lf %lf",&VisibilityFractionCationMax.x,
+         &VisibilityFractionCationMax.y,&VisibilityFractionCationMax.z);
       if(strcasecmp("Azimuth",keyword)==0) sscanf(arguments,"%lf",&Azimuth);
       if(strcasecmp("Elevation",keyword)==0) sscanf(arguments,"%lf",&Elevation);
       if(strcasecmp("Roll",keyword)==0) sscanf(arguments,"%lf",&Roll);

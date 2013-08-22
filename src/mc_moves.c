@@ -12371,6 +12371,9 @@ void HybridNVEMove(void)
   if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
     InitializeFrameworkVelocities();
 
+
+  InitializeForces();
+
   StoredUKinetic=UKinetic[CurrentSystem];
   StoredUHostKinetic=UHostKinetic[CurrentSystem];
   StoredUAdsorbateTranslationalKinetic=UAdsorbateTranslationalKinetic[CurrentSystem];
@@ -12380,7 +12383,45 @@ void HybridNVEMove(void)
   StoredUAdsorbateKinetic=UAdsorbateKinetic[CurrentSystem];
   StoredUCationKinetic=UCationKinetic[CurrentSystem];
 
-  InitializeForces();
+  // register the starting temperatures
+  if(DegreesOfFreedom[CurrentSystem]>0)
+  {
+    HybridNVEStartTemperature[CurrentSystem]+=2.0*StoredUKinetic/(K_B*DegreesOfFreedom[CurrentSystem]);
+    HybridNVEStartTemperatureCount[CurrentSystem]+=1.0;
+  }
+
+  if(DegreesOfFreedomTranslation[CurrentSystem]>0)
+  {
+    HybridNVEStartTranslationalTemperature[CurrentSystem]+=2.0*(StoredUHostKinetic+
+       StoredUAdsorbateTranslationalKinetic+StoredUCationTranslationalKinetic)/
+                                              (K_B*DegreesOfFreedomTranslation[CurrentSystem]);
+    HybridNVEStartTemperatureTranslationCount[CurrentSystem]+=1.0;
+  }
+
+  if(DegreesOfFreedomRotation[CurrentSystem]>0)
+  {
+    HybridNVEStartRotationalTemperature[CurrentSystem]+=2.0*(StoredUAdsorbateRotationalKinetic+
+          StoredUCationRotationalKinetic)/(K_B*DegreesOfFreedomRotation[CurrentSystem]);
+    HybridNVEStartTemperatureRotationCount[CurrentSystem]+=1.0;
+  }
+
+  if(DegreesOfFreedomFramework[CurrentSystem]>0)
+  {
+    HybridNVEStartTemperatureFramework[CurrentSystem]+=2.0*StoredUHostKinetic/(K_B*DegreesOfFreedomFramework[CurrentSystem]);
+    HybridNVEStartTemperatureFrameworkCount[CurrentSystem]+=1.0;
+  }
+
+  if(DegreesOfFreedomAdsorbates[CurrentSystem]>0)
+  {
+    HybridNVEStartTemperatureAdsorbate[CurrentSystem]+=2.0*StoredUAdsorbateKinetic/(K_B*DegreesOfFreedomAdsorbates[CurrentSystem]);
+    HybridNVEStartTemperatureAdsorbateCount[CurrentSystem]+=1.0;
+  }
+
+  if(DegreesOfFreedomCations[CurrentSystem]>0)
+  {
+    HybridNVEStartTemperatureCation[CurrentSystem]+=2.0*StoredUCationKinetic/(K_B*DegreesOfFreedomCations[CurrentSystem]);
+    HybridNVEStartTemperatureCationCount[CurrentSystem]+=1.0;
+  }
 
   ReferenceEnergy=ConservedEnergy[CurrentSystem];
   Drift=0.0;
@@ -12399,45 +12440,6 @@ void HybridNVEMove(void)
   {
     HybridNVEAccepted[CurrentSystem]+=1.0;
 
-    // register the starting temperatures
-    if(DegreesOfFreedom[CurrentSystem]>0)
-    {
-      HybridNVEStartTemperature[CurrentSystem]+=2.0*StoredUKinetic/(K_B*DegreesOfFreedom[CurrentSystem]);
-      HybridNVEStartTemperatureCount[CurrentSystem]+=1.0;
-    }
-
-    if(DegreesOfFreedomTranslation[CurrentSystem]>0)
-    {
-      HybridNVEStartTranslationalTemperature[CurrentSystem]+=2.0*(StoredUHostKinetic+
-         StoredUAdsorbateTranslationalKinetic+StoredUCationTranslationalKinetic)/
-                                                (K_B*DegreesOfFreedomTranslation[CurrentSystem]);
-      HybridNVEStartTemperatureTranslationCount[CurrentSystem]+=1.0;
-    }
-
-    if(DegreesOfFreedomRotation[CurrentSystem]>0)
-    {
-      HybridNVEStartRotationalTemperature[CurrentSystem]+=2.0*(StoredUAdsorbateRotationalKinetic+
-            StoredUCationRotationalKinetic)/(K_B*DegreesOfFreedomRotation[CurrentSystem]);
-      HybridNVEStartTemperatureRotationCount[CurrentSystem]+=1.0;
-    }
-
-    if(DegreesOfFreedomFramework[CurrentSystem]>0)
-    {
-      HybridNVEStartTemperatureFramework[CurrentSystem]+=2.0*StoredUHostKinetic/(K_B*DegreesOfFreedomFramework[CurrentSystem]);
-      HybridNVEStartTemperatureFrameworkCount[CurrentSystem]+=1.0;
-    }
-
-    if(DegreesOfFreedomAdsorbates[CurrentSystem]>0)
-    {
-      HybridNVEStartTemperatureAdsorbate[CurrentSystem]+=2.0*StoredUAdsorbateKinetic/(K_B*DegreesOfFreedomAdsorbates[CurrentSystem]);
-      HybridNVEStartTemperatureAdsorbateCount[CurrentSystem]+=1.0;
-    }
-
-    if(DegreesOfFreedomCations[CurrentSystem]>0)
-    {
-      HybridNVEStartTemperatureCation[CurrentSystem]+=2.0*StoredUCationKinetic/(K_B*DegreesOfFreedomCations[CurrentSystem]);
-      HybridNVEStartTemperatureCationCount[CurrentSystem]+=1.0;
-    }
 
     // register the end temperatures
     HybridNVEDrift[CurrentSystem]+=Drift;
@@ -12652,7 +12654,7 @@ void PrintHybridNVEStatistics(FILE *FilePtr)
     fprintf(FilePtr,"total amount of MD-time simulated: %18.10lf [ps]\n\n",
         (double)((REAL)NumberOfHybridNVESteps*DeltaT*HybridNVEAccepted[CurrentSystem]));
 
-    if(HybridNVEAccepted[CurrentSystem]>0.0)
+    if(HybridNVEAttempts[CurrentSystem]>0.0)
     {
       fprintf(FilePtr,"\tAverage drift in the energy:               % 18.10lf\n\n",
                   (double)(HybridNVEDrift[CurrentSystem]/HybridNVEDriftCount[CurrentSystem]));
