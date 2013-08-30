@@ -16,6 +16,7 @@
 #include <config.h>
 #endif
 #include <stdlib.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
@@ -44,6 +45,9 @@
 #include "internal_force.h"
 #include "minimization.h"
 #include "rigid.h"
+
+extern bool STREAM;
+extern char *INPUT_CRYSTAL;
 
 CRYSTALLOGRAPHIC_STATISTICS *crystallographic_stats;
 
@@ -376,22 +380,33 @@ void ReadFrameworkDefinitionCIF(void)
 
   strcpy(FoundSpaceGroupOption,"");
 
-  // first try to open the framework-file in the current directory,
-  // and next from the repository
-  sprintf(buffer,"%s.%s",
-          Framework[CurrentSystem].Name[CurrentFramework],
-          "cif");
-  if(!(FilePtr=fopen(buffer,"r")))
+  if (STREAM)
   {
-    sprintf(buffer,"%s/share/raspa/structures/cif/%s.%s",
-            RASPA_DIRECTORY,
+    if (!(FilePtr=fmemopen((void *)INPUT_CRYSTAL, strlen(INPUT_CRYSTAL), "r")))
+    {
+      printf("Error reading streamed CIF molecule.");
+      exit(1);
+    }
+  }
+  else
+  {
+    // first try to open the framework-file in the current directory,
+    // and next from the repository
+    sprintf(buffer,"%s.%s",
             Framework[CurrentSystem].Name[CurrentFramework],
             "cif");
-
     if(!(FilePtr=fopen(buffer,"r")))
     {
-      fprintf(stderr, "Error:  file %s does not exists.\n",buffer);
-      exit(1);
+      sprintf(buffer,"%s/share/raspa/structures/cif/%s.%s",
+              RASPA_DIRECTORY,
+              Framework[CurrentSystem].Name[CurrentFramework],
+              "cif");
+
+      if(!(FilePtr=fopen(buffer,"r")))
+      {
+        fprintf(stderr, "Error:  file %s does not exists.\n",buffer);
+        exit(1);
+      }
     }
   }
 
@@ -2010,6 +2025,12 @@ void WriteFrameworkDefinitionCIF(char * string)
   char symbol[256];
   struct passwd *p;
 
+  if (STREAM)
+  {
+    fprintf(stderr, "File writing not allowed in streaming mode!");
+    return;
+  }
+
   AtomIdentifier=(int*)calloc(NumberOfPseudoAtoms,sizeof(int));
 
   curtime = time (NULL);
@@ -2708,23 +2729,34 @@ void ReadFrameworkDefinitionMOL(void)
   Framework[CurrentSystem].FrameworkDensityPerComponent[CurrentFramework]=0.0;
   Framework[CurrentSystem].FrameworkMassPerComponent[CurrentFramework]=0.0;
 
-  // first try to open the framework-file in the current directory,
-  // and next from the repository
-  sprintf(buffer,"%s.%s",
-          Framework[CurrentSystem].Name[CurrentFramework],
-          "mol");
-
-  if(!(FilePtr=fopen(buffer,"r")))
+  if (STREAM)
   {
-    sprintf(buffer,"%s/share/raspa/structures/xyz/%s.%s",
-            RASPA_DIRECTORY,
+    if (!(FilePtr=fmemopen((void *)INPUT_CRYSTAL, strlen(INPUT_CRYSTAL), "r")))
+    {
+      printf("Error reading streamed MOL molecule.");
+      exit(1);
+    }
+  }
+  else
+  {
+    // first try to open the framework-file in the current directory,
+    // and next from the repository
+    sprintf(buffer,"%s.%s",
             Framework[CurrentSystem].Name[CurrentFramework],
             "mol");
 
     if(!(FilePtr=fopen(buffer,"r")))
     {
-      fprintf(stderr, "Error:  file %s does not exists.\n",buffer);
-      exit(1);
+      sprintf(buffer,"%s/share/raspa/structures/xyz/%s.%s",
+              RASPA_DIRECTORY,
+              Framework[CurrentSystem].Name[CurrentFramework],
+              "mol");
+
+      if(!(FilePtr=fopen(buffer,"r")))
+      {
+        fprintf(stderr, "Error:  file %s does not exists.\n",buffer);
+        exit(1);
+      }
     }
   }
 
@@ -2931,6 +2963,12 @@ void WriteFrameworkDefinitionMOL(char *string)
   REAL charge;
   char Name[256];
 
+  if (STREAM)
+  {
+    fprintf(stderr, "File writing not allowed in streaming mode!");
+    return;
+  }
+
   AtomId=(int*)calloc(NumberOfPseudoAtoms,sizeof(int));
   mkdir("Movies",S_IRWXU);
 
@@ -3027,15 +3065,26 @@ void ReadFrameworkDefinitionDLPOLY(void)
   fprintf(stderr, "CurrentSystem: %d CurrentFramework: %d\n",CurrentSystem,CurrentFramework);
   Framework[CurrentSystem].SpaceGroupIdentifier[CurrentFramework]=1;
 
-  // first try to open the framework-file in the current directory,
-  // and next from the repository
-  sprintf(buffer,"./%s.%s",
-        Framework[CurrentSystem].Name[CurrentFramework],
-        "dlpoly");
-  if(!(FilePtr=fopen(buffer,"r")))
+  if (STREAM)
   {
-    fprintf(stderr, "Error:  file %s does not exists.\n",buffer);
-    exit(1);
+    if (!(FilePtr=fmemopen((void *)INPUT_CRYSTAL, strlen(INPUT_CRYSTAL), "r")))
+    {
+      printf("Error reading streamed CSSR molecule.");
+      exit(1);
+    }
+  }
+  else
+  {
+    // first try to open the framework-file in the current directory,
+    // and next from the repository
+    sprintf(buffer,"./%s.%s",
+          Framework[CurrentSystem].Name[CurrentFramework],
+          "dlpoly");
+    if(!(FilePtr=fopen(buffer,"r")))
+    {
+      fprintf(stderr, "Error:  file %s does not exists.\n",buffer);
+      exit(1);
+    }
   }
 
   fscanf(FilePtr,"%*[^\n]"); // skip first line
@@ -3324,6 +3373,12 @@ void WriteFrameworkDefinitionCSSR(char *string)
   int  SerialNumber;                             // Atom serial number
   int *AtomId;
 
+  if (STREAM)
+  {
+    fprintf(stderr, "File writing not allowed in streaming mode!");
+    return;
+  }
+
   AtomId=(int*)calloc(NumberOfPseudoAtoms,sizeof(int));
   mkdir("Movies",S_IRWXU);
   for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
@@ -3453,6 +3508,12 @@ void WriteFrameworkDefinitionPDB(char *string)
   VECTOR r;
   REAL MovieScale=1.0;
 
+  if (STREAM)
+  {
+    fprintf(stderr, "File writing not allowed in streaming mode!");
+    return;
+  }
+
   mkdir("Movies",S_IRWXU);
 
   for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
@@ -3519,6 +3580,12 @@ void WriteFrameworkDefinitionGulp(char *string)
   int nr_cores;
   int count;
   int TypeA,TypeB,TypeC;
+
+  if (STREAM)
+  {
+    fprintf(stderr, "File writing not allowed in streaming mode!");
+    return;
+  }
 
   AtomId=(int*)calloc(NumberOfPseudoAtoms,sizeof(int));
   mkdir("Movies",S_IRWXU);
@@ -3650,6 +3717,12 @@ void WriteFrameworkDefinitionVASP(char *string)
   int *AtomId;
   int count;
 
+  if (STREAM)
+  {
+    fprintf(stderr, "File writing not allowed in streaming mode!");
+    return;
+  }
+
   AtomId=(int*)calloc(NumberOfPseudoAtoms,sizeof(int));
   mkdir("Movies",S_IRWXU);
 
@@ -3747,6 +3820,12 @@ void WriteFrameworkDefinitionTinker(char *string)
   char AtomName[10]="      C"; // Atom Name
   int *AtomId;
   VECTOR r;
+
+  if (STREAM)
+  {
+    fprintf(stderr, "File writing not allowed in streaming mode!");
+    return;
+  }
 
   AtomId=(int*)calloc(NumberOfPseudoAtoms,sizeof(int));
   mkdir("Movies",S_IRWXU);

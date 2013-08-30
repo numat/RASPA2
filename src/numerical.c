@@ -16,6 +16,7 @@
 #include <config.h>
 #endif
 #include <stdlib.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
@@ -45,6 +46,8 @@
 #include "minimization.h"
 #include "rigid.h"
 #include "mc_moves.h"
+
+extern bool STREAM;
 
 void NumericallyComputeGradient(int np,int nb,REAL *x,REAL *NumericalGradient)
 {
@@ -845,6 +848,12 @@ void TestGradientsNumerically(void)
   FILE *FilePtr;
   REAL largest_difference;
 
+  if (STREAM)
+  {
+    fprintf(stderr, "Streaming not yet implemented for this function.");
+    exit(0);
+  }
+
   // loop over all the framwork-atoms and fix the order and 'index' into the Hessian
   NumberOfMinimizationVariables=0;
   NumberOfCellMinimizationVariables=0;
@@ -960,6 +969,11 @@ void TestHessianNumerically(void)
   FILE *FilePtr;
   REAL largest_difference,error;
 
+  if (STREAM)
+  {
+    fprintf(stderr, "Streaming not yet implemented for this function.");
+    exit(0);
+  }
 
   CurrentSystem=0;
   NumberOfMinimizationVariables=0;
@@ -1093,6 +1107,12 @@ void TestForcesNumerically(void)
   REAL EnergyCentral,EnergyForward1,EnergyForward2,EnergyBackward1,EnergyBackward2;
   char buffer[256];
   FILE *FilePtr;
+
+  if (STREAM)
+  {
+    fprintf(stderr, "Streaming not yet implemented for this function.");
+    exit(0);
+  }
 
   derivative.x=derivative.y=derivative.z=0.0;
   second_derivative.x=second_derivative.y=second_derivative.z=0.0;
@@ -1687,6 +1707,12 @@ void TestElectricField(void)
   FILE *FilePtr;
   REAL Charge;
   char buffer[2024];
+
+  if (STREAM)
+  {
+    fprintf(stderr, "Streaming not yet implemented for this function.");
+    exit(0);
+  }
 
   for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
   {
@@ -3613,6 +3639,12 @@ void TestStressTensorNumerically(void)
   char buffer[256];
   FILE *FilePtr;
 
+  if (STREAM)
+  {
+    fprintf(stderr, "Streaming not yet implemented for this function.");
+    exit(0);
+  }
+
   mkdir("Numerical",S_IRWXU);
 
   sprintf(buffer,"Numerical/System_%d",CurrentSystem);
@@ -3677,6 +3709,12 @@ void TestStrainSecondDerivativeNumerically(void)
   int StoredComputeBornTerm;
   char buffer[256];
   FILE *FilePtr;
+
+  if (STREAM)
+  {
+    fprintf(stderr, "Streaming not yet implemented for this function.");
+    exit(0);
+  }
 
   StoredComputeBornTerm=ComputeBornTerm;
 
@@ -3915,6 +3953,12 @@ void TestEnergyForcesHessian(void)
   VECTOR pos,vel,force;
   char buffer[256];
   FILE *FilePtr;
+
+  if (STREAM)
+  {
+    fprintf(stderr, "Streaming not yet implemented for this function.");
+    exit(0);
+  }
 
   mkdir("Numerical",S_IRWXU);
 

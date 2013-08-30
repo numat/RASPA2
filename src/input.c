@@ -16,6 +16,7 @@
 #include <config.h>
 #endif
 #include <stdlib.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <math.h>
 #include <time.h>
@@ -55,6 +56,8 @@
 #include "status.h"
 #include "charge_equilibration.h"
 
+extern bool STREAM;
+
 int EwaldAutomatic;
 static int *read_frameworks;
 static int *InitializeBox;
@@ -81,17 +84,17 @@ void CheckConstraintInputFramework(FRAMEWORK_COMPONENT* framework,int framework_
 {
   if(framework[CurrentSystem].NumberOfFrameworks==0)
   {
-    fprintf(stderr, "Error: framework constraint definition, framework does not exists\n");
+    fprintf(stderr, "Error: framework constraint definition, framework does not exist.\n");
     exit(0);
   }
   if(framework_nr>=Framework[CurrentSystem].NumberOfFrameworks)
   {
-    fprintf(stderr, "Error: framework constraint definition, framework id %d does not exists\n",framework_nr);
+    fprintf(stderr, "Error: framework constraint definition, framework id %d does not exist.\n",framework_nr);
     exit(0);
   }
   if(atom_nr>=Framework[CurrentSystem].NumberOfAtoms[framework_nr])
   {
-    fprintf(stderr, "Error: framework constraint definition, framework-atom %d of framework %d does not exists\n",atom_nr,framework_nr);
+    fprintf(stderr, "Error: framework constraint definition, framework-atom %d of framework %d does not exist.\n",atom_nr,framework_nr);
     exit(0);
   }
 }
@@ -100,17 +103,17 @@ void CheckConstraintInputAdsorbate(ADSORBATE_MOLECULE** adsorbates,int molecule_
 {
   if(!adsorbates[CurrentSystem])
   {
-    fprintf(stderr, "Error: adsorbate constraint definition, adsorbate-list does not exists\n");
+    fprintf(stderr, "Error: adsorbate constraint definition, adsorbate-list does not exist.\n");
     exit(0);
   }
   if(molecule_nr>=NumberOfAdsorbateMolecules[CurrentSystem])
   {
-    fprintf(stderr, "Error: adsorbate constraint definition, adsorbate-molecule id %d does not exists\n",molecule_nr);
+    fprintf(stderr, "Error: adsorbate constraint definition, adsorbate-molecule id %d does not exist.\n",molecule_nr);
     exit(0);
   }
   if(atom_nr>=adsorbates[CurrentSystem][molecule_nr].NumberOfAtoms)
   {
-    fprintf(stderr, "Error: adsorbate constraint definition, adsorbate-atom %d of molecule %d does not exists\n",atom_nr,molecule_nr);
+    fprintf(stderr, "Error: adsorbate constraint definition, adsorbate-atom %d of molecule %d does not exist.\n",atom_nr,molecule_nr);
     exit(0);
   }
 }
@@ -119,17 +122,17 @@ void CheckConstraintInputCation(CATION_MOLECULE** cations,int molecule_nr,int at
 {
   if(!cations[CurrentSystem])
   {
-    fprintf(stderr, "Error: cation constraint definition, cation-list does not exists\n");
+    fprintf(stderr, "Error: cation constraint definition, cation-list does not exist.\n");
     exit(0);
   }
   if(molecule_nr>=NumberOfCationMolecules[CurrentSystem])
   {
-    fprintf(stderr, "Error: cation constraint definition, cation-molecule id %d does not exists\n",molecule_nr);
+    fprintf(stderr, "Error: cation constraint definition, cation-molecule id %d does not exist.\n",molecule_nr);
     exit(0);
   }
   if(atom_nr>=Cations[CurrentSystem][molecule_nr].NumberOfAtoms)
   {
-    fprintf(stderr, "Error: cations constraint definition, cation-atom %d of molecule %d does not exists\n",atom_nr,molecule_nr);
+    fprintf(stderr, "Error: cations constraint definition, cation-atom %d of molecule %d does not exist.\n",atom_nr,molecule_nr);
     exit(0);
   }
 }
@@ -163,7 +166,7 @@ char *ReadLine(char *buffer, size_t length, FILE *file)
 // all string are converted to lowercase
 // leading spaces are removed
 // line-input after a parsed command is ignored
-int ReadInputFile(char *inputfilename)
+int ReadInputFile(char *input)
 {
   int i,j,k,l,m,n,index,nr_sites;
   int Restart,RestartStyle,Type;
@@ -542,15 +545,24 @@ int ReadInputFile(char *inputfilename)
   PrintFrameworkCationChargeBondDipoleStatus=TRUE;
   PrintFrameworkCationBondDipoleBondDipoleStatus=TRUE;
 
-
   // first pass to get NumberOfSystems and NumberOfComponents etc.
   // also loof for a binary restart-file, in that case immediately return
-  if(!(FilePtr=fopen(inputfilename,"r")))
+  if (STREAM)
   {
-    fprintf(stderr, "Error opening input-file '%s' (routine int ReadInputFile(char *inputfilename))\n",inputfilename);
-    exit(1);
+    if(!(FilePtr=fmemopen((void *)input, strlen(input), "r")))
+    {
+        printf("Error reading string into memory! What's up with that?");
+        exit(1);
+    }
   }
-
+  else
+  {
+    if(!(FilePtr=fopen(input, "r")))
+    {
+      printf("Error opening input-file '%s' (routine int ReadInputFile(char *input))\n",input);
+      exit(1);
+    }
+  }
 
   NumberOfSystems=0;
   NumberOfComponents=0;
@@ -869,10 +881,13 @@ int ReadInputFile(char *inputfilename)
   ReciprocalCutOffSquared=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
 
   // second pass to get the number of frameworks per system
-  if(!(FilePtr=fopen(inputfilename,"r")))
+  if (STREAM)
   {
-    fprintf(stderr, "Error opening input-file '%s'\n",inputfilename);
-    exit(1);
+    FilePtr=fmemopen((void *)input, strlen(input), "r");
+  }
+  else
+  {
+    FilePtr=fopen(input,"r");
   }
 
   CurrentSystem=0;
@@ -1323,10 +1338,13 @@ int ReadInputFile(char *inputfilename)
   AllocateStatisticsMemory();
 
   // final pass, most memory is now already allocated
-  if(!(FilePtr=fopen(inputfilename,"r")))
+  if (STREAM)
   {
-    fprintf(stderr, "Error opening input-file '%s'\n",inputfilename);
-    exit(1);
+    FilePtr=fmemopen((void *)input, strlen(input), "r");
+  }
+  else
+  {
+    FilePtr=fopen(input,"r");
   }
 
   CurrentComponent=0;
@@ -6906,8 +6924,6 @@ int ReadInputFile(char *inputfilename)
     }
   }
 
-
-
   for(i=0;i<NumberOfSystems;i++)
   {
     if(NumberOfDistanceConstraints[i]>0)
@@ -7841,7 +7857,10 @@ int ReadInputFile(char *inputfilename)
   CurrentComponent=0;
   CurrentFramework=0;
 
-  fprintf(stderr, "Done reading '%s'\n",inputfilename);
+  if (!STREAM) {
+    fprintf(stderr, "Done reading '%s'\n", input);
+  }
+
   return 0;
 }
 

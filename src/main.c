@@ -16,6 +16,7 @@
 #include <config.h>
 #endif
 #include <stdio.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -49,26 +50,33 @@
 #include "status.h"
 #include "framework.h"
 
+char* run(char *inputData, char *inputCrystal, char *raspaDir, bool stream);
+
+bool STREAM = false;
+char *INPUT_CRYSTAL = NULL;
+extern char **FILE_CONTENTS = NULL;
+extern size_t *FILE_SIZES = NULL;
+
 int main(int argc, char **argv)
 {
-  int c,i;
-  REAL energy,force_factor;
-  char inputfilename[256],raspa_dir[256];
+  int c;
+  char *input = NULL, *input_crystal = NULL, *raspa_dir = NULL, *output = NULL;
+  bool stream = false;
 
-  // set default name for the input-file
-  strcpy(inputfilename,"simulation.input");
+  // set default for the inputs
+  input = strdup("simulation.input");
+  input_crystal = strdup("");
 
-  // set deault RASPA_DIR
-  strcpy(raspa_dir,getenv("HOME"));
+  // set default RASPA_DIR
+  raspa_dir = getenv("HOME");
   strcat(raspa_dir,"/RASPA/simulations");
-  RASPA_DIRECTORY=raspa_dir;
 
   // get the raspa install directory from environement if defined
   if(getenv("RASPA_DIR")&&(strlen(getenv("RASPA_DIR"))>0))
-    RASPA_DIRECTORY=getenv("RASPA_DIR");
+    raspa_dir=getenv("RASPA_DIR");
 
   // parse command-line options (":" means the option has an argument)
-  while((c=getopt(argc,argv,"a:vhi:d:"))!=-1)
+  while((c=getopt(argc,argv,"a:vhsc:i:d:"))!=-1)
   {
     switch(c)
     {
@@ -76,46 +84,80 @@ int main(int argc, char **argv)
         strcpy(FileNameAppend,optarg);
         break;
       case 'h':
-        fprintf(stderr, "usage: simulate [-hv] [-ifile] [-ddir]\n");
-        fprintf(stderr, "\t-h help\n");
-        fprintf(stderr, "\t-v version\n");
-        fprintf(stderr, "\t-i the name of the input-file\n");
-        fprintf(stderr, "\t-d the raspa directory\n");
-        fprintf(stderr, "\t-a appends the string to output-files\n");
+        printf("usage: simulate [-hv] [-ifile] [-ddir] [-s [-idata] [-cdata]]\n");
+        printf("\t-h help\n");
+        printf("\t-v version\n");
+        printf("\t-s enables streaming (inputs must be stream, not filepath)\n");
+        printf("\t-i the input (either file or stream)\n");
+        printf("\t-c if streaming, the crystal structure (as a stream)\n");
+        printf("\t-d the raspa directory\n");
+        printf("\t-a appends the string to output-files\n");
         return 0;
       case 'i': // set the input-filename
-        strcpy(inputfilename,optarg);
+        input = strdup(optarg);
         break;
       case 'd':  // set the raspa-directory
-        strcpy(raspa_dir,optarg);
-        RASPA_DIRECTORY=raspa_dir;
+        raspa_dir = strdup(optarg);
+        break;
+      case 's': // Toggle the streaming boolean
+        stream = true;
+        break;
+      case 'c': // If streaming, pass the input molecule here
+        input_crystal = strdup(optarg);
         break;
       case 'v':
         fprintf(stderr, "RASPA 1.6-2 (2012)\n");
         return 0;
       default:
         return 1;
+        break;
     }
   }
+  output = run(input, input_crystal, raspa_dir, stream);
 
-  // read input file 'simulation.res'
-  ReadInputFile(inputfilename);
+  // This prints the output, which can be piped into other applications.
+  if (STREAM)
+    printf("%s\n", output);
+  free(output);
+
+  return 0;
+}
+
+/**
+ * The core logic is separated from main to simplify wrapper functionality
+ */
+char* run(char *inputData, char *inputCrystal, char *raspaDir, bool stream)
+{
+  int i = 0;
+  size_t chars = 0;
+  REAL energy, force_factor;
+  char *output = NULL, *temp = NULL, *delimiter = NULL;
+
+  // There are a lot of globals kicking around. It's messy. TODO clean.
+  INPUT_CRYSTAL = strdup(inputCrystal);
+  RASPA_DIRECTORY = strdup(raspaDir);
+  STREAM = stream;
+
+  ReadInputFile(inputData);
 
   // write the initial positions to files
-  WriteFrameworkDefinitionCSSR("initial");
-  WriteFrameworkDefinitionGulp("initial");
-  WriteFrameworkDefinitionVASP("initial");
-  WriteFrameworkDefinitionPDB("initial");
-  WriteFrameworkDefinitionTinker("initial");
-  WriteFrameworkDefinitionMOL("initial");
-  WriteFrameworkDefinitionCIF("initial");
-  WriteSnapshotTinker("initial");
-
-  if(CreateTinkerInput)
+  if (!STREAM)
   {
-    WriteFrameworkDefinitionTinker("tinker");
-    WriteTinkerParameterFile();
-    WriteTinkerKeyFile();
+    WriteFrameworkDefinitionCSSR("initial");
+    WriteFrameworkDefinitionGulp("initial");
+    WriteFrameworkDefinitionVASP("initial");
+    WriteFrameworkDefinitionPDB("initial");
+    WriteFrameworkDefinitionTinker("initial");
+    WriteFrameworkDefinitionMOL("initial");
+    WriteFrameworkDefinitionCIF("initial");
+    WriteSnapshotTinker("initial");
+
+    if(CreateTinkerInput)
+    {
+      WriteFrameworkDefinitionTinker("tinker");
+      WriteTinkerParameterFile();
+      WriteTinkerKeyFile();
+    }
   }
 
   // compute powder diffraction pattern
@@ -227,13 +269,38 @@ int main(int argc, char **argv)
   }
 
   // write the final positions to files
-  WriteFrameworkDefinitionCSSR("final");
-  WriteFrameworkDefinitionGulp("final");
-  WriteFrameworkDefinitionVASP("final");
-  WriteFrameworkDefinitionPDB("final");
-  WriteFrameworkDefinitionMOL("final");
-  WriteFrameworkDefinitionCIF("final");
-  WriteSnapshotTinker("final");
+  if (!STREAM)
+  {
+    WriteFrameworkDefinitionCSSR("final");
+    WriteFrameworkDefinitionGulp("final");
+    WriteFrameworkDefinitionVASP("final");
+    WriteFrameworkDefinitionPDB("final");
+    WriteFrameworkDefinitionMOL("final");
+    WriteFrameworkDefinitionCIF("final");
+    WriteSnapshotTinker("final");
+  }
 
-  return 0;
+  if (STREAM)
+  {
+    delimiter = "\n\nEND OF SIMULATION\n\n";
+
+    for (i = 0; i < NumberOfSystems; i++)
+        chars += FILE_SIZES[i];
+    chars += strlen(delimiter) * (NumberOfSystems - 1) + 1;
+    output = calloc(chars, sizeof(char));
+
+    for (i = 0; i < NumberOfSystems-1; i++)
+    {
+      strcat(output, FILE_CONTENTS[i]);
+      strcat(output, "\n\nEND OF SIMULATION\n\n");
+    }
+    strcat(output, FILE_CONTENTS[NumberOfSystems - 1]);
+  }
+
+  for (i = 0; i < NumberOfSystems-1; i++)
+    free(FILE_CONTENTS[i]);
+  free(FILE_CONTENTS);
+  free(FILE_SIZES);
+
+  return output;
 }

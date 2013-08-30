@@ -13,6 +13,7 @@
  *************************************************************************************************************/
 
 #include <stdlib.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
@@ -187,6 +188,8 @@ static int Coeff[64][64] = {
 {  8, -8, -8,  8, -8,  8,  8, -8,  4,  4, -4, -4, -4, -4,  4,  4,  4, -4,  4, -4, -4,  4, -4,  4,  4, -4, -4,  4,  4, -4, -4,  4,
    2,  2,  2,  2, -2, -2, -2, -2,  2,  2, -2, -2,  2,  2, -2, -2,  2, -2,  2, -2,  2, -2,  2, -2,  1,  1,  1,  1,  1,  1,  1,  1}};
 
+extern bool STREAM;
+
 int UseTabularGrid;
 REAL SpacingVDWGrid;
 REAL SpacingCoulombGrid;
@@ -284,6 +287,12 @@ void MakeASCIGrid(void)
   REAL_MATRIX3x3 second_derivative;
   char buffer[1024];
   FILE *FilePtr;
+
+  if (STREAM)
+  {
+    fprintf(stderr, "Streaming not yet supported for this function.");
+    exit(0);
+  }
 
   CurrentSystem=0;
   if(MIN3(BoxProperties[CurrentSystem].cx,BoxProperties[CurrentSystem].cy,
@@ -668,6 +677,12 @@ int WriteVDWGrid(int l)
   FILE *FilePtr;
   char buffer[256];
 
+  if (STREAM)
+  {
+    fprintf(stderr, "Streaming not yet supported for this function.");
+    exit(0);
+  }
+
   ngrid=NumberOfVDWGridPoints.x*NumberOfVDWGridPoints.y*NumberOfVDWGridPoints.z;
 
   sprintf(buffer,"%s/share/raspa/grids",RASPA_DIRECTORY);
@@ -848,6 +863,12 @@ void ReadCoulombGrid(void)
   REAL ewald_precision;
   FILE *FilePtr;
   char buffer[256],name[256];
+
+  if (STREAM)
+  {
+    fprintf(stderr, "Streaming not yet supported for this function.");
+    exit(0);
+  }
 
   switch(ChargeMethod)
   {

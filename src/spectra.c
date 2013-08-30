@@ -17,6 +17,7 @@
 //#include <Accelerate/Accelerate.h>
 #endif
 #include <stdlib.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
@@ -48,6 +49,8 @@
 #include "rigid.h"
 
 #define MAX_POWDER_DIFFRACTION_PEAKS 500000
+
+extern bool STREAM;
 
 void MakeNormalModeMovie(int NumberOfPositionVariables,int NumberOfBoxVariables,REAL_MATRIX HessianMatrix,REAL *Positions,REAL *frequencies,REAL* Weights);
 
@@ -477,6 +480,12 @@ void WriteVibrationalData(REAL_MATRIX HessianMatrix,REAL *Eigenvalues,REAL *Char
   REAL norm_intensities1,norm_intensities2,norm_intensities3,norm_intensities4,norm_intensities5;
   REAL norm_spectrum1,norm_spectrum2,norm_spectrum3,norm_spectrum4,norm_spectrum5;
   FILE *FilePtr;
+
+  if (STREAM)
+  {
+    fprintf(stderr, "Streaming not yet supported for this function.");
+    exit(0);
+  }
 
   n=HessianMatrix.m;
   temperature=therm_baro_stats.ExternalTemperature[0];
@@ -1028,6 +1037,12 @@ void WriteIR(void)
   FILE *FilePtr;
   char buffer[256];
 
+  if (STREAM)
+  {
+    fprintf(stderr, "Streaming not yet supported for this function.");
+    exit(0);
+  }
+
   mkdir("InfraRedSpectra",S_IRWXU);
   for(k=0;k<NumberOfSystems;k++)
   {
@@ -1100,6 +1115,12 @@ void MakeNormalModeMovie(int NumberOfPositionVariables,int NumberOfBoxVariables,
   REAL StoredVolume,MaximumVolumeChange,VolumeChange;
   const REAL scale=1.0;
   INT_VECTOR3 index;
+
+  if (STREAM)
+  {
+    fprintf(stderr, "Streaming not yet supported for this function.");
+    exit(0);
+  }
 
   n=NumberOfPositionVariables+NumberOfBoxVariables;
 
@@ -1377,6 +1398,12 @@ void CalculatePowderDiffractionPattern(void)
   REAL two_theta,theta,tantheta,dr,bf,fwhm;
   char buffer[256];
   FILE *FilePtr;
+
+  if (STREAM)
+  {
+    fprintf(stderr, "Streaming not yet supported for this function.");
+    exit(0);
+  }
 
   n=1+(Diffraction.two_theta_max-Diffraction.two_theta_min)/Diffraction.two_theta_step;
   Diffraction.n=n;

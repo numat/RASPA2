@@ -17,6 +17,7 @@
 #endif
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <time.h>
 #include <math.h>
 #include <float.h>
@@ -60,6 +61,8 @@
 //   column 1: the reaction coordinate
 //   column 2: the transmission coeficient
 //   column 3: the error of the transmission coefficient
+
+extern bool STREAM;
 
 VECTOR *BarrierPosition;
 VECTOR *BarrierNormal;
@@ -466,6 +469,12 @@ int BarrierRecrossing(void)
   REAL Qdot,*QdotAv;
   REAL TempStartA,TempStartB,TempEndA,TempEndB;
   int stop,*Status;
+
+  if (STREAM)
+  {
+    fprintf(stderr, "Streaming not implemented for BarrierRecrossing.");
+    exit(0);
+  }
 
   iterations=(int*)calloc(NumberOfSystems,sizeof(int));
   Status=(int*)calloc(NumberOfSystems,sizeof(int));

@@ -16,6 +16,7 @@
 #include <config.h>
 #endif
 #include <stdlib.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 #include <float.h>
@@ -50,6 +51,10 @@
 #include "warnings.h"
 #include "rigid.h"
 #include "spacegroup.h"
+
+extern bool STREAM;
+extern char **FILE_CONTENTS;
+extern size_t *FILE_SIZES;
 
 static REAL UHostHostRunning,UHostHostVDWRunning,UHostHostCoulombRunning;
 static REAL UHostHostChargeChargeRealRunning,UHostHostChargeChargeFourierRunning;
@@ -114,39 +119,40 @@ void OpenOutputFile(void)
   char buffer[1024],buffer2[256];
 
   OutputFilePtr=(FILE**)calloc(NumberOfSystems,sizeof(FILE*));
-  switch(Output)
+  FILE_CONTENTS = (char**)malloc(NumberOfSystems * sizeof(char*));
+  FILE_SIZES=(size_t*)malloc(NumberOfSystems * sizeof(size_t));
+
+  if (STREAM)
   {
-    case OUTPUT_TO_FILE:
-      mkdir("Output",S_IRWXU);
-      for(i=0;i<NumberOfSystems;i++)
-      {
-        sprintf(buffer,"Output/System_%d",i);
-        mkdir(buffer,S_IRWXU);
-      }
-      for(i=0;i<NumberOfSystems;i++)
-      {
-        sprintf(buffer,"Output/System_%d/output_%s_%d.%d.%d_%lf_%lf%s",
-                i,
-                Framework[i].Name[0],
-                NumberOfUnitCells[i].x,
-                NumberOfUnitCells[i].y,
-                NumberOfUnitCells[i].z,
-                (double)therm_baro_stats.ExternalTemperature[i],
-                (double)(therm_baro_stats.ExternalPressure[i][CurrentIsothermPressure]*PRESSURE_CONVERSION_FACTOR),
-                FileNameAppend);
+    // Loads output contents into a global
+    for(i=0;i<NumberOfSystems;i++)
+      OutputFilePtr[i]=open_memstream(&FILE_CONTENTS[i], &FILE_SIZES[i]);
+  }
+  else
+  {
+    mkdir("Output",S_IRWXU);
+    for(i=0;i<NumberOfSystems;i++)
+    {
+      sprintf(buffer,"Output/System_%d",i);
+      mkdir(buffer,S_IRWXU);
+    }
+    for(i=0;i<NumberOfSystems;i++)
+    {
+      sprintf(buffer,"Output/System_%d/output_%s_%d.%d.%d_%lf_%lf%s",
+              i,
+              Framework[i].Name[0],
+              NumberOfUnitCells[i].x,
+              NumberOfUnitCells[i].y,
+              NumberOfUnitCells[i].z,
+              (double)therm_baro_stats.ExternalTemperature[i],
+              (double)(therm_baro_stats.ExternalPressure[i][CurrentIsothermPressure]*PRESSURE_CONVERSION_FACTOR),
+              FileNameAppend);
 
-        // limit length of file-name
-        strncpy(buffer2,buffer,250);
-        sprintf(buffer2,"%s.data",buffer2);
-
-        //if(!(OutputFilePtr[i]=fopen(buffer2,"r+")))
-        //   OutputFilePtr[i]=fopen(buffer2,"a");
-        OutputFilePtr[i]=fopen(buffer2,"w");
-      }
-      break;
-    case OUTPUT_TO_SCREEN:
-      //OutputFilePtr=stdout;
-      break;
+      // limit length of file-name
+      strncpy(buffer2,buffer,250);
+      sprintf(buffer2,"%s.data",buffer2);
+      OutputFilePtr[i]=fopen(buffer2,"w");
+    }
   }
 }
 
@@ -6872,6 +6878,9 @@ void PrintRestartFile(void)
   int index;
   int ncell;
 
+  if (STREAM)
+      return;
+
   mkdir("Restart",S_IRWXU);
   sprintf(buffer,"Restart/System_%d",CurrentSystem);
   mkdir(buffer,S_IRWXU);
@@ -7385,6 +7394,9 @@ void WriteBinaryRestartFiles(void)
   FILE *FilePtr;
   char buffer[1024];
 
+  if (STREAM)
+    return;
+
   fprintf(stderr, "Writing Crash-file!\n");
 
   mkdir("CrashRestart",S_IRWXU);
@@ -7422,6 +7434,9 @@ void ReadRestartOutput(FILE* FilePtr)
   fpos_t pos;
   char buffer[1024],buffer2[256];
   REAL Check;
+
+  if (STREAM)
+    return;
 
   // open output-file for systems
   mkdir("Output",S_IRWXU);

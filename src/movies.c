@@ -16,6 +16,7 @@
 #include <config.h>
 #endif
 #include <stdlib.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
@@ -34,6 +35,8 @@
 #include "sample.h"
 #include "cbmc.h"
 #include "thermo_baro_stats.h"
+
+extern bool STREAM;
 
 REAL MovieScale;
 
@@ -402,6 +405,10 @@ void WriteVTK(int system)
   int MaxNumberOfListAtoms;
   int TotalNumberOfListAtoms;
   int index;
+
+  // Don't make files and folders when streaming, dammit!
+  if (STREAM)
+    return;
 
   CurrentSystem=system;
 
@@ -1261,16 +1268,23 @@ void WriteVTK(int system)
     }
   }
 
-  // delete memory
-  for(k=0;k<MaxNumberOfListAtoms;k++)
-    free(Neighbours[k]);
-  free(Connectivity);
-  free(Neighbours);
+  // Free up this huge memory structure by working up the pointer tree
+  for(f1=0; f1<Framework[system].NumberOfFrameworks; f1++)
+  {
+    for(i=0; i<MaxNumberOfListAtoms; i++) {
+      free(Neighbours[f1][i]);
+    }
+    free(Positions[f1]);
+    free(Connectivity[f1]);
+    free(Neighbours[f1]);
+  }
+
   free(Positions);
+  free(Neighbours);
+  free(Connectivity);
   free(AtomTypes);
+  free(NumberOfListAtoms);
 }
-
-
 
 void WriteMolecule(int mol)
 {
@@ -1349,6 +1363,9 @@ int SamplePDBMovies(int Choice,int Subdir)
   char Element[3]="  ";                          // Element symbol, right-justified
   char charge[3]="  ";                           // Charge
   VECTOR dr,r,com,com_pdb,flexible_drift;
+
+  if (STREAM)
+    return;
 
   switch(Choice)
   {
@@ -1639,6 +1656,9 @@ void WriteSnapshotIonsCssr(void)
   VECTOR pos;
   FILE *FilePtr;
 
+  if (STREAM)
+    return;
+
   A=(REAL)NumberOfUnitCells[0].x*UnitCellSize[0].x;
   B=(REAL)NumberOfUnitCells[0].y*UnitCellSize[0].y;
   C=(REAL)NumberOfUnitCells[0].z*UnitCellSize[0].z;
@@ -1738,6 +1758,9 @@ void WriteAsymetricPositions(void)
   char buffer[1024];
   FILE *FilePtr;
   VECTOR pos;
+
+  if (STREAM)
+    return;
 
   mkdir("Movies",S_IRWXU);
   for(i=0;i<NumberOfSystems;i++)

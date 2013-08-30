@@ -17,6 +17,7 @@
 //#include <Accelerate/Accelerate.h>
 #endif
 #include <stdlib.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
@@ -49,6 +50,8 @@
 #include "rigid.h"
 #include "spectra.h"
 #include "minimization.h"
+
+extern bool STREAM;
 
 static int NumberOfPositionVariables;
 static int NumberOfBoxVariables;
@@ -308,6 +311,12 @@ int PhononDisperionCurves(void)
   k.z=4.0*M_PI*WaveVector.z;
   k=ConvertFromXYZtoABC(k);
   max_length=sqrt(SQR(k.x)+SQR(k.y)+SQR(k.z));
+
+  if (STREAM)
+  {
+    fprintf(stderr, "Streaming phonon_dispersion not yet supported (but would be easy to code!)");
+    exit(0);
+  }
 
   // make the output directory
   mkdir("PhononDisperion",S_IRWXU);
