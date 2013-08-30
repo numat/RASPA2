@@ -18,7 +18,6 @@ fi
 AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_F77
-AC_PROG_RANLIB
 
 dnl Checks for header files.
 AC_STDC_HEADERS
@@ -26,6 +25,8 @@ AC_CHECK_HEADERS([math.h])
 AC_CHECK_HEADERS([string.h])
 AC_CHECK_HEADERS([fftw3.h])
 
+LT_INIT
+AC_CONFIG_MACRO_DIR([m4])
 
 AC_OUTPUT(Makefile \
 src/Makefile \

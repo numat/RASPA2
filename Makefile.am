@@ -3,3 +3,4 @@ SUBDIRS = src \
           molecules \
           framework \
           structures
+ACLOCAL_AMFLAGS=-I m4
