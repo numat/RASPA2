@@ -1415,6 +1415,7 @@ int ReadInputFile(char *inputfilename)
     {
       if(strcasecmp("BIGMAC",firstargument)==0) RestartStyle=BIGMAC_STYLE;
       if(strcasecmp("RASPA",firstargument)==0) RestartStyle=RASPA_STYLE;
+      if(strcasecmp("RASPA_OLD",firstargument)==0) RestartStyle=RASPA_STYLE_OLD;
     }
     if(strcasecmp("ReinitializeVelocities",keyword)==0)
     {
@@ -6483,6 +6484,8 @@ int ReadInputFile(char *inputfilename)
   {
     if(RestartStyle==RASPA_STYLE)
       ReadRestartFile();
+    else if(RestartStyle==RASPA_STYLE_OLD)
+      ReadRestartFileOld();
     for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
       InitializeReplicaBox();
   }
@@ -8301,6 +8304,221 @@ void ReadRestartFile(void)
       ComputeQuaternionCation(i);
     }
     fclose(FilePtrIn);
+  }
+}
+
+void ReadRestartFileOld(void)
+{
+  int i;
+  int NumberOfComponentsRead;
+  int extra_framework_boolean;
+  FILE *FilePtrIn;
+  char buffer[256];
+  char line[1024],keyword[1024],arguments[1024];
+  int CurrentComponentRead;
+  char ExtraFrameworkMoleculeRead[256];
+  int NumberOfMoleculesRead,AtomNumberRead,MoleculeNumberRead,FrameworkAtomNumberRead;
+  char ComponentNameRead[256];
+  VECTOR tmp;
+  double temp1,temp2,temp3;
+
+  extra_framework_boolean=FALSE;
+  for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
+  {
+    sprintf(buffer,"RestartInitial/System_%d",CurrentSystem);
+    mkdir(buffer,S_IRWXU);
+  }
+
+  for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
+  {
+    sprintf(buffer,"RestartInitial/System_%d/restart_%s_%d.%d.%d_%lf_%lf",
+            CurrentSystem,
+            Framework[CurrentSystem].Name[0],
+            NumberOfUnitCells[CurrentSystem].x,
+            NumberOfUnitCells[CurrentSystem].y,
+            NumberOfUnitCells[CurrentSystem].z,
+            (double)therm_baro_stats.ExternalTemperature[CurrentSystem],
+            (double)therm_baro_stats.ExternalPressure[CurrentSystem][CurrentIsothermPressure]*PRESSURE_CONVERSION_FACTOR);
+
+    if(!(FilePtrIn=fopen(buffer,"r")))
+    {
+      printf("Could NOT open file: %s\n",buffer);
+      exit(0);
+    }
+
+    while(fgets(line,1024,FilePtrIn))
+    {
+      // extract first word
+      strcpy(keyword,"keyword");
+      sscanf(line,"%s %[^\n]",keyword,arguments);
+
+      if(strcasecmp(keyword,"InitialFrameworkCenterOfMass:")==0)
+      {
+        fgets(line,1024,FilePtrIn);
+        fgets(line,1024,FilePtrIn);
+        sscanf(line,"%lf %lf %lf\n",&temp1,&temp2,&temp3);
+        Framework[CurrentSystem].IntialCenterOfMassPosition.x=temp1;
+        Framework[CurrentSystem].IntialCenterOfMassPosition.y=temp2;
+        Framework[CurrentSystem].IntialCenterOfMassPosition.z=temp3;
+        printf("SET DRIFT: %g %g %g\n",temp1,temp2,temp3);
+      }
+
+      if(strcasecmp(keyword,"Box:")==0)
+      {
+        fgets(line,1024,FilePtrIn);
+        fgets(line,1024,FilePtrIn);
+        sscanf(line,"%lf %lf %lf\n",&temp1,&temp2,&temp3);
+        Box[CurrentSystem].ax=(REAL)temp1;
+        Box[CurrentSystem].bx=(REAL)temp2;
+        Box[CurrentSystem].cx=(REAL)temp3;
+        fgets(line,1024,FilePtrIn);
+        sscanf(line,"%lf %lf %lf\n",&temp1,&temp2,&temp3);
+        Box[CurrentSystem].ay=(REAL)temp1;
+        Box[CurrentSystem].by=(REAL)temp2;
+        Box[CurrentSystem].cy=(REAL)temp3;
+        fgets(line,1024,FilePtrIn);
+        sscanf(line,"%lf %lf %lf\n",&temp1,&temp2,&temp3);
+        Box[CurrentSystem].az=(REAL)temp1;
+        Box[CurrentSystem].bz=(REAL)temp2;
+        Box[CurrentSystem].cz=(REAL)temp3;
+
+        InverseBoxMatrix(&Box[CurrentSystem],&InverseBox[CurrentSystem]);
+
+        //UnitCellBox[CurrentSystem]=Box[CurrentSystem];
+        //InverseUnitCellBox[CurrentSystem]=InverseBox[CurrentSystem];
+
+        CellProperties(&Box[CurrentSystem],&BoxProperties[CurrentSystem],&Volume[CurrentSystem]);
+
+        AlphaAngle[CurrentSystem]=acos(BoxProperties[CurrentSystem].bx);
+        BetaAngle[CurrentSystem]=acos(BoxProperties[CurrentSystem].by);
+        GammaAngle[CurrentSystem]=acos(BoxProperties[CurrentSystem].bz);
+
+        // determine boundary conditions from angles
+        if((BoundaryCondition[CurrentSystem]!=UNINITIALIZED_BOUNDARY_CONDITION)&&(BoundaryCondition[CurrentSystem]!=FINITE))
+        {
+          if((fabs(AlphaAngle[CurrentSystem]-90.0)>0.001)||
+             (fabs(BetaAngle[CurrentSystem]-90.0)>0.001)||
+             (fabs(GammaAngle[CurrentSystem]-90.0)>0.001))
+            BoundaryCondition[CurrentSystem]=TRICLINIC;
+          else BoundaryCondition[CurrentSystem]=RECTANGULAR;
+        }
+
+        if(Framework[CurrentSystem].FrameworkModel==NONE)
+          sprintf(Framework[CurrentSystem].Name[0],"Box");
+      }
+
+      if(strcasecmp(keyword,"Components:")==0)
+      {
+        sscanf(arguments,"%d%*[^\n]",&NumberOfComponentsRead);
+        if(NumberOfComponentsRead!=NumberOfComponents)
+          printf("Warning: NumberOfComponents does not match restart-file !\n");
+      }
+
+      if(strcasecmp(keyword,"Volume")==0)
+      {
+        sscanf(arguments,"change, maximum: %lf\n",&temp1);
+        MaximumVolumeChange[CurrentSystem]=(REAL)temp1;
+      }
+      if(strcasecmp(keyword,"Translation")==0)
+      {
+        sscanf(arguments,"change component %d [ %s ], maximum: %lf,%lf,%lf\n",
+          &CurrentComponent,
+          buffer,&temp1,&temp2,&temp3);
+        tmp.x=(REAL)temp1;
+        tmp.y=(REAL)temp2;
+        tmp.z=(REAL)temp3;
+        MaximumTranslation[CurrentSystem][CurrentComponent]=tmp;
+      }
+
+      // parse "Component: 0     Cation       96 molecules of sodium"
+      if(strcasecmp(keyword,"Component:")==0)
+      {
+        sscanf(arguments,"%d %s %d molecules of %s%*[^\n]",
+           &CurrentComponentRead,
+           ExtraFrameworkMoleculeRead,
+           &NumberOfMoleculesRead,
+           ComponentNameRead);
+        CurrentComponent=CurrentComponentRead;
+
+        if(!strncasecmp(ExtraFrameworkMoleculeRead,"Cation",MAX2(strlen(ExtraFrameworkMoleculeRead),strlen("Cation"))))
+          extra_framework_boolean=TRUE;
+        else
+          extra_framework_boolean=FALSE;
+      }
+
+      if(strcasecmp(keyword,"Framework")==0)
+      {
+        FrameworkAtomNumberRead=-1;
+        sscanf(arguments,"Atom: %d %d %[^\n]",
+           &FrameworkAtomNumberRead,
+           &CurrentFramework,
+           arguments);
+        sscanf(arguments,"Position: %lf %lf %lf %[^\n]",&temp1,&temp2,&temp3,arguments);
+        Framework[CurrentSystem].Atoms[CurrentFramework][FrameworkAtomNumberRead].Position.x=(REAL)temp1;
+        Framework[CurrentSystem].Atoms[CurrentFramework][FrameworkAtomNumberRead].Position.y=(REAL)temp2;
+        Framework[CurrentSystem].Atoms[CurrentFramework][FrameworkAtomNumberRead].Position.z=(REAL)temp3;
+
+        sscanf(arguments,"Velocity: %lf %lf %lf %[^\n]",&temp1,&temp2,&temp3,arguments);
+        Framework[CurrentSystem].Atoms[CurrentFramework][FrameworkAtomNumberRead].Velocity.x=(REAL)temp1;
+        Framework[CurrentSystem].Atoms[CurrentFramework][FrameworkAtomNumberRead].Velocity.y=(REAL)temp2;
+        Framework[CurrentSystem].Atoms[CurrentFramework][FrameworkAtomNumberRead].Velocity.z=(REAL)temp3;
+
+        sscanf(arguments,"Force: %lf %lf %lf %[^\n]",&temp1,&temp2,&temp3,arguments);
+        Framework[CurrentSystem].Atoms[CurrentFramework][FrameworkAtomNumberRead].Force.x=(REAL)temp1;
+        Framework[CurrentSystem].Atoms[CurrentFramework][FrameworkAtomNumberRead].Force.y=(REAL)temp2;
+        Framework[CurrentSystem].Atoms[CurrentFramework][FrameworkAtomNumberRead].Force.z=(REAL)temp3;
+
+        if(sscanf(arguments,"Charge: %lf%*[^\n]",&temp1))
+          Framework[CurrentSystem].Atoms[CurrentFramework][FrameworkAtomNumberRead].Charge=(REAL)temp1;
+      }
+
+      if(strcasecmp(keyword,"Molecule:")==0)
+      {
+        if(NumberOfComponents==0)
+        {
+          printf("\nReadRestartFile: component present, but not defined in inputfile\n");
+          exit(0);
+        }
+
+        MoleculeNumberRead=-1;
+        sscanf(arguments,"%d %[^\n]",
+           &MoleculeNumberRead,
+           arguments);
+
+        AtomNumberRead=-1;
+        sscanf(arguments,"Atom: %d %[^\n]",
+           &AtomNumberRead,
+           arguments);
+
+        sscanf(arguments,"Position: %lf %lf %lf %[^\n]",&temp1,&temp2,&temp3,arguments);
+        NewPosition[CurrentSystem][AtomNumberRead].x=(REAL)temp1;
+        NewPosition[CurrentSystem][AtomNumberRead].y=(REAL)temp2;
+        NewPosition[CurrentSystem][AtomNumberRead].z=(REAL)temp3;
+
+        sscanf(arguments,"Velocity: %lf %lf %lf %[^\n]",&temp1,&temp2,&temp3,arguments);
+        NewVelocity[CurrentSystem][AtomNumberRead].x=(REAL)temp1;
+        NewVelocity[CurrentSystem][AtomNumberRead].y=(REAL)temp2;
+        NewVelocity[CurrentSystem][AtomNumberRead].z=(REAL)temp3;
+
+        sscanf(arguments,"Force: %lf %lf %lf %*[^\n]",&temp1,&temp2,&temp3);
+        NewForce[CurrentSystem][AtomNumberRead].x=(REAL)temp1;
+        NewForce[CurrentSystem][AtomNumberRead].y=(REAL)temp2;
+        NewForce[CurrentSystem][AtomNumberRead].z=(REAL)temp3;
+
+        if(AtomNumberRead==Components[CurrentComponent].NumberOfAtoms-1)
+        {
+          if(extra_framework_boolean)
+            InsertCationMolecule();
+          else
+            InsertAdsorbateMolecule();
+          AtomNumberRead=0;
+        }
+      }
+    }
+    for(i=0;i<NumberOfAdsorbateMolecules[CurrentSystem];i++)
+      UpdateGroupCenterOfMassAdsorbate(i);
+    for(i=0;i<NumberOfCationMolecules[CurrentSystem];i++)
+      UpdateGroupCenterOfMassCation(i);
   }
 }
 

@@ -2026,6 +2026,9 @@ void WriteFrameworkDefinitionCIF(char * string)
       sprintf(buffer,"Movies/System_%d",CurrentSystem);
       mkdir(buffer,S_IRWXU);
 
+      // write cif-file for VASP use (orders all atom-types)
+      //===================================================================================================================
+
       sprintf(buffer,"Movies/System_%d/Framework_%d_%s_%d_%d_%d_VASP%s.cif",
               CurrentSystem,CurrentFramework,string,
               NumberOfUnitCells[CurrentSystem].x,NumberOfUnitCells[CurrentSystem].y,NumberOfUnitCells[CurrentSystem].z,
@@ -2159,9 +2162,9 @@ void WriteFrameworkDefinitionCIF(char * string)
       }
       
       
-      fprintf(FilePtr,"_cell_length_a    %g\n",BoxProperties[CurrentSystem].ax/(REAL)NumberOfUnitCells[CurrentSystem].x);
-      fprintf(FilePtr,"_cell_length_b    %g\n",BoxProperties[CurrentSystem].ay/(REAL)NumberOfUnitCells[CurrentSystem].y);
-      fprintf(FilePtr,"_cell_length_c    %g\n",BoxProperties[CurrentSystem].az/(REAL)NumberOfUnitCells[CurrentSystem].z);
+      fprintf(FilePtr,"_cell_length_a    %g\n",BoxProperties[CurrentSystem].ax);
+      fprintf(FilePtr,"_cell_length_b    %g\n",BoxProperties[CurrentSystem].ay);
+      fprintf(FilePtr,"_cell_length_c    %g\n",BoxProperties[CurrentSystem].az);
 
       fprintf(FilePtr,"_cell_angle_alpha %g\n",(REAL)AlphaAngle[CurrentSystem]*RAD2DEG);
       fprintf(FilePtr,"_cell_angle_beta  %g\n",(REAL)BetaAngle[CurrentSystem]*RAD2DEG);
@@ -2236,7 +2239,7 @@ void WriteFrameworkDefinitionCIF(char * string)
             if(fabs(pos.y)<1e-10) pos.y=fabs(pos.y);
             if(fabs(pos.z)<1e-10) pos.z=fabs(pos.z);
 
-            fprintf(FilePtr,"%-8s %-5s % -18.12f % -18.12f % -18.12f % -12g\n",
+            fprintf(FilePtr,"%-8s %-5s % -18.12g % -18.12g % -18.12g % -12g\n",
                     name,
                     symbol,
                     fabs(pos.x)<1e-12?0.0:pos.x,
@@ -2248,6 +2251,9 @@ void WriteFrameworkDefinitionCIF(char * string)
       }
       fprintf(FilePtr,"\n\n");
       fclose(FilePtr);
+
+      // write cif-file in P1 
+      //===================================================================================================================
       
       sprintf(buffer,"Movies/System_%d/Framework_%d_%s_%d_%d_%d_P1%s.cif",
               CurrentSystem,CurrentFramework,string,
@@ -2380,9 +2386,9 @@ void WriteFrameworkDefinitionCIF(char * string)
       }
       
       
-      fprintf(FilePtr,"_cell_length_a    %g\n",BoxProperties[CurrentSystem].ax/(REAL)NumberOfUnitCells[CurrentSystem].x);
-      fprintf(FilePtr,"_cell_length_b    %g\n",BoxProperties[CurrentSystem].ay/(REAL)NumberOfUnitCells[CurrentSystem].y);
-      fprintf(FilePtr,"_cell_length_c    %g\n",BoxProperties[CurrentSystem].az/(REAL)NumberOfUnitCells[CurrentSystem].z);
+      fprintf(FilePtr,"_cell_length_a    %g\n",BoxProperties[CurrentSystem].ax);
+      fprintf(FilePtr,"_cell_length_b    %g\n",BoxProperties[CurrentSystem].ay);
+      fprintf(FilePtr,"_cell_length_c    %g\n",BoxProperties[CurrentSystem].az);
       fprintf(FilePtr,"_cell_angle_alpha %g\n",(REAL)AlphaAngle[CurrentSystem]*RAD2DEG);
       fprintf(FilePtr,"_cell_angle_beta  %g\n",(REAL)BetaAngle[CurrentSystem]*RAD2DEG);
       fprintf(FilePtr,"_cell_angle_gamma %g\n",(REAL)GammaAngle[CurrentSystem]*RAD2DEG);
@@ -2450,7 +2456,7 @@ void WriteFrameworkDefinitionCIF(char * string)
         if(PseudoAtoms[Type].OxidationState!=0)
           strcat(symbol,PseudoAtoms[Type].OxidationStateString);
 
-        fprintf(FilePtr,"%-8s %-5s % -18.12f % -18.12f % -18.12f % -12g\n",
+        fprintf(FilePtr,"%-8s %-5s % -18.12g % -18.12g % -18.12g % -12g\n",
                 name,
                 symbol,
                 fabs(pos.x)<1e-12?0.0:pos.x,
@@ -2461,6 +2467,9 @@ void WriteFrameworkDefinitionCIF(char * string)
       
       fprintf(FilePtr,"\n\n");
       fclose(FilePtr);
+
+      // write cif-file using space group  (loops over asymmetric atoms)
+      //===================================================================================================================
       
       if(Framework[CurrentSystem].SpaceGroupIdentifier[CurrentFramework]>1)
       {
@@ -2592,9 +2601,9 @@ void WriteFrameworkDefinitionCIF(char * string)
         }
         
         
-        fprintf(FilePtr,"_cell_length_a    %g\n",UnitCellSize[CurrentSystem].x);
-        fprintf(FilePtr,"_cell_length_b    %g\n",UnitCellSize[CurrentSystem].y);
-        fprintf(FilePtr,"_cell_length_c    %g\n",UnitCellSize[CurrentSystem].z);
+        fprintf(FilePtr,"_cell_length_a    %g\n",UnitCellSize[CurrentSystem].x/(REAL)NumberOfUnitCells[CurrentSystem].x);
+        fprintf(FilePtr,"_cell_length_b    %g\n",UnitCellSize[CurrentSystem].y/(REAL)NumberOfUnitCells[CurrentSystem].y);
+        fprintf(FilePtr,"_cell_length_c    %g\n",UnitCellSize[CurrentSystem].z/(REAL)NumberOfUnitCells[CurrentSystem].z);
         fprintf(FilePtr,"_cell_angle_alpha %g\n",(REAL)AlphaAngle[CurrentSystem]*RAD2DEG);
         fprintf(FilePtr,"_cell_angle_beta  %g\n",(REAL)BetaAngle[CurrentSystem]*RAD2DEG);
         fprintf(FilePtr,"_cell_angle_gamma %g\n",(REAL)GammaAngle[CurrentSystem]*RAD2DEG);
@@ -2665,7 +2674,7 @@ void WriteFrameworkDefinitionCIF(char * string)
           pos=Framework[CurrentSystem].AtomsAsymmetric[CurrentFramework][i].Position;
           
           //fprintf(FilePtr,"%-8s %-5s %-4s % -12g % -12g % -12g % -7g % -7g\n",
-          fprintf(FilePtr,"%-8s %-5s % -18.12f % -18.12f % -18.12f % -7g\n",
+          fprintf(FilePtr,"%-8s %-5s % -18.12g % -18.12g % -18.12g % -7g\n",
                   name,
                   //PseudoAtoms[Type].PrintToPDBName,
                   PseudoAtoms[Type].ChemicalElement,
