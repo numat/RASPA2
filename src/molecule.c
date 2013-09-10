@@ -92,7 +92,7 @@ int ReturnBondDipole(int comp,int A1,int A2)
     B=Components[comp].BondDipoles[i].B;
     if(((A==A1)&&(B==A2))||((A==A2)&&(B==A1))) return i;
   }
-  printf("Dipole-pair is not present\n");
+  fprintf(stderr, "Dipole-pair is not present\n");
   return -1;
 }
 
@@ -104,7 +104,7 @@ int ReturnPseudoAtomNumber(char *buffer)
   for(j=0;j<NumberOfPseudoAtoms;j++)
     if(strncasecmp(PseudoAtoms[j].Name,buffer,MAX2(strlen(PseudoAtoms[j].Name),strlen(buffer)))==0) return j;
 
-  printf("ReturnPseudoAtomNumber: Error!!!! :%s\n",buffer);
+  fprintf(stderr, "ReturnPseudoAtomNumber: Error!!!! :%s\n",buffer);
   exit(0);
   return -1;
 }
@@ -138,7 +138,7 @@ int AddPseudoAtom(PSEUDO_ATOM atom)
   AlreadyPresent=FALSE;
   for(j=0;j<NumberOfPseudoAtoms;j++)
   {
-    if(strncasecmp(PseudoAtoms[j].Name,atom.Name,MAX2(strlen(PseudoAtoms[j].Name),strlen(atom.Name)))==0) 
+    if(strncasecmp(PseudoAtoms[j].Name,atom.Name,MAX2(strlen(PseudoAtoms[j].Name),strlen(atom.Name)))==0)
     {
       AlreadyPresent=TRUE;
       break;
@@ -281,7 +281,7 @@ void ReadPseudoAtomsDefinitions(void)
     sprintf(buffer,"%s/share/raspa/forcefield/%s/pseudo_atoms.def",RASPA_DIRECTORY,ForceField);
     if(!(FilePtr=fopen(buffer,"r")))
     {
-      printf("'pseudo_atoms.def' file not found and therefore not used\n");
+      fprintf(stderr, "'pseudo_atoms.def' file not found and therefore not used\n");
       return;
     }
   }
@@ -375,7 +375,7 @@ void ReadPseudoAtomsDefinitions(void)
 
     if(strcasecmp("Absolute",buffer1)==0) PseudoAtoms[i].AnisotropicType=ABSOLUTE;
     if(strcasecmp("Relative",buffer1)==0) PseudoAtoms[i].AnisotropicType=RELATIVE;
-    
+
     if((fabs(PseudoAtoms[i].Polarization.ax)<1e-10)&&(fabs(PseudoAtoms[i].Polarization.by)<1e-10)&&(fabs(PseudoAtoms[i].Polarization.cz)<1e-10))
       PseudoAtoms[i].IsPolarizable=FALSE;
     else
@@ -777,7 +777,7 @@ void ReadComponentDefinition(int comp)
 
     if(!(FilePtr=fopen(buffer,"r")))
     {
-      printf("Error:  file %s does not exists.\n",buffer);
+      fprintf(stderr, "Error:  file %s does not exists.\n",buffer);
       exit(1);
     }
   }
@@ -803,7 +803,7 @@ void ReadComponentDefinition(int comp)
 
   if(Components[comp].NumberOfAtoms<=0)
   {
-    printf("Error:  Number of atoms per molecule (%d) smaller or equal than zero \n",
+    fprintf(stderr, "Error:  Number of atoms per molecule (%d) smaller or equal than zero \n",
            Components[comp].NumberOfAtoms);
     exit(0);
   }
@@ -840,7 +840,7 @@ void ReadComponentDefinition(int comp)
   for(i=0;i<Components[comp].NumberOfAtoms;i++)
     for(j=0;j<Components[comp].NumberOfAtoms;j++)
       Components[comp].ConnectivityMatrix[i][j]=FALSE;
-  
+
   Components[comp].Positions=(VECTOR*)calloc(Components[comp].NumberOfAtoms,sizeof(VECTOR));
   Components[comp].group=(int*)calloc(Components[comp].NumberOfAtoms,sizeof(int));
 
@@ -890,7 +890,7 @@ void ReadComponentDefinition(int comp)
 
   if(Components[comp].NumberOfGroups<=0)
   {
-    printf("Error:  Number of groups per molecule (%d) smaller or equal than zero \n",
+    fprintf(stderr, "Error:  Number of groups per molecule (%d) smaller or equal than zero \n",
            Components[comp].NumberOfGroups);
     exit(0);
   }
@@ -909,7 +909,7 @@ void ReadComponentDefinition(int comp)
       Components[comp].Groups[i].Rigid=FALSE;
     else
     {
-      printf("Error:  Unknown group type (should be 'Flexible' or 'Rigid')\n");
+      fprintf(stderr, "Error:  Unknown group type (should be 'Flexible' or 'Rigid')\n");
       exit(0);
     }
 
@@ -1006,7 +1006,7 @@ void ReadComponentDefinition(int comp)
         Components[comp].Groups[i].Polarizabilites[j].cz=temp9/COULOMBIC_CONVERSION_FACTOR;
       }
     }
-    
+
   }
   Components[comp].Mass=total_mass;
 
@@ -1071,12 +1071,12 @@ void ReadComponentDefinition(int comp)
   if(Components[comp].NumberOfUreyBradleys>MaxNumberOfUreyBradleys) MaxNumberOfUreyBradleys=Components[comp].NumberOfUreyBradleys;
   if(Components[comp].NumberOfBends>MaxNumberOfBends) MaxNumberOfBends=Components[comp].NumberOfBends;
   if(Components[comp].NumberOfBendBends>MaxNumberOfBendBends) MaxNumberOfBendBends=Components[comp].NumberOfBendBends;
-  if(Components[comp].NumberOfInversionBends>MaxNumberOfInversionBends) 
+  if(Components[comp].NumberOfInversionBends>MaxNumberOfInversionBends)
     MaxNumberOfInversionBends=Components[comp].NumberOfInversionBends;
   if(Components[comp].NumberOfTorsions>MaxNumberOfTorsions) MaxNumberOfTorsions=Components[comp].NumberOfTorsions;
-  if(Components[comp].NumberOfImproperTorsions>MaxNumberOfImproperTorsions) 
+  if(Components[comp].NumberOfImproperTorsions>MaxNumberOfImproperTorsions)
      MaxNumberOfImproperTorsions=Components[comp].NumberOfImproperTorsions;
-  if(Components[comp].NumberOfOutOfPlanes>MaxNumberOfOutOfPlanes) 
+  if(Components[comp].NumberOfOutOfPlanes>MaxNumberOfOutOfPlanes)
      MaxNumberOfOutOfPlanes=Components[comp].NumberOfOutOfPlanes;
 
   if(Components[comp].NumberOfBondBonds>MaxNumberOfBondBonds) MaxNumberOfBondBonds=Components[comp].NumberOfBondBonds;
@@ -1087,9 +1087,9 @@ void ReadComponentDefinition(int comp)
   if(Components[comp].NumberOfIntraVDW>MaxNumberOfIntraVDW) MaxNumberOfIntraVDW=Components[comp].NumberOfIntraVDW;
   if(Components[comp].NumberOfIntraChargeCharge>MaxNumberOfIntraChargeCharge)
      MaxNumberOfIntraChargeCharge=Components[comp].NumberOfIntraChargeCharge;
-  if(Components[comp].NumberOfIntraChargeBondDipole>MaxNumberOfIntraChargeBondDipole) 
+  if(Components[comp].NumberOfIntraChargeBondDipole>MaxNumberOfIntraChargeBondDipole)
      MaxNumberOfIntraChargeBondDipole=Components[comp].NumberOfIntraChargeBondDipole;
-  if(Components[comp].NumberOfIntraBondDipoleBondDipole>MaxNumberOfIntraBondDipoleBondDipole) 
+  if(Components[comp].NumberOfIntraBondDipoleBondDipole>MaxNumberOfIntraBondDipoleBondDipole)
      MaxNumberOfIntraBondDipoleBondDipole=Components[comp].NumberOfIntraBondDipoleBondDipole;
 
   // allocate bonds
@@ -1329,7 +1329,7 @@ void ReadComponentDefinition(int comp)
           Components[comp].NumberOfConstraintBonds++;
           break;
         default:
-          printf("Undefined Bond potential in routine 'ReadComponentDefinition' ('molecule.c')\n");
+          fprintf(stderr, "Undefined Bond potential in routine 'ReadComponentDefinition' ('molecule.c')\n");
           exit(0);
           break;
        }
@@ -1343,7 +1343,7 @@ void ReadComponentDefinition(int comp)
 
     nr=0;
     for(B=0;B<Components[comp].NumberOfAtoms;B++)
-      if(Components[comp].ConnectivityMatrix[A][B]) 
+      if(Components[comp].ConnectivityMatrix[A][B])
         Components[comp].ConnectivityList[A][nr++]=B;
   }
 
@@ -1457,7 +1457,7 @@ void ReadComponentDefinition(int comp)
           Components[comp].NumberOfConstraintBends++;
           break;
         default:
-          printf("Undefined Bend potential in routine 'ReadComponentDefinition' ('molecule.c')\n");
+          fprintf(stderr, "Undefined Bend potential in routine 'ReadComponentDefinition' ('molecule.c')\n");
           exit(0);
           break;
        }
@@ -1575,7 +1575,7 @@ void ReadComponentDefinition(int comp)
         case FIXED_UREYBRADLEY:
           break;
         default:
-          printf("Undefined Urey-Bradley potential in routine 'ReadComponentDefinition' ('molecule.c')\n");
+          fprintf(stderr, "Undefined Urey-Bradley potential in routine 'ReadComponentDefinition' ('molecule.c')\n");
           exit(0);
           break;
        }
@@ -1646,7 +1646,7 @@ void ReadComponentDefinition(int comp)
           Components[comp].NumberOfConstraintInversionBends++;
           break;
         default:
-          printf("Undefined Inversion potential in routine 'ReadComponentDefinition' ('molecule.c')\n");
+          fprintf(stderr, "Undefined Inversion potential in routine 'ReadComponentDefinition' ('molecule.c')\n");
           exit(0);
           break;
        }
@@ -1826,7 +1826,7 @@ void ReadComponentDefinition(int comp)
           Components[comp].NumberOfConstraintTorsions++;
           break;
         default:
-          printf("Undefined Torsion potential in routine 'ReadComponentDefinition' ('molecule.c')\n");
+          fprintf(stderr, "Undefined Torsion potential in routine 'ReadComponentDefinition' ('molecule.c')\n");
           exit(0);
           break;
        }
@@ -2005,7 +2005,7 @@ void ReadComponentDefinition(int comp)
           Components[comp].NumberOfConstraintImproperTorsions++;
           break;
         default:
-          printf("Undefined Improper Torsion potential in routine 'ReadComponentDefinition' ('molecule.c')\n");
+          fprintf(stderr, "Undefined Improper Torsion potential in routine 'ReadComponentDefinition' ('molecule.c')\n");
           exit(0);
           break;
       }
@@ -2050,7 +2050,7 @@ void ReadComponentDefinition(int comp)
           Components[comp].BondBondArguments[i][0]/=ENERGY_TO_KELVIN;
           break;
         default:
-          printf("Undefined Bond-Bond potential in routine 'ReadComponentDefinition' ('molecule.c')\n");
+          fprintf(stderr, "Undefined Bond-Bond potential in routine 'ReadComponentDefinition' ('molecule.c')\n");
           exit(0);
           break;
       }
@@ -2147,7 +2147,7 @@ void ReadComponentDefinition(int comp)
           Components[comp].BondBendArguments[i][1]*=DEG2RAD;
           break;
         default:
-          printf("Undefined Bond-Bend potential in routine 'ReadComponentDefinition' ('molecule.c')\n");
+          fprintf(stderr, "Undefined Bond-Bend potential in routine 'ReadComponentDefinition' ('molecule.c')\n");
           exit(0);
           break;
       }
@@ -2156,7 +2156,7 @@ void ReadComponentDefinition(int comp)
 
   // reading Bend/Bend cross term-data
   if(Components[comp].NumberOfBendBends>0)
-  { 
+  {
     ReadLine(line,1024,FilePtr); // skip line
     for(i=0;i<Components[comp].NumberOfBendBends;i++)
     {
@@ -2203,7 +2203,7 @@ void ReadComponentDefinition(int comp)
           Components[comp].BendBendArguments[i][2]*=DEG2RAD;
           break;
         default:
-          printf("Undefined Bend-Bend potential in routine 'ReadComponentDefinition' ('molecule.c')\n");
+          fprintf(stderr, "Undefined Bend-Bend potential in routine 'ReadComponentDefinition' ('molecule.c')\n");
           exit(0);
           break;
       }
@@ -2249,7 +2249,7 @@ void ReadComponentDefinition(int comp)
           Components[comp].BondTorsionArguments[i][2]*=KCAL_PER_MOL_TO_ENERGY;
           break;
         default:
-          printf("Undefined Bond-Torsion potential in routine 'ReadComponentDefinition' ('molecule.c')\n");
+          fprintf(stderr, "Undefined Bond-Torsion potential in routine 'ReadComponentDefinition' ('molecule.c')\n");
           exit(0);
           break;
       }
@@ -2349,7 +2349,7 @@ void ReadComponentDefinition(int comp)
           Components[comp].BendTorsionArguments[i][2]*=DEG2RAD;
           break;
         default:
-          printf("Undefined Bend-Torsion potential in routine 'ReadComponentDefinition' ('molecule.c')\n");
+          fprintf(stderr, "Undefined Bend-Torsion potential in routine 'ReadComponentDefinition' ('molecule.c')\n");
           exit(0);
           break;
       }
@@ -2458,7 +2458,7 @@ void ReadComponentDefinition(int comp)
   // allocate config-moves
   Components[comp].NumberOfUnchangedAtomsConfig=(int*)calloc(Components[comp].NumberOfConfigMoves,sizeof(int));
   Components[comp].UnchangedAtomsConfig=(int**)calloc(Components[comp].NumberOfConfigMoves,sizeof(int*));
-   
+
   for(i=0;i<Components[comp].NumberOfConfigMoves;i++)
   {
     ReadLine(line,1024,FilePtr);
@@ -2808,10 +2808,10 @@ void PrintAdsorbateMolecules(void)
 
   for(i=0;i<NumberOfAdsorbateMolecules[CurrentSystem];i++)
   {
-    printf("Index: %d\n",i);
+    fprintf(stderr, "Index: %d\n",i);
     nr_atoms=Adsorbates[CurrentSystem][i].NumberOfAtoms;
     for(j=0;j<nr_atoms;j++)
-      printf("\tAtom: %d Positon: %f %f %f\n",
+      fprintf(stderr, "\tAtom: %d Positon: %f %f %f\n",
         j,
         (double)Adsorbates[CurrentSystem][i].Atoms[j].Position.x,
         (double)Adsorbates[CurrentSystem][i].Atoms[j].Position.y,
@@ -3011,10 +3011,10 @@ void PrintCationMolecules(void)
 
   for(i=0;i<NumberOfCationMolecules[CurrentSystem];i++)
   {
-    printf("Index: %d\n",i);
+    fprintf(stderr, "Index: %d\n",i);
     nr_atoms=Cations[CurrentSystem][i].NumberOfAtoms;
     for(j=0;j<nr_atoms;j++)
-      printf("\tAtom: %d Positon: %f %f %f\n",
+      fprintf(stderr, "\tAtom: %d Positon: %f %f %f\n",
         j,
         (double)Cations[CurrentSystem][i].Atoms[j].Position.x,
         (double)Cations[CurrentSystem][i].Atoms[j].Position.y,
@@ -3134,7 +3134,7 @@ void UpdateGroupCenterOfMassAdsorbate(int m)
       com.x/=TotalMass;
       com.y/=TotalMass;
       com.z/=TotalMass;
-      Adsorbates[CurrentSystem][m].Groups[l].CenterOfMassPosition=com; 
+      Adsorbates[CurrentSystem][m].Groups[l].CenterOfMassPosition=com;
     }
   }
 }
@@ -3898,7 +3898,7 @@ void AdjustVelocitiesToTemperature(void)
     if(Framework[CurrentSystem].FrameworkModels[fr]==FLEXIBLE)
     {
       for(i=0;i<Framework[CurrentSystem].NumberOfAtoms[fr];i++)
-      {     
+      {
         Framework[CurrentSystem].Atoms[fr][i].Velocity.x*=FactorTranslational;
         Framework[CurrentSystem].Atoms[fr][i].Velocity.y*=FactorTranslational;
         Framework[CurrentSystem].Atoms[fr][i].Velocity.z*=FactorTranslational;
@@ -4679,12 +4679,12 @@ void RemoveVelocityDrift(void)
         {
           DegreesOfFreedom[CurrentSystem]-=3;
           DegreesOfFreedomTranslation[CurrentSystem]-=3;
-          if(!NumberOfAdsorbateMolecules[CurrentSystem]) 
+          if(!NumberOfAdsorbateMolecules[CurrentSystem])
           {
             DegreesOfFreedomCations[CurrentSystem]-=3;
             DegreesOfFreedomTranslationalCations[CurrentSystem]-=3;
           }
-          if(!NumberOfCationMolecules[CurrentSystem]) 
+          if(!NumberOfCationMolecules[CurrentSystem])
           {
             DegreesOfFreedomAdsorbates[CurrentSystem]-=3;
             DegreesOfFreedomTranslationalAdsorbates[CurrentSystem]-=3;
@@ -4819,7 +4819,7 @@ int ReturnAtomBondedToHydrogen(int Type,int c)
     if(A==c) return B;
     if(B==c) return A;
   }
-  printf("Error in bonding\n");
+  fprintf(stderr, "Error in bonding\n");
   return -1;
 }
 
@@ -4847,7 +4847,7 @@ void CalculateAnisotropicSites(void)
         switch(Framework[CurrentSystem].Connectivity[f1][i])
         {
           case 0:
-            printf("Error in routine 'CalculateAnisotropicSites'\n");
+            fprintf(stderr, "Error in routine 'CalculateAnisotropicSites'\n");
             exit(0);
             break;
           case 1:
@@ -4928,7 +4928,7 @@ void CalculateAnisotropicSites(void)
           case 4:
             break;
           default:
-            printf("ERROR: undefined anisotropic atom with connectivity: %d\n",Framework[CurrentSystem].Connectivity[f1][i]);
+            fprintf(stderr, "ERROR: undefined anisotropic atom with connectivity: %d\n",Framework[CurrentSystem].Connectivity[f1][i]);
             exit(0);
             break;
         }
@@ -4953,7 +4953,7 @@ void CalculateAnisotropicSites(void)
         switch(Components[TypeMolA].Connectivity[k])
         {
           case 0:
-            printf("Error in routine 'CalculateAnisotropicSites'\n");
+            fprintf(stderr, "Error in routine 'CalculateAnisotropicSites'\n");
             break;
           case 1:
             A=Components[TypeMolA].ConnectivityList[k][0];
@@ -5030,7 +5030,7 @@ void CalculateAnisotropicSites(void)
             }
             break;
           default:
-            printf("ERROR: undefined anisotropic atom with connecvity: %d\n",Components[TypeMolA].Connectivity[k]);
+            fprintf(stderr, "ERROR: undefined anisotropic atom with connecvity: %d\n",Components[TypeMolA].Connectivity[k]);
             exit(0);
             break;
         }
@@ -5056,7 +5056,7 @@ void CalculateAnisotropicSites(void)
         switch(Components[TypeMolA].Connectivity[k])
         {
           case 0:
-            printf("Error in routine 'CalculateAnisotropicSites'\n");
+            fprintf(stderr, "Error in routine 'CalculateAnisotropicSites'\n");
             break;
           case 1:
             A=Components[TypeMolA].ConnectivityList[k][0];
@@ -5133,7 +5133,7 @@ void CalculateAnisotropicSites(void)
             }
             break;
           default:
-            printf("ERROR: undefined anisotropic atom with connecvity: %d\n",Components[TypeMolA].Connectivity[k]);
+            fprintf(stderr, "ERROR: undefined anisotropic atom with connecvity: %d\n",Components[TypeMolA].Connectivity[k]);
             exit(0);
             break;
         }
@@ -5162,7 +5162,7 @@ void ReadBiasingProfile(int comp)
 
   if((FilePtr=fopen(Components[comp].BiasingFunctionName,"r")))
   {
-    printf("opening Biasing-file for reading\n");
+    fprintf(stderr, "opening Biasing-file for reading\n");
 
     fscanf(FilePtr,"# %d%*[^\n]",&n);fscanf(FilePtr,"%*c");
     Components[comp].BiasingFunction.n=n;
@@ -5295,7 +5295,7 @@ void ReadBiasingProfile(int comp)
   }
 }
 
-/********************************************************************************************************* 
+/*********************************************************************************************************
  * Name       | ValidFractionalPoint                                                                     *
  * ----------------------------------------------------------------------------------------------------- *
  * Function   | Determines whether a fractional position is allowed or not.                              *
@@ -5316,7 +5316,7 @@ int ValidFractionalPoint(int i, POINT s)
   return ValidCartesianPoint(i,pos);
 }
 
-/********************************************************************************************************* 
+/*********************************************************************************************************
  * Name       | ValidCartesianPoint                                                                      *
  * ----------------------------------------------------------------------------------------------------- *
  * Function   | Determines whether a Cartesian position is allowed or not.                               *
@@ -5405,7 +5405,7 @@ int ValidCartesianPoint(int i, POINT pos)
             if((rr<SQR(Components[i].RestrictCylinderRadius[k]))&&(s.z>=Components[i].RestrictCylinderABC_Min[k].z)&&(s.z<=Components[i].RestrictCylinderABC_Max[k].z)) return TRUE;
             break;
           default:
-            printf("ERROR: unknown CylinderDirection in ValidCartesianPoint()\n");
+            fprintf(stderr, "ERROR: unknown CylinderDirection in ValidCartesianPoint()\n");
             exit(0);
             break;
         }
@@ -5528,7 +5528,7 @@ void ReadRestartPseudoAtoms(FILE *FilePtr)
   fread(&Check,1,sizeof(REAL),FilePtr);
   if(fabs(Check-123456789.0)>1e-10)
   {
-    printf("Error in binary restart-file (ReadRestartPseudoAtoms)\n");
+    fprintf(stderr, "Error in binary restart-file (ReadRestartPseudoAtoms)\n");
     exit(0);
   }
 
@@ -5696,7 +5696,7 @@ void ReadRestartMolecules(FILE *FilePtr)
   fread(&Check,1,sizeof(REAL),FilePtr);
   if(fabs(Check-123456789.0)>1e-10)
   {
-    printf("Error in binary restart-file (ReadRestartMolecules)\n");
+    fprintf(stderr, "Error in binary restart-file (ReadRestartMolecules)\n");
     exit(0);
   }
 }
@@ -6301,7 +6301,7 @@ void ReadRestartComponent(FILE *FilePtr)
     fread(Components[i].Bends,sizeof(QUAD),Components[i].NumberOfBends,FilePtr);
     fread(Components[i].BendType,sizeof(int),Components[i].NumberOfBends,FilePtr);
     fread(Components[i].BendArguments,sizeof(REAL[MAX_BEND_POTENTIAL_ARGUMENTS]),Components[i].NumberOfBends,FilePtr);
-   
+
     // allocate urey-bradleys
     Components[i].UreyBradleys=(TRIPLE*)calloc(Components[i].NumberOfUreyBradleys,sizeof(TRIPLE));
     Components[i].UreyBradleyType=(int*)calloc(Components[i].NumberOfUreyBradleys,sizeof(int));
@@ -6490,7 +6490,7 @@ void ReadRestartComponent(FILE *FilePtr)
   fread(&Check,1,sizeof(REAL),FilePtr);
   if(fabs(Check-123456789.0)>1e-10)
   {
-    printf("Error in binary restart-file (ReadRestartComponent)\n");
+    fprintf(stderr, "Error in binary restart-file (ReadRestartComponent)\n");
     exit(0);
   }
 }

@@ -50,7 +50,7 @@
 // velocities. Only if the particles end up in different cages do we get a contribution (the other
 // two possibilities cancel exactly).
 
-// As input the routine needs 
+// As input the routine needs
 // (1) a file "window_confs.dat" with center-of-mass coordinates of the particle on top of the barrier.
 // (2) a windows-center point (the location of the barrier).
 // (3) a vector describing the direction of reaction coordinate. This can often be chosen
@@ -96,7 +96,7 @@ int ReadMoleculePosition(FILE *fileptr)
         &Adsorbates[CurrentSystem][i].Atoms[j].ReferencePosition.x,&Adsorbates[CurrentSystem][i].Atoms[j].ReferencePosition.y,
         &Adsorbates[CurrentSystem][i].Atoms[j].ReferencePosition.z,&Adsorbates[CurrentSystem][i].Atoms[j].ReferenceVelocity.x,
         &Adsorbates[CurrentSystem][i].Atoms[j].ReferenceVelocity.y,&Adsorbates[CurrentSystem][i].Atoms[j].ReferenceVelocity.z)==EOF) return EOF;
-      printf("%g %g %g\n",
+      fprintf(stderr, "%g %g %g\n",
          Adsorbates[CurrentSystem][i].Atoms[j].ReferencePosition.x,
          Adsorbates[CurrentSystem][i].Atoms[j].ReferencePosition.y,
          Adsorbates[CurrentSystem][i].Atoms[j].ReferencePosition.z);
@@ -208,7 +208,7 @@ void SetBarierNormal(void)
       s.z=0.0;
       break;
   }
- 
+
   BarrierNormal[CurrentSystem]=s;
 }
 
@@ -498,8 +498,8 @@ int BarrierRecrossing(void)
 
     if(!(FilePtr[CurrentSystem]=fopen(buffer,"r")))
     {
-      printf("Error opening input-file 'configurations.data'\n");
-      exit(1); 
+      fprintf(stderr, "Error opening input-file 'configurations.data'\n");
+      exit(1);
     }
 
     count[CurrentSystem]=0;
@@ -532,7 +532,7 @@ int BarrierRecrossing(void)
             Adsorbates[CurrentSystem][0].Atoms[ReactionBead].ReferencePosition.x,
             Adsorbates[CurrentSystem][0].Atoms[ReactionBead].ReferencePosition.y,
             Adsorbates[CurrentSystem][0].Atoms[ReactionBead].ReferencePosition.z);
-          
+
         for(k=0;k<NumberOfVelocities[CurrentSystem];k++)
         {
           // store the positions of the adsorbates to the reference positions
@@ -598,7 +598,7 @@ int BarrierRecrossing(void)
           //InitializeForces();
           InitializeForces();
           TempStartA=2.0*UKinetic[CurrentSystem]/(K_B*DegreesOfFreedom[CurrentSystem]);
- 
+
           drift=0.0;
           DistanceAToPlaneABC=0.0;
           for(index=0;index<iterations[CurrentSystem];index++)
@@ -617,7 +617,7 @@ int BarrierRecrossing(void)
             // only two contributions, the other two cancel by construction
             if((index==0)||(DistanceAToPlaneXYZ>0.0))
               Kt[CurrentSystem][index]+=0.5*Qdot;
-            else 
+            else
               Kt[CurrentSystem][index]-=0.5*Qdot;
 
             // keep track of the drift in the energy during integration
@@ -668,7 +668,7 @@ int BarrierRecrossing(void)
             // only two contributions, the other two cancel by construction
             if((index==0)||DistanceBToPlaneXYZ<=0.0)
               Kt[CurrentSystem][index]+=0.5*Qdot;
-            else 
+            else
               Kt[CurrentSystem][index]-=0.5*Qdot;
 
             // keep track of the drift in the energy during integration
@@ -708,7 +708,7 @@ int BarrierRecrossing(void)
           fprintf(FilePtrOut,"%d %lf %lf\n",i,(double)((REAL)i*DeltaT),(double)(Kt[CurrentSystem][i]/(QdotAv[CurrentSystem])));
         fclose(FilePtrOut);
       }
-    } 
+    }
   }
 
   // close the reading files

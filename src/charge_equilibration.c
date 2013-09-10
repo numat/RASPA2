@@ -17,7 +17,7 @@
 
 // Literature:
 // ===========
-// C.E. Wilmer and R.Q. Snurr,  "Towards rapid computational screening of metal-organic frameworks for carbon dioxide capture: 
+// C.E. Wilmer and R.Q. Snurr,  "Towards rapid computational screening of metal-organic frameworks for carbon dioxide capture:
 //    Calculation of framework charges via charge equilibration",Chem. Eng. J., 171(3), 775-781,2011
 // A.K. Rappe and Goddard, "charge equilibration for molecular-dynamics simulation", J. Phys. Chem., 95(8), 3358-3363, 1991
 
@@ -46,7 +46,7 @@ void SolveMatrix(REAL_MATRIX A,REAL *b,REAL *x);
 int GetChargeEquilibrationIndexFromElementName(char *s);
 
 REAL *J,*X,*Xc,*R;
-int *HydrogenList; 
+int *HydrogenList;
 int HydroIndex;
 VECTOR *Pos;
 static REAL Qtot=0.0;
@@ -183,13 +183,13 @@ REAL ReferenceTableX(int type,int index)
 
   if(PseudoAtoms[type].OxidationState==0)
   {
-    TempEA=ChargeEquilibrationData[index].ElectronAffinity; 
-    TempIP=ChargeEquilibrationData[index].IonizationEnergy[0]; 
+    TempEA=ChargeEquilibrationData[index].ElectronAffinity;
+    TempIP=ChargeEquilibrationData[index].IonizationEnergy[0];
   }
   else
   {
-    TempEA=ChargeEquilibrationData[index].IonizationEnergy[PseudoAtoms[type].OxidationState-1]; 
-    TempIP=ChargeEquilibrationData[index].IonizationEnergy[PseudoAtoms[type].OxidationState]; 
+    TempEA=ChargeEquilibrationData[index].IonizationEnergy[PseudoAtoms[type].OxidationState-1];
+    TempIP=ChargeEquilibrationData[index].IonizationEnergy[PseudoAtoms[type].OxidationState];
   }
 
   return 0.5*(TempEA+TempIP);
@@ -204,15 +204,15 @@ REAL ReferenceTableJ(int type,int index)
 
   if(PseudoAtoms[type].OxidationState==0)
   {
-    TempEA=ChargeEquilibrationData[index].ElectronAffinity; 
-    TempIP=ChargeEquilibrationData[index].IonizationEnergy[0]; 
+    TempEA=ChargeEquilibrationData[index].ElectronAffinity;
+    TempIP=ChargeEquilibrationData[index].IonizationEnergy[0];
   }
   else
   {
-    TempEA=ChargeEquilibrationData[index].IonizationEnergy[PseudoAtoms[type].OxidationState-1]; 
-    TempIP=ChargeEquilibrationData[index].IonizationEnergy[PseudoAtoms[type].OxidationState]; 
+    TempEA=ChargeEquilibrationData[index].IonizationEnergy[PseudoAtoms[type].OxidationState-1];
+    TempIP=ChargeEquilibrationData[index].IonizationEnergy[PseudoAtoms[type].OxidationState];
   }
- 
+
   return (TempIP-TempEA);
 }
 
@@ -223,15 +223,15 @@ REAL ReferenceTableXc(int type,int index)
 
   if(PseudoAtoms[type].OxidationState==0)
   {
-    TempEA=ChargeEquilibrationData[index].ElectronAffinity; 
-    TempIP=ChargeEquilibrationData[index].IonizationEnergy[0]; 
+    TempEA=ChargeEquilibrationData[index].ElectronAffinity;
+    TempIP=ChargeEquilibrationData[index].IonizationEnergy[0];
   }
   else
   {
-    TempEA=ChargeEquilibrationData[index].IonizationEnergy[PseudoAtoms[type].OxidationState-1]; 
-    TempIP=ChargeEquilibrationData[index].IonizationEnergy[PseudoAtoms[type].OxidationState]; 
+    TempEA=ChargeEquilibrationData[index].IonizationEnergy[PseudoAtoms[type].OxidationState-1];
+    TempIP=ChargeEquilibrationData[index].IonizationEnergy[PseudoAtoms[type].OxidationState];
   }
- 
+
   return (TempIP-TempEA)*PseudoAtoms[type].OxidationState;
 }
 
@@ -244,13 +244,13 @@ int GetChargeEquilibrationIndexFromElementName(char *s)
   return -1;
 }
 
-REAL CoulombIntegral(REAL r, REAL a, REAL b) 
+REAL CoulombIntegral(REAL r, REAL a, REAL b)
 {
   REAL orbitalOverlapTerm;
 
-  orbitalOverlapTerm=exp(-(a/b)*r*r)*(1.0/r-a*(1.0-r/b));  
+  orbitalOverlapTerm=exp(-(a/b)*r*r)*(1.0/r-a*(1.0-r/b));
 
-  return 1.0/r-orbitalOverlapTerm;       
+  return 1.0/r-orbitalOverlapTerm;
 }
 
 
@@ -263,14 +263,14 @@ REAL getJ(int i, int j)
   REAL sigmaStar,sigma;
   REAL orbital,alphaStar,betaStar;
   int aVnum,bVnum,cVnum;
-  REAL h,b; 
+  REAL h,b;
   REAL alpha,beta;
 
   aVnum=3;
   bVnum=3;
   cVnum=3;
 
-  REAL k = 14.4; // [Angstroms * electron volts] 
+  REAL k = 14.4; // [Angstroms * electron volts]
   REAL lambda = 1.2; // Global hardness scaling parameter
   REAL eta=50.0;
 
@@ -294,15 +294,15 @@ REAL getJ(int i, int j)
 
       r2=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
       r=sqrt(r2);
-	
+
       a=sqrt(J[i]*J[j])/k;
       orbitalOverlapTerm=exp(-(a*a*r2))*(2.0*a-a*a*r-1.0/r);
-      
+
       Jab=lambda*(k/2.0)*((1.0/r)+orbitalOverlapTerm);
-	
+
       return Jab;
     }
-  } 
+  }
   else if(ChargeEquilibrationPeriodic==TRUE)
   {
     if(ChargeEquilibrationEwald==FALSE)
@@ -326,7 +326,7 @@ REAL getJ(int i, int j)
                 dr.z=u*Box[0].az+v*Box[0].bz+w*Box[0].cz;
                 r2=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
                 r=sqrt(r2);
-                	
+
                 a=sqrt(J[i]*J[j])/k;
                 orbitalOverlapTerm=exp(-(a*a*r2))*(2.0*a-a*a*r-1.0/r);
 
@@ -336,7 +336,7 @@ REAL getJ(int i, int j)
           }
         }
         return J[i]+lambda*(k/2.0)*sigmaStar;
-      } 
+      }
       else
       {
         sigma=0;
@@ -354,20 +354,20 @@ REAL getJ(int i, int j)
 
               a=sqrt(J[i]*J[j])/k;
               orbitalOverlapTerm=exp(-(a*a*r2))*(2.0*a-a*a*r-1.0/r);
-              
+
               sigma+=(1.0/r)+orbitalOverlapTerm;
             }
           }
         }
         return lambda*(k/2.0)*sigma;
       }
-    } 
+    }
     else
     {
       //////////////////////////////////////////////////////////////////////
       // Ewald sums                                                       //
       //////////////////////////////////////////////////////////////////////
-      if (i==j) 
+      if (i==j)
       {
         // Orbital energy term
         orbital = 0;
@@ -391,13 +391,13 @@ REAL getJ(int i, int j)
 
                 a=sqrt(J[i]*J[j])/k;
                 orbitalOverlapTerm=exp(-(a*a*r2))*(2.0*a-a*a*r-1.0/r);
-                
+
                 orbital+=orbitalOverlapTerm;
               }
             }
           }
         }
-	
+
         // Real-space Coulomb component
         alphaStar=0;
         for(u=-aVnum;u<=aVnum;u++)
@@ -409,7 +409,7 @@ REAL getJ(int i, int j)
               if((u==0)&&(v==0)&&(w==0))
               {
                 // do nothing
-              } 
+              }
               else
               {
                 dr.x=u*Box[0].ax+v*Box[0].bx+w*Box[0].cx;
@@ -417,7 +417,7 @@ REAL getJ(int i, int j)
                 dr.z=u*Box[0].az+v*Box[0].bz+w*Box[0].cz;
                 r2=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
                 r=sqrt(r2);
-                
+
                 alphaStar+=erfc(r/eta)/r;
               }
             }
@@ -426,7 +426,7 @@ REAL getJ(int i, int j)
 
         // K-space component
         betaStar=0;
-        h=0.0; b=0.0; 
+        h=0.0; b=0.0;
         for(u=-aVnum;u<=aVnum;u++)
         {
           for(v=-bVnum;v<=bVnum;v++)
@@ -442,16 +442,16 @@ REAL getJ(int i, int j)
                 kv.x=u*InverseBox[0].ax+v*InverseBox[0].bx+w*InverseBox[0].cx;
                 kv.y=u*InverseBox[0].ay+v*InverseBox[0].by+w*InverseBox[0].cy;
                 kv.z=u*InverseBox[0].az+v*InverseBox[0].bz+w*InverseBox[0].cz;
-                
+
                 h=sqrt(SQR(kv.x)+SQR(kv.y)+SQR(kv.z));
                 b=0.5*h*eta;
-                
+
                 betaStar+=1.0/(h*h)*exp(-b*b);
               }
             }
           }
         }
-        betaStar*=4.0*M_PI/Volume[0]; 
+        betaStar*=4.0*M_PI/Volume[0];
 
         return J[i]+lambda*(k/2.0)*(alphaStar+betaStar+orbital-2.0/(eta*sqrt(M_PI)));
       }
@@ -470,15 +470,15 @@ REAL getJ(int i, int j)
               dr.z=Pos[i].z-Pos[j].z+u*Box[0].az+v*Box[0].bz+w*Box[0].cz;
               r2=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
               r=sqrt(r2);
-              
+
               a=sqrt(J[i]*J[j])/k;
-              orbitalOverlapTerm=exp(-(a*a*r2))*(2.0*a-a*a*r-1.0/r); 
-              
+              orbitalOverlapTerm=exp(-(a*a*r2))*(2.0*a-a*a*r-1.0/r);
+
               orbital+=orbitalOverlapTerm;
             }
           }
         }
-	
+
         // Real-space Coulomb component
         alpha=0.0;
         for(u=-aVnum;u<=aVnum;u++)
@@ -492,15 +492,15 @@ REAL getJ(int i, int j)
               dr.z=Pos[i].z-Pos[j].z+u*Box[0].az+v*Box[0].bz+w*Box[0].cz;
               r2=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
               r=sqrt(r2);
-              
+
               alpha+=erfc(r/eta)/r;
             }
           }
         }
-        
+
         // K-space component
         beta=0.0;
-        h=0.0; b=0.0; 
+        h=0.0; b=0.0;
         for(u=-aVnum;u<=aVnum;u++)
         {
           for(v=-bVnum;v<=bVnum;v++)
@@ -516,28 +516,28 @@ REAL getJ(int i, int j)
                 kv.x= u*InverseBox[0].ax+v*InverseBox[0].bx+w*InverseBox[0].cx;
                 kv.y= u*InverseBox[0].ay+v*InverseBox[0].by+w*InverseBox[0].cy;
                 kv.z= u*InverseBox[0].az+v*InverseBox[0].bz+w*InverseBox[0].cz;
-                
+
                 h=sqrt(SQR(kv.x)+SQR(kv.y)+SQR(kv.z));
                 b=0.5*h*eta;
-                
+
                 dr.x=Pos[i].x-Pos[j].x;
                 dr.y=Pos[i].y-Pos[j].y;
                 dr.z=Pos[i].z-Pos[j].z;
-                
+
                 beta+=cos(kv.x*dr.x+kv.y*dr.y+kv.z*dr.z )/(h*h)*exp(-b*b);
               }
             }
           }
         }
-        beta*=4.0*M_PI/Volume[0]; 
-		
+        beta*=4.0*M_PI/Volume[0];
+
         return lambda*(k/2.0)*(alpha+beta+orbital);
       }
     }
-  } 
+  }
   else
   {
-    printf("Serious error specifying periodic boundary conditions. Exiting\n");
+    fprintf(stderr, "Serious error specifying periodic boundary conditions. Exiting\n");
     exit(1);
   }
 }
@@ -545,7 +545,7 @@ REAL getJ(int i, int j)
 void Qeq(REAL *Q)
 {
   int i,j;
-  REAL JQSum; 
+  REAL JQSum;
 
   REAL_MATRIX A;
   REAL *b, *x0;
@@ -578,19 +578,19 @@ void Qeq(REAL *Q)
   // compute electronegativity of the atoms
   for(i=0;i<size;i++)
   {
-    JQSum=0.0; 
+    JQSum=0.0;
     for(j=0;j<size;j++)
     {
       A.element[i][j]=getJ(i, j);
-      JQSum=JQSum+A.element[i][j]*Q[j]; 
+      JQSum=JQSum+A.element[i][j]*Q[j];
     }
-    x0[i]=(X[i]-Xc[i])+JQSum; 
+    x0[i]=(X[i]-Xc[i])+JQSum;
   }
 
   for(i=1;i<size;i++)
     if(fabs(x0[i]-x0[0])>1e-5)
     {
-      printf("ERROR in charge-equilibration: The electronegativity of some atoms is different!\n");
+      fprintf(stderr, "ERROR in charge-equilibration: The electronegativity of some atoms is different!\n");
       exit(0);
     }
 
@@ -601,7 +601,7 @@ void Qeq(REAL *Q)
 // Assumptions: A x = b, A is a MxN matrix, M = rows, N = cols, x is a vector, b is vector
 // matrix has more rows than columns
 // number of rows of matrix is equal to size of the vector x
-void SolveMatrix(REAL_MATRIX A,REAL *b,REAL *x) 
+void SolveMatrix(REAL_MATRIX A,REAL *b,REAL *x)
 {
   int i, j, k;
   int N,M;
@@ -621,7 +621,7 @@ void SolveMatrix(REAL_MATRIX A,REAL *b,REAL *x)
   d=(REAL*)calloc(N,sizeof(REAL));
 
   /* Perform Householder transformation */
-  for(i=0;i<N;i++) 
+  for(i=0;i<N;i++)
   {
     aii=A.element[i][i];
     max_norm=0.0;
@@ -632,9 +632,9 @@ void SolveMatrix(REAL_MATRIX A,REAL *b,REAL *x)
       r+=A.element[k][i]*A.element[k][i];
     }
 
-    if(r==0) 
+    if(r==0)
     {
-      printf("ERROR in charge-equilibration: Matrix is rank deficient.\n");
+      fprintf(stderr, "ERROR in charge-equilibration: Matrix is rank deficient.\n");
       exit(0);
     }
 
@@ -654,7 +654,7 @@ void SolveMatrix(REAL_MATRIX A,REAL *b,REAL *x)
       norm=0.0;
       f=0.0;
 
-      for(j=i;j<M;j++) 
+      for(j=i;j<M;j++)
       {
         norm+=A.element[j][k]*A.element[j][k];
         f+=A.element[j][k]*A.element[j][i];
@@ -670,9 +670,9 @@ void SolveMatrix(REAL_MATRIX A,REAL *b,REAL *x)
       }
     }
 
-    if(fabs(alpha)<0.00001) 
+    if(fabs(alpha)<0.00001)
     {
-      printf("ERROR in charge-equilibration: apparent singularity in matrix.\n");
+      fprintf(stderr, "ERROR in charge-equilibration: apparent singularity in matrix.\n");
       exit(0);
     }
 
@@ -713,7 +713,7 @@ void ChargeEquilibration(void)
   int type;
   REAL *Q;
   REAL net;
-  REAL k = 14.4; // [Angstroms * electron volts] 
+  REAL k = 14.4; // [Angstroms * electron volts]
   REAL gamma2 = 0.5; // Global atomic radii scaling parameter
   REAL total_charge;
   REAL count;
@@ -721,7 +721,7 @@ void ChargeEquilibration(void)
   int atom_type;
   int NumberOfHydrogens;
 
-  size=Framework[CurrentSystem].TotalNumberOfAtoms;  
+  size=Framework[CurrentSystem].TotalNumberOfAtoms;
 
   J=(REAL*)calloc(size,sizeof(REAL));
   X=(REAL*)calloc(size,sizeof(REAL));
@@ -754,7 +754,7 @@ void ChargeEquilibration(void)
 */
 
   index=0;
-  NumberOfHydrogens = 0; 
+  NumberOfHydrogens = 0;
   for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
   {
     for(j=0;j<Framework[CurrentSystem].NumberOfAtoms[f1];j++)
@@ -763,7 +763,7 @@ void ChargeEquilibration(void)
       element_index=GetChargeEquilibrationIndexFromElementName(PseudoAtoms[type].ChemicalElement);
       covalent_radius=GetCovalentRadiusExtended(type,PseudoAtoms[type].ChemicalElement);
 
-      Pos[index]=Framework[CurrentSystem].Atoms[f1][j].Position; 
+      Pos[index]=Framework[CurrentSystem].Atoms[f1][j].Position;
 
       J[index] = ReferenceTableJ(type,element_index);
       X[index] = ReferenceTableX(type,element_index);
@@ -786,10 +786,10 @@ void ChargeEquilibration(void)
       // make list of all the hydrogens
       if(element_index==0)
       {
-        HydrogenList[NumberOfHydrogens]=index; 
+        HydrogenList[NumberOfHydrogens]=index;
         NumberOfHydrogens++;
       }
-      index++; 
+      index++;
     }
   }
 
@@ -806,7 +806,7 @@ void ChargeEquilibration(void)
 /*
     for(i=0;i<NumberOfHydrogens;i++)
     {
-      element_index=HydrogenList[i]; 
+      element_index=HydrogenList[i];
       Q[element_index]=0.0;
     }
 */
@@ -815,8 +815,8 @@ void ChargeEquilibration(void)
     {
       for(i=0;i<NumberOfHydrogens;i++)
       {
-        element_index=HydrogenList[i]; 
-        J[element_index]=(1.0+Q[element_index]/1.0698)*(ChargeEquilibrationData[0].IonizationEnergy[0]-ChargeEquilibrationData[0].ElectronAffinity); 
+        element_index=HydrogenList[i];
+        J[element_index]=(1.0+Q[element_index]/1.0698)*(ChargeEquilibrationData[0].IonizationEnergy[0]-ChargeEquilibrationData[0].ElectronAffinity);
       }
       Qeq(Q);
     }
@@ -829,7 +829,7 @@ void ChargeEquilibration(void)
   }
 
   //for(i=0;i<index;i++)
-  //  printf("%d %g %g charge: %g\n",i,X[i]-Xc[i],J[i],Q[i]);
+  //  fprintf(stderr, "%d %g %g charge: %g\n",i,X[i]-Xc[i],J[i],Q[i]);
 
   // compute net-charge
   net=0.0;

@@ -49,7 +49,7 @@ static inline void HessianAtomicPositionPosition(COMPLEX phase_factor,COMPLEX_MA
   Hessian.az=f2*dr.x*dr.z;    Hessian.bz=f2*dr.y*dr.z;    Hessian.cz=f2*dr.z*dr.z+f1;
 
   if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
-  { 
+  {
     if((index_i.x>=0)&&(index_i.x>=0)) HessianMatrix.element[index_i.x][index_i.x].re+=ReplicaFactor*Hessian.ax;
     if((index_i.x>=0)&&(index_i.y>=0)) HessianMatrix.element[index_i.x][index_i.y].re+=ReplicaFactor*Hessian.ay;
     if((index_i.x>=0)&&(index_i.z>=0)) HessianMatrix.element[index_i.x][index_i.z].re+=ReplicaFactor*Hessian.az;
@@ -257,7 +257,7 @@ static inline void GradientStrain(REAL *Gradient,REAL f1,VECTOR dr)
           }
           break;
         default:
-          printf("Unknown NPTPRCellType\n");
+          fprintf(stderr, "Unknown NPTPRCellType\n");
           exit(0);
           break;
       }
@@ -352,7 +352,7 @@ static inline void GradientStrainJ(REAL *Gradient,REAL f1,VECTOR dr,VECTOR posB,
           }
           break;
         default:
-          printf("Unknown NPTPRCellType\n");
+          fprintf(stderr, "Unknown NPTPRCellType\n");
           exit(0);
           break;
       }
@@ -408,7 +408,7 @@ void ComputeFrameworkAdsorbateVDWPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COM
                 for(ja=0;ja<Components[TypeMolB].Groups[jg].NumberOfGroupAtoms;ja++)
                 {
                   j=Components[TypeMolB].Groups[jg].Atoms[ja];
- 
+
                   if(Components[TypeMolB].Groups[jg].Rigid)
                   {
                     index_j=Adsorbates[CurrentSystem][J].Groups[jg].HessianIndex;
@@ -491,7 +491,7 @@ void ComputeFrameworkAdsorbateVDWPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COM
                         if(index_i.y>=0) Gradient[index_i.y]+=f1*dr.y;
                         if(index_i.z>=0) Gradient[index_i.z]+=f1*dr.z;
                       }
-  
+
                       if(index_j.x>=0) Gradient[index_j.x]-=f1*dr.x;
                       if(index_j.y>=0) Gradient[index_j.y]-=f1*dr.y;
                       if(index_j.z>=0) Gradient[index_j.z]-=f1*dr.z;
@@ -518,7 +518,7 @@ void ComputeFrameworkAdsorbateVDWPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COM
                         HessianCenterOfMassOrientationJ(HessianMatrix,index_i,index_j,index_j2,index2,f1,f2,dr);
                         HessianOrientationOrientationJ(HessianMatrix,index_j2,index2,f1,f2,dr);
                       }
-                    } 
+                    }
                   }
                 }
               }
@@ -658,7 +658,7 @@ void ComputeFrameworkAdsorbateChargeChargePhonon(VECTOR k,REAL *Energy,REAL* Gra
                       if(index_j.x>=0) Gradient[index_j.x]-=f1*dr.x;
                       if(index_j.y>=0) Gradient[index_j.y]-=f1*dr.y;
                       if(index_j.z>=0) Gradient[index_j.z]-=f1*dr.z;
-  
+
                       GradientStrain(Gradient,f1,dr);
 
                       if(Components[TypeMolB].Groups[jg].Rigid)
@@ -1505,7 +1505,7 @@ void ComputeFrameworkBondPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX_MAT
           U=DF=DDF=0.0;
           break;
         default:
-          printf("Undefined Bond potential in routine 'CalculateFrameworkBondHessian' ('framework_hessian.c')\n");
+          fprintf(stderr, "Undefined Bond potential in routine 'CalculateFrameworkBondHessian' ('framework_hessian.c')\n");
           exit(0);
           break;
       }
@@ -1610,7 +1610,7 @@ static inline void GradientStrainBend(REAL *Gradient,REAL_MATRIX3x3 S)
           }
           break;
         default:
-          printf("Unknown NPTPRCellType\n");
+          fprintf(stderr, "Unknown NPTPRCellType\n");
           exit(0);
           break;
       }
@@ -1793,7 +1793,7 @@ void ComputeFrameworkBendPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX_MAT
           temp2=SQR(temp);
           U=parms[0]*temp2*(1.0-0.014*temp+5.6e-5*temp2-7.0e-7*temp*temp2+2.2e-8*SQR(temp2));
           DF=parms[0]*RAD2DEG*(2.0-(3.0*0.014-(4.0*5.6e-5-(5.0*7.0e-7-6.0*2.2e-8*temp)*temp)*temp)*temp)*temp*DTDX;
-          printf("TO BE DONE!\n");
+          fprintf(stderr, "TO BE DONE!\n");
           exit(0);
           break;
         case FIXED_BEND:
@@ -1804,7 +1804,7 @@ void ComputeFrameworkBendPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX_MAT
           break;
         default:
           U=DF=DDF=0.0;
-          printf("Undefined Bend potential\n");
+          fprintf(stderr, "Undefined Bend potential\n");
           exit(0);
           break;
       }
@@ -1986,7 +1986,7 @@ void ComputeFrameworkBendPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX_MAT
           if((index_i.z>=0)&&(index_k.z>=0)) HessianMatrix.element[index_i.z][index_k.z].re+=phase_factor_ac.re*(DDF*dtA.z*dtC.z+D2IK.cz);
           if((index_i.z>=0)&&(index_k.z>=0)) HessianMatrix.element[index_i.z][index_k.z].im+=phase_factor_ac.im*(DDF*dtA.z*dtC.z+D2IK.cz);
         }
-        else 
+        else
         {
           if((index_k.x>=0)&&(index_i.x>=0)) HessianMatrix.element[index_k.x][index_i.x].re+=phase_factor_ac.re*(DDF*dtA.x*dtC.x+D2IK.ax);
           if((index_k.x>=0)&&(index_i.x>=0)) HessianMatrix.element[index_k.x][index_i.x].im+=phase_factor_ac.im*(DDF*dtA.x*dtC.x+D2IK.ax);
@@ -2007,7 +2007,7 @@ void ComputeFrameworkBendPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX_MAT
           if((index_k.z>=0)&&(index_i.z>=0)) HessianMatrix.element[index_k.z][index_i.z].re+=phase_factor_ac.re*(DDF*dtA.z*dtC.z+D2IK.cz);
           if((index_k.z>=0)&&(index_i.z>=0)) HessianMatrix.element[index_k.z][index_i.z].im+=phase_factor_ac.im*(DDF*dtA.z*dtC.z+D2IK.cz);
         }
-        
+
         // Calculate the BC-block of the Hessian
         if(index3<index2)
         {
@@ -2030,7 +2030,7 @@ void ComputeFrameworkBendPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX_MAT
           if((index_k.z>=0)&&(index_j.z>=0)) HessianMatrix.element[index_k.z][index_j.z].re+=phase_factor_bc.re*(DDF*dtC.z*dtB.z-D2K.cz-D2IK.cz);
           if((index_k.z>=0)&&(index_j.z>=0)) HessianMatrix.element[index_k.z][index_j.z].im+=phase_factor_bc.im*(DDF*dtC.z*dtB.z-D2K.cz-D2IK.cz);
         }
-        else 
+        else
         {
           if((index_j.x>=0)&&(index_k.x>=0)) HessianMatrix.element[index_j.x][index_k.x].re+=phase_factor_bc.re*(DDF*dtC.x*dtB.x-D2K.ax-D2IK.ax);
           if((index_j.x>=0)&&(index_k.x>=0)) HessianMatrix.element[index_j.x][index_k.x].im+=phase_factor_bc.im*(DDF*dtC.x*dtB.x-D2K.ax-D2IK.ax);
@@ -2110,7 +2110,7 @@ static inline void GradientStrainTorsion(REAL *Gradient,REAL_MATRIX3x3 S)
           }
           break;
         default:
-          printf("Unknown NPTPRCellType\n");
+          fprintf(stderr, "Unknown NPTPRCellType\n");
           exit(0);
           break;
       }

@@ -46,7 +46,7 @@
 // Some care is on order when dealing with flexible/rigid frameworks and net-charges.
 // The whole system can be 'flexible' or 'rigid'. It is considered 'rigid' when all the
 // frameworks in the system are 'rigid' and the FrameworkShiftMoveProbability is zero.
-// Otherwise the system is considered as 'flexible'. For the flexible system the 
+// Otherwise the system is considered as 'flexible'. For the flexible system the
 // individual frameworks can be either 'rigid' or 'flexible'. For a flexible system with
 // several rigid frameworks, the framework distances can change but not their internal
 // structure. Flexible frameworks do change internally.
@@ -458,7 +458,7 @@ int ReallocateEwaldChargeMemory(void)
   if(ChargeMethod!=EWALD) return 0;
   if(OmitEwaldFourier) return 0;
 
-  printf("Realloc MaxNumberOfCoulombicSites: %d\n",MaxNumberOfCoulombicSites);
+  fprintf(stderr, "Realloc MaxNumberOfCoulombicSites: %d\n",MaxNumberOfCoulombicSites);
 
   Positions=(VECTOR*)realloc(Positions,MaxNumberOfCoulombicSites*sizeof(VECTOR));
   AtomVector=(VECTOR**)realloc(AtomVector,MaxNumberOfCoulombicSites*sizeof(VECTOR*));
@@ -488,7 +488,7 @@ int ReallocateEwaldBondDipoleMemory(void)
   if(ChargeMethod!=EWALD) return 0;
   if(OmitEwaldFourier) return 0;
 
-  printf("Realloc MaxNumberOfBondDipoleSites: %d\n",MaxNumberOfBondDipoleSites);
+  fprintf(stderr, "Realloc MaxNumberOfBondDipoleSites: %d\n",MaxNumberOfBondDipoleSites);
 
   DipoleVector=(VECTOR*)realloc(DipoleVector,MaxNumberOfBondDipoleSites*sizeof(VECTOR));
   BondLength=(REAL*)realloc(BondLength,MaxNumberOfBondDipoleSites*sizeof(REAL));
@@ -594,7 +594,7 @@ void SetupKVectors(void)
  * Name       | EwaldEnergyIon                                                                           *
  * ----------------------------------------------------------------------------------------------------- *
  * Function   | Computes the Fourier part of a single +1 charge in a truly periodic system.              *
- *            | bonddipole-bonddipole interactions for fixed atoms in a truly periodic system.           *                  
+ *            | bonddipole-bonddipole interactions for fixed atoms in a truly periodic system.           *
  * Parameters | -                                                                                        *
  * Note       | Largely based on the Fiche F.22 of Allen&Tildesly with a few modifications:              *
  *            | 1) exp(-ik.kx)*exp(-ik.ky) computed outside the 'kz' loop                                *
@@ -721,7 +721,7 @@ int EwaldEnergyIon(void)
  * Name       | PrecomputeFixedEwaldContributions                                                        *
  * ----------------------------------------------------------------------------------------------------- *
  * Function   | Pre-computes the Fourier part of the charge-charge, charge-bonddipole, and               *
- *            | bonddipole-bonddipole interactions for fixed atoms in a truly periodic system.           *                  
+ *            | bonddipole-bonddipole interactions for fixed atoms in a truly periodic system.           *
  * Parameters | -                                                                                        *
  * Note       | Largely based on the Fiche F.22 of Allen&Tildesly with a few modifications:              *
  *            | 1) exp(-ik.kx)*exp(-ik.ky) computed outside the 'kz' loop                                *
@@ -874,8 +874,8 @@ int PrecomputeFixedEwaldContributions(void)
         DipoleVector[nr_of_bonddipole_sites].y=temp*dipole.y;
         DipoleVector[nr_of_bonddipole_sites].z=temp*dipole.z;
         BondDipolePositions[nr_of_bonddipole_sites]=ConvertFromXYZtoABC(pos);
-        BondDipolePositions[nr_of_bonddipole_sites].x*=TWO_PI; 
-        BondDipolePositions[nr_of_bonddipole_sites].y*=TWO_PI; 
+        BondDipolePositions[nr_of_bonddipole_sites].x*=TWO_PI;
+        BondDipolePositions[nr_of_bonddipole_sites].y*=TWO_PI;
         BondDipolePositions[nr_of_bonddipole_sites].z*=TWO_PI;
         NumberOfBondDipoleSitesFrameworks[f1]++;
         nr_of_bonddipole_sites++;
@@ -1237,7 +1237,7 @@ int PrecomputeFixedEwaldContributions(void)
             }
           }
 
-          // Store the sums 
+          // Store the sums
           StoreRigidChargeFramework[CurrentSystem][nvec]=sum_framework;
           StoreRigidChargeAdsorbates[CurrentSystem][nvec]=sum_adsorbate;
           StoreRigidChargeCations[CurrentSystem][nvec]=sum_cation;
@@ -1263,7 +1263,7 @@ int PrecomputeFixedEwaldContributions(void)
  * Name       | PrecomputeTotalEwaldContributions                                                        *
  * ----------------------------------------------------------------------------------------------------- *
  * Function   | Pre-computes the total Fourier sums of the charge-charge, charge-bonddipole, and         *
- *            | bonddipole-bonddipole interactions for fixed atoms in a truly periodic system.           *                  
+ *            | bonddipole-bonddipole interactions for fixed atoms in a truly periodic system.           *
  * Parameters | -                                                                                        *
  * Note       | Largely based on the Fiche F.22 of Allen&Tildesly with a few modifications:              *
  *            | 1) exp(-ik.kx)*exp(-ik.ky) computed outside the 'kz' loop                                *
@@ -1413,8 +1413,8 @@ int PrecomputeTotalEwaldContributions(void)
       DipoleVector[nr_of_bonddipole_sites].y=temp*dipole.y;
       DipoleVector[nr_of_bonddipole_sites].z=temp*dipole.z;
       BondDipolePositions[nr_of_bonddipole_sites]=ConvertFromXYZtoABC(pos);
-      BondDipolePositions[nr_of_bonddipole_sites].x*=TWO_PI; 
-      BondDipolePositions[nr_of_bonddipole_sites].y*=TWO_PI; 
+      BondDipolePositions[nr_of_bonddipole_sites].x*=TWO_PI;
+      BondDipolePositions[nr_of_bonddipole_sites].y*=TWO_PI;
       BondDipolePositions[nr_of_bonddipole_sites].z*=TWO_PI;
       nr_of_bonddipole_sites++;
     }
@@ -1715,7 +1715,7 @@ int PrecomputeTotalEwaldContributions(void)
             sum_bonddipole_cation.im+=temp*Eikr_bd[i].im;
           }
 
-          // Store the sums 
+          // Store the sums
           StoreTotalChargeFramework[CurrentSystem][nvec]=sum_framework;
           StoreTotalChargeAdsorbates[CurrentSystem][nvec]=sum_adsorbate;
           StoreTotalChargeCations[CurrentSystem][nvec]=sum_cation;
@@ -1741,7 +1741,7 @@ int PrecomputeTotalEwaldContributions(void)
  * Name       | EwaldFourierEnergy                                                                       *
  * ----------------------------------------------------------------------------------------------------- *
  * Function   | Computes the Fourier part of the charge-charge, charge-bonddipole, and                   *
- *            | bonddipole-bonddipole interactions in a truly periodic system.                           *                  
+ *            | bonddipole-bonddipole interactions in a truly periodic system.                           *
  * Parameters | -                                                                                        *
  * Note       | Largely based on the Fiche F.22 of Allen&Tildesly with a few modifications:              *
  *            | 1) exp(-ik.kx)*exp(-ik.ky) computed outside the 'kz' loop                                *
@@ -1945,8 +1945,8 @@ int EwaldFourierEnergy(void)
 
         energy_framework_self_bd+=COULOMBIC_CONVERSION_FACTOR*2.0*CUBE(alpha)*SQR(temp)*(SQR(dipole.x)+SQR(dipole.y)+SQR(dipole.z))/(3.0*sqrt(M_PI));
         BondDipolePositions[nr_of_bonddipole_sites]=ConvertFromXYZtoABC(pos);
-        BondDipolePositions[nr_of_bonddipole_sites].x*=TWO_PI; 
-        BondDipolePositions[nr_of_bonddipole_sites].y*=TWO_PI; 
+        BondDipolePositions[nr_of_bonddipole_sites].x*=TWO_PI;
+        BondDipolePositions[nr_of_bonddipole_sites].y*=TWO_PI;
         BondDipolePositions[nr_of_bonddipole_sites].z*=TWO_PI;
         nr_of_bonddipole_sites++;
       }
@@ -2796,7 +2796,7 @@ int EwaldFourierEnergy(void)
  * Name       | EwaldFourierForce                                                                        *
  * ----------------------------------------------------------------------------------------------------- *
  * Function   | Computes the Fourier part of the charge-charge, charge-bonddipole, and                   *
- *            | bonddipole-bonddipole energies, forces and stress n a truly periodic system.             *                  
+ *            | bonddipole-bonddipole energies, forces and stress n a truly periodic system.             *
  * Parameters | -                                                                                        *
  * Note       | Largely based on the Fiche F.22 of Allen&Tildesly with a few modifications:              *
  *            | 1) exp(-ik.kx)*exp(-ik.ky) computed outside the 'kz' loop                                *
@@ -3005,11 +3005,11 @@ int EwaldFourierForce(void)
         DipoleVector[nr_of_bonddipole_sites].y=temp*dipole.y;
         DipoleVector[nr_of_bonddipole_sites].z=temp*dipole.z;
         BondDipoleMagnitude[nr_of_bonddipole_sites]=Framework[CurrentSystem].BondDipoleMagnitude[f1][i];
-        BondLength[nr_of_bonddipole_sites]=sqrt(SQR(dipole.x)+SQR(dipole.y)+SQR(dipole.z));  
+        BondLength[nr_of_bonddipole_sites]=sqrt(SQR(dipole.x)+SQR(dipole.y)+SQR(dipole.z));
         energy_framework_self_bd+=COULOMBIC_CONVERSION_FACTOR*2.0*CUBE(alpha)*SQR(temp)*(SQR(dipole.x)+SQR(dipole.y)+SQR(dipole.z))/(3.0*sqrt(M_PI));
         BondDipolePositions[nr_of_bonddipole_sites]=ConvertFromXYZtoABC(pos);
-        BondDipolePositions[nr_of_bonddipole_sites].x*=TWO_PI; 
-        BondDipolePositions[nr_of_bonddipole_sites].y*=TWO_PI; 
+        BondDipolePositions[nr_of_bonddipole_sites].x*=TWO_PI;
+        BondDipolePositions[nr_of_bonddipole_sites].y*=TWO_PI;
         BondDipolePositions[nr_of_bonddipole_sites].z*=TWO_PI;
         BondDipoleForcesA[nr_of_bonddipole_sites]=&atom_pointer[pair.A].Force;
         BondDipoleForcesB[nr_of_bonddipole_sites]=&atom_pointer[pair.B].Force;
@@ -3040,7 +3040,7 @@ int EwaldFourierForce(void)
       DipoleVector[nr_of_bonddipole_sites].y=temp*dipole.y;
       DipoleVector[nr_of_bonddipole_sites].z=temp*dipole.z;
       BondDipoleMagnitude[nr_of_bonddipole_sites]=Components[type_mol].BondDipoleMagnitude[j];
-      BondLength[nr_of_bonddipole_sites]=sqrt(SQR(dipole.x)+SQR(dipole.y)+SQR(dipole.z));  
+      BondLength[nr_of_bonddipole_sites]=sqrt(SQR(dipole.x)+SQR(dipole.y)+SQR(dipole.z));
       energy_adsorbate_self_bd+=COULOMBIC_CONVERSION_FACTOR*2.0*CUBE(alpha)*SQR(temp)*(SQR(dipole.x)+SQR(dipole.y)+SQR(dipole.z))/(3.0*sqrt(M_PI));
       BondDipolePositions[nr_of_bonddipole_sites]=ConvertFromXYZtoABC(pos);
       BondDipolePositions[nr_of_bonddipole_sites].x*=TWO_PI;
@@ -3074,7 +3074,7 @@ int EwaldFourierForce(void)
       DipoleVector[nr_of_bonddipole_sites].y=temp*dipole.y;
       DipoleVector[nr_of_bonddipole_sites].z=temp*dipole.z;
       BondDipoleMagnitude[nr_of_bonddipole_sites]=Components[type_mol].BondDipoleMagnitude[j];
-      BondLength[nr_of_bonddipole_sites]=sqrt(SQR(dipole.x)+SQR(dipole.y)+SQR(dipole.z));  
+      BondLength[nr_of_bonddipole_sites]=sqrt(SQR(dipole.x)+SQR(dipole.y)+SQR(dipole.z));
       energy_cation_self_bd+=COULOMBIC_CONVERSION_FACTOR*2.0*CUBE(alpha)*SQR(temp)*(SQR(dipole.x)+SQR(dipole.y)+SQR(dipole.z))/(3.0*sqrt(M_PI));
       BondDipolePositions[nr_of_bonddipole_sites]=ConvertFromXYZtoABC(pos);
       BondDipolePositions[nr_of_bonddipole_sites].x*=TWO_PI;
@@ -3452,7 +3452,7 @@ int EwaldFourierForce(void)
                                SQR(sum_bonddipole.re)+SQR(sum_bonddipole.im));
 
           // take omitted interactions into account
-          if(Framework[CurrentSystem].FrameworkModel!=FLEXIBLE) 
+          if(Framework[CurrentSystem].FrameworkModel!=FLEXIBLE)
              current_energy-=temp*(SQR(sum_framework.re)+SQR(sum_framework.im)+
                                2.0*(sum_framework.im*sum_bonddipole_framework.re-sum_framework.re*sum_bonddipole_framework.im)+
                                SQR(sum_bonddipole_framework.re)+SQR(sum_bonddipole_framework.im));
@@ -4735,7 +4735,7 @@ int EwaldFourierForce(void)
  * Name       | EwaldFourierBornTerm                                                                     *
  * ----------------------------------------------------------------------------------------------------- *
  * Function   | Computes the Fourier part of the charge-charge, charge-bonddipole, and                   *
- *            | bonddipole-bonddipole energies, forces and stress n a truly periodic system.             *                  
+ *            | bonddipole-bonddipole energies, forces and stress n a truly periodic system.             *
  * Parameters | -                                                                                        *
  * Note       | Largely based on the Fiche F.22 of Allen&Tildesly with a few modifications:              *
  *            | 1) exp(-ik.kx)*exp(-ik.ky) computed outside the 'kz' loop                                *
@@ -4941,11 +4941,11 @@ int EwaldFourierBornTerm(void)
         DipoleVector[nr_of_bonddipole_sites].y=temp*dipole.y;
         DipoleVector[nr_of_bonddipole_sites].z=temp*dipole.z;
         BondDipoleMagnitude[nr_of_bonddipole_sites]=Framework[CurrentSystem].BondDipoleMagnitude[f1][i];
-        BondLength[nr_of_bonddipole_sites]=sqrt(SQR(dipole.x)+SQR(dipole.y)+SQR(dipole.z));  
+        BondLength[nr_of_bonddipole_sites]=sqrt(SQR(dipole.x)+SQR(dipole.y)+SQR(dipole.z));
         energy_framework_self_bd+=COULOMBIC_CONVERSION_FACTOR*2.0*CUBE(alpha)*SQR(temp)*(SQR(dipole.x)+SQR(dipole.y)+SQR(dipole.z))/(3.0*sqrt(M_PI));
         BondDipolePositions[nr_of_bonddipole_sites]=ConvertFromXYZtoABC(pos);
-        BondDipolePositions[nr_of_bonddipole_sites].x*=TWO_PI; 
-        BondDipolePositions[nr_of_bonddipole_sites].y*=TWO_PI; 
+        BondDipolePositions[nr_of_bonddipole_sites].x*=TWO_PI;
+        BondDipolePositions[nr_of_bonddipole_sites].y*=TWO_PI;
         BondDipolePositions[nr_of_bonddipole_sites].z*=TWO_PI;
         BondDipoleForcesA[nr_of_bonddipole_sites]=&atom_pointer[pair.A].Force;
         BondDipoleForcesB[nr_of_bonddipole_sites]=&atom_pointer[pair.B].Force;
@@ -4976,7 +4976,7 @@ int EwaldFourierBornTerm(void)
       DipoleVector[nr_of_bonddipole_sites].y=temp*dipole.y;
       DipoleVector[nr_of_bonddipole_sites].z=temp*dipole.z;
       BondDipoleMagnitude[nr_of_bonddipole_sites]=Components[type_mol].BondDipoleMagnitude[j];
-      BondLength[nr_of_bonddipole_sites]=sqrt(SQR(dipole.x)+SQR(dipole.y)+SQR(dipole.z));  
+      BondLength[nr_of_bonddipole_sites]=sqrt(SQR(dipole.x)+SQR(dipole.y)+SQR(dipole.z));
       energy_adsorbate_self_bd+=COULOMBIC_CONVERSION_FACTOR*2.0*CUBE(alpha)*SQR(temp)*(SQR(dipole.x)+SQR(dipole.y)+SQR(dipole.z))/(3.0*sqrt(M_PI));
       BondDipolePositions[nr_of_bonddipole_sites]=ConvertFromXYZtoABC(pos);
       BondDipolePositions[nr_of_bonddipole_sites].x*=TWO_PI;
@@ -5010,7 +5010,7 @@ int EwaldFourierBornTerm(void)
       DipoleVector[nr_of_bonddipole_sites].y=temp*dipole.y;
       DipoleVector[nr_of_bonddipole_sites].z=temp*dipole.z;
       BondDipoleMagnitude[nr_of_bonddipole_sites]=Components[type_mol].BondDipoleMagnitude[j];
-      BondLength[nr_of_bonddipole_sites]=sqrt(SQR(dipole.x)+SQR(dipole.y)+SQR(dipole.z));  
+      BondLength[nr_of_bonddipole_sites]=sqrt(SQR(dipole.x)+SQR(dipole.y)+SQR(dipole.z));
       energy_cation_self_bd+=COULOMBIC_CONVERSION_FACTOR*2.0*CUBE(alpha)*SQR(temp)*(SQR(dipole.x)+SQR(dipole.y)+SQR(dipole.z))/(3.0*sqrt(M_PI));
       BondDipolePositions[nr_of_bonddipole_sites]=ConvertFromXYZtoABC(pos);
       BondDipolePositions[nr_of_bonddipole_sites].x*=TWO_PI;
@@ -5389,7 +5389,7 @@ int EwaldFourierBornTerm(void)
                                SQR(sum_bonddipole.re)+SQR(sum_bonddipole.im));
 
           // take omitted interactions into account
-          if(Framework[CurrentSystem].FrameworkModel!=FLEXIBLE) 
+          if(Framework[CurrentSystem].FrameworkModel!=FLEXIBLE)
              current_energy-=temp*(SQR(sum_framework.re)+SQR(sum_framework.im)+
                                2.0*(sum_framework.im*sum_bonddipole_framework.re-sum_framework.re*sum_bonddipole_framework.im)+
                                SQR(sum_bonddipole_framework.re)+SQR(sum_bonddipole_framework.im));
@@ -6824,7 +6824,7 @@ COULOMBIC_CONVERSION_FACTOR*(4.0*M_PI/volume)*exp((-0.25/SQR(alpha))*rksqr)/rksq
  * Name       | CalculateEwaldFourierAdsorbate, CalculateEwaldFourierCation                              *
  * ----------------------------------------------------------------------------------------------------- *
  * Function   | Computes the change in Fourier sums of the charge-charge, charge-bonddipole, and         *
- *            | bonddipole-bonddipole energies in a truly periodic system.                               *                  
+ *            | bonddipole-bonddipole energies in a truly periodic system.                               *
  * Parameters | 'New' boolean: whether this is a sum over a new molecule (insertion, Widom, re-insertion)*
  *            | 'Old' boolean: whether this is a sum over an old molecule.                               *
  *            | 'mol': the id of the chosen old molecule                                                 *
@@ -11424,8 +11424,8 @@ int EwaldFourierStaticElectricField(void)
         DipoleVector[nr_of_bonddipole_sites].y=temp*dipole.y;
         DipoleVector[nr_of_bonddipole_sites].z=temp*dipole.z;
         BondDipolePositions[nr_of_bonddipole_sites]=ConvertFromXYZtoABC(pos);
-        BondDipolePositions[nr_of_bonddipole_sites].x*=TWO_PI; 
-        BondDipolePositions[nr_of_bonddipole_sites].y*=TWO_PI; 
+        BondDipolePositions[nr_of_bonddipole_sites].x*=TWO_PI;
+        BondDipolePositions[nr_of_bonddipole_sites].y*=TWO_PI;
         BondDipolePositions[nr_of_bonddipole_sites].z*=TWO_PI;
         BondDipoleForcesA[nr_of_bonddipole_sites]=&atom_pointer[pair.A].ElectricField;
         BondDipoleForcesB[nr_of_bonddipole_sites]=&atom_pointer[pair.B].ElectricField;
@@ -12176,8 +12176,8 @@ int ComputeStaticElectricFieldEwald(int NewMolecule,int excl_ads,int excl_cation
         DipoleVector[nr_of_bonddipole_sites].y=temp*dipole.y;
         DipoleVector[nr_of_bonddipole_sites].z=temp*dipole.z;
         BondDipolePositions[nr_of_bonddipole_sites]=ConvertFromXYZtoABC(pos);
-        BondDipolePositions[nr_of_bonddipole_sites].x*=TWO_PI; 
-        BondDipolePositions[nr_of_bonddipole_sites].y*=TWO_PI; 
+        BondDipolePositions[nr_of_bonddipole_sites].x*=TWO_PI;
+        BondDipolePositions[nr_of_bonddipole_sites].y*=TWO_PI;
         BondDipolePositions[nr_of_bonddipole_sites].z*=TWO_PI;
         BondDipoleForcesA[nr_of_bonddipole_sites]=&atom_pointer[pair.A].ElectricField;
         BondDipoleForcesB[nr_of_bonddipole_sites]=&atom_pointer[pair.B].ElectricField;
@@ -13244,7 +13244,7 @@ int ComputeStaticElectricFieldEwaldAdsorbateDifference(int NewMolecule,int OldMo
   for(;i<nr_of_coulombic_sites_new;i++)
     polarization_energy_new-=0.5*Polarization[i]*(SQR(AtomVector[i]->x)+SQR(AtomVector[i]->y)+SQR(AtomVector[i]->z));
 
-  printf("Difference in polarization energy: %18.10f %18.10f\n",polarization_energy_new,polarization_energy_old);
+  fprintf(stderr, "Difference in polarization energy: %18.10f %18.10f\n",polarization_energy_new,polarization_energy_old);
 
   if(NewMolecule)
   {
@@ -13822,7 +13822,7 @@ void ComputeElectricFieldFromInducedDipolesEwaldMC(int NewMolecule,int excl_ads,
   VECTOR *kvecs,pos,rk,dipole;
   REAL *kfactor,recip_cutoff,ksqr;
   int considered_charged;
-  
+
 
   // return immediately if the Ewald summation is not used
   if(ChargeMethod!=EWALD) return;
@@ -14329,7 +14329,7 @@ static inline void HessianAtomicPositionStrain(REAL_MATRIX HessianMatrix,INT_VEC
           }
           break;
         default:
-          printf("Unknown NPTPRCellType\n");
+          fprintf(stderr, "Unknown NPTPRCellType\n");
           exit(0);
           break;
       }
@@ -14549,7 +14549,7 @@ static inline void HessianCenterOfMassStrainI(REAL_MATRIX HessianMatrix,INT_VECT
           }
           break;
         default:
-          printf("Unknown NPTPRCellType\n");
+          fprintf(stderr, "Unknown NPTPRCellType\n");
           exit(0);
           break;
       }
@@ -14737,7 +14737,7 @@ static inline void HessianCenterOfMassStrainJ(REAL_MATRIX HessianMatrix,INT_VECT
               if(index_i.x>=0) HessianMatrix.element[index_i.x][n+1]+=f2_IJ*Rk.x*dJ.z*Rk.x; // xz x
               if(index_i.x>=0) HessianMatrix.element[index_i.x][n+2]+=f2_IJ*Rk.y*dJ.y*Rk.x; // yy x
               if(index_i.x>=0) HessianMatrix.element[index_i.x][n+3]+=f2_IJ*Rk.z*dJ.z*Rk.x; // zz x
-          
+
               if(index_i.y>=0) HessianMatrix.element[index_i.y][n  ]+=f2_IJ*Rk.x*dJ.x*Rk.y; // xx y
               if(index_i.y>=0) HessianMatrix.element[index_i.y][n+1]+=f2_IJ*Rk.x*dJ.z*Rk.y; // xz y
               if(index_i.y>=0) HessianMatrix.element[index_i.y][n+2]+=f2_IJ*Rk.y*dJ.y*Rk.y; // yy y
@@ -14755,7 +14755,7 @@ static inline void HessianCenterOfMassStrainJ(REAL_MATRIX HessianMatrix,INT_VECT
               if(index_i.x>=0) HessianMatrix.element[index_i.x][n+1]+=f2_IJ*Rk.x*dJ.y*Rk.x; // xy x
               if(index_i.x>=0) HessianMatrix.element[index_i.x][n+2]+=f2_IJ*Rk.y*dJ.y*Rk.x; // yy x
               if(index_i.x>=0) HessianMatrix.element[index_i.x][n+3]+=f2_IJ*Rk.z*dJ.z*Rk.x; // zz x
-          
+
               if(index_i.y>=0) HessianMatrix.element[index_i.y][n  ]+=f2_IJ*Rk.x*dJ.x*Rk.y; // xx y
               if(index_i.y>=0) HessianMatrix.element[index_i.y][n+1]+=f2_IJ*Rk.x*dJ.y*Rk.y; // xy y
               if(index_i.y>=0) HessianMatrix.element[index_i.y][n+2]+=f2_IJ*Rk.y*dJ.y*Rk.y; // yy y
@@ -14769,7 +14769,7 @@ static inline void HessianCenterOfMassStrainJ(REAL_MATRIX HessianMatrix,INT_VECT
           }
           break;
         default:
-          printf("Unknown NPTPRCellType\n");
+          fprintf(stderr, "Unknown NPTPRCellType\n");
           exit(0);
           break;
       }
@@ -15060,7 +15060,7 @@ static inline void HessianOrientationStrainI(REAL_MATRIX HessianMatrix,INT_VECTO
           }
           break;
         default:
-          printf("Unknown NPTPRCellType\n");
+          fprintf(stderr, "Unknown NPTPRCellType\n");
           exit(0);
           break;
       }
@@ -15350,7 +15350,7 @@ static inline void HessianOrientationStrainJ(REAL_MATRIX HessianMatrix,INT_VECTO
           }
           break;
         default:
-          printf("Unknown NPTPRCellType\n");
+          fprintf(stderr, "Unknown NPTPRCellType\n");
           exit(0);
           break;
       }
@@ -15372,7 +15372,7 @@ static inline void HessianAtomicStrainStrainLocal(REAL_MATRIX HessianMatrix,REAL
   n=NumberOfCoordinatesMinimizationVariables;
   switch(Ensemble[CurrentSystem])
   {
-    case NPT: 
+    case NPT:
       HessianMatrix.element[n][n]+=f*(Theta.ax*Theta.ax+(1.0+1.0)+
              4.0*Rk.x*Rk.x*Rk.x*Rk.x/(SQR(Rksq))-2.0*(4.0*Rk.x*Rk.x)*InverseLamdaSquared-2.0*Theta.ax);
       HessianMatrix.element[n][n]+=2.0*f*(Theta.ax*Theta.by+
@@ -15591,7 +15591,7 @@ static inline void HessianAtomicStrainStrainLocal(REAL_MATRIX HessianMatrix,REAL
           }
           break;
         default:
-          printf("Unknown NPTPRCellType\n");
+          fprintf(stderr, "Unknown NPTPRCellType\n");
           exit(0);
           break;
       }
@@ -15751,7 +15751,7 @@ static inline void HessianAtomicCorrectionStrainStrainI(REAL_MATRIX HessianMatri
           HessianMatrix.element[n+4][n+4]+=temp1*0.5*(dI.z*Rk.y+dI.y*Rk.z); // yz yz
           HessianMatrix.element[n+4][n+5]+=temp1*dI.z*Rk.z;                 // yz zz
 
-          temp1=f2_I*(posA.z-comA.z)*Rk.z; 
+          temp1=f2_I*(posA.z-comA.z)*Rk.z;
           HessianMatrix.element[n+5][n+5]+=temp1*dI.z*Rk.z;                 // zz zz
 
 
@@ -15900,7 +15900,7 @@ static inline void HessianAtomicCorrectionStrainStrainI(REAL_MATRIX HessianMatri
               HessianMatrix.element[n+2][n+2]+=temp1*0.5*(dI.z*Rk.y+dI.y*Rk.z); // yz yz
               HessianMatrix.element[n+2][n+3]+=temp1*dI.z*Rk.z;                 // yz zz
 
-              temp1=f2_I*(posA.z-comA.z)*Rk.z; 
+              temp1=f2_I*(posA.z-comA.z)*Rk.z;
               HessianMatrix.element[n+3][n+3]+=temp1*dI.z*Rk.z;                 // zz zz
 
 
@@ -15951,7 +15951,7 @@ static inline void HessianAtomicCorrectionStrainStrainI(REAL_MATRIX HessianMatri
               HessianMatrix.element[n+2][n+2]+=temp1*dI.y*Rk.y;                 // yy yy
               HessianMatrix.element[n+2][n+3]+=temp1*dI.z*Rk.z;                 // yy zz
 
-              temp1=f2_I*(posA.z-comA.z)*Rk.z; 
+              temp1=f2_I*(posA.z-comA.z)*Rk.z;
               HessianMatrix.element[n+3][n+3]+=temp1*dI.z*Rk.z;                 // zz zz
 
 
@@ -16001,7 +16001,7 @@ static inline void HessianAtomicCorrectionStrainStrainI(REAL_MATRIX HessianMatri
               HessianMatrix.element[n+2][n+2]+=temp1*dI.y*Rk.y;                 // yy yy
               HessianMatrix.element[n+2][n+3]+=temp1*dI.z*Rk.z;                 // yy zz
 
-              temp1=f2_I*(posA.z-comA.z)*Rk.z; 
+              temp1=f2_I*(posA.z-comA.z)*Rk.z;
               HessianMatrix.element[n+3][n+3]+=temp1*dI.z*Rk.z;                 // zz zz
 
 
@@ -16172,7 +16172,7 @@ static inline void HessianAtomicCorrectionStrainStrainI(REAL_MATRIX HessianMatri
           }
           break;
         default:
-          printf("Unknown NPTPRCellType\n");
+          fprintf(stderr, "Unknown NPTPRCellType\n");
           exit(0);
           break;
       }
@@ -16270,7 +16270,7 @@ static inline void HessianAtomicCorrectionStrainStrainJ(REAL_MATRIX HessianMatri
           // the fourth term of Eq. 46 of Ref. Dubbeldam, Krishna, Snurr, 2009
           // =================================================================
 
-          temp1=f2_IJ*Rk.x*dI.x; 
+          temp1=f2_IJ*Rk.x*dI.x;
           HessianMatrix.element[n][n  ]-=temp1*Rk.x*dJ.x;   // xx xx
           HessianMatrix.element[n][n+1]-=temp1*Rk.x*dJ.y;   // xx xy
           HessianMatrix.element[n][n+2]-=temp1*Rk.x*dJ.z;   // xx xz
@@ -16378,7 +16378,7 @@ static inline void HessianAtomicCorrectionStrainStrainJ(REAL_MATRIX HessianMatri
               // the fourth term of Eq. 46 of Ref. Dubbeldam, Krishna, Snurr, 2009
               // =================================================================
 
-              temp1=f2_IJ*Rk.x*dI.x; 
+              temp1=f2_IJ*Rk.x*dI.x;
               HessianMatrix.element[n][n  ]-=temp1*Rk.x*dJ.x;   // xx xx
               HessianMatrix.element[n][n+1]-=temp1*Rk.y*dJ.y;   // xx yy
               HessianMatrix.element[n][n+2]-=temp1*Rk.y*dJ.z;   // xx yz
@@ -16443,7 +16443,7 @@ static inline void HessianAtomicCorrectionStrainStrainJ(REAL_MATRIX HessianMatri
           }
           break;
         default:
-          printf("Unknown NPTPRCellType\n");
+          fprintf(stderr, "Unknown NPTPRCellType\n");
           exit(0);
           break;
       }
@@ -16509,7 +16509,7 @@ static inline void GradientStrain(REAL fac,REAL *Gradient,REAL_MATRIX3x3 Theta)
           }
           break;
         default:
-          printf("Unknown NPTPRCellType\n");
+          fprintf(stderr, "Unknown NPTPRCellType\n");
           exit(0);
           break;
       }
@@ -16603,7 +16603,7 @@ static inline void GradientStrainILocal(REAL *Gradient,REAL fac,VECTOR Rk,VECTOR
           }
           break;
         default:
-          printf("Unknown NPTPRCellType\n");
+          fprintf(stderr, "Unknown NPTPRCellType\n");
           exit(0);
           break;
       }
@@ -16703,7 +16703,7 @@ static inline void HessianAtomicPositionStrainExcluded(REAL_MATRIX HessianMatrix
           if(index_j.z>=0) HessianMatrix.element[index_j.z][n+3]-=f2*dr.y*dr.y*dr.z;             // yy z
           if(index_j.z>=0) HessianMatrix.element[index_j.z][n+4]-=f2*dr.y*dr.z*dr.z+f1*dr.y;     // yz z
           if(index_j.z>=0) HessianMatrix.element[index_j.z][n+5]-=f2*dr.z*dr.z*dr.z+2.0*f1*dr.z; // zz z
-          break;                                   
+          break;
         case MONOCLINIC:
         case MONOCLINIC_UPPER_TRIANGLE:
           switch(MonoclinicAngleType[CurrentSystem])
@@ -16802,9 +16802,9 @@ static inline void HessianAtomicPositionStrainExcluded(REAL_MATRIX HessianMatrix
               if(index_j.z>=0) HessianMatrix.element[index_j.z][n+3]-=f2*dr.z*dr.z*dr.z+2.0*f1*dr.z; // zz z
               break;
           }
-          break;  
-        default:  
-          printf("Unknown NPTPRCellType\n");
+          break;
+        default:
+          fprintf(stderr, "Unknown NPTPRCellType\n");
           exit(0);
           break;
       }
@@ -16866,7 +16866,7 @@ static inline void HessianAtomicStrainStrainLocalExcluded(REAL_MATRIX HessianMat
           HessianMatrix.element[n+4][n+5]+=f2*dr.y*dr.z*dr.z*dr.z+f1*dr.y*dr.z;                  // yzzz
 
           HessianMatrix.element[n+5][n+5]+=f2*dr.z*dr.z*dr.z*dr.z+2.0*f1*dr.z*dr.z;              // zzzz
-          break;                                   
+          break;
         case REGULAR_UPPER_TRIANGLE:
           HessianMatrix.element[n][n  ]+=f2*dr.x*dr.x*dr.x*dr.x+2.0*f1*dr.x*dr.x;   // xxxx
           HessianMatrix.element[n][n+1]+=f2*dr.x*dr.x*dr.x*dr.y+f1*dr.x*dr.y;       // xxxy
@@ -16895,7 +16895,7 @@ static inline void HessianAtomicStrainStrainLocalExcluded(REAL_MATRIX HessianMat
           HessianMatrix.element[n+4][n+5]+=f2*dr.y*dr.z*dr.z*dr.z;                  // yzzz
 
           HessianMatrix.element[n+5][n+5]+=f2*dr.z*dr.z*dr.z*dr.z+2.0*f1*dr.z*dr.z; // zzzz
-          break;                                   
+          break;
         case MONOCLINIC:
           switch(MonoclinicAngleType[CurrentSystem])
           {
@@ -16945,7 +16945,7 @@ static inline void HessianAtomicStrainStrainLocalExcluded(REAL_MATRIX HessianMat
               HessianMatrix.element[n+3][n+3]+=f2*dr.z*dr.z*dr.z*dr.z+2.0*f1*dr.z*dr.z;              // zzzz
               break;
           }
-          break;  
+          break;
         case MONOCLINIC_UPPER_TRIANGLE:
           switch(MonoclinicAngleType[CurrentSystem])
           {
@@ -16996,9 +16996,9 @@ static inline void HessianAtomicStrainStrainLocalExcluded(REAL_MATRIX HessianMat
               HessianMatrix.element[n+3][n+3]+=f2*dr.z*dr.z*dr.z*dr.z+2.0*f1*dr.z*dr.z; // zzzz
               break;
           }
-          break;  
-        default:  
-          printf("Unknown NPTPRCellType\n");
+          break;
+        default:
+          fprintf(stderr, "Unknown NPTPRCellType\n");
           exit(0);
           break;
       }
@@ -17426,7 +17426,7 @@ int CalculateEwaldFourierDerivatives(REAL *Energy,REAL* Gradient,REAL_MATRIX Hes
 
 
           exp_term=exp((-0.25/SQR(Alpha[CurrentSystem]))*Rksq)/Rksq;
-          energy_term=(SQR(Cksum.re)+SQR(Cksum.im))*exp_term; 
+          energy_term=(SQR(Cksum.re)+SQR(Cksum.im))*exp_term;
 
           f=factor*(SQR(Cksum.re)+SQR(Cksum.im));
 
@@ -17483,7 +17483,7 @@ int CalculateEwaldFourierDerivatives(REAL *Energy,REAL* Gradient,REAL_MATRIX Hes
                   charge=Framework[CurrentSystem].Atoms[f1][i].Charge;
                   considered_charged=(fabs(charge)>1e-10)||(PseudoAtoms[type].IsPolarizable);
                   if(considered_charged)
-                  { 
+                  {
                     index_i=Framework[CurrentSystem].Atoms[f1][i].HessianIndex;
 
                     f1_I=2.0*factor*(-Eikr[index1].im*Cksum.re+Eikr[index1].re*Cksum.im);
@@ -17686,7 +17686,7 @@ int CalculateEwaldFourierDerivatives(REAL *Energy,REAL* Gradient,REAL_MATRIX Hes
                     if((index_i.z>=0)&&(index_i.y>=0)) HessianMatrix.element[index_i.z][index_i.y]+=f2_I*Rk.y*Rk.z;
 
                     HessianAtomicPositionStrain(HessianMatrix,index_i,f1_I,Theta,Rk);
- 
+
                     index2=0;
                     for(f2=0;f2<Framework[CurrentSystem].NumberOfFrameworks;f2++)
                     {
@@ -17941,7 +17941,7 @@ int CalculateEwaldFourierDerivatives(REAL *Energy,REAL* Gradient,REAL_MATRIX Hes
                     if((index_i.y>=0)&&(index_i.x>=0)) HessianMatrix.element[index_i.y][index_i.x]+=f2_I*Rk.x*Rk.y;
                     if((index_i.z>=0)&&(index_i.x>=0)) HessianMatrix.element[index_i.z][index_i.x]+=f2_I*Rk.x*Rk.z;
                     if((index_i.z>=0)&&(index_i.y>=0)) HessianMatrix.element[index_i.z][index_i.y]+=f2_I*Rk.y*Rk.z;
-                    
+
 
                     // Crossterm: derivative of the energy with respect to strain and position
                     HessianAtomicPositionStrain(HessianMatrix,index_i,f1_I,Theta,Rk);
@@ -18004,7 +18004,7 @@ int CalculateEwaldFourierDerivatives(REAL *Energy,REAL* Gradient,REAL_MATRIX Hes
                     for(J=0;J<NumberOfAdsorbateMolecules[CurrentSystem];J++)
                     {
                       TypeMolB=Adsorbates[CurrentSystem][J].Type;
- 
+
                       for(jg=0;jg<Components[TypeMolB].NumberOfGroups;jg++)
                       {
                         if(Components[TypeMolB].Groups[jg].Rigid)
@@ -18335,7 +18335,7 @@ int CalculateEwaldFourierDerivatives(REAL *Energy,REAL* Gradient,REAL_MATRIX Hes
                       if((index_i2.x>=0)&&(index_i2.z>=0)) HessianMatrix.element[index_i2.x][index_i2.z]+=f1_I*dot_product_AZ;
                       if((index_i2.y>=0)&&(index_i2.z>=0)) HessianMatrix.element[index_i2.y][index_i2.z]+=f1_I*dot_product_BZ;
 
-                      // derivative of stress with respect to the orientation 
+                      // derivative of stress with respect to the orientation
                       HessianOrientationStrainI(HessianMatrix,index_i2,index1_rigid,f1_I,f2_I,posA,comA,Rk,Theta);
 
                       // correction term for first Born term
@@ -18357,7 +18357,7 @@ int CalculateEwaldFourierDerivatives(REAL *Energy,REAL* Gradient,REAL_MATRIX Hes
                     for(J=0;J<NumberOfAdsorbateMolecules[CurrentSystem];J++)
                     {
                       TypeMolB=Adsorbates[CurrentSystem][J].Type;
- 
+
                       for(jg=0;jg<Components[TypeMolB].NumberOfGroups;jg++)
                       {
                         for(ja=0;ja<Components[TypeMolB].Groups[jg].NumberOfGroupAtoms;ja++)
@@ -18495,7 +18495,7 @@ int CalculateEwaldFourierDerivatives(REAL *Energy,REAL* Gradient,REAL_MATRIX Hes
                                 if((index_i2.z>=0)&&(index_j2.z>=0)) HessianMatrix.element[index_i2.z][index_j2.z]-=f2_IJ*dot_product_i.z*dot_product_j.z;
                               }
                             }
-                            
+
                             if((index_j.x>=0)||(index_j.y>=0)||(index_j.z>=0)||(index_j2.x>=0)||(index_j2.y>=0)||(index_j2.z>=0))
                               index2++;
                           }
@@ -19097,7 +19097,7 @@ void ReadRestartEwald(FILE *FilePtr)
   fread(&Check,1,sizeof(REAL),FilePtr);
   if(fabs(Check-123456789.0)>1e-10)
   {
-    printf("Error in binary restart-file (ReadRestartEwald)\n");
+    fprintf(stderr, "Error in binary restart-file (ReadRestartEwald)\n");
     exit(0);
   }
 

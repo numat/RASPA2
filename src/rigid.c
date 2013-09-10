@@ -53,10 +53,10 @@ REAL *NumberOfRattleCyclesStage2;
 int *MaximumNumberOfRattleCyclesStage2;
 
 // The space-fixed coordinate system is chosen in an inertial reference frame in which Newton's equations of motion are valid.
-// The body-fixed coordinate system is an origin and three orthogonal axes (unit vectors) that are fixed to the body and rotate, 
+// The body-fixed coordinate system is an origin and three orthogonal axes (unit vectors) that are fixed to the body and rotate,
 // tumble, spin and twist along with it.
 
-// The unit quaternion q is introduced in order to generate a minimal, nonsingular, representation of the rotation matrix from a 
+// The unit quaternion q is introduced in order to generate a minimal, nonsingular, representation of the rotation matrix from a
 // space-fixed denoted ‘s’ to a body-fixed coordinate system denoted ‘b’.
 // The Quaternion Rotation Operator is L_q(v)=q* v q; this operator represents a rotation through an angle alpha about a vector q as its axis.
 // We apply the quaternion rotation operator to a 3D vector v (a pure quaternion defined in the space-fixed frame), and express it as w in the
@@ -68,7 +68,7 @@ void BuildRotationMatrix(REAL_MATRIX3x3 *R,QUATERNION q)
   R->az=2.0*(q.i*q.k+q.r*q.j);       R->bz=2.0*(q.j*q.k-q.r*q.i);       R->cz=2.0*(SQR(q.r)+SQR(q.k))-1.0;
 }
 
-// To do the opposite, namely apply the quaternion rotation operator to a 3D vector v (a pure quaternion defined in the body-fixed frame), 
+// To do the opposite, namely apply the quaternion rotation operator to a 3D vector v (a pure quaternion defined in the body-fixed frame),
 // and express it as w in the space-fixed frame, we have w_s=R(q)^-1 v_b=R(q)^T v_b
 void BuildRotationMatrixInverse(REAL_MATRIX3x3 *R,QUATERNION q)
 {
@@ -108,7 +108,7 @@ void ComputeQuaternions(void)
 
       rotmin=MIN3(Components[j].Groups[k].InertiaVector.x,Components[j].Groups[k].InertiaVector.y,Components[j].Groups[k].InertiaVector.z)/rotall;
 
-      Components[j].Groups[k].rot_min=rotmin; 
+      Components[j].Groups[k].rot_min=rotmin;
 
       dimensionality=0;
       if(Components[j].Groups[k].InertiaVector.x/rotall<1.0e-5) dimensionality++;
@@ -215,7 +215,7 @@ void ComputeQuaternions(void)
           // check for singularity
           if(fabs(det)<1e-5)
           {
-            printf("failed to find principal axis system in routine 'void ComputeQuaternions(void)' in file 'rigid.c')\n");
+            fprintf(stderr, "failed to find principal axis system in routine 'void ComputeQuaternions(void)' in file 'rigid.c')\n");
             exit(0);
           }
 
@@ -250,9 +250,9 @@ void ComputeQuaternions(void)
       C=Components[j].Groups[k].Atoms[atom3];
 
       // store the 3 atoms defining the orientation
-      Components[j].Groups[k].orientation.A=A; 
-      Components[j].Groups[k].orientation.B=B; 
-      Components[j].Groups[k].orientation.C=C; 
+      Components[j].Groups[k].orientation.A=A;
+      Components[j].Groups[k].orientation.B=B;
+      Components[j].Groups[k].orientation.C=C;
     }
   }
 
@@ -350,8 +350,8 @@ void ComputeQuaternionAdsorbate(int m)
     if(Components[Type].Groups[k].Rigid)
     {
       rotmin=Components[Type].Groups[k].rot_min;
-      A=Components[Type].Groups[k].orientation.A; 
-      B=Components[Type].Groups[k].orientation.B; 
+      A=Components[Type].Groups[k].orientation.A;
+      B=Components[Type].Groups[k].orientation.B;
       C=Components[Type].Groups[k].orientation.C;
 
       // construct the final coordinate system matrix
@@ -571,8 +571,8 @@ void ComputeQuaternionCation(int m)
     if(Components[Type].Groups[k].Rigid)
     {
       rotmin=Components[Type].Groups[k].rot_min;
-      A=Components[Type].Groups[k].orientation.A; 
-      B=Components[Type].Groups[k].orientation.B; 
+      A=Components[Type].Groups[k].orientation.A;
+      B=Components[Type].Groups[k].orientation.B;
       C=Components[Type].Groups[k].orientation.C;
 
       // construct the final coordinate system matrix
@@ -1115,7 +1115,7 @@ void ComputeQuaternionMomenta(void)
       Cations[CurrentSystem][i].Groups[l].QuaternionMomentum=AngularVelocityToQuaternionMomentumCations(i,l);
   }
 }
-  
+
 QUATERNION AngularVelocityToQuaternionMomentumAdsorbates(int i,int g)
 {
   QUATERNION p,q;
@@ -1149,7 +1149,7 @@ QUATERNION AngularVelocityToQuaternionMomentumCations(int i,int g)
 
 VECTOR QuaternionMomentumToAngularVelocityAdsorbates(int i,int g)
 {
-  QUATERNION p,q; 
+  QUATERNION p,q;
   VECTOR inv,omega;
 
   q=Adsorbates[CurrentSystem][i].Groups[g].Quaternion;
@@ -1320,7 +1320,7 @@ void CreateCartesianPositions(void)
       {
         Type=Cations[CurrentSystem][i].Type;
         BuildRotationMatrixInverse(&M,Cations[CurrentSystem][i].Groups[l].Quaternion);
-  
+
         for(k=0;k<Components[Type].Groups[l].NumberOfGroupAtoms;k++)
         {
           A=Components[Type].Groups[l].Atoms[k];
@@ -1372,7 +1372,7 @@ void CreateCartesianVelocities(void)
         {
           A=Components[Type].Groups[l].Atoms[k];
 
-          // site position in body frame 
+          // site position in body frame
           pos=Components[Type].Positions[A];
           w.x=omega.y*pos.z-omega.z*pos.y;
           w.y=omega.z*pos.x-omega.x*pos.z;
@@ -1402,7 +1402,7 @@ void CreateCartesianVelocities(void)
         for(k=0;k<Components[Type].Groups[l].NumberOfGroupAtoms;k++)
         {
           A=Components[Type].Groups[l].Atoms[k];
-          // site position in body frame 
+          // site position in body frame
           pos=Components[Type].Positions[A];
           w.x=omega.y*pos.z-omega.z*pos.y;
           w.y=omega.z*pos.x-omega.x*pos.z;
@@ -1426,7 +1426,7 @@ void NoSquishRotate(int k,REAL dt)
   REAL zeta;
   QUATERNION p,q,pn,qn;
   VECTOR I;
- 
+
   for(i=0;i<NumberOfAdsorbateMolecules[CurrentSystem];i++)
   {
     Type=Adsorbates[CurrentSystem][i].Type;
@@ -1478,7 +1478,7 @@ void NoSquishRotate(int k,REAL dt)
             qn.k=cos(zeta)*q.k+sin(zeta)*q.r;
             break;
           default:
-            printf("error\n");
+            fprintf(stderr, "error\n");
             exit(0);
             break;
         }
@@ -1539,7 +1539,7 @@ void NoSquishRotate(int k,REAL dt)
             qn.k=cos(zeta)*q.k+sin(zeta)*q.r;
             break;
           default:
-            printf("error\n");
+            fprintf(stderr, "error\n");
             exit(0);
             break;
         }
@@ -1605,7 +1605,7 @@ void CreateComVelocities(void)
   VECTOR COMVel;
 
   for(i=0;i<NumberOfAdsorbateMolecules[CurrentSystem];i++)
-  {    
+  {
     Type=Adsorbates[CurrentSystem][i].Type;
     for(l=0;l<Components[Type].NumberOfGroups;l++)
     {
@@ -1804,7 +1804,7 @@ void NoSquishEvolvedt2Todt(void)
     for(l=0;l<Components[Type].NumberOfGroups;l++)
     {
       if(Components[Type].Groups[l].Rigid)
-      { 
+      {
         Mass=Components[Type].Groups[l].Mass;
 
         Adsorbates[CurrentSystem][i].Groups[l].QuaternionMomentum.r+=0.5*DeltaT*Adsorbates[CurrentSystem][i].Groups[l].QuaternionForce.r;
@@ -3296,9 +3296,9 @@ void ShakeInMinimization(void)
     iter++;
     max_error=0.0;
 
-    if(iter==10000) 
+    if(iter==10000)
     {
-      printf("Shake in minimization failed, maximum number of iterations reached\n");
+      fprintf(stderr, "Shake in minimization failed, maximum number of iterations reached\n");
       exit(0);
     }
 
@@ -3361,11 +3361,11 @@ void ShakeInMinimization(void)
           switch(DistanceConstraintType)
           {
             case DISTANCE_R:
-              printf("Gamma %g distance: %g %g\n",gamma,r,r0);
+              fprintf(stderr, "Gamma %g distance: %g %g\n",gamma,r,r0);
               break;
             default:
             case DISTANCE_R_SQUARED:
-              printf("Gamma %g distance: %g %g\n",gamma,sqrt(r),sqrt(r0));
+              fprintf(stderr, "Gamma %g distance: %g %g\n",gamma,sqrt(r),sqrt(r0));
               break;
           }
 */
@@ -3432,11 +3432,11 @@ void ShakeInMinimization(void)
           switch(DistanceConstraintType)
           {
             case DISTANCE_R:
-              printf("Gamma %g distance: %g %g\n",gamma,r,r0);
+              fprintf(stderr, "Gamma %g distance: %g %g\n",gamma,r,r0);
               break;
             default:
             case DISTANCE_R_SQUARED:
-              printf("Gamma %g distance: %g %g\n",gamma,sqrt(r),sqrt(r0));
+              fprintf(stderr, "Gamma %g distance: %g %g\n",gamma,sqrt(r),sqrt(r0));
               break;
           }
 */
@@ -3521,14 +3521,14 @@ void ShakeInMinimization(void)
           switch(BendConstraintType)
           {
             case COS_THETA_SQUARED:
-              printf("Gamma %g bend angle: %g %g\n",gamma,acos(sqrt(Theta))*RAD2DEG,acos(sqrt(Theta0))*RAD2DEG);
+              fprintf(stderr, "Gamma %g bend angle: %g %g\n",gamma,acos(sqrt(Theta))*RAD2DEG,acos(sqrt(Theta0))*RAD2DEG);
               break;
             case COS_THETA:
-              printf("Gamma %g bend angle: %g %g\n",gamma,acos(Theta)*RAD2DEG,acos(Theta0)*RAD2DEG);
+              fprintf(stderr, "Gamma %g bend angle: %g %g\n",gamma,acos(Theta)*RAD2DEG,acos(Theta0)*RAD2DEG);
               break;
             case THETA:
             default:
-              printf("Gamma %g bend angle: %g %g\n",gamma,(Theta)*RAD2DEG,(Theta0)*RAD2DEG);
+              fprintf(stderr, "Gamma %g bend angle: %g %g\n",gamma,(Theta)*RAD2DEG,(Theta0)*RAD2DEG);
               break;
           }
 */
@@ -3612,14 +3612,14 @@ void ShakeInMinimization(void)
           switch(BendConstraintType)
           {
             case COS_THETA_SQUARED:
-              printf("Gamma %g bend angle: %g %g\n",gamma,acos(sqrt(Theta))*RAD2DEG,acos(sqrt(Theta0))*RAD2DEG);
+              fprintf(stderr, "Gamma %g bend angle: %g %g\n",gamma,acos(sqrt(Theta))*RAD2DEG,acos(sqrt(Theta0))*RAD2DEG);
               break;
             case COS_THETA:
-              printf("Gamma %g bend angle: %g %g\n",gamma,acos(Theta)*RAD2DEG,acos(Theta0)*RAD2DEG);
+              fprintf(stderr, "Gamma %g bend angle: %g %g\n",gamma,acos(Theta)*RAD2DEG,acos(Theta0)*RAD2DEG);
               break;
             case THETA:
             default:
-              printf("Gamma %g bend angle: %g %g\n",gamma,(Theta)*RAD2DEG,(Theta0)*RAD2DEG);
+              fprintf(stderr, "Gamma %g bend angle: %g %g\n",gamma,(Theta)*RAD2DEG,(Theta0)*RAD2DEG);
               break;
           }
 */
@@ -3714,14 +3714,14 @@ void ShakeInMinimization(void)
           switch(DihedralConstraintType)
           {
             case COS_PHI_SQUARED:
-              printf("Cos^2(Phi): Gamma %g dihedral angle: %g %g\n",gamma,acos(sqrt(Phi))*RAD2DEG,acos(sqrt(Phi0))*RAD2DEG);
+              fprintf(stderr, "Cos^2(Phi): Gamma %g dihedral angle: %g %g\n",gamma,acos(sqrt(Phi))*RAD2DEG,acos(sqrt(Phi0))*RAD2DEG);
               break;
             case COS_PHI:
-              printf("Cos(Phi): Gamma %g dihedral angle: %g %g\n",gamma,acos(Phi)*RAD2DEG,acos(Phi0)*RAD2DEG);
+              fprintf(stderr, "Cos(Phi): Gamma %g dihedral angle: %g %g\n",gamma,acos(Phi)*RAD2DEG,acos(Phi0)*RAD2DEG);
               break;
             case PHI:
             default:
-              printf("Phi: Gamma %g dihedral angle: %g %g\n",gamma,(Phi)*RAD2DEG,(Phi0)*RAD2DEG);
+              fprintf(stderr, "Phi: Gamma %g dihedral angle: %g %g\n",gamma,(Phi)*RAD2DEG,(Phi0)*RAD2DEG);
               break;
           }
         }
@@ -3777,7 +3777,7 @@ void ShakeInMinimization(void)
           posC=Cations[CurrentSystem][m].Atoms[C].Position;
           posD=Cations[CurrentSystem][m].Atoms[D].Position;
           Phi=ReturnConstraintDihedralAngle(posA,posB,posC,posD);
-  
+
           Rab.x=posB.x-posA.x;
           Rab.y=posB.y-posA.y;
           Rab.z=posB.z-posA.z;
@@ -3815,14 +3815,14 @@ void ShakeInMinimization(void)
           switch(DihedralConstraintType)
           {
             case COS_PHI_SQUARED:
-              printf("Gamma %g dihedral angle: %g %g\n",gamma,acos(sqrt(Phi))*RAD2DEG,acos(sqrt(Phi0))*RAD2DEG);
+              fprintf(stderr, "Gamma %g dihedral angle: %g %g\n",gamma,acos(sqrt(Phi))*RAD2DEG,acos(sqrt(Phi0))*RAD2DEG);
               break;
             case COS_PHI:
-              printf("Gamma %g dihedral angle: %g %g\n",gamma,acos(Phi)*RAD2DEG,acos(Phi0)*RAD2DEG);
+              fprintf(stderr, "Gamma %g dihedral angle: %g %g\n",gamma,acos(Phi)*RAD2DEG,acos(Phi0)*RAD2DEG);
               break;
             case PHI:
             default:
-              printf("Gamma %g dihedral angle: %g %g\n",gamma,(Phi)*RAD2DEG,(Phi0)*RAD2DEG);
+              fprintf(stderr, "Gamma %g dihedral angle: %g %g\n",gamma,(Phi)*RAD2DEG,(Phi0)*RAD2DEG);
               break;
           }
 */
@@ -3918,14 +3918,14 @@ void ShakeInMinimization(void)
           switch(DihedralConstraintType)
           {
             case COS_PHI_SQUARED:
-              printf("Gamma %g improper dihedral angle: %g %g\n",gamma,acos(sqrt(Phi))*RAD2DEG,acos(sqrt(Phi0))*RAD2DEG);
+              fprintf(stderr, "Gamma %g improper dihedral angle: %g %g\n",gamma,acos(sqrt(Phi))*RAD2DEG,acos(sqrt(Phi0))*RAD2DEG);
               break;
             case COS_PHI:
-              printf("Gamma %g improper dihedral angle: %g %g\n",gamma,acos(Phi)*RAD2DEG,acos(Phi0)*RAD2DEG);
+              fprintf(stderr, "Gamma %g improper dihedral angle: %g %g\n",gamma,acos(Phi)*RAD2DEG,acos(Phi0)*RAD2DEG);
               break;
             case PHI:
             default:
-              printf("Gamma %g improper dihedral angle: %g %g\n",gamma,(Phi)*RAD2DEG,(Phi0)*RAD2DEG);
+              fprintf(stderr, "Gamma %g improper dihedral angle: %g %g\n",gamma,(Phi)*RAD2DEG,(Phi0)*RAD2DEG);
               break;
           }
 */
@@ -4020,14 +4020,14 @@ void ShakeInMinimization(void)
           switch(DihedralConstraintType)
           {
             case COS_PHI_SQUARED:
-              printf("Gamma %g improper dihedral angle: %g %g\n",gamma,acos(sqrt(Phi))*RAD2DEG,acos(sqrt(Phi0))*RAD2DEG);
+              fprintf(stderr, "Gamma %g improper dihedral angle: %g %g\n",gamma,acos(sqrt(Phi))*RAD2DEG,acos(sqrt(Phi0))*RAD2DEG);
               break;
             case COS_PHI:
-              printf("Gamma %g improper dihedral angle: %g %g\n",gamma,acos(Phi)*RAD2DEG,acos(Phi0)*RAD2DEG);
+              fprintf(stderr, "Gamma %g improper dihedral angle: %g %g\n",gamma,acos(Phi)*RAD2DEG,acos(Phi0)*RAD2DEG);
               break;
             case PHI:
             default:
-              printf("Gamma %g improper dihedral angle: %g %g\n",gamma,(Phi)*RAD2DEG,(Phi0)*RAD2DEG);
+              fprintf(stderr, "Gamma %g improper dihedral angle: %g %g\n",gamma,(Phi)*RAD2DEG,(Phi0)*RAD2DEG);
               break;
           }
 */
@@ -4123,14 +4123,14 @@ void ShakeInMinimization(void)
           switch(InversionBendConstraintType)
           {
             case SIN_CHI_SQUARED:
-              printf("Sin(Chi)^2: Gamma %g inversion-bend angle: %g %g\n",gamma,asin(sqrt(Chi))*RAD2DEG,asin(sqrt(Chi0))*RAD2DEG);
+              fprintf(stderr, "Sin(Chi)^2: Gamma %g inversion-bend angle: %g %g\n",gamma,asin(sqrt(Chi))*RAD2DEG,asin(sqrt(Chi0))*RAD2DEG);
               break;
             case SIN_CHI:
-              printf("Sin(Chi): Gamma %g inversion-bend angle: %g %g\n",gamma,asin(Chi)*RAD2DEG,asin(Chi0)*RAD2DEG);
+              fprintf(stderr, "Sin(Chi): Gamma %g inversion-bend angle: %g %g\n",gamma,asin(Chi)*RAD2DEG,asin(Chi0)*RAD2DEG);
               break;
             case CHI:
             default:
-              printf("Chi: Gamma %g inversion-bend angle: %g %g\n",gamma,(Chi)*RAD2DEG,(Chi0)*RAD2DEG);
+              fprintf(stderr, "Chi: Gamma %g inversion-bend angle: %g %g\n",gamma,(Chi)*RAD2DEG,(Chi0)*RAD2DEG);
               break;
           }
         }
@@ -4224,14 +4224,14 @@ void ShakeInMinimization(void)
           switch(InversionBendConstraintType)
           {
             case SIN_CHI_SQUARED:
-              printf("Sin(Chi)^2: Gamma %g inversion-bend angle: %g %g\n",gamma,asin(sqrt(Chi))*RAD2DEG,asin(sqrt(Chi0))*RAD2DEG);
+              fprintf(stderr, "Sin(Chi)^2: Gamma %g inversion-bend angle: %g %g\n",gamma,asin(sqrt(Chi))*RAD2DEG,asin(sqrt(Chi0))*RAD2DEG);
               break;
             case SIN_CHI:
-              printf("Sin(Chi): Gamma %g inversion-bend angle: %g %g\n",gamma,asin(Chi)*RAD2DEG,asin(Chi0)*RAD2DEG);
+              fprintf(stderr, "Sin(Chi): Gamma %g inversion-bend angle: %g %g\n",gamma,asin(Chi)*RAD2DEG,asin(Chi0)*RAD2DEG);
               break;
             case CHI:
             default:
-              printf("Chi: Gamma %g inversion-bend angle: %g %g\n",gamma,(Chi)*RAD2DEG,(Chi0)*RAD2DEG);
+              fprintf(stderr, "Chi: Gamma %g inversion-bend angle: %g %g\n",gamma,(Chi)*RAD2DEG,(Chi0)*RAD2DEG);
               break;
           }
 */
@@ -4285,11 +4285,11 @@ void ShakeInMinimization(void)
       switch(DistanceConstraintType)
       {
         case DISTANCE_R:
-          printf("Gamma %g distance: %g %g\n",gamma,r,r0);
+          fprintf(stderr, "Gamma %g distance: %g %g\n",gamma,r,r0);
           break;
         default:
         case DISTANCE_R_SQUARED:
-          printf("Gamma %g distance: %g %g\n",gamma,sqrt(r),sqrt(r0));
+          fprintf(stderr, "Gamma %g distance: %g %g\n",gamma,sqrt(r),sqrt(r0));
           break;
       }
 */
@@ -4355,14 +4355,14 @@ void ShakeInMinimization(void)
       switch(BendConstraintType)
       {
         case COS_THETA_SQUARED:
-          printf("Gamma %g bend angle: %g %g\n",gamma,acos(sqrt(Theta))*RAD2DEG,acos(sqrt(Theta0))*RAD2DEG);
+          fprintf(stderr, "Gamma %g bend angle: %g %g\n",gamma,acos(sqrt(Theta))*RAD2DEG,acos(sqrt(Theta0))*RAD2DEG);
           break;
         case COS_THETA:
-          printf("Gamma %g bend angle: %g %g\n",gamma,acos(Theta)*RAD2DEG,acos(Theta0)*RAD2DEG);
+          fprintf(stderr, "Gamma %g bend angle: %g %g\n",gamma,acos(Theta)*RAD2DEG,acos(Theta0)*RAD2DEG);
           break;
         case THETA:
         default:
-          printf("Gamma %g bend angle: %g %g\n",gamma,(Theta)*RAD2DEG,(Theta0)*RAD2DEG);
+          fprintf(stderr, "Gamma %g bend angle: %g %g\n",gamma,(Theta)*RAD2DEG,(Theta0)*RAD2DEG);
           break;
       }
 */
@@ -4443,14 +4443,14 @@ void ShakeInMinimization(void)
       switch(InversionBendConstraintType)
       {
         case COS_CHI_SQUARED:
-          printf("Gamma %g inversion-bend angle: %g %g\n",gamma,acos(sqrt(Chi))*RAD2DEG,acos(sqrt(Chi0))*RAD2DEG);
+          fprintf(stderr, "Gamma %g inversion-bend angle: %g %g\n",gamma,acos(sqrt(Chi))*RAD2DEG,acos(sqrt(Chi0))*RAD2DEG);
           break;
         case COS_CHI:
-          printf("Gamma %g inversion-bend angle: %g %g\n",gamma,acos(Chi)*RAD2DEG,acos(Chi0)*RAD2DEG);
+          fprintf(stderr, "Gamma %g inversion-bend angle: %g %g\n",gamma,acos(Chi)*RAD2DEG,acos(Chi0)*RAD2DEG);
           break;
         case CHI:
         default:
-          printf("Gamma %g inversion-bend angle: %g %g\n",gamma,(Chi)*RAD2DEG,(Chi0)*RAD2DEG);
+          fprintf(stderr, "Gamma %g inversion-bend angle: %g %g\n",gamma,(Chi)*RAD2DEG,(Chi0)*RAD2DEG);
           break;
       }
 */
@@ -4603,14 +4603,14 @@ void ShakeInMinimization(void)
       switch(ImproperDihedralConstraintType)
       {
         case COS_PHI_SQUARED:
-          printf("Gamma %g dihedral angle: %g %g\n",gamma,acos(sqrt(Phi))*RAD2DEG,acos(sqrt(Phi0))*RAD2DEG);
+          fprintf(stderr, "Gamma %g dihedral angle: %g %g\n",gamma,acos(sqrt(Phi))*RAD2DEG,acos(sqrt(Phi0))*RAD2DEG);
           break;
         case COS_PHI:
-          printf("Gamma %g dihedral angle: %g %g\n",gamma,acos(Phi)*RAD2DEG,acos(Phi0)*RAD2DEG);
+          fprintf(stderr, "Gamma %g dihedral angle: %g %g\n",gamma,acos(Phi)*RAD2DEG,acos(Phi0)*RAD2DEG);
           break;
         case PHI:
         default:
-          printf("Gamma %g dihedral angle: %g %g\n",gamma,(Phi)*RAD2DEG,(Phi0)*RAD2DEG);
+          fprintf(stderr, "Gamma %g dihedral angle: %g %g\n",gamma,(Phi)*RAD2DEG,(Phi0)*RAD2DEG);
           break;
       }
 */
@@ -4621,14 +4621,14 @@ void ShakeInMinimization(void)
   {
     posA=DistanceConstraints[CurrentSystem][j][0]->Position;
     posB=DistanceConstraints[CurrentSystem][j][1]->Position;
-    printf("Distance: %18.10f\n",ReturnBondDistance(posA,posB));
+    fprintf(stderr, "Distance: %18.10f\n",ReturnBondDistance(posA,posB));
   }
   for(j=0;j<NumberOfAngleConstraints[CurrentSystem];j++)
   {
     posA=AngleConstraints[CurrentSystem][j][0]->Position;
     posB=AngleConstraints[CurrentSystem][j][1]->Position;
     posC=AngleConstraints[CurrentSystem][j][2]->Position;
-    printf("Bend Angle: %18.10f\n",ReturnBendAngle(posA,posB,posC)*RAD2DEG);
+    fprintf(stderr, "Bend Angle: %18.10f\n",ReturnBendAngle(posA,posB,posC)*RAD2DEG);
   }
   for(j=0;j<NumberOfDihedralConstraints[CurrentSystem];j++)
   {
@@ -4636,7 +4636,7 @@ void ShakeInMinimization(void)
     posB=DihedralConstraints[CurrentSystem][j][1]->Position;
     posC=DihedralConstraints[CurrentSystem][j][2]->Position;
     posD=DihedralConstraints[CurrentSystem][j][3]->Position;
-    printf("Dihedral Angle: %18.10f\n",ReturnDihedralAngle(posA,posB,posC,posD)*RAD2DEG);
+    fprintf(stderr, "Dihedral Angle: %18.10f\n",ReturnDihedralAngle(posA,posB,posC,posD)*RAD2DEG);
   }
   for(j=0;j<NumberOfImproperDihedralConstraints[CurrentSystem];j++)
   {
@@ -4644,7 +4644,7 @@ void ShakeInMinimization(void)
     posB=ImproperDihedralConstraints[CurrentSystem][j][1]->Position;
     posC=ImproperDihedralConstraints[CurrentSystem][j][2]->Position;
     posD=ImproperDihedralConstraints[CurrentSystem][j][3]->Position;
-    printf("Improper dihedral Angle: %18.10f\n",ReturnDihedralAngle(posA,posB,posC,posD)*RAD2DEG);
+    fprintf(stderr, "Improper dihedral Angle: %18.10f\n",ReturnDihedralAngle(posA,posB,posC,posD)*RAD2DEG);
   }
   for(j=0;j<NumberOfInversionBendConstraints[CurrentSystem];j++)
   {
@@ -4653,7 +4653,7 @@ void ShakeInMinimization(void)
     posC=InversionBendConstraints[CurrentSystem][j][2]->Position;
     posD=InversionBendConstraints[CurrentSystem][j][3]->Position;
     Chi=ReturnInversionBendAngle(posA,posB,posC,posD);
-    printf("Inversionbend Angle: %18.10f\n",Chi*RAD2DEG);
+    fprintf(stderr, "Inversionbend Angle: %18.10f\n",Chi*RAD2DEG);
   }
 }
 
@@ -4715,7 +4715,7 @@ void RattleStageOne(void)
           sigma=ConstraintValue-ConstraintTarget;
 
           error=0.5*fabs(sigma)/ConstraintTarget;
-          max_error=MAX2(error,max_error); 
+          max_error=MAX2(error,max_error);
 
           dot_productA=CurrentGradientA.x*ReferenceGradientA.x+CurrentGradientA.y*ReferenceGradientA.y+CurrentGradientA.z*ReferenceGradientA.z;
           dot_productB=CurrentGradientB.x*ReferenceGradientB.x+CurrentGradientB.y*ReferenceGradientB.y+CurrentGradientB.z*ReferenceGradientB.z;
@@ -5352,7 +5352,7 @@ void RattleStageOne(void)
   }while(max_error>1e-8);
 
   NumberOfRattleCyclesStage1[CurrentSystem]+=NumberOfRattleSteps;
-  if(NumberOfRattleSteps>MaximumNumberOfRattleCyclesStage1[CurrentSystem]) 
+  if(NumberOfRattleSteps>MaximumNumberOfRattleCyclesStage1[CurrentSystem])
     MaximumNumberOfRattleCyclesStage1[CurrentSystem]=NumberOfRattleSteps;
 }
 
@@ -5413,7 +5413,7 @@ void RattleStageTwo(void)
           Adsorbates[CurrentSystem][m].Atoms[B].Velocity.y-=0.5*DeltaT*InverseMassB*gamma*CurrentGradientB.y;
           Adsorbates[CurrentSystem][m].Atoms[B].Velocity.z-=0.5*DeltaT*InverseMassB*gamma*CurrentGradientB.z;
 
-          max_error=MAX2(fabs(gamma),max_error); 
+          max_error=MAX2(fabs(gamma),max_error);
         }
       }
       for(j=0;j<Components[Type].NumberOfBends;j++)
@@ -5799,7 +5799,7 @@ void RattleStageTwo(void)
   //exit(0);
 
   NumberOfRattleCyclesStage2[CurrentSystem]+=NumberOfRattleSteps;
-  if(NumberOfRattleSteps>MaximumNumberOfRattleCyclesStage2[CurrentSystem]) 
+  if(NumberOfRattleSteps>MaximumNumberOfRattleCyclesStage2[CurrentSystem])
     MaximumNumberOfRattleCyclesStage2[CurrentSystem]=NumberOfRattleSteps;
 }
 
@@ -5966,25 +5966,25 @@ REAL_MATRIX3x3 ComputeRotationMatrixSecondDerivativeAX(VECTOR p)
   {
     fac=1.0/pow(EulerAngle,6.0);
     DDRotationMatrix.ax=-fac*((SQR(p.y)+SQR(p.z))*(-2.0*SQR(EulerAngle)+8.0*SQR(p.x)+(-8.0*SQR(p.x)+SQR(EulerAngle)*(2.0+SQR(p.x)))*CosTheta+EulerAngle*(SQR(EulerAngle)-5.0*SQR(p.x))*SinTheta));
-    DDRotationMatrix.ay=fac*(-6.0*SQR(EulerAngle)*p.x*p.y+8.0*CUBE(p.x)*p.y+(-8.0*CUBE(p.x)*p.y+SQR(EulerAngle)*SQR(EulerAngle)*p.z+SQR(EulerAngle)*p.x*((6.0+SQR(p.x))*p.y-3.0*p.x*p.z))*CosTheta- 
+    DDRotationMatrix.ay=fac*(-6.0*SQR(EulerAngle)*p.x*p.y+8.0*CUBE(p.x)*p.y+(-8.0*CUBE(p.x)*p.y+SQR(EulerAngle)*SQR(EulerAngle)*p.z+SQR(EulerAngle)*p.x*((6.0+SQR(p.x))*p.y-3.0*p.x*p.z))*CosTheta-
                         EulerAngle*(SQR(p.x)*(5.0*p.x*p.y-3.0*p.z)+SQR(EulerAngle)*(-3.0*p.x*p.y+p.z+SQR(p.x)*p.z))*SinTheta);
-    DDRotationMatrix.az=fac*(-6.0*SQR(EulerAngle)*p.x*p.z+8.0*CUBE(p.x)*p.z+(-(SQR(EulerAngle)*SQR(EulerAngle)*p.y)-8.0*CUBE(p.x)*p.z+SQR(EulerAngle)*p.x*(3.0*p.x*p.y+(6.0+SQR(p.x))*p.z))*CosTheta+ 
+    DDRotationMatrix.az=fac*(-6.0*SQR(EulerAngle)*p.x*p.z+8.0*CUBE(p.x)*p.z+(-(SQR(EulerAngle)*SQR(EulerAngle)*p.y)-8.0*CUBE(p.x)*p.z+SQR(EulerAngle)*p.x*(3.0*p.x*p.y+(6.0+SQR(p.x))*p.z))*CosTheta+
                         EulerAngle*(SQR(EulerAngle)*(p.y+SQR(p.x)*p.y+3.0*p.x*p.z)-SQR(p.x)*(3.0*p.y+5.0*p.x*p.z))*SinTheta);
 
-    DDRotationMatrix.bx=fac*(-6.0*SQR(EulerAngle)*p.x*p.y+8.0*CUBE(p.x)*p.y+(-8.0*CUBE(p.x)*p.y-SQR(EulerAngle)*SQR(EulerAngle)*p.z+SQR(EulerAngle)*p.x*((6.0+SQR(p.x))*p.y+3.0*p.x*p.z))*CosTheta+ 
+    DDRotationMatrix.bx=fac*(-6.0*SQR(EulerAngle)*p.x*p.y+8.0*CUBE(p.x)*p.y+(-8.0*CUBE(p.x)*p.y-SQR(EulerAngle)*SQR(EulerAngle)*p.z+SQR(EulerAngle)*p.x*((6.0+SQR(p.x))*p.y+3.0*p.x*p.z))*CosTheta+
                         EulerAngle*(-(SQR(p.x)*(5.0*p.x*p.y+3.0*p.z))+SQR(EulerAngle)*(3.0*p.x*p.y+p.z+SQR(p.x)*p.z))*SinTheta);
-    DDRotationMatrix.by=fac*(-2.0*(SQR(EulerAngle)-4.0*SQR(p.x))*(SQR(EulerAngle)-SQR(p.x)-SQR(p.z))+ 
-                        (2.0*SQR(EulerAngle)*SQR(EulerAngle)+8.0*SQR(p.x)*(SQR(p.x)+SQR(p.z))-SQR(EulerAngle)*(SQR(p.x)*SQR(p.x)+2.0*SQR(p.z)+SQR(p.x)*(10.0+SQR(p.z))))*CosTheta+ 
+    DDRotationMatrix.by=fac*(-2.0*(SQR(EulerAngle)-4.0*SQR(p.x))*(SQR(EulerAngle)-SQR(p.x)-SQR(p.z))+
+                        (2.0*SQR(EulerAngle)*SQR(EulerAngle)+8.0*SQR(p.x)*(SQR(p.x)+SQR(p.z))-SQR(EulerAngle)*(SQR(p.x)*SQR(p.x)+2.0*SQR(p.z)+SQR(p.x)*(10.0+SQR(p.z))))*CosTheta+
                         EulerAngle*(5.0*SQR(p.x)*(SQR(p.x)+SQR(p.z))-SQR(EulerAngle)*(5.0*SQR(p.x)+SQR(p.z)))*SinTheta);
-    DDRotationMatrix.bz=fac*(-2.0*(SQR(EulerAngle)-4.0*SQR(p.x))*p.y*p.z+(3.0*SQR(EulerAngle)*SQR(EulerAngle)*p.x-8.0*SQR(p.x)*p.y*p.z+SQR(EulerAngle)*(-3.0*CUBE(p.x)+(2.0+SQR(p.x))*p.y*p.z))*CosTheta+ 
+    DDRotationMatrix.bz=fac*(-2.0*(SQR(EulerAngle)-4.0*SQR(p.x))*p.y*p.z+(3.0*SQR(EulerAngle)*SQR(EulerAngle)*p.x-8.0*SQR(p.x)*p.y*p.z+SQR(EulerAngle)*(-3.0*CUBE(p.x)+(2.0+SQR(p.x))*p.y*p.z))*CosTheta+
                         EulerAngle*(SQR(p.x)*(3.0*p.x-5.0*p.y*p.z)-SQR(EulerAngle)*(3.0*p.x+CUBE(p.x)-p.y*p.z))*SinTheta);
 
-    DDRotationMatrix.cx=fac*(-6.0*SQR(EulerAngle)*p.x*p.z+8.0*CUBE(p.x)*p.z+(SQR(EulerAngle)*SQR(EulerAngle)*p.y-8.0*CUBE(p.x)*p.z+SQR(EulerAngle)*p.x*(-3.0*p.x*p.y+(6.0+SQR(p.x))*p.z))*CosTheta- 
+    DDRotationMatrix.cx=fac*(-6.0*SQR(EulerAngle)*p.x*p.z+8.0*CUBE(p.x)*p.z+(SQR(EulerAngle)*SQR(EulerAngle)*p.y-8.0*CUBE(p.x)*p.z+SQR(EulerAngle)*p.x*(-3.0*p.x*p.y+(6.0+SQR(p.x))*p.z))*CosTheta-
                          EulerAngle*(SQR(EulerAngle)*(p.y+SQR(p.x)*p.y-3.0*p.x*p.z)+SQR(p.x)*(-3.0*p.y+5.0*p.x*p.z))*SinTheta);
-    DDRotationMatrix.cy=fac*(-2.0*(SQR(EulerAngle)-4.0*SQR(p.x))*p.y*p.z+(-3.0*SQR(EulerAngle)*SQR(EulerAngle)*p.x-8.0*SQR(p.x)*p.y*p.z+SQR(EulerAngle)*(3.0*CUBE(p.x)+(2.0+SQR(p.x))*p.y*p.z))*CosTheta+ 
+    DDRotationMatrix.cy=fac*(-2.0*(SQR(EulerAngle)-4.0*SQR(p.x))*p.y*p.z+(-3.0*SQR(EulerAngle)*SQR(EulerAngle)*p.x-8.0*SQR(p.x)*p.y*p.z+SQR(EulerAngle)*(3.0*CUBE(p.x)+(2.0+SQR(p.x))*p.y*p.z))*CosTheta+
                         EulerAngle*(SQR(EulerAngle)*(3.0*p.x+CUBE(p.x)+p.y*p.z)-SQR(p.x)*(3.0*p.x+5.0*p.y*p.z))*SinTheta);
-    DDRotationMatrix.cz=fac*(-2.0*(SQR(EulerAngle)-4.0*SQR(p.x))*(SQR(EulerAngle)-SQR(p.x)-SQR(p.y))+ 
-                        (2.0*SQR(EulerAngle)*SQR(EulerAngle)+8.0*SQR(p.x)*(SQR(p.x)+SQR(p.y))-SQR(EulerAngle)*(SQR(p.x)*SQR(p.x)+2.0*SQR(p.y)+SQR(p.x)*(10.0+SQR(p.y))))*CosTheta+ 
+    DDRotationMatrix.cz=fac*(-2.0*(SQR(EulerAngle)-4.0*SQR(p.x))*(SQR(EulerAngle)-SQR(p.x)-SQR(p.y))+
+                        (2.0*SQR(EulerAngle)*SQR(EulerAngle)+8.0*SQR(p.x)*(SQR(p.x)+SQR(p.y))-SQR(EulerAngle)*(SQR(p.x)*SQR(p.x)+2.0*SQR(p.y)+SQR(p.x)*(10.0+SQR(p.y))))*CosTheta+
                         EulerAngle*(5.0*SQR(p.x)*(SQR(p.x)+SQR(p.y))-SQR(EulerAngle)*(5.0*SQR(p.x)+SQR(p.y)))*SinTheta);
   }
 
@@ -6010,26 +6010,26 @@ REAL_MATRIX3x3 ComputeRotationMatrixSecondDerivativeBY(VECTOR p)
   else
   {
     fac=1.0/pow(EulerAngle,6.0);
-    DDRotationMatrix.ax=fac*(-2.0*(SQR(EulerAngle)-4.0*SQR(p.y))*(SQR(EulerAngle)-SQR(p.y)-SQR(p.z))+ 
-                        (2*SQR(EulerAngle)*SQR(EulerAngle)+8.0*SQR(p.y)*(SQR(p.y)+SQR(p.z))-SQR(EulerAngle)*(SQR(p.y)*SQR(p.y)+2.0*SQR(p.z)+SQR(p.y)*(10.0+SQR(p.z))))*CosTheta+ 
+    DDRotationMatrix.ax=fac*(-2.0*(SQR(EulerAngle)-4.0*SQR(p.y))*(SQR(EulerAngle)-SQR(p.y)-SQR(p.z))+
+                        (2*SQR(EulerAngle)*SQR(EulerAngle)+8.0*SQR(p.y)*(SQR(p.y)+SQR(p.z))-SQR(EulerAngle)*(SQR(p.y)*SQR(p.y)+2.0*SQR(p.z)+SQR(p.y)*(10.0+SQR(p.z))))*CosTheta+
                          EulerAngle*(5*SQR(p.y)*(SQR(p.y)+SQR(p.z))-SQR(EulerAngle)*(5.0*SQR(p.y)+SQR(p.z)))*SinTheta);
-    DDRotationMatrix.ay=fac*(-6.0*SQR(EulerAngle)*p.x*p.y+8.0*p.x*CUBE(p.y)+(-8.0*p.x*CUBE(p.y)+SQR(EulerAngle)*SQR(EulerAngle)*p.z+SQR(EulerAngle)*p.y*(p.x*(6.0+SQR(p.y))-3.0*p.y*p.z))*CosTheta+ 
+    DDRotationMatrix.ay=fac*(-6.0*SQR(EulerAngle)*p.x*p.y+8.0*p.x*CUBE(p.y)+(-8.0*p.x*CUBE(p.y)+SQR(EulerAngle)*SQR(EulerAngle)*p.z+SQR(EulerAngle)*p.y*(p.x*(6.0+SQR(p.y))-3.0*p.y*p.z))*CosTheta+
                         EulerAngle*(SQR(p.y)*(-5.0*p.x*p.y+3.0*p.z)+SQR(EulerAngle)*(3.0*p.x*p.y-(1.0+SQR(p.y))*p.z))*SinTheta);
-    DDRotationMatrix.az=fac*(-2.0*p.x*(SQR(EulerAngle)-4.0*SQR(p.y))*p.z+(-3.0*SQR(EulerAngle)*SQR(EulerAngle)*p.y-8.0*p.x*SQR(p.y)*p.z+SQR(EulerAngle)*(3.0*CUBE(p.y)+p.x*(2.0+SQR(p.y))*p.z))*CosTheta+ 
+    DDRotationMatrix.az=fac*(-2.0*p.x*(SQR(EulerAngle)-4.0*SQR(p.y))*p.z+(-3.0*SQR(EulerAngle)*SQR(EulerAngle)*p.y-8.0*p.x*SQR(p.y)*p.z+SQR(EulerAngle)*(3.0*CUBE(p.y)+p.x*(2.0+SQR(p.y))*p.z))*CosTheta+
                         EulerAngle*(SQR(EulerAngle)*(3.0*p.y+CUBE(p.y)+p.x*p.z)-SQR(p.y)*(3.0*p.y+5.0*p.x*p.z))*SinTheta);
 
-    DDRotationMatrix.bx=fac*(-6.0*SQR(EulerAngle)*p.x*p.y+8.0*p.x*CUBE(p.y)+(-8.0*p.x*CUBE(p.y)-SQR(EulerAngle)*SQR(EulerAngle)*p.z+SQR(EulerAngle)*p.y*(p.x*(6.0+SQR(p.y))+3.0*p.y*p.z))*CosTheta+ 
+    DDRotationMatrix.bx=fac*(-6.0*SQR(EulerAngle)*p.x*p.y+8.0*p.x*CUBE(p.y)+(-8.0*p.x*CUBE(p.y)-SQR(EulerAngle)*SQR(EulerAngle)*p.z+SQR(EulerAngle)*p.y*(p.x*(6.0+SQR(p.y))+3.0*p.y*p.z))*CosTheta+
                          EulerAngle*(-(SQR(p.y)*(5.0*p.x*p.y+3.0*p.z))+SQR(EulerAngle)*(3.0*p.x*p.y+p.z+SQR(p.y)*p.z))*SinTheta);
     DDRotationMatrix.by=-fac*((SQR(p.x)+SQR(p.z))*(-2.0*SQR(EulerAngle)+8.0*SQR(p.y)+(-8.0*SQR(p.y)+SQR(EulerAngle)*(2.0+SQR(p.y)))*CosTheta+EulerAngle*(SQR(EulerAngle)-5.0*SQR(p.y))*SinTheta));
-    DDRotationMatrix.bz=fac*(-6.0*SQR(EulerAngle)*p.y*p.z+8.0*CUBE(p.y)*p.z+(SQR(EulerAngle)*SQR(EulerAngle)*p.x-8.0*CUBE(p.y)*p.z+SQR(EulerAngle)*p.y*(-3.0*p.x*p.y+(6.0+SQR(p.y))*p.z))*CosTheta- 
+    DDRotationMatrix.bz=fac*(-6.0*SQR(EulerAngle)*p.y*p.z+8.0*CUBE(p.y)*p.z+(SQR(EulerAngle)*SQR(EulerAngle)*p.x-8.0*CUBE(p.y)*p.z+SQR(EulerAngle)*p.y*(-3.0*p.x*p.y+(6.0+SQR(p.y))*p.z))*CosTheta-
                          EulerAngle*(SQR(EulerAngle)*(p.x+p.x*SQR(p.y)-3.0*p.y*p.z)+SQR(p.y)*(-3.0*p.x+5.0*p.y*p.z))*SinTheta);
 
-    DDRotationMatrix.cx=fac*(-2.0*p.x*(SQR(EulerAngle)-4.0*SQR(p.y))*p.z+(3.0*SQR(EulerAngle)*SQR(EulerAngle)*p.y-8.0*p.x*SQR(p.y)*p.z+SQR(EulerAngle)*(-3.0*CUBE(p.y)+p.x*(2.0+SQR(p.y))*p.z))*CosTheta+ 
+    DDRotationMatrix.cx=fac*(-2.0*p.x*(SQR(EulerAngle)-4.0*SQR(p.y))*p.z+(3.0*SQR(EulerAngle)*SQR(EulerAngle)*p.y-8.0*p.x*SQR(p.y)*p.z+SQR(EulerAngle)*(-3.0*CUBE(p.y)+p.x*(2.0+SQR(p.y))*p.z))*CosTheta+
                          EulerAngle*(SQR(p.y)*(3.0*p.y-5.0*p.x*p.z)-SQR(EulerAngle)*(3.0*p.y+CUBE(p.y)-p.x*p.z))*SinTheta);
-    DDRotationMatrix.cy=fac*(-6.0*SQR(EulerAngle)*p.y*p.z+8.0*CUBE(p.y)*p.z+(-(SQR(EulerAngle)*SQR(EulerAngle)*p.x)-8.0*CUBE(p.y)*p.z+SQR(EulerAngle)*p.y*(3.0*p.x*p.y+(6.0+SQR(p.y))*p.z))*CosTheta+ 
+    DDRotationMatrix.cy=fac*(-6.0*SQR(EulerAngle)*p.y*p.z+8.0*CUBE(p.y)*p.z+(-(SQR(EulerAngle)*SQR(EulerAngle)*p.x)-8.0*CUBE(p.y)*p.z+SQR(EulerAngle)*p.y*(3.0*p.x*p.y+(6.0+SQR(p.y))*p.z))*CosTheta+
                          EulerAngle*(SQR(EulerAngle)*(p.x+p.x*SQR(p.y)+3.0*p.y*p.z)-SQR(p.y)*(3.0*p.x+5.0*p.y*p.z))*SinTheta);
-    DDRotationMatrix.cz=fac*(-2.0*(SQR(EulerAngle)-4.0*SQR(p.y))*(SQR(EulerAngle)-SQR(p.x)-SQR(p.y))+ 
-                        (2.0*SQR(EulerAngle)*SQR(EulerAngle)+8.0*SQR(p.y)*(SQR(p.x)+SQR(p.y))-SQR(EulerAngle)*(2.0*SQR(p.x)+(10.0+SQR(p.x))*SQR(p.y)+SQR(p.y)*SQR(p.y)))*CosTheta+ 
+    DDRotationMatrix.cz=fac*(-2.0*(SQR(EulerAngle)-4.0*SQR(p.y))*(SQR(EulerAngle)-SQR(p.x)-SQR(p.y))+
+                        (2.0*SQR(EulerAngle)*SQR(EulerAngle)+8.0*SQR(p.y)*(SQR(p.x)+SQR(p.y))-SQR(EulerAngle)*(2.0*SQR(p.x)+(10.0+SQR(p.x))*SQR(p.y)+SQR(p.y)*SQR(p.y)))*CosTheta+
                         EulerAngle*(5*SQR(p.y)*(SQR(p.x)+SQR(p.y))-SQR(EulerAngle)*(SQR(p.x)+5.0*SQR(p.y)))*SinTheta);
   }
 
@@ -6055,25 +6055,25 @@ REAL_MATRIX3x3 ComputeRotationMatrixSecondDerivativeCZ(VECTOR p)
   else
   {
     fac=1.0/pow(EulerAngle,6.0);
-    DDRotationMatrix.ax=fac*(-2.0*(SQR(EulerAngle)-4.0*SQR(p.z))*(SQR(EulerAngle)-SQR(p.y)-SQR(p.z))+ 
-                        (2.0*SQR(EulerAngle)*SQR(EulerAngle)+8.0*SQR(p.z)*(SQR(p.y)+SQR(p.z))-SQR(EulerAngle)*(2.0*SQR(p.y)+(10.0+SQR(p.y))*SQR(p.z)+SQR(p.z)*SQR(p.z)))*CosTheta + 
+    DDRotationMatrix.ax=fac*(-2.0*(SQR(EulerAngle)-4.0*SQR(p.z))*(SQR(EulerAngle)-SQR(p.y)-SQR(p.z))+
+                        (2.0*SQR(EulerAngle)*SQR(EulerAngle)+8.0*SQR(p.z)*(SQR(p.y)+SQR(p.z))-SQR(EulerAngle)*(2.0*SQR(p.y)+(10.0+SQR(p.y))*SQR(p.z)+SQR(p.z)*SQR(p.z)))*CosTheta +
                         EulerAngle*(5.0*SQR(p.z)*(SQR(p.y)+SQR(p.z))-SQR(EulerAngle)*(SQR(p.y)+5.0*SQR(p.z)))*SinTheta);
-    DDRotationMatrix.ay=fac*(-2.0*p.x*p.y*(SQR(EulerAngle)-4.0*SQR(p.z))+(3.0*SQR(EulerAngle)*SQR(EulerAngle)*p.z-8.0*p.x*p.y*SQR(p.z)+SQR(EulerAngle)*(-3.0*CUBE(p.z)+p.x*p.y*(2.0+SQR(p.z))))*CosTheta + 
+    DDRotationMatrix.ay=fac*(-2.0*p.x*p.y*(SQR(EulerAngle)-4.0*SQR(p.z))+(3.0*SQR(EulerAngle)*SQR(EulerAngle)*p.z-8.0*p.x*p.y*SQR(p.z)+SQR(EulerAngle)*(-3.0*CUBE(p.z)+p.x*p.y*(2.0+SQR(p.z))))*CosTheta +
                         EulerAngle*(SQR(p.z)*(-5.0*p.x*p.y+3.0*p.z)+SQR(EulerAngle)*(p.x*p.y-p.z*(3.0+SQR(p.z))))*SinTheta);
-    DDRotationMatrix.az=fac*(-6.0*SQR(EulerAngle)*p.x*p.z+8.0*p.x*CUBE(p.z)+(-(SQR(EulerAngle)*SQR(EulerAngle)*p.y)-8.0*p.x*CUBE(p.z)+SQR(EulerAngle)*p.z*(3.0*p.y*p.z+p.x*(6.0+SQR(p.z))))*CosTheta + 
+    DDRotationMatrix.az=fac*(-6.0*SQR(EulerAngle)*p.x*p.z+8.0*p.x*CUBE(p.z)+(-(SQR(EulerAngle)*SQR(EulerAngle)*p.y)-8.0*p.x*CUBE(p.z)+SQR(EulerAngle)*p.z*(3.0*p.y*p.z+p.x*(6.0+SQR(p.z))))*CosTheta +
                         EulerAngle*(-(SQR(p.z)*(3.0*p.y+5.0*p.x*p.z))+SQR(EulerAngle)*(p.y+3.0*p.x*p.z+p.y*SQR(p.z)))*SinTheta);
 
-    DDRotationMatrix.bx=fac*(-2.0*p.x*p.y*(SQR(EulerAngle)-4.0*SQR(p.z))+(-3.0*SQR(EulerAngle)*SQR(EulerAngle)*p.z-8.0*p.x*p.y*SQR(p.z)+SQR(EulerAngle)*(3.0*CUBE(p.z)+p.x*p.y*(2.0+SQR(p.z))))*CosTheta + 
+    DDRotationMatrix.bx=fac*(-2.0*p.x*p.y*(SQR(EulerAngle)-4.0*SQR(p.z))+(-3.0*SQR(EulerAngle)*SQR(EulerAngle)*p.z-8.0*p.x*p.y*SQR(p.z)+SQR(EulerAngle)*(3.0*CUBE(p.z)+p.x*p.y*(2.0+SQR(p.z))))*CosTheta +
                         EulerAngle*(-(SQR(p.z)*(5.0*p.x*p.y+3.0*p.z))+SQR(EulerAngle)*(p.x*p.y+3.0*p.z+CUBE(p.z)))*SinTheta);
-    DDRotationMatrix.by=fac*(-2.0*(SQR(EulerAngle)-4.0*SQR(p.z))*(SQR(EulerAngle)-SQR(p.x)-SQR(p.z))+ 
-                        (2.0*SQR(EulerAngle)*SQR(EulerAngle)+8.0*SQR(p.z)*(SQR(p.x)+SQR(p.z))-SQR(EulerAngle)*(2.0*SQR(p.x)+(10.0+SQR(p.x))*SQR(p.z)+SQR(p.z)*SQR(p.z)))*CosTheta + 
+    DDRotationMatrix.by=fac*(-2.0*(SQR(EulerAngle)-4.0*SQR(p.z))*(SQR(EulerAngle)-SQR(p.x)-SQR(p.z))+
+                        (2.0*SQR(EulerAngle)*SQR(EulerAngle)+8.0*SQR(p.z)*(SQR(p.x)+SQR(p.z))-SQR(EulerAngle)*(2.0*SQR(p.x)+(10.0+SQR(p.x))*SQR(p.z)+SQR(p.z)*SQR(p.z)))*CosTheta +
                         EulerAngle*(5.0*SQR(p.z)*(SQR(p.x)+SQR(p.z))-SQR(EulerAngle)*(SQR(p.x)+5.0*SQR(p.z)))*SinTheta);
-    DDRotationMatrix.bz=fac*(-6.0*SQR(EulerAngle)*p.y*p.z+8.0*p.y*CUBE(p.z)+(SQR(EulerAngle)*SQR(EulerAngle)*p.x-8.0*p.y*CUBE(p.z)+SQR(EulerAngle)*p.z*(-3.0*p.x*p.z+p.y*(6.0+SQR(p.z))))*CosTheta - 
+    DDRotationMatrix.bz=fac*(-6.0*SQR(EulerAngle)*p.y*p.z+8.0*p.y*CUBE(p.z)+(SQR(EulerAngle)*SQR(EulerAngle)*p.x-8.0*p.y*CUBE(p.z)+SQR(EulerAngle)*p.z*(-3.0*p.x*p.z+p.y*(6.0+SQR(p.z))))*CosTheta -
                         EulerAngle*(SQR(p.z)*(-3.0*p.x+5.0*p.y*p.z)+SQR(EulerAngle)*(p.x-3.0*p.y*p.z+p.x*SQR(p.z)))*SinTheta);
 
-    DDRotationMatrix.cx=fac*(-6.0*SQR(EulerAngle)*p.x*p.z+8.0*p.x*CUBE(p.z)+(SQR(EulerAngle)*SQR(EulerAngle)*p.y-8.0*p.x*CUBE(p.z)+SQR(EulerAngle)*p.z*(-3.0*p.y*p.z+p.x*(6.0+SQR(p.z))))*CosTheta - 
+    DDRotationMatrix.cx=fac*(-6.0*SQR(EulerAngle)*p.x*p.z+8.0*p.x*CUBE(p.z)+(SQR(EulerAngle)*SQR(EulerAngle)*p.y-8.0*p.x*CUBE(p.z)+SQR(EulerAngle)*p.z*(-3.0*p.y*p.z+p.x*(6.0+SQR(p.z))))*CosTheta -
                         EulerAngle*(SQR(p.z)*(-3.0*p.y+5.0*p.x*p.z)+SQR(EulerAngle)*(p.y-3.0*p.x*p.z+p.y*SQR(p.z)))*SinTheta);
-    DDRotationMatrix.cy=fac*(-6.0*SQR(EulerAngle)*p.y*p.z+8.0*p.y*CUBE(p.z)+(-(SQR(EulerAngle)*SQR(EulerAngle)*p.x)-8.0*p.y*CUBE(p.z)+SQR(EulerAngle)*p.z*(3.0*p.x*p.z+p.y*(6.0+SQR(p.z))))*CosTheta + 
+    DDRotationMatrix.cy=fac*(-6.0*SQR(EulerAngle)*p.y*p.z+8.0*p.y*CUBE(p.z)+(-(SQR(EulerAngle)*SQR(EulerAngle)*p.x)-8.0*p.y*CUBE(p.z)+SQR(EulerAngle)*p.z*(3.0*p.x*p.z+p.y*(6.0+SQR(p.z))))*CosTheta +
                         EulerAngle*(-(SQR(p.z)*(3.0*p.x+5.0*p.y*p.z))+SQR(EulerAngle)*(p.x+3.0*p.y*p.z+p.x*SQR(p.z)))*SinTheta);
     DDRotationMatrix.cz=-fac*((SQR(p.x)+SQR(p.y))*(-2.0*SQR(EulerAngle)+8.0*SQR(p.z)+(-8.0*SQR(p.z)+SQR(EulerAngle)*(2.0+SQR(p.z)))*CosTheta+EulerAngle*(SQR(EulerAngle)-5.0*SQR(p.z))*SinTheta));
   }
@@ -6100,27 +6100,27 @@ REAL_MATRIX3x3 ComputeRotationMatrixSecondDerivativeAY(VECTOR p)
   else
   {
     fac=1.0/pow(EulerAngle,6.0);
-    DDRotationMatrix.ax=-fac*(p.x*p.y*(-4.0*SQR(EulerAngle)+8.0*(SQR(p.y)+SQR(p.z))+(-8.0*(SQR(p.y)+SQR(p.z))+SQR(EulerAngle)*(4.0+SQR(p.y)+SQR(p.z)))*CosTheta+ 
+    DDRotationMatrix.ax=-fac*(p.x*p.y*(-4.0*SQR(EulerAngle)+8.0*(SQR(p.y)+SQR(p.z))+(-8.0*(SQR(p.y)+SQR(p.z))+SQR(EulerAngle)*(4.0+SQR(p.y)+SQR(p.z)))*CosTheta+
                         EulerAngle*(2.0*SQR(EulerAngle)-5.0*(SQR(p.y)+SQR(p.z)))*SinTheta));
-    DDRotationMatrix.ay=fac*(SQR(EulerAngle)*SQR(EulerAngle)+8.0*SQR(p.x)*SQR(p.y)-2.0*SQR(EulerAngle)*(SQR(p.x)+SQR(p.y))+ 
-                        (-SQR(EulerAngle)*SQR(EulerAngle)-8.0*SQR(p.x)*SQR(p.y)+SQR(EulerAngle)*(2.0*SQR(p.y)+SQR(p.x)*(2.0+SQR(p.y))-3.0*p.x*p.y*p.z))*CosTheta + 
+    DDRotationMatrix.ay=fac*(SQR(EulerAngle)*SQR(EulerAngle)+8.0*SQR(p.x)*SQR(p.y)-2.0*SQR(EulerAngle)*(SQR(p.x)+SQR(p.y))+
+                        (-SQR(EulerAngle)*SQR(EulerAngle)-8.0*SQR(p.x)*SQR(p.y)+SQR(EulerAngle)*(2.0*SQR(p.y)+SQR(p.x)*(2.0+SQR(p.y))-3.0*p.x*p.y*p.z))*CosTheta +
                         EulerAngle*(p.x*p.y*(-5.0*p.x*p.y+3.0*p.z)+SQR(EulerAngle)*(SQR(p.x)+SQR(p.y)-p.x*p.y*p.z))*SinTheta);
-    DDRotationMatrix.az=fac*(-2.0*(SQR(EulerAngle)-4.0*SQR(p.x))*p.y*p.z+(-(SQR(EulerAngle)*SQR(EulerAngle)*p.x)-8.0*SQR(p.x)*p.y*p.z+SQR(EulerAngle)*p.y*(3.0*p.x*p.y+(2.0+SQR(p.x))*p.z))*CosTheta + 
+    DDRotationMatrix.az=fac*(-2.0*(SQR(EulerAngle)-4.0*SQR(p.x))*p.y*p.z+(-(SQR(EulerAngle)*SQR(EulerAngle)*p.x)-8.0*SQR(p.x)*p.y*p.z+SQR(EulerAngle)*p.y*(3.0*p.x*p.y+(2.0+SQR(p.x))*p.z))*CosTheta +
                         EulerAngle*(-(p.x*p.y*(3.0*p.y+5.0*p.x*p.z))+SQR(EulerAngle)*(p.x+p.x*SQR(p.y)+p.y*p.z))*SinTheta);
 
-    DDRotationMatrix.bx=fac*(SQR(EulerAngle)*SQR(EulerAngle)+8.0*SQR(p.x)*SQR(p.y)-2.0*SQR(EulerAngle)*(SQR(p.x)+SQR(p.y))+ 
-                        (-SQR(EulerAngle)*SQR(EulerAngle)-8.0*SQR(p.x)*SQR(p.y)+SQR(EulerAngle)*(2.0*SQR(p.y)+SQR(p.x)*(2.0+SQR(p.y))+3.0*p.x*p.y*p.z))*CosTheta + 
+    DDRotationMatrix.bx=fac*(SQR(EulerAngle)*SQR(EulerAngle)+8.0*SQR(p.x)*SQR(p.y)-2.0*SQR(EulerAngle)*(SQR(p.x)+SQR(p.y))+
+                        (-SQR(EulerAngle)*SQR(EulerAngle)-8.0*SQR(p.x)*SQR(p.y)+SQR(EulerAngle)*(2.0*SQR(p.y)+SQR(p.x)*(2.0+SQR(p.y))+3.0*p.x*p.y*p.z))*CosTheta +
                         EulerAngle*(-(p.x*p.y*(5.0*p.x*p.y+3.0*p.z))+SQR(EulerAngle)*(SQR(p.x)+SQR(p.y)+p.x*p.y*p.z))*SinTheta);
-    DDRotationMatrix.by=-fac*(p.x*p.y*(-4.0*SQR(EulerAngle)+8.0*(SQR(p.x)+SQR(p.z))+(-8.0*(SQR(p.x)+SQR(p.z))+SQR(EulerAngle)*(4.0+SQR(p.x)+SQR(p.z)))*CosTheta + 
+    DDRotationMatrix.by=-fac*(p.x*p.y*(-4.0*SQR(EulerAngle)+8.0*(SQR(p.x)+SQR(p.z))+(-8.0*(SQR(p.x)+SQR(p.z))+SQR(EulerAngle)*(4.0+SQR(p.x)+SQR(p.z)))*CosTheta +
                         EulerAngle*(2.0*SQR(EulerAngle)-5.0*(SQR(p.x)+SQR(p.z)))*SinTheta));
-    DDRotationMatrix.bz=fac*(-2.0*p.x*(SQR(EulerAngle)-4.0*SQR(p.y))*p.z+(SQR(EulerAngle)*SQR(EulerAngle)*p.y-8.0*p.x*SQR(p.y)*p.z+SQR(EulerAngle)*p.x*(-3.0*p.x*p.y+(2.0+SQR(p.y))*p.z))*CosTheta - 
+    DDRotationMatrix.bz=fac*(-2.0*p.x*(SQR(EulerAngle)-4.0*SQR(p.y))*p.z+(SQR(EulerAngle)*SQR(EulerAngle)*p.y-8.0*p.x*SQR(p.y)*p.z+SQR(EulerAngle)*p.x*(-3.0*p.x*p.y+(2.0+SQR(p.y))*p.z))*CosTheta -
                         EulerAngle*(SQR(EulerAngle)*(p.y+SQR(p.x)*p.y-p.x*p.z)+p.x*p.y*(-3.0*p.x+5.0*p.y*p.z))*SinTheta);
 
-    DDRotationMatrix.cx=fac*(-2.0*(SQR(EulerAngle)-4.0*SQR(p.x))*p.y*p.z+(SQR(EulerAngle)*SQR(EulerAngle)*p.x-8.0*SQR(p.x)*p.y*p.z+SQR(EulerAngle)*p.y*(-3.0*p.x*p.y+(2.0+SQR(p.x))*p.z))*CosTheta- 
+    DDRotationMatrix.cx=fac*(-2.0*(SQR(EulerAngle)-4.0*SQR(p.x))*p.y*p.z+(SQR(EulerAngle)*SQR(EulerAngle)*p.x-8.0*SQR(p.x)*p.y*p.z+SQR(EulerAngle)*p.y*(-3.0*p.x*p.y+(2.0+SQR(p.x))*p.z))*CosTheta-
                         EulerAngle*(p.x*p.y*(-3.0*p.y+5.0*p.x*p.z)+SQR(EulerAngle)*(p.x+p.x*SQR(p.y)-p.y*p.z))*SinTheta);
-    DDRotationMatrix.cy=fac*(-2.0*p.x*(SQR(EulerAngle)-4.0*SQR(p.y))*p.z+(-(SQR(EulerAngle)*SQR(EulerAngle)*p.y)-8.0*p.x*SQR(p.y)*p.z+SQR(EulerAngle)*p.x*(3.0*p.x*p.y+(2.0+SQR(p.y))*p.z))*CosTheta+ 
+    DDRotationMatrix.cy=fac*(-2.0*p.x*(SQR(EulerAngle)-4.0*SQR(p.y))*p.z+(-(SQR(EulerAngle)*SQR(EulerAngle)*p.y)-8.0*p.x*SQR(p.y)*p.z+SQR(EulerAngle)*p.x*(3.0*p.x*p.y+(2.0+SQR(p.y))*p.z))*CosTheta+
                         EulerAngle*(SQR(EulerAngle)*(p.y+SQR(p.x)*p.y+p.x*p.z)-p.x*p.y*(3.0*p.x+5.0*p.y*p.z))*SinTheta);
-    DDRotationMatrix.cz=-fac*(p.x*p.y*(8.0*(-SQR(EulerAngle)+SQR(p.x)+SQR(p.y))+(-8.0*(SQR(p.x)+SQR(p.y))+SQR(EulerAngle)*(8.0+SQR(p.x)+SQR(p.y)))*CosTheta + 
+    DDRotationMatrix.cz=-fac*(p.x*p.y*(8.0*(-SQR(EulerAngle)+SQR(p.x)+SQR(p.y))+(-8.0*(SQR(p.x)+SQR(p.y))+SQR(EulerAngle)*(8.0+SQR(p.x)+SQR(p.y)))*CosTheta +
                         EulerAngle*(4.0*SQR(EulerAngle)-5.0*(SQR(p.x)+SQR(p.y)))*SinTheta));
   }
 
@@ -6146,27 +6146,27 @@ REAL_MATRIX3x3 ComputeRotationMatrixSecondDerivativeAZ(VECTOR p)
   else
   {
     fac=1.0/pow(EulerAngle,6.0);
-    DDRotationMatrix.ax=-fac*(p.x*p.z*(-4.0*SQR(EulerAngle)+8.0*(SQR(p.y)+SQR(p.z))+(-8.0*(SQR(p.y)+SQR(p.z))+SQR(EulerAngle)*(4.0+SQR(p.y)+SQR(p.z)))*CosTheta+ 
+    DDRotationMatrix.ax=-fac*(p.x*p.z*(-4.0*SQR(EulerAngle)+8.0*(SQR(p.y)+SQR(p.z))+(-8.0*(SQR(p.y)+SQR(p.z))+SQR(EulerAngle)*(4.0+SQR(p.y)+SQR(p.z)))*CosTheta+
                         EulerAngle*(2.0*SQR(EulerAngle)-5.0*(SQR(p.y)+SQR(p.z)))*SinTheta));
-    DDRotationMatrix.ay=fac*(-2.0*(SQR(EulerAngle)-4.0*SQR(p.x))*p.y*p.z+(SQR(EulerAngle)*SQR(EulerAngle)*p.x-8.0*SQR(p.x)*p.y*p.z+SQR(EulerAngle)*p.z*((2.0+SQR(p.x))*p.y-3.0*p.x*p.z))*CosTheta- 
+    DDRotationMatrix.ay=fac*(-2.0*(SQR(EulerAngle)-4.0*SQR(p.x))*p.y*p.z+(SQR(EulerAngle)*SQR(EulerAngle)*p.x-8.0*SQR(p.x)*p.y*p.z+SQR(EulerAngle)*p.z*((2.0+SQR(p.x))*p.y-3.0*p.x*p.z))*CosTheta-
                         EulerAngle*(p.x*(5.0*p.x*p.y-3.0*p.z)*p.z+SQR(EulerAngle)*(p.x-p.y*p.z+p.x*SQR(p.z)))*SinTheta);
-    DDRotationMatrix.az=fac*(SQR(EulerAngle)*SQR(EulerAngle)+8.0*SQR(p.x)*SQR(p.z)-2.0*SQR(EulerAngle)*(SQR(p.x)+SQR(p.z))+ 
-                        (-SQR(EulerAngle)*SQR(EulerAngle)-8.0*SQR(p.x)*SQR(p.z)+SQR(EulerAngle)*(3.0*p.x*p.y*p.z+2.0*SQR(p.z)+SQR(p.x)*(2.0+SQR(p.z))))*CosTheta+ 
+    DDRotationMatrix.az=fac*(SQR(EulerAngle)*SQR(EulerAngle)+8.0*SQR(p.x)*SQR(p.z)-2.0*SQR(EulerAngle)*(SQR(p.x)+SQR(p.z))+
+                        (-SQR(EulerAngle)*SQR(EulerAngle)-8.0*SQR(p.x)*SQR(p.z)+SQR(EulerAngle)*(3.0*p.x*p.y*p.z+2.0*SQR(p.z)+SQR(p.x)*(2.0+SQR(p.z))))*CosTheta+
                         EulerAngle*(-(p.x*p.z*(3.0*p.y+5.0*p.x*p.z))+SQR(EulerAngle)*(SQR(p.x)+p.x*p.y*p.z+SQR(p.z)))*SinTheta);
 
-    DDRotationMatrix.bx=fac*(-2.0*(SQR(EulerAngle)-4.0*SQR(p.x))*p.y*p.z+(-(SQR(EulerAngle)*SQR(EulerAngle)*p.x)-8.0*SQR(p.x)*p.y*p.z+SQR(EulerAngle)*p.z*((2.0+SQR(p.x))*p.y+3.0*p.x*p.z))*CosTheta + 
+    DDRotationMatrix.bx=fac*(-2.0*(SQR(EulerAngle)-4.0*SQR(p.x))*p.y*p.z+(-(SQR(EulerAngle)*SQR(EulerAngle)*p.x)-8.0*SQR(p.x)*p.y*p.z+SQR(EulerAngle)*p.z*((2.0+SQR(p.x))*p.y+3.0*p.x*p.z))*CosTheta +
                         EulerAngle*(-(p.x*p.z*(5.0*p.x*p.y+3.0*p.z))+SQR(EulerAngle)*(p.x+p.y*p.z+p.x*SQR(p.z)))*SinTheta);
-    DDRotationMatrix.by=-fac*(p.x*p.z*(8.0*(-SQR(EulerAngle)+SQR(p.x)+SQR(p.z))+(-8.0*(SQR(p.x)+SQR(p.z))+SQR(EulerAngle)*(8.0+SQR(p.x)+SQR(p.z)))*CosTheta+ 
+    DDRotationMatrix.by=-fac*(p.x*p.z*(8.0*(-SQR(EulerAngle)+SQR(p.x)+SQR(p.z))+(-8.0*(SQR(p.x)+SQR(p.z))+SQR(EulerAngle)*(8.0+SQR(p.x)+SQR(p.z)))*CosTheta+
                         EulerAngle*(4.0*SQR(EulerAngle)-5.0*(SQR(p.x)+SQR(p.z)))*SinTheta));
-    DDRotationMatrix.bz=fac*(-2.0*p.x*p.y*(SQR(EulerAngle)-4.0*SQR(p.z))+(SQR(EulerAngle)*SQR(EulerAngle)*p.z-8.0*p.x*p.y*SQR(p.z)+SQR(EulerAngle)*p.x*(-3.0*p.x*p.z+p.y*(2.0+SQR(p.z))))*CosTheta- 
+    DDRotationMatrix.bz=fac*(-2.0*p.x*p.y*(SQR(EulerAngle)-4.0*SQR(p.z))+(SQR(EulerAngle)*SQR(EulerAngle)*p.z-8.0*p.x*p.y*SQR(p.z)+SQR(EulerAngle)*p.x*(-3.0*p.x*p.z+p.y*(2.0+SQR(p.z))))*CosTheta-
                         EulerAngle*(SQR(EulerAngle)*(-(p.x*p.y)+p.z+SQR(p.x)*p.z)+p.x*p.z*(-3.0*p.x+5.0*p.y*p.z))*SinTheta);
 
-    DDRotationMatrix.cx=fac*(SQR(EulerAngle)*SQR(EulerAngle)+8.0*SQR(p.x)*SQR(p.z)-2.0*SQR(EulerAngle)*(SQR(p.x)+SQR(p.z))+ 
-                        (-SQR(EulerAngle)*SQR(EulerAngle)-8.0*SQR(p.x)*SQR(p.z)+SQR(EulerAngle)*(-3.0*p.x*p.y*p.z+2*SQR(p.z)+SQR(p.x)*(2.0+SQR(p.z))))*CosTheta + 
+    DDRotationMatrix.cx=fac*(SQR(EulerAngle)*SQR(EulerAngle)+8.0*SQR(p.x)*SQR(p.z)-2.0*SQR(EulerAngle)*(SQR(p.x)+SQR(p.z))+
+                        (-SQR(EulerAngle)*SQR(EulerAngle)-8.0*SQR(p.x)*SQR(p.z)+SQR(EulerAngle)*(-3.0*p.x*p.y*p.z+2*SQR(p.z)+SQR(p.x)*(2.0+SQR(p.z))))*CosTheta +
                         EulerAngle*(p.x*p.z*(3.0*p.y-5.0*p.x*p.z)+SQR(EulerAngle)*(SQR(p.x)-p.x*p.y*p.z+SQR(p.z)))*SinTheta);
-    DDRotationMatrix.cy=fac*(-2.0*p.x*p.y*(SQR(EulerAngle)-4.0*SQR(p.z))+(-(SQR(EulerAngle)*SQR(EulerAngle)*p.z)-8.0*p.x*p.y*SQR(p.z)+SQR(EulerAngle)*p.x*(3.0*p.x*p.z+p.y*(2.0+SQR(p.z))))*CosTheta + 
+    DDRotationMatrix.cy=fac*(-2.0*p.x*p.y*(SQR(EulerAngle)-4.0*SQR(p.z))+(-(SQR(EulerAngle)*SQR(EulerAngle)*p.z)-8.0*p.x*p.y*SQR(p.z)+SQR(EulerAngle)*p.x*(3.0*p.x*p.z+p.y*(2.0+SQR(p.z))))*CosTheta +
                         EulerAngle*(-(p.x*p.z*(3.0*p.x+5.0*p.y*p.z))+SQR(EulerAngle)*(p.z+p.x*(p.y+p.x*p.z)))*SinTheta);
-    DDRotationMatrix.cz=-fac*(p.x*p.z*(-4.0*SQR(EulerAngle)+8.0*(SQR(p.x)+SQR(p.y))+(-8.0*(SQR(p.x)+SQR(p.y))+SQR(EulerAngle)*(4.0+SQR(p.x)+SQR(p.y)))*CosTheta + 
+    DDRotationMatrix.cz=-fac*(p.x*p.z*(-4.0*SQR(EulerAngle)+8.0*(SQR(p.x)+SQR(p.y))+(-8.0*(SQR(p.x)+SQR(p.y))+SQR(EulerAngle)*(4.0+SQR(p.x)+SQR(p.y)))*CosTheta +
                         EulerAngle*(2.0*SQR(EulerAngle)-5.0*(SQR(p.x)+SQR(p.y)))*SinTheta));
   }
 
@@ -6192,27 +6192,27 @@ REAL_MATRIX3x3 ComputeRotationMatrixSecondDerivativeBZ(VECTOR p)
   else
   {
     fac=1.0/pow(EulerAngle,6.0);
-    DDRotationMatrix.ax=-fac*(p.y*p.z*(8.0*(-SQR(EulerAngle)+SQR(p.y)+SQR(p.z))+(-8.0*(SQR(p.y)+SQR(p.z))+SQR(EulerAngle)*(8.0+SQR(p.y)+SQR(p.z)))*CosTheta+ 
+    DDRotationMatrix.ax=-fac*(p.y*p.z*(8.0*(-SQR(EulerAngle)+SQR(p.y)+SQR(p.z))+(-8.0*(SQR(p.y)+SQR(p.z))+SQR(EulerAngle)*(8.0+SQR(p.y)+SQR(p.z)))*CosTheta+
                          EulerAngle*(4.0*SQR(EulerAngle)-5.0*(SQR(p.y)+SQR(p.z)))*SinTheta));
-    DDRotationMatrix.ay=fac*(-2.0*p.x*(SQR(EulerAngle)-4.0*SQR(p.y))*p.z+(SQR(EulerAngle)*SQR(EulerAngle)*p.y-8.0*p.x*SQR(p.y)*p.z+SQR(EulerAngle)*p.z*(p.x*(2.0+SQR(p.y))-3.0*p.y*p.z))*CosTheta- 
+    DDRotationMatrix.ay=fac*(-2.0*p.x*(SQR(EulerAngle)-4.0*SQR(p.y))*p.z+(SQR(EulerAngle)*SQR(EulerAngle)*p.y-8.0*p.x*SQR(p.y)*p.z+SQR(EulerAngle)*p.z*(p.x*(2.0+SQR(p.y))-3.0*p.y*p.z))*CosTheta-
                          EulerAngle*(p.y*(5.0*p.x*p.y-3.0*p.z)*p.z+SQR(EulerAngle)*(p.y-p.x*p.z+p.y*SQR(p.z)))*SinTheta);
-    DDRotationMatrix.az=fac*(-2.0*p.x*p.y*(SQR(EulerAngle)-4.0*SQR(p.z))+(-(SQR(EulerAngle)*SQR(EulerAngle)*p.z)-8*p.x*p.y*SQR(p.z)+SQR(EulerAngle)*p.y*(3.0*p.y*p.z+p.x*(2.0+SQR(p.z))))*CosTheta+ 
+    DDRotationMatrix.az=fac*(-2.0*p.x*p.y*(SQR(EulerAngle)-4.0*SQR(p.z))+(-(SQR(EulerAngle)*SQR(EulerAngle)*p.z)-8*p.x*p.y*SQR(p.z)+SQR(EulerAngle)*p.y*(3.0*p.y*p.z+p.x*(2.0+SQR(p.z))))*CosTheta+
                         EulerAngle*(-(p.y*p.z*(3.0*p.y+5.0*p.x*p.z))+SQR(EulerAngle)*(p.z+p.y*(p.x+p.y*p.z)))*SinTheta);
 
-    DDRotationMatrix.bx=fac*(-2.0*p.x*(SQR(EulerAngle)-4.0*SQR(p.y))*p.z+(-(SQR(EulerAngle)*SQR(EulerAngle)*p.y)-8.0*p.x*SQR(p.y)*p.z+SQR(EulerAngle)*p.z*(p.x*(2.0+SQR(p.y))+3.0*p.y*p.z))*CosTheta+ 
+    DDRotationMatrix.bx=fac*(-2.0*p.x*(SQR(EulerAngle)-4.0*SQR(p.y))*p.z+(-(SQR(EulerAngle)*SQR(EulerAngle)*p.y)-8.0*p.x*SQR(p.y)*p.z+SQR(EulerAngle)*p.z*(p.x*(2.0+SQR(p.y))+3.0*p.y*p.z))*CosTheta+
                          EulerAngle*(-(p.y*p.z*(5.0*p.x*p.y+3.0*p.z))+SQR(EulerAngle)*(p.y+p.x*p.z+p.y*SQR(p.z)))*SinTheta);
-    DDRotationMatrix.by=-fac*(p.y*p.z*(-4.0*SQR(EulerAngle)+8.0*(SQR(p.x)+SQR(p.z))+(-8.0*(SQR(p.x)+SQR(p.z))+SQR(EulerAngle)*(4.0+SQR(p.x)+SQR(p.z)))*CosTheta+ 
+    DDRotationMatrix.by=-fac*(p.y*p.z*(-4.0*SQR(EulerAngle)+8.0*(SQR(p.x)+SQR(p.z))+(-8.0*(SQR(p.x)+SQR(p.z))+SQR(EulerAngle)*(4.0+SQR(p.x)+SQR(p.z)))*CosTheta+
                         EulerAngle*(2.0*SQR(EulerAngle)-5.0*(SQR(p.x)+SQR(p.z)))*SinTheta));
-    DDRotationMatrix.bz=fac*(SQR(EulerAngle)*SQR(EulerAngle)+8.0*SQR(p.y)*SQR(p.z)-2.0*SQR(EulerAngle)*(SQR(p.y)+SQR(p.z))+ 
-                        (-SQR(EulerAngle)*SQR(EulerAngle)-8.0*SQR(p.y)*SQR(p.z)+SQR(EulerAngle)*(-3.0*p.x*p.y*p.z+2.0*SQR(p.z)+SQR(p.y)*(2.0+SQR(p.z))))*CosTheta + 
+    DDRotationMatrix.bz=fac*(SQR(EulerAngle)*SQR(EulerAngle)+8.0*SQR(p.y)*SQR(p.z)-2.0*SQR(EulerAngle)*(SQR(p.y)+SQR(p.z))+
+                        (-SQR(EulerAngle)*SQR(EulerAngle)-8.0*SQR(p.y)*SQR(p.z)+SQR(EulerAngle)*(-3.0*p.x*p.y*p.z+2.0*SQR(p.z)+SQR(p.y)*(2.0+SQR(p.z))))*CosTheta +
                         EulerAngle*(p.y*p.z*(3.0*p.x-5.0*p.y*p.z)+SQR(EulerAngle)*(SQR(p.y)-p.x*p.y*p.z+SQR(p.z)))*SinTheta);
 
-    DDRotationMatrix.cx=fac*(-2.0*p.x*p.y*(SQR(EulerAngle)-4.0*SQR(p.z))+(SQR(EulerAngle)*SQR(EulerAngle)*p.z-8.0*p.x*p.y*SQR(p.z)+SQR(EulerAngle)*p.y*(-3.0*p.y*p.z+p.x*(2.0+SQR(p.z))))*CosTheta+ 
+    DDRotationMatrix.cx=fac*(-2.0*p.x*p.y*(SQR(EulerAngle)-4.0*SQR(p.z))+(SQR(EulerAngle)*SQR(EulerAngle)*p.z-8.0*p.x*p.y*SQR(p.z)+SQR(EulerAngle)*p.y*(-3.0*p.y*p.z+p.x*(2.0+SQR(p.z))))*CosTheta+
                         EulerAngle*(p.y*p.z*(3.0*p.y-5.0*p.x*p.z)+SQR(EulerAngle)*(p.x*p.y-(1.0+SQR(p.y))*p.z))*SinTheta);
-    DDRotationMatrix.cy=fac*(SQR(EulerAngle)*SQR(EulerAngle)+8.0*SQR(p.y)*SQR(p.z)-2.0*SQR(EulerAngle)*(SQR(p.y)+SQR(p.z))+ 
-                        (-SQR(EulerAngle)*SQR(EulerAngle)-8.0*SQR(p.y)*SQR(p.z)+SQR(EulerAngle)*(3.0*p.x*p.y*p.z+2.0*SQR(p.z)+SQR(p.y)*(2.0+SQR(p.z))))*CosTheta+ 
+    DDRotationMatrix.cy=fac*(SQR(EulerAngle)*SQR(EulerAngle)+8.0*SQR(p.y)*SQR(p.z)-2.0*SQR(EulerAngle)*(SQR(p.y)+SQR(p.z))+
+                        (-SQR(EulerAngle)*SQR(EulerAngle)-8.0*SQR(p.y)*SQR(p.z)+SQR(EulerAngle)*(3.0*p.x*p.y*p.z+2.0*SQR(p.z)+SQR(p.y)*(2.0+SQR(p.z))))*CosTheta+
                         EulerAngle*(-(p.y*p.z*(3.0*p.x+5.0*p.y*p.z))+SQR(EulerAngle)*(SQR(p.y)+p.x*p.y*p.z+SQR(p.z)))*SinTheta);
-    DDRotationMatrix.cz=-fac*(p.y*p.z*(-4.0*SQR(EulerAngle)+8.0*(SQR(p.x)+SQR(p.y))+(-8.0*(SQR(p.x)+SQR(p.y))+SQR(EulerAngle)*(4.0+SQR(p.x)+SQR(p.y)))*CosTheta+ 
+    DDRotationMatrix.cz=-fac*(p.y*p.z*(-4.0*SQR(EulerAngle)+8.0*(SQR(p.x)+SQR(p.y))+(-8.0*(SQR(p.x)+SQR(p.y))+SQR(EulerAngle)*(4.0+SQR(p.x)+SQR(p.y)))*CosTheta+
                         EulerAngle*(2.0*SQR(EulerAngle)-5.0*(SQR(p.x)+SQR(p.y)))*SinTheta));
   }
 

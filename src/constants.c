@@ -158,7 +158,7 @@ void SetSimulationUnits(void)
     ENERGY_TO_KCAL15_PER_MOL=((ENERGY_CONVERSION_FACTOR*AVOGADRO_CONSTANT)/4185.5);
     KCAL_PER_MOL_TO_ENERGY=(4184.0/(ENERGY_CONVERSION_FACTOR*AVOGADRO_CONSTANT));
     KCAL15_PER_MOL_TO_ENERGY=(4185.5/(ENERGY_CONVERSION_FACTOR*AVOGADRO_CONSTANT));
-    
+
     TO_WAVENUMBERS=(1.0/(100.0*2.0*M_PI*SPEED_OF_LIGHT*TIME_UNIT));
     TO_THZ=(1e-12/(2.0*M_PI*TIME_UNIT));
   }
@@ -262,7 +262,7 @@ void ReadRestartConstants(FILE *FilePtr)
   fread(&Check,1,sizeof(REAL),FilePtr);
   if(fabs(Check-123456789.0)>1e-10)
   {
-    printf("Error in binary restart-file (ReadRestartConstants)\n");
+    fprintf(stderr, "Error in binary restart-file (ReadRestartConstants)\n");
     exit(0);
   }
 }

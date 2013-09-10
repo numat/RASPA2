@@ -189,19 +189,19 @@ void CalculateFrameworkBondForce(void)
       {
         A=Framework[CurrentSystem].Bonds[f1][i].A;
         B=Framework[CurrentSystem].Bonds[f1][i].B;
-  
+
         posA=Framework[CurrentSystem].Atoms[f1][A].Position;
         posB=Framework[CurrentSystem].Atoms[f1][B].Position;
-  
+
         dr.x=posA.x-posB.x;
         dr.y=posA.y-posB.y;
         dr.z=posA.z-posB.z;
         dr=ApplyBoundaryCondition(dr);
         rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
         r=sqrt(rr);
-  
+
         parms=(REAL*)&Framework[CurrentSystem].BondArguments[f1][i];
-  
+
         switch(Framework[CurrentSystem].BondType[f1][i])
         {
           case HARMONIC_BOND:
@@ -311,37 +311,37 @@ void CalculateFrameworkBondForce(void)
             U=DF=0.0;
             break;
           default:
-            printf("Undefined Bond potential in routine 'CalculateFrameworkBondForce' ('framework_force.c')\n");
+            fprintf(stderr, "Undefined Bond potential in routine 'CalculateFrameworkBondForce' ('framework_force.c')\n");
             exit(0);
             break;
         }
-  
+
         // add contribution to the Adsorbate stretch energy
         UHostBond[CurrentSystem]+=U;
-  
+
         // forces are oppositely directed to the gradient
         f.x=-DF*dr.x;
         f.y=-DF*dr.y;
         f.z=-DF*dr.z;
-  
+
         // add contribution to the forces
         Framework[CurrentSystem].Atoms[f1][A].Force.x+=f.x;
         Framework[CurrentSystem].Atoms[f1][A].Force.y+=f.y;
         Framework[CurrentSystem].Atoms[f1][A].Force.z+=f.z;
-  
+
         Framework[CurrentSystem].Atoms[f1][B].Force.x-=f.x;
         Framework[CurrentSystem].Atoms[f1][B].Force.y-=f.y;
         Framework[CurrentSystem].Atoms[f1][B].Force.z-=f.z;
-  
+
         // add contribution to the stress tensor
         StrainDerivativeTensor[CurrentSystem].ax-=dr.x*f.x;
         StrainDerivativeTensor[CurrentSystem].bx-=dr.y*f.x;
         StrainDerivativeTensor[CurrentSystem].cx-=dr.z*f.x;
-  
+
         StrainDerivativeTensor[CurrentSystem].ay-=dr.x*f.y;
         StrainDerivativeTensor[CurrentSystem].by-=dr.y*f.y;
         StrainDerivativeTensor[CurrentSystem].cy-=dr.z*f.y;
-  
+
         StrainDerivativeTensor[CurrentSystem].az-=dr.x*f.z;
         StrainDerivativeTensor[CurrentSystem].bz-=dr.y*f.z;
         StrainDerivativeTensor[CurrentSystem].cz-=dr.z*f.z;
@@ -368,19 +368,19 @@ void CalculateFrameworkUreyBradleyForce(void)
       {
         A=Framework[CurrentSystem].UreyBradleys[f1][i].A;
         C=Framework[CurrentSystem].UreyBradleys[f1][i].C;
-  
+
         posA=Framework[CurrentSystem].Atoms[f1][A].Position;
         posC=Framework[CurrentSystem].Atoms[f1][C].Position;
-  
+
         dr.x=posA.x-posC.x;
         dr.y=posA.y-posC.y;
         dr.z=posA.z-posC.z;
         dr=ApplyBoundaryCondition(dr);
         rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
         r=sqrt(rr);
-  
+
         parms=(REAL*)&Framework[CurrentSystem].UreyBradleyArguments[f1][i];
-  
+
         switch(Framework[CurrentSystem].UreyBradleyType[f1][i])
         {
           case HARMONIC_UREYBRADLEY:
@@ -483,37 +483,37 @@ void CalculateFrameworkUreyBradleyForce(void)
             U=DF=0.0;
             break;
           default:
-            printf("Undefined Urey-Bradley potential in routine 'CalculateFrameworkUreyBradleyForce' ('framework_force.c')\n");
+            fprintf(stderr, "Undefined Urey-Bradley potential in routine 'CalculateFrameworkUreyBradleyForce' ('framework_force.c')\n");
             exit(0);
             break;
         }
-  
+
         // add contribution to the Adsorbate Urey-Bradley energy
         UHostUreyBradley[CurrentSystem]+=U;
-  
+
         // forces are oppositely directed to the gradient
         f.x=-DF*dr.x;
         f.y=-DF*dr.y;
         f.z=-DF*dr.z;
-  
+
         // add contribution to the forces
         Framework[CurrentSystem].Atoms[f1][A].Force.x+=f.x;
         Framework[CurrentSystem].Atoms[f1][A].Force.y+=f.y;
         Framework[CurrentSystem].Atoms[f1][A].Force.z+=f.z;
-  
+
         Framework[CurrentSystem].Atoms[f1][C].Force.x-=f.x;
         Framework[CurrentSystem].Atoms[f1][C].Force.y-=f.y;
         Framework[CurrentSystem].Atoms[f1][C].Force.z-=f.z;
-  
+
         // add contribution to the stress tensor
         StrainDerivativeTensor[CurrentSystem].ax-=dr.x*f.x;
         StrainDerivativeTensor[CurrentSystem].bx-=dr.y*f.x;
         StrainDerivativeTensor[CurrentSystem].cx-=dr.z*f.x;
-  
+
         StrainDerivativeTensor[CurrentSystem].ay-=dr.x*f.y;
         StrainDerivativeTensor[CurrentSystem].by-=dr.y*f.y;
         StrainDerivativeTensor[CurrentSystem].cy-=dr.z*f.y;
-  
+
         StrainDerivativeTensor[CurrentSystem].az-=dr.x*f.z;
         StrainDerivativeTensor[CurrentSystem].bz-=dr.y*f.z;
         StrainDerivativeTensor[CurrentSystem].cz-=dr.z*f.z;
@@ -558,12 +558,12 @@ void CalculateFrameworkBendForce(void)
         C=Framework[CurrentSystem].Bends[f1][i].C;
         D=Framework[CurrentSystem].Bends[f1][i].D;
         parms=Framework[CurrentSystem].BendArguments[f1][i];
-  
+
         posA=Framework[CurrentSystem].Atoms[f1][A].Position;
         posB=Framework[CurrentSystem].Atoms[f1][B].Position;
         posC=Framework[CurrentSystem].Atoms[f1][C].Position;
         posD=Framework[CurrentSystem].Atoms[f1][D].Position;
-  
+
         switch(Framework[CurrentSystem].BendType[f1][i])
         {
           case MM3_IN_PLANE_BEND:
@@ -571,23 +571,23 @@ void CalculateFrameworkBendForce(void)
             Rad.y=posA.y-posD.y;
             Rad.z=posA.z-posD.z;
             Rad=ApplyBoundaryCondition(Rad);
-  
+
             Rbd.x=posB.x-posD.x;
             Rbd.y=posB.y-posD.y;
             Rbd.z=posB.z-posD.z;
             Rbd=ApplyBoundaryCondition(Rbd);
-  
+
             Rcd.x=posC.x-posD.x;
             Rcd.y=posC.y-posD.y;
             Rcd.z=posC.z-posD.z;
             Rcd=ApplyBoundaryCondition(Rcd);
-  
+
             t.x=Rad.y*Rcd.z-Rad.z*Rcd.y;
             t.y=Rad.z*Rcd.x-Rad.x*Rcd.z;
             t.z=Rad.x*Rcd.y-Rad.y*Rcd.x;
             rt2=t.x*t.x+t.y*t.y+t.z*t.z;
             delta=-(t.x*Rbd.x+t.y*Rbd.y+t.z*Rbd.z)/rt2;
-  
+
             ip.x=posB.x+t.x*delta;
             ip.y=posB.y+t.y*delta;
             ip.z=posB.z+t.z*delta;
@@ -599,10 +599,10 @@ void CalculateFrameworkBendForce(void)
             cp.z=posC.z-ip.z;
             ap=ApplyBoundaryCondition(ap);
             cp=ApplyBoundaryCondition(cp);
-  
+
             rap2=ap.x*ap.x+ap.y*ap.y+ap.z*ap.z;
             rcp2=cp.x*cp.x+cp.y*cp.y+cp.z*cp.z;
-  
+
             CosTheta=(ap.x*cp.x+ap.y*cp.y+ap.z*cp.z)/sqrt(rap2*rcp2);
             break;
           default:
@@ -614,7 +614,7 @@ void CalculateFrameworkBendForce(void)
             Rab.x/=rab;
             Rab.y/=rab;
             Rab.z/=rab;
-  
+
             Rbc.x=posC.x-posB.x;
             Rbc.y=posC.y-posB.y;
             Rbc.z=posC.z-posB.z;
@@ -623,7 +623,7 @@ void CalculateFrameworkBendForce(void)
             Rbc.x/=rbc;
             Rbc.y/=rbc;
             Rbc.z/=rbc;
-  
+
             Rac.x=posC.x-posA.x;
             Rac.y=posC.y-posA.y;
             Rac.z=posC.z-posA.z;
@@ -632,18 +632,18 @@ void CalculateFrameworkBendForce(void)
             Rac.x/=rac;
             Rac.y/=rac;
             Rac.z/=rac;
-  
+
             CosTheta=(Rab.x*Rbc.x+Rab.y*Rbc.y+Rab.z*Rbc.z);
             break;
         }
-  
+
         CosTheta=MIN2(1.0,MAX2(-1.0,CosTheta));
         Theta=acos(CosTheta);
         SinTheta=MAX2((REAL)1.0e-8,sqrt(1.0-SQR(CosTheta)));
         DTDX=-1.0/sqrt(1.0-SQR(CosTheta));
-  
+
         parms=Framework[CurrentSystem].BendArguments[f1][i];
-  
+
         switch(Framework[CurrentSystem].BendType[f1][i])
         {
           case HARMONIC_BEND:
@@ -723,14 +723,14 @@ void CalculateFrameworkBendForce(void)
             U=DF=0.0;
             break;
           default:
-            printf("Undefined Bend potential in routine 'CalculateFrameworkBendForce' ('framework_force.c')\n");
+            fprintf(stderr, "Undefined Bend potential in routine 'CalculateFrameworkBendForce' ('framework_force.c')\n");
             exit(0);
             break;
         }
-  
+
         // add contribution to the energy
         UHostBend[CurrentSystem]+=U;
-  
+
         switch(Framework[CurrentSystem].BendType[f1][i])
         {
           case MM3_IN_PLANE_BEND:
@@ -740,7 +740,7 @@ void CalculateFrameworkBendForce(void)
             m.z=cp.x*ap.y-cp.y*ap.x;
             rm=sqrt(m.x*m.x+m.y*m.y+m.z*m.z);
             rm=MAX2(rm,0.000001);
-  
+
             terma=-DF/(rap2*rm);
             termc=DF/(rcp2*rm);
             fa.x=terma*(ap.y*m.z-ap.z*m.y);
@@ -752,28 +752,28 @@ void CalculateFrameworkBendForce(void)
             dedip.x=-(fa.x+fc.x);
             dedip.y=-(fa.y+fc.y);
             dedip.z=-(fa.z+fc.z);
-  
+
             delta2=2.0*delta;
             ptrt2=(dedip.x*t.x+dedip.y*t.y+dedip.z*t.z)/rt2;
-  
+
             term=(Rcd.z*Rbd.y-Rcd.y*Rbd.z)+delta2*(t.y*Rcd.z-t.z*Rcd.y);
             dpdia.x=delta*(Rcd.y*dedip.z-Rcd.z*dedip.y)+term*ptrt2;
-  
+
             term=(Rcd.x*Rbd.z-Rcd.z*Rbd.x)+delta2*(t.z*Rcd.x-t.x*Rcd.z);
             dpdia.y=delta*(Rcd.z*dedip.x-Rcd.x*dedip.z)+term*ptrt2;
-  
+
             term=(Rcd.y*Rbd.x-Rcd.x*Rbd.y)+delta2*(t.x*Rcd.y-t.y*Rcd.x);
             dpdia.z=delta*(Rcd.x*dedip.y-Rcd.y*dedip.x)+term*ptrt2;
-  
+
             term=(Rad.y*Rbd.z-Rad.z*Rbd.y)+delta2*(t.z*Rad.y-t.y*Rad.z);
             dpdic.x=delta*(Rad.z*dedip.y-Rad.y*dedip.z)+term*ptrt2;
-  
+
             term=(Rad.z*Rbd.x-Rad.x*Rbd.z)+delta2*(t.x*Rad.z-t.z*Rad.x);
             dpdic.y=delta*(Rad.x*dedip.z-Rad.z*dedip.x)+term*ptrt2;
-  
+
             term=(Rad.x*Rbd.y-Rad.y*Rbd.x)+delta2*(t.y*Rad.x-t.x*Rad.y);
             dpdic.z=delta*(Rad.y*dedip.x-Rad.x*dedip.y)+term*ptrt2;
-  
+
             fa.x=fa.x+dpdia.x;
             fa.y=fa.y+dpdia.y;
             fa.z=fa.z+dpdia.z;
@@ -786,33 +786,33 @@ void CalculateFrameworkBendForce(void)
             fd.x=-(fa.x+fb.x+fc.x);
             fd.y=-(fa.y+fb.y+fc.y);
             fd.z=-(fa.z+fb.z+fc.z);
-  
+
             // add contribution to the forces
             Framework[CurrentSystem].Atoms[f1][A].Force.x-=fa.x;
             Framework[CurrentSystem].Atoms[f1][A].Force.y-=fa.y;
             Framework[CurrentSystem].Atoms[f1][A].Force.z-=fa.z;
-  
+
             Framework[CurrentSystem].Atoms[f1][B].Force.x-=fb.x;
             Framework[CurrentSystem].Atoms[f1][B].Force.y-=fb.y;
             Framework[CurrentSystem].Atoms[f1][B].Force.z-=fb.z;
-  
+
             Framework[CurrentSystem].Atoms[f1][C].Force.x-=fc.x;
             Framework[CurrentSystem].Atoms[f1][C].Force.y-=fc.y;
             Framework[CurrentSystem].Atoms[f1][C].Force.z-=fc.z;
-  
+
             Framework[CurrentSystem].Atoms[f1][D].Force.x-=fd.x;
             Framework[CurrentSystem].Atoms[f1][D].Force.y-=fd.y;
             Framework[CurrentSystem].Atoms[f1][D].Force.z-=fd.z;
-  
+
             // add contribution to the stress tensor
             StrainDerivativeTensor[CurrentSystem].ax+=Rad.x*fa.x+Rbd.x*fb.x+Rcd.x*fc.x;
             StrainDerivativeTensor[CurrentSystem].bx+=Rad.y*fa.x+Rbd.y*fb.x+Rcd.y*fc.x;
             StrainDerivativeTensor[CurrentSystem].cx+=Rad.z*fa.x+Rbd.z*fb.x+Rcd.z*fc.x;
-  
+
             StrainDerivativeTensor[CurrentSystem].ay+=Rad.x*fa.y+Rbd.x*fb.y+Rcd.x*fc.y;
             StrainDerivativeTensor[CurrentSystem].by+=Rad.y*fa.y+Rbd.y*fb.y+Rcd.y*fc.y;
             StrainDerivativeTensor[CurrentSystem].cy+=Rad.z*fa.y+Rbd.z*fb.y+Rcd.z*fc.y;
-  
+
             StrainDerivativeTensor[CurrentSystem].az+=Rad.x*fa.z+Rbd.x*fb.z+Rcd.x*fc.z;
             StrainDerivativeTensor[CurrentSystem].bz+=Rad.y*fa.z+Rbd.y*fb.z+Rcd.y*fc.z;
             StrainDerivativeTensor[CurrentSystem].cz+=Rad.z*fa.z+Rbd.z*fb.z+Rcd.z*fc.z;
@@ -822,51 +822,51 @@ void CalculateFrameworkBendForce(void)
             dtA.x=(Rbc.x-CosTheta*Rab.x)/rab;
             dtA.y=(Rbc.y-CosTheta*Rab.y)/rab;
             dtA.z=(Rbc.z-CosTheta*Rab.z)/rab;
-  
+
             dtC.x=(Rab.x-CosTheta*Rbc.x)/rbc;
             dtC.y=(Rab.y-CosTheta*Rbc.y)/rbc;
             dtC.z=(Rab.z-CosTheta*Rbc.z)/rbc;
-  
+
             dtB.x=-(dtA.x+dtC.x);
             dtB.y=-(dtA.y+dtC.y);
             dtB.z=-(dtA.z+dtC.z);
-  
+
             // forces are oppositely directed to the gradient
             fa.x=-DF*dtA.x;
             fa.y=-DF*dtA.y;
             fa.z=-DF*dtA.z;
-  
+
             fb.x=-DF*dtB.x;
             fb.y=-DF*dtB.y;
             fb.z=-DF*dtB.z;
-  
+
             fc.x=-DF*dtC.x;
             fc.y=-DF*dtC.y;
             fc.z=-DF*dtC.z;
-  
+
             // add contribution to the forces
             Framework[CurrentSystem].Atoms[f1][A].Force.x+=fa.x;
             Framework[CurrentSystem].Atoms[f1][A].Force.y+=fa.y;
             Framework[CurrentSystem].Atoms[f1][A].Force.z+=fa.z;
-  
+
             Framework[CurrentSystem].Atoms[f1][B].Force.x-=(fa.x+fc.x);
             Framework[CurrentSystem].Atoms[f1][B].Force.y-=(fa.y+fc.y);
             Framework[CurrentSystem].Atoms[f1][B].Force.z-=(fa.z+fc.z);
-  
+
             Framework[CurrentSystem].Atoms[f1][C].Force.x+=fc.x;
             Framework[CurrentSystem].Atoms[f1][C].Force.y+=fc.y;
             Framework[CurrentSystem].Atoms[f1][C].Force.z+=fc.z;
-  
+
             // add contribution to the stress tensor
             // Note: rab and rbc are here because the vectors were normalized before
             StrainDerivativeTensor[CurrentSystem].ax-=rab*Rab.x*fa.x+rbc*Rbc.x*fc.x;
             StrainDerivativeTensor[CurrentSystem].bx-=rab*Rab.y*fa.x+rbc*Rbc.y*fc.x;
             StrainDerivativeTensor[CurrentSystem].cx-=rab*Rab.z*fa.x+rbc*Rbc.z*fc.x;
-  
+
             StrainDerivativeTensor[CurrentSystem].ay-=rab*Rab.x*fa.y+rbc*Rbc.x*fc.y;
             StrainDerivativeTensor[CurrentSystem].by-=rab*Rab.y*fa.y+rbc*Rbc.y*fc.y;
             StrainDerivativeTensor[CurrentSystem].cy-=rab*Rab.z*fa.y+rbc*Rbc.z*fc.y;
-  
+
             StrainDerivativeTensor[CurrentSystem].az-=rab*Rab.x*fa.z+rbc*Rbc.x*fc.z;
             StrainDerivativeTensor[CurrentSystem].bz-=rab*Rab.y*fa.z+rbc*Rbc.y*fc.z;
             StrainDerivativeTensor[CurrentSystem].cz-=rab*Rab.z*fa.z+rbc*Rbc.z*fc.z;
@@ -904,44 +904,44 @@ void CalculateFrameworkInversionBendForce(void)
         B=Framework[CurrentSystem].InversionBends[f1][i].B;
         C=Framework[CurrentSystem].InversionBends[f1][i].C;
         D=Framework[CurrentSystem].InversionBends[f1][i].D;
-  
+
         posA=Framework[CurrentSystem].Atoms[f1][A].Position;
         posB=Framework[CurrentSystem].Atoms[f1][B].Position;
         posC=Framework[CurrentSystem].Atoms[f1][C].Position;
         posD=Framework[CurrentSystem].Atoms[f1][D].Position;
-  
+
         Rab.x=posA.x-posB.x;
         Rab.y=posA.y-posB.y;
         Rab.z=posA.z-posB.z;
         Rab=ApplyBoundaryCondition(Rab);
         rab2=Rab.x*Rab.x+Rab.y*Rab.y+Rab.z*Rab.z;
         rrab=sqrt(rab2);
-  
+
         Rbc.x=posC.x-posB.x;
         Rbc.y=posC.y-posB.y;
         Rbc.z=posC.z-posB.z;
         Rbc=ApplyBoundaryCondition(Rbc);
         rbc2=Rbc.x*Rbc.x+Rbc.y*Rbc.y+Rbc.z*Rbc.z;
         rrbc=sqrt(rbc2);
-  
+
         Rbd.x=posD.x-posB.x;
         Rbd.y=posD.y-posB.y;
         Rbd.z=posD.z-posB.z;
         Rbd=ApplyBoundaryCondition(Rbd);
         rbd2=Rbd.x*Rbd.x+Rbd.y*Rbd.y+Rbd.z*Rbd.z;
-  
+
         Rac.x=posC.x-posA.x;
         Rac.y=posC.y-posA.y;
         Rac.z=posC.z-posA.z;
         Rac=ApplyBoundaryCondition(Rac);
         rac2=Rac.x*Rac.x+Rac.y*Rac.y+Rac.z*Rac.z;
-  
+
         Rad.x=posD.x-posA.x;
         Rad.y=posD.y-posA.y;
         Rad.z=posD.z-posA.z;
         Rad=ApplyBoundaryCondition(Rad);
         rad2=Rad.x*Rad.x+Rad.y*Rad.y+Rad.z*Rad.z;
-  
+
         switch(Framework[CurrentSystem].InversionBendType[f1][i])
         {
           case HARMONIC_INVERSION:
@@ -964,19 +964,19 @@ void CalculateFrameworkInversionBendForce(void)
             //c=(Rcd.x*Rcd.x+Rcd.y*Rcd.y+Rcd.z*Rcd.z)*(Rad.x*Rad.x+Rad.y*Rad.y+Rad.z*Rad.z)-SQR(Rad.x*Rcd.x+Rad.y*Rcd.y+Rad.z*Rcd.z);
             break;
           default:
-            printf("Undefined Inversion-Bend potential in routine 'CalculateFrameworkInversionBendEnergy' ('framework_energy.c')\n");
+            fprintf(stderr, "Undefined Inversion-Bend potential in routine 'CalculateFrameworkInversionBendEnergy' ('framework_energy.c')\n");
             exit(0);
             break;
         }
-  
+
         e=Rab.x*(Rbc.y*Rbd.z-Rbc.z*Rbd.y)+Rab.y*(Rbc.z*Rbd.x-Rbc.x*Rbd.z)+Rab.z*(Rbc.x*Rbd.y-Rbc.y*Rbd.x);
         CosChi=sqrt((Rab.x*Rab.x+Rab.y*Rab.y+Rab.z*Rab.z)-SQR(e)/c)/rrab;
-  
+
         // Ensure CosChi is between -1 and 1.
         CosChi=SIGN(MIN2(fabs(CosChi),(REAL)1.0),CosChi);
-  
+
         parms=Framework[CurrentSystem].InversionBendArguments[f1][i];
-  
+
         switch(Framework[CurrentSystem].InversionBendType[f1][i])
         {
           case HARMONIC_INVERSION:
@@ -1020,14 +1020,14 @@ void CalculateFrameworkInversionBendForce(void)
             dedcos=-SIGN(1.0,e)*parms[0]*temp*RAD2DEG*(2.0-3.0*0.014*temp+4.0*5.6e-5*temp2-5.0*7.0e-7*temp*temp2+6.0*2.2e-8*SQR(temp2))/sqrt(c*(rab2-e*e/c));
             break;
           default:
-            printf("Undefined Inversion-Bend potential in routine 'CalculateFrameworkInversionBendEnergy' ('framework_energy.c')\n");
+            fprintf(stderr, "Undefined Inversion-Bend potential in routine 'CalculateFrameworkInversionBendEnergy' ('framework_energy.c')\n");
             exit(0);
             break;
         }
-  
+
         // energy
         UHostInversionBend[CurrentSystem]+=energy;
-  
+
         switch(Framework[CurrentSystem].InversionBendType[f1][i])
         {
           case HARMONIC_COSINE_INVERSION:
@@ -1060,12 +1060,12 @@ void CalculateFrameworkInversionBendForce(void)
             dccdia.z=-(dccdic.z+dccdid.z);
             break;
           default:
-            printf("Undefined Inversion-Bend potential in routine 'CalculateFrameworkInversionBendEnergy' ('framework_energy.c')\n");
+            fprintf(stderr, "Undefined Inversion-Bend potential in routine 'CalculateFrameworkInversionBendEnergy' ('framework_energy.c')\n");
             exit(0);
             break;
         }
-  
-  
+
+
         term=e/rab2;
         deedia.x=Rbd.y*Rbc.z-Rbd.z*Rbc.y+Rab.x*term;
         deedia.y=Rbd.z*Rbc.x-Rbd.x*Rbc.z+Rab.y*term;
@@ -1076,7 +1076,7 @@ void CalculateFrameworkInversionBendForce(void)
         deedid.x=Rbc.y*Rab.z-Rbc.z*Rab.y;
         deedid.y=Rbc.z*Rab.x-Rbc.x*Rab.z;
         deedid.z=Rbc.x*Rab.y-Rbc.y*Rab.x;
-  
+
         fa.x=dedcos*(dccdia.x+deedia.x);
         fa.y=dedcos*(dccdia.y+deedia.y);
         fa.z=dedcos*(dccdia.z+deedia.z);
@@ -1086,43 +1086,43 @@ void CalculateFrameworkInversionBendForce(void)
         fd.x=dedcos*(dccdid.x+deedid.x);
         fd.y=dedcos*(dccdid.y+deedid.y);
         fd.z=dedcos*(dccdid.z+deedid.z);
-  
+
         fb.x=-(fa.x+fc.x+fd.x);
         fb.y=-(fa.y+fc.y+fd.y);
         fb.z=-(fa.z+fc.z+fd.z);
-  
+
         // add contribution to the forces
         Framework[CurrentSystem].Atoms[f1][A].Force.x-=fa.x;
         Framework[CurrentSystem].Atoms[f1][A].Force.y-=fa.y;
         Framework[CurrentSystem].Atoms[f1][A].Force.z-=fa.z;
-  
+
         Framework[CurrentSystem].Atoms[f1][B].Force.x-=fb.x;
         Framework[CurrentSystem].Atoms[f1][B].Force.y-=fb.y;
         Framework[CurrentSystem].Atoms[f1][B].Force.z-=fb.z;
-  
+
         Framework[CurrentSystem].Atoms[f1][C].Force.x-=fc.x;
         Framework[CurrentSystem].Atoms[f1][C].Force.y-=fc.y;
         Framework[CurrentSystem].Atoms[f1][C].Force.z-=fc.z;
-  
+
         Framework[CurrentSystem].Atoms[f1][D].Force.x-=fd.x;
         Framework[CurrentSystem].Atoms[f1][D].Force.y-=fd.y;
         Framework[CurrentSystem].Atoms[f1][D].Force.z-=fd.z;
-  
+
         // add contribution to the stress tensor
         StrainDerivativeTensor[CurrentSystem].ax+=Rab.x*fa.x+Rbc.x*fc.x+Rbd.x*fd.x;
         StrainDerivativeTensor[CurrentSystem].ay+=Rab.x*fa.y+Rbc.x*fc.y+Rbd.x*fd.y;
         StrainDerivativeTensor[CurrentSystem].az+=Rab.x*fa.z+Rbc.x*fc.z+Rbd.x*fd.z;
-  
+
         StrainDerivativeTensor[CurrentSystem].bx+=Rab.y*fa.x+Rbc.y*fc.x+Rbd.y*fd.x;
         StrainDerivativeTensor[CurrentSystem].by+=Rab.y*fa.y+Rbc.y*fc.y+Rbd.y*fd.y;
         StrainDerivativeTensor[CurrentSystem].bz+=Rab.y*fa.z+Rbc.y*fc.z+Rbd.y*fd.z;
-  
+
         StrainDerivativeTensor[CurrentSystem].cx+=Rab.z*fa.x+Rbc.z*fc.x+Rbd.z*fd.x;
         StrainDerivativeTensor[CurrentSystem].cy+=Rab.z*fa.y+Rbc.z*fc.y+Rbd.z*fd.y;
         StrainDerivativeTensor[CurrentSystem].cz+=Rab.z*fa.z+Rbc.z*fc.z+Rbd.z*fd.z;
       }
     }
-  } 
+  }
 }
 
 void CalculateFrameworkTorsionForce(void)
@@ -1149,52 +1149,52 @@ void CalculateFrameworkTorsionForce(void)
         C=Framework[CurrentSystem].Torsions[f1][i].C;
         D=Framework[CurrentSystem].Torsions[f1][i].D;
         parms=Framework[CurrentSystem].TorsionArguments[f1][i];
-  
+
         posA=Framework[CurrentSystem].Atoms[f1][A].Position;
         posB=Framework[CurrentSystem].Atoms[f1][B].Position;
         posC=Framework[CurrentSystem].Atoms[f1][C].Position;
         posD=Framework[CurrentSystem].Atoms[f1][D].Position;
-  
+
         Dab.x=posA.x-posB.x;
         Dab.y=posA.y-posB.y;
         Dab.z=posA.z-posB.z;
         Dab=ApplyBoundaryCondition(Dab);
-  
+
         Dcb.x=posC.x-posB.x;
         Dcb.y=posC.y-posB.y;
         Dcb.z=posC.z-posB.z;
         Dcb=ApplyBoundaryCondition(Dcb);
         rbc=sqrt(SQR(Dcb.x)+SQR(Dcb.y)+SQR(Dcb.z));
         Dcb.x/=rbc; Dcb.y/=rbc; Dcb.z/=rbc;
-  
+
         Ddc.x=posD.x-posC.x;
         Ddc.y=posD.y-posC.y;
         Ddc.z=posD.z-posC.z;
         Ddc=ApplyBoundaryCondition(Ddc);
-  
+
         dot_ab=Dab.x*Dcb.x+Dab.y*Dcb.y+Dab.z*Dcb.z;
         dot_cd=Ddc.x*Dcb.x+Ddc.y*Dcb.y+Ddc.z*Dcb.z;
-  
+
         dr.x=Dab.x-dot_ab*Dcb.x;
         dr.y=Dab.y-dot_ab*Dcb.y;
         dr.z=Dab.z-dot_ab*Dcb.z;
         r=MAX2((REAL)1.0e-8,sqrt(SQR(dr.x)+SQR(dr.y)+SQR(dr.z)));
         dr.x/=r; dr.y/=r; dr.z/=r;
-  
+
         ds.x=Ddc.x-dot_cd*Dcb.x;
         ds.y=Ddc.y-dot_cd*Dcb.y;
         ds.z=Ddc.z-dot_cd*Dcb.z;
         s=MAX2((REAL)1.0e-8,sqrt(SQR(ds.x)+SQR(ds.y)+SQR(ds.z)));
         ds.x/=s; ds.y/=s; ds.z/=s;
-  
+
         // compute Cos(Phi)
         // Phi is defined in protein convention Phi(trans)=Pi
         CosPhi=dr.x*ds.x+dr.y*ds.y+dr.z*ds.z;
-  
+
         // Ensure CosPhi is between -1 and 1.
         CosPhi=SIGN(MIN2(fabs(CosPhi),(REAL)1.0),CosPhi);
         CosPhi2=SQR(CosPhi);
-  
+
         switch(Framework[CurrentSystem].TorsionType[f1][i])
         {
           case HARMONIC_DIHEDRAL:
@@ -1357,81 +1357,81 @@ void CalculateFrameworkTorsionForce(void)
                CosPhi*(-2.0*parms[1]+parms[3]*(16.0*CosPhi2-8.0)+parms[5]*(18.0-96.0*CosPhi2+96.0*SQR(CosPhi2)));
             break;
           default:
-            printf("Undefined Torsion potential in routine 'CalculateFrameworkTorsionForce' ('framework_force.c')\n");
+            fprintf(stderr, "Undefined Torsion potential in routine 'CalculateFrameworkTorsionForce' ('framework_force.c')\n");
             exit(0);
             break;
         }
-  
+
         // energy
         UHostTorsion[CurrentSystem]+=U;
-  
+
         // virial
         // pure torsion has *no* contributions to the virial
-  
+
         // Calculate the first derivative vectors.
         d=dot_ab/rbc;
         e=dot_cd/rbc;
-  
+
         dtA.x=(ds.x-CosPhi*dr.x)/r;
         dtA.y=(ds.y-CosPhi*dr.y)/r;
         dtA.z=(ds.z-CosPhi*dr.z)/r;
-  
+
         dtD.x=(dr.x-CosPhi*ds.x)/s;
         dtD.y=(dr.y-CosPhi*ds.y)/s;
         dtD.z=(dr.z-CosPhi*ds.z)/s;
-  
+
         dtB.x=dtA.x*(d-1.0)+e*dtD.x;
         dtB.y=dtA.y*(d-1.0)+e*dtD.y;
         dtB.z=dtA.z*(d-1.0)+e*dtD.z;
-  
+
         dtC.x=-dtD.x*(e+1.0)-d*dtA.x;
         dtC.y=-dtD.y*(e+1.0)-d*dtA.y;
         dtC.z=-dtD.z*(e+1.0)-d*dtA.z;
-  
+
         // forces are oppositely directed to the gradient
         fa.x=-DF*dtA.x;
         fa.y=-DF*dtA.y;
         fa.z=-DF*dtA.z;
-  
+
         fb.x=-DF*dtB.x;
         fb.y=-DF*dtB.y;
         fb.z=-DF*dtB.z;
-  
+
         fc.x=-DF*dtC.x;
         fc.y=-DF*dtC.y;
         fc.z=-DF*dtC.z;
-  
+
         fd.x=-DF*dtD.x;
         fd.y=-DF*dtD.y;
         fd.z=-DF*dtD.z;
-  
+
         // add contribution to the forces
         Framework[CurrentSystem].Atoms[f1][A].Force.x+=fa.x;
         Framework[CurrentSystem].Atoms[f1][A].Force.y+=fa.y;
         Framework[CurrentSystem].Atoms[f1][A].Force.z+=fa.z;
-  
+
         Framework[CurrentSystem].Atoms[f1][B].Force.x+=fb.x;
         Framework[CurrentSystem].Atoms[f1][B].Force.y+=fb.y;
         Framework[CurrentSystem].Atoms[f1][B].Force.z+=fb.z;
-  
+
         Framework[CurrentSystem].Atoms[f1][C].Force.x+=fc.x;
         Framework[CurrentSystem].Atoms[f1][C].Force.y+=fc.y;
         Framework[CurrentSystem].Atoms[f1][C].Force.z+=fc.z;
-  
+
         Framework[CurrentSystem].Atoms[f1][D].Force.x+=fd.x;
         Framework[CurrentSystem].Atoms[f1][D].Force.y+=fd.y;
         Framework[CurrentSystem].Atoms[f1][D].Force.z+=fd.z;
-  
+
         // add contribution to the stress tensor
         // Note: rbc is here because the vector was normalized before
         StrainDerivativeTensor[CurrentSystem].ax-=Dab.x*fa.x+Dcb.x*rbc*(fc.x+fd.x)+Ddc.x*fd.x;
         StrainDerivativeTensor[CurrentSystem].bx-=Dab.y*fa.x+Dcb.y*rbc*(fc.x+fd.x)+Ddc.y*fd.x;
         StrainDerivativeTensor[CurrentSystem].cx-=Dab.z*fa.x+Dcb.z*rbc*(fc.x+fd.x)+Ddc.z*fd.x;
-  
+
         StrainDerivativeTensor[CurrentSystem].ay-=Dab.x*fa.y+Dcb.x*rbc*(fc.y+fd.y)+Ddc.x*fd.y;
         StrainDerivativeTensor[CurrentSystem].by-=Dab.y*fa.y+Dcb.y*rbc*(fc.y+fd.y)+Ddc.y*fd.y;
         StrainDerivativeTensor[CurrentSystem].cy-=Dab.z*fa.y+Dcb.z*rbc*(fc.y+fd.y)+Ddc.z*fd.y;
-  
+
         StrainDerivativeTensor[CurrentSystem].az-=Dab.x*fa.z+Dcb.x*rbc*(fc.z+fd.z)+Ddc.x*fd.z;
         StrainDerivativeTensor[CurrentSystem].bz-=Dab.y*fa.z+Dcb.y*rbc*(fc.z+fd.z)+Ddc.y*fd.z;
         StrainDerivativeTensor[CurrentSystem].cz-=Dab.z*fa.z+Dcb.z*rbc*(fc.z+fd.z)+Ddc.z*fd.z;
@@ -1464,52 +1464,52 @@ void CalculateFrameworkImproperTorsionForce(void)
         C=Framework[CurrentSystem].ImproperTorsions[f1][i].C;
         D=Framework[CurrentSystem].ImproperTorsions[f1][i].D;
         parms=Framework[CurrentSystem].ImproperTorsionArguments[f1][i];
-  
+
         posA=Framework[CurrentSystem].Atoms[f1][A].Position;
         posB=Framework[CurrentSystem].Atoms[f1][B].Position;
         posC=Framework[CurrentSystem].Atoms[f1][C].Position;
         posD=Framework[CurrentSystem].Atoms[f1][D].Position;
-  
+
         Dab.x=posA.x-posB.x;
         Dab.y=posA.y-posB.y;
         Dab.z=posA.z-posB.z;
         Dab=ApplyBoundaryCondition(Dab);
-  
+
         Dcb.x=posC.x-posB.x;
         Dcb.y=posC.y-posB.y;
         Dcb.z=posC.z-posB.z;
         Dcb=ApplyBoundaryCondition(Dcb);
         rbc=sqrt(SQR(Dcb.x)+SQR(Dcb.y)+SQR(Dcb.z));
         Dcb.x/=rbc; Dcb.y/=rbc; Dcb.z/=rbc;
-  
+
         Ddc.x=posD.x-posC.x;
         Ddc.y=posD.y-posC.y;
         Ddc.z=posD.z-posC.z;
         Ddc=ApplyBoundaryCondition(Ddc);
-  
+
         dot_ab=Dab.x*Dcb.x+Dab.y*Dcb.y+Dab.z*Dcb.z;
         dot_cd=Ddc.x*Dcb.x+Ddc.y*Dcb.y+Ddc.z*Dcb.z;
-  
+
         dr.x=Dab.x-dot_ab*Dcb.x;
         dr.y=Dab.y-dot_ab*Dcb.y;
         dr.z=Dab.z-dot_ab*Dcb.z;
         r=sqrt(SQR(dr.x)+SQR(dr.y)+SQR(dr.z));
         dr.x/=r; dr.y/=r; dr.z/=r;
-  
+
         ds.x=Ddc.x-dot_cd*Dcb.x;
         ds.y=Ddc.y-dot_cd*Dcb.y;
         ds.z=Ddc.z-dot_cd*Dcb.z;
         s=sqrt(SQR(ds.x)+SQR(ds.y)+SQR(ds.z));
         ds.x/=s; ds.y/=s; ds.z/=s;
-  
+
         // compute Cos(Phi)
         // Phi is defined in protein convention Phi(trans)=Pi
         CosPhi=dr.x*ds.x+dr.y*ds.y+dr.z*ds.z;
-  
+
         // Ensure CosPhi is between -1 and 1.
         CosPhi=SIGN(MIN2(fabs(CosPhi),(REAL)1.0),CosPhi);
         CosPhi2=SQR(CosPhi);
-  
+
         switch(Framework[CurrentSystem].ImproperTorsionType[f1][i])
         {
           case HARMONIC_IMPROPER_DIHEDRAL:
@@ -1675,81 +1675,81 @@ void CalculateFrameworkImproperTorsionForce(void)
             U=DF=0.0;
             break;
           default:
-            printf("Undefined Improper-Torsion potential in routine 'CalculateFrameworkImproperTorsionForce' ('framework_force.c')\n");
+            fprintf(stderr, "Undefined Improper-Torsion potential in routine 'CalculateFrameworkImproperTorsionForce' ('framework_force.c')\n");
             exit(0);
             break;
         }
-  
+
         // energy
         UHostImproperTorsion[CurrentSystem]+=U;
-  
+
         // virial
         // pure torsion has *no* contributions to the virial
-  
+
         // Calculate the first derivative vectors.
         d=dot_ab/rbc;
         e=dot_cd/rbc;
-  
+
         dtA.x=(ds.x-CosPhi*dr.x)/r;
         dtA.y=(ds.y-CosPhi*dr.y)/r;
         dtA.z=(ds.z-CosPhi*dr.z)/r;
-  
+
         dtD.x=(dr.x-CosPhi*ds.x)/s;
         dtD.y=(dr.y-CosPhi*ds.y)/s;
         dtD.z=(dr.z-CosPhi*ds.z)/s;
-  
+
         dtB.x=dtA.x*(d-1.0)+e*dtD.x;
         dtB.y=dtA.y*(d-1.0)+e*dtD.y;
         dtB.z=dtA.z*(d-1.0)+e*dtD.z;
-  
+
         dtC.x=-dtD.x*(e+1.0)-d*dtA.x;
         dtC.y=-dtD.y*(e+1.0)-d*dtA.y;
         dtC.z=-dtD.z*(e+1.0)-d*dtA.z;
-  
+
         // forces are oppositely directed to the gradient
         fa.x=-DF*dtA.x;
         fa.y=-DF*dtA.y;
         fa.z=-DF*dtA.z;
-  
+
         fb.x=-DF*dtB.x;
         fb.y=-DF*dtB.y;
         fb.z=-DF*dtB.z;
-  
+
         fc.x=-DF*dtC.x;
         fc.y=-DF*dtC.y;
         fc.z=-DF*dtC.z;
-  
+
         fd.x=-DF*dtD.x;
         fd.y=-DF*dtD.y;
         fd.z=-DF*dtD.z;
-  
+
         // add contribution to the forces
         Framework[CurrentSystem].Atoms[f1][A].Force.x+=fa.x;
         Framework[CurrentSystem].Atoms[f1][A].Force.y+=fa.y;
         Framework[CurrentSystem].Atoms[f1][A].Force.z+=fa.z;
-  
+
         Framework[CurrentSystem].Atoms[f1][B].Force.x+=fb.x;
         Framework[CurrentSystem].Atoms[f1][B].Force.y+=fb.y;
         Framework[CurrentSystem].Atoms[f1][B].Force.z+=fb.z;
-  
+
         Framework[CurrentSystem].Atoms[f1][C].Force.x+=fc.x;
         Framework[CurrentSystem].Atoms[f1][C].Force.y+=fc.y;
         Framework[CurrentSystem].Atoms[f1][C].Force.z+=fc.z;
-  
+
         Framework[CurrentSystem].Atoms[f1][D].Force.x+=fd.x;
         Framework[CurrentSystem].Atoms[f1][D].Force.y+=fd.y;
         Framework[CurrentSystem].Atoms[f1][D].Force.z+=fd.z;
-  
+
         // add contribution to the stress tensor
         // Note: rbc is here because the vector was normalized before
         StrainDerivativeTensor[CurrentSystem].ax-=Dab.x*fa.x+Dcb.x*rbc*(fc.x+fd.x)+Ddc.x*fd.x;
         StrainDerivativeTensor[CurrentSystem].bx-=Dab.y*fa.x+Dcb.y*rbc*(fc.x+fd.x)+Ddc.y*fd.x;
         StrainDerivativeTensor[CurrentSystem].cx-=Dab.z*fa.x+Dcb.z*rbc*(fc.x+fd.x)+Ddc.z*fd.x;
-  
+
         StrainDerivativeTensor[CurrentSystem].ay-=Dab.x*fa.y+Dcb.x*rbc*(fc.y+fd.y)+Ddc.x*fd.y;
         StrainDerivativeTensor[CurrentSystem].by-=Dab.y*fa.y+Dcb.y*rbc*(fc.y+fd.y)+Ddc.y*fd.y;
         StrainDerivativeTensor[CurrentSystem].cy-=Dab.z*fa.y+Dcb.z*rbc*(fc.y+fd.y)+Ddc.z*fd.y;
-  
+
         StrainDerivativeTensor[CurrentSystem].az-=Dab.x*fa.z+Dcb.x*rbc*(fc.z+fd.z)+Ddc.x*fd.z;
         StrainDerivativeTensor[CurrentSystem].bz-=Dab.y*fa.z+Dcb.y*rbc*(fc.z+fd.z)+Ddc.y*fd.z;
         StrainDerivativeTensor[CurrentSystem].cz-=Dab.z*fa.z+Dcb.z*rbc*(fc.z+fd.z)+Ddc.z*fd.z;
@@ -1779,23 +1779,23 @@ void CalculateFrameworkBondBondForce(void)
         B=Framework[CurrentSystem].BondBonds[f1][i].B;
         C=Framework[CurrentSystem].BondBonds[f1][i].C;
         parms=Framework[CurrentSystem].BondBondArguments[f1][i];
-  
+
         posA=Framework[CurrentSystem].Atoms[f1][A].Position;
         posB=Framework[CurrentSystem].Atoms[f1][B].Position;
         posC=Framework[CurrentSystem].Atoms[f1][C].Position;
-  
+
         Rab.x=posA.x-posB.x;
         Rab.y=posA.y-posB.y;
         Rab.z=posA.z-posB.z;
         Rab=ApplyBoundaryCondition(Rab);
         rab=sqrt(SQR(Rab.x)+SQR(Rab.y)+SQR(Rab.z));
-  
+
         Rbc.x=posC.x-posB.x;
         Rbc.y=posC.y-posB.y;
         Rbc.z=posC.z-posB.z;
         Rbc=ApplyBoundaryCondition(Rbc);
         rbc=sqrt(SQR(Rbc.x)+SQR(Rbc.y)+SQR(Rbc.z));
-  
+
         switch(Framework[CurrentSystem].BondBondType[f1][i])
         {
           case CVFF_BOND_BOND_CROSS:
@@ -1810,45 +1810,45 @@ void CalculateFrameworkBondBondForce(void)
             gammc=-parms[0]*(rab-parms[1])/rbc;
           break;
           default:
-            printf("Undefined Bond-Bond potential in routine 'CalculateFrameworkBondBondForce' ('framework_force.c')\n");
+            fprintf(stderr, "Undefined Bond-Bond potential in routine 'CalculateFrameworkBondBondForce' ('framework_force.c')\n");
             exit(0);
             break;
         }
-  
+
         // add contribution to the energy
         UHostBondBond[CurrentSystem]+=energy;
-  
+
         // forces
         fa.x=gamma*Rab.x;
         fa.y=gamma*Rab.y;
         fa.z=gamma*Rab.z;
-  
+
         fc.x=gammc*Rbc.x;
         fc.y=gammc*Rbc.y;
         fc.z=gammc*Rbc.z;
-  
+
         // add contribution to the forces
         Framework[CurrentSystem].Atoms[f1][A].Force.x+=fa.x;
         Framework[CurrentSystem].Atoms[f1][A].Force.y+=fa.y;
         Framework[CurrentSystem].Atoms[f1][A].Force.z+=fa.z;
-  
+
         Framework[CurrentSystem].Atoms[f1][B].Force.x-=(fa.x+fc.x);
         Framework[CurrentSystem].Atoms[f1][B].Force.y-=(fa.y+fc.y);
         Framework[CurrentSystem].Atoms[f1][B].Force.z-=(fa.z+fc.z);
-  
+
         Framework[CurrentSystem].Atoms[f1][C].Force.x+=fc.x;
         Framework[CurrentSystem].Atoms[f1][C].Force.y+=fc.y;
         Framework[CurrentSystem].Atoms[f1][C].Force.z+=fc.z;
-  
+
         // add contribution to the stress tensor
         StrainDerivativeTensor[CurrentSystem].ax-=Rab.x*fa.x+Rbc.x*fc.x;
         StrainDerivativeTensor[CurrentSystem].bx-=Rab.y*fa.x+Rbc.y*fc.x;
         StrainDerivativeTensor[CurrentSystem].cx-=Rab.z*fa.x+Rbc.z*fc.x;
-  
+
         StrainDerivativeTensor[CurrentSystem].ay-=Rab.x*fa.y+Rbc.x*fc.y;
         StrainDerivativeTensor[CurrentSystem].by-=Rab.y*fa.y+Rbc.y*fc.y;
         StrainDerivativeTensor[CurrentSystem].cy-=Rab.z*fa.y+Rbc.z*fc.y;
-  
+
         StrainDerivativeTensor[CurrentSystem].az-=Rab.x*fa.z+Rbc.x*fc.z;
         StrainDerivativeTensor[CurrentSystem].bz-=Rab.y*fa.z+Rbc.y*fc.z;
         StrainDerivativeTensor[CurrentSystem].cz-=Rab.z*fa.z+Rbc.z*fc.z;
@@ -1877,11 +1877,11 @@ void CalculateFrameworkBondBendForce(void)
         B=Framework[CurrentSystem].BondBends[f1][i].B;
         C=Framework[CurrentSystem].BondBends[f1][i].C;
         parms=Framework[CurrentSystem].BondBendArguments[f1][i];
-  
+
         posA=Framework[CurrentSystem].Atoms[f1][A].Position;
         posB=Framework[CurrentSystem].Atoms[f1][B].Position;
         posC=Framework[CurrentSystem].Atoms[f1][C].Position;
-  
+
         Rab.x=posA.x-posB.x;
         Rab.y=posA.y-posB.y;
         Rab.z=posA.z-posB.z;
@@ -1890,7 +1890,7 @@ void CalculateFrameworkBondBendForce(void)
         Rab.x/=rab;
         Rab.y/=rab;
         Rab.z/=rab;
-  
+
         Rbc.x=posC.x-posB.x;
         Rbc.y=posC.y-posB.y;
         Rbc.z=posC.z-posB.z;
@@ -1899,7 +1899,7 @@ void CalculateFrameworkBondBendForce(void)
         Rbc.x/=rbc;
         Rbc.y/=rbc;
         Rbc.z/=rbc;
-  
+
         Rac.x=posC.x-posA.x;
         Rac.y=posC.y-posA.y;
         Rac.z=posC.z-posA.z;
@@ -1908,13 +1908,13 @@ void CalculateFrameworkBondBendForce(void)
         Rac.x/=rac;
         Rac.y/=rac;
         Rac.z/=rac;
-  
+
         cost=(Rab.x*Rbc.x+Rab.y*Rbc.y+Rab.z*Rbc.z);
         cost=MIN2(1.0,MAX2(-1.0,cost));
         theta=acos(cost);
         sint=sqrt(1.0-SQR(cost));
         //sint=MAX2((REAL)1.0e-8,sqrt(1.0-SQR(cost)));
-  
+
         switch(Framework[CurrentSystem].BondBendType[f1][i])
         {
           case CVFF_BOND_BEND_CROSS:
@@ -2005,45 +2005,45 @@ void CalculateFrameworkBondBendForce(void)
             gamsc=(8.0*pterm/pow(parms[3],8))*pow(rbc,7);
             break;
           default:
-            printf("Undefined Bond-Bend potential in routine 'CalculateFrameworkBondBendForce' ('framework_force.c')\n");
+            fprintf(stderr, "Undefined Bond-Bend potential in routine 'CalculateFrameworkBondBendForce' ('framework_force.c')\n");
             exit(0);
             break;
         }
-  
+
         // energy
         UHostBondBend[CurrentSystem]+=pterm;
-  
+
         // forces
         fa.x=gamma*(Rbc.x-Rab.x*cost)/rab+gamsa*Rab.x;
         fa.y=gamma*(Rbc.y-Rab.y*cost)/rab+gamsa*Rab.y;
         fa.z=gamma*(Rbc.z-Rab.z*cost)/rab+gamsa*Rab.z;
-  
+
         fc.x=gamma*(Rab.x-Rbc.x*cost)/rbc+gamsc*Rbc.x;
         fc.y=gamma*(Rab.y-Rbc.y*cost)/rbc+gamsc*Rbc.y;
         fc.z=gamma*(Rab.z-Rbc.z*cost)/rbc+gamsc*Rbc.z;
-  
+
         // add contribution to the forces
         Framework[CurrentSystem].Atoms[f1][A].Force.x+=fa.x;
         Framework[CurrentSystem].Atoms[f1][A].Force.y+=fa.y;
         Framework[CurrentSystem].Atoms[f1][A].Force.z+=fa.z;
-  
+
         Framework[CurrentSystem].Atoms[f1][B].Force.x-=(fa.x+fc.x);
         Framework[CurrentSystem].Atoms[f1][B].Force.y-=(fa.y+fc.y);
         Framework[CurrentSystem].Atoms[f1][B].Force.z-=(fa.z+fc.z);
-  
+
         Framework[CurrentSystem].Atoms[f1][C].Force.x+=fc.x;
         Framework[CurrentSystem].Atoms[f1][C].Force.y+=fc.y;
         Framework[CurrentSystem].Atoms[f1][C].Force.z+=fc.z;
-  
+
         // add contribution to the stress tensor
         StrainDerivativeTensor[CurrentSystem].ax-=(rab*Rab.x*fa.x+rbc*Rbc.x*fc.x);
         StrainDerivativeTensor[CurrentSystem].ay-=(rab*Rab.x*fa.y+rbc*Rbc.x*fc.y);
         StrainDerivativeTensor[CurrentSystem].az-=(rab*Rab.x*fa.z+rbc*Rbc.x*fc.z);
-  
+
         StrainDerivativeTensor[CurrentSystem].bx-=(rab*Rab.y*fa.x+rbc*Rbc.y*fc.x);
         StrainDerivativeTensor[CurrentSystem].by-=(rab*Rab.y*fa.y+rbc*Rbc.y*fc.y);
         StrainDerivativeTensor[CurrentSystem].bz-=(rab*Rab.y*fa.z+rbc*Rbc.y*fc.z);
-  
+
         StrainDerivativeTensor[CurrentSystem].cx-=(rab*Rab.z*fa.x+rbc*Rbc.z*fc.x);
         StrainDerivativeTensor[CurrentSystem].cy-=(rab*Rab.z*fa.y+rbc*Rbc.z*fc.y);
         StrainDerivativeTensor[CurrentSystem].cz-=(rab*Rab.z*fa.z+rbc*Rbc.z*fc.z);
@@ -2079,45 +2079,45 @@ void CalculateFrameworkBendBendForce(void)
         C=Framework[CurrentSystem].BendBends[f1][i].C;
         D=Framework[CurrentSystem].BendBends[f1][i].D;
         parms=(REAL*)&Framework[CurrentSystem].BendBendArguments[f1][i];
-  
+
         posA=Framework[CurrentSystem].Atoms[f1][A].Position;
         posB=Framework[CurrentSystem].Atoms[f1][B].Position;
         posC=Framework[CurrentSystem].Atoms[f1][C].Position;
         posD=Framework[CurrentSystem].Atoms[f1][D].Position;
-  
+
         Dab.x=posA.x-posB.x;
         Dab.y=posA.y-posB.y;
         Dab.z=posA.z-posB.z;
         Dab=ApplyBoundaryCondition(Dab);
         rab=sqrt(SQR(Dab.x)+SQR(Dab.y)+SQR(Dab.z));
         Dab.x/=rab; Dab.y/=rab; Dab.z/=rab;
-  
+
         Dbc.x=posC.x-posB.x;
         Dbc.y=posC.y-posB.y;
         Dbc.z=posC.z-posB.z;
         Dbc=ApplyBoundaryCondition(Dbc);
         rbc=sqrt(SQR(Dbc.x)+SQR(Dbc.y)+SQR(Dbc.z));
         Dbc.x/=rbc; Dbc.y/=rbc; Dbc.z/=rbc;
-  
+
         Dbd.x=posD.x-posB.x;
         Dbd.y=posD.y-posB.y;
         Dbd.z=posD.z-posB.z;
         Dbd=ApplyBoundaryCondition(Dbd);
         rbd=sqrt(SQR(Dbd.x)+SQR(Dbd.y)+SQR(Dbd.z));
         Dbd.x/=rbd; Dbd.y/=rbd; Dbd.z/=rbd;
-  
+
         dot_abc=Dab.x*Dbc.x+Dab.y*Dbc.y+Dab.z*Dbc.z;
         CosTheta1=dot_abc;
         CosTheta1=SIGN(MIN2(fabs(CosTheta1),(REAL)1.0),CosTheta1);
         Theta1=acos(CosTheta1);
         SinTheta1=MAX2((REAL)1.0e-8,sqrt(1.0-SQR(CosTheta1)));
-  
+
         dot_abd=Dab.x*Dbd.x+Dab.y*Dbd.y+Dab.z*Dbd.z;
         CosTheta2=dot_abd;
         CosTheta2=SIGN(MIN2(fabs(CosTheta2),(REAL)1.0),CosTheta2);
         Theta2=acos(CosTheta2);
         SinTheta2=MAX2((REAL)1.0e-8,sqrt(1.0-SQR(CosTheta2)));
-  
+
         switch(Framework[CurrentSystem].BendBendType[f1][i])
         {
           case CVFF_BEND_BEND_CROSS:
@@ -2142,82 +2142,82 @@ void CalculateFrameworkBendBendForce(void)
             DTheta2=-parms[0]*SQR(RAD2DEG)*(Theta1-parms[1])/SinTheta2;
             break;
           default:
-            printf("Undefined Bend-Bend potential in routine 'CalculateFrameworkBendBendForce' ('framework_force.c')\n");
+            fprintf(stderr, "Undefined Bend-Bend potential in routine 'CalculateFrameworkBendBendForce' ('framework_force.c')\n");
             exit(0);
             break;
         }
         // energy
         UHostBendBend[CurrentSystem]+=energy;
-  
+
         // forces bend
         fa.x=DTheta1*(Dbc.x-CosTheta1*Dab.x)/rab;
         fa.y=DTheta1*(Dbc.y-CosTheta1*Dab.y)/rab;
         fa.z=DTheta1*(Dbc.z-CosTheta1*Dab.z)/rab;
-  
+
         fc.x=DTheta1*(Dab.x-CosTheta1*Dbc.x)/rbc;
         fc.y=DTheta1*(Dab.y-CosTheta1*Dbc.y)/rbc;
         fc.z=DTheta1*(Dab.z-CosTheta1*Dbc.z)/rbc;
-  
+
         fb.x=-DTheta1*(fa.x+fc.x);
         fb.y=-DTheta1*(fa.y+fc.y);
         fb.z=-DTheta1*(fa.z+fc.z);
-  
+
         Framework[CurrentSystem].Atoms[f1][A].Force.x+=fa.x;
         Framework[CurrentSystem].Atoms[f1][A].Force.y+=fa.y;
         Framework[CurrentSystem].Atoms[f1][A].Force.z+=fa.z;
-  
+
         Framework[CurrentSystem].Atoms[f1][B].Force.x-=fa.x+fc.x;
         Framework[CurrentSystem].Atoms[f1][B].Force.y-=fa.y+fc.y;
         Framework[CurrentSystem].Atoms[f1][B].Force.z-=fa.z+fc.z;
-  
+
         Framework[CurrentSystem].Atoms[f1][C].Force.x+=fc.x;
         Framework[CurrentSystem].Atoms[f1][C].Force.y+=fc.y;
         Framework[CurrentSystem].Atoms[f1][C].Force.z+=fc.z;
-  
+
         StrainDerivativeTensor[CurrentSystem].ax-=rab*Dab.x*fa.x+rbc*Dbc.x*fc.x;
         StrainDerivativeTensor[CurrentSystem].bx-=rab*Dab.y*fa.x+rbc*Dbc.y*fc.x;
         StrainDerivativeTensor[CurrentSystem].cx-=rab*Dab.z*fa.x+rbc*Dbc.z*fc.x;
-  
+
         StrainDerivativeTensor[CurrentSystem].ay-=rab*Dab.x*fa.y+rbc*Dbc.x*fc.y;
         StrainDerivativeTensor[CurrentSystem].by-=rab*Dab.y*fa.y+rbc*Dbc.y*fc.y;
         StrainDerivativeTensor[CurrentSystem].cy-=rab*Dab.z*fa.y+rbc*Dbc.z*fc.y;
-  
+
         StrainDerivativeTensor[CurrentSystem].az-=rab*Dab.x*fa.z+rbc*Dbc.x*fc.z;
         StrainDerivativeTensor[CurrentSystem].bz-=rab*Dab.y*fa.z+rbc*Dbc.y*fc.z;
         StrainDerivativeTensor[CurrentSystem].cz-=rab*Dab.z*fa.z+rbc*Dbc.z*fc.z;
-  
+
         fa.x=DTheta2*(Dbd.x-CosTheta2*Dab.x)/rab;
         fa.y=DTheta2*(Dbd.y-CosTheta2*Dab.y)/rab;
         fa.z=DTheta2*(Dbd.z-CosTheta2*Dab.z)/rab;
-  
+
         fd.x=DTheta2*(Dab.x-CosTheta2*Dbd.x)/rbd;
         fd.y=DTheta2*(Dab.y-CosTheta2*Dbd.y)/rbd;
         fd.z=DTheta2*(Dab.z-CosTheta2*Dbd.z)/rbd;
-  
+
         fb.x=-DTheta2*(fa.x+fd.x);
         fb.y=-DTheta2*(fa.y+fd.y);
         fb.z=-DTheta2*(fa.z+fd.z);
-  
+
         Framework[CurrentSystem].Atoms[f1][A].Force.x+=fa.x;
         Framework[CurrentSystem].Atoms[f1][A].Force.y+=fa.y;
         Framework[CurrentSystem].Atoms[f1][A].Force.z+=fa.z;
-  
+
         Framework[CurrentSystem].Atoms[f1][B].Force.x-=fa.x+fd.x;
         Framework[CurrentSystem].Atoms[f1][B].Force.y-=fa.y+fd.y;
         Framework[CurrentSystem].Atoms[f1][B].Force.z-=fa.z+fd.z;
-  
+
         Framework[CurrentSystem].Atoms[f1][D].Force.x+=fd.x;
         Framework[CurrentSystem].Atoms[f1][D].Force.y+=fd.y;
         Framework[CurrentSystem].Atoms[f1][D].Force.z+=fd.z;
-  
+
         StrainDerivativeTensor[CurrentSystem].ax-=rab*Dab.x*fa.x+rbd*Dbd.x*fd.x;
         StrainDerivativeTensor[CurrentSystem].bx-=rab*Dab.y*fa.x+rbd*Dbd.y*fd.x;
         StrainDerivativeTensor[CurrentSystem].cx-=rab*Dab.z*fa.x+rbd*Dbd.z*fd.x;
-  
+
         StrainDerivativeTensor[CurrentSystem].ay-=rab*Dab.x*fa.y+rbd*Dbd.x*fd.y;
         StrainDerivativeTensor[CurrentSystem].by-=rab*Dab.y*fa.y+rbd*Dbd.y*fd.y;
         StrainDerivativeTensor[CurrentSystem].cy-=rab*Dab.z*fa.y+rbd*Dbd.z*fd.y;
-  
+
         StrainDerivativeTensor[CurrentSystem].az-=rab*Dab.x*fa.z+rbd*Dbd.x*fd.z;
         StrainDerivativeTensor[CurrentSystem].bz-=rab*Dab.y*fa.z+rbd*Dbd.y*fd.z;
         StrainDerivativeTensor[CurrentSystem].cz-=rab*Dab.z*fa.z+rbd*Dbd.z*fd.z;
@@ -2252,63 +2252,63 @@ void CalculateFrameworkBendTorsionForce(void)
         C=Framework[CurrentSystem].BendTorsions[f1][i].C;
         D=Framework[CurrentSystem].BendTorsions[f1][i].D;
         parms=(REAL*)&Framework[CurrentSystem].BendTorsionArguments[f1][i];
-  
+
         posA=Framework[CurrentSystem].Atoms[f1][A].Position;
         posB=Framework[CurrentSystem].Atoms[f1][B].Position;
         posC=Framework[CurrentSystem].Atoms[f1][C].Position;
         posD=Framework[CurrentSystem].Atoms[f1][D].Position;
-  
+
         Dab.x=posA.x-posB.x;
         Dab.y=posA.y-posB.y;
         Dab.z=posA.z-posB.z;
         Dab=ApplyBoundaryCondition(Dab);
         rab=sqrt(SQR(Dab.x)+SQR(Dab.y)+SQR(Dab.z));
-  
+
         Dbc.x=posC.x-posB.x;
         Dbc.y=posC.y-posB.y;
         Dbc.z=posC.z-posB.z;
         Dbc=ApplyBoundaryCondition(Dbc);
         rbc=sqrt(SQR(Dbc.x)+SQR(Dbc.y)+SQR(Dbc.z));
         Dbc.x/=rbc; Dbc.y/=rbc; Dbc.z/=rbc;
-  
+
         Dcd.x=posD.x-posC.x;
         Dcd.y=posD.y-posC.y;
         Dcd.z=posD.z-posC.z;
         Dcd=ApplyBoundaryCondition(Dcd);
         rcd=sqrt(SQR(Dcd.x)+SQR(Dcd.y)+SQR(Dcd.z));
-  
+
         dot_ab=Dab.x*Dbc.x+Dab.y*Dbc.y+Dab.z*Dbc.z;
         CosTheta1=dot_ab/rab;
         CosTheta1=MAX2(MIN2(CosTheta1,(REAL)1.0),-1.0);
         Theta1=acos(CosTheta1);
         SinTheta1=MAX2((REAL)1.0e-8,sqrt(1.0-SQR(CosTheta1)));
-  
+
         dot_cd=Dcd.x*Dbc.x+Dcd.y*Dbc.y+Dcd.z*Dbc.z;
         CosTheta2=-dot_cd/rcd;
         CosTheta2=MAX2(MIN2(CosTheta2,(REAL)1.0),-1.0);
         Theta2=acos(CosTheta2);
         SinTheta2=MAX2((REAL)1.0e-8,sqrt(1.0-SQR(CosTheta2)));
-  
+
         dr.x=Dab.x-dot_ab*Dbc.x;
         dr.y=Dab.y-dot_ab*Dbc.y;
         dr.z=Dab.z-dot_ab*Dbc.z;
         r=MAX2((REAL)1.0e-8,sqrt(SQR(dr.x)+SQR(dr.y)+SQR(dr.z)));
         dr.x/=r; dr.y/=r; dr.z/=r;
-  
+
         ds.x=Dcd.x-dot_cd*Dbc.x;
         ds.y=Dcd.y-dot_cd*Dbc.y;
         ds.z=Dcd.z-dot_cd*Dbc.z;
         s=MAX2((REAL)1.0e-8,sqrt(SQR(ds.x)+SQR(ds.y)+SQR(ds.z)));
         ds.x/=s; ds.y/=s; ds.z/=s;
-  
+
         // compute Cos(Phi)
         // Phi is defined in protein convention Phi(trans)=Pi
         CosPhi=dr.x*ds.x+dr.y*ds.y+dr.z*ds.z;
-  
+
         // Ensure CosPhi is between -1 and 1.
         CosPhi=SIGN(MIN2(fabs(CosPhi),(REAL)1.0),CosPhi);
         CosPhi2=SQR(CosPhi);
-  
+
         switch(Framework[CurrentSystem].BendTorsionType[f1][i])
         {
           case CVFF_BEND_TORSION_CROSS:
@@ -2410,126 +2410,126 @@ void CalculateFrameworkBendTorsionForce(void)
             DTheta2=CosPhi*parms[0]*(Theta1-parms[1])*Smoothing(Theta1)*(Smoothing(Theta2)+(Theta2-parms[2])*SmoothingDerivative(Theta2))/SinTheta2;
             break;
           default:
-            printf("Undefined Bend-Torsion potential in routine 'CalculateFrameworkBendTorsionForce' ('framework_force.c')\n");
+            fprintf(stderr, "Undefined Bend-Torsion potential in routine 'CalculateFrameworkBendTorsionForce' ('framework_force.c')\n");
             exit(0);
             break;
         }
-  
+
         // energy
         UHostBendTorsion[CurrentSystem]+=energy;
-  
+
         // Calculate the first derivative vectors.
         d=dot_ab/rbc;
         e=dot_cd/rbc;
-  
+
         dtA.x=(ds.x-CosPhi*dr.x)/r;
         dtA.y=(ds.y-CosPhi*dr.y)/r;
         dtA.z=(ds.z-CosPhi*dr.z)/r;
-  
+
         dtD.x=(dr.x-CosPhi*ds.x)/s;
         dtD.y=(dr.y-CosPhi*ds.y)/s;
         dtD.z=(dr.z-CosPhi*ds.z)/s;
-  
+
         dtB.x=dtA.x*(d-1.0)+e*dtD.x;
         dtB.y=dtA.y*(d-1.0)+e*dtD.y;
         dtB.z=dtA.z*(d-1.0)+e*dtD.z;
-  
+
         dtC.x=-dtD.x*(e+1.0)-d*dtA.x;
         dtC.y=-dtD.y*(e+1.0)-d*dtA.y;
         dtC.z=-dtD.z*(e+1.0)-d*dtA.z;
-  
+
         // forces are oppositely directed to the gradient
         fa.x=-DCos*dtA.x;
         fa.y=-DCos*dtA.y;
         fa.z=-DCos*dtA.z;
-  
+
         fb.x=-DCos*dtB.x;
         fb.y=-DCos*dtB.y;
         fb.z=-DCos*dtB.z;
-  
+
         fc.x=-DCos*dtC.x;
         fc.y=-DCos*dtC.y;
         fc.z=-DCos*dtC.z;
-  
+
         fd.x=-DCos*dtD.x;
         fd.y=-DCos*dtD.y;
         fd.z=-DCos*dtD.z;
-  
+
         // forces torsion
         Framework[CurrentSystem].Atoms[f1][A].Force.x+=fa.x;
         Framework[CurrentSystem].Atoms[f1][A].Force.y+=fa.y;
         Framework[CurrentSystem].Atoms[f1][A].Force.z+=fa.z;
-  
+
         Framework[CurrentSystem].Atoms[f1][B].Force.x+=fb.x;
         Framework[CurrentSystem].Atoms[f1][B].Force.y+=fb.y;
         Framework[CurrentSystem].Atoms[f1][B].Force.z+=fb.z;
-  
+
         Framework[CurrentSystem].Atoms[f1][C].Force.x+=fc.x;
         Framework[CurrentSystem].Atoms[f1][C].Force.y+=fc.y;
         Framework[CurrentSystem].Atoms[f1][C].Force.z+=fc.z;
-  
+
         Framework[CurrentSystem].Atoms[f1][D].Force.x+=fd.x;
         Framework[CurrentSystem].Atoms[f1][D].Force.y+=fd.y;
         Framework[CurrentSystem].Atoms[f1][D].Force.z+=fd.z;
-  
+
         // add contribution to the stress tensor
         // Note: rbc is here because the vector was normalized before
         StrainDerivativeTensor[CurrentSystem].ax-=Dab.x*fa.x+Dbc.x*rbc*(fc.x+fd.x)+Dcd.x*fd.x;
         StrainDerivativeTensor[CurrentSystem].bx-=Dab.y*fa.x+Dbc.y*rbc*(fc.x+fd.x)+Dcd.y*fd.x;
         StrainDerivativeTensor[CurrentSystem].cx-=Dab.z*fa.x+Dbc.z*rbc*(fc.x+fd.x)+Dcd.z*fd.x;
-  
+
         StrainDerivativeTensor[CurrentSystem].ay-=Dab.x*fa.y+Dbc.x*rbc*(fc.y+fd.y)+Dcd.x*fd.y;
         StrainDerivativeTensor[CurrentSystem].by-=Dab.y*fa.y+Dbc.y*rbc*(fc.y+fd.y)+Dcd.y*fd.y;
         StrainDerivativeTensor[CurrentSystem].cy-=Dab.z*fa.y+Dbc.z*rbc*(fc.y+fd.y)+Dcd.z*fd.y;
-  
+
         StrainDerivativeTensor[CurrentSystem].az-=Dab.x*fa.z+Dbc.x*rbc*(fc.z+fd.z)+Dcd.x*fd.z;
         StrainDerivativeTensor[CurrentSystem].bz-=Dab.y*fa.z+Dbc.y*rbc*(fc.z+fd.z)+Dcd.y*fd.z;
         StrainDerivativeTensor[CurrentSystem].cz-=Dab.z*fa.z+Dbc.z*rbc*(fc.z+fd.z)+Dcd.z*fd.z;
-  
+
         Dab.x/=rab; Dab.y/=rab; Dab.z/=rab;
         Dcd.x/=rcd; Dcd.y/=rcd; Dcd.z/=rcd;
-  
+
         // forces bends
         fa.x=DTheta1*(Dbc.x-Dab.x*CosTheta1)/rab;
         fa.y=DTheta1*(Dbc.y-Dab.y*CosTheta1)/rab;
         fa.z=DTheta1*(Dbc.z-Dab.z*CosTheta1)/rab;
-  
+
         fb.x=DTheta2*(Dcd.x+Dbc.x*CosTheta2)/rbc;
         fb.y=DTheta2*(Dcd.y+Dbc.y*CosTheta2)/rbc;
         fb.z=DTheta2*(Dcd.z+Dbc.z*CosTheta2)/rbc;
-  
+
         fc.x=DTheta1*(Dab.x-Dbc.x*CosTheta1)/rbc;
         fc.y=DTheta1*(Dab.y-Dbc.y*CosTheta1)/rbc;
         fc.z=DTheta1*(Dab.z-Dbc.z*CosTheta1)/rbc;
-  
+
         fd.x=DTheta2*(-Dbc.x-Dcd.x*CosTheta2)/rcd;
         fd.y=DTheta2*(-Dbc.y-Dcd.y*CosTheta2)/rcd;
         fd.z=DTheta2*(-Dbc.z-Dcd.z*CosTheta2)/rcd;
-  
+
         Framework[CurrentSystem].Atoms[f1][A].Force.x+=fa.x;
         Framework[CurrentSystem].Atoms[f1][A].Force.y+=fa.y;
         Framework[CurrentSystem].Atoms[f1][A].Force.z+=fa.z;
-  
+
         Framework[CurrentSystem].Atoms[f1][B].Force.x+=fb.x-fa.x-fc.x;
         Framework[CurrentSystem].Atoms[f1][B].Force.y+=fb.y-fa.y-fc.y;
         Framework[CurrentSystem].Atoms[f1][B].Force.z+=fb.z-fa.z-fc.z;
-  
+
         Framework[CurrentSystem].Atoms[f1][C].Force.x+=fc.x-fb.x-fd.x;
         Framework[CurrentSystem].Atoms[f1][C].Force.y+=fc.y-fb.y-fd.y;
         Framework[CurrentSystem].Atoms[f1][C].Force.z+=fc.z-fb.z-fd.z;
-  
+
         Framework[CurrentSystem].Atoms[f1][D].Force.x+=fd.x;
         Framework[CurrentSystem].Atoms[f1][D].Force.y+=fd.y;
         Framework[CurrentSystem].Atoms[f1][D].Force.z+=fd.z;
-  
+
         StrainDerivativeTensor[CurrentSystem].ax-=rab*Dab.x*fa.x+rbc*Dbc.x*fc.x+rbc*Dbc.x*fb.x+rcd*Dcd.x*fd.x;
         StrainDerivativeTensor[CurrentSystem].bx-=rab*Dab.y*fa.x+rbc*Dbc.y*fc.x+rbc*Dbc.y*fb.x+rcd*Dcd.y*fd.x;
         StrainDerivativeTensor[CurrentSystem].cx-=rab*Dab.z*fa.x+rbc*Dbc.z*fc.x+rbc*Dbc.z*fb.x+rcd*Dcd.z*fd.x;
-  
+
         StrainDerivativeTensor[CurrentSystem].ay-=rab*Dab.x*fa.y+rbc*Dbc.x*fc.y+rbc*Dbc.x*fb.y+rcd*Dcd.x*fd.y;
         StrainDerivativeTensor[CurrentSystem].by-=rab*Dab.y*fa.y+rbc*Dbc.y*fc.y+rbc*Dbc.y*fb.y+rcd*Dcd.y*fd.y;
         StrainDerivativeTensor[CurrentSystem].cy-=rab*Dab.z*fa.y+rbc*Dbc.z*fc.y+rbc*Dbc.z*fb.y+rcd*Dcd.z*fd.y;
-  
+
         StrainDerivativeTensor[CurrentSystem].az-=rab*Dab.x*fa.z+rbc*Dbc.x*fc.z+rbc*Dbc.x*fb.z+rcd*Dcd.x*fd.z;
         StrainDerivativeTensor[CurrentSystem].bz-=rab*Dab.y*fa.z+rbc*Dbc.y*fc.z+rbc*Dbc.y*fb.z+rcd*Dcd.y*fd.z;
         StrainDerivativeTensor[CurrentSystem].cz-=rab*Dab.z*fa.z+rbc*Dbc.z*fc.z+rbc*Dbc.z*fb.z+rcd*Dcd.z*fd.z;
@@ -2561,54 +2561,54 @@ void CalculateFrameworkBondTorsionForce(void)
         C=Framework[CurrentSystem].BondTorsions[f1][i].C;
         D=Framework[CurrentSystem].BondTorsions[f1][i].D;
         parms=(REAL*)&Framework[CurrentSystem].BondTorsionArguments[f1][i];
-  
+
         posA=Framework[CurrentSystem].Atoms[f1][A].Position;
         posB=Framework[CurrentSystem].Atoms[f1][B].Position;
         posC=Framework[CurrentSystem].Atoms[f1][C].Position;
         posD=Framework[CurrentSystem].Atoms[f1][C].Position;
-  
+
         Dab.x=posA.x-posB.x;
         Dab.y=posA.y-posB.y;
         Dab.z=posA.z-posB.z;
         Dab=ApplyBoundaryCondition(Dab);
         rab=sqrt(SQR(Dab.x)+SQR(Dab.y)+SQR(Dab.z));
-  
+
         Dcb.x=posC.x-posB.x;
         Dcb.y=posC.y-posB.y;
         Dcb.z=posC.z-posB.z;
         Dcb=ApplyBoundaryCondition(Dcb);
         rbc=sqrt(SQR(Dcb.x)+SQR(Dcb.y)+SQR(Dcb.z));
         Dcb.x/=rbc; Dcb.y/=rbc; Dcb.z/=rbc;
-  
+
         Ddc.x=posD.x-posC.x;
         Ddc.y=posD.y-posC.y;
         Ddc.z=posD.z-posC.z;
         Ddc=ApplyBoundaryCondition(Ddc);
         rcd=sqrt(SQR(Ddc.x)+SQR(Ddc.y)+SQR(Ddc.z));
-  
+
         dot_ab=Dab.x*Dcb.x+Dab.y*Dcb.y+Dab.z*Dcb.z;
         dot_cd=Ddc.x*Dcb.x+Ddc.y*Dcb.y+Ddc.z*Dcb.z;
-  
+
         dr.x=Dab.x-dot_ab*Dcb.x;
         dr.y=Dab.y-dot_ab*Dcb.y;
         dr.z=Dab.z-dot_ab*Dcb.z;
         r=sqrt(SQR(dr.x)+SQR(dr.y)+SQR(dr.z));
         dr.x/=r; dr.y/=r; dr.z/=r;
-  
+
         ds.x=Ddc.x-dot_cd*Dcb.x;
         ds.y=Ddc.y-dot_cd*Dcb.y;
         ds.z=Ddc.z-dot_cd*Dcb.z;
         s=sqrt(SQR(ds.x)+SQR(ds.y)+SQR(ds.z));
         ds.x/=s; ds.y/=s; ds.z/=s;
-  
+
         // compute Cos(Phi)
         // Phi is defined in protein convention Phi(trans)=Pi
         CosPhi=dr.x*ds.x+dr.y*ds.y+dr.z*ds.z;
-  
+
         // Ensure CosPhi is between -1 and 1.
         CosPhi=SIGN(MIN2(fabs(CosPhi),(REAL)1.0),CosPhi);
         CosPhi2=SQR(CosPhi);
-  
+
         switch(Framework[CurrentSystem].BondTorsionType[f1][i])
         {
           case MM3_BOND_TORSION_CROSS:
@@ -2626,79 +2626,79 @@ void CalculateFrameworkBondTorsionForce(void)
             gamsc=0.0;
             break;
           default:
-            printf("Undefined Bond-Torsion potential in routine 'CalculateFrameworkBondTorsionForce' ('framework_force.c')\n");
+            fprintf(stderr, "Undefined Bond-Torsion potential in routine 'CalculateFrameworkBondTorsionForce' ('framework_force.c')\n");
             exit(0);
             break;
         }
-  
+
         // energy
         UHostBondTorsion[CurrentSystem]+=energy;
-  
+
         // Calculate the first derivative vectors.
         d=dot_ab/rbc;
         e=dot_cd/rbc;
-  
+
         dtA.x=(ds.x-CosPhi*dr.x)/r;
         dtA.y=(ds.y-CosPhi*dr.y)/r;
         dtA.z=(ds.z-CosPhi*dr.z)/r;
-  
+
         dtD.x=(dr.x-CosPhi*ds.x)/s;
         dtD.y=(dr.y-CosPhi*ds.y)/s;
         dtD.z=(dr.z-CosPhi*ds.z)/s;
-  
+
         dtB.x=dtA.x*(d-1.0)+e*dtD.x;
         dtB.y=dtA.y*(d-1.0)+e*dtD.y;
         dtB.z=dtA.z*(d-1.0)+e*dtD.z;
-  
+
         dtC.x=-dtD.x*(e+1.0)-d*dtA.x;
         dtC.y=-dtD.y*(e+1.0)-d*dtA.y;
         dtC.z=-dtD.z*(e+1.0)-d*dtA.z;
-  
+
         Dab.x/=rab; Dab.y/=rab; Dab.z/=rab;
         Ddc.x/=rcd; Ddc.y/=rcd; Ddc.z/=rcd;
-  
+
         fa.x=DCos*dtA.x-gamsa*Dab.x;
         fa.y=DCos*dtA.y-gamsa*Dab.y;
         fa.z=DCos*dtA.z-gamsa*Dab.z;
-  
+
         fb.x=DCos*dtB.x+gamsb*Dcb.x+gamsa*Dab.x;
         fb.y=DCos*dtB.y+gamsb*Dcb.y+gamsa*Dab.y;
         fb.z=DCos*dtB.z+gamsb*Dcb.z+gamsa*Dab.z;
-  
+
         fc.x=DCos*dtC.x-gamsb*Dcb.x+gamsc*Ddc.x;
         fc.y=DCos*dtC.y-gamsb*Dcb.y+gamsc*Ddc.y;
         fc.z=DCos*dtC.z-gamsb*Dcb.z+gamsc*Ddc.z;
-  
+
         fd.x=DCos*dtD.x-gamsc*Ddc.x;
         fd.y=DCos*dtD.y-gamsc*Ddc.y;
         fd.z=DCos*dtD.z-gamsc*Ddc.z;
-  
+
         // forces torsion
         Framework[CurrentSystem].Atoms[f1][A].Force.x-=fa.x;
         Framework[CurrentSystem].Atoms[f1][A].Force.y-=fa.y;
         Framework[CurrentSystem].Atoms[f1][A].Force.z-=fa.z;
-  
+
         Framework[CurrentSystem].Atoms[f1][B].Force.x-=fb.x;
         Framework[CurrentSystem].Atoms[f1][B].Force.y-=fb.y;
         Framework[CurrentSystem].Atoms[f1][B].Force.z-=fb.z;
-  
+
         Framework[CurrentSystem].Atoms[f1][C].Force.x-=fc.x;
         Framework[CurrentSystem].Atoms[f1][C].Force.y-=fc.y;
         Framework[CurrentSystem].Atoms[f1][C].Force.z-=fc.z;
-  
+
         Framework[CurrentSystem].Atoms[f1][D].Force.x-=fd.x;
         Framework[CurrentSystem].Atoms[f1][D].Force.y-=fd.y;
         Framework[CurrentSystem].Atoms[f1][D].Force.z-=fd.z;
-  
+
         // add contribution to the stress tensor
         StrainDerivativeTensor[CurrentSystem].ax+=rbc*Dcb.x*(fc.x+fd.x)+rab*Dab.x*fa.x+rcd*Ddc.x*fd.x;
         StrainDerivativeTensor[CurrentSystem].ay+=rbc*Dcb.x*(fc.y+fd.y)+rab*Dab.x*fa.y+rcd*Ddc.x*fd.y;
         StrainDerivativeTensor[CurrentSystem].az+=rbc*Dcb.x*(fc.z+fd.z)+rab*Dab.x*fa.z+rcd*Ddc.x*fd.z;
-  
+
         StrainDerivativeTensor[CurrentSystem].bx+=rbc*Dcb.y*(fc.x+fd.x)+rab*Dab.y*fa.x+rcd*Ddc.y*fd.x;
         StrainDerivativeTensor[CurrentSystem].by+=rbc*Dcb.y*(fc.y+fd.y)+rab*Dab.y*fa.y+rcd*Ddc.y*fd.y;
         StrainDerivativeTensor[CurrentSystem].bz+=rbc*Dcb.y*(fc.z+fd.z)+rab*Dab.y*fa.z+rcd*Ddc.y*fd.z;
-  
+
         StrainDerivativeTensor[CurrentSystem].cx+=rbc*Dcb.z*(fc.x+fd.x)+rab*Dab.z*fa.x+rcd*Ddc.z*fd.x;
         StrainDerivativeTensor[CurrentSystem].cy+=rbc*Dcb.z*(fc.y+fd.y)+rab*Dab.z*fa.y+rcd*Ddc.z*fd.y;
         StrainDerivativeTensor[CurrentSystem].cz+=rbc*Dcb.z*(fc.z+fd.z)+rab*Dab.z*fa.z+rcd*Ddc.z*fd.z;
@@ -2736,7 +2736,7 @@ int CalculateFrameworkIntraVDWForce(void)
       {
         typeA=Framework[CurrentSystem].Atoms[f1][i].Type;
         posA=Framework[CurrentSystem].Atoms[f1][i].AnisotropicPosition;
-   
+
         ReductionA=0.0;
         ConnectedAtomA1=ConnectedAtomA2=-1;
         ra=drA.x=drA.y=drA.z=0.0;
@@ -2767,7 +2767,7 @@ int CalculateFrameworkIntraVDWForce(void)
               switch(Framework[CurrentSystem].AnisotropicType)
               {
                 case ANISOTROPIC_BISECTION:
-                  printf("ERROR: 'ANISOTROPIC_BISECTION' not implemented yet in routine 'CalculateFrameworkIntraVDWForce' (framework_force.c)\n");
+                  fprintf(stderr, "ERROR: 'ANISOTROPIC_BISECTION' not implemented yet in routine 'CalculateFrameworkIntraVDWForce' (framework_force.c)\n");
                   exit(0);
                   break;
                 case ANISOTROPIC_MID_POINT:
@@ -2784,7 +2784,7 @@ int CalculateFrameworkIntraVDWForce(void)
                   length_v=sqrt(SQR(v.x)+SQR(v.y)+SQR(v.z));
                   break;
                 default:
-                  printf("ERROR: unknown Anisotropy type in routine 'CalculateFrameworkIntraVDWForce' (framework_force.c)\n");
+                  fprintf(stderr, "ERROR: unknown Anisotropy type in routine 'CalculateFrameworkIntraVDWForce' (framework_force.c)\n");
                   exit(0);
                   break;
               }
@@ -2793,14 +2793,14 @@ int CalculateFrameworkIntraVDWForce(void)
               break;
           }
         }
-   
+
         for(j=i+1;j<Framework[CurrentSystem].NumberOfAtoms[f1];j++)
         {
           if(!BITVAL(Framework[CurrentSystem].ExclusionMatrix[f1][i][j],0))
           {
             typeB=Framework[CurrentSystem].Atoms[f1][j].Type;
             posB=Framework[CurrentSystem].Atoms[f1][j].AnisotropicPosition;
-   
+
             ReductionB=0.0;
             ConnectedAtomB1=ConnectedAtomB2=-1;
             rb=drB.x=drB.y=drB.z=0.0;
@@ -2831,7 +2831,7 @@ int CalculateFrameworkIntraVDWForce(void)
                   switch(Framework[CurrentSystem].AnisotropicType)
                   {
                     case ANISOTROPIC_BISECTION:
-                      printf("ERROR: 'ANISOTROPIC_BISECTION' not implemented yet in routine 'CalculateFrameworkIntraVDWForce' (framework_force.c)\n");
+                      fprintf(stderr, "ERROR: 'ANISOTROPIC_BISECTION' not implemented yet in routine 'CalculateFrameworkIntraVDWForce' (framework_force.c)\n");
                       exit(0);
                       break;
                     case ANISOTROPIC_MID_POINT:
@@ -2848,7 +2848,7 @@ int CalculateFrameworkIntraVDWForce(void)
                       length_w=sqrt(SQR(w.x)+SQR(w.y)+SQR(w.z));
                       break;
                     default:
-                      printf("ERROR: unknown Anisotropy type in routine 'CalculateFrameworkIntraVDWForce' (framework_force.c)\n");
+                      fprintf(stderr, "ERROR: unknown Anisotropy type in routine 'CalculateFrameworkIntraVDWForce' (framework_force.c)\n");
                       exit(0);
                       break;
                   }
@@ -2857,23 +2857,23 @@ int CalculateFrameworkIntraVDWForce(void)
                   break;
               }
             }
-   
+
             dr.x=posA.x-posB.x;
             dr.y=posA.y-posB.y;
             dr.z=posA.z-posB.z;
             dr=ApplyBoundaryCondition(dr);
             rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-   
+
             if(rr<CutOffVDWSquared)
             {
               PotentialGradient(typeA,typeB,rr,&energy,&force_factor,1.0);
-   
+
               UHostHostVDW[CurrentSystem]+=energy;
-   
+
               f.x=force_factor*dr.x;
               f.y=force_factor*dr.y;
               f.z=force_factor*dr.z;
-   
+
               if(PseudoAtoms[typeA].AnisotropicCorrection)
               {
                 switch(Framework[CurrentSystem].Connectivity[f1][i])
@@ -2886,7 +2886,7 @@ int CalculateFrameworkIntraVDWForce(void)
                       Framework[CurrentSystem].Atoms[f1][i].Force.x-=ReductionA*f.x;
                       Framework[CurrentSystem].Atoms[f1][i].Force.y-=ReductionA*f.y;
                       Framework[CurrentSystem].Atoms[f1][i].Force.z-=ReductionA*f.z;
-   
+
                       Framework[CurrentSystem].Atoms[f1][ConnectedAtomA1].Force.x-=(1.0-ReductionA)*f.x;
                       Framework[CurrentSystem].Atoms[f1][ConnectedAtomA1].Force.y-=(1.0-ReductionA)*f.y;
                       Framework[CurrentSystem].Atoms[f1][ConnectedAtomA1].Force.z-=(1.0-ReductionA)*f.z;
@@ -2894,19 +2894,19 @@ int CalculateFrameworkIntraVDWForce(void)
                     else
                     {
                       dot_product=dr.x*drA.x+dr.y*drA.y+dr.z*drA.z;
-   
+
                       fa.x=(-(ReductionA*drA.x*dot_product/CUBE(ra)+(1.0+ReductionA/ra)*dr.x))*force_factor;
                       fa.y=(-(ReductionA*drA.y*dot_product/CUBE(ra)+(1.0+ReductionA/ra)*dr.y))*force_factor;
                       fa.z=(-(ReductionA*drA.z*dot_product/CUBE(ra)+(1.0+ReductionA/ra)*dr.z))*force_factor;
-   
+
                       fb.x=(ReductionA*drA.x*dot_product/CUBE(ra)-(ReductionA/ra)*dr.x)*force_factor;
                       fb.y=(ReductionA*drA.y*dot_product/CUBE(ra)-(ReductionA/ra)*dr.y)*force_factor;
                       fb.z=(ReductionA*drA.z*dot_product/CUBE(ra)-(ReductionA/ra)*dr.z)*force_factor;
-   
+
                       Framework[CurrentSystem].Atoms[f1][i].Force.x-=fa.x;
                       Framework[CurrentSystem].Atoms[f1][i].Force.y-=fa.y;
                       Framework[CurrentSystem].Atoms[f1][i].Force.z-=fa.z;
-   
+
                       Framework[CurrentSystem].Atoms[f1][ConnectedAtomA1].Force.x-=fb.x;
                       Framework[CurrentSystem].Atoms[f1][ConnectedAtomA1].Force.y-=fb.y;
                       Framework[CurrentSystem].Atoms[f1][ConnectedAtomA1].Force.z-=fb.z;
@@ -2914,29 +2914,29 @@ int CalculateFrameworkIntraVDWForce(void)
                     break;
                   case 2:
                     dot_product=v.x*dr.x+v.y*dr.y+v.z*dr.z;
-   
+
                     fa.x=0.5*(ReductionA*v.x*dot_product/CUBE(length_v)-(ReductionA/length_v)*dr.x)*force_factor;
                     fa.y=0.5*(ReductionA*v.y*dot_product/CUBE(length_v)-(ReductionA/length_v)*dr.y)*force_factor;
                     fa.z=0.5*(ReductionA*v.z*dot_product/CUBE(length_v)-(ReductionA/length_v)*dr.z)*force_factor;
-   
+
                     fb.x=(-ReductionA*v.x*dot_product/CUBE(length_v)+(1.0+ReductionA/length_v)*dr.x)*force_factor;
                     fb.y=(-ReductionA*v.y*dot_product/CUBE(length_v)+(1.0+ReductionA/length_v)*dr.y)*force_factor;
                     fb.z=(-ReductionA*v.z*dot_product/CUBE(length_v)+(1.0+ReductionA/length_v)*dr.z)*force_factor;
-   
+
                     Framework[CurrentSystem].Atoms[f1][ConnectedAtomA1].Force.x-=fa.x;
                     Framework[CurrentSystem].Atoms[f1][ConnectedAtomA1].Force.y-=fa.y;
                     Framework[CurrentSystem].Atoms[f1][ConnectedAtomA1].Force.z-=fa.z;
-   
+
                     Framework[CurrentSystem].Atoms[f1][i].Force.x-=fb.x;
                     Framework[CurrentSystem].Atoms[f1][i].Force.y-=fb.y;
                     Framework[CurrentSystem].Atoms[f1][i].Force.z-=fb.z;
-   
+
                     Framework[CurrentSystem].Atoms[f1][ConnectedAtomA2].Force.x-=fa.x;
                     Framework[CurrentSystem].Atoms[f1][ConnectedAtomA2].Force.y-=fa.y;
                     Framework[CurrentSystem].Atoms[f1][ConnectedAtomA2].Force.z-=fa.z;
                     break;
                   default:
-                    printf("ERROR: Not yet implemented in routine 'CalculateFrameworkIntraVDWForce' (framework_force.c)\n");
+                    fprintf(stderr, "ERROR: Not yet implemented in routine 'CalculateFrameworkIntraVDWForce' (framework_force.c)\n");
                     exit(0);
                     break;
                 }
@@ -2947,7 +2947,7 @@ int CalculateFrameworkIntraVDWForce(void)
                 Framework[CurrentSystem].Atoms[f1][i].Force.y-=f.y;
                 Framework[CurrentSystem].Atoms[f1][i].Force.z-=f.z;
               }
-   
+
               if(PseudoAtoms[typeB].AnisotropicCorrection)
               {
                 switch(Framework[CurrentSystem].Connectivity[f1][j])
@@ -2960,7 +2960,7 @@ int CalculateFrameworkIntraVDWForce(void)
                       Framework[CurrentSystem].Atoms[f1][j].Force.x+=ReductionB*f.x;
                       Framework[CurrentSystem].Atoms[f1][j].Force.y+=ReductionB*f.y;
                       Framework[CurrentSystem].Atoms[f1][j].Force.z+=ReductionB*f.z;
-   
+
                       Framework[CurrentSystem].Atoms[f1][ConnectedAtomB1].Force.x+=(1.0-ReductionB)*f.x;
                       Framework[CurrentSystem].Atoms[f1][ConnectedAtomB1].Force.y+=(1.0-ReductionB)*f.y;
                       Framework[CurrentSystem].Atoms[f1][ConnectedAtomB1].Force.z+=(1.0-ReductionB)*f.z;
@@ -2968,19 +2968,19 @@ int CalculateFrameworkIntraVDWForce(void)
                     else
                     {
                       dot_product=dr.x*drB.x+dr.y*drB.y+dr.z*drB.z;
-   
+
                       fa.x=(-(ReductionB*drA.x*dot_product/CUBE(rb)+(1.0+ReductionB/rb)*dr.x))*force_factor;
                       fa.y=(-(ReductionB*drA.y*dot_product/CUBE(rb)+(1.0+ReductionB/rb)*dr.y))*force_factor;
                       fa.z=(-(ReductionB*drA.z*dot_product/CUBE(rb)+(1.0+ReductionB/rb)*dr.z))*force_factor;
-   
+
                       fb.x=(ReductionB*drB.x*dot_product/CUBE(rb)-(ReductionB/rb)*dr.x)*force_factor;
                       fb.y=(ReductionB*drB.y*dot_product/CUBE(rb)-(ReductionB/rb)*dr.y)*force_factor;
                       fb.z=(ReductionB*drB.z*dot_product/CUBE(rb)-(ReductionB/rb)*dr.z)*force_factor;
-   
+
                       Framework[CurrentSystem].Atoms[f1][j].Force.x+=fa.x;
                       Framework[CurrentSystem].Atoms[f1][j].Force.y+=fa.y;
                       Framework[CurrentSystem].Atoms[f1][j].Force.z+=fa.z;
-   
+
                       Framework[CurrentSystem].Atoms[f1][ConnectedAtomB1].Force.x+=fb.x;
                       Framework[CurrentSystem].Atoms[f1][ConnectedAtomB1].Force.y+=fb.y;
                       Framework[CurrentSystem].Atoms[f1][ConnectedAtomB1].Force.z+=fb.z;
@@ -2988,29 +2988,29 @@ int CalculateFrameworkIntraVDWForce(void)
                     break;
                   case 2:
                     dot_product=w.x*dr.x+w.y*dr.y+w.z*dr.z;
-   
+
                     fa.x=0.5*(ReductionB*w.x*dot_product/CUBE(length_w)-(ReductionB/length_w)*dr.x)*force_factor;
                     fa.y=0.5*(ReductionB*w.y*dot_product/CUBE(length_w)-(ReductionB/length_w)*dr.y)*force_factor;
                     fa.z=0.5*(ReductionB*w.z*dot_product/CUBE(length_w)-(ReductionB/length_w)*dr.z)*force_factor;
-   
+
                     fb.x=(-ReductionB*w.x*dot_product/CUBE(length_w)+(1.0+ReductionB/length_w)*dr.x)*force_factor;
                     fb.y=(-ReductionB*w.y*dot_product/CUBE(length_w)+(1.0+ReductionB/length_w)*dr.y)*force_factor;
                     fb.z=(-ReductionB*w.z*dot_product/CUBE(length_w)+(1.0+ReductionB/length_w)*dr.z)*force_factor;
-   
+
                     Framework[CurrentSystem].Atoms[f1][ConnectedAtomB1].Force.x+=fa.x;
                     Framework[CurrentSystem].Atoms[f1][ConnectedAtomB1].Force.y+=fa.y;
                     Framework[CurrentSystem].Atoms[f1][ConnectedAtomB1].Force.z+=fa.z;
-   
+
                     Framework[CurrentSystem].Atoms[f1][j].Force.x+=fb.x;
                     Framework[CurrentSystem].Atoms[f1][j].Force.y+=fb.y;
                     Framework[CurrentSystem].Atoms[f1][j].Force.z+=fb.z;
-   
+
                     Framework[CurrentSystem].Atoms[f1][ConnectedAtomB2].Force.x+=fa.x;
                     Framework[CurrentSystem].Atoms[f1][ConnectedAtomB2].Force.y+=fa.y;
                     Framework[CurrentSystem].Atoms[f1][ConnectedAtomB2].Force.z+=fa.z;
                     break;
                   default:
-                    printf("ERROR: Not yet implemented in routine 'CalculateFrameworkIntraVDWForce' (framework_force.c)\n");
+                    fprintf(stderr, "ERROR: Not yet implemented in routine 'CalculateFrameworkIntraVDWForce' (framework_force.c)\n");
                     exit(0);
                     break;
                 }
@@ -3021,15 +3021,15 @@ int CalculateFrameworkIntraVDWForce(void)
                 Framework[CurrentSystem].Atoms[f1][j].Force.y+=f.y;
                 Framework[CurrentSystem].Atoms[f1][j].Force.z+=f.z;
               }
-   
+
               StrainDerivativeTensor[CurrentSystem].ax+=f.x*dr.x;
               StrainDerivativeTensor[CurrentSystem].bx+=f.y*dr.x;
               StrainDerivativeTensor[CurrentSystem].cx+=f.z*dr.x;
-   
+
               StrainDerivativeTensor[CurrentSystem].ay+=f.x*dr.y;
               StrainDerivativeTensor[CurrentSystem].by+=f.y*dr.y;
               StrainDerivativeTensor[CurrentSystem].cy+=f.z*dr.y;
-   
+
               StrainDerivativeTensor[CurrentSystem].az+=f.x*dr.z;
               StrainDerivativeTensor[CurrentSystem].bz+=f.y*dr.z;
               StrainDerivativeTensor[CurrentSystem].cz+=f.z*dr.z;
@@ -3080,7 +3080,7 @@ int CalculateFrameworkIntraVDWForce(void)
               switch(Framework[CurrentSystem].AnisotropicType)
               {
                 case ANISOTROPIC_BISECTION:
-                  printf("ERROR: 'ANISOTROPIC_BISECTION' not implemented yet in routine 'CalculateFrameworkIntraVDWForce' (framework_force.c)\n");
+                  fprintf(stderr, "ERROR: 'ANISOTROPIC_BISECTION' not implemented yet in routine 'CalculateFrameworkIntraVDWForce' (framework_force.c)\n");
                   exit(0);
                   break;
                 case ANISOTROPIC_MID_POINT:
@@ -3097,7 +3097,7 @@ int CalculateFrameworkIntraVDWForce(void)
                   length_v=sqrt(SQR(v.x)+SQR(v.y)+SQR(v.z));
                   break;
                 default:
-                  printf("ERROR: unknown Anisotropy type in routine 'CalculateFrameworkIntraVDWForce' (framework_force.c)\n");
+                  fprintf(stderr, "ERROR: unknown Anisotropy type in routine 'CalculateFrameworkIntraVDWForce' (framework_force.c)\n");
                   exit(0);
                   break;
               }
@@ -3143,7 +3143,7 @@ int CalculateFrameworkIntraVDWForce(void)
                 switch(Framework[CurrentSystem].AnisotropicType)
                 {
                   case ANISOTROPIC_BISECTION:
-                    printf("ERROR: 'ANISOTROPIC_BISECTION' not implemented yet in routine 'CalculateFrameworkIntraVDWForce' (framework_force.c)\n");
+                    fprintf(stderr, "ERROR: 'ANISOTROPIC_BISECTION' not implemented yet in routine 'CalculateFrameworkIntraVDWForce' (framework_force.c)\n");
                     exit(0);
                     break;
                   case ANISOTROPIC_MID_POINT:
@@ -3160,7 +3160,7 @@ int CalculateFrameworkIntraVDWForce(void)
                     length_w=sqrt(SQR(w.x)+SQR(w.y)+SQR(w.z));
                     break;
                   default:
-                    printf("ERROR: unknown Anisotropy type in routine 'CalculateFrameworkIntraVDWForce' (framework_force.c)\n");
+                    fprintf(stderr, "ERROR: unknown Anisotropy type in routine 'CalculateFrameworkIntraVDWForce' (framework_force.c)\n");
                     exit(0);
                     break;
                 }
@@ -3248,7 +3248,7 @@ int CalculateFrameworkIntraVDWForce(void)
                   Framework[CurrentSystem].Atoms[f1][ConnectedAtomA2].Force.z-=fa.z;
                   break;
                 default:
-                  printf("ERROR: Not yet implemented in routine 'CalculateFrameworkIntraVDWForce' (framework_force.c)\n");
+                  fprintf(stderr, "ERROR: Not yet implemented in routine 'CalculateFrameworkIntraVDWForce' (framework_force.c)\n");
                   exit(0);
                   break;
               }
@@ -3322,7 +3322,7 @@ int CalculateFrameworkIntraVDWForce(void)
                   Framework[CurrentSystem].Atoms[f2][ConnectedAtomB2].Force.z+=fa.z;
                   break;
                 default:
-                  printf("ERROR: Not yet implemented in routine 'CalculateFrameworkIntraVDWForce' (framework_force.c)\n");
+                  fprintf(stderr, "ERROR: Not yet implemented in routine 'CalculateFrameworkIntraVDWForce' (framework_force.c)\n");
                   exit(0);
                   break;
               }
@@ -3673,7 +3673,7 @@ int CalculateFrameworkIntraChargeBondDipoleForce(void)
             {
               posB=Framework[CurrentSystem].Atoms[f1][j].Position;
               chargeB=Framework[CurrentSystem].Atoms[f1][j].Charge;
-  
+
               dr.x=posA.x-posB.x;
               dr.y=posA.y-posB.y;
               dr.z=posA.z-posB.z;
@@ -3764,7 +3764,7 @@ int CalculateFrameworkIntraChargeBondDipoleForce(void)
             {
               posB=Framework[CurrentSystem].Atoms[f2][j].Position;
               chargeB=Framework[CurrentSystem].Atoms[f2][j].Charge;
-  
+
               dr.x=posA.x-posB.x;
               dr.y=posA.y-posB.y;
               dr.z=posA.z-posB.z;
@@ -3925,7 +3925,7 @@ int CalculateFrameworkIntraBondDipoleBondDipoleForce(void)
               v.ax=fa1.x*(posA1.x-posA.x)+fa2.x*(posA2.x-posA.x)+fb1.x*(posB1.x-posB.x)+fb2.x*(posB2.x-posB.x);
               v.bx=fa1.y*(posA1.x-posA.x)+fa2.y*(posA2.x-posA.x)+fb1.y*(posB1.x-posB.x)+fb2.y*(posB2.x-posB.x);
               v.cx=fa1.z*(posA1.x-posA.x)+fa2.z*(posA2.x-posA.x)+fb1.z*(posB1.x-posB.x)+fb2.z*(posB2.x-posB.x);
- 
+
               v.ay=fa1.x*(posA1.y-posA.y)+fa2.x*(posA2.y-posA.y)+fb1.x*(posB1.y-posB.y)+fb2.x*(posB2.y-posB.y);
               v.by=fa1.y*(posA1.y-posA.y)+fa2.y*(posA2.y-posA.y)+fb1.y*(posB1.y-posB.y)+fb2.y*(posB2.y-posB.y);
               v.cy=fa1.z*(posA1.y-posA.y)+fa2.z*(posA2.y-posA.y)+fb1.z*(posB1.y-posB.y)+fb2.z*(posB2.y-posB.y);
@@ -3942,7 +3942,7 @@ int CalculateFrameworkIntraBondDipoleBondDipoleForce(void)
               StrainDerivativeTensor[CurrentSystem].ay+=term.x*dr.y-v.ay;
               StrainDerivativeTensor[CurrentSystem].by+=term.y*dr.y-v.by;
               StrainDerivativeTensor[CurrentSystem].cy+=term.z*dr.y-v.cy;
-  
+
               StrainDerivativeTensor[CurrentSystem].az+=term.x*dr.z-v.az;
               StrainDerivativeTensor[CurrentSystem].bz+=term.y*dr.z-v.bz;
               StrainDerivativeTensor[CurrentSystem].cz+=term.z*dr.z-v.cz;
@@ -4119,7 +4119,7 @@ void CalculateFrameworkAdsorbateVDWForce(void)
             switch(Components[TypeMolA].AnisotropicType)
             {
               case ANISOTROPIC_BISECTION:
-                printf("ERROR: 'ANISOTROPIC_BISECTION' not implemented yet in routine 'CalculateTotalInterVDWForce' (inter_force.c)\n");
+                fprintf(stderr, "ERROR: 'ANISOTROPIC_BISECTION' not implemented yet in routine 'CalculateTotalInterVDWForce' (inter_force.c)\n");
                 exit(0);
                 break;
               case ANISOTROPIC_MID_POINT:
@@ -4135,7 +4135,7 @@ void CalculateFrameworkAdsorbateVDWForce(void)
                 length_v=sqrt(SQR(v.x)+SQR(v.y)+SQR(v.z));
                 break;
               default:
-                printf("ERROR!\n");
+                fprintf(stderr, "ERROR!\n");
                 exit(0);
                 break;
             }
@@ -4191,7 +4191,7 @@ void CalculateFrameworkAdsorbateVDWForce(void)
                   switch(Framework[CurrentSystem].AnisotropicType)
                   {
                     case ANISOTROPIC_BISECTION:
-                      printf("ERROR: 'ANISOTROPIC_BISECTION' not implemented yet in routine 'CalculateFrameworkIntraVDWForce' (framework_force.c)\n");
+                      fprintf(stderr, "ERROR: 'ANISOTROPIC_BISECTION' not implemented yet in routine 'CalculateFrameworkIntraVDWForce' (framework_force.c)\n");
                       exit(0);
                       break;
                     case ANISOTROPIC_MID_POINT:
@@ -4208,7 +4208,7 @@ void CalculateFrameworkAdsorbateVDWForce(void)
                       length_w=sqrt(SQR(w.x)+SQR(w.y)+SQR(w.z));
                       break;
                     default:
-                      printf("ERROR: unknown Anisotropy type in routine 'CalculateFrameworkIntraVDWForce' (framework_force.c)\n");
+                      fprintf(stderr, "ERROR: unknown Anisotropy type in routine 'CalculateFrameworkIntraVDWForce' (framework_force.c)\n");
                       exit(0);
                       break;
                   }
@@ -4301,7 +4301,7 @@ void CalculateFrameworkAdsorbateVDWForce(void)
                     Adsorbates[CurrentSystem][i].Atoms[ConnectedAtomA2].Force.z-=fa.z;
                     break;
                   default:
-                    printf("Not yet implemented in routine 'CalculateTotalInterVDWForce'\n");
+                    fprintf(stderr, "Not yet implemented in routine 'CalculateTotalInterVDWForce'\n");
                     exit(0);
                     break;
                 }
@@ -4378,7 +4378,7 @@ void CalculateFrameworkAdsorbateVDWForce(void)
                       Framework[CurrentSystem].Atoms[f1][ConnectedAtomB2].Force.z+=fa.z;
                       break;
                     default:
-                      printf("ERROR: Not yet implemented in routine 'CalculateFrameworkIntraVDWForce' (framework_force.c)\n");
+                      fprintf(stderr, "ERROR: Not yet implemented in routine 'CalculateFrameworkIntraVDWForce' (framework_force.c)\n");
                       exit(0);
                       break;
                   }
@@ -4467,7 +4467,7 @@ void CalculateFrameworkCationVDWForce(void)
             switch(Components[TypeMolA].AnisotropicType)
             {
               case ANISOTROPIC_BISECTION:
-                printf("ERROR: 'ANISOTROPIC_BISECTION' not implemented yet in routine 'CalculateTotalInterVDWForce' (inter_force.c)\n");
+                fprintf(stderr, "ERROR: 'ANISOTROPIC_BISECTION' not implemented yet in routine 'CalculateTotalInterVDWForce' (inter_force.c)\n");
                 exit(0);
                 break;
               case ANISOTROPIC_MID_POINT:
@@ -4483,7 +4483,7 @@ void CalculateFrameworkCationVDWForce(void)
                 length_v=sqrt(SQR(v.x)+SQR(v.y)+SQR(v.z));
                 break;
               default:
-                printf("ERROR!\n");
+                fprintf(stderr, "ERROR!\n");
                 exit(0);
                 break;
             }
@@ -4539,7 +4539,7 @@ void CalculateFrameworkCationVDWForce(void)
                   switch(Framework[CurrentSystem].AnisotropicType)
                   {
                     case ANISOTROPIC_BISECTION:
-                      printf("ERROR: 'ANISOTROPIC_BISECTION' not implemented yet in routine 'CalculateFrameworkIntraVDWForce' (framework_force.c)\n");
+                      fprintf(stderr, "ERROR: 'ANISOTROPIC_BISECTION' not implemented yet in routine 'CalculateFrameworkIntraVDWForce' (framework_force.c)\n");
                       exit(0);
                       break;
                     case ANISOTROPIC_MID_POINT:
@@ -4556,7 +4556,7 @@ void CalculateFrameworkCationVDWForce(void)
                       length_w=sqrt(SQR(w.x)+SQR(w.y)+SQR(w.z));
                       break;
                     default:
-                      printf("ERROR: unknown Anisotropy type in routine 'CalculateFrameworkIntraVDWForce' (framework_force.c)\n");
+                      fprintf(stderr, "ERROR: unknown Anisotropy type in routine 'CalculateFrameworkIntraVDWForce' (framework_force.c)\n");
                       exit(0);
                       break;
                   }
@@ -4649,7 +4649,7 @@ void CalculateFrameworkCationVDWForce(void)
                     Cations[CurrentSystem][i].Atoms[ConnectedAtomA2].Force.z-=fa.z;
                     break;
                   default:
-                    printf("Not yet implemented in routine 'CalculateTotalInterVDWForce'\n");
+                    fprintf(stderr, "Not yet implemented in routine 'CalculateTotalInterVDWForce'\n");
                     exit(0);
                     break;
                 }
@@ -4726,7 +4726,7 @@ void CalculateFrameworkCationVDWForce(void)
                       Framework[CurrentSystem].Atoms[f1][ConnectedAtomB2].Force.z+=fa.z;
                       break;
                     default:
-                      printf("ERROR: Not yet implemented in routine 'CalculateFrameworkIntraVDWForce' (framework_force.c)\n");
+                      fprintf(stderr, "ERROR: Not yet implemented in routine 'CalculateFrameworkIntraVDWForce' (framework_force.c)\n");
                       exit(0);
                       break;
                   }
@@ -4984,7 +4984,7 @@ int CalculateFrameworkAdsorbateChargeBondDipoleForce(void)
           {
             posB=Adsorbates[CurrentSystem][j].Atoms[k].Position;
             chargeB=Adsorbates[CurrentSystem][j].Atoms[k].Charge;
-  
+
             dr.x=posA.x-posB.x;
             dr.y=posA.y-posB.y;
             dr.z=posA.z-posB.z;
@@ -5181,7 +5181,7 @@ int CalculateFrameworkCationChargeBondDipoleForce(void)
           {
             posB=Cations[CurrentSystem][j].Atoms[k].Position;
             chargeB=Cations[CurrentSystem][j].Atoms[k].Charge;
-  
+
             dr.x=posA.x-posB.x;
             dr.y=posA.y-posB.y;
             dr.z=posA.z-posB.z;
@@ -5230,7 +5230,7 @@ int CalculateFrameworkCationChargeBondDipoleForce(void)
               StrainDerivativeTensor[CurrentSystem].ay+=term.x*dr.y-v.ay;
               StrainDerivativeTensor[CurrentSystem].by+=term.y*dr.y-v.by;
               StrainDerivativeTensor[CurrentSystem].cy+=term.z*dr.y-v.cy;
-  
+
               StrainDerivativeTensor[CurrentSystem].az+=term.x*dr.z-v.az;
               StrainDerivativeTensor[CurrentSystem].bz+=term.y*dr.z-v.bz;
               StrainDerivativeTensor[CurrentSystem].cz+=term.z*dr.z-v.cz;
@@ -5428,7 +5428,7 @@ int CalculateFrameworkAdsorbateBondDipoleBondDipoleForce(void)
             v.ax=fa1.x*(posA1.x-posA.x)+fa2.x*(posA2.x-posA.x)+fb1.x*(posB1.x-posB.x)+fb2.x*(posB2.x-posB.x);
             v.bx=fa1.y*(posA1.x-posA.x)+fa2.y*(posA2.x-posA.x)+fb1.y*(posB1.x-posB.x)+fb2.y*(posB2.x-posB.x);
             v.cx=fa1.z*(posA1.x-posA.x)+fa2.z*(posA2.x-posA.x)+fb1.z*(posB1.x-posB.x)+fb2.z*(posB2.x-posB.x);
- 
+
             v.ay=fa1.x*(posA1.y-posA.y)+fa2.x*(posA2.y-posA.y)+fb1.x*(posB1.y-posB.y)+fb2.x*(posB2.y-posB.y);
             v.by=fa1.y*(posA1.y-posA.y)+fa2.y*(posA2.y-posA.y)+fb1.y*(posB1.y-posB.y)+fb2.y*(posB2.y-posB.y);
             v.cy=fa1.z*(posA1.y-posA.y)+fa2.z*(posA2.y-posA.y)+fb1.z*(posB1.y-posB.y)+fb2.z*(posB2.y-posB.y);
@@ -5445,7 +5445,7 @@ int CalculateFrameworkAdsorbateBondDipoleBondDipoleForce(void)
             StrainDerivativeTensor[CurrentSystem].ay+=term.x*dr.y-v.ay;
             StrainDerivativeTensor[CurrentSystem].by+=term.y*dr.y-v.by;
             StrainDerivativeTensor[CurrentSystem].cy+=term.z*dr.y-v.cy;
- 
+
             StrainDerivativeTensor[CurrentSystem].az+=term.x*dr.z-v.az;
             StrainDerivativeTensor[CurrentSystem].bz+=term.y*dr.z-v.bz;
             StrainDerivativeTensor[CurrentSystem].cz+=term.z*dr.z-v.cz;
@@ -5555,7 +5555,7 @@ int CalculateFrameworkCationBondDipoleBondDipoleForce(void)
             v.ax=fa1.x*(posA1.x-posA.x)+fa2.x*(posA2.x-posA.x)+fb1.x*(posB1.x-posB.x)+fb2.x*(posB2.x-posB.x);
             v.bx=fa1.y*(posA1.x-posA.x)+fa2.y*(posA2.x-posA.x)+fb1.y*(posB1.x-posB.x)+fb2.y*(posB2.x-posB.x);
             v.cx=fa1.z*(posA1.x-posA.x)+fa2.z*(posA2.x-posA.x)+fb1.z*(posB1.x-posB.x)+fb2.z*(posB2.x-posB.x);
- 
+
             v.ay=fa1.x*(posA1.y-posA.y)+fa2.x*(posA2.y-posA.y)+fb1.x*(posB1.y-posB.y)+fb2.x*(posB2.y-posB.y);
             v.by=fa1.y*(posA1.y-posA.y)+fa2.y*(posA2.y-posA.y)+fb1.y*(posB1.y-posB.y)+fb2.y*(posB2.y-posB.y);
             v.cy=fa1.z*(posA1.y-posA.y)+fa2.z*(posA2.y-posA.y)+fb1.z*(posB1.y-posB.y)+fb2.z*(posB2.y-posB.y);
@@ -5572,7 +5572,7 @@ int CalculateFrameworkCationBondDipoleBondDipoleForce(void)
             StrainDerivativeTensor[CurrentSystem].ay+=term.x*dr.y-v.ay;
             StrainDerivativeTensor[CurrentSystem].by+=term.y*dr.y-v.by;
             StrainDerivativeTensor[CurrentSystem].cy+=term.z*dr.y-v.cy;
- 
+
             StrainDerivativeTensor[CurrentSystem].az+=term.x*dr.z-v.az;
             StrainDerivativeTensor[CurrentSystem].bz+=term.y*dr.z-v.bz;
             StrainDerivativeTensor[CurrentSystem].cz+=term.z*dr.z-v.cz;
@@ -6013,7 +6013,7 @@ int CalculateFrameworkAdsorbateChargeInducedDipoleForce(void)
             {
               posB=Adsorbates[CurrentSystem][j].Atoms[k].Position;
               chargeB=Adsorbates[CurrentSystem][j].Atoms[k].Charge;
-  
+
               dr.x=posA.x-posB.x;
               dr.y=posA.y-posB.y;
               dr.z=posA.z-posB.z;
@@ -6431,7 +6431,7 @@ void CalculateFrameworkAdsorbateReplicaVDWForce(void)
 
                   ReductionB=1.0;
                   ConnectedAtomB=-1;
- 
+
                   dr.x=posA.x-posB.x;
                   dr.y=posA.y-posB.y;
                   dr.z=posA.z-posB.z;
@@ -6463,7 +6463,7 @@ void CalculateFrameworkAdsorbateReplicaVDWForce(void)
                      Adsorbates[CurrentSystem][i].Atoms[ConnectedAtomA].Force.y-=(1.0-ReductionA)*f.y;
                      Adsorbates[CurrentSystem][i].Atoms[ConnectedAtomA].Force.z-=(1.0-ReductionA)*f.z;
                    }
- 
+
                    if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
                    {
                      Framework[CurrentSystem].Atoms[f1][k].Force.x+=ReductionB*f.x;
@@ -6550,7 +6550,7 @@ void CalculateFrameworkCationReplicaVDWForce(void)
 
                   ReductionB=1.0;
                   ConnectedAtomB=-1;
- 
+
                   dr.x=posA.x-posB.x;
                   dr.y=posA.y-posB.y;
                   dr.z=posA.z-posB.z;
@@ -6582,7 +6582,7 @@ void CalculateFrameworkCationReplicaVDWForce(void)
                      Cations[CurrentSystem][i].Atoms[ConnectedAtomA].Force.y-=(1.0-ReductionA)*f.y;
                      Cations[CurrentSystem][i].Atoms[ConnectedAtomA].Force.z-=(1.0-ReductionA)*f.z;
                    }
- 
+
                    if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
                    {
                      Framework[CurrentSystem].Atoms[f1][k].Force.x+=ReductionB*f.x;
@@ -6674,7 +6674,7 @@ int CalculateFrameworkAdsorbateReplicaChargeChargeForce(void)
 
                   ReductionB=1.0;
                   ConnectedAtomB=-1;
- 
+
                   dr.x=posA.x-posB.x;
                   dr.y=posA.y-posB.y;
                   dr.z=posA.z-posB.z;
@@ -6703,7 +6703,7 @@ int CalculateFrameworkAdsorbateReplicaChargeChargeForce(void)
                      Adsorbates[CurrentSystem][i].Atoms[ConnectedAtomA].Force.y-=(1.0-ReductionA)*f.y;
                      Adsorbates[CurrentSystem][i].Atoms[ConnectedAtomA].Force.z-=(1.0-ReductionA)*f.z;
                    }
- 
+
                    if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
                    {
                      Framework[CurrentSystem].Atoms[f1][k].Force.x+=ReductionB*f.x;
@@ -6796,7 +6796,7 @@ int CalculateFrameworkCationReplicaChargeChargeForce(void)
 
                   ReductionB=1.0;
                   ConnectedAtomB=-1;
- 
+
                   dr.x=posA.x-posB.x;
                   dr.y=posA.y-posB.y;
                   dr.z=posA.z-posB.z;
@@ -6825,7 +6825,7 @@ int CalculateFrameworkCationReplicaChargeChargeForce(void)
                      Cations[CurrentSystem][i].Atoms[ConnectedAtomA].Force.y-=(1.0-ReductionA)*f.y;
                      Cations[CurrentSystem][i].Atoms[ConnectedAtomA].Force.z-=(1.0-ReductionA)*f.z;
                    }
- 
+
                    if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
                    {
                      Framework[CurrentSystem].Atoms[f1][k].Force.x+=ReductionB*f.x;

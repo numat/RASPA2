@@ -117,7 +117,7 @@ void OpenOutputFile(void)
   switch(Output)
   {
     case OUTPUT_TO_FILE:
-      mkdir("Output",S_IRWXU);           
+      mkdir("Output",S_IRWXU);
       for(i=0;i<NumberOfSystems;i++)
       {
         sprintf(buffer,"Output/System_%d",i);
@@ -136,18 +136,18 @@ void OpenOutputFile(void)
                 FileNameAppend);
 
         // limit length of file-name
-        strncpy(buffer2,buffer,250);            
-        sprintf(buffer2,"%s.data",buffer2);     
-                                         
+        strncpy(buffer2,buffer,250);
+        sprintf(buffer2,"%s.data",buffer2);
+
         //if(!(OutputFilePtr[i]=fopen(buffer2,"r+")))
         //   OutputFilePtr[i]=fopen(buffer2,"a");
         OutputFilePtr[i]=fopen(buffer2,"w");
       }
-      break;                           
-    case OUTPUT_TO_SCREEN:             
+      break;
+    case OUTPUT_TO_SCREEN:
       //OutputFilePtr=stdout;
-      break;               
-  }                       
+      break;
+  }
 }
 
 void CloseOutputFile(void)
@@ -229,7 +229,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
   fprintf(FilePtr,"===========================================================================\n");
 
   fprintf(FilePtr,"%s\n","RASPA 1.8-3");
-  
+
   #if defined (__LP64__) || defined (__64BIT__) || defined (_LP64) || (__WORDSIZE == 64)
     fprintf(FilePtr,"Compiled as a 64-bits application\n");
     fprintf(FilePtr,"Compiler: %s\n",COMPILER_STRING);
@@ -410,7 +410,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
           }
           break;
         default:
-          printf("Undefined cell type for NPTPR\n");
+          fprintf(stderr, "Undefined cell type for NPTPR\n");
           exit(0);
           break;
       }
@@ -469,7 +469,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
           }
           break;
         default:
-          printf("Undefined cell type for NPHPR\n");
+          fprintf(stderr, "Undefined cell type for NPHPR\n");
           exit(0);
           break;
       }
@@ -546,7 +546,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
           }
           break;
         default:
-          printf("Undefined cell type for NPTPR\n");
+          fprintf(stderr, "Undefined cell type for NPTPR\n");
           exit(0);
           break;
       }
@@ -605,7 +605,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
           }
           break;
         default:
-          printf("Undefined cell type for NPHPR\n");
+          fprintf(stderr, "Undefined cell type for NPHPR\n");
           exit(0);
           break;
       }
@@ -708,7 +708,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
     fprintf(FilePtr,"\tSize of the free energy profile:  %d\n",FreeEnergyHistogramSize[system]);
   }
 
-  // sampling the pore-size distribution (PSD) 
+  // sampling the pore-size distribution (PSD)
   fprintf(FilePtr,"Pore Size Distribution Function: %s\n",((ComputePSDHistogram[system])||(SimulationType==PORE_SIZE_DISTRIBUTION))?"yes":"no");
   if((ComputePSDHistogram[system])||(SimulationType==PORE_SIZE_DISTRIBUTION))
   {
@@ -1321,11 +1321,11 @@ void PrintPreSimulationStatusCurrentSystem(int system)
   {
     case NUMERICALLY:
       fprintf(FilePtr,"Potential derivatives are evaluated: numerically\n");
-      break;       
+      break;
     case ANALYTICALLY:
     default:
       fprintf(FilePtr,"Potential derivatives are evaluated: analytically\n");
-      break;       
+      break;
   }
   fprintf(FilePtr,"Translation of the system is removed from the generalized Hessian: %s\n",RemoveTranslationFromHessian?"yes":"no");
   fprintf(FilePtr,"Rotation of the system is removed from the generalized Hessian: %s\n",RemoveRotationFromHessian?"yes":"no");
@@ -1489,7 +1489,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
       }
       fprintf(FilePtr,"\tconstraint %d (%s,%s,%s,%s)  constraint angle: %g [degrees]\n",i,buffer1,buffer2,buffer3,buffer4,DihedralConstraintParameter[system][i]*RAD2DEG);
     }
-  } 
+  }
   fprintf(FilePtr,"\n");
 
   fprintf(FilePtr,"Improper dihedral constraints: %d\n",NumberOfImproperDihedralConstraints[system]);
@@ -1981,14 +1981,14 @@ void PrintPreSimulationStatusCurrentSystem(int system)
       {
         sprintf(buffer1,"(%d, [%c%c%c])",k,Framework[system].Atoms[i][k].Fixed.x?'X':'-',
             Framework[system].Atoms[i][k].Fixed.y?'Y':'-',Framework[system].Atoms[i][k].Fixed.z?'Z':'-');
-        if(Framework[system].Atoms[i][k].Fixed.x||Framework[system].Atoms[i][k].Fixed.y||Framework[system].Atoms[i][k].Fixed.z) 
+        if(Framework[system].Atoms[i][k].Fixed.x||Framework[system].Atoms[i][k].Fixed.y||Framework[system].Atoms[i][k].Fixed.z)
           fprintf(FilePtr,"%s ",buffer1);
       }
       fprintf(FilePtr,"\n");
       fprintf(FilePtr,"Number of active framework atoms: %d  (fixed: %d)\n",nr_free,nr_fixed);
       fprintf(FilePtr,"active atom-list: ");
       for(k=0;k<Framework[system].NumberOfAtoms[i];k++)
-        if(Framework[system].Atoms[i][k].Fixed.x&&Framework[system].Atoms[i][k].Fixed.y&&Framework[system].Atoms[i][k].Fixed.z) 
+        if(Framework[system].Atoms[i][k].Fixed.x&&Framework[system].Atoms[i][k].Fixed.y&&Framework[system].Atoms[i][k].Fixed.z)
           fprintf(FilePtr,"%d ",k);
       fprintf(FilePtr,"\n");
     }
@@ -2220,7 +2220,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
               sprintf(framework_charge_string,"yes (charge definition not found)");
             break;
           default:
-            printf("ERROR: undefined ChargeDefinitionType (output.c)\n");
+            fprintf(stderr, "ERROR: undefined ChargeDefinitionType (output.c)\n");
             exit(0);
             break;
         }
@@ -2598,7 +2598,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
             // p_0/k_B [K A^12]
             // p_1/k_B [K A^6]
             // p_2/k_B [K A^2]
-            // p_3/k_B [K] 
+            // p_3/k_B [K]
             // p_4/k_B [K]  (non-zero for a shifted potential)
             fprintf(FilePtr,"%7s - %7s [POTENTIAL_12_6_2_0] p_0/k_B: %8.5lf [K A^12], p_1/k_B: %8.5lf [K A^6], "
                             "p_2/k_B: %8.5lf [K A^2], p_3/k_B: %8.5lf [K], shift/k_B: %8.5lf [K], tailcorrection: %s\n",
@@ -2617,7 +2617,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
             // p_0/k_B [K A^12]
             // p_1/k_B [K A^6]
             // p_2/k_B [K A^2]
-            // p_3/k_B [K] 
+            // p_3/k_B [K]
             fprintf(FilePtr,"%7s - %7s [POTENTIAL_12_6_2_0_SMOOTHED3] p_0/k_B: %8.5lf [K A^12], p_1/k_B: %8.5lf [K A^6], "
                             "p_2/k_B: %8.5lf [K A^2], p_3/k_B: %8.5lf [K]\n",
               PseudoAtoms[i].Name,
@@ -2633,7 +2633,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
             // p_0/k_B [K A^12]
             // p_1/k_B [K A^6]
             // p_2/k_B [K A^2]
-            // p_3/k_B [K] 
+            // p_3/k_B [K]
             fprintf(FilePtr,"%7s - %7s [POTENTIAL_12_6_2_0_SMOOTHED5] p_0/k_B: %8.5lf [K A^12], p_1/k_B: %8.5lf [K A^6], "
                             "p_2/k_B: %8.5lf [K A^2], p_3/k_B: %8.5lf [K]\n",
               PseudoAtoms[i].Name,
@@ -3505,7 +3505,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
         fprintf(FilePtr,"\t\t-------------------------------------------------\n");
         switch(Components[i].Groups[j].Rigid)
         {
-          case TRUE: 
+          case TRUE:
             switch(Components[i].Groups[j].Type)
             {
               case POINT_PARTICLE:
@@ -3550,7 +3550,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
             for(l=0;l<Components[i].Connectivity[A];l++)
               fprintf(FilePtr,"%d ",Components[i].ConnectivityList[A][l]);
             fprintf(FilePtr,")\n");
-          } 
+          }
 
           fprintf(FilePtr,"\t\tnumber of permanent dipoles: %d\n",Components[i].Groups[j].NumberOfPermanentDipoles);
           for(k=0;k<Components[i].Groups[j].NumberOfPermanentDipoles;k++)
@@ -3764,7 +3764,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
       fprintf(FilePtr,"\t\tPercentage of framework-shift moves:          %lf\n",(double)(100.0*ProbabilityFrameworkShiftMove));
       fprintf(FilePtr,"\n");
 
-      
+
       if(Components[i].RestrictEnantionface)
       {
         fprintf(FilePtr,"\tMC Moves are restricted to leaving the enantioface unchanged : Yes\n");
@@ -3923,7 +3923,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
         else
           fprintf(FilePtr,"\tMoves are restricted to spheres: No\n\n");
       }
-      else 
+      else
         fprintf(FilePtr,"\tMoves are restricted: No\n");
 
 
@@ -4319,7 +4319,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
                    (double)(Components[i].BendArguments[j][0]*RAD2DEG));
                  break;
                default:
-                 printf("Unknown bend-potential\n");
+                 fprintf(stderr, "Unknown bend-potential\n");
                  break;
              }
           }
@@ -4402,7 +4402,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
                    (double)(Components[i].InversionBendArguments[j][0]*RAD2DEG));
                  break;
                default:
-                 printf("Unknown inversion bend-potential\n");
+                 fprintf(stderr, "Unknown inversion bend-potential\n");
                  break;
              }
           }
@@ -4585,7 +4585,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
                    (double)(Components[i].TorsionArguments[j][0]*RAD2DEG));
                 break;
               default:
-                printf("Unknown torsion-potential\n");
+                fprintf(stderr, "Unknown torsion-potential\n");
                 break;
             }
           }
@@ -4768,7 +4768,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
                    (double)(Components[i].ImproperTorsionArguments[j][0]*RAD2DEG));
                 break;
               default:
-                printf("Unknown improper torsion-potential\n");
+                fprintf(stderr, "Unknown improper torsion-potential\n");
                 break;
             }
           }
@@ -4795,7 +4795,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
             switch(Components[i].OutOfPlaneType[j])
             {
               default:
-                printf("Unknown Out-of-plane-distance potential\n");
+                fprintf(stderr, "Unknown Out-of-plane-distance potential\n");
                 break;
             }
           }
@@ -4834,7 +4834,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
                   (double)(Components[i].BondBondArguments[j][2]));
                  break;
               default:
-                printf("Unknown bond/bond-potential\n");
+                fprintf(stderr, "Unknown bond/bond-potential\n");
                 break;
              }
            }
@@ -4939,7 +4939,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
                   (double)(Components[i].BondBendArguments[j][3]));
                  break;
                default:
-                 printf("Unknown stretch/bend-potential\n");
+                 fprintf(stderr, "Unknown stretch/bend-potential\n");
                  break;
              }
            }
@@ -4988,7 +4988,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
                   (double)(Components[i].BendBendArguments[j][1]*RAD2DEG));
                  break;
                default:
-                 printf("Unknown bend/bend-potential\n");
+                 fprintf(stderr, "Unknown bend/bend-potential\n");
                  break;
               }
            }
@@ -5029,7 +5029,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
                 break;
                 break;
               default:
-                printf("Unknown stretch/torsion-potential\n");
+                fprintf(stderr, "Unknown stretch/torsion-potential\n");
                 break;
             }
           }
@@ -5145,7 +5145,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
                   (double)(Components[i].BendTorsionArguments[j][2]*RAD2DEG));
                 break;
               default:
-                printf("Unknown bend/torsion-potential\n");
+                fprintf(stderr, "Unknown bend/torsion-potential\n");
                 break;
             }
           }
@@ -5275,7 +5275,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
       }
       else
         fprintf(FilePtr,"\t\tPockets are NOT blocked for this component\n");
-     
+
       fprintf(FilePtr,"\n");
 
     }
@@ -5705,7 +5705,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
     if(UseCellLists[system])
     {
       fprintf(FilePtr,"Energy and force calculations use the cell-list method: %d %d %d cells\n\n",
-       NumberOfCellListCells[system].x,NumberOfCellListCells[system].y,NumberOfCellListCells[system].z); 
+       NumberOfCellListCells[system].x,NumberOfCellListCells[system].y,NumberOfCellListCells[system].z);
     }
 
   switch(Dimension)
@@ -5973,7 +5973,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
   for(CurrentFramework=0;CurrentFramework<Framework[system].NumberOfFrameworks;CurrentFramework++)
   {
     fprintf(FilePtr,"Framework name: %s\n",Framework[system].Name[CurrentFramework]);
-    if(Framework[system].NumberOfCitations[CurrentFramework]>0) 
+    if(Framework[system].NumberOfCitations[CurrentFramework]>0)
     {
        for(i=0;i<Framework[system].NumberOfCitations[CurrentFramework];i++)
        {
@@ -6184,7 +6184,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
             break;
         }
         switch(Diffraction.lambda_type)
-        {  
+        {
           case DIFFRACTION_SINGLE:
             fprintf(FilePtr,"single wavelength: %f\n",Diffraction.lambda);
             break;
@@ -6402,7 +6402,7 @@ void PrintPostSimulationStatus(void)
     UCationIntraChargeBondDipoleCoulombRunning=UCationIntraChargeBondDipole[CurrentSystem];
     UCationIntraBondDipoleBondDipoleCoulombRunning=UCationIntraBondDipoleBondDipole[CurrentSystem];
 
-    UTailCorrectionRunning=UTailCorrection[CurrentSystem];            
+    UTailCorrectionRunning=UTailCorrection[CurrentSystem];
 
     UDistanceConstraintsRunning=UDistanceConstraints[CurrentSystem];
     UAngleConstraintsRunning=UAngleConstraints[CurrentSystem];
@@ -6411,13 +6411,13 @@ void PrintPostSimulationStatus(void)
     UOutOfPlaneDistanceConstraintsRunning=UOutOfPlaneDistanceConstraints[CurrentSystem];
     UExclusionConstraintsRunning=UExclusionConstraints[CurrentSystem];
 
-    UHostPolarizationRunning=UHostPolarization[CurrentSystem];            
-    UAdsorbatePolarizationRunning=UAdsorbatePolarization[CurrentSystem];            
-    UCationPolarizationRunning=UCationPolarization[CurrentSystem];            
+    UHostPolarizationRunning=UHostPolarization[CurrentSystem];
+    UAdsorbatePolarizationRunning=UAdsorbatePolarization[CurrentSystem];
+    UCationPolarizationRunning=UCationPolarization[CurrentSystem];
 
-    UHostBackPolarizationRunning=UHostBackPolarization[CurrentSystem];            
-    UAdsorbateBackPolarizationRunning=UAdsorbateBackPolarization[CurrentSystem];            
-    UCationBackPolarizationRunning=UCationBackPolarization[CurrentSystem];            
+    UHostBackPolarizationRunning=UHostBackPolarization[CurrentSystem];
+    UAdsorbateBackPolarizationRunning=UAdsorbateBackPolarization[CurrentSystem];
+    UCationBackPolarizationRunning=UCationBackPolarization[CurrentSystem];
 
     UTotalRunning=UTotal[CurrentSystem];
 
@@ -7171,7 +7171,7 @@ void PrintRestartFile(void)
         }
       }
     }
-    
+
     fprintf(FilePtrOut,"\n");
   }
   fprintf(FilePtrOut,"\n");
@@ -7385,7 +7385,7 @@ void WriteBinaryRestartFiles(void)
   FILE *FilePtr;
   char buffer[1024];
 
-  printf("Writing Crash-file!\n");
+  fprintf(stderr, "Writing Crash-file!\n");
 
   mkdir("CrashRestart",S_IRWXU);
 
@@ -7470,7 +7470,7 @@ void ReadRestartOutput(FILE* FilePtr)
   fread(&Check,1,sizeof(REAL),FilePtr);
   if(fabs(Check-123456789.0)>1e-10)
   {
-    printf("Error in binary restart-file (ReadRestartOutput)\n");
+    fprintf(stderr, "Error in binary restart-file (ReadRestartOutput)\n");
     exit(0);
   }
 }

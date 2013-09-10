@@ -165,7 +165,7 @@ static inline void HessianAtomicPositionPosition(REAL_MATRIX HessianMatrix,INT_V
   Hessian.az=f2*dr.x*dr.z;    Hessian.bz=f2*dr.y*dr.z;    Hessian.cz=f2*dr.z*dr.z+f1;
 
   if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
-  { 
+  {
     if((index_i.x>=0)&&(index_i.x>=0)) HessianMatrix.element[index_i.x][index_i.x]+=ReplicaFactor*Hessian.ax;
     if((index_i.x>=0)&&(index_i.y>=0)) HessianMatrix.element[index_i.x][index_i.y]+=ReplicaFactor*Hessian.ay;
     if((index_i.x>=0)&&(index_i.z>=0)) HessianMatrix.element[index_i.x][index_i.z]+=ReplicaFactor*Hessian.az;
@@ -410,7 +410,7 @@ static inline void HessianAtomicPositionStrain(REAL_MATRIX HessianMatrix,INT_VEC
           if(index_j.z>=0)  HessianMatrix.element[index_j.z][n+3]-=f2*dr.y*dr.y*dr.z;
           if(index_j.z>=0)  HessianMatrix.element[index_j.z][n+4]-=f2*dr.y*dr.z*dr.z+f1*dr.y;
           if(index_j.z>=0)  HessianMatrix.element[index_j.z][n+5]-=f2*dr.z*dr.z*dr.z+2.0*f1*dr.z;
-          break;                                   
+          break;
         case MONOCLINIC:
         case MONOCLINIC_UPPER_TRIANGLE:
           switch(MonoclinicAngleType[CurrentSystem])
@@ -518,9 +518,9 @@ static inline void HessianAtomicPositionStrain(REAL_MATRIX HessianMatrix,INT_VEC
               if(index_j.z>=0) HessianMatrix.element[index_j.z][n+3]-=f2*dr.z*dr.z*dr.z+2.0*f1*dr.z;
               break;
           }
-          break;  
-        default:  
-          printf("Unknown NPTPRCellType\n");
+          break;
+        default:
+          fprintf(stderr, "Unknown NPTPRCellType\n");
           exit(0);
           break;
       }
@@ -631,7 +631,7 @@ static inline void HessianCenterOfMassStrainJ(REAL_MATRIX HessianMatrix,INT_VECT
           if(index_j.z>=0) HessianMatrix.element[index_j.z][n+3]-=(posB.y-comB.y)*(f2*dr.z*dr.y);
           if(index_j.z>=0) HessianMatrix.element[index_j.z][n+4]-=0.5*((posB.z-comB.z)*(f2*dr.z*dr.y)+(posB.y-comB.y)*(f2*dr.z*dr.z+f1));
           if(index_j.z>=0) HessianMatrix.element[index_j.z][n+5]-=(posB.z-comB.z)*(f2*dr.z*dr.z+f1);
-          break;                                   
+          break;
         case REGULAR_UPPER_TRIANGLE:
           if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
           {
@@ -677,7 +677,7 @@ static inline void HessianCenterOfMassStrainJ(REAL_MATRIX HessianMatrix,INT_VECT
           if(index_j.z>=0) HessianMatrix.element[index_j.z][n+3]-=(posB.y-comB.y)*(f2*dr.z*dr.y);
           if(index_j.z>=0) HessianMatrix.element[index_j.z][n+4]-=(posB.z-comB.z)*(f2*dr.z*dr.y);
           if(index_j.z>=0) HessianMatrix.element[index_j.z][n+5]-=(posB.z-comB.z)*(f2*dr.z*dr.z+f1);
-          break;                                   
+          break;
         case MONOCLINIC:
           switch(MonoclinicAngleType[CurrentSystem])
           {
@@ -795,28 +795,28 @@ static inline void HessianCenterOfMassStrainJ(REAL_MATRIX HessianMatrix,INT_VECT
                 if(index_i.x>=0)  HessianMatrix.element[index_i.x][n+1]+=(posB.y-comB.y)*(f2*dr.x*dr.y);
                 if(index_i.x>=0)  HessianMatrix.element[index_i.x][n+2]+=(posB.z-comB.z)*(f2*dr.x*dr.y);
                 if(index_i.x>=0)  HessianMatrix.element[index_i.x][n+3]+=(posB.z-comB.z)*(f2*dr.x*dr.z);
-    
+
                 if(index_i.y>=0)  HessianMatrix.element[index_i.y][n  ]+=(posB.x-comB.x)*(f2*dr.y*dr.x);
                 if(index_i.y>=0)  HessianMatrix.element[index_i.y][n+1]+=(posB.y-comB.y)*(f2*dr.y*dr.y+f1);
                 if(index_i.y>=0)  HessianMatrix.element[index_i.y][n+2]+=(posB.z-comB.z)*(f2*dr.y*dr.y+f1);
                 if(index_i.y>=0)  HessianMatrix.element[index_i.y][n+3]+=(posB.z-comB.z)*(f2*dr.y*dr.z);
-    
+
                 if(index_i.z>=0)  HessianMatrix.element[index_i.z][n  ]+=(posB.x-comB.x)*(f2*dr.z*dr.x);
                 if(index_i.z>=0)  HessianMatrix.element[index_i.z][n+1]+=(posB.y-comB.y)*(f2*dr.z*dr.y);
                 if(index_i.z>=0)  HessianMatrix.element[index_i.z][n+2]+=(posB.z-comB.z)*(f2*dr.z*dr.y);
                 if(index_i.z>=0)  HessianMatrix.element[index_i.z][n+3]+=(posB.z-comB.z)*(f2*dr.z*dr.z+f1);
               }
-    
+
               if(index_j.x>=0)  HessianMatrix.element[index_j.x][n  ]-=(posB.x-comB.x)*(f2*dr.x*dr.x+f1);
               if(index_j.x>=0)  HessianMatrix.element[index_j.x][n+1]-=(posB.y-comB.y)*(f2*dr.x*dr.y);
               if(index_j.x>=0)  HessianMatrix.element[index_j.x][n+2]-=(posB.z-comB.z)*(f2*dr.x*dr.y);
               if(index_j.x>=0)  HessianMatrix.element[index_j.x][n+3]-=(posB.z-comB.z)*(f2*dr.x*dr.z);
-    
+
               if(index_j.y>=0)  HessianMatrix.element[index_j.y][n  ]-=(posB.x-comB.x)*(f2*dr.y*dr.x);
               if(index_j.y>=0)  HessianMatrix.element[index_j.y][n+1]-=(posB.y-comB.y)*(f2*dr.y*dr.y+f1);
               if(index_j.y>=0)  HessianMatrix.element[index_j.y][n+2]-=(posB.z-comB.z)*(f2*dr.y*dr.y+f1);
               if(index_j.y>=0)  HessianMatrix.element[index_j.y][n+3]-=(posB.z-comB.z)*(f2*dr.y*dr.z);
-    
+
               if(index_j.z>=0)  HessianMatrix.element[index_j.z][n  ]-=(posB.x-comB.x)*(f2*dr.z*dr.x);
               if(index_j.z>=0)  HessianMatrix.element[index_j.z][n+1]-=(posB.y-comB.y)*(f2*dr.z*dr.y);
               if(index_j.z>=0)  HessianMatrix.element[index_j.z][n+2]-=(posB.z-comB.z)*(f2*dr.z*dr.y);
@@ -829,28 +829,28 @@ static inline void HessianCenterOfMassStrainJ(REAL_MATRIX HessianMatrix,INT_VECT
                 if(index_i.x>=0)  HessianMatrix.element[index_i.x][n+1]+=(posB.z-comB.z)*(f2*dr.x*dr.x+f1);
                 if(index_i.x>=0)  HessianMatrix.element[index_i.x][n+2]+=(posB.y-comB.y)*(f2*dr.x*dr.y);
                 if(index_i.x>=0)  HessianMatrix.element[index_i.x][n+3]+=(posB.z-comB.z)*(f2*dr.x*dr.z);
-    
+
                 if(index_i.y>=0)  HessianMatrix.element[index_i.y][n  ]+=(posB.x-comB.x)*(f2*dr.y*dr.x);
                 if(index_i.y>=0)  HessianMatrix.element[index_i.y][n+1]+=(posB.z-comB.z)*(f2*dr.y*dr.x);
                 if(index_i.y>=0)  HessianMatrix.element[index_i.y][n+2]+=(posB.y-comB.y)*(f2*dr.y*dr.y+f1);
                 if(index_i.y>=0)  HessianMatrix.element[index_i.y][n+3]+=(posB.z-comB.z)*(f2*dr.y*dr.z);
-    
+
                 if(index_i.z>=0)  HessianMatrix.element[index_i.z][n  ]+=(posB.x-comB.x)*(f2*dr.z*dr.x);
                 if(index_i.z>=0)  HessianMatrix.element[index_i.z][n+1]+=(posB.z-comB.z)*(f2*dr.z*dr.x);
                 if(index_i.z>=0)  HessianMatrix.element[index_i.z][n+2]+=(posB.y-comB.y)*(f2*dr.z*dr.y);
                 if(index_i.z>=0)  HessianMatrix.element[index_i.z][n+3]+=(posB.z-comB.z)*(f2*dr.z*dr.z+f1);
               }
-    
+
               if(index_j.x>=0)  HessianMatrix.element[index_j.x][n  ]-=(posB.x-comB.x)*(f2*dr.x*dr.x+f1);
               if(index_j.x>=0)  HessianMatrix.element[index_j.x][n+1]-=(posB.z-comB.z)*(f2*dr.x*dr.x+f1);
               if(index_j.x>=0)  HessianMatrix.element[index_j.x][n+2]-=(posB.y-comB.y)*(f2*dr.x*dr.y);
               if(index_j.x>=0)  HessianMatrix.element[index_j.x][n+3]-=(posB.z-comB.z)*(f2*dr.x*dr.z);
-    
+
               if(index_j.y>=0)  HessianMatrix.element[index_j.y][n  ]-=(posB.x-comB.x)*(f2*dr.y*dr.x);
               if(index_j.y>=0)  HessianMatrix.element[index_j.y][n+1]-=(posB.z-comB.z)*(f2*dr.y*dr.x);
               if(index_j.y>=0)  HessianMatrix.element[index_j.y][n+2]-=(posB.y-comB.y)*(f2*dr.y*dr.y+f1);
               if(index_j.y>=0)  HessianMatrix.element[index_j.y][n+3]-=(posB.z-comB.z)*(f2*dr.y*dr.z);
-    
+
               if(index_j.z>=0)  HessianMatrix.element[index_j.z][n  ]-=(posB.x-comB.x)*(f2*dr.z*dr.x);
               if(index_j.z>=0)  HessianMatrix.element[index_j.z][n+1]-=(posB.z-comB.z)*(f2*dr.z*dr.x);
               if(index_j.z>=0)  HessianMatrix.element[index_j.z][n+2]-=(posB.y-comB.y)*(f2*dr.z*dr.y);
@@ -863,37 +863,37 @@ static inline void HessianCenterOfMassStrainJ(REAL_MATRIX HessianMatrix,INT_VECT
                 if(index_i.x>=0) HessianMatrix.element[index_i.x][n+1]+=(posB.y-comB.y)*(f2*dr.x*dr.x+f1);
                 if(index_i.x>=0) HessianMatrix.element[index_i.x][n+2]+=(posB.y-comB.y)*(f2*dr.x*dr.y);
                 if(index_i.x>=0) HessianMatrix.element[index_i.x][n+3]+=(posB.z-comB.z)*(f2*dr.x*dr.z);
-    
+
                 if(index_i.y>=0) HessianMatrix.element[index_i.y][n  ]+=(posB.x-comB.x)*(f2*dr.y*dr.x);
                 if(index_i.y>=0) HessianMatrix.element[index_i.y][n+1]+=(posB.y-comB.y)*(f2*dr.y*dr.x);
                 if(index_i.y>=0) HessianMatrix.element[index_i.y][n+2]+=(posB.y-comB.y)*(f2*dr.y*dr.y+f1);
                 if(index_i.y>=0) HessianMatrix.element[index_i.y][n+3]+=(posB.z-comB.z)*(f2*dr.y*dr.z);
-    
+
                 if(index_i.z>=0) HessianMatrix.element[index_i.z][n  ]+=(posB.x-comB.x)*(f2*dr.z*dr.x);
                 if(index_i.z>=0) HessianMatrix.element[index_i.z][n+1]+=(posB.y-comB.y)*(f2*dr.z*dr.x);
                 if(index_i.z>=0) HessianMatrix.element[index_i.z][n+2]+=(posB.y-comB.y)*(f2*dr.z*dr.y);
                 if(index_i.z>=0) HessianMatrix.element[index_i.z][n+3]+=(posB.z-comB.z)*(f2*dr.z*dr.z+f1);
               }
-    
+
               if(index_j.x>=0) HessianMatrix.element[index_j.x][n  ]-=(posB.x-comB.x)*(f2*dr.x*dr.x+f1);
               if(index_j.x>=0) HessianMatrix.element[index_j.x][n+1]-=(posB.y-comB.y)*(f2*dr.x*dr.x+f1);
               if(index_j.x>=0) HessianMatrix.element[index_j.x][n+2]-=(posB.y-comB.y)*(f2*dr.x*dr.y);
               if(index_j.x>=0) HessianMatrix.element[index_j.x][n+3]-=(posB.z-comB.z)*(f2*dr.x*dr.z);
-    
+
               if(index_j.y>=0) HessianMatrix.element[index_j.y][n  ]-=(posB.x-comB.x)*(f2*dr.y*dr.x);
               if(index_j.y>=0) HessianMatrix.element[index_j.y][n+1]-=(posB.y-comB.y)*(f2*dr.y*dr.x);
               if(index_j.y>=0) HessianMatrix.element[index_j.y][n+2]-=(posB.y-comB.y)*(f2*dr.y*dr.y+f1);
               if(index_j.y>=0) HessianMatrix.element[index_j.y][n+3]-=(posB.z-comB.z)*(f2*dr.y*dr.z);
-    
+
               if(index_j.z>=0) HessianMatrix.element[index_j.z][n  ]-=(posB.x-comB.x)*(f2*dr.z*dr.x);
               if(index_j.z>=0) HessianMatrix.element[index_j.z][n+1]-=(posB.y-comB.y)*(f2*dr.z*dr.x);
               if(index_j.z>=0) HessianMatrix.element[index_j.z][n+2]-=(posB.y-comB.y)*(f2*dr.z*dr.y);
               if(index_j.z>=0) HessianMatrix.element[index_j.z][n+3]-=(posB.z-comB.z)*(f2*dr.z*dr.z+f1);
               break;
           }
-          break;  
-        default:  
-          printf("Unknown NPTPRCellType\n");
+          break;
+        default:
+          fprintf(stderr, "Unknown NPTPRCellType\n");
           exit(0);
           break;
       }
@@ -978,7 +978,7 @@ static inline void HessianOrientationStrainJ(REAL_MATRIX HessianMatrix,INT_VECTO
           if(index_j2.z>=0)  HessianMatrix.element[index_j2.z][n+3]-=Hessian.bz*dr.y;
           if(index_j2.z>=0)  HessianMatrix.element[index_j2.z][n+4]-=0.5*(Hessian.bz*dr.z+Hessian.cz*dr.y);
           if(index_j2.z>=0)  HessianMatrix.element[index_j2.z][n+5]-=Hessian.cz*dr.z;
-          break;                                   
+          break;
         case REGULAR_UPPER_TRIANGLE:
           if(index_j2.x>=0)  HessianMatrix.element[index_j2.x][n  ]-=Hessian.ax*dr.x;
           if(index_j2.x>=0)  HessianMatrix.element[index_j2.x][n+1]-=Hessian.ax*dr.y;
@@ -1106,9 +1106,9 @@ static inline void HessianOrientationStrainJ(REAL_MATRIX HessianMatrix,INT_VECTO
               if(index_j2.z>=0)  HessianMatrix.element[index_j2.z][n+3]-=Hessian.cz*dr.z;
               break;
           }
-          break;  
-        default:  
-          printf("Unknown NPTPRCellType\n");
+          break;
+        default:
+          fprintf(stderr, "Unknown NPTPRCellType\n");
           exit(0);
           break;
       }
@@ -1193,7 +1193,7 @@ static inline void HessianOrientationStrainJ_FR(REAL_MATRIX HessianMatrix,INT_VE
           if(index_j2.z>=0)  HessianMatrix.element[index_j2.z][n+3]-=(posB.y-comB.y)*Hessian.bz;
           if(index_j2.z>=0)  HessianMatrix.element[index_j2.z][n+4]-=0.5*((posB.z-comB.z)*Hessian.bz+(posB.y-comB.y)*Hessian.cz);
           if(index_j2.z>=0)  HessianMatrix.element[index_j2.z][n+5]-=(posB.z-comB.z)*Hessian.cz;
-          break;                                   
+          break;
         case REGULAR_UPPER_TRIANGLE:
           if(index_j2.x>=0) HessianMatrix.element[index_j2.x][n  ]-=(posB.x-comB.x)*Hessian.ax;
           if(index_j2.x>=0) HessianMatrix.element[index_j2.x][n+1]-=(posB.y-comB.y)*Hessian.ax;
@@ -1321,9 +1321,9 @@ static inline void HessianOrientationStrainJ_FR(REAL_MATRIX HessianMatrix,INT_VE
               if(index_j2.z>=0) HessianMatrix.element[index_j2.z][n+3]-=(posB.z-comB.z)*Hessian.cz;
               break;
           }
-          break;  
-        default:  
-          printf("Unknown NPTPRCellType\n");
+          break;
+        default:
+          fprintf(stderr, "Unknown NPTPRCellType\n");
           exit(0);
           break;
       }
@@ -1336,7 +1336,7 @@ static inline void HessianOrientationStrainJ_FR(REAL_MATRIX HessianMatrix,INT_VE
 }
 
 
-// Hessian: Strain - Strain 
+// Hessian: Strain - Strain
 // ========================
 static inline void HessianAtomicStrainStrain(REAL_MATRIX HessianMatrix,REAL f1,REAL f2,VECTOR dr)
 {
@@ -1389,7 +1389,7 @@ static inline void HessianAtomicStrainStrain(REAL_MATRIX HessianMatrix,REAL f1,R
           HessianMatrix.element[n+4][n+5]+=f2*dr.y*dr.z*dr.z*dr.z+f1*dr.y*dr.z;                  // yzzz
 
           HessianMatrix.element[n+5][n+5]+=f2*dr.z*dr.z*dr.z*dr.z+2.0*f1*dr.z*dr.z;              // zzzz
-          break;                                   
+          break;
         case REGULAR_UPPER_TRIANGLE:
           HessianMatrix.element[n  ][n  ]+=f2*dr.x*dr.x*dr.x*dr.x+2.0*f1*dr.x*dr.x; // xxxx
           HessianMatrix.element[n  ][n+1]+=f2*dr.x*dr.x*dr.x*dr.y+f1*dr.x*dr.y;     // xxxy
@@ -1417,7 +1417,7 @@ static inline void HessianAtomicStrainStrain(REAL_MATRIX HessianMatrix,REAL f1,R
           HessianMatrix.element[n+4][n+5]+=f2*dr.y*dr.z*dr.z*dr.z;                  // yzzz
 
           HessianMatrix.element[n+5][n+5]+=f2*dr.z*dr.z*dr.z*dr.z+2.0*f1*dr.z*dr.z; // zzzz
-          break;                          
+          break;
         case MONOCLINIC:
           switch(MonoclinicAngleType[CurrentSystem])
           {
@@ -1467,7 +1467,7 @@ static inline void HessianAtomicStrainStrain(REAL_MATRIX HessianMatrix,REAL f1,R
               HessianMatrix.element[n+3][n+3]+=f2*dr.z*dr.z*dr.z*dr.z+2.0*f1*dr.z*dr.z;              // zzzz
               break;
           }
-          break;  
+          break;
         case MONOCLINIC_UPPER_TRIANGLE:
           switch(MonoclinicAngleType[CurrentSystem])
           {
@@ -1517,9 +1517,9 @@ static inline void HessianAtomicStrainStrain(REAL_MATRIX HessianMatrix,REAL f1,R
               HessianMatrix.element[n+3][n+3]+=f2*dr.z*dr.z*dr.z*dr.z+2.0*f1*dr.z*dr.z; // zzzz
               break;
           }
-          break;  
-        default:  
-          printf("Unknown NPTPRCellType\n");
+          break;
+        default:
+          fprintf(stderr, "Unknown NPTPRCellType\n");
           exit(0);
           break;
       }
@@ -1623,7 +1623,7 @@ static inline void HessianCorrectionStrainStrain(REAL_MATRIX HessianMatrix,REAL 
           HessianMatrix.element[n+4][n+4]+=0.5*(f2*(dr.y*dB.z*dr.y*dr.z+dB.y*dr.z*dr.y*dr.z)+f1*(dB.y*dr.y+dB.z*dr.z));   // yzyz
           HessianMatrix.element[n+4][n+5]+=0.5*f2*(dr.y*dB.z*dr.z*dr.z+dB.y*dr.z*dr.z*dr.z)+f1*dB.y*dr.z;                 // yzzz
 
-          HessianMatrix.element[n+5][n+5]+=f2*dr.z*dB.z*dr.z*dr.z+2.0*f1*dB.z*dr.z;     
+          HessianMatrix.element[n+5][n+5]+=f2*dr.z*dB.z*dr.z*dr.z+2.0*f1*dB.z*dr.z;
 
           HessianMatrix.element[n][n]+=f2*dr.x*dB.x*drJ.x*dr.x+f1*dB.x*drJ.x;
           HessianMatrix.element[n][n+1]+=0.5*f2*(dr.x*dB.y+dr.y*dB.x)*drJ.x*dr.x+0.5*f1*dB.y*(drJ.x);
@@ -1657,7 +1657,7 @@ static inline void HessianCorrectionStrainStrain(REAL_MATRIX HessianMatrix,REAL 
                                            0.25*f1*(dB.z*drJ.y+dB.z*drJ.y);
 
           HessianMatrix.element[n+5][n+5]+=f2*dr.z*dB.z*drJ.z*dr.z+f1*dB.z*drJ.z;
-          break;                                   
+          break;
         case REGULAR_UPPER_TRIANGLE:
           // atomic correction
           HessianMatrix.element[n  ][n  ]+=f2*dr.x*dB.x*dr.x*dr.x+2.0*f1*dB.x*dr.x; // xxxx
@@ -1714,7 +1714,7 @@ static inline void HessianCorrectionStrainStrain(REAL_MATRIX HessianMatrix,REAL 
           HessianMatrix.element[n+4][n+5]+=f2*dr.y*drJ.z*dr.z*dB.z;               // yzzz
 
           HessianMatrix.element[n+5][n+5]+=f2*dr.z*drJ.z*dr.z*dB.z+f1*drJ.z*dB.z; // zzzz
-          break;                                   
+          break;
         case MONOCLINIC:
           switch(MonoclinicAngleType[CurrentSystem])
           {
@@ -1731,7 +1731,7 @@ static inline void HessianCorrectionStrainStrain(REAL_MATRIX HessianMatrix,REAL 
               HessianMatrix.element[n+2][n+2]+=0.5*(f2*(dr.y*dB.z*dr.y*dr.z+dB.y*dr.z*dr.y*dr.z)+f1*(dB.y*dr.y+dB.z*dr.z));   // yzyz
               HessianMatrix.element[n+2][n+3]+=0.5*f2*(dr.y*dB.z*dr.z*dr.z+dB.y*dr.z*dr.z*dr.z)+f1*dB.y*dr.z;                 // yzzz
 
-              HessianMatrix.element[n+3][n+3]+=f2*dr.z*dB.z*dr.z*dr.z+2.0*f1*dB.z*dr.z;     
+              HessianMatrix.element[n+3][n+3]+=f2*dr.z*dB.z*dr.z*dr.z+2.0*f1*dB.z*dr.z;
 
               HessianMatrix.element[n][n]+=f2*dr.x*dB.x*drJ.x*dr.x+f1*dB.x*drJ.x;
               HessianMatrix.element[n][n+1]+=0.5*(dr.y*dB.y+dr.y*dB.y)*f2*drJ.x*dr.x;
@@ -1762,7 +1762,7 @@ static inline void HessianCorrectionStrainStrain(REAL_MATRIX HessianMatrix,REAL 
               HessianMatrix.element[n+2][n+2]+=f2*dr.y*dr.y*dB.y*dr.y+2.0*f1*dB.y*dr.y;   // yyyy
               HessianMatrix.element[n+2][n+3]+=f2*dr.y*dB.y*dr.z*dr.z;                    // yyzz
 
-              HessianMatrix.element[n+3][n+3]+=f2*dr.z*dB.z*dr.z*dr.z+2.0*f1*dB.z*dr.z;     
+              HessianMatrix.element[n+3][n+3]+=f2*dr.z*dB.z*dr.z*dr.z+2.0*f1*dB.z*dr.z;
 
               HessianMatrix.element[n][n]+=f2*dr.x*dB.x*drJ.x*dr.x+f1*dB.x*drJ.x;
               HessianMatrix.element[n][n+1]+=0.5*f2*(dr.x*dB.z+dr.z*dB.x)*drJ.x*dr.x+0.5*f1*dB.z*(drJ.x);
@@ -1793,7 +1793,7 @@ static inline void HessianCorrectionStrainStrain(REAL_MATRIX HessianMatrix,REAL 
               HessianMatrix.element[n+2][n+2]+=f2*dr.y*dr.y*dB.y*dr.y+2.0*f1*dB.y*dr.y;   // yyyy
               HessianMatrix.element[n+2][n+3]+=f2*dr.y*dB.y*dr.z*dr.z;                    // yyzz
 
-              HessianMatrix.element[n+3][n+3]+=f2*dr.z*dB.z*dr.z*dr.z+2.0*f1*dB.z*dr.z;     
+              HessianMatrix.element[n+3][n+3]+=f2*dr.z*dB.z*dr.z*dr.z+2.0*f1*dB.z*dr.z;
 
               HessianMatrix.element[n][n]+=f2*dr.x*dB.x*drJ.x*dr.x+f1*dB.x*drJ.x;
               HessianMatrix.element[n][n+1]+=0.5*f2*(dr.x*dB.y+dr.y*dB.x)*drJ.x*dr.x+0.5*f1*dB.y*(drJ.x);
@@ -1910,9 +1910,9 @@ static inline void HessianCorrectionStrainStrain(REAL_MATRIX HessianMatrix,REAL 
               HessianMatrix.element[n+3][n+3]+=f2*dr.z*drJ.z*dr.z*dB.z+f1*drJ.z*dB.z; // zzzz
               break;
           }
-          break;  
-        default:  
-          printf("Unknown NPTPRCellType\n");
+          break;
+        default:
+          fprintf(stderr, "Unknown NPTPRCellType\n");
           exit(0);
           break;
       }
@@ -1977,7 +1977,7 @@ static inline void GradientStrain(REAL *Gradient,REAL f1,VECTOR dr)
           }
           break;
         default:
-          printf("Unknown NPTPRCellType\n");
+          fprintf(stderr, "Unknown NPTPRCellType\n");
           exit(0);
           break;
       }
@@ -2072,7 +2072,7 @@ static inline void GradientStrainJ(REAL *Gradient,REAL f1,VECTOR dr,VECTOR posB,
           }
           break;
         default:
-          printf("Unknown NPTPRCellType\n");
+          fprintf(stderr, "Unknown NPTPRCellType\n");
           exit(0);
           break;
       }
@@ -2143,7 +2143,7 @@ void ComputeFrameworkAdsorbateVDWHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX
                 for(ja=0;ja<Components[TypeMolB].Groups[jg].NumberOfGroupAtoms;ja++)
                 {
                   j=Components[TypeMolB].Groups[jg].Atoms[ja];
- 
+
                   if(Components[TypeMolB].Groups[jg].Rigid)
                   {
                     index_j=Adsorbates[CurrentSystem][J].Groups[jg].HessianIndex;
@@ -2228,7 +2228,7 @@ void ComputeFrameworkAdsorbateVDWHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX
                         if(index_i.y>=0) Gradient[index_i.y]+=f1*dr.y;
                         if(index_i.z>=0) Gradient[index_i.z]+=f1*dr.z;
                       }
-  
+
                       if(index_j.x>=0) Gradient[index_j.x]-=f1*dr.x;
                       if(index_j.y>=0) Gradient[index_j.y]-=f1*dr.y;
                       if(index_j.z>=0) Gradient[index_j.z]-=f1*dr.z;
@@ -2263,7 +2263,7 @@ void ComputeFrameworkAdsorbateVDWHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX
 
                         HessianCorrectionStrainStrain(HessianMatrix,f1,f2,dr,posB,comB);
                       }
-                    } 
+                    }
                   }
                 }
               }
@@ -2356,7 +2356,7 @@ void ComputeFrameworkAdsorbateChargeChargeHessian(REAL *Energy,REAL* Gradient,RE
                     PotentialSecondDerivativeCoulombic(ChargeA,ChargeB,rr,&U,&f1,&f2);
 
                     *Energy+=U;
-                    
+
                     StrainDerivative->ax+=f1*dr.x*dr.x;
                     StrainDerivative->bx+=f1*dr.x*dr.y;
                     StrainDerivative->cx+=f1*dr.x*dr.z;
@@ -2403,7 +2403,7 @@ void ComputeFrameworkAdsorbateChargeChargeHessian(REAL *Energy,REAL* Gradient,RE
                       if(index_j.x>=0) Gradient[index_j.x]-=f1*dr.x;
                       if(index_j.y>=0) Gradient[index_j.y]-=f1*dr.y;
                       if(index_j.z>=0) Gradient[index_j.z]-=f1*dr.z;
-  
+
                       GradientStrain(Gradient,f1,dr);
 
                       if(Components[TypeMolB].Groups[jg].Rigid)
@@ -2504,7 +2504,7 @@ void ComputeFrameworkCationVDWHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX He
                 for(ja=0;ja<Components[TypeMolB].Groups[jg].NumberOfGroupAtoms;ja++)
                 {
                   j=Components[TypeMolB].Groups[jg].Atoms[ja];
- 
+
                   if(Components[TypeMolB].Groups[jg].Rigid)
                   {
                     index_j=Cations[CurrentSystem][J].Groups[jg].HessianIndex;
@@ -2589,7 +2589,7 @@ void ComputeFrameworkCationVDWHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX He
                         if(index_i.y>=0) Gradient[index_i.y]+=f1*dr.y;
                         if(index_i.z>=0) Gradient[index_i.z]+=f1*dr.z;
                       }
-  
+
                       if(index_j.x>=0) Gradient[index_j.x]-=f1*dr.x;
                       if(index_j.y>=0) Gradient[index_j.y]-=f1*dr.y;
                       if(index_j.z>=0) Gradient[index_j.z]-=f1*dr.z;
@@ -2624,7 +2624,7 @@ void ComputeFrameworkCationVDWHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX He
 
                         HessianCorrectionStrainStrain(HessianMatrix,f1,f2,dr,posB,comB);
                       }
-                    } 
+                    }
                   }
                 }
               }
@@ -3338,7 +3338,7 @@ void ComputeFrameworkBondHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX Hessian
           U=DF=DDF=0.0;
           break;
         default:
-          printf("Undefined Bond potential in routine 'CalculateFrameworkBondHessian' ('framework_hessian.c')\n");
+          fprintf(stderr, "Undefined Bond potential in routine 'CalculateFrameworkBondHessian' ('framework_hessian.c')\n");
           exit(0);
           break;
       }
@@ -3543,7 +3543,7 @@ void ComputeFrameworkUreyBradleyHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX 
           U=DF=DDF=0.0;
           break;
         default:
-          printf("Undefined UreyBradley potential in routine 'CalculateFrameworkUreyBradleyHessian' ('framework_hessian.c')\n");
+          fprintf(stderr, "Undefined UreyBradley potential in routine 'CalculateFrameworkUreyBradleyHessian' ('framework_hessian.c')\n");
           exit(0);
           break;
       }
@@ -3647,7 +3647,7 @@ static inline void GradientStrainBend(REAL *Gradient,REAL_MATRIX3x3 S)
           }
           break;
         default:
-          printf("Unknown NPTPRCellType\n");
+          fprintf(stderr, "Unknown NPTPRCellType\n");
           exit(0);
           break;
       }
@@ -3817,7 +3817,7 @@ void ComputeFrameworkBendHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX Hessian
           temp2=SQR(temp);
           U=parms[0]*temp2*(1.0-0.014*temp+5.6e-5*temp2-7.0e-7*temp*temp2+2.2e-8*SQR(temp2));
           DF=parms[0]*RAD2DEG*(2.0-(3.0*0.014-(4.0*5.6e-5-(5.0*7.0e-7-6.0*2.2e-8*temp)*temp)*temp)*temp)*temp*DTDX;
-          printf("TO BE DONE!\n");
+          fprintf(stderr, "TO BE DONE!\n");
           exit(0);
           break;
         case FIXED_BEND:
@@ -3828,7 +3828,7 @@ void ComputeFrameworkBendHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX Hessian
           break;
         default:
           U=DF=DDF=0.0;
-          printf("Undefined Bend potential\n");
+          fprintf(stderr, "Undefined Bend potential\n");
           exit(0);
           break;
       }
@@ -4087,7 +4087,7 @@ static inline void GradientStrainTorsion(REAL *Gradient,REAL_MATRIX3x3 S)
           }
           break;
         default:
-          printf("Unknown NPTPRCellType\n");
+          fprintf(stderr, "Unknown NPTPRCellType\n");
           exit(0);
           break;
       }
@@ -4384,7 +4384,7 @@ void ComputeFrameworkTorsionHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX Hess
               +parms[5]*(18.0-288.0*CosPhi2+480.0*SQR(CosPhi2));
           break;
         default:
-          printf("Undefined Torsion potential in 'framework_hessian.c'\n");
+          fprintf(stderr, "Undefined Torsion potential in 'framework_hessian.c'\n");
           U=DF=DDF=0.0;
           exit(0);
           break;
@@ -4648,7 +4648,7 @@ void ComputeFrameworkTorsionHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX Hess
           if((index_j.z>=0)&&(index_i.y>=0)) HessianMatrix.element[index_j.z][index_i.y]+=DDF*dtA.y*dtB.z+D2IJ.bz;
           if((index_j.z>=0)&&(index_i.z>=0)) HessianMatrix.element[index_j.z][index_i.z]+=DDF*dtA.z*dtB.z+D2IJ.cz;
         }
-       
+
         if(index1<index3)
         {
           if((index_i.x>=0)&&(index_k.x>=0)) HessianMatrix.element[index_i.x][index_k.x]+=DDF*dtA.x*dtC.x+D2IK.ax;
@@ -4673,13 +4673,13 @@ void ComputeFrameworkTorsionHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX Hess
           if((index_k.z>=0)&&(index_i.y>=0)) HessianMatrix.element[index_k.z][index_i.y]+=DDF*dtA.y*dtC.z+D2IK.bz;
           if((index_k.z>=0)&&(index_i.z>=0)) HessianMatrix.element[index_k.z][index_i.z]+=DDF*dtA.z*dtC.z+D2IK.cz;
         }
-        
+
         if(index1<index4)
         {
           if((index_i.x>=0)&&(index_l.x>=0)) HessianMatrix.element[index_i.x][index_l.x]+=DDF*dtA.x*dtD.x+D2IL.ax;
-          if((index_i.x>=0)&&(index_l.y>=0)) HessianMatrix.element[index_i.x][index_l.y]+=DDF*dtA.x*dtD.y+D2IL.ay; 
-          if((index_i.x>=0)&&(index_l.z>=0)) HessianMatrix.element[index_i.x][index_l.z]+=DDF*dtA.x*dtD.z+D2IL.az; 
-          if((index_i.y>=0)&&(index_l.x>=0)) HessianMatrix.element[index_i.y][index_l.x]+=DDF*dtA.y*dtD.x+D2IL.bx; 
+          if((index_i.x>=0)&&(index_l.y>=0)) HessianMatrix.element[index_i.x][index_l.y]+=DDF*dtA.x*dtD.y+D2IL.ay;
+          if((index_i.x>=0)&&(index_l.z>=0)) HessianMatrix.element[index_i.x][index_l.z]+=DDF*dtA.x*dtD.z+D2IL.az;
+          if((index_i.y>=0)&&(index_l.x>=0)) HessianMatrix.element[index_i.y][index_l.x]+=DDF*dtA.y*dtD.x+D2IL.bx;
           if((index_i.y>=0)&&(index_l.y>=0)) HessianMatrix.element[index_i.y][index_l.y]+=DDF*dtA.y*dtD.y+D2IL.by;
           if((index_i.y>=0)&&(index_l.z>=0)) HessianMatrix.element[index_i.y][index_l.z]+=DDF*dtA.y*dtD.z+D2IL.bz;
           if((index_i.z>=0)&&(index_l.x>=0)) HessianMatrix.element[index_i.z][index_l.x]+=DDF*dtA.z*dtD.x+D2IL.cx;
@@ -4698,11 +4698,11 @@ void ComputeFrameworkTorsionHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX Hess
           if((index_l.z>=0)&&(index_i.y>=0)) HessianMatrix.element[index_l.z][index_i.y]+=DDF*dtA.y*dtD.z+D2IL.bz;
           if((index_l.z>=0)&&(index_i.z>=0)) HessianMatrix.element[index_l.z][index_i.z]+=DDF*dtA.z*dtD.z+D2IL.cz;
         }
-        
+
         if(index2<index3)
         {
           if((index_j.x>=0)&&(index_k.x>=0)) HessianMatrix.element[index_j.x][index_k.x]+=DDF*dtB.x*dtC.x+D2JK.ax;
-          if((index_j.x>=0)&&(index_k.y>=0)) HessianMatrix.element[index_j.x][index_k.y]+=DDF*dtB.x*dtC.y+D2JK.ay; 
+          if((index_j.x>=0)&&(index_k.y>=0)) HessianMatrix.element[index_j.x][index_k.y]+=DDF*dtB.x*dtC.y+D2JK.ay;
           if((index_j.x>=0)&&(index_k.z>=0)) HessianMatrix.element[index_j.x][index_k.z]+=DDF*dtB.x*dtC.z+D2JK.az;
           if((index_j.y>=0)&&(index_k.x>=0)) HessianMatrix.element[index_j.y][index_k.x]+=DDF*dtB.y*dtC.x+D2JK.bx;
           if((index_j.y>=0)&&(index_k.y>=0)) HessianMatrix.element[index_j.y][index_k.y]+=DDF*dtB.y*dtC.y+D2JK.by;
@@ -4723,7 +4723,7 @@ void ComputeFrameworkTorsionHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX Hess
           if((index_k.z>=0)&&(index_j.y>=0)) HessianMatrix.element[index_k.z][index_j.y]+=DDF*dtB.y*dtC.z+D2JK.bz;
           if((index_k.z>=0)&&(index_j.z>=0)) HessianMatrix.element[index_k.z][index_j.z]+=DDF*dtB.z*dtC.z+D2JK.cz;
         }
-        
+
         if(index2<index4)
         {
           if((index_j.x>=0)&&(index_l.x>=0)) HessianMatrix.element[index_j.x][index_l.x]+=DDF*dtB.x*dtD.x+D2JL.ax;
@@ -4748,7 +4748,7 @@ void ComputeFrameworkTorsionHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX Hess
           if((index_l.z>=0)&&(index_j.y>=0)) HessianMatrix.element[index_l.z][index_j.y]+=DDF*dtB.y*dtD.z+D2JL.bz;
           if((index_l.z>=0)&&(index_j.z>=0)) HessianMatrix.element[index_l.z][index_j.z]+=DDF*dtB.z*dtD.z+D2JL.cz;
         }
-        
+
         if(index3<index4)
         {
           if((index_k.x>=0)&&(index_l.x>=0)) HessianMatrix.element[index_k.x][index_l.x]+=DDF*dtC.x*dtD.x+D2KL.ax;
@@ -5071,7 +5071,7 @@ void ComputeFrameworkImproperTorsionHessian(REAL *Energy,REAL* Gradient,REAL_MAT
           U=DF=DDF=0.0;
           break;
         default:
-          printf("Undefined Improper Torsion potential in 'framework_hessian.c'\n");
+          fprintf(stderr, "Undefined Improper Torsion potential in 'framework_hessian.c'\n");
           U=DF=DDF=0.0;
           exit(0);
           break;
@@ -5335,7 +5335,7 @@ void ComputeFrameworkImproperTorsionHessian(REAL *Energy,REAL* Gradient,REAL_MAT
           if((index_j.z>=0)&&(index_i.y>=0)) HessianMatrix.element[index_j.z][index_i.y]+=DDF*dtA.y*dtB.z+D2IJ.bz;
           if((index_j.z>=0)&&(index_i.z>=0)) HessianMatrix.element[index_j.z][index_i.z]+=DDF*dtA.z*dtB.z+D2IJ.cz;
         }
-       
+
         if(index1<index3)
         {
           if((index_i.x>=0)&&(index_k.x>=0)) HessianMatrix.element[index_i.x][index_k.x]+=DDF*dtA.x*dtC.x+D2IK.ax;
@@ -5360,13 +5360,13 @@ void ComputeFrameworkImproperTorsionHessian(REAL *Energy,REAL* Gradient,REAL_MAT
           if((index_k.z>=0)&&(index_i.y>=0)) HessianMatrix.element[index_k.z][index_i.y]+=DDF*dtA.y*dtC.z+D2IK.bz;
           if((index_k.z>=0)&&(index_i.z>=0)) HessianMatrix.element[index_k.z][index_i.z]+=DDF*dtA.z*dtC.z+D2IK.cz;
         }
-        
+
         if(index1<index4)
         {
           if((index_i.x>=0)&&(index_l.x>=0)) HessianMatrix.element[index_i.x][index_l.x]+=DDF*dtA.x*dtD.x+D2IL.ax;
-          if((index_i.x>=0)&&(index_l.y>=0)) HessianMatrix.element[index_i.x][index_l.y]+=DDF*dtA.x*dtD.y+D2IL.ay; 
-          if((index_i.x>=0)&&(index_l.z>=0)) HessianMatrix.element[index_i.x][index_l.z]+=DDF*dtA.x*dtD.z+D2IL.az; 
-          if((index_i.y>=0)&&(index_l.x>=0)) HessianMatrix.element[index_i.y][index_l.x]+=DDF*dtA.y*dtD.x+D2IL.bx; 
+          if((index_i.x>=0)&&(index_l.y>=0)) HessianMatrix.element[index_i.x][index_l.y]+=DDF*dtA.x*dtD.y+D2IL.ay;
+          if((index_i.x>=0)&&(index_l.z>=0)) HessianMatrix.element[index_i.x][index_l.z]+=DDF*dtA.x*dtD.z+D2IL.az;
+          if((index_i.y>=0)&&(index_l.x>=0)) HessianMatrix.element[index_i.y][index_l.x]+=DDF*dtA.y*dtD.x+D2IL.bx;
           if((index_i.y>=0)&&(index_l.y>=0)) HessianMatrix.element[index_i.y][index_l.y]+=DDF*dtA.y*dtD.y+D2IL.by;
           if((index_i.y>=0)&&(index_l.z>=0)) HessianMatrix.element[index_i.y][index_l.z]+=DDF*dtA.y*dtD.z+D2IL.bz;
           if((index_i.z>=0)&&(index_l.x>=0)) HessianMatrix.element[index_i.z][index_l.x]+=DDF*dtA.z*dtD.x+D2IL.cx;
@@ -5385,11 +5385,11 @@ void ComputeFrameworkImproperTorsionHessian(REAL *Energy,REAL* Gradient,REAL_MAT
           if((index_l.z>=0)&&(index_i.y>=0)) HessianMatrix.element[index_l.z][index_i.y]+=DDF*dtA.y*dtD.z+D2IL.bz;
           if((index_l.z>=0)&&(index_i.z>=0)) HessianMatrix.element[index_l.z][index_i.z]+=DDF*dtA.z*dtD.z+D2IL.cz;
         }
-        
+
         if(index2<index3)
         {
           if((index_j.x>=0)&&(index_k.x>=0)) HessianMatrix.element[index_j.x][index_k.x]+=DDF*dtB.x*dtC.x+D2JK.ax;
-          if((index_j.x>=0)&&(index_k.y>=0)) HessianMatrix.element[index_j.x][index_k.y]+=DDF*dtB.x*dtC.y+D2JK.ay; 
+          if((index_j.x>=0)&&(index_k.y>=0)) HessianMatrix.element[index_j.x][index_k.y]+=DDF*dtB.x*dtC.y+D2JK.ay;
           if((index_j.x>=0)&&(index_k.z>=0)) HessianMatrix.element[index_j.x][index_k.z]+=DDF*dtB.x*dtC.z+D2JK.az;
           if((index_j.y>=0)&&(index_k.x>=0)) HessianMatrix.element[index_j.y][index_k.x]+=DDF*dtB.y*dtC.x+D2JK.bx;
           if((index_j.y>=0)&&(index_k.y>=0)) HessianMatrix.element[index_j.y][index_k.y]+=DDF*dtB.y*dtC.y+D2JK.by;
@@ -5410,7 +5410,7 @@ void ComputeFrameworkImproperTorsionHessian(REAL *Energy,REAL* Gradient,REAL_MAT
           if((index_k.z>=0)&&(index_j.y>=0)) HessianMatrix.element[index_k.z][index_j.y]+=DDF*dtB.y*dtC.z+D2JK.bz;
           if((index_k.z>=0)&&(index_j.z>=0)) HessianMatrix.element[index_k.z][index_j.z]+=DDF*dtB.z*dtC.z+D2JK.cz;
         }
-        
+
         if(index2<index4)
         {
           if((index_j.x>=0)&&(index_l.x>=0)) HessianMatrix.element[index_j.x][index_l.x]+=DDF*dtB.x*dtD.x+D2JL.ax;
@@ -5435,7 +5435,7 @@ void ComputeFrameworkImproperTorsionHessian(REAL *Energy,REAL* Gradient,REAL_MAT
           if((index_l.z>=0)&&(index_j.y>=0)) HessianMatrix.element[index_l.z][index_j.y]+=DDF*dtB.y*dtD.z+D2JL.bz;
           if((index_l.z>=0)&&(index_j.z>=0)) HessianMatrix.element[index_l.z][index_j.z]+=DDF*dtB.z*dtD.z+D2JL.cz;
         }
-        
+
         if(index3<index4)
         {
           if((index_k.x>=0)&&(index_l.x>=0)) HessianMatrix.element[index_k.x][index_l.x]+=DDF*dtC.x*dtD.x+D2KL.ax;
@@ -5495,32 +5495,32 @@ void CalculateFrameworkInversionBendForces(int f1,int i,VECTOR posA,VECTOR posB,
         Rab=ApplyBoundaryCondition(Rab);
         rab2=Rab.x*Rab.x+Rab.y*Rab.y+Rab.z*Rab.z;
         rrab=sqrt(rab2);
-  
+
         Rbc.x=posC.x-posB.x;
         Rbc.y=posC.y-posB.y;
         Rbc.z=posC.z-posB.z;
         Rbc=ApplyBoundaryCondition(Rbc);
         rbc2=Rbc.x*Rbc.x+Rbc.y*Rbc.y+Rbc.z*Rbc.z;
         rrbc=sqrt(rbc2);
-  
+
         Rbd.x=posD.x-posB.x;
         Rbd.y=posD.y-posB.y;
         Rbd.z=posD.z-posB.z;
         Rbd=ApplyBoundaryCondition(Rbd);
         rbd2=Rbd.x*Rbd.x+Rbd.y*Rbd.y+Rbd.z*Rbd.z;
-  
+
         Rac.x=posC.x-posA.x;
         Rac.y=posC.y-posA.y;
         Rac.z=posC.z-posA.z;
         Rac=ApplyBoundaryCondition(Rac);
         rac2=Rac.x*Rac.x+Rac.y*Rac.y+Rac.z*Rac.z;
-  
+
         Rad.x=posD.x-posA.x;
         Rad.y=posD.y-posA.y;
         Rad.z=posD.z-posA.z;
         Rad=ApplyBoundaryCondition(Rad);
         rad2=Rad.x*Rad.x+Rad.y*Rad.y+Rad.z*Rad.z;
-  
+
         switch(Framework[CurrentSystem].InversionBendType[f1][i])
         {
           case HARMONIC_INVERSION:
@@ -5543,19 +5543,19 @@ void CalculateFrameworkInversionBendForces(int f1,int i,VECTOR posA,VECTOR posB,
             //c=(Rcd.x*Rcd.x+Rcd.y*Rcd.y+Rcd.z*Rcd.z)*(Rad.x*Rad.x+Rad.y*Rad.y+Rad.z*Rad.z)-SQR(Rad.x*Rcd.x+Rad.y*Rcd.y+Rad.z*Rcd.z);
             break;
           default:
-            printf("Undefined Inversion-Bend potential in routine 'CalculateFrameworkInversionBendEnergy' ('framework_energy.c')\n");
+            fprintf(stderr, "Undefined Inversion-Bend potential in routine 'CalculateFrameworkInversionBendEnergy' ('framework_energy.c')\n");
             exit(0);
             break;
         }
-  
+
         e=Rab.x*(Rbc.y*Rbd.z-Rbc.z*Rbd.y)+Rab.y*(Rbc.z*Rbd.x-Rbc.x*Rbd.z)+Rab.z*(Rbc.x*Rbd.y-Rbc.y*Rbd.x);
         CosChi=sqrt((Rab.x*Rab.x+Rab.y*Rab.y+Rab.z*Rab.z)-SQR(e)/c)/rrab;
-  
+
         // Ensure CosChi is between -1 and 1.
         CosChi=SIGN(MIN2(fabs(CosChi),(REAL)1.0),CosChi);
-  
+
         parms=Framework[CurrentSystem].InversionBendArguments[f1][i];
-  
+
         switch(Framework[CurrentSystem].InversionBendType[f1][i])
         {
           case HARMONIC_INVERSION:
@@ -5599,14 +5599,14 @@ void CalculateFrameworkInversionBendForces(int f1,int i,VECTOR posA,VECTOR posB,
             dedcos=-SIGN(1.0,e)*parms[0]*temp*RAD2DEG*(2.0-3.0*0.014*temp+4.0*5.6e-5*temp2-5.0*7.0e-7*temp*temp2+6.0*2.2e-8*SQR(temp2))/sqrt(c*(rab2-e*e/c));
             break;
           default:
-            printf("Undefined Inversion-Bend potential in routine 'CalculateFrameworkInversionBendEnergy' ('framework_energy.c')\n");
+            fprintf(stderr, "Undefined Inversion-Bend potential in routine 'CalculateFrameworkInversionBendEnergy' ('framework_energy.c')\n");
             exit(0);
             break;
         }
-  
+
         // energy
         *Energy=energy;
-  
+
         switch(Framework[CurrentSystem].InversionBendType[f1][i])
         {
           case HARMONIC_COSINE_INVERSION:
@@ -5639,12 +5639,12 @@ void CalculateFrameworkInversionBendForces(int f1,int i,VECTOR posA,VECTOR posB,
             dccdia.z=-(dccdic.z+dccdid.z);
             break;
           default:
-            printf("Undefined Inversion-Bend potential in routine 'CalculateFrameworkInversionBendEnergy' ('framework_energy.c')\n");
+            fprintf(stderr, "Undefined Inversion-Bend potential in routine 'CalculateFrameworkInversionBendEnergy' ('framework_energy.c')\n");
             exit(0);
             break;
         }
-  
-  
+
+
         term=e/rab2;
         deedia.x=Rbd.y*Rbc.z-Rbd.z*Rbc.y+Rab.x*term;
         deedia.y=Rbd.z*Rbc.x-Rbd.x*Rbc.z+Rab.y*term;
@@ -5655,7 +5655,7 @@ void CalculateFrameworkInversionBendForces(int f1,int i,VECTOR posA,VECTOR posB,
         deedid.x=Rbc.y*Rab.z-Rbc.z*Rab.y;
         deedid.y=Rbc.z*Rab.x-Rbc.x*Rab.z;
         deedid.z=Rbc.x*Rab.y-Rbc.y*Rab.x;
-  
+
         fa->x=-dedcos*(dccdia.x+deedia.x);
         fa->y=-dedcos*(dccdia.y+deedia.y);
         fa->z=-dedcos*(dccdia.z+deedia.z);
@@ -5665,7 +5665,7 @@ void CalculateFrameworkInversionBendForces(int f1,int i,VECTOR posA,VECTOR posB,
         fd->x=-dedcos*(dccdid.x+deedid.x);
         fd->y=-dedcos*(dccdid.y+deedid.y);
         fd->z=-dedcos*(dccdid.z+deedid.z);
-  
+
         fb->x=-(fa->x+fc->x+fd->x);
         fb->y=-(fa->y+fc->y+fd->y);
         fb->z=-(fa->z+fc->z+fd->z);
@@ -5673,11 +5673,11 @@ void CalculateFrameworkInversionBendForces(int f1,int i,VECTOR posA,VECTOR posB,
         strain_derivative->ax=Rab.x*fa->x+Rbc.x*fc->x+Rbd.x*fd->x;
         strain_derivative->ay=Rab.x*fa->y+Rbc.x*fc->y+Rbd.x*fd->y;
         strain_derivative->az=Rab.x*fa->z+Rbc.x*fc->z+Rbd.x*fd->z;
-  
+
         strain_derivative->bx=Rab.y*fa->x+Rbc.y*fc->x+Rbd.y*fd->x;
         strain_derivative->by=Rab.y*fa->y+Rbc.y*fc->y+Rbd.y*fd->y;
         strain_derivative->bz=Rab.y*fa->z+Rbc.y*fc->z+Rbd.y*fd->z;
-  
+
         strain_derivative->cx=Rab.z*fa->x+Rbc.z*fc->x+Rbd.z*fd->x;
         strain_derivative->cy=Rab.z*fa->y+Rbc.z*fc->y+Rbd.z*fd->y;
         strain_derivative->cz=Rab.z*fa->z+Rbc.z*fc->z+Rbd.z*fd->z;
@@ -5731,7 +5731,7 @@ void ComputeFrameworkInversionBendHessian(REAL *Energy,REAL* Gradient,REAL_MATRI
       StrainDerivativeTensor->cx+=strain_derivative.cx;
       StrainDerivativeTensor->cy+=strain_derivative.cy;
       StrainDerivativeTensor->cz+=strain_derivative.cz;
-      
+
       // add contribution to the first derivatives
       if(ComputeGradient)
       {
@@ -6228,7 +6228,7 @@ void CalculateFrameworkBendTorsionForces(int f1,int i,VECTOR posA,VECTOR posB,VE
   rcd=sqrt(SQR(Dcd.x)+SQR(Dcd.y)+SQR(Dcd.z));
 
 
- 
+
   dot_ab=Dab.x*Dbc.x+Dab.y*Dbc.y+Dab.z*Dbc.z;
   CosTheta1=dot_ab/rab;
   CosTheta1=MAX2(MIN2(CosTheta1,(REAL)1.0),-1.0);
@@ -6362,22 +6362,22 @@ void CalculateFrameworkBendTorsionForces(int f1,int i,VECTOR posA,VECTOR posB,VE
       DTheta2=CosPhi*parms[0]*(Theta1-parms[1])*Smoothing(Theta1)*(Smoothing(Theta2)+(Theta2-parms[2])*SmoothingDerivative(Theta2))/SinTheta2;
       break;
     default:
-      printf("Undefined Bend-Torsion potential in routine 'CalculateFrameworkBendTorsionForce' ('framework_force.c')\n");
+      fprintf(stderr, "Undefined Bend-Torsion potential in routine 'CalculateFrameworkBendTorsionForce' ('framework_force.c')\n");
       exit(0);
       break;
   }
- 
+
   // energy
   *Energy=energy;
- 
+
   // Calculate the first derivative vectors.
   d=dot_ab/rbc;
   e=dot_cd/rbc;
- 
+
   dtA.x=(ds.x-CosPhi*dr.x)/r;
   dtA.y=(ds.y-CosPhi*dr.y)/r;
   dtA.z=(ds.z-CosPhi*dr.z)/r;
- 
+
   dtD.x=(dr.x-CosPhi*ds.x)/s;
   dtD.y=(dr.y-CosPhi*ds.y)/s;
   dtD.z=(dr.z-CosPhi*ds.z)/s;
@@ -6398,11 +6398,11 @@ void CalculateFrameworkBendTorsionForces(int f1,int i,VECTOR posA,VECTOR posB,VE
   fb.x=-DCos*dtB.x;
   fb.y=-DCos*dtB.y;
   fb.z=-DCos*dtB.z;
- 
+
   fc.x=-DCos*dtC.x;
   fc.y=-DCos*dtC.y;
   fc.z=-DCos*dtC.z;
- 
+
   fd.x=-DCos*dtD.x;
   fd.y=-DCos*dtD.y;
   fd.z=-DCos*dtD.z;
@@ -6411,29 +6411,29 @@ void CalculateFrameworkBendTorsionForces(int f1,int i,VECTOR posA,VECTOR posB,VE
   fbn->x+=fb.x; fbn->y+=fb.y; fbn->z+=fb.z;
   fcn->x+=fc.x; fcn->y+=fc.y; fcn->z+=fc.z;
   fdn->x+=fd.x; fdn->y+=fd.y; fdn->z+=fd.z;
- 
+
   // add contribution to the stress tensor
   // Note: rbc is here because the vector was normalized before
   strain_derivativen->ax-=Dab.x*fa.x+Dbc.x*rbc*(fc.x+fd.x)+Dcd.x*fd.x;
   strain_derivativen->bx-=Dab.y*fa.x+Dbc.y*rbc*(fc.x+fd.x)+Dcd.y*fd.x;
   strain_derivativen->cx-=Dab.z*fa.x+Dbc.z*rbc*(fc.x+fd.x)+Dcd.z*fd.x;
- 
+
   strain_derivativen->ay-=Dab.x*fa.y+Dbc.x*rbc*(fc.y+fd.y)+Dcd.x*fd.y;
   strain_derivativen->by-=Dab.y*fa.y+Dbc.y*rbc*(fc.y+fd.y)+Dcd.y*fd.y;
   strain_derivativen->cy-=Dab.z*fa.y+Dbc.z*rbc*(fc.y+fd.y)+Dcd.z*fd.y;
- 
+
   strain_derivativen->az-=Dab.x*fa.z+Dbc.x*rbc*(fc.z+fd.z)+Dcd.x*fd.z;
   strain_derivativen->bz-=Dab.y*fa.z+Dbc.y*rbc*(fc.z+fd.z)+Dcd.y*fd.z;
   strain_derivativen->cz-=Dab.z*fa.z+Dbc.z*rbc*(fc.z+fd.z)+Dcd.z*fd.z;
- 
+
   Dab.x/=rab; Dab.y/=rab; Dab.z/=rab;
   Dcd.x/=rcd; Dcd.y/=rcd; Dcd.z/=rcd;
- 
+
   // forces bends
   fa.x=DTheta1*(Dbc.x-Dab.x*CosTheta1)/rab;
   fa.y=DTheta1*(Dbc.y-Dab.y*CosTheta1)/rab;
   fa.z=DTheta1*(Dbc.z-Dab.z*CosTheta1)/rab;
- 
+
   fb.x=DTheta2*(Dcd.x+Dbc.x*CosTheta2)/rbc;
   fb.y=DTheta2*(Dcd.y+Dbc.y*CosTheta2)/rbc;
   fb.z=DTheta2*(Dcd.z+Dbc.z*CosTheta2)/rbc;
@@ -6465,11 +6465,11 @@ void CalculateFrameworkBendTorsionForces(int f1,int i,VECTOR posA,VECTOR posB,VE
   strain_derivativen->ax-=rab*Dab.x*fa.x+rbc*Dbc.x*fc.x+rbc*Dbc.x*fb.x+rcd*Dcd.x*fd.x;
   strain_derivativen->bx-=rab*Dab.y*fa.x+rbc*Dbc.y*fc.x+rbc*Dbc.y*fb.x+rcd*Dcd.y*fd.x;
   strain_derivativen->cx-=rab*Dab.z*fa.x+rbc*Dbc.z*fc.x+rbc*Dbc.z*fb.x+rcd*Dcd.z*fd.x;
- 
+
   strain_derivativen->ay-=rab*Dab.x*fa.y+rbc*Dbc.x*fc.y+rbc*Dbc.x*fb.y+rcd*Dcd.x*fd.y;
   strain_derivativen->by-=rab*Dab.y*fa.y+rbc*Dbc.y*fc.y+rbc*Dbc.y*fb.y+rcd*Dcd.y*fd.y;
   strain_derivativen->cy-=rab*Dab.z*fa.y+rbc*Dbc.z*fc.y+rbc*Dbc.z*fb.y+rcd*Dcd.z*fd.y;
- 
+
   strain_derivativen->az-=rab*Dab.x*fa.z+rbc*Dbc.x*fc.z+rbc*Dbc.x*fb.z+rcd*Dcd.x*fd.z;
   strain_derivativen->bz-=rab*Dab.y*fa.z+rbc*Dbc.y*fc.z+rbc*Dbc.y*fb.z+rcd*Dcd.y*fd.z;
   strain_derivativen->cz-=rab*Dab.z*fa.z+rbc*Dbc.z*fc.z+rbc*Dbc.z*fb.z+rcd*Dcd.z*fd.z;
@@ -6523,7 +6523,7 @@ void ComputeFrameworkBendTorsionHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX 
       StrainDerivativeTensor->cx+=strain_derivative.cx;
       StrainDerivativeTensor->cy+=strain_derivative.cy;
       StrainDerivativeTensor->cz+=strain_derivative.cz;
-      
+
       // add contribution to the first derivatives
       if(ComputeGradient)
       {
@@ -6598,7 +6598,7 @@ void ComputeFrameworkBendTorsionHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX 
                 }
                 break;
               default:
-                printf("Unknown NPTPRCellType\n");
+                fprintf(stderr, "Unknown NPTPRCellType\n");
                 exit(0);
                 break;
             }

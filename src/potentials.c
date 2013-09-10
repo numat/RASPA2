@@ -502,7 +502,7 @@ void ParseForceFieldSelfParameters(char *Arguments,int i,char *PotentialName)
   // p_0/k_B [K A^12]
   // p_1/k_B [K A^6]
   // p_2/k_B [K A^2]
-  // p_3/k_B [K] 
+  // p_3/k_B [K]
   // p_4/k_B [K]  (non-zero for a shifted potential)
   if((strcasecmp(PotentialName,"12_6_2_0")==0)||(strcasecmp(PotentialName,"12-6-2-0")==0)||
      (strcasecmp(PotentialName,"POTENTIAL_12_6_2_0")==0)||(strcasecmp(PotentialName,"POTENTAL-12-6-2-0")==0))
@@ -520,7 +520,7 @@ void ParseForceFieldSelfParameters(char *Arguments,int i,char *PotentialName)
   // p_0/k_B [K A^12]
   // p_1/k_B [K A^6]
   // p_2/k_B [K A^2]
-  // p_3/k_B [K] 
+  // p_3/k_B [K]
   if((strcasecmp(PotentialName,"12_6_2_0_SMOOTHED3")==0)||(strcasecmp(PotentialName,"12-6-2-0-SMOOTHED3")==0)||
      (strcasecmp(PotentialName,"POTENTIAL_12_6_2_0_SMOOTHED3")==0)||(strcasecmp(PotentialName,"POTENTAL-12-6-2-0-SMOOTHED3")==0))
   {
@@ -539,7 +539,7 @@ void ParseForceFieldSelfParameters(char *Arguments,int i,char *PotentialName)
   // p_0/k_B [K A^12]
   // p_1/k_B [K A^6]
   // p_2/k_B [K A^2]
-  // p_3/k_B [K] 
+  // p_3/k_B [K]
   if((strcasecmp(PotentialName,"12_6_2_0_SMOOTHED5")==0)||(strcasecmp(PotentialName,"12-6-2-0-SMOOTHED5")==0)||
      (strcasecmp(PotentialName,"POTENTIAL_12_6_2_0_SMOOTHED5")==0)||(strcasecmp(PotentialName,"POTENTAL-12-6-2-0-SMOOTHED5")==0))
   {
@@ -698,7 +698,7 @@ void ParseForceFieldSelfParameters(char *Arguments,int i,char *PotentialName)
     PotentialType[i][i]=CFF_9_6;
     sscanf(Arguments,"%lf %lf",&arg1,&arg2);
     PotentialParms[i][i][0]=arg1*KELVIN_TO_ENERGY;
-    PotentialParms[i][i][1]=arg2*KELVIN_TO_ENERGY; 
+    PotentialParms[i][i][1]=arg2*KELVIN_TO_ENERGY;
     PotentialParms[i][i][2]=(REAL)0.0;
     PotentialParms[i][i][2]=(REAL)0.0;
   }
@@ -823,7 +823,7 @@ void ParseForceFieldSelfParameters(char *Arguments,int i,char *PotentialName)
     PotentialParms[i][i][2]=arg3*KELVIN_TO_ENERGY;
     PotentialParms[i][i][3]=(REAL)0.0;
   }
-  // if(r<p_3) 1e10 else p_0*exp(-p_1*r)-p_2/r^6 
+  // if(r<p_3) 1e10 else p_0*exp(-p_1*r)-p_2/r^6
   // ======================================================================================
   // p_0/k_B [K]
   // p_1     [A^-1]
@@ -1527,9 +1527,9 @@ void ParseForceFieldBinaryParameters(char *Arguments,int i,int j,char *Potential
     PotentialType[i][j]=FEYNMAN_HIBBS_LENNARD_JONES_SMOOTHED3;
     PotentialType[j][i]=FEYNMAN_HIBBS_LENNARD_JONES_SMOOTHED3;
     sscanf(Arguments,"%lf %lf %lf",&arg1,&arg2,&arg3);
-    PotentialParms[j][i][0]=arg1*KELVIN_TO_ENERGY;   
+    PotentialParms[j][i][0]=arg1*KELVIN_TO_ENERGY;
     PotentialParms[i][j][0]=arg1*KELVIN_TO_ENERGY;
-    PotentialParms[j][i][1]=arg2;     
+    PotentialParms[j][i][1]=arg2;
     PotentialParms[i][j][1]=arg2;
     PotentialParms[j][i][2]=arg3;
     PotentialParms[i][j][2]=arg3;
@@ -1720,7 +1720,7 @@ void ParseForceFieldBinaryParameters(char *Arguments,int i,int j,char *Potential
   // p_0/k_B [K A^12]
   // p_1/k_B [K A^6]
   // p_2/k_B [K A^2]
-  // p_3/k_B [K] 
+  // p_3/k_B [K]
   // p_4/k_B [K]  (non-zero for a shifted potential)
   if((strcasecmp(PotentialName,"12_6_2_0")==0)||(strcasecmp(PotentialName,"12-6-2-0")==0))
   {
@@ -1743,7 +1743,7 @@ void ParseForceFieldBinaryParameters(char *Arguments,int i,int j,char *Potential
   // p_0/k_B [K A^12]
   // p_1/k_B [K A^6]
   // p_2/k_B [K A^2]
-  // p_3/k_B [K] 
+  // p_3/k_B [K]
   if((strcasecmp(PotentialName,"12_6_2_0_SMOOTHED3")==0)||(strcasecmp(PotentialName,"12-6-2-0-SMOOTHED3")==0))
   {
     TailCorrection[i][j]=TailCorrection[j][i]=FALSE;
@@ -1767,7 +1767,7 @@ void ParseForceFieldBinaryParameters(char *Arguments,int i,int j,char *Potential
   // p_0/k_B [K A^12]
   // p_1/k_B [K A^6]
   // p_2/k_B [K A^2]
-  // p_3/k_B [K] 
+  // p_3/k_B [K]
   if((strcasecmp(PotentialName,"12_6_2_0_SMOOTHED5")==0)||(strcasecmp(PotentialName,"12-6-2-0-SMOOTHED5")==0))
   {
     TailCorrection[i][j]=TailCorrection[j][i]=FALSE;
@@ -1991,7 +1991,7 @@ void ParseForceFieldBinaryParameters(char *Arguments,int i,int j,char *Potential
     PotentialType[i][j]=CFF_9_6_SMOOTHED3;
     PotentialType[j][i]=CFF_9_6_SMOOTHED3;
     sscanf(Arguments,"%lf %lf",&arg1,&arg2);
-    PotentialParms[j][i][0]=arg1*KELVIN_TO_ENERGY;   
+    PotentialParms[j][i][0]=arg1*KELVIN_TO_ENERGY;
     PotentialParms[i][j][0]=arg1*KELVIN_TO_ENERGY;
     PotentialParms[j][i][1]=arg2*KELVIN_TO_ENERGY;
     PotentialParms[i][j][1]=arg2*KELVIN_TO_ENERGY;
@@ -2044,9 +2044,9 @@ void ParseForceFieldBinaryParameters(char *Arguments,int i,int j,char *Potential
     PotentialType[i][j]=CFF_EPS_SIGMA_SMOOTHED3;
     PotentialType[j][i]=CFF_EPS_SIGMA_SMOOTHED3;
     sscanf(Arguments,"%lf %lf",&arg1,&arg2);
-    PotentialParms[j][i][0]=arg1*KELVIN_TO_ENERGY;   
+    PotentialParms[j][i][0]=arg1*KELVIN_TO_ENERGY;
     PotentialParms[i][j][0]=arg1*KELVIN_TO_ENERGY;
-    PotentialParms[j][i][1]=arg2;     
+    PotentialParms[j][i][1]=arg2;
     PotentialParms[i][j][1]=arg2;
     PotentialParms[j][i][2]=(REAL)0.0;
     PotentialParms[i][j][2]=(REAL)0.0;
@@ -2246,7 +2246,7 @@ void ParseForceFieldBinaryParameters(char *Arguments,int i,int j,char *Potential
     PotentialParms[j][i][0]=arg1*KCAL_PER_MOL_TO_ENERGY;
     PotentialParms[i][j][0]=arg1*KCAL_PER_MOL_TO_ENERGY;
     PotentialParms[j][i][1]=arg2; // input should be the sum of the VDW radii
-    PotentialParms[i][j][1]=arg2; 
+    PotentialParms[i][j][1]=arg2;
     PotentialParms[j][i][2]=(REAL)0.0;
     PotentialParms[i][j][2]=(REAL)0.0;
   }
@@ -2287,7 +2287,7 @@ void ParseForceFieldBinaryParameters(char *Arguments,int i,int j,char *Potential
     PotentialParms[i][j][1]=arg2;
     PotentialParms[j][i][2]=(REAL)0.0;
     PotentialParms[i][j][2]=(REAL)0.0;
-  } 
+  }
   // p_0*exp(-p_1*r)+p_2*exp(-p_3*r)
   // ======================================================================================
   // p_0/k_B [K]
@@ -2857,7 +2857,7 @@ void ReadForceFieldDefinitionsMixingRules(void)
     sprintf(buffer,"%s/share/raspa/forcefield/%s/force_field_mixing_rules.def",RASPA_DIRECTORY,ForceField);
     if(!(FilePtr=fopen(buffer,"r")))
     {
-      printf("'force_field_mixing_rules.def' file not found and therefore not used\n");
+      fprintf(stderr, "'force_field_mixing_rules.def' file not found and therefore not used\n");
       return;
     }
   }
@@ -2870,13 +2870,13 @@ void ReadForceFieldDefinitionsMixingRules(void)
     ShiftPotentials=FALSE;
   else
     ShiftPotentials=TRUE;
-   
+
   if(ShiftPotentials)
   {
     for(i=0;i<NumberOfPseudoAtoms;i++)
       for(j=0;j<NumberOfPseudoAtoms;j++)
         ShiftPotential[i][j]=TRUE;
-    printf("Shift all potentials\n");
+    fprintf(stderr, "Shift all potentials\n");
   }
   else
   {
@@ -4134,7 +4134,7 @@ void ReadForceFieldDefinitionsMixingRules(void)
 
 void ReadForceFieldDefinitions(void)
 {
-  int i,j,k,temp; 
+  int i,j,k,temp;
   char buffer[256],AtomTypeA[256],AtomTypeB[256],PotentialName[256],Arguments[256];
   char MixingRuleName[256],Tail[256];
   int NumberOfInteractions;
@@ -4146,7 +4146,7 @@ void ReadForceFieldDefinitions(void)
     sprintf(buffer,"%s/share/raspa/forcefield/%s/force_field.def",RASPA_DIRECTORY,ForceField);
     if(!(FilePtr=fopen(buffer,"r")))
     {
-      printf("'force_field.def' file not found and therefore not used\n");
+      fprintf(stderr, "'force_field.def' file not found and therefore not used\n");
       return;
     }
   }
@@ -4655,7 +4655,7 @@ void ReadForceFieldDefinitions(void)
           PotentialParms[j][i][1]=0.5*(PotentialParms[i][i][1]+PotentialParms[j][j][1]); // p_1^ji=0.5*(p_1^j+p_1^i)
           break;
         default:
-          printf("No mixing rule defined for these type of interaction %d-%d\n",i,j);
+          fprintf(stderr, "No mixing rule defined for these type of interaction %d-%d\n",i,j);
           exit(0);
           break;
       }
@@ -5054,7 +5054,7 @@ void ReadForceFieldDefinitions(void)
           PotentialParms[j][i][1]=sqrt(PotentialParms[i][i][1]*PotentialParms[j][j][1]); // p_1^ji=sqrt(p_1^j*p_1^i)
           break;
         default:
-          printf("No mixing rule defined for this type of interaction\n");
+          fprintf(stderr, "No mixing rule defined for this type of interaction\n");
           exit(0);
           break;
       }
@@ -5572,7 +5572,7 @@ void ComputeDampingCoefficients(REAL r, REAL b,REAL *f6,REAL *f8,REAL *f10)
 
   sum+=pow(b*r,7)*val/5040.0+pow(b*r,8)*val/40320.0;
   *f8=1.0-sum;
- 
+
   sum+=pow(b*r,9)*val/362880.0+pow(b*r,10)*val/3628800.0;
   *f10=1.0-sum;
 }
@@ -5927,7 +5927,7 @@ REAL PotentialValue(int typeA,int typeB,REAL rr,REAL scaling)
       // p_0/k_B [K A^12]
       // p_1/k_B [K A^6]
       // p_2/k_B [K A^2]
-      // p_3/k_B [K] 
+      // p_3/k_B [K]
       // p_4/k_B [K]  (non-zero for a shifted potential)
       arg1=PotentialParms[typeA][typeB][0];
       arg2=PotentialParms[typeA][typeB][1];
@@ -5942,7 +5942,7 @@ REAL PotentialValue(int typeA,int typeB,REAL rr,REAL scaling)
       // p_0/k_B [K A^12]
       // p_1/k_B [K A^6]
       // p_2/k_B [K A^2]
-      // p_3/k_B [K] 
+      // p_3/k_B [K]
       arg1=PotentialParms[typeA][typeB][0];
       arg2=PotentialParms[typeA][typeB][1];
       arg3=PotentialParms[typeA][typeB][2];
@@ -5961,7 +5961,7 @@ REAL PotentialValue(int typeA,int typeB,REAL rr,REAL scaling)
       // p_0/k_B [K A^12]
       // p_1/k_B [K A^6]
       // p_2/k_B [K A^2]
-      // p_3/k_B [K] 
+      // p_3/k_B [K]
       arg1=PotentialParms[typeA][typeB][0];
       arg2=PotentialParms[typeA][typeB][1];
       arg3=PotentialParms[typeA][typeB][2];
@@ -7325,7 +7325,7 @@ void PotentialGradient(int typeA,int typeB,REAL rr,REAL *energy,REAL *force_fact
       // p_0/k_B [K A^12]
       // p_1/k_B [K A^6]
       // p_2/k_B [K A^2]
-      // p_3/k_B [K] 
+      // p_3/k_B [K]
       // p_4/k_B [K]  (non-zero for a shifted potential)
       arg1=PotentialParms[typeA][typeB][0];
       arg2=PotentialParms[typeA][typeB][1];
@@ -7342,7 +7342,7 @@ void PotentialGradient(int typeA,int typeB,REAL rr,REAL *energy,REAL *force_fact
       // p_0/k_B [K A^12]
       // p_1/k_B [K A^6]
       // p_2/k_B [K A^2]
-      // p_3/k_B [K] 
+      // p_3/k_B [K]
       arg1=PotentialParms[typeA][typeB][0];
       arg2=PotentialParms[typeA][typeB][1];
       arg3=PotentialParms[typeA][typeB][2];
@@ -7366,7 +7366,7 @@ void PotentialGradient(int typeA,int typeB,REAL rr,REAL *energy,REAL *force_fact
       // p_0/k_B [K A^12]
       // p_1/k_B [K A^6]
       // p_2/k_B [K A^2]
-      // p_3/k_B [K] 
+      // p_3/k_B [K]
       arg1=PotentialParms[typeA][typeB][0];
       arg2=PotentialParms[typeA][typeB][1];
       arg3=PotentialParms[typeA][typeB][2];
@@ -7878,8 +7878,8 @@ void PotentialGradient(int typeA,int typeB,REAL rr,REAL *energy,REAL *force_fact
       arg3=PotentialParms[typeA][typeB][2];
       r=sqrt(rr);
       P=arg2/r;
-      if(P>3.02) 
-      { 
+      if(P>3.02)
+      {
         U=arg1*192.270*SQR(P)-arg3;
         fcVal=-arg1*SQR(arg2)*384.54/(rr*rr);
       }
@@ -8538,7 +8538,7 @@ void PotentialGradient(int typeA,int typeB,REAL rr,REAL *energy,REAL *force_fact
       rri8=rri6*rri2;
       rri10=rri8*rri2;
       rri12=rri10*rri2;
-      rri14=rri12*rri2; 
+      rri14=rri12*rri2;
       rri16=rri14*rri2;
       U=arg1*rri12-arg2*rri10;
       fcVal=-(12.0*arg1*rri14-10.0*arg2*rri12);
@@ -9005,7 +9005,7 @@ void PotentialSecondDerivative(int typeA,int typeB,REAL rr,REAL *energy,REAL *fa
       // p_0/k_B [K A^12]
       // p_1/k_B [K A^6]
       // p_2/k_B [K A^2]
-      // p_3/k_B [K] 
+      // p_3/k_B [K]
       // p_4/k_B [K]  (non-zero for a shifted potential)
       arg1=PotentialParms[typeA][typeB][0];
       arg2=PotentialParms[typeA][typeB][1];
@@ -9023,7 +9023,7 @@ void PotentialSecondDerivative(int typeA,int typeB,REAL rr,REAL *energy,REAL *fa
       // p_0/k_B [K A^12]
       // p_1/k_B [K A^6]
       // p_2/k_B [K A^2]
-      // p_3/k_B [K] 
+      // p_3/k_B [K]
       arg1=PotentialParms[typeA][typeB][0];
       arg2=PotentialParms[typeA][typeB][1];
       arg3=PotentialParms[typeA][typeB][2];
@@ -9051,7 +9051,7 @@ void PotentialSecondDerivative(int typeA,int typeB,REAL rr,REAL *energy,REAL *fa
       // p_0/k_B [K A^12]
       // p_1/k_B [K A^6]
       // p_2/k_B [K A^2]
-      // p_3/k_B [K] 
+      // p_3/k_B [K]
       arg1=PotentialParms[typeA][typeB][0];
       arg2=PotentialParms[typeA][typeB][1];
       arg3=PotentialParms[typeA][typeB][2];
@@ -10512,13 +10512,13 @@ void PotentialThirdDerivative(int typeA,int typeB,REAL rr,REAL *energy,REAL *fac
  ************************************************************************************************/
 
 REAL PotentialCorrection(int typeA,int typeB,REAL r)
-{     
+{
   REAL arg1,arg2,arg3,arg4,arg5,arg6;
   REAL rr,ri3,ri9;
   REAL term1,term2,term3,term4;
 
   switch(PotentialType[typeA][typeB])
-  {             
+  {
     case UNDEFINED_POTENTIAL:
     case ZERO_POTENTIAL:
     case HARD_SPHERE:
@@ -10595,7 +10595,7 @@ REAL PotentialCorrection(int typeA,int typeB,REAL r)
     case POTENTIAL_12_6_SMOOTHED5:
       return 0.0;
     case POTENTIAL_12_6_2_0:
-      printf("The 12_6_2_0 potential has no converging tail-correction.\n");
+      fprintf(stderr, "The 12_6_2_0 potential has no converging tail-correction.\n");
       exit(0);
       break;
     case POTENTIAL_12_6_2_0_SMOOTHED3:
@@ -10624,7 +10624,7 @@ REAL PotentialCorrection(int typeA,int typeB,REAL r)
       arg1=PotentialParms[typeA][typeB][0];
       arg2=PotentialParms[typeA][typeB][1];
       arg3=PotentialParms[typeA][typeB][2];
-      return (arg1*arg3*(exp(arg2)*(2.0*SQR(arg3)+2.0*arg2*arg3*r+SQR(arg2)*SQR(r))- 
+      return (arg1*arg3*(exp(arg2)*(2.0*SQR(arg3)+2.0*arg2*arg3*r+SQR(arg2)*SQR(r))-
              4.0*exp((arg2*(arg3+r))/(2.0*arg3))*(8.0*SQR(arg3)+4.0*arg2*arg3*r+SQR(arg2)*SQR(r))))/
             (CUBE(arg2)*exp((arg2*r)/arg3));
     case MORSE2_SMOOTHED3:
@@ -10753,7 +10753,7 @@ REAL PotentialCorrection(int typeA,int typeB,REAL r)
       term1=arg1*exp(-arg2*r)*(2.0+arg2*r*(2.0+arg2*r))/CUBE(arg2);
       term2=(arg3*(-240.0+240.0*exp(arg2*r)-arg2*r*(240.0+arg2*r*(120.0+arg2*r*(38.0+arg2*r*(8.0+arg2*r))))))/(720.0*CUBE(r));
       term3=(arg4*(-8064.0+8064.0*exp(arg2*r)-arg2*r*(8064.0+arg2*r*(4032.0+arg2*r*(1344.0+arg2*r*(336.0+arg2*r*(66.0+arg2*r*(10.0+arg2*r))))))))/(40320.0*pow(r,5));
-      term4=(arg5*(-518400.0+518400.0*exp(arg2*r)-arg2*r*(518400.0+arg2*r*(259200.0+ 
+      term4=(arg5*(-518400.0+518400.0*exp(arg2*r)-arg2*r*(518400.0+arg2*r*(259200.0+
              arg2*r*(86400.0+arg2*r*(21600.0+arg2*r*(4320.0+arg2*r*(720.0+arg2*r*(102.0+arg2*r*(12.0+arg2*r))))))))))/(3.6288e6*pow(r,7));
       return term1-exp(-arg2*r)*(term2+term3+term4);
     case PELLENQ_NICHOLSON_SMOOTHED3:
@@ -10821,7 +10821,7 @@ REAL PotentialCorrection(int typeA,int typeB,REAL r)
     case HYDROGEN_SMOOTHED5:
       return 0.0;
     default:
-      printf("Undefined potential in routine 'PotentialCorrection' ('potential.c')\n");
+      fprintf(stderr, "Undefined potential in routine 'PotentialCorrection' ('potential.c')\n");
       exit(0);
       break;
   }
@@ -10920,7 +10920,7 @@ REAL PotentialCorrectionPressure(int typeA,int typeB,REAL r)
     case POTENTIAL_12_6_SMOOTHED5:
       return 0.0;
     case POTENTIAL_12_6_2_0:
-      printf("The 12_6_2_0 potential has no converging tail-correction.\n");
+      fprintf(stderr, "The 12_6_2_0 potential has no converging tail-correction.\n");
       exit(0);
       break;
     case POTENTIAL_12_6_2_0_SMOOTHED3:
@@ -10935,7 +10935,7 @@ REAL PotentialCorrectionPressure(int typeA,int typeB,REAL r)
       arg1=PotentialParms[typeA][typeB][0];
       arg2=PotentialParms[typeA][typeB][1];
       arg3=PotentialParms[typeA][typeB][2];
-      return (arg1*exp(arg2*(arg3 - 2*r))*(8*exp(arg2*r)*(6 + arg2*r*(6 + arg2*r*(3 + arg2*r))) - 
+      return (arg1*exp(arg2*(arg3 - 2*r))*(8*exp(arg2*r)*(6 + arg2*r*(6 + arg2*r*(3 + arg2*r))) -
               exp(arg2*arg3)*(3 + 2*arg2*r*(3 + arg2*r*(3 + 2*arg2*r)))))/(4.*pow(arg2,3));
 
     case MORSE_SMOOTHED3:
@@ -10950,8 +10950,8 @@ REAL PotentialCorrectionPressure(int typeA,int typeB,REAL r)
       arg1=PotentialParms[typeA][typeB][0];
       arg2=PotentialParms[typeA][typeB][1];
       arg3=PotentialParms[typeA][typeB][2];
-      return (-(arg1*exp(arg2)*(6*pow(arg3,3) + 6*arg2*pow(arg3,2)*r + 3*pow(arg2,2)*arg3*pow(r,2) + pow(arg2,3)*pow(r,3))) + 
-             2*arg1*exp((arg2*(arg3 + r))/(2.*arg3))*(48*pow(arg3,3) + 24*arg2*pow(arg3,2)*r + 6*pow(arg2,2)*arg3*pow(r,2) + 
+      return (-(arg1*exp(arg2)*(6*pow(arg3,3) + 6*arg2*pow(arg3,2)*r + 3*pow(arg2,2)*arg3*pow(r,2) + pow(arg2,3)*pow(r,3))) +
+             2*arg1*exp((arg2*(arg3 + r))/(2.*arg3))*(48*pow(arg3,3) + 24*arg2*pow(arg3,2)*r + 6*pow(arg2,2)*arg3*pow(r,2) +
              pow(arg2,3)*pow(r,3)))/(pow(arg2,3)*exp((arg2*r)/arg3));
     case MORSE2_SMOOTHED3:
     case MORSE2_SMOOTHED5:
@@ -10966,7 +10966,7 @@ REAL PotentialCorrectionPressure(int typeA,int typeB,REAL r)
       arg1=PotentialParms[typeA][typeB][0];
       arg2=log(2.0)/(PotentialParms[typeA][typeB][1]*(pow(2.0,1.0/6.0)-1.0));
       arg3=pow(2.0,1.0/6.0)*PotentialParms[typeA][typeB][1];
-      return (arg1*exp(arg2*(arg3 - 2*r))*(8*exp(arg2*r)*(6 + arg2*r*(6 + arg2*r*(3 + arg2*r))) - 
+      return (arg1*exp(arg2*(arg3 - 2*r))*(8*exp(arg2*r)*(6 + arg2*r*(6 + arg2*r*(3 + arg2*r))) -
               exp(arg2*arg3)*(3 + 2*arg2*r*(3 + arg2*r*(3 + 2*arg2*r)))))/(4.*pow(arg2,3));
     case CFF_9_6:
       // p_0/r^9-p_1/r^6
@@ -11040,7 +11040,7 @@ REAL PotentialCorrectionPressure(int typeA,int typeB,REAL r)
       arg2=PotentialParms[typeA][typeB][1];
       arg3=PotentialParms[typeA][typeB][2];
       arg4=PotentialParms[typeA][typeB][3];
-      return (exp((-arg2 - arg4)*r)*(-(arg1*pow(arg4,3)*exp(arg4*r)*(6 + arg2*r*(6 + arg2*r*(3 + arg2*r)))) - 
+      return (exp((-arg2 - arg4)*r)*(-(arg1*pow(arg4,3)*exp(arg4*r)*(6 + arg2*r*(6 + arg2*r*(3 + arg2*r)))) -
               pow(arg2,3)*arg3*exp(arg2*r)*(6 + arg4*r*(6 + arg4*r*(3 + arg4*r)))))/(pow(arg2,3)*pow(arg4,3));
     case MATSUOKA_CLEMENTI_YOSHIMINE_SMOOTHED3:
     case MATSUOKA_CLEMENTI_YOSHIMINE_SMOOTHED5:
@@ -11151,7 +11151,7 @@ REAL PotentialCorrectionPressure(int typeA,int typeB,REAL r)
     case HYDROGEN_SMOOTHED5:
       return 0.0;
     default:
-      printf("Undefined potential in routine 'PotentialCorrectionPressure' ('potential.c')\n");
+      fprintf(stderr, "Undefined potential in routine 'PotentialCorrectionPressure' ('potential.c')\n");
       exit(0);
       break;
   }
@@ -11239,7 +11239,7 @@ REAL TailMolecularEnergyDifference(int ComponentToAdd,int ComponentToRemove,int 
     for(i=0;i<nr_atoms;i++)
       NumberOfPseudoAtomsTypeNew[Components[ComponentToRemove].Type[i]]--;
   }
- 
+
   energy_new=0.0;
   energy_old=0.0;
   for(i=0;i<NumberOfPseudoAtoms;i++)
@@ -11485,7 +11485,7 @@ REAL BiasingPotential(int i,VECTOR pos)
         q=((-s.x)*dr.x+(-s.y)*dr.y+(-s.z)*dr.z)*M_SQRT1_3;
         break;
       default:
-        printf("Undefined biasing-direction in routine 'BiasingPotential' (potentials.c)\n");
+        fprintf(stderr, "Undefined biasing-direction in routine 'BiasingPotential' (potentials.c)\n");
         exit(0);
         break;
     }
@@ -11625,17 +11625,17 @@ REAL SwitchingFunctionBendDerivative(REAL theta)
   return 6.0*(off-theta)*(on-theta)/CUBE(off-on);
 }
 
-// TitleTitle: COMPUTER-SIMULATION OF POLAR LIQUIDS 
-// Author(s): ADAMS DJ, ADAMS EM, HILLS GJ 
-// Source: MOLECULAR PHYSICS   Volume: 38   Issue: 2   Pages: 387-400   Published: 1979 
+// TitleTitle: COMPUTER-SIMULATION OF POLAR LIQUIDS
+// Author(s): ADAMS DJ, ADAMS EM, HILLS GJ
+// Source: MOLECULAR PHYSICS   Volume: 38   Issue: 2   Pages: 387-400   Published: 1979
 
-// Title: THE ROLE OF LONG RANGED FORCES IN DETERMINING THE STRUCTURE AND PROPERTIES OF LIQUID WATER 
-// Author(s): ANDREA TA, SWOPE WC, ANDERSEN HC 
-// Source: JOURNAL OF CHEMICAL PHYSICS   Volume: 79   Issue: 9   Pages: 4576-4584   Published: 1983 
+// Title: THE ROLE OF LONG RANGED FORCES IN DETERMINING THE STRUCTURE AND PROPERTIES OF LIQUID WATER
+// Author(s): ANDREA TA, SWOPE WC, ANDERSEN HC
+// Source: JOURNAL OF CHEMICAL PHYSICS   Volume: 79   Issue: 9   Pages: 4576-4584   Published: 1983
 
-// Title: NEW SPHERICAL-CUTOFF METHODS FOR LONG-RANGE FORCES IN MACROMOLECULAR SIMULATION 
+// Title: NEW SPHERICAL-CUTOFF METHODS FOR LONG-RANGE FORCES IN MACROMOLECULAR SIMULATION
 // Author(s): STEINBACH PJ, BROOKS BR
-// Source: JOURNAL OF COMPUTATIONAL CHEMISTRY   Volume: 15   Issue: 7   Pages: 667-683   Published: JUL 1994 
+// Source: JOURNAL OF COMPUTATIONAL CHEMISTRY   Volume: 15   Issue: 7   Pages: 667-683   Published: JUL 1994
 
 
 /*********************************************************************************************************
@@ -11880,7 +11880,7 @@ REAL PotentialValueCoulombic(REAL chargeA,REAL chargeB,REAL r)
     case EWALD:
       return COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB*(erfc(Alpha[CurrentSystem]*r)/r);
     default:
-      printf("Unknown charge-method in 'PotentialValueCoulombic (potentials.c)'\n");
+      fprintf(stderr, "Unknown charge-method in 'PotentialValueCoulombic (potentials.c)'\n");
       exit(0);
       break;
   }
@@ -11919,7 +11919,7 @@ REAL PotentialValueChargeBondDipole(REAL chargeA,VECTOR dipoleB,VECTOR dr,REAL r
           erfc(Alpha[CurrentSystem]*r)/(rr*r);
       break;
     default:
-      printf("Unknown charge-method in 'CalculateInterChargeBondDipoleEnergyDifferenceAdsorbate'\n");
+      fprintf(stderr, "Unknown charge-method in 'CalculateInterChargeBondDipoleEnergyDifferenceAdsorbate'\n");
       exit(0);
       break;
   }
@@ -11969,11 +11969,11 @@ REAL PotentialValueBondDipoleBondDipole(VECTOR dipoleA,VECTOR dipoleB,VECTOR dr,
           3.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*r);
       break;
     default:
-      printf("Unknown charge-method in 'CalculateInterBondDipoleBondDipoleEnergyDifferenceAdsorbate'\n");
+      fprintf(stderr, "Unknown charge-method in 'CalculateInterBondDipoleBondDipoleEnergyDifferenceAdsorbate'\n");
       exit(0);
       break;
   }
-  
+
   cosAB=dipoleA.x*dipoleB.x+dipoleA.y*dipoleB.y+dipoleA.z*dipoleB.z;
   cosA=dipoleA.x*dr.x+dipoleA.y*dr.y+dipoleA.z*dr.z;
   cosB=dipoleB.x*dr.x+dipoleB.y*dr.y+dipoleB.z*dr.z;
@@ -12047,7 +12047,7 @@ void PotentialGradientCoulombic(REAL chargeA,REAL chargeB,REAL rr,REAL *energy,R
              (r*rr);
      break;
    default:
-     printf("Unknown charge-method in 'PotentialGradientCoulombic' (potentials.c)\n");
+     fprintf(stderr, "Unknown charge-method in 'PotentialGradientCoulombic' (potentials.c)\n");
      exit(0);
      break;
   }
@@ -12094,7 +12094,7 @@ void PotentialGradientChargeBondDipole(REAL chargeB,REAL DipoleMagnitudeA,REAL l
           3.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*r);
       break;
     default:
-      printf("Unknown charge-method in 'CalculateTotalInterChargeBondDipoleCoulombForce'\n");
+      fprintf(stderr, "Unknown charge-method in 'CalculateTotalInterChargeBondDipoleCoulombForce'\n");
       exit(0);
       break;
   }
@@ -12201,7 +12201,7 @@ void PotentialGradientBondDipoleBondDipole(REAL DipoleMagnitudeA,REAL ri2,VECTOR
           15.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*rr*r);
       break;
     default:
-      printf("Unknown charge-method in 'CalculateTotalInterBondDipoleBondDipoleCoulombForce'\n");
+      fprintf(stderr, "Unknown charge-method in 'CalculateTotalInterBondDipoleBondDipoleCoulombForce'\n");
       exit(0);
       break;
   }
@@ -12415,7 +12415,7 @@ void PotentialElectricFieldBondDipoleBondDipole(VECTOR dipoleA,VECTOR dipoleB,VE
           3.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*r);
       break;
     default:
-      printf("Unknown charge-method in 'PotentialElectricFieldBondDipoleBondDipole'\n");
+      fprintf(stderr, "Unknown charge-method in 'PotentialElectricFieldBondDipoleBondDipole'\n");
       exit(0);
       break;
   }
@@ -12498,7 +12498,7 @@ void PotentialGradientInducedDipoleInducedDipole(VECTOR dipoleA,VECTOR dipoleB,V
           15.0*erfc(Alpha[CurrentSystem]*r)/(rr*rr*rr*r);
       break;
     default:
-      printf("Unknown charge-method in 'CalculateTotalInterBondDipoleBondDipoleCoulombForce'\n");
+      fprintf(stderr, "Unknown charge-method in 'CalculateTotalInterBondDipoleBondDipoleCoulombForce'\n");
       exit(0);
       break;
   }
@@ -12552,7 +12552,7 @@ void WriteTinkerParameterFile(void)
     sprintf(buffer,"Tinker/System_%d/%s.prm",CurrentSystem,ForceField);
     FilePtr=fopen(buffer,"w");
 
-    fprintf(FilePtr,"vdwindex                TYPE\n"); 
+    fprintf(FilePtr,"vdwindex                TYPE\n");
     fprintf(FilePtr,"vdwtype                 LENNARD-JONES\n");
     fprintf(FilePtr,"radiusrule              ARITHMETIC\n");
     fprintf(FilePtr,"radiustype              SIGMA\n");
@@ -12603,7 +12603,7 @@ void WriteTinkerParameterFile(void)
       }
     fprintf(FilePtr,"\n");
 
-     
+
 
     fclose(FilePtr);
   }
@@ -12638,7 +12638,7 @@ void WriteTinkerKeyFile(void)
     fprintf(FilePtr,"ewald-alpha             %g\n",Alpha[CurrentSystem]);
     fprintf(FilePtr,"ewald-cutoff            %g\n",CutOffChargeCharge[CurrentSystem]);
     fprintf(FilePtr,"\n");
-   
+
     fprintf(FilePtr,"vdw-cutoff              %g\n",CutOffVDW);
     fprintf(FilePtr,"vdw-taper               %g\n",CutOffVDW);
     fprintf(FilePtr,"\n");

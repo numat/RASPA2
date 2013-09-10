@@ -304,7 +304,7 @@ int diag5(int mod,int n,REAL *ld2,REAL *ld1, REAL *d,
 
   switch (mod)
   {
-    case 0: 
+    case 0:
       rc=diag5dec(n,ld2,ld1,d,ud1,ud2);
       if (rc==0)
         return (diag5sol(n,ld2,ld1,d,ud1,ud2,b));

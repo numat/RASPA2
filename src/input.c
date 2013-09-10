@@ -81,36 +81,36 @@ void CheckConstraintInputFramework(FRAMEWORK_COMPONENT* framework,int framework_
 {
   if(framework[CurrentSystem].NumberOfFrameworks==0)
   {
-    printf("Error: framework constraint definition, framework does not exists\n");
+    fprintf(stderr, "Error: framework constraint definition, framework does not exists\n");
     exit(0);
   }
   if(framework_nr>=Framework[CurrentSystem].NumberOfFrameworks)
   {
-    printf("Error: framework constraint definition, framework id %d does not exists\n",framework_nr);
+    fprintf(stderr, "Error: framework constraint definition, framework id %d does not exists\n",framework_nr);
     exit(0);
   }
   if(atom_nr>=Framework[CurrentSystem].NumberOfAtoms[framework_nr])
   {
-    printf("Error: framework constraint definition, framework-atom %d of framework %d does not exists\n",atom_nr,framework_nr);
+    fprintf(stderr, "Error: framework constraint definition, framework-atom %d of framework %d does not exists\n",atom_nr,framework_nr);
     exit(0);
-  } 
+  }
 }
 
 void CheckConstraintInputAdsorbate(ADSORBATE_MOLECULE** adsorbates,int molecule_nr,int atom_nr)
 {
   if(!adsorbates[CurrentSystem])
   {
-    printf("Error: adsorbate constraint definition, adsorbate-list does not exists\n");
+    fprintf(stderr, "Error: adsorbate constraint definition, adsorbate-list does not exists\n");
     exit(0);
   }
   if(molecule_nr>=NumberOfAdsorbateMolecules[CurrentSystem])
   {
-    printf("Error: adsorbate constraint definition, adsorbate-molecule id %d does not exists\n",molecule_nr);
+    fprintf(stderr, "Error: adsorbate constraint definition, adsorbate-molecule id %d does not exists\n",molecule_nr);
     exit(0);
   }
   if(atom_nr>=adsorbates[CurrentSystem][molecule_nr].NumberOfAtoms)
   {
-    printf("Error: adsorbate constraint definition, adsorbate-atom %d of molecule %d does not exists\n",atom_nr,molecule_nr);
+    fprintf(stderr, "Error: adsorbate constraint definition, adsorbate-atom %d of molecule %d does not exists\n",atom_nr,molecule_nr);
     exit(0);
   }
 }
@@ -119,17 +119,17 @@ void CheckConstraintInputCation(CATION_MOLECULE** cations,int molecule_nr,int at
 {
   if(!cations[CurrentSystem])
   {
-    printf("Error: cation constraint definition, cation-list does not exists\n");
+    fprintf(stderr, "Error: cation constraint definition, cation-list does not exists\n");
     exit(0);
   }
   if(molecule_nr>=NumberOfCationMolecules[CurrentSystem])
   {
-    printf("Error: cation constraint definition, cation-molecule id %d does not exists\n",molecule_nr);
+    fprintf(stderr, "Error: cation constraint definition, cation-molecule id %d does not exists\n",molecule_nr);
     exit(0);
   }
   if(atom_nr>=Cations[CurrentSystem][molecule_nr].NumberOfAtoms)
   {
-    printf("Error: cations constraint definition, cation-atom %d of molecule %d does not exists\n",atom_nr,molecule_nr);
+    fprintf(stderr, "Error: cations constraint definition, cation-atom %d of molecule %d does not exists\n",atom_nr,molecule_nr);
     exit(0);
   }
 }
@@ -148,9 +148,9 @@ char *ReadLine(char *buffer, size_t length, FILE *file)
   {
     last=strlen(buffer)-1;
 
-    if(buffer[last]=='\n') 
+    if(buffer[last]=='\n')
       buffer[last]='\0'; // discard the trailing newline
-    else 
+    else
     {
       fscanf(file,"%*[^\n]");
       (void) fgetc(file); // discard the newline
@@ -547,8 +547,8 @@ int ReadInputFile(char *inputfilename)
   // also loof for a binary restart-file, in that case immediately return
   if(!(FilePtr=fopen(inputfilename,"r")))
   {
-    printf("Error opening input-file '%s' (routine int ReadInputFile(char *inputfilename))\n",inputfilename);
-    exit(1); 
+    fprintf(stderr, "Error opening input-file '%s' (routine int ReadInputFile(char *inputfilename))\n",inputfilename);
+    exit(1);
   }
 
 
@@ -573,11 +573,11 @@ int ReadInputFile(char *inputfilename)
     // read statements for the number of systems
     if(strcasecmp("Box",keyword)==0)
     {
-      if(sscanf(arguments,"%d",&CurrentSystem)) 
+      if(sscanf(arguments,"%d",&CurrentSystem))
       {
         if(CurrentSystem<0)
         {
-          printf("Input error in 'Box'-command: the number of the system is incorrect (%d given, 0 <= system-number\n",CurrentSystem);
+          fprintf(stderr, "Input error in 'Box'-command: the number of the system is incorrect (%d given, 0 <= system-number\n",CurrentSystem);
           exit(0);
         }
         NumberOfSystems++;
@@ -586,11 +586,11 @@ int ReadInputFile(char *inputfilename)
 
     if(strcasecmp("BoxMatrix",keyword)==0)
     {
-      if(sscanf(arguments,"%d",&CurrentSystem)) 
+      if(sscanf(arguments,"%d",&CurrentSystem))
       {
         if(CurrentSystem<0)
         {
-          printf("Input error in 'BoxMatrix'-command: the number of the system is incorrect (%d given, 0 <= system-number\n",CurrentSystem);
+          fprintf(stderr, "Input error in 'BoxMatrix'-command: the number of the system is incorrect (%d given, 0 <= system-number\n",CurrentSystem);
           exit(0);
         }
         NumberOfSystems++;
@@ -599,11 +599,11 @@ int ReadInputFile(char *inputfilename)
 
     if(strcasecmp("Framework",keyword)==0)
     {
-      if(sscanf(arguments,"%d",&CurrentSystem)) 
+      if(sscanf(arguments,"%d",&CurrentSystem))
       {
         if(CurrentSystem<0)
         {
-          printf("Input error in 'Framework'-command: the number of the system is incorrect (%d given, 0 <= system-number\n",CurrentSystem);
+          fprintf(stderr, "Input error in 'Framework'-command: the number of the system is incorrect (%d given, 0 <= system-number\n",CurrentSystem);
           exit(0);
         }
         NumberOfSystems++;
@@ -613,11 +613,11 @@ int ReadInputFile(char *inputfilename)
     // read statement for the number of components
     if(strcasecmp("Component",keyword)==0)
     {
-      if(sscanf(arguments,"%d %*s %s",&CurrentComponent,string)) 
+      if(sscanf(arguments,"%d %*s %s",&CurrentComponent,string))
       {
         if(CurrentComponent<0)
         {
-          printf("Input error in 'Component'-command: the number of the component is incorrect (%d given, 0 <= component-number)\n",CurrentComponent);
+          fprintf(stderr, "Input error in 'Component'-command: the number of the component is incorrect (%d given, 0 <= component-number)\n",CurrentComponent);
           exit(0);
         }
         NumberOfComponents++;
@@ -871,7 +871,7 @@ int ReadInputFile(char *inputfilename)
   // second pass to get the number of frameworks per system
   if(!(FilePtr=fopen(inputfilename,"r")))
   {
-    printf("Error opening input-file '%s'\n",inputfilename);
+    fprintf(stderr, "Error opening input-file '%s'\n",inputfilename);
     exit(1);
   }
 
@@ -884,13 +884,13 @@ int ReadInputFile(char *inputfilename)
     sscanf(line,"%s%[^\n]",keyword,arguments);
     sscanf(arguments,"%s",firstargument);
 
-    if(strcasecmp("Framework",keyword)==0) 
+    if(strcasecmp("Framework",keyword)==0)
     {
       sscanf(arguments,"%d",&CurrentSystem);
 
       if(CurrentSystem>=NumberOfSystems)
       {
-        printf("Input error in 'Framework'-command: the number of the system is incorrect (%d given, 0 <= system-number < %d)\n",CurrentSystem,NumberOfSystems);
+        fprintf(stderr, "Input error in 'Framework'-command: the number of the system is incorrect (%d given, 0 <= system-number < %d)\n",CurrentSystem,NumberOfSystems);
         exit(0);
       }
     }
@@ -911,11 +911,11 @@ int ReadInputFile(char *inputfilename)
     // read statement for the number of components
     if(strcasecmp("Component",keyword)==0)
     {
-      if(sscanf(arguments,"%d %*s %s",&CurrentComponent,string)) 
+      if(sscanf(arguments,"%d %*s %s",&CurrentComponent,string))
       {
         if(CurrentComponent<0)
         {
-          printf("Input error in 'Component'-command: the number of the component is incorrect (%d given, 0 <= component-number)\n",CurrentComponent);
+          fprintf(stderr, "Input error in 'Component'-command: the number of the component is incorrect (%d given, 0 <= component-number)\n",CurrentComponent);
           exit(0);
         }
       }
@@ -1325,8 +1325,8 @@ int ReadInputFile(char *inputfilename)
   // final pass, most memory is now already allocated
   if(!(FilePtr=fopen(inputfilename,"r")))
   {
-    printf("Error opening input-file '%s'\n",inputfilename);
-    exit(1); 
+    fprintf(stderr, "Error opening input-file '%s'\n",inputfilename);
+    exit(1);
   }
 
   CurrentComponent=0;
@@ -1398,13 +1398,13 @@ int ReadInputFile(char *inputfilename)
     }
     if(strcasecmp("ContinueAfterCrash",keyword)==0)
     {
-      if(strcasecmp("yes",firstargument)==0) 
+      if(strcasecmp("yes",firstargument)==0)
       {
         ContinueAfterCrash=TRUE;
 
         // no need to reed the rest of the input file
         // instead read the binary status file
-        fclose(FilePtr); 
+        fclose(FilePtr);
         ReadBinaryRestartFiles();
         return 0;
       }
@@ -1421,7 +1421,7 @@ int ReadInputFile(char *inputfilename)
     {
       if(strcasecmp("yes",firstargument)==0) ReinitializeVelocities=TRUE;
       if(strcasecmp("no",firstargument)==0) ReinitializeVelocities=FALSE;
-    }  
+    }
 
 
     // read charge parameters
@@ -1441,13 +1441,13 @@ int ReadInputFile(char *inputfilename)
     {
       if(strcasecmp("yes",firstargument)==0) ChargeFromChargeEquilibration=TRUE;
       if(strcasecmp("no",firstargument)==0) ChargeFromChargeEquilibration=FALSE;
-    }  
+    }
     if(strcasecmp("ChargeEquilibrationMethod",keyword)==0)
     {
       if(strcasecmp("RAPPE_GODDARD",firstargument)==0) ChargeEquilibrationMethod=RAPPE_GODDARD;
       if(strcasecmp("WILMER_SNURR",firstargument)==0) ChargeEquilibrationMethod=WILMER_SNURR;
       if(strcasecmp("DING_YAZAYDIN_DUBBELDAM",firstargument)==0) ChargeEquilibrationMethod=DING_YAZAYDIN_DUBBELDAM;
-    }  
+    }
     if(strcasecmp("SymmetrizeFrameworkCharges",keyword)==0)
     {
       if(strcasecmp("yes",firstargument)==0) SymmetrizeFrameworkCharges=TRUE;
@@ -1466,7 +1466,7 @@ int ReadInputFile(char *inputfilename)
     if(strcasecmp("EwaldPrecision",keyword)==0) sscanf(arguments,"%lf",&EwaldPrecision),EwaldAutomatic=TRUE;
     if(strcasecmp("EwaldParameters",keyword)==0) sscanf(arguments,"%lf %d %d %d",&Alpha[CurrentSystem],
        &kvec[CurrentSystem].x,&kvec[CurrentSystem].y,&kvec[CurrentSystem].z),EwaldAutomatic=FALSE;
-    if(strcasecmp("ReciprocalCutOff",keyword)==0) 
+    if(strcasecmp("ReciprocalCutOff",keyword)==0)
     {
       sscanf(arguments,"%lf",&realinput1);
       ReciprocalCutOffSquared[CurrentSystem]=SQR(realinput1);
@@ -1521,7 +1521,7 @@ int ReadInputFile(char *inputfilename)
     if(strcasecmp("NumberOfBackPolarizationSteps",keyword)==0) sscanf(arguments,"%d",&NumberOfBackPolarizationSteps);
     if(strcasecmp("OmitInterMolecularInteractions",keyword)==0)
     {
-      if(strcasecmp("yes",firstargument)==0) 
+      if(strcasecmp("yes",firstargument)==0)
       {
         OmitInterMolecularInteractions=TRUE;
         OmitAdsorbateAdsorbateVDWInteractions=OmitAdsorbateAdsorbateCoulombInteractions=TRUE;
@@ -1562,7 +1562,7 @@ int ReadInputFile(char *inputfilename)
         OmitAdsorbateCationCoulombInteractions=TRUE;
         OmitCationCationCoulombInteractions=TRUE;
       }
-      if(strcasecmp("no",firstargument)==0) 
+      if(strcasecmp("no",firstargument)==0)
       {
         OmitInterMolecularCoulombInteractions=FALSE;
         OmitAdsorbateAdsorbateCoulombInteractions=FALSE;
@@ -1900,12 +1900,12 @@ int ReadInputFile(char *inputfilename)
 
 
     // read thermo/barostat options
-    if(strcasecmp("ExternalTemperature",keyword)==0) 
+    if(strcasecmp("ExternalTemperature",keyword)==0)
     {
       sscanf(arguments,"%lf",&therm_baro_stats.ExternalTemperature[CurrentSystem]);
       if(therm_baro_stats.ExternalTemperature[CurrentSystem]<1e-10)
       {
-        printf("ERROR: temperature (%lg) should be positive\n",therm_baro_stats.ExternalTemperature[CurrentSystem]);
+        fprintf(stderr, "ERROR: temperature (%lg) should be positive\n",therm_baro_stats.ExternalTemperature[CurrentSystem]);
         exit(0);
       }
       Beta[CurrentSystem]=1.0/(K_B*therm_baro_stats.ExternalTemperature[CurrentSystem]);
@@ -1925,9 +1925,9 @@ int ReadInputFile(char *inputfilename)
     if(strcasecmp("ThermostatChainLength",keyword)==0) sscanf(arguments,"%d",&therm_baro_stats.ThermostatChainLength);
     if(strcasecmp("BarostatChainLength",keyword)==0) sscanf(arguments,"%d",&therm_baro_stats.BarostatChainLength);
     if(strcasecmp("NumberOfYoshidaSuzukiSteps",keyword)==0) sscanf(arguments,"%d",&therm_baro_stats.NumberOfYoshidaSuzukiSteps);
-    if(strcasecmp("TimeScaleParameterThermostat",keyword)==0) 
+    if(strcasecmp("TimeScaleParameterThermostat",keyword)==0)
       sscanf(arguments,"%lf",&therm_baro_stats.time_scale_parameter_thermostat);
-    if(strcasecmp("TimeScaleParameterBarostat",keyword)==0) 
+    if(strcasecmp("TimeScaleParameterBarostat",keyword)==0)
       sscanf(arguments,"%lf",&therm_baro_stats.time_scale_parameter_barostat);
     if(strcasecmp("ExternalStress",keyword)==0)
     {
@@ -1966,7 +1966,7 @@ int ReadInputFile(char *inputfilename)
     //-----------------------------------------------------------------------------------------------------
     if(strcasecmp("Reaction",keyword)==0)
     {
-      arg_pointer=arguments; 
+      arg_pointer=arguments;
       for(i=0;i<NumberOfComponents;i++)
       {
         sscanf(arg_pointer,"%d%n",&ReactantsStoichiometry[CurrentReaction][i],&n);
@@ -1982,7 +1982,7 @@ int ReadInputFile(char *inputfilename)
 
 
     // read MD ensembles
-    if(strcasecmp("Ensemble",keyword)==0) 
+    if(strcasecmp("Ensemble",keyword)==0)
     {
       index=0;
       do
@@ -2054,7 +2054,7 @@ int ReadInputFile(char *inputfilename)
           index++;
         }
       }while(index<NumberOfSystems);
-    } 
+    }
     if(strcasecmp("NPTPRCellType",keyword)==0)
     {
       index=0;
@@ -2096,13 +2096,13 @@ int ReadInputFile(char *inputfilename)
       {
         if(CurrentSystem>=NumberOfSystems)
         {
-          printf("Input error in 'Box'-command: the number of the system is incorrect (%d given, 0 <= system-number < %d)\n",CurrentSystem,NumberOfSystems);
+          fprintf(stderr, "Input error in 'Box'-command: the number of the system is incorrect (%d given, 0 <= system-number < %d)\n",CurrentSystem,NumberOfSystems);
           exit(0);
         }
 
         if(strlen(Framework[CurrentSystem].Name[0])>0)
         {
-          printf("Input error in 'Box'-command: the number of the system %d is already taken\n",CurrentSystem);
+          fprintf(stderr, "Input error in 'Box'-command: the number of the system %d is already taken\n",CurrentSystem);
           exit(0);
         }
 
@@ -2173,13 +2173,13 @@ int ReadInputFile(char *inputfilename)
     }
 
     // read framework options
-    if(strcasecmp("Framework",keyword)==0) 
+    if(strcasecmp("Framework",keyword)==0)
     {
       if(sscanf(arguments,"%d",&CurrentSystem))
       {
         if(strlen(Framework[CurrentSystem].Name[0])>0)
         {
-          printf("Input error in 'Framework'-command: the number of the system %d is already taken\n",CurrentSystem);
+          fprintf(stderr, "Input error in 'Framework'-command: the number of the system %d is already taken\n",CurrentSystem);
           exit(0);
         }
 
@@ -2187,7 +2187,7 @@ int ReadInputFile(char *inputfilename)
         Framework[CurrentSystem].FrameworkModel=FULL;
         read_frameworks[CurrentSystem]=TRUE;
         CurrentFramework=-1;
-        
+
       }
     }
     if(strcasecmp("FrameworkName",keyword)==0)
@@ -2196,11 +2196,11 @@ int ReadInputFile(char *inputfilename)
       sscanf(arguments,"%s",Framework[CurrentSystem].Name[CurrentFramework]);
     }
     if(strcasecmp("FrameworkDefinitions",keyword)==0) sscanf(arguments,"%s",Framework[CurrentSystem].FrameworkDefinitions);
-    if(strcasecmp("FlexibleModelInputType",keyword)==0) 
+    if(strcasecmp("FlexibleModelInputType",keyword)==0)
     {
       if(strcasecmp("RASPA",firstargument)==0) Framework[CurrentSystem].FlexibleModelInputType=FLEXIBLE_FILE_TYPE_RASPA;
       if(strcasecmp("DLPOLY",firstargument)==0) Framework[CurrentSystem].FlexibleModelInputType=FLEXIBLE_FILE_TYPE_DLPOLY;
-    } 
+    }
     if(strcasecmp("HeliumVoidFraction",keyword)==0) sscanf(arguments,"%lf",&HeliumVoidFraction[CurrentSystem]);
     if(strcasecmp("ExcessVolume",keyword)==0) sscanf(arguments,"%lf",&ExcessVolume[CurrentSystem]);
     if(strcasecmp("IonsName",keyword)==0) sscanf(arguments,"%s",Framework[CurrentSystem].NameIons);
@@ -2257,7 +2257,7 @@ int ReadInputFile(char *inputfilename)
          &Framework[CurrentSystem].ShiftUnitCell[CurrentFramework].z);
     if(strcasecmp("FlexibleFramework",keyword)==0)
     {
-      if(strcasecmp("yes",firstargument)==0) 
+      if(strcasecmp("yes",firstargument)==0)
       {
         Framework[CurrentSystem].FrameworkModels[CurrentFramework]=FLEXIBLE;
         Framework[CurrentSystem].FrameworkModel=FLEXIBLE;
@@ -2273,13 +2273,13 @@ int ReadInputFile(char *inputfilename)
       {
         if(CurrentComponent>=NumberOfComponents)
         {
-          printf("Input error in 'Component'-command: the number of the component is incorrect (%d given, 0 <= component-number < %d)\n",CurrentComponent,NumberOfComponents);
+          fprintf(stderr, "Input error in 'Component'-command: the number of the component is incorrect (%d given, 0 <= component-number < %d)\n",CurrentComponent,NumberOfComponents);
           exit(0);
         }
 
         if(strlen(Components[CurrentComponent].Name)>0)
         {
-          printf("Input error in 'Component'-command: the number of the component %d is already taken\n",CurrentComponent);
+          fprintf(stderr, "Input error in 'Component'-command: the number of the component %d is already taken\n",CurrentComponent);
           exit(0);
         }
 
@@ -2335,7 +2335,7 @@ int ReadInputFile(char *inputfilename)
       {
         if(index==NumberOfSystems)
         {
-          printf("Reading mol fraction for more systems than the maximum allowed: %d\n",NumberOfSystems);
+          fprintf(stderr, "Reading mol fraction for more systems than the maximum allowed: %d\n",NumberOfSystems);
           exit(0);
         }
       }while(sscanf(arguments,"%lf %[^\n]",&Components[CurrentComponent].MolFraction[index++],arguments)>1);
@@ -2353,28 +2353,28 @@ int ReadInputFile(char *inputfilename)
     if(strcasecmp("ParallelTemperingProbability",keyword)==0) sscanf(arguments,"%lf",&ProbabilityParallelTemperingMove);
     if(strcasecmp("HyperParallelTemperingProbability",keyword)==0) sscanf(arguments,"%lf",&ProbabilityHyperParallelTemperingMove);
     if(strcasecmp("ParallelMolFractionProbability",keyword)==0) sscanf(arguments,"%lf",&ProbabilityParallelMolFractionMove);
-    if(strcasecmp("ParallelMolFractionComponentA",keyword)==0) 
+    if(strcasecmp("ParallelMolFractionComponentA",keyword)==0)
     {
       sscanf(arguments,"%d",&ParallelMolFractionComponentA);
       if((ParallelMolFractionComponentA<0)||(ParallelMolFractionComponentA>=NumberOfComponents))
       {
-        printf("Input error in 'ParallelMolFractionComponentA'-command: the number of the component %d is incorrect (should be < %d)\n",ParallelMolFractionComponentA,NumberOfComponents);
+        fprintf(stderr, "Input error in 'ParallelMolFractionComponentA'-command: the number of the component %d is incorrect (should be < %d)\n",ParallelMolFractionComponentA,NumberOfComponents);
         exit(0);
       }
     }
-    if(strcasecmp("ParallelMolFractionComponentB",keyword)==0) 
+    if(strcasecmp("ParallelMolFractionComponentB",keyword)==0)
     {
       sscanf(arguments,"%d",&ParallelMolFractionComponentB);
       if((ParallelMolFractionComponentB<0)||(ParallelMolFractionComponentB>=NumberOfComponents))
       {
-        printf("Input error in 'ParallelMolFractionComponentB'-command: the number of the component %d is incorrect (should be < %d)\n",ParallelMolFractionComponentB,NumberOfComponents);
+        fprintf(stderr, "Input error in 'ParallelMolFractionComponentB'-command: the number of the component %d is incorrect (should be < %d)\n",ParallelMolFractionComponentB,NumberOfComponents);
         exit(0);
       }
     }
     if(strcasecmp("ChiralInversionProbability",keyword)==0) sscanf(arguments,"%lf",&ProbabilityChiralInversionMove);
-    if(strcasecmp("MaximumVolumeChange",keyword)==0) 
+    if(strcasecmp("MaximumVolumeChange",keyword)==0)
       sscanf(arguments,"system %d: %lf",&CurrentSystem,&MaximumVolumeChange[CurrentSystem]);
-    if(strcasecmp("BoxShapeChangeProbability",keyword)==0) 
+    if(strcasecmp("BoxShapeChangeProbability",keyword)==0)
     {
        sscanf(arguments,"%lf",&ProbabilityBoxShapeChangeMove);
        if(BoundaryCondition[CurrentSystem]==UNINITIALIZED_BOUNDARY_CONDITION)
@@ -2387,21 +2387,21 @@ int ReadInputFile(char *inputfilename)
       if(strcasecmp("Triclinic",firstargument)==0) BoundaryCondition[CurrentSystem]=TRICLINIC;
     }
     if(strcasecmp("GibbsVolumeChangeProbability",keyword)==0) sscanf(arguments,"%lf",&ProbabilityGibbsVolumeChangeMove);
-    if(strcasecmp("MaximumGibbsVolumeChange",keyword)==0) 
+    if(strcasecmp("MaximumGibbsVolumeChange",keyword)==0)
       sscanf(arguments,"system %d: %lf",&CurrentSystem,&MaximumGibbsVolumeChange[CurrentSystem]);
-    if(strcasecmp("GibbsSwapProbability",keyword)==0) 
+    if(strcasecmp("GibbsSwapProbability",keyword)==0)
     {
       sscanf(arguments,"%lf",&Components[CurrentComponent].ProbabilityGibbsChangeMove);
       if(Components[CurrentComponent].ProbabilityGibbsChangeMove>0.0)
         Swapable=TRUE;
     }
-    if(strcasecmp("GibbsIdentityChangeProbability",keyword)==0) 
+    if(strcasecmp("GibbsIdentityChangeProbability",keyword)==0)
     {
       sscanf(arguments,"%lf",&Components[CurrentComponent].ProbabilityGibbsIdentityChangeMove);
       if(Components[CurrentComponent].ProbabilityGibbsIdentityChangeMove>0.0)
         Swapable=TRUE;
     }
-    if(strcasecmp("CFGibbsProbability",keyword)==0) 
+    if(strcasecmp("CFGibbsProbability",keyword)==0)
     {
       sscanf(arguments,"%lf",&Components[CurrentComponent].ProbabilityCFGibbsChangeMove);
       if(Components[CurrentComponent].ProbabilityCFGibbsChangeMove>0.0)
@@ -2411,7 +2411,7 @@ int ReadInputFile(char *inputfilename)
         Swapable=TRUE;
       }
     }
-    if(strcasecmp("CBCFGibbsProbability",keyword)==0) 
+    if(strcasecmp("CBCFGibbsProbability",keyword)==0)
     {
       sscanf(arguments,"%lf",&Components[CurrentComponent].ProbabilityCBCFGibbsChangeMove);
       if(Components[CurrentComponent].ProbabilityCBCFGibbsChangeMove>0.0)
@@ -2473,21 +2473,21 @@ int ReadInputFile(char *inputfilename)
     if(strcasecmp("ReinsertionInPlaneProbability",keyword)==0) sscanf(arguments,"%lf",&Components[CurrentComponent].ProbabilityReinsertionInPlaneMove);
     if(strcasecmp("IdentityChangeProbability",keyword)==0) sscanf(arguments,"%lf",&Components[CurrentComponent].ProbabilityIdentityChangeMove);
     if(strcasecmp("NumberOfIdentityChanges",keyword)==0) sscanf(arguments,"%d",&Components[CurrentComponent].NumberOfIdentityChanges);
-    if(strcasecmp("IdentityChangesList",keyword)==0) 
+    if(strcasecmp("IdentityChangesList",keyword)==0)
       for(j=0;j<Components[CurrentComponent].NumberOfIdentityChanges;j++)
         sscanf(arguments,"%d %[^\n]",&Components[CurrentComponent].IdentityChanges[j],arguments);
     if(strcasecmp("NumberOfGibbsIdentityChanges",keyword)==0) sscanf(arguments,"%d",&Components[CurrentComponent].NumberOfGibbsIdentityChanges);
-    if(strcasecmp("GibbsIdentityChangesList",keyword)==0) 
+    if(strcasecmp("GibbsIdentityChangesList",keyword)==0)
       for(j=0;j<Components[CurrentComponent].NumberOfGibbsIdentityChanges;j++)
         sscanf(arguments,"%d %[^\n]",&Components[CurrentComponent].GibbsIdentityChanges[j],arguments);
-    if(strcasecmp("SwapProbability",keyword)==0) 
+    if(strcasecmp("SwapProbability",keyword)==0)
       if(sscanf(arguments,"%lf",&Components[CurrentComponent].ProbabilitySwapMove))
         if(Components[CurrentComponent].ProbabilitySwapMove>0.0)
         {
           Components[CurrentComponent].Swapable=TRUE;
           Swapable=TRUE;
         }
-    if(strcasecmp("CFSwapLambdaProbability",keyword)==0) 
+    if(strcasecmp("CFSwapLambdaProbability",keyword)==0)
       if(sscanf(arguments,"%lf",&Components[CurrentComponent].ProbabilityCFSwapLambdaMove))
       {
         if(Components[CurrentComponent].ProbabilityCFSwapLambdaMove>0.0)
@@ -2497,7 +2497,7 @@ int ReadInputFile(char *inputfilename)
           Swapable=TRUE;
         }
       }
-    if(strcasecmp("CFCBSwapLambdaProbability",keyword)==0) 
+    if(strcasecmp("CFCBSwapLambdaProbability",keyword)==0)
       if(sscanf(arguments,"%lf",&Components[CurrentComponent].ProbabilityCFCBSwapLambdaMove))
       {
         if(Components[CurrentComponent].ProbabilityCFCBSwapLambdaMove>0.0)
@@ -2520,23 +2520,23 @@ int ReadInputFile(char *inputfilename)
         NumberOfCFBiasingFactors++;
       }
     }
-    if(strcasecmp("WidomProbability",keyword)==0) 
+    if(strcasecmp("WidomProbability",keyword)==0)
       if(sscanf(arguments,"%lf",&Components[CurrentComponent].ProbabilityWidomMove))
         if(Components[CurrentComponent].ProbabilityWidomMove>0.0)
           Components[CurrentComponent].Widom=TRUE;
     if(strcasecmp("WidomParticleInsertionComponent",keyword)==0) sscanf(arguments,"%d",&WidomParticleInsertionComponent);
     if(strcasecmp("SurfaceAreaProbability",keyword)==0) sscanf(arguments,"%lf",&Components[CurrentComponent].ProbabilitySurfaceAreaMove);
-    if(strcasecmp("RestrictEnantionface",keyword)==0) 
+    if(strcasecmp("RestrictEnantionface",keyword)==0)
     {
       if(strcasecmp("yes",firstargument)==0) Components[CurrentComponent].RestrictEnantionface=TRUE;
       if(strcasecmp("no",firstargument)==0) Components[CurrentComponent].RestrictEnantionface=FALSE;
     }
-    if(strcasecmp("Enantioface",keyword)==0) 
+    if(strcasecmp("Enantioface",keyword)==0)
     {
       if(strcasecmp("Re",firstargument)==0) Components[CurrentComponent].Enantioface=ENANTIOFACE_RE;
       if(strcasecmp("Si",firstargument)==0) Components[CurrentComponent].Enantioface=ENANTIOFACE_SI;
     }
-    if(strcasecmp("EnantiofaceAtoms",keyword)==0) 
+    if(strcasecmp("EnantiofaceAtoms",keyword)==0)
     {
       sscanf(arguments," %c%d%d %c%d%d %c%d%d %c%d%d %c%d%d %[^\n]",&charinput1,&intinput1,&intinput2,&charinput2,&intinput3,&intinput4,
             &charinput3,&intinput5,&intinput6,&charinput4,&intinput7,&intinput8,&charinput5,&intinput9,&intinput10,arguments);
@@ -2587,7 +2587,7 @@ int ReadInputFile(char *inputfilename)
       Components[CurrentComponent].EnantiofaceAtomDefinitions[4][2]=intinput10;
     }
 
-    if(strcasecmp("ExtraFrameworkMolecule",keyword)==0) 
+    if(strcasecmp("ExtraFrameworkMolecule",keyword)==0)
     {
       if(strcasecmp("yes",firstargument)==0) Components[CurrentComponent].ExtraFrameworkMolecule=TRUE;
       if(strcasecmp("no",firstargument)==0) Components[CurrentComponent].ExtraFrameworkMolecule=FALSE;
@@ -2599,7 +2599,7 @@ int ReadInputFile(char *inputfilename)
       {
         if(index==NumberOfSystems)
         {
-          printf("Creating molecules for more systems than the maximum allowed: %d\n",NumberOfSystems);
+          fprintf(stderr, "Creating molecules for more systems than the maximum allowed: %d\n",NumberOfSystems);
           exit(0);
         }
       }while(sscanf(arguments,"%d %[^\n]",&Components[CurrentComponent].CreateNumberOfMolecules[index++],arguments)>1);
@@ -2608,10 +2608,10 @@ int ReadInputFile(char *inputfilename)
     {
       index=0;
       do
-      { 
+      {
         if(index==NumberOfSystems)
         {
-          printf("Reading fugacity coefficients (%d) for more systems than the maximum allowed: %d\n",index,NumberOfSystems);
+          fprintf(stderr, "Reading fugacity coefficients (%d) for more systems than the maximum allowed: %d\n",index,NumberOfSystems);
           exit(0);
         }
       }while(sscanf(arguments,"%lf %[^\n]",&Components[CurrentComponent].FugacityCoefficient[index++],arguments)>1);
@@ -2625,42 +2625,42 @@ int ReadInputFile(char *inputfilename)
       {
         if(index==NumberOfSystems)
         {
-          printf("Reading ideal Rosenbluth weights for more systems than the maximum allowed: %d\n",NumberOfSystems);
+          fprintf(stderr, "Reading ideal Rosenbluth weights for more systems than the maximum allowed: %d\n",NumberOfSystems);
           exit(0);
         }
       }while(sscanf(arguments,"%lf %[^\n]",&Components[CurrentComponent].IdealGasRosenbluthWeight[index++],arguments)>1);
     }
-    if(strcasecmp("RestrictMovesToBox",keyword)==0) 
+    if(strcasecmp("RestrictMovesToBox",keyword)==0)
     {
-      if(strcasecmp("yes",firstargument)==0) 
+      if(strcasecmp("yes",firstargument)==0)
       {
         Components[CurrentComponent].RestrictMovesToBox=TRUE;
         Components[CurrentComponent].RestrictMoves=TRUE;
       }
       if(strcasecmp("no",firstargument)==0) Components[CurrentComponent].RestrictMovesToBox=FALSE;
     }
-    if(strcasecmp("BoxAxisABC_Min",keyword)==0) 
+    if(strcasecmp("BoxAxisABC_Min",keyword)==0)
       sscanf(arguments,"%lf %lf %lf",&Components[CurrentComponent].BoxAxisABC_Min.x,
              &Components[CurrentComponent].BoxAxisABC_Min.y,&Components[CurrentComponent].BoxAxisABC_Min.z);
-    if(strcasecmp("BoxAxisABC_Max",keyword)==0) 
+    if(strcasecmp("BoxAxisABC_Max",keyword)==0)
       sscanf(arguments,"%lf %lf %lf",&Components[CurrentComponent].BoxAxisABC_Max.x,
              &Components[CurrentComponent].BoxAxisABC_Max.y,&Components[CurrentComponent].BoxAxisABC_Max.z);
-    if(strcasecmp("BoxAxisABC_Min2",keyword)==0) 
+    if(strcasecmp("BoxAxisABC_Min2",keyword)==0)
       sscanf(arguments,"%lf %lf %lf",&Components[CurrentComponent].BoxAxisABC_Min2.x,
              &Components[CurrentComponent].BoxAxisABC_Min2.y,&Components[CurrentComponent].BoxAxisABC_Min2.z);
-    if(strcasecmp("BoxAxisABC_Max2",keyword)==0) 
+    if(strcasecmp("BoxAxisABC_Max2",keyword)==0)
       sscanf(arguments,"%lf %lf %lf",&Components[CurrentComponent].BoxAxisABC_Max2.x,
              &Components[CurrentComponent].BoxAxisABC_Max2.y,&Components[CurrentComponent].BoxAxisABC_Max2.z);
-    if(strcasecmp("BoxAxisABC_Min3",keyword)==0) 
+    if(strcasecmp("BoxAxisABC_Min3",keyword)==0)
       sscanf(arguments,"%lf %lf %lf",&Components[CurrentComponent].BoxAxisABC_Min3.x,
              &Components[CurrentComponent].BoxAxisABC_Min3.y,&Components[CurrentComponent].BoxAxisABC_Min3.z);
-    if(strcasecmp("BoxAxisABC_Max3",keyword)==0) 
+    if(strcasecmp("BoxAxisABC_Max3",keyword)==0)
       sscanf(arguments,"%lf %lf %lf",&Components[CurrentComponent].BoxAxisABC_Max3.x,
              &Components[CurrentComponent].BoxAxisABC_Max3.y,&Components[CurrentComponent].BoxAxisABC_Max3.z);
-    if(strcasecmp("BoxAxisABC_Min4",keyword)==0) 
+    if(strcasecmp("BoxAxisABC_Min4",keyword)==0)
       sscanf(arguments,"%lf %lf %lf",&Components[CurrentComponent].BoxAxisABC_Min4.x,
              &Components[CurrentComponent].BoxAxisABC_Min4.y,&Components[CurrentComponent].BoxAxisABC_Min4.z);
-    if(strcasecmp("BoxAxisABC_Max4",keyword)==0) 
+    if(strcasecmp("BoxAxisABC_Max4",keyword)==0)
       sscanf(arguments,"%lf %lf %lf",&Components[CurrentComponent].BoxAxisABC_Max4.x,
              &Components[CurrentComponent].BoxAxisABC_Max4.y,&Components[CurrentComponent].BoxAxisABC_Max4.z);
 
@@ -2692,14 +2692,14 @@ int ReadInputFile(char *inputfilename)
 
     if(strcasecmp("RestrictMovesToCylinder",keyword)==0)
     {
-      if(strcasecmp("yes",firstargument)==0) 
+      if(strcasecmp("yes",firstargument)==0)
       {
         Components[CurrentComponent].RestrictMoves=TRUE;
         Components[CurrentComponent].RestrictMovesToCylinders=TRUE;
       }
       if(strcasecmp("no",firstargument)==0) Components[CurrentComponent].RestrictMovesToCylinders=FALSE;
     }
-    if(strcasecmp("Cylinder",keyword)==0) 
+    if(strcasecmp("Cylinder",keyword)==0)
     {
       sscanf(arguments,"%d",&CurrentCylinder);
       Components[CurrentComponent].RestrictMovesToCylinder[CurrentCylinder]=TRUE;
@@ -2735,14 +2735,14 @@ int ReadInputFile(char *inputfilename)
 
     if(strcasecmp("RestrictMovesToSphere",keyword)==0)
     {
-      if(strcasecmp("yes",firstargument)==0) 
+      if(strcasecmp("yes",firstargument)==0)
       {
         Components[CurrentComponent].RestrictMoves=TRUE;
         Components[CurrentComponent].RestrictMovesToSpheres=TRUE;
       }
       if(strcasecmp("no",firstargument)==0) Components[CurrentComponent].RestrictMovesToSpheres=FALSE;
     }
-    if(strcasecmp("Sphere",keyword)==0) 
+    if(strcasecmp("Sphere",keyword)==0)
     {
       sscanf(arguments,"%d",&CurrentSphere);
       Components[CurrentComponent].RestrictMovesToSphere[CurrentSphere]=TRUE;
@@ -2760,20 +2760,20 @@ int ReadInputFile(char *inputfilename)
       Components[CurrentComponent].RestrictSphereRadius[CurrentSphere]*=0.5;
     }
 
-    if(strcasecmp("TransmissionCoefficients",keyword)==0) 
+    if(strcasecmp("TransmissionCoefficients",keyword)==0)
     {
       if(strcasecmp("yes",firstargument)==0) Components[CurrentComponent].TransmissionCoefficient=TRUE;
       if(strcasecmp("no",firstargument)==0) Components[CurrentComponent].TransmissionCoefficient=FALSE;
     }
-    if(strcasecmp("BiasingMethod",keyword)==0) 
+    if(strcasecmp("BiasingMethod",keyword)==0)
     {
       if(strcasecmp("umbrella",firstargument)==0) Components[CurrentComponent].Biased=UMBRELLA;
       if(strcasecmp("ruizmontero",firstargument)==0) Components[CurrentComponent].Biased=RUIZ_MONTERO;
     }
     if(strcasecmp("RuizMonterofactor",keyword)==0) sscanf(arguments,"%lf",&Components[CurrentComponent].RuizMonteroFactor);
     if(strcasecmp("UmbrellaFactor",keyword)==0) sscanf(arguments,"%lf",&Components[CurrentComponent].UmbrellaFactor);
-    if(strcasecmp("BiasingProfile",keyword)==0) 
-    { 
+    if(strcasecmp("BiasingProfile",keyword)==0)
+    {
       Components[CurrentComponent].ReadBiasingFunction=TRUE;
       sscanf(arguments,"%s",Components[CurrentComponent].BiasingFunctionName);
     }
@@ -2796,7 +2796,7 @@ int ReadInputFile(char *inputfilename)
       if(strcasecmp("C_AB_DIAGONAL",firstargument)==0) Components[CurrentComponent].BiasingDirection=MAP_C_AB_DIAGONAL;
       if(strcasecmp("O_ABC_DIAGONAL",firstargument)==0) Components[CurrentComponent].BiasingDirection=MAP_O_ABC_DIAGONAL;
     }
-    if(strcasecmp("Histogram",keyword)==0) 
+    if(strcasecmp("Histogram",keyword)==0)
     {
       if(strcasecmp("yes",firstargument)==0) ComputePositionHistogram[CurrentSystem]=TRUE;
       if(strcasecmp("no",firstargument)==0) ComputePositionHistogram[CurrentSystem]=FALSE;
@@ -2889,7 +2889,7 @@ int ReadInputFile(char *inputfilename)
     if(strcasecmp("WritePSDHistogramEvery",keyword)==0) sscanf(arguments,"%d",&WritePSDHistogramEvery[CurrentSystem]);
     if(strcasecmp("PSDHistogramSize",keyword)==0) sscanf(arguments,"%d",&PSDHistogramSize[CurrentSystem]);
     if(strcasecmp("PSDRange",keyword)==0) sscanf(arguments,"%lf",&PSDRange[CurrentSystem]);
-    if(strcasecmp("PSDProbeDistance",keyword)==0) 
+    if(strcasecmp("PSDProbeDistance",keyword)==0)
     {
       if(strcasecmp("Minimum",firstargument)==0) Framework[CurrentSystem].PoreSizeDistributionProbeDistance=pow(2.0,1.0/6.0);
       if(strcasecmp("Sigma",firstargument)==0) Framework[CurrentSystem].PoreSizeDistributionProbeDistance=1.0;
@@ -3009,7 +3009,7 @@ int ReadInputFile(char *inputfilename)
     if(strcasecmp("SampleEveryInfraRed",keyword)==0) sscanf(arguments,"%d",&SampleEveryInfraRed);
 
     // sampling the mean-squared displacement using a modified order-N algorithm
-    if(strcasecmp("ComputeMSD",keyword)==0) 
+    if(strcasecmp("ComputeMSD",keyword)==0)
     {
       if(strcasecmp("yes",firstargument)==0) ComputeMSDOrderN[CurrentSystem]=TRUE;
       if(strcasecmp("no",firstargument)==0) ComputeMSDOrderN[CurrentSystem]=FALSE;
@@ -3018,7 +3018,7 @@ int ReadInputFile(char *inputfilename)
     if(strcasecmp("SampleMSDEvery",keyword)==0) sscanf(arguments,"%d",&SampleMSDOrderNEvery[CurrentSystem]);
     if(strcasecmp("NumberOfBlockElementsMSD",keyword)==0) sscanf(arguments,"%d",&NumberOfBlockElementsMSDOrderN);
     if(strcasecmp("NumberOfBlocksMSD",keyword)==0) sscanf(arguments,"%d",&MaxNumberOfBlocksMSDOrderN);
-    if(strcasecmp("ComputeIndividualMSD",keyword)==0) 
+    if(strcasecmp("ComputeIndividualMSD",keyword)==0)
     {
       if(strcasecmp("yes",firstargument)==0) ComputeIndividualMSDOrderN=TRUE;
       if(strcasecmp("no",firstargument)==0) ComputeIndividualMSDOrderN=FALSE;
@@ -3105,20 +3105,20 @@ int ReadInputFile(char *inputfilename)
     if(strcasecmp("BufferLengthVACFConventional",keyword)==0) sscanf(arguments,"%d",&BufferLengthVACF);
 
     // sampling the 3D histograms of position (i.e. 3D free energy)
-    if(strcasecmp("ComputeDensityProfile3DVTKGrid",keyword)==0) 
+    if(strcasecmp("ComputeDensityProfile3DVTKGrid",keyword)==0)
     {
       if(strcasecmp("yes",firstargument)==0) ComputeDensityProfile3DVTKGrid[CurrentSystem]=TRUE;
       if(strcasecmp("no",firstargument)==0) ComputeDensityProfile3DVTKGrid[CurrentSystem]=FALSE;
     }
     if(strcasecmp("WriteDensityProfile3DVTKGridEvery",keyword)==0) sscanf(arguments,"%d",&WriteDensityProfile3DVTKGridEvery[CurrentSystem]);
-    if(strcasecmp("DensityProfile3DVTKGridPoints",keyword)==0) 
+    if(strcasecmp("DensityProfile3DVTKGridPoints",keyword)==0)
       sscanf(arguments,"%d %d %d",&DensityProfile3DVTKGridPoints.x,&DensityProfile3DVTKGridPoints.y,&DensityProfile3DVTKGridPoints.z);
-    if(strcasecmp("DensityAveragingTypeVTK",keyword)==0) 
+    if(strcasecmp("DensityAveragingTypeVTK",keyword)==0)
     {
       if((strcasecmp("unit_cell",firstargument)==0)||(strcasecmp("UnitCell",firstargument)==0)) DensityAveragingTypeVTK=VTK_UNIT_CELL;
       if((strcasecmp("full_box",firstargument)==0)||(strcasecmp("FullBox",firstargument)==0)) DensityAveragingTypeVTK=VTK_FULL_BOX;
     }
-    if(strcasecmp("AverageDensityOverUnitCellsVTK",keyword)==0) 
+    if(strcasecmp("AverageDensityOverUnitCellsVTK",keyword)==0)
     {
       if(strcasecmp("yes",firstargument)==0) AverageDensityOverUnitCellsVTK=TRUE;
       if(strcasecmp("no",firstargument)==0) AverageDensityOverUnitCellsVTK=FALSE;
@@ -3142,7 +3142,7 @@ int ReadInputFile(char *inputfilename)
     }
 
     // samples the principle moment of inertia
-    if(strcasecmp("ComputePrincipleMomentsOfInertia",keyword)==0) 
+    if(strcasecmp("ComputePrincipleMomentsOfInertia",keyword)==0)
     {
       if(strcasecmp("yes",firstargument)==0) ComputePrincipleMomentsOfInertia=TRUE;
       if(strcasecmp("no",firstargument)==0) ComputePrincipleMomentsOfInertia=FALSE;
@@ -3158,34 +3158,34 @@ int ReadInputFile(char *inputfilename)
 
     if(strcasecmp("SurfaceAreaProbeAtom",keyword)==0) sscanf(arguments,"%s",Framework[CurrentSystem].SurfaceAreaProbeAtom);
     if(strcasecmp("SurfaceAreaSamplingPointsPerSphere",keyword)==0) sscanf(arguments,"%d",&Framework[CurrentSystem].SurfaceAreaSamplingPointsPerShere);
-    if(strcasecmp("SurfaceAreaProbeDistance",keyword)==0) 
+    if(strcasecmp("SurfaceAreaProbeDistance",keyword)==0)
     {
       if(strcasecmp("Minimum",firstargument)==0) Framework[CurrentSystem].SurfaceAreaProbeDistance=pow(2.0,1.0/6.0);
       if(strcasecmp("Sigma",firstargument)==0) Framework[CurrentSystem].SurfaceAreaProbeDistance=1.0;
     }
 
-    if(strcasecmp("ComputeElasticConstants",keyword)==0) 
+    if(strcasecmp("ComputeElasticConstants",keyword)==0)
     {
       if(strcasecmp("yes",firstargument)==0) ComputeElasticConstants=ComputeBornTerm=ComputeCrossTerm=TRUE;
       if(strcasecmp("no",firstargument)==0) ComputeElasticConstants=ComputeBornTerm=ComputeCrossTerm=FALSE;
     }
-    if(strcasecmp("ComputeElasticConstantsThirdOrder",keyword)==0) 
+    if(strcasecmp("ComputeElasticConstantsThirdOrder",keyword)==0)
     {
       if(strcasecmp("yes",firstargument)==0) ComputeElasticConstantsThirdOrder=ComputeElasticConstants=ComputeBornTerm=ComputeCrossTerm=TRUE;
       if(strcasecmp("no",firstargument)==0) ComputeElasticConstantsThirdOrder=FALSE;
     }
-    if(strcasecmp("ComputePowderDiffractionPattern",keyword)==0) 
+    if(strcasecmp("ComputePowderDiffractionPattern",keyword)==0)
     {
       if(strcasecmp("yes",firstargument)==0) ComputePowderDiffractionPattern=TRUE;
       if(strcasecmp("no",firstargument)==0) ComputePowderDiffractionPattern=FALSE;
     }
-    if(strcasecmp("DiffractionType",keyword)==0) 
+    if(strcasecmp("DiffractionType",keyword)==0)
     {
       if(strcasecmp("xray",firstargument)==0) Diffraction.Type=XRAY_DIFFRACTION;
       if(strcasecmp("neutron",firstargument)==0) Diffraction.Type=NEUTRON_DIFFRACTION;
       if(strcasecmp("electron",firstargument)==0) Diffraction.Type=ELECTRON_DIFFRACTION;
     }
-    if(strcasecmp("DiffractionRadiationType",keyword)==0) 
+    if(strcasecmp("DiffractionRadiationType",keyword)==0)
     {
       if(strcasecmp("chromium",firstargument)==0) Diffraction.RadiationType=CHROMIUM_RADIATION;
       if(strcasecmp("iron",firstargument)==0) Diffraction.RadiationType=IRON_RADIATION;
@@ -3194,12 +3194,12 @@ int ReadInputFile(char *inputfilename)
       if(strcasecmp("silver",firstargument)==0) Diffraction.RadiationType=SILVER_RADIATION;
       if(strcasecmp("synchrotron",firstargument)==0) Diffraction.RadiationType=SYNCHROTRON_RADIATION;
     }
-    if(strcasecmp("WaveLengthType",keyword)==0) 
+    if(strcasecmp("WaveLengthType",keyword)==0)
     {
       if(strcasecmp("Single",firstargument)==0) Diffraction.lambda_type=DIFFRACTION_SINGLE;
       if(strcasecmp("Double",firstargument)==0) Diffraction.lambda_type=DIFFRACTION_DOUBLET;
     }
-    if(strcasecmp("PeakShape",keyword)==0) 
+    if(strcasecmp("PeakShape",keyword)==0)
     {
       if(strcasecmp("Gaussian",firstargument)==0) Diffraction.PeakShape=DIFFRACTION_GAUSSIAN;
       if(strcasecmp("Lorentzian",firstargument)==0) Diffraction.PeakShape=DIFFRACTION_LORENTZIAN;
@@ -3214,12 +3214,12 @@ int ReadInputFile(char *inputfilename)
     if(strcasecmp("PeakWidthModifierW",keyword)==0) sscanf(arguments,"%lf",&Diffraction.w);
 
 
-    if(strcasecmp("ComputeNormalModes",keyword)==0) 
+    if(strcasecmp("ComputeNormalModes",keyword)==0)
     {
       if(strcasecmp("yes",firstargument)==0) ComputeNormalModes=TRUE;
       if(strcasecmp("no",firstargument)==0) ComputeNormalModes=FALSE;
     }
-    if(strcasecmp("CorrectNormalModesForConstraints",keyword)==0) 
+    if(strcasecmp("CorrectNormalModesForConstraints",keyword)==0)
     {
       if(strcasecmp("yes",firstargument)==0) CorrectNormalModesForConstraints=TRUE;
       if(strcasecmp("no",firstargument)==0) CorrectNormalModesForConstraints=FALSE;
@@ -3250,14 +3250,14 @@ int ReadInputFile(char *inputfilename)
          sscanf(arguments,"%lf %lf %lf",&VTKFractionalCationComMin.x,&VTKFractionalCationComMin.y,&VTKFractionalCationComMin.z);
     if(strcasecmp("VTKFractionalCationMax",keyword)==0)
          sscanf(arguments,"%lf %lf %lf",&VTKFractionalCationComMax.x,&VTKFractionalCationComMax.y,&VTKFractionalCationComMax.z);
-    if(strcasecmp("FreeEnergyAveragingTypeVTK",keyword)==0) 
+    if(strcasecmp("FreeEnergyAveragingTypeVTK",keyword)==0)
     {
       if((strcasecmp("unit_cell",firstargument)==0)||(strcasecmp("UnitCell",firstargument)==0)) FreeEnergyAveragingTypeVTK=VTK_UNIT_CELL;
       if((strcasecmp("full_box",firstargument)==0)||(strcasecmp("FullBox",firstargument)==0)) FreeEnergyAveragingTypeVTK=VTK_FULL_BOX;
     }
 
     // read energy/force grid options
-    if(strcasecmp("UseTabularGrid",keyword)==0) 
+    if(strcasecmp("UseTabularGrid",keyword)==0)
       if((strcasecmp(firstargument,"yes")==0)&&(SimulationType!=MAKE_GRID)) UseTabularGrid=TRUE;
     if(strcasecmp("SpacingVDWGrid",keyword)==0) sscanf(arguments,"%lf",&SpacingVDWGrid);
     if(strcasecmp("SpacingCoulombGrid",keyword)==0) sscanf(arguments,"%lf",&SpacingCoulombGrid);
@@ -3266,7 +3266,7 @@ int ReadInputFile(char *inputfilename)
       sscanf(arguments,"%d",&NumberOfGrids);
       GridTypeListName=(char(*)[256])calloc(NumberOfGrids,sizeof(char[256]));
     }
-    if(strcasecmp("GridTypes",keyword)==0) 
+    if(strcasecmp("GridTypes",keyword)==0)
     {
       for(j=0;j<NumberOfGrids;j++)
         sscanf(arguments,"%s %[^\n]",GridTypeListName[j],arguments);
@@ -3297,7 +3297,7 @@ int ReadInputFile(char *inputfilename)
     }
 
     // read method of minimization
-    if(strcasecmp("MinimizationMethod",keyword)==0) 
+    if(strcasecmp("MinimizationMethod",keyword)==0)
     {
       if(strcasecmp("SteepestDescent",firstargument)==0) MinimizationMethod=STEEPEST_DESCENT_MINIMIZATION;
       if(strcasecmp("ConjugateGradient",firstargument)==0) MinimizationMethod=CONJUGATE_GRADIENT_MINIMIZATION;
@@ -3307,12 +3307,12 @@ int ReadInputFile(char *inputfilename)
       if((strcasecmp("NewtonRaphson",firstargument)==0)||(strcasecmp("NewtonRaphsonMinimization",firstargument)==0)) MinimizationMethod=NEWTON_RAPHSON_MINIMIZATION;
       if((strcasecmp("BakerSaddlePoint",firstargument)==0)||(strcasecmp("SaddlePoint",firstargument)==0)) MinimizationMethod=BAKER_SADDLE_POINT;
     }
-    if(strcasecmp("MinimizationVariables",keyword)==0) 
+    if(strcasecmp("MinimizationVariables",keyword)==0)
     {
       if(strcasecmp("Fractional",firstargument)==0) MinimizationVariables=FRACTIONAL;
       if(strcasecmp("Cartesian",firstargument)==0) MinimizationVariables=CARTESIAN;
     }
-    if(strcasecmp("UseSymmetryInMinimization",keyword)==0) 
+    if(strcasecmp("UseSymmetryInMinimization",keyword)==0)
     {
       if(strcasecmp("yes",firstargument)==0) UseSymmetryInMinimization=TRUE;
       if(strcasecmp("no",firstargument)==0) UseSymmetryInMinimization=FALSE;
@@ -3321,25 +3321,25 @@ int ReadInputFile(char *inputfilename)
     if(strcasecmp("MaximumNumberOfMinimizationSteps",keyword)==0) sscanf(arguments,"%d",&MaximumNumberOfMinimizationSteps);
     if(strcasecmp("RMSGradientTolerance",keyword)==0) sscanf(arguments,"%lf",&RMSGradientTolerance);
     if(strcasecmp("MaxGradientTolerance",keyword)==0) sscanf(arguments,"%lf",&MaxGradientTolerance);
-    if(strcasecmp("MaximumStepLength",keyword)==0) 
+    if(strcasecmp("MaximumStepLength",keyword)==0)
     {
       sscanf(arguments,"%lf",&MaximumStepLengthInput);
       MaximumStepLength=MaximumStepLengthInput;
     }
-    if(strcasecmp("MinimizationConvergenceFactor",keyword)==0) 
+    if(strcasecmp("MinimizationConvergenceFactor",keyword)==0)
       sscanf(arguments,"%lf",&MinimizationConvergenceFactor);
-    if(strcasecmp("UseGradientInLineMinimization",keyword)==0) 
+    if(strcasecmp("UseGradientInLineMinimization",keyword)==0)
     {
       if(strcasecmp("yes",firstargument)==0) UseGradientInLineMinimization=TRUE;
       if(strcasecmp("no",firstargument)==0) UseGradientInLineMinimization=FALSE;
     }
-    if(strcasecmp("TransformUnitCell",keyword)==0) 
+    if(strcasecmp("TransformUnitCell",keyword)==0)
     {
       if(strcasecmp("yes",firstargument)==0) TransformUnitCell=TRUE;
       if(strcasecmp("no",firstargument)==0) TransformUnitCell=FALSE;
     }
     if(strcasecmp("UnitCellDeformation",keyword)==0) sscanf(arguments,"%lf",&UnitCellDeformation);
-    if(strcasecmp("ElasticConstantEnergyVolume",keyword)==0) 
+    if(strcasecmp("ElasticConstantEnergyVolume",keyword)==0)
     {
       if(strcasecmp("CUBIC_C44",firstargument)==0) ElasticConstantEnergyVolume=ELASTIC_CONSTANT_CUBIC_C44;
       if(strcasecmp("CUBIC_CS",firstargument)==0) ElasticConstantEnergyVolume=ELASTIC_CONSTANT_CUBIC_CS;
@@ -3347,12 +3347,12 @@ int ReadInputFile(char *inputfilename)
       if(strcasecmp("HEXAGONAL_C44",firstargument)==0) ElasticConstantEnergyVolume=ELASTIC_CONSTANT_HEXAGONAL_C44;
       if(strcasecmp("BULK_MODULUS",firstargument)==0) ElasticConstantEnergyVolume=ELASTIC_CONSTANT_BULK_MODULUS;
     }
-    if(strcasecmp("MinimizationPotentialMethod",keyword)==0) 
+    if(strcasecmp("MinimizationPotentialMethod",keyword)==0)
     {
       if(strcasecmp("Analytically",firstargument)==0) MinimizationPotentialMethod=ANALYTICALLY;
       if(strcasecmp("Numerically",firstargument)==0) MinimizationPotentialMethod=NUMERICALLY;
     }
-    if(strcasecmp("ComputeLambda",keyword)==0) 
+    if(strcasecmp("ComputeLambda",keyword)==0)
     {
       if(strcasecmp("LambdaMethod1",firstargument)==0) ComputeLambda=LAMBDA_METHOD_1;
       if(strcasecmp("LambdaMethod2",firstargument)==0) ComputeLambda=LAMBDA_METHOD_2;
@@ -3371,7 +3371,7 @@ int ReadInputFile(char *inputfilename)
     {
       if(strcasecmp("free",firstargument)==0) FrameworkFixedInitialization[CurrentSystem][CurrentFramework]=FREE;
       if(strcasecmp("fixed",firstargument)==0) FrameworkFixedInitialization[CurrentSystem][CurrentFramework]=FIXED;
-    } 
+    }
     if(strcasecmp("AdsorbateFixedInitialization",keyword)==0)
     {
       if(strcasecmp("free",firstargument)==0) AdsorbateFixedInitialization[CurrentSystem]=FREE;
@@ -3979,7 +3979,7 @@ int ReadInputFile(char *inputfilename)
       AngleBetweenPlanesHistogramDefinitions[CurrentSystem][NumberOfAngleBetweenPlanesHistogramDefinitions[CurrentSystem]][5][2]=intinput12;
 
       NumberOfAngleBetweenPlanesHistogramDefinitions[CurrentSystem]++;
-    } 
+    }
 
     if(strcasecmp("DistanceConstraint",keyword)==0)
     {
@@ -4106,7 +4106,7 @@ int ReadInputFile(char *inputfilename)
       DihedralConstraintParameter[CurrentSystem][NumberOfDihedralConstraints[CurrentSystem]]=UNDEFINED;
       if(sscanf(arguments,"%lf",&realinput1)==1)
         DihedralConstraintParameter[CurrentSystem][NumberOfDihedralConstraints[CurrentSystem]]=realinput1*DEG2RAD;
-      
+
       NumberOfDihedralConstraints[CurrentSystem]++;
     }
 
@@ -4413,11 +4413,11 @@ int ReadInputFile(char *inputfilename)
       }
       else if(sscanf(arguments,"%lf",&realinput1)==1)
         HarmonicDihedralConstraintParameters[CurrentSystem][NumberOfHarmonicDihedralConstraints[CurrentSystem]][0]=realinput1/ENERGY_TO_KELVIN;
-      
+
       NumberOfHarmonicDihedralConstraints[CurrentSystem]++;
     }
 
-    if(strcasecmp("DistanceConstraintType",keyword)==0) 
+    if(strcasecmp("DistanceConstraintType",keyword)==0)
     {
       if(strcasecmp("Distance",firstargument)==0) DistanceConstraintType=DISTANCE_R;
       if(strcasecmp("DistanceSquared",firstargument)==0) DistanceConstraintType=DISTANCE_R_SQUARED;
@@ -4524,7 +4524,7 @@ int ReadInputFile(char *inputfilename)
 
 
     // read Monte Carlo settings
-    if(strcasecmp("CBMCBiasingMethod",keyword)==0) 
+    if(strcasecmp("CBMCBiasingMethod",keyword)==0)
     {
       if(strcasecmp("LJ_Biasing",firstargument)==0) BiasingMethod=LJ_BIASING;
       if(strcasecmp("LJ_And_Real_Biasing",firstargument)==0) BiasingMethod=LJ_AND_REAL_BIASING;
@@ -4533,7 +4533,7 @@ int ReadInputFile(char *inputfilename)
     if(strcasecmp("MinimumInnerCycles",keyword)==0) sscanf(arguments,"%d",&MinimumInnerCycles);
     if(strcasecmp("NumberOfTrialPositions",keyword)==0) sscanf(arguments,"%d",&NumberOfTrialPositions);
     if(strcasecmp("NumberOfTrialPositionsTorsion",keyword)==0) sscanf(arguments,"%d",&NumberOfTrialPositionsTorsion);
-    if(strcasecmp("NumberOfTrialPositionsForTheFirstBead",keyword)==0) 
+    if(strcasecmp("NumberOfTrialPositionsForTheFirstBead",keyword)==0)
        sscanf(arguments,"%d",&NumberOfTrialPositionsForTheFirstBead);
     if(strcasecmp("NumberOfTrialMovesPerOpenBead",keyword)==0) sscanf(arguments,"%d",&NumberOfTrialMovesPerOpenBead);
     if(strcasecmp("TargetAccRatioSmallMCScheme",keyword)==0) sscanf(arguments,"%lf",&TargetAccRatioSmallMCScheme);
@@ -4542,7 +4542,7 @@ int ReadInputFile(char *inputfilename)
 
 
     // transition state theory settings
-    if(strcasecmp("FreeEnergyMappingType",keyword)==0) 
+    if(strcasecmp("FreeEnergyMappingType",keyword)==0)
     {
       if(strcasecmp("A",firstargument)==0) FreeEnergyMappingType[CurrentSystem]=A_MAPPING;
       if(strcasecmp("B",firstargument)==0) FreeEnergyMappingType[CurrentSystem]=B_MAPPING;
@@ -4562,7 +4562,7 @@ int ReadInputFile(char *inputfilename)
       if(strcasecmp("C_AB_DIAGONAL",firstargument)==0) FreeEnergyMappingType[CurrentSystem]=MAP_C_AB_DIAGONAL;
       if(strcasecmp("O_ABC_DIAGONAL",firstargument)==0) FreeEnergyMappingType[CurrentSystem]=MAP_O_ABC_DIAGONAL;
     }
-    if(strcasecmp("PutMoleculeOnBarrier",keyword)==0) 
+    if(strcasecmp("PutMoleculeOnBarrier",keyword)==0)
     {
       if(strcasecmp("yes",firstargument)==0) PutMoleculeOnBarrier[CurrentSystem]=TRUE;
       if(strcasecmp("no",firstargument)==0) PutMoleculeOnBarrier[CurrentSystem]=FALSE;
@@ -4571,7 +4571,7 @@ int ReadInputFile(char *inputfilename)
        &BarrierPosition[CurrentSystem].x,&BarrierPosition[CurrentSystem].y,&BarrierPosition[CurrentSystem].z);
     if(strcasecmp("BarrierNormal",keyword)==0) sscanf(arguments,"%lf %lf %lf",
        &BarrierNormal[CurrentSystem].x,&BarrierNormal[CurrentSystem].y,&BarrierNormal[CurrentSystem].z);
-    if(strcasecmp("BarrierAngle",keyword)==0) 
+    if(strcasecmp("BarrierAngle",keyword)==0)
       if(sscanf(arguments,"%lf %lf %lf",&BarrierAngle[CurrentSystem].x,&BarrierAngle[CurrentSystem].y,&BarrierAngle[CurrentSystem].z))
          {BarrierAngle[CurrentSystem].x*=DEG2RAD; BarrierAngle[CurrentSystem].y*=DEG2RAD; BarrierAngle[CurrentSystem].z*=DEG2RAD;};
     if(strcasecmp("MaxBarrierDistance",keyword)==0) sscanf(arguments,"%lf",&MaxBarrierDistance[CurrentSystem]);
@@ -4853,272 +4853,272 @@ int ReadInputFile(char *inputfilename)
 
     if(strcasecmp("PrintFrameworkBondStatusOnly",keyword)==0)
     {
-      SetPrintStatusToFalse(); 
+      SetPrintStatusToFalse();
       PrintFrameworkBondStatus=TRUE;
     }
     if(strcasecmp("PrintFrameworkUreyBradleyStatusOnly",keyword)==0)
     {
-      SetPrintStatusToFalse(); 
+      SetPrintStatusToFalse();
       PrintFrameworkUreyBradleyStatus=TRUE;
     }
     if(strcasecmp("PrintFrameworkBendStatusOnly",keyword)==0)
     {
-      SetPrintStatusToFalse(); 
+      SetPrintStatusToFalse();
       PrintFrameworkBendStatus=TRUE;
     }
     if(strcasecmp("PrintFrameworkInversionBendStatusOnly",keyword)==0)
     {
-      SetPrintStatusToFalse(); 
+      SetPrintStatusToFalse();
       PrintFrameworkInversionBendStatus=TRUE;
     }
     if(strcasecmp("PrintFrameworkTorsionStatusOnly",keyword)==0)
     {
-      SetPrintStatusToFalse(); 
+      SetPrintStatusToFalse();
       PrintFrameworkTorsionStatus=TRUE;
     }
     if(strcasecmp("PrintFrameworkImproperTorsionStatusOnly",keyword)==0)
     {
-      SetPrintStatusToFalse(); 
+      SetPrintStatusToFalse();
       PrintFrameworkImproperTorsionStatus=TRUE;
     }
     if(strcasecmp("PrintFrameworkBondBondStatusOnly",keyword)==0)
     {
-      SetPrintStatusToFalse(); 
+      SetPrintStatusToFalse();
       PrintFrameworkBondBondStatus=TRUE;
     }
     if(strcasecmp("PrintFrameworkBondBendStatusOnly",keyword)==0)
     {
-      SetPrintStatusToFalse(); 
+      SetPrintStatusToFalse();
       PrintFrameworkBondBendStatus=TRUE;
     }
     if(strcasecmp("PrintFrameworkBendBendStatusOnly",keyword)==0)
     {
-      SetPrintStatusToFalse(); 
+      SetPrintStatusToFalse();
       PrintFrameworkBendBendStatus=TRUE;
     }
     if(strcasecmp("PrintFrameworkBendTorsionStatusOnly",keyword)==0)
     {
-      SetPrintStatusToFalse(); 
+      SetPrintStatusToFalse();
       PrintFrameworkBendTorsionStatus=TRUE;
     }
     if(strcasecmp("PrintFrameworkIntraVDWStatusOnly",keyword)==0)
     {
-      SetPrintStatusToFalse(); 
+      SetPrintStatusToFalse();
       PrintFrameworkIntraVDWStatus=TRUE;
     }
     if(strcasecmp("PrintFrameworkIntraChargeChargeStatusOnly",keyword)==0)
     {
-      SetPrintStatusToFalse(); 
+      SetPrintStatusToFalse();
       PrintFrameworkIntraChargeChargeStatus=TRUE;
     }
     if(strcasecmp("PrintFrameworkIntraChargeBondDipoleStatusOnly",keyword)==0)
     {
-      SetPrintStatusToFalse(); 
+      SetPrintStatusToFalse();
       PrintFrameworkIntraChargeBondDipoleStatus=TRUE;
     }
     if(strcasecmp("PrintFrameworkIntraBondDipoleBondDipoleStatusOnly",keyword)==0)
     {
-      SetPrintStatusToFalse(); 
+      SetPrintStatusToFalse();
       PrintFrameworkIntraBondDipoleBondDipoleStatus=TRUE;
     }
 
     if(strcasecmp("PrintAdsorbateBondStatusOnly",keyword)==0)
     {
-      SetPrintStatusToFalse(); 
+      SetPrintStatusToFalse();
       PrintAdsorbateBondStatus=TRUE;
     }
     if(strcasecmp("PrintAdsorbateUreyBradleyStatusOnly",keyword)==0)
     {
-      SetPrintStatusToFalse(); 
+      SetPrintStatusToFalse();
       PrintAdsorbateUreyBradleyStatus=TRUE;
     }
     if(strcasecmp("PrintAdsorbateBendStatusOnly",keyword)==0)
     {
-      SetPrintStatusToFalse(); 
+      SetPrintStatusToFalse();
       PrintAdsorbateBendStatus=TRUE;
     }
     if(strcasecmp("PrintAdsorbateTorsionStatusOnly",keyword)==0)
     {
-      SetPrintStatusToFalse(); 
+      SetPrintStatusToFalse();
       PrintAdsorbateTorsionStatus=TRUE;
     }
     if(strcasecmp("PrintAdsorbateImproperTorsionStatusOnly",keyword)==0)
     {
-      SetPrintStatusToFalse(); 
+      SetPrintStatusToFalse();
       PrintAdsorbateImproperTorsionStatus=TRUE;
     }
     if(strcasecmp("PrintAdsorbateBondBondStatusOnly",keyword)==0)
     {
-      SetPrintStatusToFalse(); 
+      SetPrintStatusToFalse();
       PrintAdsorbateBondBondStatus=TRUE;
     }
     if(strcasecmp("PrintAdsorbateBondBendStatusOnly",keyword)==0)
     {
-      SetPrintStatusToFalse(); 
+      SetPrintStatusToFalse();
       PrintAdsorbateBondBendStatus=TRUE;
     }
     if(strcasecmp("PrintAdsorbateBendBendStatusOnly",keyword)==0)
     {
-      SetPrintStatusToFalse(); 
+      SetPrintStatusToFalse();
       PrintAdsorbateBendBendStatus=TRUE;
     }
     if(strcasecmp("PrintAdsorbateBondTorsionStatusOnly",keyword)==0)
     {
-      SetPrintStatusToFalse(); 
+      SetPrintStatusToFalse();
       PrintAdsorbateBondTorsionStatus=TRUE;
     }
     if(strcasecmp("PrintAdsorbateBendTorsionStatusOnly",keyword)==0)
     {
-      SetPrintStatusToFalse(); 
+      SetPrintStatusToFalse();
       PrintAdsorbateBendTorsionStatus=TRUE;
     }
     if(strcasecmp("PrintAdsorbateIntraVDWStatusOnly",keyword)==0)
     {
-      SetPrintStatusToFalse(); 
+      SetPrintStatusToFalse();
       PrintAdsorbateIntraVDWStatus=TRUE;
     }
     if(strcasecmp("PrintAdsorbateIntraChargeChargeStatusOnly",keyword)==0)
     {
-      SetPrintStatusToFalse(); 
+      SetPrintStatusToFalse();
       PrintAdsorbateIntraChargeChargeStatus=TRUE;
     }
     if(strcasecmp("PrintAdsorbateIntraChargeBondDipoleStatusOnly",keyword)==0)
     {
-      SetPrintStatusToFalse(); 
+      SetPrintStatusToFalse();
       PrintAdsorbateIntraChargeBondDipoleStatus=TRUE;
     }
     if(strcasecmp("PrintAdsorbateIntraBondDipoleBondDipoleStatusOnly",keyword)==0)
     {
-      SetPrintStatusToFalse(); 
+      SetPrintStatusToFalse();
       PrintAdsorbateIntraBondDipoleBondDipoleStatus=TRUE;
     }
 
     if(strcasecmp("PrintCationBondStatusOnly",keyword)==0)
     {
-      SetPrintStatusToFalse(); 
+      SetPrintStatusToFalse();
       PrintCationBondStatus=TRUE;
     }
     if(strcasecmp("PrintCationUreyBradleyStatusOnly",keyword)==0)
     {
-      SetPrintStatusToFalse(); 
+      SetPrintStatusToFalse();
       PrintCationUreyBradleyStatus=TRUE;
     }
     if(strcasecmp("PrintCationBendStatusOnly",keyword)==0)
     {
-      SetPrintStatusToFalse(); 
+      SetPrintStatusToFalse();
       PrintCationBendStatus=TRUE;
     }
     if(strcasecmp("PrintCationTorsionStatusOnly",keyword)==0)
     {
-      SetPrintStatusToFalse(); 
+      SetPrintStatusToFalse();
       PrintCationTorsionStatus=TRUE;
     }
     if(strcasecmp("PrintCationImproperTorsionStatusOnly",keyword)==0)
     {
-      SetPrintStatusToFalse(); 
+      SetPrintStatusToFalse();
       PrintCationImproperTorsionStatus=TRUE;
     }
     if(strcasecmp("PrintCationBondBondStatusOnly",keyword)==0)
     {
-      SetPrintStatusToFalse(); 
+      SetPrintStatusToFalse();
       PrintCationBondBondStatus=TRUE;
     }
     if(strcasecmp("PrintCationBondBendStatusOnly",keyword)==0)
     {
-      SetPrintStatusToFalse(); 
+      SetPrintStatusToFalse();
       PrintCationBondBendStatus=TRUE;
     }
     if(strcasecmp("PrintCationBondTorsionStatusOnly",keyword)==0)
     {
-      SetPrintStatusToFalse(); 
+      SetPrintStatusToFalse();
       PrintCationBondTorsionStatus=TRUE;
     }
     if(strcasecmp("PrintCationBendTorsionStatusOnly",keyword)==0)
     {
-      SetPrintStatusToFalse(); 
+      SetPrintStatusToFalse();
       PrintCationBendTorsionStatus=TRUE;
     }
     if(strcasecmp("PrintCationIntraVDWStatusOnly",keyword)==0)
     {
-      SetPrintStatusToFalse(); 
+      SetPrintStatusToFalse();
       PrintCationIntraVDWStatus=TRUE;
     }
     if(strcasecmp("PrintCationIntraChargeChargeStatusOnly",keyword)==0)
     {
-      SetPrintStatusToFalse(); 
+      SetPrintStatusToFalse();
       PrintCationIntraChargeChargeStatus=TRUE;
     }
     if(strcasecmp("PrintCationIntraChargeBondDipoleStatusOnly",keyword)==0)
     {
-      SetPrintStatusToFalse(); 
+      SetPrintStatusToFalse();
       PrintCationIntraChargeBondDipoleStatus=TRUE;
     }
     if(strcasecmp("PrintCationIntraBondDipoleBondDipoleStatusOnly",keyword)==0)
     {
-      SetPrintStatusToFalse(); 
+      SetPrintStatusToFalse();
       PrintCationIntraBondDipoleBondDipoleStatus=TRUE;
     }
 
     if(strcasecmp("PrintInterVDWStatusOnly",keyword)==0)
     {
-      SetPrintStatusToFalse(); 
+      SetPrintStatusToFalse();
       PrintInterVDWStatus=TRUE;
     }
     if(strcasecmp("PrintInterChargeChargeStatusOnly",keyword)==0)
     {
-      SetPrintStatusToFalse(); 
+      SetPrintStatusToFalse();
       PrintInterChargeChargeStatus=TRUE;
     }
     if(strcasecmp("PrintInterChargeBondDipoleStatusOnly",keyword)==0)
     {
-      SetPrintStatusToFalse(); 
+      SetPrintStatusToFalse();
       PrintInterChargeBondDipoleStatus=TRUE;
     }
     if(strcasecmp("PrintInterBondDipoleBondDipoleStatusOnly",keyword)==0)
     {
-      SetPrintStatusToFalse(); 
+      SetPrintStatusToFalse();
       PrintInterBondDipoleBondDipoleStatus=TRUE;
     }
 
     if(strcasecmp("PrintFrameworkAdsorbateVDWStatusOnly",keyword)==0)
     {
-      SetPrintStatusToFalse(); 
+      SetPrintStatusToFalse();
       PrintFrameworkAdsorbateVDWStatus=TRUE;
     }
     if(strcasecmp("PrintFrameworkAdsorbateChargeChargeStatusOnly",keyword)==0)
     {
-      SetPrintStatusToFalse(); 
+      SetPrintStatusToFalse();
       PrintFrameworkAdsorbateChargeChargeStatus=TRUE;
     }
     if(strcasecmp("PrintFrameworkAdsorbateChargeBondDipoleStatusOnly",keyword)==0)
     {
-      SetPrintStatusToFalse(); 
+      SetPrintStatusToFalse();
       PrintFrameworkAdsorbateChargeBondDipoleStatus=TRUE;
     }
     if(strcasecmp("PrintFrameworkAdsorbateBondDipoleBondDipoleStatusOnly",keyword)==0)
     {
-      SetPrintStatusToFalse(); 
+      SetPrintStatusToFalse();
       PrintFrameworkAdsorbateBondDipoleBondDipoleStatus=TRUE;
     }
 
     if(strcasecmp("PrintFrameworkCationVDWStatusOnly",keyword)==0)
     {
-      SetPrintStatusToFalse(); 
+      SetPrintStatusToFalse();
       PrintFrameworkCationVDWStatus=TRUE;
     }
     if(strcasecmp("PrintFrameworkCationChargeChargeStatusOnly",keyword)==0)
     {
-      SetPrintStatusToFalse(); 
+      SetPrintStatusToFalse();
       PrintFrameworkCationChargeChargeStatus=TRUE;
     }
     if(strcasecmp("PrintFrameworkCationChargeBondDipoleStatusOnly",keyword)==0)
     {
-      SetPrintStatusToFalse(); 
+      SetPrintStatusToFalse();
       PrintFrameworkCationChargeBondDipoleStatus=TRUE;
     }
     if(strcasecmp("PrintFrameworkCationBondDipoleBondDipoleStatusOnly",keyword)==0)
     {
-      SetPrintStatusToFalse(); 
+      SetPrintStatusToFalse();
       PrintFrameworkCationBondDipoleBondDipoleStatus=TRUE;
     }
 
@@ -5176,7 +5176,7 @@ int ReadInputFile(char *inputfilename)
     CutOffBondDipoleBondDipoleSwitchSquared=DBL_MAX;
     if((ChargeMethod==EWALD)&&(!OmitEwaldFourier))
     {
-      printf("ERROR: you can not use a finite system *and* the Ewald summation\n");
+      fprintf(stderr, "ERROR: you can not use a finite system *and* the Ewald summation\n");
       exit(0);
     }
   }
@@ -5250,7 +5250,7 @@ int ReadInputFile(char *inputfilename)
               ReadFrameworkDefinitionMOL();
               break;
             default:
-              printf("Unknown structure-format\n");
+              fprintf(stderr, "Unknown structure-format\n");
               break;
           }
           if(Framework[CurrentSystem].CalculateSpaceGroup[CurrentFramework]) DetermineSpaceGroup();
@@ -5278,7 +5278,7 @@ int ReadInputFile(char *inputfilename)
               {
                 if(ModifyFrameworkAtomTypes[i][k]<0)
                 {
-                  printf("Unknown framework atom '%s' in modification rule %d atom %d\n",ModifyFrameworkAtoms[i][k],i,k);
+                  fprintf(stderr, "Unknown framework atom '%s' in modification rule %d atom %d\n",ModifyFrameworkAtoms[i][k],i,k);
                   exit(0);
                 }
               }
@@ -5288,7 +5288,7 @@ int ReadInputFile(char *inputfilename)
               {
                 if(ModifyFrameworkAtomTypes[i][k]<0)
                 {
-                  printf("Unknown framework atom '%s' in modification rule %d atom %d\n",ModifyFrameworkAtoms[i][k],i,k);
+                  fprintf(stderr, "Unknown framework atom '%s' in modification rule %d atom %d\n",ModifyFrameworkAtoms[i][k],i,k);
                   exit(0);
                 }
               }
@@ -5298,7 +5298,7 @@ int ReadInputFile(char *inputfilename)
               {
                 if(ModifyFrameworkAtomTypes[i][k]<0)
                 {
-                  printf("Unknown framework atom '%s' in modification rule %d atom %d\n",ModifyFrameworkAtoms[i][k],i,k);
+                  fprintf(stderr, "Unknown framework atom '%s' in modification rule %d atom %d\n",ModifyFrameworkAtoms[i][k],i,k);
                   exit(0);
                 }
               }
@@ -5308,7 +5308,7 @@ int ReadInputFile(char *inputfilename)
               {
                 if(ModifyFrameworkAtomTypes[i][k]<0)
                 {
-                  printf("Unknown framework atom '%s' in modification rule %d atom %d\n",ModifyFrameworkAtoms[i][k],i,k);
+                  fprintf(stderr, "Unknown framework atom '%s' in modification rule %d atom %d\n",ModifyFrameworkAtoms[i][k],i,k);
                   exit(0);
                 }
               }
@@ -5330,24 +5330,24 @@ int ReadInputFile(char *inputfilename)
           }
           if(ForbiddenConnectivityTypes[i][0]<0)
           {
-            printf("Unknown framework atom %s in forbidden connectivity rule %d\n",ForbiddenConnectivityAtoms[i][0],0);
+            fprintf(stderr, "Unknown framework atom %s in forbidden connectivity rule %d\n",ForbiddenConnectivityAtoms[i][0],0);
             exit(0);
           }
           if(ForbiddenConnectivityTypes[i][1]<0)
           {
-            printf("Unknown framework atom %s in forbidden connectivity rule %d\n",ForbiddenConnectivityAtoms[i][1],1);
+            fprintf(stderr, "Unknown framework atom %s in forbidden connectivity rule %d\n",ForbiddenConnectivityAtoms[i][1],1);
             exit(0);
           }
           if(ForbiddenConnectivityTypes[i][2]<0)
           {
-            printf("Unknown framework atom %s in forbidden connectivity rule %d\n",ForbiddenConnectivityAtoms[i][2],2);
+            fprintf(stderr, "Unknown framework atom %s in forbidden connectivity rule %d\n",ForbiddenConnectivityAtoms[i][2],2);
             exit(0);
           }
         }
 
 
         // make a connectivity list to look for neighbors
-        // the list is used to obtain bonds, bends, torsion etc 
+        // the list is used to obtain bonds, bends, torsion etc
 
         // read the flexible framework model definitions
         ReadFrameworkDefinition();
@@ -5423,7 +5423,7 @@ int ReadInputFile(char *inputfilename)
     ReadComponentDefinition(i);
     if(Components[i].StartingBead>=Components[i].NumberOfAtoms)
     {
-      printf("Starting bead (%d) not within number of atoms: %d\n",
+      fprintf(stderr, "Starting bead (%d) not within number of atoms: %d\n",
         Components[i].StartingBead,Components[i].NumberOfAtoms);
       exit(0);
     }
@@ -5631,7 +5631,7 @@ int ReadInputFile(char *inputfilename)
           tempd=(cos(AlphaAngle[i])-cos(GammaAngle[i])*cos(BetaAngle[i]))/sin(GammaAngle[i]);
           UnitCellBox[i].ax=A;   UnitCellBox[i].bx=B*cos(GammaAngle[i]); UnitCellBox[i].cx=C*cos(BetaAngle[i]);
           UnitCellBox[i].ay=0.0; UnitCellBox[i].by=B*sin(GammaAngle[i]); UnitCellBox[i].cy=C*tempd;
-          UnitCellBox[i].az=0.0; UnitCellBox[i].bz=0.0;               
+          UnitCellBox[i].az=0.0; UnitCellBox[i].bz=0.0;
           UnitCellBox[i].cz=C*sqrt(1.0-SQR(cos(BetaAngle[i]))-SQR(tempd));
           Invert3x3Matrix(&UnitCellBox[i],&InverseUnitCellBox[i],&det);
 
@@ -5698,7 +5698,7 @@ int ReadInputFile(char *inputfilename)
       ReadCoulombGrid();
 
     if(BlockEnergyGrids)
-      BlockingVDWGrid(); 
+      BlockingVDWGrid();
   }
 
   for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
@@ -5787,7 +5787,7 @@ int ReadInputFile(char *inputfilename)
         }
       }
     }
-    else 
+    else
     {
       // set overall fixed/free setting for framework
       for(j=0;j<Framework[i].NumberOfFrameworks;j++)
@@ -5945,7 +5945,7 @@ int ReadInputFile(char *inputfilename)
                  Adsorbates[i][m].Atoms[B1].Fixed.z=FALSE;
               }
             }
-            else 
+            else
             {
               Adsorbates[i][m].Atoms[A1].Fixed.x=FALSE;
               Adsorbates[i][m].Atoms[A1].Fixed.y=FALSE;
@@ -5965,7 +5965,7 @@ int ReadInputFile(char *inputfilename)
                  Adsorbates[i][m].Atoms[B1].Fixed.z=TRUE;
               }
             }
-            else 
+            else
             {
               Adsorbates[i][m].Atoms[A1].Fixed.x=TRUE;
               Adsorbates[i][m].Atoms[A1].Fixed.y=TRUE;
@@ -5998,7 +5998,7 @@ int ReadInputFile(char *inputfilename)
                  Cations[i][m].Atoms[B1].Fixed.z=FALSE;
               }
             }
-            else 
+            else
             {
               Cations[i][m].Atoms[A1].Fixed.x=FALSE;
               Cations[i][m].Atoms[A1].Fixed.y=FALSE;
@@ -6018,7 +6018,7 @@ int ReadInputFile(char *inputfilename)
                  Cations[i][m].Atoms[B1].Fixed.z=TRUE;
               }
             }
-            else 
+            else
             {
               Cations[i][m].Atoms[A1].Fixed.x=TRUE;
               Cations[i][m].Atoms[A1].Fixed.y=TRUE;
@@ -6545,7 +6545,7 @@ int ReadInputFile(char *inputfilename)
           NumberOfFractionalAdsorbateMolecules[i]++;
 
         // CF: if number of molecules is zero, create an initial fractional molecule
-        printf("Creating Lambda particle\n");
+        fprintf(stderr, "Creating Lambda particle\n");
         CurrentSystem=i;
         CalculateAnisotropicSites();
         if(Components[j].NumberOfMolecules[i]==0)
@@ -6558,7 +6558,7 @@ int ReadInputFile(char *inputfilename)
         if(Components[j].FractionalMolecule[i]<0)
           Components[j].FractionalMolecule[i]=SelectRandomMoleculeOfType(j);
 
-        // start with Lambda=0.5 
+        // start with Lambda=0.5
         for(k=0;k<Components[j].NumberOfAtoms;k++)
         {
           if(Components[j].ExtraFrameworkMolecule)
@@ -6570,7 +6570,7 @@ int ReadInputFile(char *inputfilename)
           {
             Adsorbates[i][Components[j].FractionalMolecule[i]].Atoms[k].CFVDWScalingParameter=0.5;
             Adsorbates[i][Components[j].FractionalMolecule[i]].Atoms[k].CFChargeScalingParameter=pow(0.5,5);
-          } 
+          }
         }
       }
     }
@@ -7820,7 +7820,7 @@ int ReadInputFile(char *inputfilename)
 
   //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // CFC-RXMC : Initializing Lambda, Pi and randomly picking a fractional molecule
-  //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------  
+  //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
   if(NumberOfReactions>0)
   {
     for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
@@ -7843,8 +7843,8 @@ int ReadInputFile(char *inputfilename)
   CurrentSystem=0;
   CurrentComponent=0;
   CurrentFramework=0;
-  
-  printf("Done reading '%s'\n",inputfilename);
+
+  fprintf(stderr, "Done reading '%s'\n",inputfilename);
   return 0;
 }
 
@@ -7888,7 +7888,7 @@ void ReadRestartFile(void)
     // read first time to get the total number of  molecules
     if(!(FilePtrIn=fopen(buffer,"r")))
     {
-      printf("Could NOT open file: %s\n",buffer);
+      fprintf(stderr, "Could NOT open file: %s\n",buffer);
       exit(0);
     }
 
@@ -7905,7 +7905,7 @@ void ReadRestartFile(void)
         sscanf(arguments,"%d (Adsorbates %d, Cations %d) %*[^\n]",&NumberOfComponentsRead,
             &totalNumberOfAdsorbateMolecules,&totalNumberOfCationMolecules);
         if(NumberOfComponentsRead!=NumberOfComponents)
-          printf("Warning: NumberOfComponents does not match restart-file !\n");
+          fprintf(stderr, "Warning: NumberOfComponents does not match restart-file !\n");
       }
     }
     fclose(FilePtrIn);
@@ -7918,7 +7918,7 @@ void ReadRestartFile(void)
     // read second time to get the types of all the molecules
     if(!(FilePtrIn=fopen(buffer,"r")))
     {
-      printf("Could NOT open file: %s\n",buffer);
+      fprintf(stderr, "Could NOT open file: %s\n",buffer);
       exit(0);
     }
 
@@ -8037,7 +8037,7 @@ void ReadRestartFile(void)
         Framework[CurrentSystem].IntialCenterOfMassPosition.x=temp1;
         Framework[CurrentSystem].IntialCenterOfMassPosition.y=temp2;
         Framework[CurrentSystem].IntialCenterOfMassPosition.z=temp3;
-        printf("SET DRIFT: %g %g %g\n",temp1,temp2,temp3);
+        fprintf(stderr, "SET DRIFT: %g %g %g\n",temp1,temp2,temp3);
       }
 
       if(strcasecmp(keyword,"cell-lengths:")==0)
@@ -8342,7 +8342,7 @@ void ReadRestartFileOld(void)
 
     if(!(FilePtrIn=fopen(buffer,"r")))
     {
-      printf("Could NOT open file: %s\n",buffer);
+      fprintf(stderr, "Could NOT open file: %s\n",buffer);
       exit(0);
     }
 
@@ -8360,7 +8360,7 @@ void ReadRestartFileOld(void)
         Framework[CurrentSystem].IntialCenterOfMassPosition.x=temp1;
         Framework[CurrentSystem].IntialCenterOfMassPosition.y=temp2;
         Framework[CurrentSystem].IntialCenterOfMassPosition.z=temp3;
-        printf("SET DRIFT: %g %g %g\n",temp1,temp2,temp3);
+        fprintf(stderr, "SET DRIFT: %g %g %g\n",temp1,temp2,temp3);
       }
 
       if(strcasecmp(keyword,"Box:")==0)
@@ -8411,7 +8411,7 @@ void ReadRestartFileOld(void)
       {
         sscanf(arguments,"%d%*[^\n]",&NumberOfComponentsRead);
         if(NumberOfComponentsRead!=NumberOfComponents)
-          printf("Warning: NumberOfComponents does not match restart-file !\n");
+          fprintf(stderr, "Warning: NumberOfComponents does not match restart-file !\n");
       }
 
       if(strcasecmp(keyword,"Volume")==0)
@@ -8476,7 +8476,7 @@ void ReadRestartFileOld(void)
       {
         if(NumberOfComponents==0)
         {
-          printf("\nReadRestartFile: component present, but not defined in inputfile\n");
+          fprintf(stderr, "\nReadRestartFile: component present, but not defined in inputfile\n");
           exit(0);
         }
 
@@ -8527,7 +8527,7 @@ void ReadBinaryRestartFiles(void)
   FILE *FilePtr;
   char buffer[1024];
 
-  printf("read binary file\n");
+  fprintf(stderr, "read binary file\n");
 
   sprintf(buffer,"CrashRestart/binary_restart.dat");
   if((FilePtr=fopen(buffer,"r")))
@@ -8557,7 +8557,7 @@ void ReadBinaryRestartFiles(void)
   else
   {
     ContinueAfterCrash=FALSE;
-    printf("Crash set to false\n");
+    fprintf(stderr, "Crash set to false\n");
   }
 }
 

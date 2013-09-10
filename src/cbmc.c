@@ -472,7 +472,7 @@ void CalculateAnisotropicTrialPositions(int TypeMolA,VECTOR *TrialPosition,VECTO
           }
           break;
         default:
-          printf("ERROR: undefined anisotropic atom with connecvity: %d, in routine 'CalculateAnisotropicTrialPositions' (cbmc.c)\n",
+          fprintf(stderr, "ERROR: undefined anisotropic atom with connecvity: %d, in routine 'CalculateAnisotropicTrialPositions' (cbmc.c)\n",
                  Components[TypeMolA].Connectivity[k]);
           exit(0);
           break;
@@ -775,7 +775,7 @@ int GetBondNumber(int A, int B)
     if(((Components[CurrentComponent].Bonds[i].A==A)&&(Components[CurrentComponent].Bonds[i].B==B))||
        ((Components[CurrentComponent].Bonds[i].B==A)&&(Components[CurrentComponent].Bonds[i].A==B)))
        return i;
-  
+
   return -1;
 }
 
@@ -858,7 +858,7 @@ REAL GetReferenceBondLength(int A,int B)
     case FIXED_BOND:
       return parms[0];
     default:
-      printf("Unkown bond-length\n");
+      fprintf(stderr, "Unkown bond-length\n");
       return 1.5;
   }
 }
@@ -1148,7 +1148,7 @@ int ComputeExternalEnergies(void)
 
   TRIAL_OVERLAP=FALSE;
   OVERLAP=TRUE;
-      
+
   for(Itrial=0;Itrial<NumberOfTrialPositions;Itrial++)
   {
     EnergiesCationVDW=0.0;
@@ -1445,8 +1445,8 @@ int ComputeExternalEnergies(void)
     {
       BoltzmannFactors[Itrial]=0.0;
       Overlap[Itrial]=TRUE;
-    } 
-  } 
+    }
+  }
   return 0;
 }
 
@@ -1527,7 +1527,7 @@ int GenerateTrialOrientationsSimpleSphere(int Old)
           TrialPositions[iu][atom_nr].x=TrialPositions[0][CurrentBead].x+cord[j].x;
           TrialPositions[iu][atom_nr].y=TrialPositions[0][CurrentBead].y+cord[j].y;
           TrialPositions[iu][atom_nr].z=TrialPositions[0][CurrentBead].z+cord[j].z;
-        } 
+        }
       }
       else
       {
@@ -1782,9 +1782,9 @@ int GenerateTrialOrientationsMCScheme(int Old)
 
   if(!Old)
   {
-    // When there is more than one bead open and no chirality: decide with a 
+    // When there is more than one bead open and no chirality: decide with a
     // random number to change the identity of two beads
-    // This is needed because we usually start from an previous stored configuration of this 
+    // This is needed because we usually start from an previous stored configuration of this
     // component type leading otherwise to an unaltered arrangement of the branches.
 
     if((!Components[CurrentComponent].Chirality[CurrentBead])&&(NumberOfBonds>=2)&&(RandomNumber()<0.5))
@@ -1855,7 +1855,7 @@ int GenerateTrialOrientationsMCScheme(int Old)
         else
           choise=2;
       }
-      else 
+      else
       {
         if(jjj<20)
           choise=3;
@@ -1904,7 +1904,7 @@ int GenerateTrialOrientationsMCScheme(int Old)
             if(Components[CurrentComponent].BondType[Bonds[jj]]!=FIXED_BOND)
             {
               jjopen=BranchAtoms[jj][0];
- 
+
               store[0]=TrialPositions[0][jjopen];
 
               Components[CurrentComponent].CBMCChangeBondLengthAttempts[CurrentSystem][Bonds[jj]]+=1.0;
@@ -1919,7 +1919,7 @@ int GenerateTrialOrientationsMCScheme(int Old)
               TrialPositions[0][jjopen].x=TrialPositions[0][CurrentBead].x+(BondLengthNew/BondLengthOld)*vec.x;
               TrialPositions[0][jjopen].y=TrialPositions[0][CurrentBead].y+(BondLengthNew/BondLengthOld)*vec.y;
               TrialPositions[0][jjopen].z=TrialPositions[0][CurrentBead].z+(BondLengthNew/BondLengthOld)*vec.z;
-          
+
               enbond[jj]=CalculateBondEnergy(Bonds[jj],0);
               newbond+=enbond[jj]-eobond[jj];
 
@@ -2254,7 +2254,7 @@ int GenerateTrialOrientationsMCScheme(int Old)
     UBondTrial[0]+=(energy=CalculateBondEnergy(Bonds[j],0));
     if(fabs(energy-eobond[j])>0.0001)
     {
-      printf("Error: no energy conservation in internal MC scheme (Bond %f)\n",
+      fprintf(stderr, "Error: no energy conservation in internal MC scheme (Bond %f)\n",
               (double)fabs(energy-eobond[j]));
       exit(2);
     }
@@ -2265,7 +2265,7 @@ int GenerateTrialOrientationsMCScheme(int Old)
     UUreyBradleyTrial[0]+=(energy=CalculateUreyBradleyEnergy(UreyBradleys[j],0));
     if(fabs(energy-eoureybradley[j])>0.0001)
     {
-      printf("Error: no energy conservation in internal MC scheme (UreyBradley %f)\n",
+      fprintf(stderr, "Error: no energy conservation in internal MC scheme (UreyBradley %f)\n",
               (double)fabs(energy-eoureybradley[j]));
       exit(2);
     }
@@ -2276,7 +2276,7 @@ int GenerateTrialOrientationsMCScheme(int Old)
     UBendTrial[0]+=(energy=CalculateBendEnergy(Bends[j],0));
     if(fabs(energy-eobend[j])>0.0001)
     {
-      printf("Error: no energy conservation in internal MC scheme (Bend %f)\n",
+      fprintf(stderr, "Error: no energy conservation in internal MC scheme (Bend %f)\n",
               (double)fabs(energy-eobend[j]));
       exit(2);
     }
@@ -2287,7 +2287,7 @@ int GenerateTrialOrientationsMCScheme(int Old)
     UBendBendTrial[0]+=(energy=CalculateBendBendEnergy(BendBends[j],0));
     if(fabs(energy-eobendbend[j])>0.0001)
     {
-      printf("Error: no energy conservation in internal MC scheme (Bend-Bend %f)\n",
+      fprintf(stderr, "Error: no energy conservation in internal MC scheme (Bend-Bend %f)\n",
               (double)fabs(energy-eobendbend[j]));
       exit(2);
     }
@@ -2298,7 +2298,7 @@ int GenerateTrialOrientationsMCScheme(int Old)
     UInversionBendTrial[0]+=(energy=CalculateInversionBendEnergy(InversionBends[j],0));
     if(fabs(energy-eoinversionbend[j])>0.0001)
     {
-      printf("Error: no energy conservation in internal MC scheme (Inversion-bend %f)\n",
+      fprintf(stderr, "Error: no energy conservation in internal MC scheme (Inversion-bend %f)\n",
               (double)fabs(energy-eoinversionbend[j]));
       exit(2);
     }
@@ -2309,7 +2309,7 @@ int GenerateTrialOrientationsMCScheme(int Old)
     UImproperTorsionTrial[0]+=(energy=CalculateImproperTorsionEnergy(ImproperTorsions[j],0));
     if(fabs(energy-eoimpropertorsion[j])>0.0001)
     {
-      printf("Error: no energy conservation in internal MC scheme (Improper torsion %f)\n",
+      fprintf(stderr, "Error: no energy conservation in internal MC scheme (Improper torsion %f)\n",
               (double)fabs(energy-eoimpropertorsion[j]));
       exit(2);
     }
@@ -2519,12 +2519,12 @@ void CheckConfigMoves(void)
           }
         }
 
-        
+
         if((Components[comp].Connectivity[CurrentBead]>1)&&
            ((Components[comp].Connectivity[CurrentBead]-NumberOfBeadsToBePlaced)>1))
         {
-          printf("Error in config move %d of component: %d (%s)\n",n,comp,Components[comp].Name);
-          printf("All branches need to be grown at the same time, this config move keeps two branches fixed\n");
+          fprintf(stderr, "Error in config move %d of component: %d (%s)\n",n,comp,Components[comp].Name);
+          fprintf(stderr, "All branches need to be grown at the same time, this config move keeps two branches fixed\n");
           exit(0);
         }
 
@@ -2610,7 +2610,7 @@ void SetGrowingStatus(void)
 
   if(nchoice==0)
   {
-    printf("Error in CBMC growing scheme.. No atoms can be grown, check the connectivity of your molecule.\n");
+    fprintf(stderr, "Error in CBMC growing scheme.. No atoms can be grown, check the connectivity of your molecule.\n");
     exit(2);
   }
 
@@ -2712,7 +2712,7 @@ void SetGrowingStatus(void)
   {
     if(PreviousBead==-2)
     {
-      printf("Error: no prev and PreviousBead=-2\n");
+      fprintf(stderr, "Error: no prev and PreviousBead=-2\n");
       exit(2);
     }
   }
@@ -3319,7 +3319,7 @@ void MakeInitialAdsorbates(int n,int type)
 
   CurrentComponent=type;
   for(i=0;i<n;i++)
-    MakeInitialAdsorbate(); 
+    MakeInitialAdsorbate();
 }
 
 void MakeInitialCation(void)
@@ -3387,7 +3387,7 @@ void MakeInitialCations(int n,int type)
 
   CurrentComponent=type;
   for(i=0;i<n;i++)
-    MakeInitialCation(); 
+    MakeInitialCation();
 }
 
 void RescaleMaximumRotationAnglesSmallMC(void)
@@ -3842,7 +3842,7 @@ void ReadRestartCBMC(FILE *FilePtr)
   fread(&Check,1,sizeof(REAL),FilePtr);
   if(fabs(Check-123456789.0)>1e-10)
   {
-    printf("Error in binary restart-file (ReadRestartCBMC)\n");
+    fprintf(stderr, "Error in binary restart-file (ReadRestartCBMC)\n");
     exit(0);
   }
 }

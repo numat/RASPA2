@@ -176,7 +176,7 @@ void CalculateAdsorbateBondBornTerm(void)
           break;
         default:
           U=DF=DDF=0.0;
-          printf("Undefined Bond potential (Bond Hessian adsorbate)\n");
+          fprintf(stderr, "Undefined Bond potential (Bond Hessian adsorbate)\n");
           exit(0);
           break;
       }
@@ -362,7 +362,7 @@ void CalculateCationBondBornTerm(void)
           break;
         default:
           U=DF=DDF=0.0;
-          printf("Undefined Bond potential (Bond Hessian adsorbate)\n");
+          fprintf(stderr, "Undefined Bond potential (Bond Hessian adsorbate)\n");
           exit(0);
           break;
       }
@@ -542,7 +542,7 @@ void CalculateAdsorbateUreyBradleyBornTerm(void)
           break;
         default:
           U=DF=DDF=0.0;
-          printf("Undefined Urey-Bradley potential\n");
+          fprintf(stderr, "Undefined Urey-Bradley potential\n");
           exit(0);
           break;
       }
@@ -722,14 +722,14 @@ void CalculateCationUreyBradleyBornTerm(void)
           break;
         default:
           U=DF=DDF=0.0;
-          printf("Undefined Urey-Bradley potential\n");
+          fprintf(stderr, "Undefined Urey-Bradley potential\n");
           exit(0);
           break;
       }
 
       // add contribution to the Adsorbate stretch energy
       UCationUreyBradley[CurrentSystem]+=U;
-  
+
       f.x=-DF*dr.x;
       f.y=-DF*dr.y;
       f.z=-DF*dr.z;
@@ -738,20 +738,20 @@ void CalculateCationUreyBradleyBornTerm(void)
       Cations[CurrentSystem][m].Atoms[A].Force.x+=f.x;
       Cations[CurrentSystem][m].Atoms[A].Force.y+=f.y;
       Cations[CurrentSystem][m].Atoms[A].Force.z+=f.z;
-  
+
       Cations[CurrentSystem][m].Atoms[C].Force.x-=f.x;
       Cations[CurrentSystem][m].Atoms[C].Force.y-=f.y;
       Cations[CurrentSystem][m].Atoms[C].Force.z-=f.z;
-  
+
       // add contribution to the strain derivative tensor
       StrainDerivativeTensor[CurrentSystem].ax-=f.x*dr.x;
       StrainDerivativeTensor[CurrentSystem].bx-=f.y*dr.x;
       StrainDerivativeTensor[CurrentSystem].cx-=f.z*dr.x;
-    
+
       StrainDerivativeTensor[CurrentSystem].ay-=f.x*dr.y;
       StrainDerivativeTensor[CurrentSystem].by-=f.y*dr.y;
       StrainDerivativeTensor[CurrentSystem].cy-=f.z*dr.y;
-      
+
       StrainDerivativeTensor[CurrentSystem].az-=f.x*dr.z;
       StrainDerivativeTensor[CurrentSystem].bz-=f.y*dr.z;
       StrainDerivativeTensor[CurrentSystem].cz-=f.z*dr.z;
@@ -911,7 +911,7 @@ void CalculateAdsorbateBendBornTerm(void)
           temp2=SQR(temp);
           U=parms[0]*temp2*(1.0-0.014*temp+5.6e-5*temp2-7.0e-7*temp*temp2+2.2e-8*SQR(temp2));
           DF=parms[0]*RAD2DEG*(2.0-(3.0*0.014-(4.0*5.6e-5-(5.0*7.0e-7-6.0*2.2e-8*temp)*temp)*temp)*temp)*temp*DTDX;
-          printf("TO BE DONE!\n");
+          fprintf(stderr, "TO BE DONE!\n");
           exit(0);
           break;
         case FIXED_BEND:
@@ -922,7 +922,7 @@ void CalculateAdsorbateBendBornTerm(void)
           break;
         default:
           U=DF=DDF=0.0;
-          printf("Undefined Bend potential in routine 'CalculateAdsorbateBendBornTerm'\n");
+          fprintf(stderr, "Undefined Bend potential in routine 'CalculateAdsorbateBendBornTerm'\n");
           exit(0);
           break;
       }
@@ -1233,7 +1233,7 @@ void CalculateCationBendBornTerm(void)
           temp2=SQR(temp);
           U=parms[0]*temp2*(1.0-0.014*temp+5.6e-5*temp2-7.0e-7*temp*temp2+2.2e-8*SQR(temp2));
           DF=parms[0]*RAD2DEG*(2.0-(3.0*0.014-(4.0*5.6e-5-(5.0*7.0e-7-6.0*2.2e-8*temp)*temp)*temp)*temp)*temp*DTDX;
-          printf("TO BE DONE!\n");
+          fprintf(stderr, "TO BE DONE!\n");
           exit(0);
           break;
         case FIXED_BEND:
@@ -1244,7 +1244,7 @@ void CalculateCationBendBornTerm(void)
           break;
         default:
           U=DF=DDF=0.0;
-          printf("Undefined Bend potential\n");
+          fprintf(stderr, "Undefined Bend potential\n");
           exit(0);
           break;
       }
@@ -1668,7 +1668,7 @@ void CalculateAdsorbateTorsionBornTerm(void)
               +parms[5]*(18.0-288.0*CosPhi2+480.0*SQR(CosPhi2));
           break;
         default:
-          printf("Undefined Torsion potential\n");
+          fprintf(stderr, "Undefined Torsion potential\n");
           U=DF=DDF=0.0;
           exit(0);
           break;
@@ -2340,7 +2340,7 @@ void CalculateCationTorsionBornTerm(void)
               +parms[5]*(18.0-288.0*CosPhi2+480.0*SQR(CosPhi2));
           break;
         default:
-          printf("Undefined Torsion potential\n");
+          fprintf(stderr, "Undefined Torsion potential\n");
           U=DF=DDF=0.0;
           exit(0);
           break;
@@ -3013,7 +3013,7 @@ void CalculateAdsorbateImproperTorsionBornTerm(void)
               +parms[5]*(18.0-288.0*CosPhi2+480.0*SQR(CosPhi2));
           break;
         default:
-          printf("Undefined Torsion potential\n");
+          fprintf(stderr, "Undefined Torsion potential\n");
           U=DF=DDF=0.0;
           exit(0);
           break;
@@ -3689,7 +3689,7 @@ void CalculateCationImproperTorsionBornTerm(void)
               +parms[5]*(18.0-288.0*CosPhi2+480.0*SQR(CosPhi2));
           break;
         default:
-          printf("Undefined Torsion potential\n");
+          fprintf(stderr, "Undefined Torsion potential\n");
           U=DF=DDF=0.0;
           exit(0);
           break;

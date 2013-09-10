@@ -234,7 +234,7 @@ void AddRealMatrix9x9(REAL_MATRIX9x9 *c,REAL_MATRIX9x9 a,REAL_MATRIX9x9 b)
   c->xxzz=a.xxzz+b.xxzz;
   c->yxzz=a.yxzz+b.yxzz;
   c->zxzz=a.zxzz+b.zxzz;
-    
+
   c->xyxz=a.xyxz+b.xyxz;
   c->yyxz=a.yyxz+b.yyxz;
   c->zyxz=a.zyxz+b.zyxz;
@@ -328,7 +328,7 @@ void SubtractRealMatrix9x9(REAL_MATRIX9x9 *c,REAL_MATRIX9x9 a,REAL_MATRIX9x9 b)
   c->xxzz=a.xxzz-b.xxzz;
   c->yxzz=a.yxzz-b.yxzz;
   c->zxzz=a.zxzz-b.zxzz;
-    
+
   c->xyxz=a.xyxz-b.xyxz;
   c->yyxz=a.yyxz-b.yyxz;
   c->zyxz=a.zyxz-b.zyxz;
@@ -422,7 +422,7 @@ void DivideRealMatrix9x9ByReal(REAL_MATRIX9x9 *c,REAL_MATRIX9x9 a,REAL b)
   c->xxzz=a.xxzz/b;
   c->yxzz=a.yxzz/b;
   c->zxzz=a.zxzz/b;
-    
+
   c->xyxz=a.xyxz/b;
   c->yyxz=a.yyxz/b;
   c->zyxz=a.zyxz/b;
@@ -447,25 +447,25 @@ void DivideRealMatrix9x9ByReal(REAL_MATRIX9x9 *c,REAL_MATRIX9x9 a,REAL b)
 
 void PrintRealMatrix9x9(REAL_MATRIX9x9 *m)
 {
-  printf("% 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f\n",
+  fprintf(stderr, "% 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f\n",
     (double)m->xxxx,(double)m->yxxx,(double)m->zxxx,(double)m->xxyx,(double)m->yxyx,(double)m->zxyx,(double)m->xxzx,(double)m->yxzx,(double)m->zxzx);
-  printf("% 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f\n",
+  fprintf(stderr, "% 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f\n",
     (double)m->xyxx,(double)m->yyxx,(double)m->zyxx,(double)m->xyyx,(double)m->yyyx,(double)m->zyyx,(double)m->xyzx,(double)m->yyzx,(double)m->zyzx);
-  printf("% 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f\n",
+  fprintf(stderr, "% 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f\n",
     (double)m->xzxx,(double)m->yzxx,(double)m->zzxx,(double)m->xzyx,(double)m->yzyx,(double)m->zzyx,(double)m->xzzx,(double)m->yzzx,(double)m->zzzx);
-  printf("% 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f\n",
+  fprintf(stderr, "% 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f\n",
     (double)m->xxxy,(double)m->yxxy,(double)m->zxxy,(double)m->xxyy,(double)m->yxyy,(double)m->zxyy,(double)m->xxzy,(double)m->yxzy,(double)m->zxzy);
-  printf("% 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f\n",
+  fprintf(stderr, "% 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f\n",
     (double)m->xyxy,(double)m->yyxy,(double)m->zyxy,(double)m->xyyy,(double)m->yyyy,(double)m->zyyy,(double)m->xyzy,(double)m->yyzy,(double)m->zyzy);
-  printf("% 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f\n",
+  fprintf(stderr, "% 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f\n",
     (double)m->xzxy,(double)m->yzxy,(double)m->zzxy,(double)m->xzyy,(double)m->yzyy,(double)m->zzyy,(double)m->xzzy,(double)m->yzzy,(double)m->zzzy);
-  printf("% 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f\n",
+  fprintf(stderr, "% 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f\n",
     (double)m->xxxz,(double)m->yxxz,(double)m->zxxz,(double)m->xxyz,(double)m->yxyz,(double)m->zxyz,(double)m->xxzz,(double)m->yxzz,(double)m->zxzz);
-  printf("% 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f\n",
+  fprintf(stderr, "% 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f\n",
     (double)m->xyxz,(double)m->yyxz,(double)m->zyxz,(double)m->xyyz,(double)m->yyyz,(double)m->zyyz,(double)m->xyzz,(double)m->yyzz,(double)m->zyzz);
-  printf("% 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f\n",
+  fprintf(stderr, "% 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f\n",
     (double)m->xzxz,(double)m->yzxz,(double)m->zzxz,(double)m->xzyz,(double)m->yzyz,(double)m->zzyz,(double)m->xzzz,(double)m->yzzz,(double)m->zzzz);
-  printf("\n");
+  fprintf(stderr, "\n");
 }
 
 void PrintRealMatrix3x3ToFile(REAL_MATRIX3x3 *m,FILE *FilePtr,REAL a)
@@ -534,7 +534,7 @@ void PrintRealMatrix6x6x6ToFile(REAL_MATRIX6x6x6 *m,FILE *FilePtr,REAL a)
     (double)m->C153/a,(double)m->C253/a,(double)m->C353/a,(double)m->C453/a,(double)m->C553/a,(double)m->C653/a);
   fprintf(FilePtr,"% 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f\n\n",
     (double)m->C163/a,(double)m->C263/a,(double)m->C363/a,(double)m->C463/a,(double)m->C563/a,(double)m->C663/a);
- 
+
   fprintf(FilePtr,"% 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f\n",
     (double)m->C114/a,(double)m->C214/a,(double)m->C314/a,(double)m->C414/a,(double)m->C514/a,(double)m->C614/a);
   fprintf(FilePtr,"% 12.5f % 12.5f % 12.5f % 12.5f % 12.5f % 12.5f\n",
@@ -629,23 +629,23 @@ void InitializeMatrix9x9(REAL_MATRIX9x9 *m)
 
 void Convert9x9ToRealMatrix(REAL_MATRIX9x9 *m,REAL_MATRIX c)
 {
-  c.element[0][0]=m->xxxx; c.element[1][0]=m->yxxx; c.element[2][0]=m->zxxx; c.element[3][0]=m->xxyx; c.element[4][0]=m->yxyx; 
+  c.element[0][0]=m->xxxx; c.element[1][0]=m->yxxx; c.element[2][0]=m->zxxx; c.element[3][0]=m->xxyx; c.element[4][0]=m->yxyx;
                            c.element[5][0]=m->zxyx; c.element[6][0]=m->xxzx; c.element[7][0]=m->yxzx; c.element[8][0]=m->zxzx;
-  c.element[0][1]=m->xyxx; c.element[1][1]=m->yyxx; c.element[2][1]=m->zyxx; c.element[3][1]=m->xyyx; c.element[4][1]=m->yyyx; 
+  c.element[0][1]=m->xyxx; c.element[1][1]=m->yyxx; c.element[2][1]=m->zyxx; c.element[3][1]=m->xyyx; c.element[4][1]=m->yyyx;
                            c.element[5][1]=m->zyyx; c.element[6][1]=m->xyzx; c.element[7][1]=m->yyzx; c.element[8][1]=m->zyzx;
   c.element[0][2]=m->xzxx; c.element[1][2]=m->yzxx; c.element[2][2]=m->zzxx; c.element[3][2]=m->xzyx; c.element[4][2]=m->yzyx;
                            c.element[5][2]=m->zzyx; c.element[6][2]=m->xzzx; c.element[7][2]=m->yzzx; c.element[8][2]=m->zzzx;
   c.element[0][3]=m->xxxy; c.element[1][3]=m->yxxy; c.element[2][3]=m->zxxy; c.element[3][3]=m->xxyy; c.element[4][3]=m->yxyy;
                            c.element[5][3]=m->zxyy; c.element[6][3]=m->xxzy; c.element[7][3]=m->yxzy; c.element[8][3]=m->zxzy;
-  c.element[0][4]=m->xyxy; c.element[1][4]=m->yyxy; c.element[2][4]=m->zyxy; c.element[3][4]=m->xyyy; c.element[4][4]=m->yyyy; 
+  c.element[0][4]=m->xyxy; c.element[1][4]=m->yyxy; c.element[2][4]=m->zyxy; c.element[3][4]=m->xyyy; c.element[4][4]=m->yyyy;
                            c.element[5][4]=m->zyyy; c.element[6][4]=m->xyzy; c.element[7][4]=m->yyzy; c.element[8][4]=m->zyzy;
-  c.element[0][5]=m->xzxy; c.element[1][5]=m->yzxy; c.element[2][5]=m->zzxy; c.element[3][5]=m->xzyy; c.element[4][5]=m->yzyy; 
+  c.element[0][5]=m->xzxy; c.element[1][5]=m->yzxy; c.element[2][5]=m->zzxy; c.element[3][5]=m->xzyy; c.element[4][5]=m->yzyy;
                            c.element[5][5]=m->zzyy; c.element[6][5]=m->xzzy; c.element[7][5]=m->yzzy; c.element[8][5]=m->zzzy;
-  c.element[0][6]=m->xxxz; c.element[1][6]=m->yxxz; c.element[2][6]=m->zxxz; c.element[3][6]=m->xxyz; c.element[4][6]=m->yxyz; 
+  c.element[0][6]=m->xxxz; c.element[1][6]=m->yxxz; c.element[2][6]=m->zxxz; c.element[3][6]=m->xxyz; c.element[4][6]=m->yxyz;
                            c.element[5][6]=m->zxyz; c.element[6][6]=m->xxzz; c.element[7][6]=m->yxzz; c.element[8][6]=m->zxzz;
-  c.element[0][7]=m->xyxz; c.element[1][7]=m->yyxz; c.element[2][7]=m->zyxz; c.element[3][7]=m->xyyz; c.element[4][7]=m->yyyz; 
+  c.element[0][7]=m->xyxz; c.element[1][7]=m->yyxz; c.element[2][7]=m->zyxz; c.element[3][7]=m->xyyz; c.element[4][7]=m->yyyz;
                            c.element[5][7]=m->zyyz; c.element[6][7]=m->xyzz; c.element[7][7]=m->yyzz; c.element[8][7]=m->zyzz;
-  c.element[0][8]=m->xzxz; c.element[1][8]=m->yzxz; c.element[2][8]=m->zzxz; c.element[3][8]=m->xzyz; c.element[4][8]=m->yzyz; 
+  c.element[0][8]=m->xzxz; c.element[1][8]=m->yzxz; c.element[2][8]=m->zzxz; c.element[3][8]=m->xzyz; c.element[4][8]=m->yzyz;
                            c.element[5][8]=m->zzyz; c.element[6][8]=m->xzzz; c.element[7][8]=m->yzzz; c.element[8][8]=m->zzzz;
 
 }
@@ -653,9 +653,9 @@ void Convert9x9ToRealMatrix(REAL_MATRIX9x9 *m,REAL_MATRIX c)
 
 void PrintRealMatrix3x3(REAL_MATRIX3x3 *m)
 {
-  printf("%16.10f %16.10f %16.10f\n",(double)(m->ax),(double)(m->bx),(double)(m->cx));
-  printf("%16.10f %16.10f %16.10f\n",(double)(m->ay),(double)(m->by),(double)(m->cy));
-  printf("%16.10f %16.10f %16.10f\n",(double)(m->az),(double)(m->bz),(double)(m->cz));
+  fprintf(stderr, "%16.10f %16.10f %16.10f\n",(double)(m->ax),(double)(m->bx),(double)(m->cx));
+  fprintf(stderr, "%16.10f %16.10f %16.10f\n",(double)(m->ay),(double)(m->by),(double)(m->cy));
+  fprintf(stderr, "%16.10f %16.10f %16.10f\n",(double)(m->az),(double)(m->bz),(double)(m->cz));
 }
 
 
@@ -773,8 +773,8 @@ void PrintRealMatrix(REAL_MATRIX *c)
   for(i=0;i<m;i++)
   {
     for(j=0;j<n;j++)
-      printf("%18.10lf ",(double)c->element[i][j]);
-    printf("\n");
+      fprintf(stderr, "%18.10lf ",(double)c->element[i][j]);
+    fprintf(stderr, "\n");
   }
 }
 
@@ -789,8 +789,8 @@ void PrintComplexMatrix(COMPLEX_MATRIX *c)
   for(i=0;i<m;i++)
   {
     for(j=0;j<n;j++)
-      printf("(%10.5lf,%10.5lf) ",(double)c->element[i][j].re,(double)c->element[i][j].im);
-    printf("\n");
+      fprintf(stderr, "(%10.5lf,%10.5lf) ",(double)c->element[i][j].re,(double)c->element[i][j].im);
+    fprintf(stderr, "\n");
   }
 }
 
@@ -803,15 +803,15 @@ void PrintRealMatrixmMathematica(REAL_MATRIX *c)
   m=c->m;
   n=c->n;
 
-  printf("{");
+  fprintf(stderr, "{");
   for(i=0;i<m;i++)
   {
-    printf("{");
+    fprintf(stderr, "{");
     for(j=0;j<n;j++)
-      printf("%lf,",(double)c->element[i][j]);
-    printf("},");
+      fprintf(stderr, "%lf,",(double)c->element[i][j]);
+    fprintf(stderr, "},");
   }
-  printf("}\n");
+  fprintf(stderr, "}\n");
 }
 
 
@@ -824,8 +824,8 @@ void PrintRealFortranMatrix(REAL_FORTRAN_MATRIX *c)
   for(i=0;i<c->m;i++)
   {
     for(j=0;j<c->n;j++)
-     printf("%lg ",(double)c->element[i+j*(c->m)]);
-    printf("\n");
+     fprintf(stderr, "%lg ",(double)c->element[i+j*(c->m)]);
+    fprintf(stderr, "\n");
   }
 }
 
@@ -948,7 +948,7 @@ void EigenSystem3x3(REAL_MATRIX3x3 in,REAL_MATRIX3x3 *eigenvectors,VECTOR *eigen
   REAL tes,scl;
   int pass;
   REAL a[3][3],v[3][3];
-  REAL v1,v2,v3,tem,c,omg,s,u; 
+  REAL v1,v2,v3,tem,c,omg,s,u;
 
   // initialize eigenvectors
   eigenvectors->ax=eigenvectors->bx=eigenvectors->cx=0.0;
@@ -1178,7 +1178,7 @@ void tred2(REAL *a, int n, REAL d[], REAL e[])
   int l,k,j,i;
   REAL scale,hh,h,g,f;
 
-  for (i=n;i>=2;i--) 
+  for (i=n;i>=2;i--)
   {
     l=i-1;
     h=scale=0.0;
@@ -1188,7 +1188,7 @@ void tred2(REAL *a, int n, REAL d[], REAL e[])
         scale += fabs(a[i-1+(k-1)*n]);
       if (scale == 0.0)
         e[i-1]=a[i-1+(l-1)*n];
-      else 
+      else
       {
         for (k=1;k<=l;k++)
         {
@@ -1244,7 +1244,7 @@ void tred2(REAL *a, int n, REAL d[], REAL e[])
     }
     d[i-1]=a[i-1+(i-1)*n];
     a[i-1+(i-1)*n]=1.0;
-    for (j=1;j<=l;j++) 
+    for (j=1;j<=l;j++)
       a[j-1+(i-1)*n]=a[i-1+(j-1)*n]=0.0;
   }
 }
@@ -1256,7 +1256,7 @@ void tqli(REAL d[], REAL e[], int n, REAL *z)
 
   for (i=2;i<=n;i++) e[i-1-1]=e[i-1];
     e[n-1]=0.0;
-  for (l=1;l<=n;l++) 
+  for (l=1;l<=n;l++)
   {
     iter=0;
     do
@@ -1268,7 +1268,7 @@ void tqli(REAL d[], REAL e[], int n, REAL *z)
       }
       if(m!=l)
       {
-        if (iter++ == 100) printf("Too many iterations in tqli\n");
+        if (iter++ == 100) fprintf(stderr, "Too many iterations in tqli\n");
         g=(d[l+1-1]-d[l-1])/(2.0*e[l-1]);
         r=pythag(g,1.0);
         g=d[m-1]-d[l-1]+e[l-1]/(g+(g>=0.0?fabs(r):-fabs(r)));
@@ -1308,7 +1308,7 @@ void tqli(REAL d[], REAL e[], int n, REAL *z)
 }
 
 #define ROTATE(a,i,j,k,l,n) g=a[(i-1)+n*(j-1)];h=a[(k-1)+n*(l-1)];a[(i-1)+n*(j-1)]=g-s*(h+g*tau);\
-	a[(k-1)+n*(l-1)]=h+s*(g-h*tau);
+  a[(k-1)+n*(l-1)]=h+s*(g-h*tau);
 
 void jacobi(REAL *a,int n,REAL d[],REAL *v,int *nrot)
 {
@@ -1317,12 +1317,12 @@ void jacobi(REAL *a,int n,REAL d[],REAL *v,int *nrot)
 
   b=(REAL *)calloc(n,sizeof(REAL));
   z=(REAL *)calloc(n,sizeof(REAL));
-  for (ip=1;ip<=n;ip++) 
+  for (ip=1;ip<=n;ip++)
   {
     for (iq=1;iq<=n;iq++) v[(ip-1)+n*(iq-1)]=0.0;
       v[(ip-1)+n*(ip-1)]=1.0;
   }
-  for (ip=1;ip<=n;ip++) 
+  for (ip=1;ip<=n;ip++)
   {
     b[ip-1]=d[ip-1]=a[(ip-1)+n*(ip-1)];
     z[ip-1]=0.0;
@@ -1336,7 +1336,7 @@ void jacobi(REAL *a,int n,REAL d[],REAL *v,int *nrot)
       for (iq=ip+1;iq<=n;iq++)
         sm += fabs(a[(ip-1)+n*(iq-1)]);
     }
-    if (sm == 0.0) 
+    if (sm == 0.0)
     {
       free(z);
       free(b);
@@ -1346,7 +1346,7 @@ void jacobi(REAL *a,int n,REAL d[],REAL *v,int *nrot)
       tresh=0.2*sm/(REAL)(n*n);
     else
       tresh=0.0;
-    for (ip=1;ip<=n-1;ip++) 
+    for (ip=1;ip<=n-1;ip++)
     {
       for (iq=ip+1;iq<=n;iq++)
       {
@@ -1374,7 +1374,7 @@ void jacobi(REAL *a,int n,REAL d[],REAL *v,int *nrot)
           d[ip-1] -= h;
           d[iq-1] += h;
           a[(ip-1)+n*(iq-1)]=0.0;
-          for (j=1;j<=ip-1;j++) 
+          for (j=1;j<=ip-1;j++)
           {
             ROTATE(a,j,ip,j,iq,n)
           }
@@ -1401,7 +1401,7 @@ void jacobi(REAL *a,int n,REAL d[],REAL *v,int *nrot)
       z[ip-1]=0.0;
     }
   }
-  printf("Too many iterations in routine jacobi\n");
+  fprintf(stderr, "Too many iterations in routine jacobi\n");
 }
 #undef ROTATE
 
@@ -1416,15 +1416,15 @@ void GaussJordan(REAL_MATRIX a,int n,REAL_MATRIX b,int m)
   int i,icol,irow,j,k,l,ll;
   REAL big,dum,pivinv,temp;
 
-  indxc=(int*)calloc(n,sizeof(int)); // The integer arrays ipiv, indxr, and indxc are used 
+  indxc=(int*)calloc(n,sizeof(int)); // The integer arrays ipiv, indxr, and indxc are used
   indxr=(int*)calloc(n,sizeof(int)); // for bookkeeping on the pivoting.
   ipiv=(int*)calloc(n,sizeof(int));
 
   icol=irow=0;
 
   for (j=1;j<=n;j++) ipiv[j-1]=0;
-  for (i=1;i<=n;i++) 
-  { 
+  for (i=1;i<=n;i++)
+  {
     //This is the main loop over the columns to be reduced.
     big=0.0;
     for (j=1;j<=n;j++)  //This is the outer loop of the search for a pivot element.
@@ -1433,9 +1433,9 @@ void GaussJordan(REAL_MATRIX a,int n,REAL_MATRIX b,int m)
       {
         for (k=1;k<=n;k++)
         {
-          if (ipiv[k-1] == 0) 
+          if (ipiv[k-1] == 0)
           {
-            if (fabs(a.element[j-1][k-1]) >= big) 
+            if (fabs(a.element[j-1][k-1]) >= big)
             {
               big=fabs(a.element[j-1][k-1]);
               irow=j;
@@ -1443,7 +1443,7 @@ void GaussJordan(REAL_MATRIX a,int n,REAL_MATRIX b,int m)
             }
           }
         }
-      } 
+      }
     }
     ++(ipiv[icol-1]);
     // We now have the pivot element, so we interchange rows, if needed, to put the pivot
@@ -1453,16 +1453,16 @@ void GaussJordan(REAL_MATRIX a,int n,REAL_MATRIX b,int m)
     // indxc[i] there is an implied column interchange. With this form of bookkeeping, the
     // solution b’s will end up in the correct order, and the inverse matrix will be scrambled
     // by columns.
-    if(irow != icol) 
+    if(irow != icol)
     {
       for (l=1;l<=n;l++) SWAP(a.element[irow-1][l-1],a.element[icol-1][l-1],temp)
       for (l=1;l<=m;l++) SWAP(b.element[irow-1][l-1],b.element[icol-1][l-1],temp)
     }
     indxr[i-1]=irow; // We are now ready to divide the pivot row by the
     indxc[i-1]=icol; // pivot element, located at irow and icol.
-    if(a.element[icol-1][icol-1]==0.0) 
+    if(a.element[icol-1][icol-1]==0.0)
     {
-      printf("gaussj: Singular Matrix\n");
+      fprintf(stderr, "gaussj: Singular Matrix\n");
       exit(0);
     }
     pivinv=1.0/a.element[icol-1][icol-1];
@@ -1472,8 +1472,8 @@ void GaussJordan(REAL_MATRIX a,int n,REAL_MATRIX b,int m)
 
     for (ll=1;ll<=n;ll++) // Next, we reduce the rows...
     {
-      if (ll != icol) 
-      { 
+      if (ll != icol)
+      {
         // ...except for the pivot one, of course.
         dum=a.element[ll-1][icol-1];
         a.element[ll-1][icol-1]=0.0;
@@ -1490,7 +1490,7 @@ void GaussJordan(REAL_MATRIX a,int n,REAL_MATRIX b,int m)
     if (indxr[l-1] != indxc[l-1])
       for (k=1;k<=n;k++)
         SWAP(a.element[k-1][indxr[l-1]-1],a.element[k-1][indxc[l-1]-1],temp);
-  } 
+  }
   free(ipiv);
   free(indxr);
   free(indxc);
@@ -1524,7 +1524,7 @@ void CheckMatrixInversion(void)
 
   GaussJordan(a,n,b,n);
 
-  printf("\n");
+  fprintf(stderr, "\n");
   PrintRealMatrix(&a);
 
   for(k=0;k<n;k++)
@@ -1535,8 +1535,8 @@ void CheckMatrixInversion(void)
       for (j=0;j<n;j++)
         check.element[k][l]+=(as.element[k][j]*a.element[j][l]);
     }
-    for(l=0;l<n;l++) printf("%14.6f",check.element[k][l]);
-    printf("\n");
+    for(l=0;l<n;l++) fprintf(stderr, "%14.6f",check.element[k][l]);
+    fprintf(stderr, "\n");
   }
 
   a.element[0][0]=4;  a.element[1][0]=3;  a.element[2][0]=1; a.element[3][0]=2;  a.element[4][0]=2;
@@ -1615,11 +1615,11 @@ void InverseComplexMatrix(Matrix RealA, Matrix ImagA,Matrix& RealAinv, Matrix& I
 {
 
   int N = RealA.nRow();
-  assert( N == RealA.nCol() && N == ImagA.nRow() 
+  assert( N == RealA.nCol() && N == ImagA.nRow()
                             && N == ImagA.nCol());
     RealAinv = RealA; // Copy matrices to ensure they are same size
   ImagAinv = ImagA;
-  
+
   int i, j, k;
   Matrix scale(N);   // Scale factor
   int *index;  index = new int [N+1];
@@ -1647,7 +1647,7 @@ void InverseComplexMatrix(Matrix RealA, Matrix ImagA,Matrix& RealAinv, Matrix& I
     double ratiomax = 0.0;
     int jPivot = k;
     for( i=k; i<=N; i++ ) {
-      double MagA = RealA(index[i],k)*RealA(index[i],k) + 
+      double MagA = RealA(index[i],k)*RealA(index[i],k) +
                     ImagA(index[i],k)*ImagA(index[i],k);
       double ratio = MagA/scale(index[i]);
       if( ratio > ratiomax ) {
@@ -1664,7 +1664,7 @@ void InverseComplexMatrix(Matrix RealA, Matrix ImagA,Matrix& RealAinv, Matrix& I
     }
     // Perform forward elimination
     for( i=k+1; i<=N; i++ ) {
-      double denom = RealA(indexJ,k)*RealA(indexJ,k) 
+      double denom = RealA(indexJ,k)*RealA(indexJ,k)
                    + ImagA(indexJ,k)*ImagA(indexJ,k);
       double RealCoeff = (RealA(index[i],k)*RealA(indexJ,k)
                        + ImagA(index[i],k)*ImagA(indexJ,k))/denom;
@@ -1689,11 +1689,11 @@ void InverseComplexMatrix(Matrix RealA, Matrix ImagA,Matrix& RealAinv, Matrix& I
 
   // Perform backsubstitution
   for( k=1; k<=N; k++ ) {
-    double denom = RealA(index[N],N)*RealA(index[N],N) 
+    double denom = RealA(index[N],N)*RealA(index[N],N)
                  + ImagA(index[N],N)*ImagA(index[N],N);
-    RealAinv(N,k) = (RealB(index[N],k)*RealA(index[N],N) 
+    RealAinv(N,k) = (RealB(index[N],k)*RealA(index[N],N)
                   + ImagB(index[N],k)*ImagA(index[N],N))/denom;
-    ImagAinv(N,k) = (ImagB(index[N],k)*RealA(index[N],N) 
+    ImagAinv(N,k) = (ImagB(index[N],k)*RealA(index[N],N)
                   - RealB(index[N],k)*ImagA(index[N],N))/denom;
     for( i=N-1; i>=1; i--) {
       double RealSum = RealB(index[i],k);
@@ -1704,11 +1704,11 @@ void InverseComplexMatrix(Matrix RealA, Matrix ImagA,Matrix& RealAinv, Matrix& I
         ImagSum -= RealA(index[i],j)*ImagAinv(j,k)
                  + ImagA(index[i],j)*RealAinv(j,k);
       }
-      double denom = RealA(index[i],i)*RealA(index[i],i) 
+      double denom = RealA(index[i],i)*RealA(index[i],i)
                    + ImagA(index[i],i)*ImagA(index[i],i);
-      RealAinv(i,k) = (RealSum*RealA(index[i],i) 
+      RealAinv(i,k) = (RealSum*RealA(index[i],i)
                     + ImagSum*ImagA(index[i],i))/denom;
-      ImagAinv(i,k) = (ImagSum*RealA(index[i],i) 
+      ImagAinv(i,k) = (ImagSum*RealA(index[i],i)
                     - RealSum*ImagA(index[i],i))/denom;
     }
   }
@@ -1763,7 +1763,7 @@ void fpoly(double x, double *p,unsigned int np)
 }
 
 void SingularValueDecompositionFit( double *X, double *Y, double *Sig, unsigned int NData,
-    double *A, unsigned int MA, 
+    double *A, unsigned int MA,
     double **U, double **V, double *W, unsigned int MP, unsigned int NP,
     double *ChiSq, void funcs(double x, double *afunc, unsigned int ma) )
 {
@@ -2306,15 +2306,15 @@ void PolynomialFit(double *x,double *y,double *std_dev,unsigned int ndata,int nu
         SingularValueDecompositionCovarianceMatrix(v,num_terms,w,cvm);
 
         for( i = 0; i < num_terms; ++i )
-          printf("FIT-term %d: %g +/- %g\n",i,x_coef[i],sqrt(cvm[i][i])*sqrt(chisq/(ndata-num_terms)));
+          fprintf(stderr, "FIT-term %d: %g +/- %g\n",i,x_coef[i],sqrt(cvm[i][i])*sqrt(chisq/(ndata-num_terms)));
         for( i = 0; i < num_terms; ++i )
         {
           for( j = 0; j < num_terms; ++j )
-            printf("%g ",cvm[i][j]);
-          printf("\n");
+            fprintf(stderr, "%g ",cvm[i][j]);
+          fprintf(stderr, "\n");
         }
 
-        printf("Chi-sq: %g\n",chisq);
+        fprintf(stderr, "Chi-sq: %g\n",chisq);
 
         exit(0);
 }
@@ -2326,17 +2326,17 @@ void SingularValueDecomposition(REAL_MATRIX a,int m,int n,REAL *w,REAL_MATRIX v)
 
   rv1=(REAL*)calloc(n,sizeof(REAL));
   g=scale=anorm=0.0;
-  for (i=1;i<=n;i++) 
+  for (i=1;i<=n;i++)
   {
     l=i+1;
     rv1[i-1]=scale*g;
     g=s=scale=0.0;
-    if (i <= m) 
+    if (i <= m)
     {
       for (k=i;k<=m;k++) scale += fabs(a.element[k-1][i-1]);
-      if (scale) 
+      if (scale)
       {
-        for (k=i;k<=m;k++) 
+        for (k=i;k<=m;k++)
         {
           a.element[k-1][i-1] /= scale;
           s += a.element[k-1][i-1]*a.element[k-1][i-1];
@@ -2345,7 +2345,7 @@ void SingularValueDecomposition(REAL_MATRIX a,int m,int n,REAL *w,REAL_MATRIX v)
         g = -SIGN(sqrt(s),f);
         h=f*g-s;
         a.element[i-1][i-1]=f-g;
-        for (j=l;j<=n;j++) 
+        for (j=l;j<=n;j++)
         {
           for (s=0.0,k=i;k<=m;k++) s += a.element[k-1][i-1]*a.element[k-1][j-1];
           f=s/h;
@@ -2356,12 +2356,12 @@ void SingularValueDecomposition(REAL_MATRIX a,int m,int n,REAL *w,REAL_MATRIX v)
     }
     w[i-1]=scale *g;
     g=s=scale=0.0;
-    if (i <= m && i != n) 
+    if (i <= m && i != n)
     {
       for (k=l;k<=n;k++) scale += fabs(a.element[i-1][k-1]);
-      if (scale) 
+      if (scale)
       {
-        for (k=l;k<=n;k++) 
+        for (k=l;k<=n;k++)
         {
           a.element[i-1][k-1] /= scale;
           s += a.element[i-1][k-1]*a.element[i-1][k-1];
@@ -2371,7 +2371,7 @@ void SingularValueDecomposition(REAL_MATRIX a,int m,int n,REAL *w,REAL_MATRIX v)
         h=f*g-s;
         a.element[i-1][l-1]=f-g;
         for (k=l;k<=n;k++) rv1[k-1]=a.element[i-1][k-1]/h;
-        for (j=l;j<=m;j++) 
+        for (j=l;j<=m;j++)
         {
           for (s=0.0,k=l;k<=n;k++) s += a.element[j-1][k-1]*a.element[i-1][k-1];
           for (k=l;k<=n;k++) a.element[j-1][k-1] += s*rv1[k-1];
@@ -2382,15 +2382,15 @@ void SingularValueDecomposition(REAL_MATRIX a,int m,int n,REAL *w,REAL_MATRIX v)
     anorm=MAX2(anorm,(fabs(w[i-1])+fabs(rv1[i-1])));
   }
 
-  for (i=n;i>=1;i--) 
+  for (i=n;i>=1;i--)
   {
-    if (i < n) 
+    if (i < n)
     {
-      if (g) 
+      if (g)
       {
         for (j=l;j<=n;j++)
           v.element[j-1][i-1]=(a.element[i-1][j-1]/a.element[i-1][l-1])/g;
-        for (j=l;j<=n;j++) 
+        for (j=l;j<=n;j++)
         {
           for (s=0.0,k=l;k<=n;k++) s += a.element[i-1][k-1]*v.element[k-1][j-1];
           for (k=l;k<=n;k++) v.element[k-1][j-1] += s*v.element[k-1][i-1];
@@ -2403,46 +2403,46 @@ void SingularValueDecomposition(REAL_MATRIX a,int m,int n,REAL *w,REAL_MATRIX v)
     l=i;
   }
 
-  for (i=MIN2(m,n);i>=1;i--) 
+  for (i=MIN2(m,n);i>=1;i--)
   {
     l=i+1;
     g=w[i-1];
     for (j=l;j<=n;j++) a.element[i-1][j-1]=0.0;
-    if (g) 
+    if (g)
     {
       g=1.0/g;
-      for (j=l;j<=n;j++) 
+      for (j=l;j<=n;j++)
       {
         for (s=0.0,k=l;k<=m;k++) s += a.element[k-1][i-1]*a.element[k-1][j-1];
         f=(s/a.element[i-1][i-1])*g;
         for (k=i;k<=m;k++) a.element[k-1][j-1] += f*a.element[k-1][i-1];
       }
       for (j=i;j<=m;j++) a.element[j-1][i-1] *= g;
-    } 
+    }
     else for (j=i;j<=m;j++) a.element[j-1][i-1]=0.0;
     ++a.element[i-1][i-1];
   }
 
-  for (k=n;k>=1;k--) 
+  for (k=n;k>=1;k--)
   {
-    for (its=1;its<=30;its++) 
+    for (its=1;its<=30;its++)
     {
       flag=1;
-      for (l=k;l>=1;l--) 
+      for (l=k;l>=1;l--)
       {
         nm=l-1;
-        if ((REAL)(fabs(rv1[l-1])+anorm) == anorm) 
+        if ((REAL)(fabs(rv1[l-1])+anorm) == anorm)
         {
           flag=0;
           break;
         }
         if ((REAL)(fabs(w[nm-1])+anorm) == anorm) break;
       }
-      if (flag) 
+      if (flag)
       {
         c=0.0;
         s=1.0;
-        for (i=l;i<=k;i++) 
+        for (i=l;i<=k;i++)
         {
           f=s*rv1[i-1];
           rv1[i-1]=c*rv1[i-1];
@@ -2453,7 +2453,7 @@ void SingularValueDecomposition(REAL_MATRIX a,int m,int n,REAL *w,REAL_MATRIX v)
           h=1.0/h;
           c=g*h;
           s = -f*h;
-          for (j=1;j<=m;j++) 
+          for (j=1;j<=m;j++)
           {
             y=a.element[j-1][nm-1];
             z=a.element[j-1][i-1];
@@ -2463,18 +2463,18 @@ void SingularValueDecomposition(REAL_MATRIX a,int m,int n,REAL *w,REAL_MATRIX v)
         }
       }
       z=w[k-1];
-      if (l == k) 
+      if (l == k)
       {
-        if (z < 0.0) 
+        if (z < 0.0)
         {
           w[k-1] = -z;
           for (j=1;j<=n;j++) v.element[j-1][k-1] = -v.element[j-1][k-1];
         }
         break;
       }
-      if (its == 30) 
+      if (its == 30)
       {
-        printf("no convergence in 30 svdcmp iterations");
+        fprintf(stderr, "no convergence in 30 svdcmp iterations");
         exit(0);
       }
       x=w[l-1];
@@ -2486,7 +2486,7 @@ void SingularValueDecomposition(REAL_MATRIX a,int m,int n,REAL *w,REAL_MATRIX v)
       g=pythag(f,1.0);
       f=((x-z)*(x+z)+h*((y/(f+SIGN(g,f)))-h))/x;
       c=s=1.0;
-      for (j=l;j<=nm;j++) 
+      for (j=l;j<=nm;j++)
       {
         i=j+1;
         g=rv1[i-1];
@@ -2510,7 +2510,7 @@ void SingularValueDecomposition(REAL_MATRIX a,int m,int n,REAL *w,REAL_MATRIX v)
         }
         z=pythag(f,h);
         w[j-1]=z;
-        if (z) 
+        if (z)
         {
           z=1.0/z;
           c=f*z;
@@ -2539,7 +2539,7 @@ void SingularValueDecompositionMatrixInversion(REAL_MATRIX a)
   int i,j,k,l,n;
   REAL *w;
   REAL_MATRIX v,wn,check1,check2;
- 
+
   n=a.n;
   w=(REAL*)calloc(n,sizeof(REAL));
   v=CreateRealMatrix(n,n);
@@ -2551,7 +2551,7 @@ void SingularValueDecompositionMatrixInversion(REAL_MATRIX a)
 
   for(i=0;i<n;i++)
   {
-    if(fabs(w[i])<1e-8) 
+    if(fabs(w[i])<1e-8)
       wn.element[i][i]=0.0;
     else wn.element[i][i]=1.0/w[i];
   }
@@ -2639,9 +2639,9 @@ void MultiplyRealMatrix(REAL_MATRIX c,REAL_MATRIX a,REAL_MATRIX b)
 {
   int i,j,k;
 
-  if(a.n!=b.m) printf("Matrix Multiplication error: %dx%d %dx%d\n",a.m,a.n,b.m,b.n);
-  if(c.m!=a.m) printf("Matrix Multiplication error: %dx%d %dx%d\n",a.m,a.n,b.m,b.n);
-  if(c.n!=b.n) printf("Matrix Multiplication error: %dx%d %dx%d\n",a.m,a.n,b.m,b.n);
+  if(a.n!=b.m) fprintf(stderr, "Matrix Multiplication error: %dx%d %dx%d\n",a.m,a.n,b.m,b.n);
+  if(c.m!=a.m) fprintf(stderr, "Matrix Multiplication error: %dx%d %dx%d\n",a.m,a.n,b.m,b.n);
+  if(c.n!=b.n) fprintf(stderr, "Matrix Multiplication error: %dx%d %dx%d\n",a.m,a.n,b.m,b.n);
 
   for(i=0;i<a.m;i++)
   {
@@ -2658,9 +2658,9 @@ void MultiplyComplexMatrix(COMPLEX_MATRIX c,COMPLEX_MATRIX a,COMPLEX_MATRIX b)
 {
   int i,j,k;
 
-  if(a.n!=b.m) printf("Matrix Multiplication error: %dx%d %dx%d\n",a.m,a.n,b.m,b.n);
-  if(c.m!=a.m) printf("Matrix Multiplication error: %dx%d %dx%d\n",a.m,a.n,b.m,b.n);
-  if(c.n!=b.n) printf("Matrix Multiplication error: %dx%d %dx%d\n",a.m,a.n,b.m,b.n);
+  if(a.n!=b.m) fprintf(stderr, "Matrix Multiplication error: %dx%d %dx%d\n",a.m,a.n,b.m,b.n);
+  if(c.m!=a.m) fprintf(stderr, "Matrix Multiplication error: %dx%d %dx%d\n",a.m,a.n,b.m,b.n);
+  if(c.n!=b.n) fprintf(stderr, "Matrix Multiplication error: %dx%d %dx%d\n",a.m,a.n,b.m,b.n);
 
   for(i=0;i<a.m;i++)
   {
@@ -2698,7 +2698,7 @@ void TestEigenStystem(REAL_MATRIX H)
   REAL *Eigenvalues,*e;
   REAL *first_vector,*second_vector;
 
-  printf("testing eigensystem\n");
+  fprintf(stderr, "testing eigensystem\n");
 
   n=H.n;
 
@@ -2727,7 +2727,7 @@ void TestEigenStystem(REAL_MATRIX H)
     second_vector[i]=Eigenvalues[0]*Eigenvectors.element[0][i];
 
   for(i=0;i<n;i++)
-    printf("%g %g <-> %g\n",first_vector[i],second_vector[i],fabs(first_vector[i]-second_vector[i]));
+    fprintf(stderr, "%g %g <-> %g\n",first_vector[i],second_vector[i],fabs(first_vector[i]-second_vector[i]));
 
   free(Eigenvalues);
   free(e);

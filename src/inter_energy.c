@@ -311,7 +311,7 @@ REAL CalculateInterVDWEnergyAdsorbateAtPosition(POINT posA,int typeA,int exclude
 
   if(OmitInterMolecularInteractions) return 0.0;
 
-  Uvdw=0.0; 
+  Uvdw=0.0;
 
   if(UseReplicas[CurrentSystem])
   {
@@ -332,12 +332,12 @@ REAL CalculateInterVDWEnergyAdsorbateAtPosition(POINT posA,int typeA,int exclude
             dr.y=posA.y-(posB.y+ReplicaShift[ncell].y);
             dr.z=posA.z-(posB.z+ReplicaShift[ncell].z);
             dr=ApplyReplicaBoundaryCondition(dr);
-  
+
             r2=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-   
+
             if(r2<CutOffVDWSquared)
               Uvdw+=PotentialValue(typeA,typeB,r2,scaling*scalingB);
-          } 
+          }
         }
       }
     }
@@ -411,7 +411,7 @@ int CalculateInterChargeEnergyAdsorbateAtPosition(POINT posA,int typeA,REAL *UCh
             dr.z=posA.z-(posB.z+ReplicaShift[ncell].z);
             dr=ApplyReplicaBoundaryCondition(dr);
             rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
- 
+
             if(rr<CutOffChargeChargeSquared[CurrentSystem])
             {
               energy=PotentialValueCoulombic(chargeA,chargeB,sqrt(rr));
@@ -445,7 +445,7 @@ int CalculateInterChargeEnergyAdsorbateAtPosition(POINT posA,int typeA,REAL *UCh
             dr.z=posA.z-(posB.z+ReplicaShift[ncell].z);
             dr=ApplyReplicaBoundaryCondition(dr);
             rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
- 
+
             if(rr<CutOffChargeBondDipoleSquared)
               (*UChargeBondDipole)+=PotentialValueChargeBondDipole(chargeA,dipoleB,dr,sqrt(rr));
           }
@@ -524,7 +524,7 @@ REAL CalculateInterVDWEnergyCationAtPosition(POINT posA,int typeA,int exclude,RE
 
   if(OmitInterMolecularInteractions) return 0.0;
 
-  Uvdw=0.0; 
+  Uvdw=0.0;
   if(UseReplicas[CurrentSystem])
   {
     for(j=0;j<NumberOfCationMolecules[CurrentSystem];j++)
@@ -545,7 +545,7 @@ REAL CalculateInterVDWEnergyCationAtPosition(POINT posA,int typeA,int exclude,RE
             dr.z=posA.z-(posB.z+ReplicaShift[ncell].z);
             dr=ApplyReplicaBoundaryCondition(dr);
             r2=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-  
+
             if(r2<CutOffVDWSquared)
               Uvdw+=PotentialValue(typeA,typeB,r2,scaling*scalingB);
           }
@@ -568,10 +568,10 @@ REAL CalculateInterVDWEnergyCationAtPosition(POINT posA,int typeA,int exclude,RE
           dr.x=posA.x-posB.x;
           dr.y=posA.y-posB.y;
           dr.z=posA.z-posB.z;
-  
+
           dr=ApplyBoundaryCondition(dr);
           r2=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-    
+
           if(r2<CutOffVDWSquared)
             Uvdw+=PotentialValue(typeA,typeB,r2,scaling*scalingB);
         }
@@ -621,7 +621,7 @@ int CalculateInterChargeEnergyCationAtPosition(POINT posA,int typeA,REAL *UCharg
             dr.z=posA.z-(posB.z+ReplicaShift[ncell].z);
             dr=ApplyReplicaBoundaryCondition(dr);
             rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-    
+
             if(rr<CutOffChargeChargeSquared[CurrentSystem])
             {
               energy=PotentialValueCoulombic(chargeA,chargeB,sqrt(rr));
@@ -630,7 +630,7 @@ int CalculateInterChargeEnergyCationAtPosition(POINT posA,int typeA,REAL *UCharg
             }
           }
         }
-  
+
         TypeB=Cations[CurrentSystem][j].Type;
         for(l=0;l<Components[TypeB].NumberOfBondDipoles;l++)
         {
@@ -647,7 +647,7 @@ int CalculateInterChargeEnergyCationAtPosition(POINT posA,int typeA,REAL *UCharg
           posB.z=posB1.z+0.5*dipoleB.z;
           temp=DipoleMagnitudeB/sqrt(SQR(dipoleB.x)+SQR(dipoleB.y)+SQR(dipoleB.z));
           dipoleB.x*=temp; dipoleB.y*=temp; dipoleB.z*=temp;
-  
+
           for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
           {
             dr.x=posA.x-(posB.x+ReplicaShift[ncell].x);
@@ -655,7 +655,7 @@ int CalculateInterChargeEnergyCationAtPosition(POINT posA,int typeA,REAL *UCharg
             dr.z=posA.z-(posB.z+ReplicaShift[ncell].z);
             dr=ApplyReplicaBoundaryCondition(dr);
             rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-    
+
             if(rr<CutOffChargeBondDipoleSquared)
               (*UChargeBondDipole)+=PotentialValueChargeBondDipole(chargeA,dipoleB,dr,sqrt(rr));
           }
@@ -679,9 +679,9 @@ int CalculateInterChargeEnergyCationAtPosition(POINT posA,int typeA,REAL *UCharg
           dr.y=posA.y-posB.y;
           dr.z=posA.z-posB.z;
           dr=ApplyBoundaryCondition(dr);
-  
+
           rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-  
+
           if(rr<CutOffChargeChargeSquared[CurrentSystem])
           {
             energy=PotentialValueCoulombic(chargeA,chargeB,sqrt(rr));
@@ -689,7 +689,7 @@ int CalculateInterChargeEnergyCationAtPosition(POINT posA,int typeA,REAL *UCharg
             (*UChargeCharge)+=energy;
           }
         }
-  
+
         TypeB=Cations[CurrentSystem][j].Type;
         for(l=0;l<Components[TypeB].NumberOfBondDipoles;l++)
         {
@@ -706,13 +706,13 @@ int CalculateInterChargeEnergyCationAtPosition(POINT posA,int typeA,REAL *UCharg
           posB.z=posB1.z+0.5*dipoleB.z;
           temp=DipoleMagnitudeB/sqrt(SQR(dipoleB.x)+SQR(dipoleB.y)+SQR(dipoleB.z));
           dipoleB.x*=temp; dipoleB.y*=temp; dipoleB.z*=temp;
-  
+
           dr.x=posA.x-posB.x;
           dr.y=posA.y-posB.y;
           dr.z=posA.z-posB.z;
           dr=ApplyBoundaryCondition(dr);
           rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-  
+
           if(rr<CutOffChargeBondDipoleSquared)
             (*UChargeBondDipole)+=PotentialValueChargeBondDipole(chargeA,dipoleB,dr,sqrt(rr));
         }
@@ -768,14 +768,14 @@ int CalculateInterBondDipoleEnergyAdsorbateAtPosition(POINT posA1,POINT posA2,RE
             dr.y=posA.y-(posB.y+ReplicaShift[ncell].y);
             dr.z=posA.z-(posB.z+ReplicaShift[ncell].z);
             dr=ApplyReplicaBoundaryCondition(dr);
-    
+
             rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-    
+
             if(rr<CutOffChargeBondDipoleSquared)
               (*UChargeBondDipole)-=PotentialValueChargeBondDipole(chargeB,dipoleA,dr,sqrt(rr));
           }
         }
-  
+
         TypeB=Adsorbates[CurrentSystem][j].Type;
         for(l=0;l<Components[TypeB].NumberOfBondDipoles;l++)
         {
@@ -800,7 +800,7 @@ int CalculateInterBondDipoleEnergyAdsorbateAtPosition(POINT posA1,POINT posA2,RE
             dr.z=posA.z-(posB.z+ReplicaShift[ncell].z);
             dr=ApplyReplicaBoundaryCondition(dr);
             rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-    
+
             if(rr<CutOffBondDipoleBondDipoleSquared)
               (*UBondDipoleBondDipole)+=PotentialValueBondDipoleBondDipole(dipoleA,dipoleB,dr,sqrt(rr));
           }
@@ -823,13 +823,13 @@ int CalculateInterBondDipoleEnergyAdsorbateAtPosition(POINT posA1,POINT posA2,RE
           dr.y=posA.y-posB.y;
           dr.z=posA.z-posB.z;
           dr=ApplyBoundaryCondition(dr);
-  
+
           rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-  
+
           if(rr<CutOffChargeBondDipoleSquared)
             (*UChargeBondDipole)-=PotentialValueChargeBondDipole(chargeB,dipoleA,dr,sqrt(rr));
         }
-  
+
         TypeB=Adsorbates[CurrentSystem][j].Type;
         for(l=0;l<Components[TypeB].NumberOfBondDipoles;l++)
         {
@@ -846,13 +846,13 @@ int CalculateInterBondDipoleEnergyAdsorbateAtPosition(POINT posA1,POINT posA2,RE
           posB.z=posB1.z+0.5*dipoleB.z;
           temp=DipoleMagnitudeB/sqrt(SQR(dipoleB.x)+SQR(dipoleB.y)+SQR(dipoleB.z));
           dipoleB.x*=temp; dipoleB.y*=temp; dipoleB.z*=temp;
-  
+
           dr.x=posA.x-posB.x;
           dr.y=posA.y-posB.y;
           dr.z=posA.z-posB.z;
           dr=ApplyBoundaryCondition(dr);
           rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-  
+
           if(rr<CutOffBondDipoleBondDipoleSquared)
             (*UBondDipoleBondDipole)+=PotentialValueBondDipoleBondDipole(dipoleA,dipoleB,dr,sqrt(rr));
         }
@@ -909,12 +909,12 @@ int CalculateInterBondDipoleEnergyCationAtPosition(POINT posA1,POINT posA2,REAL 
             dr.z=posA.z-(posB.z+ReplicaShift[ncell].z);
             dr=ApplyReplicaBoundaryCondition(dr);
             rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-    
+
             if(rr<CutOffChargeBondDipoleSquared)
               (*UChargeBondDipole)-=PotentialValueChargeBondDipole(chargeB,dipoleA,dr,sqrt(rr));
           }
         }
-  
+
         TypeB=Cations[CurrentSystem][j].Type;
         for(l=0;l<Components[TypeB].NumberOfBondDipoles;l++)
         {
@@ -931,7 +931,7 @@ int CalculateInterBondDipoleEnergyCationAtPosition(POINT posA1,POINT posA2,REAL 
           posB.z=posB1.z+0.5*dipoleB.z;
           temp=DipoleMagnitudeB/sqrt(SQR(dipoleB.x)+SQR(dipoleB.y)+SQR(dipoleB.z));
           dipoleB.x*=temp; dipoleB.y*=temp; dipoleB.z*=temp;
-  
+
           for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
           {
             dr.x=posA.x-(posB.x+ReplicaShift[ncell].x);
@@ -939,7 +939,7 @@ int CalculateInterBondDipoleEnergyCationAtPosition(POINT posA1,POINT posA2,REAL 
             dr.z=posA.z-(posB.z+ReplicaShift[ncell].z);
             dr=ApplyReplicaBoundaryCondition(dr);
             rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-    
+
             if(rr<CutOffBondDipoleBondDipoleSquared)
               (*UBondDipoleBondDipole)+=PotentialValueBondDipoleBondDipole(dipoleA,dipoleB,dr,sqrt(rr));
           }
@@ -962,13 +962,13 @@ int CalculateInterBondDipoleEnergyCationAtPosition(POINT posA1,POINT posA2,REAL 
           dr.y=posA.y-posB.y;
           dr.z=posA.z-posB.z;
           dr=ApplyBoundaryCondition(dr);
-  
+
           rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-  
+
           if(rr<CutOffChargeBondDipoleSquared)
             (*UChargeBondDipole)-=PotentialValueChargeBondDipole(chargeB,dipoleA,dr,sqrt(rr));
         }
-  
+
         TypeB=Cations[CurrentSystem][j].Type;
         for(l=0;l<Components[TypeB].NumberOfBondDipoles;l++)
         {
@@ -985,13 +985,13 @@ int CalculateInterBondDipoleEnergyCationAtPosition(POINT posA1,POINT posA2,REAL 
           posB.z=posB1.z+0.5*dipoleB.z;
           temp=DipoleMagnitudeB/sqrt(SQR(dipoleB.x)+SQR(dipoleB.y)+SQR(dipoleB.z));
           dipoleB.x*=temp; dipoleB.y*=temp; dipoleB.z*=temp;
-  
+
           dr.x=posA.x-posB.x;
           dr.y=posA.y-posB.y;
           dr.z=posA.z-posB.z;
           dr=ApplyBoundaryCondition(dr);
           rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-  
+
           if(rr<CutOffBondDipoleBondDipoleSquared)
             (*UBondDipoleBondDipole)+=PotentialValueBondDipoleBondDipole(dipoleA,dipoleB,dr,sqrt(rr));
         }
@@ -1032,7 +1032,7 @@ int CalculateTotalInterVDWEnergy(void)
         typeA=Adsorbates[CurrentSystem][i].Atoms[k].Type;
         posA=Adsorbates[CurrentSystem][i].Atoms[k].AnisotropicPosition;
         scalingA=Adsorbates[CurrentSystem][i].Atoms[k].CFVDWScalingParameter;
-  
+
         // loop over adsorbant molecules
         if(!OmitAdsorbateAdsorbateVDWInteractions)
         {
@@ -1070,7 +1070,7 @@ int CalculateTotalInterVDWEnergy(void)
             }
           }
         }
-  
+
         if(!OmitAdsorbateCationVDWInteractions)
         {
           for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
@@ -1101,7 +1101,7 @@ int CalculateTotalInterVDWEnergy(void)
         }
       }
     }
-  
+
     for(i=0;i<NumberOfCationMolecules[CurrentSystem];i++)
     {
       for(k=0;k<Cations[CurrentSystem][i].NumberOfAtoms;k++)
@@ -1109,7 +1109,7 @@ int CalculateTotalInterVDWEnergy(void)
         typeA=Cations[CurrentSystem][i].Atoms[k].Type;
         posA=Cations[CurrentSystem][i].Atoms[k].AnisotropicPosition;
         scalingA=Cations[CurrentSystem][i].Atoms[k].CFVDWScalingParameter;
-  
+
         // loop over cation molecules
         for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
         {
@@ -1147,7 +1147,7 @@ int CalculateTotalInterVDWEnergy(void)
     }
   }
   else
-  { 
+  {
     for(i=0;i<NumberOfAdsorbateMolecules[CurrentSystem];i++)
     {
       for(k=0;k<Adsorbates[CurrentSystem][i].NumberOfAtoms;k++)
@@ -1155,7 +1155,7 @@ int CalculateTotalInterVDWEnergy(void)
         typeA=Adsorbates[CurrentSystem][i].Atoms[k].Type;
         posA=Adsorbates[CurrentSystem][i].Atoms[k].AnisotropicPosition;
         scalingA=Adsorbates[CurrentSystem][i].Atoms[k].CFVDWScalingParameter;
-  
+
         // loop over adsorbant molecules
         if(!OmitAdsorbateAdsorbateVDWInteractions)
         {
@@ -1165,13 +1165,13 @@ int CalculateTotalInterVDWEnergy(void)
             for(l=0;l<Adsorbates[CurrentSystem][j].NumberOfAtoms;l++)
             {
               posB=Adsorbates[CurrentSystem][j].Atoms[l].AnisotropicPosition;
-  
+
               dr.x=posA.x-posB.x;
               dr.y=posA.y-posB.y;
               dr.z=posA.z-posB.z;
               dr=ApplyBoundaryCondition(dr);
               rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-  
+
               if(rr<CutOffVDWSquared)
               {
                 typeB=Adsorbates[CurrentSystem][j].Atoms[l].Type;
@@ -1181,7 +1181,7 @@ int CalculateTotalInterVDWEnergy(void)
             }
           }
         }
-  
+
         if(!OmitAdsorbateCationVDWInteractions)
         {
           for(j=0;j<NumberOfCationMolecules[CurrentSystem];j++)
@@ -1190,7 +1190,7 @@ int CalculateTotalInterVDWEnergy(void)
             for(l=0;l<Cations[CurrentSystem][j].NumberOfAtoms;l++)
             {
               posB=Cations[CurrentSystem][j].Atoms[l].AnisotropicPosition;
-  
+
               dr.x=posA.x-posB.x;
               dr.y=posA.y-posB.y;
               dr.z=posA.z-posB.z;
@@ -1207,7 +1207,7 @@ int CalculateTotalInterVDWEnergy(void)
         }
       }
     }
-  
+
     if(!OmitCationCationVDWInteractions)
     {
       for(i=0;i<NumberOfCationMolecules[CurrentSystem];i++)
@@ -1217,7 +1217,7 @@ int CalculateTotalInterVDWEnergy(void)
           typeA=Cations[CurrentSystem][i].Atoms[k].Type;
           posA=Cations[CurrentSystem][i].Atoms[k].AnisotropicPosition;
           scalingA=Cations[CurrentSystem][i].Atoms[k].CFVDWScalingParameter;
-  
+
           // loop over cation molecules
           for(j=i+1;j<NumberOfCationMolecules[CurrentSystem];j++)
           {
@@ -1225,7 +1225,7 @@ int CalculateTotalInterVDWEnergy(void)
             for(l=0;l<Cations[CurrentSystem][j].NumberOfAtoms;l++)
             {
               posB=Cations[CurrentSystem][j].Atoms[l].AnisotropicPosition;
-  
+
               dr.x=posA.x-posB.x;
               dr.y=posA.y-posB.y;
               dr.z=posA.z-posB.z;
@@ -1275,7 +1275,7 @@ int CalculateTotalInterChargeChargeCoulombEnergy(void)
         posA=Adsorbates[CurrentSystem][i].Atoms[k].Position;
         scalingA=Adsorbates[CurrentSystem][i].Atoms[k].CFChargeScalingParameter;
         chargeA=scalingA*Adsorbates[CurrentSystem][i].Atoms[k].Charge;
-  
+
         if(!OmitAdsorbateAdsorbateCoulombInteractions)
         {
           for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
@@ -1312,10 +1312,10 @@ int CalculateTotalInterChargeChargeCoulombEnergy(void)
             }
           }
         }
- 
+
         if(!OmitAdsorbateCationCoulombInteractions)
         {
-          for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++) 
+          for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
           {
             for(j=0;j<NumberOfCationMolecules[CurrentSystem];j++)
             {
@@ -1345,7 +1345,7 @@ int CalculateTotalInterChargeChargeCoulombEnergy(void)
         }
       }
     }
-  
+
     if(!OmitCationCationCoulombInteractions)
     {
       for(i=0;i<NumberOfCationMolecules[CurrentSystem];i++)
@@ -1356,7 +1356,7 @@ int CalculateTotalInterChargeChargeCoulombEnergy(void)
           posA=Cations[CurrentSystem][i].Atoms[k].Position;
           scalingA=Cations[CurrentSystem][i].Atoms[k].CFChargeScalingParameter;
           chargeA=scalingA*Cations[CurrentSystem][i].Atoms[k].Charge;
-  
+
           // loop over cation molecules
           for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
           {
@@ -1403,7 +1403,7 @@ int CalculateTotalInterChargeChargeCoulombEnergy(void)
         posA=Adsorbates[CurrentSystem][i].Atoms[k].Position;
         scalingA=Adsorbates[CurrentSystem][i].Atoms[k].CFChargeScalingParameter;
         chargeA=scalingA*Adsorbates[CurrentSystem][i].Atoms[k].Charge;
-  
+
         // loop over adsorbant molecules
         if(!OmitAdsorbateAdsorbateCoulombInteractions)
         {
@@ -1412,13 +1412,13 @@ int CalculateTotalInterChargeChargeCoulombEnergy(void)
             for(l=0;l<Adsorbates[CurrentSystem][j].NumberOfAtoms;l++)
             {
               posB=Adsorbates[CurrentSystem][j].Atoms[l].Position;
-  
+
               dr.x=posA.x-posB.x;
               dr.y=posA.y-posB.y;
               dr.z=posA.z-posB.z;
               dr=ApplyBoundaryCondition(dr);
               r2=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-  
+
               if(r2<CutOffChargeChargeSquared[CurrentSystem])
               {
                 typeB=Adsorbates[CurrentSystem][j].Atoms[l].Type;
@@ -1426,13 +1426,13 @@ int CalculateTotalInterChargeChargeCoulombEnergy(void)
                 chargeB=scalingB*Adsorbates[CurrentSystem][j].Atoms[l].Charge;
 
                 energy=PotentialValueCoulombic(chargeA,chargeB,sqrt(r2));
-  
+
                 UAdsorbateAdsorbateChargeChargeReal[CurrentSystem]+=energy;
               }
             }
           }
         }
-  
+
         if(!OmitAdsorbateCationCoulombInteractions)
         {
           for(j=0;j<NumberOfCationMolecules[CurrentSystem];j++)
@@ -1440,7 +1440,7 @@ int CalculateTotalInterChargeChargeCoulombEnergy(void)
             for(l=0;l<Cations[CurrentSystem][j].NumberOfAtoms;l++)
             {
               posB=Cations[CurrentSystem][j].Atoms[l].Position;
-  
+
               dr.x=posA.x-posB.x;
               dr.y=posA.y-posB.y;
               dr.z=posA.z-posB.z;
@@ -1453,7 +1453,7 @@ int CalculateTotalInterChargeChargeCoulombEnergy(void)
                 chargeB=scalingB*Cations[CurrentSystem][j].Atoms[l].Charge;
 
                 energy=PotentialValueCoulombic(chargeA,chargeB,sqrt(r2));
-  
+
                 UAdsorbateCationChargeChargeReal[CurrentSystem]+=energy;
               }
             }
@@ -1461,7 +1461,7 @@ int CalculateTotalInterChargeChargeCoulombEnergy(void)
         }
       }
     }
-  
+
     if(!OmitCationCationCoulombInteractions)
     {
       for(i=0;i<NumberOfCationMolecules[CurrentSystem];i++)
@@ -1472,14 +1472,14 @@ int CalculateTotalInterChargeChargeCoulombEnergy(void)
           posA=Cations[CurrentSystem][i].Atoms[k].Position;
           scalingA=Cations[CurrentSystem][i].Atoms[k].CFChargeScalingParameter;
           chargeA=scalingA*Cations[CurrentSystem][i].Atoms[k].Charge;
-  
+
           // loop over cation molecules
           for(j=i+1;j<NumberOfCationMolecules[CurrentSystem];j++)
           {
             for(l=0;l<Cations[CurrentSystem][j].NumberOfAtoms;l++)
             {
               posB=Cations[CurrentSystem][j].Atoms[l].Position;
-  
+
               dr.x=posA.x-posB.x;
               dr.y=posA.y-posB.y;
               dr.z=posA.z-posB.z;
@@ -1492,7 +1492,7 @@ int CalculateTotalInterChargeChargeCoulombEnergy(void)
                 chargeB=scalingB*Cations[CurrentSystem][j].Atoms[l].Charge;
 
                 energy=PotentialValueCoulombic(chargeA,chargeB,sqrt(r2));
-  
+
                 UCationCationChargeChargeReal[CurrentSystem]+=energy;
               }
             }
@@ -1593,7 +1593,7 @@ int CalculateTotalInterChargeBondDipoleCoulombEnergy(void)
   if(ChargeMethod==NONE) return 0;
   if(OmitInterMolecularInteractions) return 0;
 
-  Bt0=Bt1=Bt2=0.0;  
+  Bt0=Bt1=Bt2=0.0;
   if(UseReplicas[CurrentSystem])
   {
     for(i=0;i<NumberOfAdsorbateMolecules[CurrentSystem];i++)
@@ -1616,7 +1616,7 @@ int CalculateTotalInterChargeBondDipoleCoulombEnergy(void)
         length=sqrt(ri2);
         temp=DipoleMagnitudeA/length;
         dipoleA.x*=temp; dipoleA.y*=temp; dipoleA.z*=temp;
-  
+
         if(!OmitAdsorbateAdsorbateCoulombInteractions)
         {
           for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
@@ -1634,13 +1634,13 @@ int CalculateTotalInterChargeBondDipoleCoulombEnergy(void)
                   {
                     posB=Adsorbates[CurrentSystem][k].Atoms[l].Position;
                     chargeB=Adsorbates[CurrentSystem][k].Atoms[l].Charge;
-    
+
                     dr.x=posA.x-(posB.x+ReplicaShift[ncell].x);
                     dr.y=posA.y-(posB.y+ReplicaShift[ncell].y);
                     dr.z=posA.z-(posB.z+ReplicaShift[ncell].z);
                     dr=ApplyReplicaBoundaryCondition(dr);
                     rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-     
+
                     if(rr<CutOffChargeBondDipoleSquared)
                     {
                       energy=PotentialValueChargeBondDipole(chargeB,dipoleA,dr,sqrt(rr));
@@ -1655,7 +1655,7 @@ int CalculateTotalInterChargeBondDipoleCoulombEnergy(void)
             }
           }
         }
- 
+
         if(!OmitAdsorbateCationCoulombInteractions)
         {
           for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
@@ -1669,13 +1669,13 @@ int CalculateTotalInterChargeBondDipoleCoulombEnergy(void)
                 {
                   posB=Cations[CurrentSystem][k].Atoms[l].Position;
                   chargeB=Cations[CurrentSystem][k].Atoms[l].Charge;
-      
+
                   dr.x=posA.x-(posB.x+ReplicaShift[ncell].x);
                   dr.y=posA.y-(posB.y+ReplicaShift[ncell].y);
                   dr.z=posA.z-(posB.z+ReplicaShift[ncell].z);
                   dr=ApplyReplicaBoundaryCondition(dr);
                   rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-    
+
                   if(rr<CutOffChargeBondDipoleSquared)
                     UAdsorbateCationChargeBondDipoleReal[CurrentSystem]-=PotentialValueChargeBondDipole(chargeB,dipoleA,dr,sqrt(rr));
                 }
@@ -1685,7 +1685,7 @@ int CalculateTotalInterChargeBondDipoleCoulombEnergy(void)
         }
       }
     }
-  
+
     for(i=0;i<NumberOfCationMolecules[CurrentSystem];i++)
     {
       TypeA=Cations[CurrentSystem][i].Type;
@@ -1706,7 +1706,7 @@ int CalculateTotalInterChargeBondDipoleCoulombEnergy(void)
         length=sqrt(ri2);
         temp=DipoleMagnitudeA/length;
         dipoleA.x*=temp; dipoleA.y*=temp; dipoleA.z*=temp;
- 
+
         for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
         {
           if(ncell==0) start=i+1;
@@ -1724,13 +1724,13 @@ int CalculateTotalInterChargeBondDipoleCoulombEnergy(void)
                   {
                     posB=Cations[CurrentSystem][k].Atoms[l].Position;
                     chargeB=Cations[CurrentSystem][k].Atoms[l].Charge;
-      
+
                     dr.x=posA.x-(posB.x+ReplicaShift[ncell].x);
                     dr.y=posA.y-(posB.y+ReplicaShift[ncell].y);
                     dr.z=posA.z-(posB.z+ReplicaShift[ncell].z);
                     dr=ApplyReplicaBoundaryCondition(dr);
                     rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-    
+
                     if(rr<CutOffChargeBondDipoleSquared)
                     {
                       energy=PotentialValueChargeBondDipole(chargeB,dipoleA,dr,sqrt(rr));
@@ -1745,7 +1745,7 @@ int CalculateTotalInterChargeBondDipoleCoulombEnergy(void)
             }
           }
         }
-  
+
         if(!OmitAdsorbateCationCoulombInteractions)
         {
           for(k=0;k<NumberOfAdsorbateMolecules[CurrentSystem];k++)
@@ -1757,7 +1757,7 @@ int CalculateTotalInterChargeBondDipoleCoulombEnergy(void)
               {
                 posB=Adsorbates[CurrentSystem][k].Atoms[l].Position;
                 chargeB=Adsorbates[CurrentSystem][k].Atoms[l].Charge;
-    
+
                 for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
                 {
                   dr.x=posA.x-(posB.x+ReplicaShift[ncell].x);
@@ -1765,7 +1765,7 @@ int CalculateTotalInterChargeBondDipoleCoulombEnergy(void)
                   dr.z=posA.z-(posB.z+ReplicaShift[ncell].z);
                   dr=ApplyReplicaBoundaryCondition(dr);
                   rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-    
+
                   if(rr<CutOffChargeBondDipoleSquared)
                     UAdsorbateCationChargeBondDipoleReal[CurrentSystem]-=PotentialValueChargeBondDipole(chargeB,dipoleA,dr,sqrt(rr));
                 }
@@ -1798,7 +1798,7 @@ int CalculateTotalInterChargeBondDipoleCoulombEnergy(void)
         length=sqrt(ri2);
         temp=DipoleMagnitudeA/length;
         dipoleA.x*=temp; dipoleA.y*=temp; dipoleA.z*=temp;
-  
+
         if(!OmitAdsorbateAdsorbateCoulombInteractions)
         {
           for(k=0;k<NumberOfAdsorbateMolecules[CurrentSystem];k++)
@@ -1812,13 +1812,13 @@ int CalculateTotalInterChargeBondDipoleCoulombEnergy(void)
                 {
                   posB=Adsorbates[CurrentSystem][k].Atoms[l].Position;
                   chargeB=Adsorbates[CurrentSystem][k].Atoms[l].Charge;
-  
+
                   dr.x=posA.x-posB.x;
                   dr.y=posA.y-posB.y;
                   dr.z=posA.z-posB.z;
                   dr=ApplyBoundaryCondition(dr);
                   rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-   
+
                   if(rr<CutOffChargeBondDipoleSquared)
                     UAdsorbateAdsorbateChargeBondDipoleReal[CurrentSystem]-=PotentialValueChargeBondDipole(chargeB,dipoleA,dr,sqrt(rr));
                 }
@@ -1826,7 +1826,7 @@ int CalculateTotalInterChargeBondDipoleCoulombEnergy(void)
             }
           }
         }
-  
+
         if(!OmitAdsorbateCationCoulombInteractions)
         {
           for(k=0;k<NumberOfCationMolecules[CurrentSystem];k++)
@@ -1838,13 +1838,13 @@ int CalculateTotalInterChargeBondDipoleCoulombEnergy(void)
               {
                 posB=Cations[CurrentSystem][k].Atoms[l].Position;
                 chargeB=Cations[CurrentSystem][k].Atoms[l].Charge;
-    
+
                 dr.x=posA.x-posB.x;
                 dr.y=posA.y-posB.y;
                 dr.z=posA.z-posB.z;
                 dr=ApplyBoundaryCondition(dr);
                 rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-  
+
                 if(rr<CutOffChargeBondDipoleSquared)
                   UAdsorbateCationChargeBondDipoleReal[CurrentSystem]-=PotentialValueChargeBondDipole(chargeB,dipoleA,dr,sqrt(rr));
               }
@@ -1853,7 +1853,7 @@ int CalculateTotalInterChargeBondDipoleCoulombEnergy(void)
         }
       }
     }
-  
+
     for(i=0;i<NumberOfCationMolecules[CurrentSystem];i++)
     {
       TypeA=Cations[CurrentSystem][i].Type;
@@ -1874,7 +1874,7 @@ int CalculateTotalInterChargeBondDipoleCoulombEnergy(void)
         length=sqrt(ri2);
         temp=DipoleMagnitudeA/length;
         dipoleA.x*=temp; dipoleA.y*=temp; dipoleA.z*=temp;
-  
+
         if(!OmitCationCationCoulombInteractions)
         {
           for(k=0;k<NumberOfCationMolecules[CurrentSystem];k++)
@@ -1888,13 +1888,13 @@ int CalculateTotalInterChargeBondDipoleCoulombEnergy(void)
                 {
                   posB=Cations[CurrentSystem][k].Atoms[l].Position;
                   chargeB=Cations[CurrentSystem][k].Atoms[l].Charge;
-    
+
                   dr.x=posA.x-posB.x;
                   dr.y=posA.y-posB.y;
                   dr.z=posA.z-posB.z;
                   dr=ApplyBoundaryCondition(dr);
                   rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-  
+
                   if(rr<CutOffChargeBondDipoleSquared)
                     UCationCationChargeBondDipoleReal[CurrentSystem]-=PotentialValueChargeBondDipole(chargeB,dipoleA,dr,sqrt(rr));
                 }
@@ -1902,7 +1902,7 @@ int CalculateTotalInterChargeBondDipoleCoulombEnergy(void)
             }
           }
         }
-  
+
         if(!OmitAdsorbateCationCoulombInteractions)
         {
           for(k=0;k<NumberOfAdsorbateMolecules[CurrentSystem];k++)
@@ -1914,13 +1914,13 @@ int CalculateTotalInterChargeBondDipoleCoulombEnergy(void)
               {
                 posB=Adsorbates[CurrentSystem][k].Atoms[l].Position;
                 chargeB=Adsorbates[CurrentSystem][k].Atoms[l].Charge;
-    
+
                 dr.x=posA.x-posB.x;
                 dr.y=posA.y-posB.y;
                 dr.z=posA.z-posB.z;
                 dr=ApplyBoundaryCondition(dr);
                 rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-  
+
                 if(rr<CutOffChargeBondDipoleSquared)
                   UAdsorbateCationChargeBondDipoleReal[CurrentSystem]-=PotentialValueChargeBondDipole(chargeB,dipoleA,dr,sqrt(rr));
               }
@@ -1974,7 +1974,7 @@ int CalculateTotalInterBondDipoleBondDipoleCoulombEnergy(void)
         length=sqrt(ri2);
         temp=DipoleMagnitudeA/length;
         dipoleA.x*=temp; dipoleA.y*=temp; dipoleA.z*=temp;
-  
+
         if(!OmitAdsorbateAdsorbateCoulombInteractions)
         {
           for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
@@ -2001,13 +2001,13 @@ int CalculateTotalInterBondDipoleBondDipoleCoulombEnergy(void)
                 length=sqrt(rk2);
                 temp=DipoleMagnitudeB/length;
                 dipoleB.x*=temp; dipoleB.y*=temp; dipoleB.z*=temp;
-    
+
                 dr.x=posA.x-(posB.x+ReplicaShift[ncell].x);
                 dr.y=posA.y-(posB.y+ReplicaShift[ncell].y);
                 dr.z=posA.z-(posB.z+ReplicaShift[ncell].z);
                 dr=ApplyReplicaBoundaryCondition(dr);
                 rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-    
+
                 if(rr<CutOffBondDipoleBondDipoleSquared)
                 {
                   energy=PotentialValueBondDipoleBondDipole(dipoleA,dipoleB,dr,sqrt(rr));
@@ -2020,7 +2020,7 @@ int CalculateTotalInterBondDipoleBondDipoleCoulombEnergy(void)
             }
           }
         }
-  
+
         if(!OmitAdsorbateCationCoulombInteractions)
         {
           for(k=0;k<NumberOfCationMolecules[CurrentSystem];k++)
@@ -2043,7 +2043,7 @@ int CalculateTotalInterBondDipoleBondDipoleCoulombEnergy(void)
               length=sqrt(rk2);
               temp=DipoleMagnitudeB/length;
               dipoleB.x*=temp; dipoleB.y*=temp; dipoleB.z*=temp;
-  
+
               for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
               {
                 dr.x=posA.x-(posB.x+ReplicaShift[ncell].x);
@@ -2051,7 +2051,7 @@ int CalculateTotalInterBondDipoleBondDipoleCoulombEnergy(void)
                 dr.z=posA.z-(posB.z+ReplicaShift[ncell].z);
                 dr=ApplyReplicaBoundaryCondition(dr);
                 rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-    
+
                 if(rr<CutOffBondDipoleBondDipoleSquared)
                   UAdsorbateCationBondDipoleBondDipoleReal[CurrentSystem]+=PotentialValueBondDipoleBondDipole(dipoleA,dipoleB,dr,sqrt(rr));
               }
@@ -2060,7 +2060,7 @@ int CalculateTotalInterBondDipoleBondDipoleCoulombEnergy(void)
         }
       }
     }
-  
+
     if(!OmitCationCationCoulombInteractions)
     {
       for(i=0;i<NumberOfCationMolecules[CurrentSystem];i++)
@@ -2083,7 +2083,7 @@ int CalculateTotalInterBondDipoleBondDipoleCoulombEnergy(void)
           length=sqrt(ri2);
           temp=DipoleMagnitudeA/length;
           dipoleA.x*=temp; dipoleA.y*=temp; dipoleA.z*=temp;
- 
+
           for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
           {
             if(ncell==0) start=i+1;
@@ -2108,18 +2108,18 @@ int CalculateTotalInterBondDipoleBondDipoleCoulombEnergy(void)
                 length=sqrt(rk2);
                 temp=DipoleMagnitudeB/length;
                 dipoleB.x*=temp; dipoleB.y*=temp; dipoleB.z*=temp;
-    
+
                 dr.x=posA.x-(posB.x+ReplicaShift[ncell].x);
                 dr.y=posA.y-(posB.y+ReplicaShift[ncell].y);
                 dr.z=posA.z-(posB.z+ReplicaShift[ncell].z);
                 dr=ApplyReplicaBoundaryCondition(dr);
                 rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-    
+
                 if(rr<CutOffBondDipoleBondDipoleSquared)
                 {
                   energy=PotentialValueBondDipoleBondDipole(dipoleA,dipoleB,dr,sqrt(rr));
-   
-                  if(ncell==0) 
+
+                  if(ncell==0)
                     UCationCationBondDipoleBondDipoleReal[CurrentSystem]+=energy;
                   else
                     UCationCationBondDipoleBondDipoleReal[CurrentSystem]+=0.5*energy;
@@ -2153,7 +2153,7 @@ int CalculateTotalInterBondDipoleBondDipoleCoulombEnergy(void)
         length=sqrt(ri2);
         temp=DipoleMagnitudeA/length;
         dipoleA.x*=temp; dipoleA.y*=temp; dipoleA.z*=temp;
-  
+
         if(!OmitAdsorbateAdsorbateCoulombInteractions)
         {
           for(k=i+1;k<NumberOfAdsorbateMolecules[CurrentSystem];k++)
@@ -2176,19 +2176,19 @@ int CalculateTotalInterBondDipoleBondDipoleCoulombEnergy(void)
               length=sqrt(rk2);
               temp=DipoleMagnitudeB/length;
               dipoleB.x*=temp; dipoleB.y*=temp; dipoleB.z*=temp;
-  
+
               dr.x=posA.x-posB.x;
               dr.y=posA.y-posB.y;
               dr.z=posA.z-posB.z;
               dr=ApplyBoundaryCondition(dr);
               rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-  
+
               if(rr<CutOffBondDipoleBondDipoleSquared)
                 UAdsorbateAdsorbateBondDipoleBondDipoleReal[CurrentSystem]+=PotentialValueBondDipoleBondDipole(dipoleA,dipoleB,dr,sqrt(rr));
             }
           }
         }
-  
+
         if(!OmitAdsorbateCationCoulombInteractions)
         {
           for(k=0;k<NumberOfCationMolecules[CurrentSystem];k++)
@@ -2211,13 +2211,13 @@ int CalculateTotalInterBondDipoleBondDipoleCoulombEnergy(void)
               length=sqrt(rk2);
               temp=DipoleMagnitudeB/length;
               dipoleB.x*=temp; dipoleB.y*=temp; dipoleB.z*=temp;
-  
+
               dr.x=posA.x-posB.x;
               dr.y=posA.y-posB.y;
               dr.z=posA.z-posB.z;
               dr=ApplyBoundaryCondition(dr);
               rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-  
+
               if(rr<CutOffBondDipoleBondDipoleSquared)
                 UAdsorbateCationBondDipoleBondDipoleReal[CurrentSystem]+=PotentialValueBondDipoleBondDipole(dipoleA,dipoleB,dr,sqrt(rr));
             }
@@ -2225,7 +2225,7 @@ int CalculateTotalInterBondDipoleBondDipoleCoulombEnergy(void)
         }
       }
     }
-  
+
     if(!OmitCationCationCoulombInteractions)
     {
       for(i=0;i<NumberOfCationMolecules[CurrentSystem];i++)
@@ -2248,7 +2248,7 @@ int CalculateTotalInterBondDipoleBondDipoleCoulombEnergy(void)
           length=sqrt(ri2);
           temp=DipoleMagnitudeA/length;
           dipoleA.x*=temp; dipoleA.y*=temp; dipoleA.z*=temp;
-  
+
           for(k=i+1;k<NumberOfCationMolecules[CurrentSystem];k++)
           {
             TypeB=Cations[CurrentSystem][k].Type;
@@ -2269,13 +2269,13 @@ int CalculateTotalInterBondDipoleBondDipoleCoulombEnergy(void)
               length=sqrt(rk2);
               temp=DipoleMagnitudeB/length;
               dipoleB.x*=temp; dipoleB.y*=temp; dipoleB.z*=temp;
-  
+
               dr.x=posA.x-posB.x;
               dr.y=posA.y-posB.y;
               dr.z=posA.z-posB.z;
               dr=ApplyBoundaryCondition(dr);
               rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-  
+
               if(rr<CutOffBondDipoleBondDipoleSquared)
                 UCationCationBondDipoleBondDipoleReal[CurrentSystem]+=PotentialValueBondDipoleBondDipole(dipoleA,dipoleB,dr,sqrt(rr));
             }
@@ -2330,7 +2330,7 @@ int CalculateInterVDWEnergyDifferenceAdsorbate(int m,int comp,int New,int Old)
       typeA=Components[comp].Type[k];
 
       if(New)
-      {  
+      {
         posA_new=TrialAnisotropicPosition[CurrentSystem][k];
         scalingA_new=CFVDWScaling[k];
       }
@@ -2398,7 +2398,7 @@ int CalculateInterVDWEnergyDifferenceAdsorbate(int m,int comp,int New,int Old)
               if(New)
               {
                 for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
-                { 
+                {
                   dr.x=posA_new.x-(posB.x+ReplicaShift[ncell].x);
                   dr.y=posA_new.y-(posB.y+ReplicaShift[ncell].y);
                   dr.z=posA_new.z-(posB.z+ReplicaShift[ncell].z);
@@ -2416,7 +2416,7 @@ int CalculateInterVDWEnergyDifferenceAdsorbate(int m,int comp,int New,int Old)
               if(Old)
               {
                 for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
-                { 
+                {
                   dr.x=posA_old.x-(posB.x+ReplicaShift[ncell].x);
                   dr.y=posA_old.y-(posB.y+ReplicaShift[ncell].y);
                   dr.z=posA_old.z-(posB.z+ReplicaShift[ncell].z);
@@ -2430,7 +2430,7 @@ int CalculateInterVDWEnergyDifferenceAdsorbate(int m,int comp,int New,int Old)
           }
         }
       }
-  
+
       for(i=0;i<NumberOfCationMolecules[CurrentSystem];i++)
       {
         TypeMolB=Cations[CurrentSystem][i].Type;
@@ -2439,11 +2439,11 @@ int CalculateInterVDWEnergyDifferenceAdsorbate(int m,int comp,int New,int Old)
           posB=Cations[CurrentSystem][i].Atoms[j].AnisotropicPosition;
           typeB=Cations[CurrentSystem][i].Atoms[j].Type;
           scalingB=Cations[CurrentSystem][i].Atoms[j].CFVDWScalingParameter;
-  
+
           if(New)
           {
             for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
-            { 
+            {
               dr.x=posA_new.x-(posB.x+ReplicaShift[ncell].x);
               dr.y=posA_new.y-(posB.y+ReplicaShift[ncell].y);
               dr.z=posA_new.z-(posB.z+ReplicaShift[ncell].z);
@@ -2457,11 +2457,11 @@ int CalculateInterVDWEnergyDifferenceAdsorbate(int m,int comp,int New,int Old)
               }
             }
           }
-   
+
           if(Old)
-          { 
+          {
             for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
-            { 
+            {
               dr.x=posA_old.x-(posB.x+ReplicaShift[ncell].x);
               dr.y=posA_old.y-(posB.y+ReplicaShift[ncell].y);
               dr.z=posA_old.z-(posB.z+ReplicaShift[ncell].z);
@@ -2487,11 +2487,11 @@ int CalculateInterVDWEnergyDifferenceAdsorbate(int m,int comp,int New,int Old)
         scalingA_new=CFVDWScaling[k];
       }
       if(Old)
-      {  
+      {
         posA_old=Adsorbates[CurrentSystem][m].Atoms[k].AnisotropicPosition;
         scalingA_old=Adsorbates[CurrentSystem][m].Atoms[k].CFVDWScalingParameter;
       }
-  
+
       if(!OmitAdsorbateAdsorbateVDWInteractions)
       {
         for(i=0;i<NumberOfAdsorbateMolecules[CurrentSystem];i++)
@@ -2506,7 +2506,7 @@ int CalculateInterVDWEnergyDifferenceAdsorbate(int m,int comp,int New,int Old)
               scalingB=Adsorbates[CurrentSystem][i].Atoms[j].CFVDWScalingParameter;
 
               if(New)
-              {  
+              {
                 dr.x=posA_new.x-posB.x;
                 dr.y=posA_new.y-posB.y;
                 dr.z=posA_new.z-posB.z;
@@ -2519,8 +2519,8 @@ int CalculateInterVDWEnergyDifferenceAdsorbate(int m,int comp,int New,int Old)
                   UAdsorbateVDWDelta[CurrentSystem]+=energy;
                 }
               }
- 
-              if(Old) 
+
+              if(Old)
               {
                 dr.x=posA_old.x-posB.x;
                 dr.y=posA_old.y-posB.y;
@@ -2534,7 +2534,7 @@ int CalculateInterVDWEnergyDifferenceAdsorbate(int m,int comp,int New,int Old)
           }
         }
       }
-  
+
       for(i=0;i<NumberOfCationMolecules[CurrentSystem];i++)
       {
         TypeMolB=Cations[CurrentSystem][i].Type;
@@ -2543,9 +2543,9 @@ int CalculateInterVDWEnergyDifferenceAdsorbate(int m,int comp,int New,int Old)
           posB=Cations[CurrentSystem][i].Atoms[j].AnisotropicPosition;
           typeB=Cations[CurrentSystem][i].Atoms[j].Type;
           scalingB=Cations[CurrentSystem][i].Atoms[j].CFVDWScalingParameter;
- 
+
           if(New)
-          { 
+          {
             dr.x=posA_new.x-posB.x;
             dr.y=posA_new.y-posB.y;
             dr.z=posA_new.z-posB.z;
@@ -2558,8 +2558,8 @@ int CalculateInterVDWEnergyDifferenceAdsorbate(int m,int comp,int New,int Old)
               UCationVDWDelta[CurrentSystem]+=energy;
             }
           }
- 
-          if(Old) 
+
+          if(Old)
           {
             dr.x=posA_old.x-posB.x;
             dr.y=posA_old.y-posB.y;
@@ -2683,7 +2683,7 @@ int CalculateInterVDWEnergyDifferenceCation(int m,int comp,int New,int Old)
               posB=Cations[CurrentSystem][i].Atoms[j].AnisotropicPosition;
               typeB=Cations[CurrentSystem][i].Atoms[j].Type;
               scalingB=Cations[CurrentSystem][i].Atoms[j].CFVDWScalingParameter;
- 
+
               if(New)
               {
                 for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
@@ -2703,7 +2703,7 @@ int CalculateInterVDWEnergyDifferenceCation(int m,int comp,int New,int Old)
               }
 
               if(Old)
-              {    
+              {
                 for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
                 {
                   dr.x=posA_old.x-(posB.x+ReplicaShift[ncell].x);
@@ -2719,7 +2719,7 @@ int CalculateInterVDWEnergyDifferenceCation(int m,int comp,int New,int Old)
           }
         }
       }
-  
+
       for(i=0;i<NumberOfAdsorbateMolecules[CurrentSystem];i++)
       {
         TypeMolB=Adsorbates[CurrentSystem][i].Type;
@@ -2728,7 +2728,7 @@ int CalculateInterVDWEnergyDifferenceCation(int m,int comp,int New,int Old)
           posB=Adsorbates[CurrentSystem][i].Atoms[j].AnisotropicPosition;
           typeB=Adsorbates[CurrentSystem][i].Atoms[j].Type;
           scalingB=Adsorbates[CurrentSystem][i].Atoms[j].CFVDWScalingParameter;
-  
+
           if(New)
           {
             for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
@@ -2748,7 +2748,7 @@ int CalculateInterVDWEnergyDifferenceCation(int m,int comp,int New,int Old)
           }
 
           if(Old)
-          {    
+          {
             for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
             {
               dr.x=posA_old.x-(posB.x+ReplicaShift[ncell].x);
@@ -2781,7 +2781,7 @@ int CalculateInterVDWEnergyDifferenceCation(int m,int comp,int New,int Old)
         posA_old=Cations[CurrentSystem][m].Atoms[k].AnisotropicPosition;
         scalingA_old=Cations[CurrentSystem][m].Atoms[k].CFVDWScalingParameter;
       }
-  
+
       if(!OmitCationCationVDWInteractions)
       {
         for(i=0;i<NumberOfCationMolecules[CurrentSystem];i++)
@@ -2794,9 +2794,9 @@ int CalculateInterVDWEnergyDifferenceCation(int m,int comp,int New,int Old)
               posB=Cations[CurrentSystem][i].Atoms[j].AnisotropicPosition;
               typeB=Cations[CurrentSystem][i].Atoms[j].Type;
               scalingB=Cations[CurrentSystem][i].Atoms[j].CFVDWScalingParameter;
- 
+
               if(New)
-              { 
+              {
                 dr.x=posA_new.x-posB.x;
                 dr.y=posA_new.y-posB.y;
                 dr.z=posA_new.z-posB.z;
@@ -2809,9 +2809,9 @@ int CalculateInterVDWEnergyDifferenceCation(int m,int comp,int New,int Old)
                   UCationVDWDelta[CurrentSystem]+=energy;
                 }
               }
- 
+
               if(Old)
-              { 
+              {
                 dr.x=posA_old.x-posB.x;
                 dr.y=posA_old.y-posB.y;
                 dr.z=posA_old.z-posB.z;
@@ -2824,7 +2824,7 @@ int CalculateInterVDWEnergyDifferenceCation(int m,int comp,int New,int Old)
           }
         }
       }
-  
+
       for(i=0;i<NumberOfAdsorbateMolecules[CurrentSystem];i++)
       {
         TypeMolB=Adsorbates[CurrentSystem][i].Type;
@@ -2833,9 +2833,9 @@ int CalculateInterVDWEnergyDifferenceCation(int m,int comp,int New,int Old)
           posB=Adsorbates[CurrentSystem][i].Atoms[j].AnisotropicPosition;
           typeB=Adsorbates[CurrentSystem][i].Atoms[j].Type;
           scalingB=Adsorbates[CurrentSystem][i].Atoms[j].CFVDWScalingParameter;
- 
+
           if(New)
-          { 
+          {
             dr.x=posA_new.x-posB.x;
             dr.y=posA_new.y-posB.y;
             dr.z=posA_new.z-posB.z;
@@ -2848,7 +2848,7 @@ int CalculateInterVDWEnergyDifferenceCation(int m,int comp,int New,int Old)
               UAdsorbateVDWDelta[CurrentSystem]+=energy;
             }
           }
-  
+
           if(Old)
           {
             dr.x=posA_old.x-posB.x;
@@ -2881,7 +2881,7 @@ int CalculateInterVDWEnergyDifferenceCation(int m,int comp,int New,int Old)
  *            | New: whether or not to compute the charge-charge energy of the new positions stored in   *
  *            |      'TrialPosition'                                                                     *
  *            | False: whether or not to compute the charge-charge energy of the old positions of        *
- *            |        molecule 'm'                                                                      * 
+ *            |        molecule 'm'                                                                      *
  * Note       |                                                                                          *
  * Used       | int TranslationMoveAdsorbate(void)                                                       *
  *            | int RandomTranslationMoveAdsorbate(void)                                                 *
@@ -2918,7 +2918,7 @@ int CalculateInterChargeChargeEnergyDifferenceAdsorbate(int m,int comp,int New,i
         posA_old=Adsorbates[CurrentSystem][m].Atoms[k].Position;
         chargeA_old=Adsorbates[CurrentSystem][m].Atoms[k].CFChargeScalingParameter*Adsorbates[CurrentSystem][m].Atoms[k].Charge;
       }
-  
+
       if(!OmitAdsorbateAdsorbateCoulombInteractions)
       {
         // self-interaction
@@ -2988,7 +2988,7 @@ int CalculateInterChargeChargeEnergyDifferenceAdsorbate(int m,int comp,int New,i
                   }
                 }
               }
-    
+
               if(Old)
               {
                 for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
@@ -3006,7 +3006,7 @@ int CalculateInterChargeChargeEnergyDifferenceAdsorbate(int m,int comp,int New,i
           }
         }
       }
-  
+
       for(i=0;i<NumberOfCationMolecules[CurrentSystem];i++)
       {
         for(j=0;j<Cations[CurrentSystem][i].NumberOfAtoms;j++)
@@ -3031,7 +3031,7 @@ int CalculateInterChargeChargeEnergyDifferenceAdsorbate(int m,int comp,int New,i
               }
             }
           }
-    
+
           if(Old)
           {
             for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
@@ -3058,13 +3058,13 @@ int CalculateInterChargeChargeEnergyDifferenceAdsorbate(int m,int comp,int New,i
         posA_new=TrialPosition[CurrentSystem][k];
         chargeA_new=CFChargeScaling[k]*PseudoAtoms[Components[comp].Type[k]].Charge1;
       }
-    
-      if(Old) 
+
+      if(Old)
       {
         posA_old=Adsorbates[CurrentSystem][m].Atoms[k].Position;
         chargeA_old=Adsorbates[CurrentSystem][m].Atoms[k].CFChargeScalingParameter*Adsorbates[CurrentSystem][m].Atoms[k].Charge;
       }
-  
+
       if(!OmitAdsorbateAdsorbateCoulombInteractions)
       {
         for(i=0;i<NumberOfAdsorbateMolecules[CurrentSystem];i++)
@@ -3090,9 +3090,9 @@ int CalculateInterChargeChargeEnergyDifferenceAdsorbate(int m,int comp,int New,i
                   UAdsorbateChargeChargeRealDelta[CurrentSystem]+=energy;
                 }
               }
- 
+
               if(Old)
-              { 
+              {
                 dr.x=posA_old.x-posB.x;
                 dr.y=posA_old.y-posB.y;
                 dr.z=posA_old.z-posB.z;
@@ -3105,7 +3105,7 @@ int CalculateInterChargeChargeEnergyDifferenceAdsorbate(int m,int comp,int New,i
           }
         }
       }
-  
+
       for(i=0;i<NumberOfCationMolecules[CurrentSystem];i++)
       {
         for(j=0;j<Cations[CurrentSystem][i].NumberOfAtoms;j++)
@@ -3127,9 +3127,9 @@ int CalculateInterChargeChargeEnergyDifferenceAdsorbate(int m,int comp,int New,i
               UCationChargeChargeRealDelta[CurrentSystem]+=energy;
             }
           }
- 
+
           if(Old)
-          { 
+          {
             dr.x=posA_old.x-posB.x;
             dr.y=posA_old.y-posB.y;
             dr.z=posA_old.z-posB.z;
@@ -3160,7 +3160,7 @@ int CalculateInterChargeChargeEnergyDifferenceAdsorbate(int m,int comp,int New,i
  *            | New: whether or not to compute the charge-charge energy of the new positions stored in   *
  *            |      'TrialPosition'                                                                     *
  *            | False: whether or not to compute the charge-charge energy of the old positions of        *
- *            |        molecule 'm'                                                                      * 
+ *            |        molecule 'm'                                                                      *
  * Note       |                                                                                          *
  * Used       | int TranslationMoveCation(void)                                                          *
  *            | int RandomTranslationMoveCation(void)                                                    *
@@ -3197,7 +3197,7 @@ int CalculateInterChargeChargeEnergyDifferenceCation(int m,int comp,int New,int 
         posA_old=Cations[CurrentSystem][m].Atoms[k].Position;
         chargeA_old=Cations[CurrentSystem][m].Atoms[k].CFChargeScalingParameter*Cations[CurrentSystem][m].Atoms[k].Charge;
       }
-  
+
       if(!OmitCationCationCoulombInteractions)
       {
         // self-interaction
@@ -3259,7 +3259,7 @@ int CalculateInterChargeChargeEnergyDifferenceCation(int m,int comp,int New,int 
                     UCationChargeChargeRealDelta[CurrentSystem]+=PotentialValueCoulombic(chargeA_new,chargeB,sqrt(r2));
                 }
               }
-    
+
               if(Old)
               {
                 for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
@@ -3277,7 +3277,7 @@ int CalculateInterChargeChargeEnergyDifferenceCation(int m,int comp,int New,int 
           }
         }
       }
-  
+
       for(i=0;i<NumberOfAdsorbateMolecules[CurrentSystem];i++)
       {
         for(j=0;j<Adsorbates[CurrentSystem][i].NumberOfAtoms;j++)
@@ -3298,7 +3298,7 @@ int CalculateInterChargeChargeEnergyDifferenceCation(int m,int comp,int New,int 
                 UAdsorbateChargeChargeRealDelta[CurrentSystem]+=PotentialValueCoulombic(chargeA_new,chargeB,sqrt(r2));
             }
           }
-    
+
           if(Old)
           {
             for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
@@ -3325,13 +3325,13 @@ int CalculateInterChargeChargeEnergyDifferenceCation(int m,int comp,int New,int 
         posA_new=TrialPosition[CurrentSystem][k];
         chargeA_new=CFChargeScaling[k]*PseudoAtoms[Components[comp].Type[k]].Charge1;
       }
-    
-      if(Old) 
+
+      if(Old)
       {
         posA_old=Cations[CurrentSystem][m].Atoms[k].Position;
         chargeA_old=Cations[CurrentSystem][m].Atoms[k].CFChargeScalingParameter*Cations[CurrentSystem][m].Atoms[k].Charge;
       }
-  
+
       if(!OmitCationCationCoulombInteractions)
       {
         for(i=0;i<NumberOfCationMolecules[CurrentSystem];i++)
@@ -3353,9 +3353,9 @@ int CalculateInterChargeChargeEnergyDifferenceCation(int m,int comp,int New,int 
                 if(r2<CutOffChargeChargeSquared[CurrentSystem])
                   UCationChargeChargeRealDelta[CurrentSystem]+=PotentialValueCoulombic(chargeA_new,chargeB,sqrt(r2));
               }
- 
+
               if(Old)
-              { 
+              {
                 dr.x=posA_old.x-posB.x;
                 dr.y=posA_old.y-posB.y;
                 dr.z=posA_old.z-posB.z;
@@ -3368,7 +3368,7 @@ int CalculateInterChargeChargeEnergyDifferenceCation(int m,int comp,int New,int 
           }
         }
       }
-  
+
       for(i=0;i<NumberOfAdsorbateMolecules[CurrentSystem];i++)
       {
         for(j=0;j<Adsorbates[CurrentSystem][i].NumberOfAtoms;j++)
@@ -3386,9 +3386,9 @@ int CalculateInterChargeChargeEnergyDifferenceCation(int m,int comp,int New,int 
             if(r2<CutOffChargeChargeSquared[CurrentSystem])
               UAdsorbateChargeChargeRealDelta[CurrentSystem]+=PotentialValueCoulombic(chargeA_new,chargeB,sqrt(r2));
           }
- 
+
           if(Old)
-          { 
+          {
             dr.x=posA_old.x-posB.x;
             dr.y=posA_old.y-posB.y;
             dr.z=posA_old.z-posB.z;
@@ -3419,7 +3419,7 @@ int CalculateInterChargeChargeEnergyDifferenceCation(int m,int comp,int New,int 
  *            | New: whether or not to compute the charge-bonddipole energy of the new positions stored  *
  *            |      in 'TrialPosition'                                                                  *
  *            | False: whether or not to compute the charge-bonddipole energy of the old positions of    *
- *            |        molecule 'm'                                                                      * 
+ *            |        molecule 'm'                                                                      *
  * Note       |                                                                                          *
  * Used       | int TranslationMoveAdsorbate(void)                                                       *
  *            | int RandomTranslationMoveAdsorbate(void)                                                 *
@@ -3461,7 +3461,7 @@ int CalculateInterChargeBondDipoleEnergyDifferenceAdsorbate(int m,int comp,int N
         posA_old=Adsorbates[CurrentSystem][m].Atoms[j].Position;
         chargeA_old=Adsorbates[CurrentSystem][m].Atoms[j].CFChargeScalingParameter*Adsorbates[CurrentSystem][m].Atoms[j].Charge;
       }
-  
+
       if(!OmitAdsorbateAdsorbateCoulombInteractions)
       {
         for(k=0;k<NumberOfAdsorbateMolecules[CurrentSystem];k++)
@@ -3474,7 +3474,7 @@ int CalculateInterChargeBondDipoleEnergyDifferenceAdsorbate(int m,int comp,int N
               B1=Components[typeB].BondDipoles[l].A;
               B2=Components[typeB].BondDipoles[l].B;
               DipoleMagnitudeB=Components[typeB].BondDipoleMagnitude[l];
-  
+
               posB1=Adsorbates[CurrentSystem][k].Atoms[B1].Position;
               posB2=Adsorbates[CurrentSystem][k].Atoms[B2].Position;
               scalingB1=Adsorbates[CurrentSystem][k].Atoms[B1].CFChargeScalingParameter;
@@ -3491,39 +3491,39 @@ int CalculateInterChargeBondDipoleEnergyDifferenceAdsorbate(int m,int comp,int N
               dipoleB.x*=temp; dipoleB.y*=temp; dipoleB.z*=temp;
 
               if(New)
-              { 
+              {
                 for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
-                { 
+                {
                   dr.x=posA_new.x-(posB.x+ReplicaShift[ncell].x);
                   dr.y=posA_new.y-(posB.y+ReplicaShift[ncell].y);
                   dr.z=posA_new.z-(posB.z+ReplicaShift[ncell].z);
                   dr=ApplyReplicaBoundaryCondition(dr);
                   rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-    
+
                   if(rr<CutOffChargeBondDipoleSquared)
                     UAdsorbateChargeBondDipoleRealDelta[CurrentSystem]+=PotentialValueChargeBondDipole(chargeA_new,dipoleB,dr,sqrt(rr));
                 }
               }
-    
+
               if(Old)
-              { 
+              {
                 for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
-                { 
+                {
                   dr.x=posA_new.x-(posB.x+ReplicaShift[ncell].x);
                   dr.y=posA_new.y-(posB.y+ReplicaShift[ncell].y);
                   dr.z=posA_new.z-(posB.z+ReplicaShift[ncell].z);
                   dr=ApplyReplicaBoundaryCondition(dr);
                   rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-    
+
                   if(rr<CutOffChargeBondDipoleSquared)
                     UAdsorbateChargeBondDipoleRealDelta[CurrentSystem]-=PotentialValueChargeBondDipole(chargeA_old,dipoleB,dr,sqrt(rr));
                 }
-              } 
+              }
             }
           }
         }
       }
-  
+
       for(k=0;k<NumberOfCationMolecules[CurrentSystem];k++)
       {
         typeB=Cations[CurrentSystem][k].Type;
@@ -3532,7 +3532,7 @@ int CalculateInterChargeBondDipoleEnergyDifferenceAdsorbate(int m,int comp,int N
           B1=Components[typeB].BondDipoles[l].A;
           B2=Components[typeB].BondDipoles[l].B;
           DipoleMagnitudeB=Components[typeB].BondDipoleMagnitude[l];
-  
+
           posB1=Cations[CurrentSystem][k].Atoms[B1].Position;
           posB2=Cations[CurrentSystem][k].Atoms[B2].Position;
           scalingB1=Cations[CurrentSystem][k].Atoms[B1].CFChargeScalingParameter;
@@ -3547,32 +3547,32 @@ int CalculateInterChargeBondDipoleEnergyDifferenceAdsorbate(int m,int comp,int N
           length=sqrt(rk2);
           temp=0.5*(scalingB1+scalingB2)*DipoleMagnitudeB/length;
           dipoleB.x*=temp; dipoleB.y*=temp; dipoleB.z*=temp;
- 
+
           if(New)
-          { 
+          {
             for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
-            { 
+            {
               dr.x=posA_new.x-(posB.x+ReplicaShift[ncell].x);
               dr.y=posA_new.y-(posB.y+ReplicaShift[ncell].y);
               dr.z=posA_new.z-(posB.z+ReplicaShift[ncell].z);
               dr=ApplyReplicaBoundaryCondition(dr);
               rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-    
+
               if(rr<CutOffChargeBondDipoleSquared)
                 UCationChargeBondDipoleRealDelta[CurrentSystem]+=PotentialValueChargeBondDipole(chargeA_new,dipoleB,dr,sqrt(rr));
             }
           }
-    
+
           if(Old)
-          { 
+          {
             for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
-            { 
+            {
               dr.x=posA_old.x-(posB.x+ReplicaShift[ncell].x);
               dr.y=posA_old.y-(posB.y+ReplicaShift[ncell].y);
               dr.z=posA_old.z-(posB.z+ReplicaShift[ncell].z);
               dr=ApplyReplicaBoundaryCondition(dr);
               rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-    
+
               if(rr<CutOffChargeBondDipoleSquared)
                 UCationChargeBondDipoleRealDelta[CurrentSystem]-=PotentialValueChargeBondDipole(chargeA_old,dipoleB,dr,sqrt(rr));
             }
@@ -3580,15 +3580,15 @@ int CalculateInterChargeBondDipoleEnergyDifferenceAdsorbate(int m,int comp,int N
         }
       }
     }
-  
+
     for(j=0;j<Components[comp].NumberOfBondDipoles;j++)
     {
       A1=Components[comp].BondDipoles[j].A;
       A2=Components[comp].BondDipoles[j].B;
       DipoleMagnitudeA=Components[comp].BondDipoleMagnitude[j];
- 
+
       if(New)
-      { 
+      {
         posA1=TrialPosition[CurrentSystem][A1];
         posA2=TrialPosition[CurrentSystem][A2];
         scalingA1=CFChargeScaling[A1];
@@ -3604,9 +3604,9 @@ int CalculateInterChargeBondDipoleEnergyDifferenceAdsorbate(int m,int comp,int N
         temp=0.5*(scalingA1+scalingA2)*DipoleMagnitudeA/length;
         dipoleA_new.x*=temp; dipoleA_new.y*=temp; dipoleA_new.z*=temp;
       }
- 
+
       if(Old)
-      { 
+      {
         posA1=Adsorbates[CurrentSystem][m].Atoms[A1].Position;
         posA2=Adsorbates[CurrentSystem][m].Atoms[A2].Position;
         scalingA1=Adsorbates[CurrentSystem][m].Atoms[A1].CFChargeScalingParameter;
@@ -3622,7 +3622,7 @@ int CalculateInterChargeBondDipoleEnergyDifferenceAdsorbate(int m,int comp,int N
         temp=0.5*(scalingA1+scalingA2)*DipoleMagnitudeA/length;
         dipoleA_old.x*=temp; dipoleA_old.y*=temp; dipoleA_old.z*=temp;
       }
-  
+
       if(!OmitAdsorbateAdsorbateCoulombInteractions)
       {
         for(k=0;k<NumberOfAdsorbateMolecules[CurrentSystem];k++)
@@ -3636,42 +3636,42 @@ int CalculateInterChargeBondDipoleEnergyDifferenceAdsorbate(int m,int comp,int N
               {
                 posB=Adsorbates[CurrentSystem][k].Atoms[l].Position;
                 chargeB=Adsorbates[CurrentSystem][k].Atoms[l].CFChargeScalingParameter*Adsorbates[CurrentSystem][k].Atoms[l].Charge;
- 
-                if(New) 
+
+                if(New)
                 {
                   for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
-                  { 
+                  {
                     dr.x=posA_new.x-(posB.x+ReplicaShift[ncell].x);
                     dr.y=posA_new.y-(posB.y+ReplicaShift[ncell].y);
                     dr.z=posA_new.z-(posB.z+ReplicaShift[ncell].z);
                     dr=ApplyReplicaBoundaryCondition(dr);
                     rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-    
+
                     if(rr<CutOffChargeBondDipoleSquared)
                       UAdsorbateChargeBondDipoleRealDelta[CurrentSystem]-=PotentialValueChargeBondDipole(chargeB,dipoleA_new,dr,sqrt(rr));
                   }
                 }
-      
-                if(Old) 
+
+                if(Old)
                 {
                   for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
-                  { 
+                  {
                     dr.x=posA_old.x-(posB.x+ReplicaShift[ncell].x);
                     dr.y=posA_old.y-(posB.y+ReplicaShift[ncell].y);
                     dr.z=posA_old.z-(posB.z+ReplicaShift[ncell].z);
                     dr=ApplyReplicaBoundaryCondition(dr);
                     rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-     
+
                     if(rr<CutOffChargeBondDipoleSquared)
                       UAdsorbateChargeBondDipoleRealDelta[CurrentSystem]+=PotentialValueChargeBondDipole(chargeB,dipoleA_new,dr,sqrt(rr));
                   }
-                } 
+                }
               }
             }
           }
         }
       }
-  
+
       for(k=0;k<NumberOfCationMolecules[CurrentSystem];k++)
       {
         for(l=0;l<Cations[CurrentSystem][k].NumberOfAtoms;l++)
@@ -3681,32 +3681,32 @@ int CalculateInterChargeBondDipoleEnergyDifferenceAdsorbate(int m,int comp,int N
           {
             posB=Cations[CurrentSystem][k].Atoms[l].Position;
             chargeB=Cations[CurrentSystem][k].Atoms[l].CFChargeScalingParameter*Cations[CurrentSystem][k].Atoms[l].Charge;
- 
+
             if(New)
-            { 
+            {
               for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
-              { 
+              {
                 dr.x=posA_new.x-(posB.x+ReplicaShift[ncell].x);
                 dr.y=posA_new.y-(posB.y+ReplicaShift[ncell].y);
                 dr.z=posA_new.z-(posB.z+ReplicaShift[ncell].z);
                 dr=ApplyReplicaBoundaryCondition(dr);
                 rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-    
+
                 if(rr<CutOffChargeBondDipoleSquared)
                   UCationChargeBondDipoleRealDelta[CurrentSystem]-=PotentialValueChargeBondDipole(chargeB,dipoleA_new,dr,sqrt(rr));
               }
             }
-      
+
             if(Old)
-            { 
+            {
               for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
-              { 
+              {
                 dr.x=posA_old.x-(posB.x+ReplicaShift[ncell].x);
                 dr.y=posA_old.y-(posB.y+ReplicaShift[ncell].y);
                 dr.z=posA_old.z-(posB.z+ReplicaShift[ncell].z);
                 dr=ApplyReplicaBoundaryCondition(dr);
                 rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-    
+
                 if(rr<CutOffChargeBondDipoleSquared)
                   UCationChargeBondDipoleRealDelta[CurrentSystem]+=PotentialValueChargeBondDipole(chargeB,dipoleA_old,dr,sqrt(rr));
               }
@@ -3731,7 +3731,7 @@ int CalculateInterChargeBondDipoleEnergyDifferenceAdsorbate(int m,int comp,int N
         posA_old=Adsorbates[CurrentSystem][m].Atoms[j].Position;
         chargeA_old=Adsorbates[CurrentSystem][m].Atoms[j].CFChargeScalingParameter*Adsorbates[CurrentSystem][m].Atoms[j].Charge;
       }
-  
+
       if(!OmitAdsorbateAdsorbateCoulombInteractions)
       {
         for(k=0;k<NumberOfAdsorbateMolecules[CurrentSystem];k++)
@@ -3744,7 +3744,7 @@ int CalculateInterChargeBondDipoleEnergyDifferenceAdsorbate(int m,int comp,int N
               B1=Components[typeB].BondDipoles[l].A;
               B2=Components[typeB].BondDipoles[l].B;
               DipoleMagnitudeB=Components[typeB].BondDipoleMagnitude[l];
-  
+
               posB1=Adsorbates[CurrentSystem][k].Atoms[B1].Position;
               posB2=Adsorbates[CurrentSystem][k].Atoms[B2].Position;
               scalingB1=Adsorbates[CurrentSystem][k].Atoms[B1].CFChargeScalingParameter;
@@ -3759,34 +3759,34 @@ int CalculateInterChargeBondDipoleEnergyDifferenceAdsorbate(int m,int comp,int N
               length=sqrt(rk2);
               temp=0.5*(scalingB1+scalingB2)*DipoleMagnitudeB/length;
               dipoleB.x*=temp; dipoleB.y*=temp; dipoleB.z*=temp;
- 
+
               if(New)
-              { 
+              {
                 dr.x=posA_new.x-posB.x;
                 dr.y=posA_new.y-posB.y;
                 dr.z=posA_new.z-posB.z;
                 dr=ApplyBoundaryCondition(dr);
                 rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-  
+
                 if(rr<CutOffChargeBondDipoleSquared)
                   UAdsorbateChargeBondDipoleRealDelta[CurrentSystem]+=PotentialValueChargeBondDipole(chargeA_new,dipoleB,dr,sqrt(rr));
               }
- 
+
               if(Old)
-              { 
+              {
                 dr.x=posA_old.x-posB.x;
                 dr.y=posA_old.y-posB.y;
                 dr.z=posA_old.z-posB.z;
                 dr=ApplyBoundaryCondition(dr);
                 rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-  
+
                 if(rr<CutOffChargeBondDipoleSquared)
                   UAdsorbateChargeBondDipoleRealDelta[CurrentSystem]-=PotentialValueChargeBondDipole(chargeA_old,dipoleB,dr,sqrt(rr));
               }
             }
           }
         }
-  
+
         for(k=0;k<NumberOfCationMolecules[CurrentSystem];k++)
         {
           typeB=Cations[CurrentSystem][k].Type;
@@ -3795,7 +3795,7 @@ int CalculateInterChargeBondDipoleEnergyDifferenceAdsorbate(int m,int comp,int N
             B1=Components[typeB].BondDipoles[l].A;
             B2=Components[typeB].BondDipoles[l].B;
             DipoleMagnitudeB=Components[typeB].BondDipoleMagnitude[l];
-  
+
             posB1=Cations[CurrentSystem][k].Atoms[B1].Position;
             posB2=Cations[CurrentSystem][k].Atoms[B2].Position;
             scalingB1=Cations[CurrentSystem][k].Atoms[B1].CFChargeScalingParameter;
@@ -3810,27 +3810,27 @@ int CalculateInterChargeBondDipoleEnergyDifferenceAdsorbate(int m,int comp,int N
             length=sqrt(rk2);
             temp=0.5*(scalingB1+scalingB2)*DipoleMagnitudeB/length;
             dipoleB.x*=temp; dipoleB.y*=temp; dipoleB.z*=temp;
- 
+
             if(New)
-            { 
+            {
               dr.x=posA_new.x-posB.x;
               dr.y=posA_new.y-posB.y;
               dr.z=posA_new.z-posB.z;
               dr=ApplyBoundaryCondition(dr);
               rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-  
+
               if(rr<CutOffChargeBondDipoleSquared)
                 UCationChargeBondDipoleRealDelta[CurrentSystem]+=PotentialValueChargeBondDipole(chargeA_new,dipoleB,dr,sqrt(rr));
             }
- 
+
             if(Old)
-            { 
+            {
               dr.x=posA_old.x-posB.x;
               dr.y=posA_old.y-posB.y;
               dr.z=posA_old.z-posB.z;
               dr=ApplyBoundaryCondition(dr);
               rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-  
+
               if(rr<CutOffChargeBondDipoleSquared)
                 UCationChargeBondDipoleRealDelta[CurrentSystem]-=PotentialValueChargeBondDipole(chargeA_old,dipoleB,dr,sqrt(rr));
             }
@@ -3838,15 +3838,15 @@ int CalculateInterChargeBondDipoleEnergyDifferenceAdsorbate(int m,int comp,int N
         }
       }
     }
-  
+
     for(j=0;j<Components[comp].NumberOfBondDipoles;j++)
     {
       A1=Components[comp].BondDipoles[j].A;
       A2=Components[comp].BondDipoles[j].B;
       DipoleMagnitudeA=Components[comp].BondDipoleMagnitude[j];
- 
+
       if(New)
-      { 
+      {
         posA1=TrialPosition[CurrentSystem][A1];
         posA2=TrialPosition[CurrentSystem][A2];
         scalingA1=CFChargeScaling[A1];
@@ -3862,9 +3862,9 @@ int CalculateInterChargeBondDipoleEnergyDifferenceAdsorbate(int m,int comp,int N
         temp=0.5*(scalingA1+scalingA2)*DipoleMagnitudeA/length;
         dipoleA_new.x*=temp; dipoleA_new.y*=temp; dipoleA_new.z*=temp;
       }
- 
+
       if(Old)
-      { 
+      {
         posA1=Adsorbates[CurrentSystem][m].Atoms[A1].Position;
         posA2=Adsorbates[CurrentSystem][m].Atoms[A2].Position;
         scalingA1=Adsorbates[CurrentSystem][m].Atoms[A1].CFChargeScalingParameter;
@@ -3880,7 +3880,7 @@ int CalculateInterChargeBondDipoleEnergyDifferenceAdsorbate(int m,int comp,int N
         temp=0.5*(scalingA1+scalingA2)*DipoleMagnitudeA/length;
         dipoleA_old.x*=temp; dipoleA_old.y*=temp; dipoleA_old.z*=temp;
       }
-  
+
       if(!OmitAdsorbateAdsorbateCoulombInteractions)
       {
         for(k=0;k<NumberOfAdsorbateMolecules[CurrentSystem];k++)
@@ -3894,27 +3894,27 @@ int CalculateInterChargeBondDipoleEnergyDifferenceAdsorbate(int m,int comp,int N
               {
                 posB=Adsorbates[CurrentSystem][k].Atoms[l].Position;
                 chargeB=Adsorbates[CurrentSystem][k].Atoms[l].CFChargeScalingParameter*Adsorbates[CurrentSystem][k].Atoms[l].Charge;
- 
+
                 if(New)
-                { 
+                {
                   dr.x=posA_new.x-posB.x;
                   dr.y=posA_new.y-posB.y;
                   dr.z=posA_new.z-posB.z;
                   dr=ApplyBoundaryCondition(dr);
                   rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-  
+
                   if(rr<CutOffChargeBondDipoleSquared)
                     UAdsorbateChargeBondDipoleRealDelta[CurrentSystem]-=PotentialValueChargeBondDipole(chargeB,dipoleA_new,dr,sqrt(rr));
                 }
-   
+
                 if(Old)
-                { 
+                {
                   dr.x=posA_old.x-posB.x;
                   dr.y=posA_old.y-posB.y;
                   dr.z=posA_old.z-posB.z;
                   dr=ApplyBoundaryCondition(dr);
                   rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-   
+
                   if(rr<CutOffChargeBondDipoleSquared)
                     UAdsorbateChargeBondDipoleRealDelta[CurrentSystem]+=PotentialValueChargeBondDipole(chargeB,dipoleA_old,dr,sqrt(rr));
                 }
@@ -3923,7 +3923,7 @@ int CalculateInterChargeBondDipoleEnergyDifferenceAdsorbate(int m,int comp,int N
           }
         }
       }
-  
+
       for(k=0;k<NumberOfCationMolecules[CurrentSystem];k++)
       {
         for(l=0;l<Cations[CurrentSystem][k].NumberOfAtoms;l++)
@@ -3933,27 +3933,27 @@ int CalculateInterChargeBondDipoleEnergyDifferenceAdsorbate(int m,int comp,int N
           {
             posB=Cations[CurrentSystem][k].Atoms[l].Position;
             chargeB=Cations[CurrentSystem][k].Atoms[l].CFChargeScalingParameter*Cations[CurrentSystem][k].Atoms[l].Charge;
- 
+
             if(New)
-            { 
+            {
               dr.x=posA_new.x-posB.x;
               dr.y=posA_new.y-posB.y;
               dr.z=posA_new.z-posB.z;
               dr=ApplyBoundaryCondition(dr);
               rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-  
+
               if(rr<CutOffChargeBondDipoleSquared)
                 UCationChargeBondDipoleRealDelta[CurrentSystem]-=PotentialValueChargeBondDipole(chargeB,dipoleA_new,dr,sqrt(rr));
             }
-   
+
             if(Old)
-            { 
+            {
               dr.x=posA_old.x-posB.x;
               dr.y=posA_old.y-posB.y;
               dr.z=posA_old.z-posB.z;
               dr=ApplyBoundaryCondition(dr);
               rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-  
+
               if(rr<CutOffChargeBondDipoleSquared)
                 UCationChargeBondDipoleRealDelta[CurrentSystem]+=PotentialValueChargeBondDipole(chargeB,dipoleA_old,dr,sqrt(rr));
             }
@@ -3981,7 +3981,7 @@ int CalculateInterChargeBondDipoleEnergyDifferenceAdsorbate(int m,int comp,int N
  *            | New: whether or not to compute the bonddipole-bonddipole energy of the new positions     *
  *            |      stored in 'TrialPosition'                                                           *
  *            | False: whether or not to compute the bonddipole-bonddipole energy of the old positions   *
- *            |        of molecule 'm'                                                                   * 
+ *            |        of molecule 'm'                                                                   *
  * Note       |                                                                                          *
  * Used       | int TranslationMoveAdsorbate(void)                                                       *
  *            | int RandomTranslationMoveAdsorbate(void)                                                 *
@@ -4016,9 +4016,9 @@ int CalculateInterBondDipoleBondDipoleEnergyDifferenceAdsorbate(int m,int comp,i
       A1=Components[comp].BondDipoles[j].A;
       A2=Components[comp].BondDipoles[j].B;
       DipoleMagnitudeA=Components[comp].BondDipoleMagnitude[j];
- 
+
       if(New)
-      { 
+      {
         posA1=TrialPosition[CurrentSystem][A1];
         posA2=TrialPosition[CurrentSystem][A2];
         scalingA1=CFChargeScaling[A1];
@@ -4034,9 +4034,9 @@ int CalculateInterBondDipoleBondDipoleEnergyDifferenceAdsorbate(int m,int comp,i
         temp=0.5*(scalingA1+scalingA2)*DipoleMagnitudeA/length;
         dipoleA_new.x*=temp; dipoleA_new.y*=temp; dipoleA_new.z*=temp;
       }
- 
+
       if(Old)
-      { 
+      {
         posA1=Adsorbates[CurrentSystem][m].Atoms[A1].Position;
         posA2=Adsorbates[CurrentSystem][m].Atoms[A2].Position;
         scalingA1=Adsorbates[CurrentSystem][m].Atoms[A1].CFChargeScalingParameter;
@@ -4052,7 +4052,7 @@ int CalculateInterBondDipoleBondDipoleEnergyDifferenceAdsorbate(int m,int comp,i
         temp=0.5*(scalingA1+scalingA2)*DipoleMagnitudeA/length;
         dipoleA_old.x*=temp; dipoleA_old.y*=temp; dipoleA_old.z*=temp;
       }
-  
+
       if(!OmitAdsorbateAdsorbateCoulombInteractions)
       {
         for(k=0;k<NumberOfAdsorbateMolecules[CurrentSystem];k++)
@@ -4081,39 +4081,39 @@ int CalculateInterBondDipoleBondDipoleEnergyDifferenceAdsorbate(int m,int comp,i
               dipoleB.x*=temp; dipoleB.y*=temp; dipoleB.z*=temp;
 
               if(New)
-              { 
+              {
                 for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
-                { 
+                {
                   dr.x=posA_new.x-(posB.x+ReplicaShift[ncell].x);
                   dr.y=posA_new.y-(posB.y+ReplicaShift[ncell].y);
                   dr.z=posA_new.z-(posB.z+ReplicaShift[ncell].z);
                   dr=ApplyReplicaBoundaryCondition(dr);
                   rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-    
+
                   if(rr<CutOffBondDipoleBondDipoleSquared)
                     UAdsorbateBondDipoleBondDipoleRealDelta[CurrentSystem]+=PotentialValueBondDipoleBondDipole(dipoleA_new,dipoleB,dr,sqrt(r));
                 }
               }
-    
+
               if(Old)
-              { 
+              {
                 for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
-                { 
+                {
                   dr.x=posA_old.x-(posB.x+ReplicaShift[ncell].x);
                   dr.y=posA_old.y-(posB.y+ReplicaShift[ncell].y);
                   dr.z=posA_old.z-(posB.z+ReplicaShift[ncell].z);
                   dr=ApplyReplicaBoundaryCondition(dr);
                   rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-    
+
                   if(rr<CutOffBondDipoleBondDipoleSquared)
                     UAdsorbateBondDipoleBondDipoleRealDelta[CurrentSystem]-=PotentialValueBondDipoleBondDipole(dipoleA_old,dipoleB,dr,sqrt(r));
                 }
-              } 
+              }
             }
           }
         }
       }
-  
+
       for(k=0;k<NumberOfCationMolecules[CurrentSystem];k++)
       {
         TypeB=Cations[CurrentSystem][k].Type;
@@ -4138,30 +4138,30 @@ int CalculateInterBondDipoleBondDipoleEnergyDifferenceAdsorbate(int m,int comp,i
           dipoleB.x*=temp; dipoleB.y*=temp; dipoleB.z*=temp;
 
           if(New)
-          { 
-            for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++) 
+          {
+            for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
             {
               dr.x=posA_new.x-(posB.x+ReplicaShift[ncell].x);
               dr.y=posA_new.y-(posB.y+ReplicaShift[ncell].y);
               dr.z=posA_new.z-(posB.z+ReplicaShift[ncell].z);
               dr=ApplyReplicaBoundaryCondition(dr);
               rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-    
+
               if(rr<CutOffBondDipoleBondDipoleSquared)
                 UCationBondDipoleBondDipoleRealDelta[CurrentSystem]+=PotentialValueBondDipoleBondDipole(dipoleA_new,dipoleB,dr,sqrt(r));
             }
           }
-    
+
           if(New)
-          { 
-            for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++) 
+          {
+            for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
             {
               dr.x=posA_old.x-(posB.x+ReplicaShift[ncell].x);
               dr.y=posA_old.y-(posB.y+ReplicaShift[ncell].y);
               dr.z=posA_old.z-(posB.z+ReplicaShift[ncell].z);
               dr=ApplyReplicaBoundaryCondition(dr);
               rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-    
+
               if(rr<CutOffBondDipoleBondDipoleSquared)
                 UCationBondDipoleBondDipoleRealDelta[CurrentSystem]-=PotentialValueBondDipoleBondDipole(dipoleA_old,dipoleB,dr,sqrt(r));
             }
@@ -4177,9 +4177,9 @@ int CalculateInterBondDipoleBondDipoleEnergyDifferenceAdsorbate(int m,int comp,i
       A1=Components[comp].BondDipoles[j].A;
       A2=Components[comp].BondDipoles[j].B;
       DipoleMagnitudeA=Components[comp].BondDipoleMagnitude[j];
- 
+
       if(New)
-      { 
+      {
         posA1=TrialPosition[CurrentSystem][A1];
         posA2=TrialPosition[CurrentSystem][A2];
         scalingA1=CFChargeScaling[A1];
@@ -4194,10 +4194,10 @@ int CalculateInterBondDipoleBondDipoleEnergyDifferenceAdsorbate(int m,int comp,i
         length=sqrt(ri2);
         temp=0.5*(scalingA1+scalingA2)*DipoleMagnitudeA/length;
         dipoleA_new.x*=temp; dipoleA_new.y*=temp; dipoleA_new.z*=temp;
-      } 
- 
+      }
+
       if(Old)
-      { 
+      {
         posA1=Adsorbates[CurrentSystem][m].Atoms[A1].Position;
         posA2=Adsorbates[CurrentSystem][m].Atoms[A2].Position;
         scalingA1=Adsorbates[CurrentSystem][m].Atoms[A1].CFChargeScalingParameter;
@@ -4213,7 +4213,7 @@ int CalculateInterBondDipoleBondDipoleEnergyDifferenceAdsorbate(int m,int comp,i
         temp=0.5*(scalingA1+scalingA2)*DipoleMagnitudeA/length;
         dipoleA_old.x*=temp; dipoleA_old.y*=temp; dipoleA_old.z*=temp;
       }
-  
+
       if(!OmitAdsorbateAdsorbateCoulombInteractions)
       {
         for(k=0;k<NumberOfAdsorbateMolecules[CurrentSystem];k++)
@@ -4240,27 +4240,27 @@ int CalculateInterBondDipoleBondDipoleEnergyDifferenceAdsorbate(int m,int comp,i
               length=sqrt(rk2);
               temp=0.5*(scalingB1+scalingB2)*DipoleMagnitudeB/length;
               dipoleB.x*=temp; dipoleB.y*=temp; dipoleB.z*=temp;
- 
+
               if(New)
-              { 
+              {
                 dr.x=posA_new.x-posB.x;
                 dr.y=posA_new.y-posB.y;
                 dr.z=posA_new.z-posB.z;
                 dr=ApplyBoundaryCondition(dr);
                 rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-  
+
                 if(rr<CutOffBondDipoleBondDipoleSquared)
                   UAdsorbateBondDipoleBondDipoleRealDelta[CurrentSystem]+=PotentialValueBondDipoleBondDipole(dipoleA_new,dipoleB,dr,sqrt(r));
               }
- 
+
               if(Old)
-              { 
+              {
                 dr.x=posA_old.x-posB.x;
                 dr.y=posA_old.y-posB.y;
                 dr.z=posA_old.z-posB.z;
                 dr=ApplyBoundaryCondition(dr);
                 rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-  
+
                 if(rr<CutOffBondDipoleBondDipoleSquared)
                   UAdsorbateBondDipoleBondDipoleRealDelta[CurrentSystem]-=PotentialValueBondDipoleBondDipole(dipoleA_old,dipoleB,dr,sqrt(r));
               }
@@ -4268,7 +4268,7 @@ int CalculateInterBondDipoleBondDipoleEnergyDifferenceAdsorbate(int m,int comp,i
           }
         }
       }
-  
+
       for(k=0;k<NumberOfCationMolecules[CurrentSystem];k++)
       {
         TypeB=Cations[CurrentSystem][k].Type;
@@ -4293,25 +4293,25 @@ int CalculateInterBondDipoleBondDipoleEnergyDifferenceAdsorbate(int m,int comp,i
           dipoleB.x*=temp; dipoleB.y*=temp; dipoleB.z*=temp;
 
           if(New)
-          {  
+          {
             dr.x=posA_new.x-posB.x;
             dr.y=posA_new.y-posB.y;
             dr.z=posA_new.z-posB.z;
             dr=ApplyBoundaryCondition(dr);
             rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-  
+
             if(rr<CutOffBondDipoleBondDipoleSquared)
               UCationBondDipoleBondDipoleRealDelta[CurrentSystem]+=PotentialValueBondDipoleBondDipole(dipoleA_new,dipoleB,dr,sqrt(r));
           }
- 
+
           if(Old)
-          { 
+          {
             dr.x=posA_old.x-posB.x;
             dr.y=posA_old.y-posB.y;
             dr.z=posA_old.z-posB.z;
             dr=ApplyBoundaryCondition(dr);
             rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-  
+
             if(rr<CutOffBondDipoleBondDipoleSquared)
               UCationBondDipoleBondDipoleRealDelta[CurrentSystem]-=PotentialValueBondDipoleBondDipole(dipoleA_old,dipoleB,dr,sqrt(r));
           }
@@ -4338,7 +4338,7 @@ int CalculateInterBondDipoleBondDipoleEnergyDifferenceAdsorbate(int m,int comp,i
  *            | New: whether or not to compute the charge-bonddipole energy of the new positions stored  *
  *            |      in 'TrialPosition'                                                                  *
  *            | False: whether or not to compute the charge-bonddipole energy of the old positions of    *
- *            |        molecule 'm'                                                                      * 
+ *            |        molecule 'm'                                                                      *
  * Note       |                                                                                          *
  * Used       | int TranslationMoveCation(void)                                                          *
  *            | int RandomTranslationMoveCation(void)                                                    *
@@ -4380,7 +4380,7 @@ int CalculateInterChargeBondDipoleEnergyDifferenceCation(int m,int comp,int New,
         posA_old=Cations[CurrentSystem][m].Atoms[j].Position;
         chargeA_old=Cations[CurrentSystem][m].Atoms[j].CFChargeScalingParameter*Cations[CurrentSystem][m].Atoms[j].Charge;
       }
-  
+
       if(!OmitCationCationCoulombInteractions)
       {
         for(k=0;k<NumberOfCationMolecules[CurrentSystem];k++)
@@ -4393,7 +4393,7 @@ int CalculateInterChargeBondDipoleEnergyDifferenceCation(int m,int comp,int New,
               B1=Components[typeB].BondDipoles[l].A;
               B2=Components[typeB].BondDipoles[l].B;
               DipoleMagnitudeB=Components[typeB].BondDipoleMagnitude[l];
-  
+
               posB1=Cations[CurrentSystem][k].Atoms[B1].Position;
               posB2=Cations[CurrentSystem][k].Atoms[B2].Position;
               scalingB1=Cations[CurrentSystem][k].Atoms[B1].CFChargeScalingParameter;
@@ -4410,39 +4410,39 @@ int CalculateInterChargeBondDipoleEnergyDifferenceCation(int m,int comp,int New,
               dipoleB.x*=temp; dipoleB.y*=temp; dipoleB.z*=temp;
 
               if(New)
-              { 
+              {
                 for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
-                { 
+                {
                   dr.x=posA_new.x-(posB.x+ReplicaShift[ncell].x);
                   dr.y=posA_new.y-(posB.y+ReplicaShift[ncell].y);
                   dr.z=posA_new.z-(posB.z+ReplicaShift[ncell].z);
                   dr=ApplyReplicaBoundaryCondition(dr);
                   rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-    
+
                   if(rr<CutOffChargeBondDipoleSquared)
                     UCationChargeBondDipoleRealDelta[CurrentSystem]+=PotentialValueChargeBondDipole(chargeA_new,dipoleB,dr,sqrt(rr));
                 }
               }
-    
+
               if(Old)
-              { 
+              {
                 for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
-                { 
+                {
                   dr.x=posA_new.x-(posB.x+ReplicaShift[ncell].x);
                   dr.y=posA_new.y-(posB.y+ReplicaShift[ncell].y);
                   dr.z=posA_new.z-(posB.z+ReplicaShift[ncell].z);
                   dr=ApplyReplicaBoundaryCondition(dr);
                   rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-    
+
                   if(rr<CutOffChargeBondDipoleSquared)
                     UCationChargeBondDipoleRealDelta[CurrentSystem]-=PotentialValueChargeBondDipole(chargeA_old,dipoleB,dr,sqrt(rr));
                 }
-              } 
+              }
             }
           }
         }
       }
-  
+
       for(k=0;k<NumberOfAdsorbateMolecules[CurrentSystem];k++)
       {
         typeB=Adsorbates[CurrentSystem][k].Type;
@@ -4451,7 +4451,7 @@ int CalculateInterChargeBondDipoleEnergyDifferenceCation(int m,int comp,int New,
           B1=Components[typeB].BondDipoles[l].A;
           B2=Components[typeB].BondDipoles[l].B;
           DipoleMagnitudeB=Components[typeB].BondDipoleMagnitude[l];
-  
+
           posB1=Adsorbates[CurrentSystem][k].Atoms[B1].Position;
           posB2=Adsorbates[CurrentSystem][k].Atoms[B2].Position;
           scalingB1=Adsorbates[CurrentSystem][k].Atoms[B1].CFChargeScalingParameter;
@@ -4466,32 +4466,32 @@ int CalculateInterChargeBondDipoleEnergyDifferenceCation(int m,int comp,int New,
           length=sqrt(rk2);
           temp=0.5*(scalingB1+scalingB2)*DipoleMagnitudeB/length;
           dipoleB.x*=temp; dipoleB.y*=temp; dipoleB.z*=temp;
- 
+
           if(New)
-          { 
+          {
             for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
-            { 
+            {
               dr.x=posA_new.x-(posB.x+ReplicaShift[ncell].x);
               dr.y=posA_new.y-(posB.y+ReplicaShift[ncell].y);
               dr.z=posA_new.z-(posB.z+ReplicaShift[ncell].z);
               dr=ApplyReplicaBoundaryCondition(dr);
               rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-    
+
               if(rr<CutOffChargeBondDipoleSquared)
                 UAdsorbateChargeBondDipoleRealDelta[CurrentSystem]+=PotentialValueChargeBondDipole(chargeA_new,dipoleB,dr,sqrt(rr));
             }
           }
-    
+
           if(Old)
-          { 
+          {
             for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
-            { 
+            {
               dr.x=posA_old.x-(posB.x+ReplicaShift[ncell].x);
               dr.y=posA_old.y-(posB.y+ReplicaShift[ncell].y);
               dr.z=posA_old.z-(posB.z+ReplicaShift[ncell].z);
               dr=ApplyReplicaBoundaryCondition(dr);
               rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-    
+
               if(rr<CutOffChargeBondDipoleSquared)
                 UAdsorbateChargeBondDipoleRealDelta[CurrentSystem]-=PotentialValueChargeBondDipole(chargeA_old,dipoleB,dr,sqrt(rr));
             }
@@ -4499,15 +4499,15 @@ int CalculateInterChargeBondDipoleEnergyDifferenceCation(int m,int comp,int New,
         }
       }
     }
-  
+
     for(j=0;j<Components[comp].NumberOfBondDipoles;j++)
     {
       A1=Components[comp].BondDipoles[j].A;
       A2=Components[comp].BondDipoles[j].B;
       DipoleMagnitudeA=Components[comp].BondDipoleMagnitude[j];
- 
+
       if(New)
-      { 
+      {
         posA1=TrialPosition[CurrentSystem][A1];
         posA2=TrialPosition[CurrentSystem][A2];
         scalingA1=CFChargeScaling[A1];
@@ -4523,9 +4523,9 @@ int CalculateInterChargeBondDipoleEnergyDifferenceCation(int m,int comp,int New,
         temp=0.5*(scalingA1+scalingA2)*DipoleMagnitudeA/length;
         dipoleA_new.x*=temp; dipoleA_new.y*=temp; dipoleA_new.z*=temp;
       }
- 
+
       if(Old)
-      { 
+      {
         posA1=Cations[CurrentSystem][m].Atoms[A1].Position;
         posA2=Cations[CurrentSystem][m].Atoms[A2].Position;
         scalingA1=Cations[CurrentSystem][m].Atoms[A1].CFChargeScalingParameter;
@@ -4541,7 +4541,7 @@ int CalculateInterChargeBondDipoleEnergyDifferenceCation(int m,int comp,int New,
         temp=0.5*(scalingA1+scalingA2)*DipoleMagnitudeA/length;
         dipoleA_old.x*=temp; dipoleA_old.y*=temp; dipoleA_old.z*=temp;
       }
-  
+
       if(!OmitCationCationCoulombInteractions)
       {
         for(k=0;k<NumberOfCationMolecules[CurrentSystem];k++)
@@ -4555,42 +4555,42 @@ int CalculateInterChargeBondDipoleEnergyDifferenceCation(int m,int comp,int New,
               {
                 posB=Cations[CurrentSystem][k].Atoms[l].Position;
                 chargeB=Cations[CurrentSystem][k].Atoms[l].CFChargeScalingParameter*Cations[CurrentSystem][k].Atoms[l].Charge;
- 
-                if(New) 
+
+                if(New)
                 {
                   for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
-                  { 
+                  {
                     dr.x=posA_new.x-(posB.x+ReplicaShift[ncell].x);
                     dr.y=posA_new.y-(posB.y+ReplicaShift[ncell].y);
                     dr.z=posA_new.z-(posB.z+ReplicaShift[ncell].z);
                     dr=ApplyReplicaBoundaryCondition(dr);
                     rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-    
+
                     if(rr<CutOffChargeBondDipoleSquared)
                       UCationChargeBondDipoleRealDelta[CurrentSystem]-=PotentialValueChargeBondDipole(chargeB,dipoleA_new,dr,sqrt(rr));
                   }
                 }
-      
-                if(Old) 
+
+                if(Old)
                 {
                   for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
-                  { 
+                  {
                     dr.x=posA_old.x-(posB.x+ReplicaShift[ncell].x);
                     dr.y=posA_old.y-(posB.y+ReplicaShift[ncell].y);
                     dr.z=posA_old.z-(posB.z+ReplicaShift[ncell].z);
                     dr=ApplyReplicaBoundaryCondition(dr);
                     rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-     
+
                     if(rr<CutOffChargeBondDipoleSquared)
                       UCationChargeBondDipoleRealDelta[CurrentSystem]+=PotentialValueChargeBondDipole(chargeB,dipoleA_new,dr,sqrt(rr));
                   }
-                } 
+                }
               }
             }
           }
         }
       }
-  
+
       for(k=0;k<NumberOfAdsorbateMolecules[CurrentSystem];k++)
       {
         for(l=0;l<Adsorbates[CurrentSystem][k].NumberOfAtoms;l++)
@@ -4600,32 +4600,32 @@ int CalculateInterChargeBondDipoleEnergyDifferenceCation(int m,int comp,int New,
           {
             posB=Adsorbates[CurrentSystem][k].Atoms[l].Position;
             chargeB=Adsorbates[CurrentSystem][k].Atoms[l].CFChargeScalingParameter*Adsorbates[CurrentSystem][k].Atoms[l].Charge;
- 
+
             if(New)
-            { 
+            {
               for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
-              { 
+              {
                 dr.x=posA_new.x-(posB.x+ReplicaShift[ncell].x);
                 dr.y=posA_new.y-(posB.y+ReplicaShift[ncell].y);
                 dr.z=posA_new.z-(posB.z+ReplicaShift[ncell].z);
                 dr=ApplyReplicaBoundaryCondition(dr);
                 rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-    
+
                 if(rr<CutOffChargeBondDipoleSquared)
                   UAdsorbateChargeBondDipoleRealDelta[CurrentSystem]-=PotentialValueChargeBondDipole(chargeB,dipoleA_new,dr,sqrt(rr));
               }
             }
-      
+
             if(Old)
-            { 
+            {
               for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
-              { 
+              {
                 dr.x=posA_old.x-(posB.x+ReplicaShift[ncell].x);
                 dr.y=posA_old.y-(posB.y+ReplicaShift[ncell].y);
                 dr.z=posA_old.z-(posB.z+ReplicaShift[ncell].z);
                 dr=ApplyReplicaBoundaryCondition(dr);
                 rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-    
+
                 if(rr<CutOffChargeBondDipoleSquared)
                   UAdsorbateChargeBondDipoleRealDelta[CurrentSystem]+=PotentialValueChargeBondDipole(chargeB,dipoleA_old,dr,sqrt(rr));
               }
@@ -4650,7 +4650,7 @@ int CalculateInterChargeBondDipoleEnergyDifferenceCation(int m,int comp,int New,
         posA_old=Cations[CurrentSystem][m].Atoms[j].Position;
         chargeA_old=Cations[CurrentSystem][m].Atoms[j].CFChargeScalingParameter*Cations[CurrentSystem][m].Atoms[j].Charge;
       }
-  
+
       if(!OmitCationCationCoulombInteractions)
       {
         for(k=0;k<NumberOfCationMolecules[CurrentSystem];k++)
@@ -4663,7 +4663,7 @@ int CalculateInterChargeBondDipoleEnergyDifferenceCation(int m,int comp,int New,
               B1=Components[typeB].BondDipoles[l].A;
               B2=Components[typeB].BondDipoles[l].B;
               DipoleMagnitudeB=Components[typeB].BondDipoleMagnitude[l];
-  
+
               posB1=Cations[CurrentSystem][k].Atoms[B1].Position;
               posB2=Cations[CurrentSystem][k].Atoms[B2].Position;
               scalingB1=Cations[CurrentSystem][k].Atoms[B1].CFChargeScalingParameter;
@@ -4678,34 +4678,34 @@ int CalculateInterChargeBondDipoleEnergyDifferenceCation(int m,int comp,int New,
               length=sqrt(rk2);
               temp=0.5*(scalingB1+scalingB2)*DipoleMagnitudeB/length;
               dipoleB.x*=temp; dipoleB.y*=temp; dipoleB.z*=temp;
- 
+
               if(New)
-              { 
+              {
                 dr.x=posA_new.x-posB.x;
                 dr.y=posA_new.y-posB.y;
                 dr.z=posA_new.z-posB.z;
                 dr=ApplyBoundaryCondition(dr);
                 rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-  
+
                 if(rr<CutOffChargeBondDipoleSquared)
                   UCationChargeBondDipoleRealDelta[CurrentSystem]+=PotentialValueChargeBondDipole(chargeA_new,dipoleB,dr,sqrt(rr));
               }
- 
+
               if(Old)
-              { 
+              {
                 dr.x=posA_old.x-posB.x;
                 dr.y=posA_old.y-posB.y;
                 dr.z=posA_old.z-posB.z;
                 dr=ApplyBoundaryCondition(dr);
                 rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-  
+
                 if(rr<CutOffChargeBondDipoleSquared)
                   UCationChargeBondDipoleRealDelta[CurrentSystem]-=PotentialValueChargeBondDipole(chargeA_old,dipoleB,dr,sqrt(rr));
               }
             }
           }
         }
-  
+
         for(k=0;k<NumberOfAdsorbateMolecules[CurrentSystem];k++)
         {
           typeB=Adsorbates[CurrentSystem][k].Type;
@@ -4714,7 +4714,7 @@ int CalculateInterChargeBondDipoleEnergyDifferenceCation(int m,int comp,int New,
             B1=Components[typeB].BondDipoles[l].A;
             B2=Components[typeB].BondDipoles[l].B;
             DipoleMagnitudeB=Components[typeB].BondDipoleMagnitude[l];
-  
+
             posB1=Adsorbates[CurrentSystem][k].Atoms[B1].Position;
             posB2=Adsorbates[CurrentSystem][k].Atoms[B2].Position;
             scalingB1=Adsorbates[CurrentSystem][k].Atoms[B1].CFChargeScalingParameter;
@@ -4729,27 +4729,27 @@ int CalculateInterChargeBondDipoleEnergyDifferenceCation(int m,int comp,int New,
             length=sqrt(rk2);
             temp=0.5*(scalingB1+scalingB2)*DipoleMagnitudeB/length;
             dipoleB.x*=temp; dipoleB.y*=temp; dipoleB.z*=temp;
- 
+
             if(New)
-            { 
+            {
               dr.x=posA_new.x-posB.x;
               dr.y=posA_new.y-posB.y;
               dr.z=posA_new.z-posB.z;
               dr=ApplyBoundaryCondition(dr);
               rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-  
+
               if(rr<CutOffChargeBondDipoleSquared)
                 UAdsorbateChargeBondDipoleRealDelta[CurrentSystem]+=PotentialValueChargeBondDipole(chargeA_new,dipoleB,dr,sqrt(rr));
             }
- 
+
             if(Old)
-            { 
+            {
               dr.x=posA_old.x-posB.x;
               dr.y=posA_old.y-posB.y;
               dr.z=posA_old.z-posB.z;
               dr=ApplyBoundaryCondition(dr);
               rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-  
+
               if(rr<CutOffChargeBondDipoleSquared)
                 UAdsorbateChargeBondDipoleRealDelta[CurrentSystem]-=PotentialValueChargeBondDipole(chargeA_old,dipoleB,dr,sqrt(rr));
             }
@@ -4757,15 +4757,15 @@ int CalculateInterChargeBondDipoleEnergyDifferenceCation(int m,int comp,int New,
         }
       }
     }
-  
+
     for(j=0;j<Components[comp].NumberOfBondDipoles;j++)
     {
       A1=Components[comp].BondDipoles[j].A;
       A2=Components[comp].BondDipoles[j].B;
       DipoleMagnitudeA=Components[comp].BondDipoleMagnitude[j];
- 
+
       if(New)
-      { 
+      {
         posA1=TrialPosition[CurrentSystem][A1];
         posA2=TrialPosition[CurrentSystem][A2];
         scalingA1=CFChargeScaling[A1];
@@ -4781,9 +4781,9 @@ int CalculateInterChargeBondDipoleEnergyDifferenceCation(int m,int comp,int New,
         temp=0.5*(scalingA1+scalingA2)*DipoleMagnitudeA/length;
         dipoleA_new.x*=temp; dipoleA_new.y*=temp; dipoleA_new.z*=temp;
       }
- 
+
       if(Old)
-      { 
+      {
         posA1=Cations[CurrentSystem][m].Atoms[A1].Position;
         posA2=Cations[CurrentSystem][m].Atoms[A2].Position;
         scalingA1=Cations[CurrentSystem][m].Atoms[A1].CFChargeScalingParameter;
@@ -4799,7 +4799,7 @@ int CalculateInterChargeBondDipoleEnergyDifferenceCation(int m,int comp,int New,
         temp=0.5*(scalingA1+scalingA2)*DipoleMagnitudeA/length;
         dipoleA_old.x*=temp; dipoleA_old.y*=temp; dipoleA_old.z*=temp;
       }
-  
+
       if(!OmitCationCationCoulombInteractions)
       {
         for(k=0;k<NumberOfCationMolecules[CurrentSystem];k++)
@@ -4813,27 +4813,27 @@ int CalculateInterChargeBondDipoleEnergyDifferenceCation(int m,int comp,int New,
               {
                 posB=Cations[CurrentSystem][k].Atoms[l].Position;
                 chargeB=Cations[CurrentSystem][k].Atoms[l].CFChargeScalingParameter*Cations[CurrentSystem][k].Atoms[l].Charge;
- 
+
                 if(New)
-                { 
+                {
                   dr.x=posA_new.x-posB.x;
                   dr.y=posA_new.y-posB.y;
                   dr.z=posA_new.z-posB.z;
                   dr=ApplyBoundaryCondition(dr);
                   rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-  
+
                   if(rr<CutOffChargeBondDipoleSquared)
                     UCationChargeBondDipoleRealDelta[CurrentSystem]-=PotentialValueChargeBondDipole(chargeB,dipoleA_new,dr,sqrt(rr));
                 }
-   
+
                 if(Old)
-                { 
+                {
                   dr.x=posA_old.x-posB.x;
                   dr.y=posA_old.y-posB.y;
                   dr.z=posA_old.z-posB.z;
                   dr=ApplyBoundaryCondition(dr);
                   rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-   
+
                   if(rr<CutOffChargeBondDipoleSquared)
                     UCationChargeBondDipoleRealDelta[CurrentSystem]+=PotentialValueChargeBondDipole(chargeB,dipoleA_old,dr,sqrt(rr));
                 }
@@ -4842,7 +4842,7 @@ int CalculateInterChargeBondDipoleEnergyDifferenceCation(int m,int comp,int New,
           }
         }
       }
-  
+
       for(k=0;k<NumberOfAdsorbateMolecules[CurrentSystem];k++)
       {
         for(l=0;l<Adsorbates[CurrentSystem][k].NumberOfAtoms;l++)
@@ -4852,27 +4852,27 @@ int CalculateInterChargeBondDipoleEnergyDifferenceCation(int m,int comp,int New,
           {
             posB=Adsorbates[CurrentSystem][k].Atoms[l].Position;
             chargeB=Adsorbates[CurrentSystem][k].Atoms[l].CFChargeScalingParameter*Adsorbates[CurrentSystem][k].Atoms[l].Charge;
- 
+
             if(New)
-            { 
+            {
               dr.x=posA_new.x-posB.x;
               dr.y=posA_new.y-posB.y;
               dr.z=posA_new.z-posB.z;
               dr=ApplyBoundaryCondition(dr);
               rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-  
+
               if(rr<CutOffChargeBondDipoleSquared)
                 UAdsorbateChargeBondDipoleRealDelta[CurrentSystem]-=PotentialValueChargeBondDipole(chargeB,dipoleA_new,dr,sqrt(rr));
             }
-   
+
             if(Old)
-            { 
+            {
               dr.x=posA_old.x-posB.x;
               dr.y=posA_old.y-posB.y;
               dr.z=posA_old.z-posB.z;
               dr=ApplyBoundaryCondition(dr);
               rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-  
+
               if(rr<CutOffChargeBondDipoleSquared)
                 UAdsorbateChargeBondDipoleRealDelta[CurrentSystem]+=PotentialValueChargeBondDipole(chargeB,dipoleA_old,dr,sqrt(rr));
             }
@@ -4900,7 +4900,7 @@ int CalculateInterChargeBondDipoleEnergyDifferenceCation(int m,int comp,int New,
  *            | New: whether or not to compute the bonddipole-bonddipole energy of the new positions     *
  *            |      stored in 'TrialPosition'                                                           *
  *            | False: whether or not to compute the bonddipole-bonddipole energy of the old positions   *
- *            |        of molecule 'm'                                                                   * 
+ *            |        of molecule 'm'                                                                   *
  * Note       |                                                                                          *
  * Used       | int TranslationMoveCation(void)                                                          *
  *            | int RandomTranslationMoveCation(void)                                                    *
@@ -4935,9 +4935,9 @@ int CalculateInterBondDipoleBondDipoleEnergyDifferenceCation(int m,int comp,int 
       A1=Components[comp].BondDipoles[j].A;
       A2=Components[comp].BondDipoles[j].B;
       DipoleMagnitudeA=Components[comp].BondDipoleMagnitude[j];
- 
+
       if(New)
-      { 
+      {
         posA1=TrialPosition[CurrentSystem][A1];
         posA2=TrialPosition[CurrentSystem][A2];
         scalingA1=CFChargeScaling[A1];
@@ -4953,9 +4953,9 @@ int CalculateInterBondDipoleBondDipoleEnergyDifferenceCation(int m,int comp,int 
         temp=0.5*(scalingA1+scalingA2)*DipoleMagnitudeA/length;
         dipoleA_new.x*=temp; dipoleA_new.y*=temp; dipoleA_new.z*=temp;
       }
- 
+
       if(Old)
-      { 
+      {
         posA1=Cations[CurrentSystem][m].Atoms[A1].Position;
         posA2=Cations[CurrentSystem][m].Atoms[A2].Position;
         scalingA1=Cations[CurrentSystem][m].Atoms[A1].CFChargeScalingParameter;
@@ -4971,7 +4971,7 @@ int CalculateInterBondDipoleBondDipoleEnergyDifferenceCation(int m,int comp,int 
         temp=0.5*(scalingA1+scalingA2)*DipoleMagnitudeA/length;
         dipoleA_old.x*=temp; dipoleA_old.y*=temp; dipoleA_old.z*=temp;
       }
-  
+
       if(!OmitCationCationCoulombInteractions)
       {
         for(k=0;k<NumberOfCationMolecules[CurrentSystem];k++)
@@ -5000,39 +5000,39 @@ int CalculateInterBondDipoleBondDipoleEnergyDifferenceCation(int m,int comp,int 
               dipoleB.x*=temp; dipoleB.y*=temp; dipoleB.z*=temp;
 
               if(New)
-              { 
+              {
                 for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
-                { 
+                {
                   dr.x=posA_new.x-(posB.x+ReplicaShift[ncell].x);
                   dr.y=posA_new.y-(posB.y+ReplicaShift[ncell].y);
                   dr.z=posA_new.z-(posB.z+ReplicaShift[ncell].z);
                   dr=ApplyReplicaBoundaryCondition(dr);
                   rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-    
+
                   if(rr<CutOffBondDipoleBondDipoleSquared)
                     UCationBondDipoleBondDipoleRealDelta[CurrentSystem]+=PotentialValueBondDipoleBondDipole(dipoleA_new,dipoleB,dr,sqrt(r));
                 }
               }
-    
+
               if(Old)
-              { 
+              {
                 for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
-                { 
+                {
                   dr.x=posA_old.x-(posB.x+ReplicaShift[ncell].x);
                   dr.y=posA_old.y-(posB.y+ReplicaShift[ncell].y);
                   dr.z=posA_old.z-(posB.z+ReplicaShift[ncell].z);
                   dr=ApplyReplicaBoundaryCondition(dr);
                   rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-    
+
                   if(rr<CutOffBondDipoleBondDipoleSquared)
                     UCationBondDipoleBondDipoleRealDelta[CurrentSystem]-=PotentialValueBondDipoleBondDipole(dipoleA_old,dipoleB,dr,sqrt(r));
                 }
-              } 
+              }
             }
           }
         }
       }
-  
+
       for(k=0;k<NumberOfAdsorbateMolecules[CurrentSystem];k++)
       {
         TypeB=Adsorbates[CurrentSystem][k].Type;
@@ -5057,30 +5057,30 @@ int CalculateInterBondDipoleBondDipoleEnergyDifferenceCation(int m,int comp,int 
           dipoleB.x*=temp; dipoleB.y*=temp; dipoleB.z*=temp;
 
           if(New)
-          { 
-            for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++) 
+          {
+            for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
             {
               dr.x=posA_new.x-(posB.x+ReplicaShift[ncell].x);
               dr.y=posA_new.y-(posB.y+ReplicaShift[ncell].y);
               dr.z=posA_new.z-(posB.z+ReplicaShift[ncell].z);
               dr=ApplyReplicaBoundaryCondition(dr);
               rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-    
+
               if(rr<CutOffBondDipoleBondDipoleSquared)
                 UAdsorbateBondDipoleBondDipoleRealDelta[CurrentSystem]+=PotentialValueBondDipoleBondDipole(dipoleA_new,dipoleB,dr,sqrt(r));
             }
           }
-    
+
           if(New)
-          { 
-            for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++) 
+          {
+            for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
             {
               dr.x=posA_old.x-(posB.x+ReplicaShift[ncell].x);
               dr.y=posA_old.y-(posB.y+ReplicaShift[ncell].y);
               dr.z=posA_old.z-(posB.z+ReplicaShift[ncell].z);
               dr=ApplyReplicaBoundaryCondition(dr);
               rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-    
+
               if(rr<CutOffBondDipoleBondDipoleSquared)
                 UAdsorbateBondDipoleBondDipoleRealDelta[CurrentSystem]-=PotentialValueBondDipoleBondDipole(dipoleA_old,dipoleB,dr,sqrt(r));
             }
@@ -5096,9 +5096,9 @@ int CalculateInterBondDipoleBondDipoleEnergyDifferenceCation(int m,int comp,int 
       A1=Components[comp].BondDipoles[j].A;
       A2=Components[comp].BondDipoles[j].B;
       DipoleMagnitudeA=Components[comp].BondDipoleMagnitude[j];
- 
+
       if(New)
-      { 
+      {
         posA1=TrialPosition[CurrentSystem][A1];
         posA2=TrialPosition[CurrentSystem][A2];
         scalingA1=CFChargeScaling[A1];
@@ -5113,10 +5113,10 @@ int CalculateInterBondDipoleBondDipoleEnergyDifferenceCation(int m,int comp,int 
         length=sqrt(ri2);
         temp=0.5*(scalingA1+scalingA2)*DipoleMagnitudeA/length;
         dipoleA_new.x*=temp; dipoleA_new.y*=temp; dipoleA_new.z*=temp;
-      } 
- 
+      }
+
       if(Old)
-      { 
+      {
         posA1=Cations[CurrentSystem][m].Atoms[A1].Position;
         posA2=Cations[CurrentSystem][m].Atoms[A2].Position;
         scalingA1=Cations[CurrentSystem][m].Atoms[A1].CFChargeScalingParameter;
@@ -5132,7 +5132,7 @@ int CalculateInterBondDipoleBondDipoleEnergyDifferenceCation(int m,int comp,int 
         temp=0.5*(scalingA1+scalingA2)*DipoleMagnitudeA/length;
         dipoleA_old.x*=temp; dipoleA_old.y*=temp; dipoleA_old.z*=temp;
       }
-  
+
       if(!OmitCationCationCoulombInteractions)
       {
         for(k=0;k<NumberOfCationMolecules[CurrentSystem];k++)
@@ -5159,27 +5159,27 @@ int CalculateInterBondDipoleBondDipoleEnergyDifferenceCation(int m,int comp,int 
               length=sqrt(rk2);
               temp=0.5*(scalingB1+scalingB2)*DipoleMagnitudeB/length;
               dipoleB.x*=temp; dipoleB.y*=temp; dipoleB.z*=temp;
- 
+
               if(New)
-              { 
+              {
                 dr.x=posA_new.x-posB.x;
                 dr.y=posA_new.y-posB.y;
                 dr.z=posA_new.z-posB.z;
                 dr=ApplyBoundaryCondition(dr);
                 rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-  
+
                 if(rr<CutOffBondDipoleBondDipoleSquared)
                   UCationBondDipoleBondDipoleRealDelta[CurrentSystem]+=PotentialValueBondDipoleBondDipole(dipoleA_new,dipoleB,dr,sqrt(r));
               }
- 
+
               if(Old)
-              { 
+              {
                 dr.x=posA_old.x-posB.x;
                 dr.y=posA_old.y-posB.y;
                 dr.z=posA_old.z-posB.z;
                 dr=ApplyBoundaryCondition(dr);
                 rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-  
+
                 if(rr<CutOffBondDipoleBondDipoleSquared)
                   UCationBondDipoleBondDipoleRealDelta[CurrentSystem]-=PotentialValueBondDipoleBondDipole(dipoleA_old,dipoleB,dr,sqrt(r));
               }
@@ -5187,7 +5187,7 @@ int CalculateInterBondDipoleBondDipoleEnergyDifferenceCation(int m,int comp,int 
           }
         }
       }
-  
+
       for(k=0;k<NumberOfAdsorbateMolecules[CurrentSystem];k++)
       {
         TypeB=Adsorbates[CurrentSystem][k].Type;
@@ -5212,25 +5212,25 @@ int CalculateInterBondDipoleBondDipoleEnergyDifferenceCation(int m,int comp,int 
           dipoleB.x*=temp; dipoleB.y*=temp; dipoleB.z*=temp;
 
           if(New)
-          {  
+          {
             dr.x=posA_new.x-posB.x;
             dr.y=posA_new.y-posB.y;
             dr.z=posA_new.z-posB.z;
             dr=ApplyBoundaryCondition(dr);
             rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-  
+
             if(rr<CutOffBondDipoleBondDipoleSquared)
               UAdsorbateBondDipoleBondDipoleRealDelta[CurrentSystem]+=PotentialValueBondDipoleBondDipole(dipoleA_new,dipoleB,dr,sqrt(r));
           }
- 
+
           if(Old)
-          { 
+          {
             dr.x=posA_old.x-posB.x;
             dr.y=posA_old.y-posB.y;
             dr.z=posA_old.z-posB.z;
             dr=ApplyBoundaryCondition(dr);
             rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-  
+
             if(rr<CutOffBondDipoleBondDipoleSquared)
               UAdsorbateBondDipoleBondDipoleRealDelta[CurrentSystem]-=PotentialValueBondDipoleBondDipole(dipoleA_old,dipoleB,dr,sqrt(r));
           }
@@ -5311,7 +5311,7 @@ REAL CalculateInterVDWEnergyCorrectionAdsorbate(VECTOR* Positions,VECTOR *Anisot
   VECTOR posA,posB,dr;
   int TypeMolB;
 
-  UVDWDelta=0.0; 
+  UVDWDelta=0.0;
   for(k=0;k<Components[CurrentComponent].NumberOfAtoms;k++)
   {
     typeA=Components[CurrentComponent].Type[k];
@@ -5361,7 +5361,7 @@ REAL CalculateInterVDWEnergyCorrectionCation(VECTOR* Positions,VECTOR *Anisotrop
   VECTOR posA,posB,dr;
   int TypeMolB;
 
-  UVDWDelta=0.0; 
+  UVDWDelta=0.0;
   for(k=0;k<Components[CurrentComponent].NumberOfAtoms;k++)
   {
     typeA=Components[CurrentComponent].Type[k];

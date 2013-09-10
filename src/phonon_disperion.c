@@ -267,7 +267,7 @@ int PhononDisperionCurves(void)
   FILE *FilePtr;
   char buffer[256];
 
-  printf("Computing phonon dipersion curve\n");
+  fprintf(stderr, "Computing phonon dipersion curve\n");
 
   WaveVector.x=0.0; WaveVector.y=0.0; WaveVector.z=1.0;
   NumberOfDispersionCurvePoints=1000;
@@ -350,11 +350,11 @@ int PhononDisperionCurves(void)
   }
   fclose(FilePtr);
 
-  free(Frequencies); 
-  free(Charges); 
-  free(Positions); 
-  free(Weights); 
-  free(Gradients); 
+  free(Frequencies);
+  free(Charges);
+  free(Positions);
+  free(Weights);
+  free(Gradients);
 
   DeleteComplexMatrix(ReducedGeneralizedHessianMatrix);
   DeleteComplexMatrix(GeneralizedHessianMatrix);

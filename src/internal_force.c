@@ -242,14 +242,14 @@ void ReturnWilsonVectorsBond(VECTOR posA,VECTOR posB,VECTOR *wa,VECTOR *wb)
 void ReturnWilsonVectorsBend(VECTOR posA,VECTOR posB,VECTOR posC,VECTOR *wa,VECTOR *wb,VECTOR *wc)
 {
   VECTOR dtA,dtB,dtC;
-  VECTOR e12,e32; 
-  REAL r12,r32;  
+  VECTOR e12,e32;
+  REAL r12,r32;
   REAL CosTheta,SinTheta;
 
   e12.x=posA.x-posB.x;
-  e12.y=posA.y-posB.y;  
+  e12.y=posA.y-posB.y;
   e12.z=posA.z-posB.z;
-  e12=ApplyBoundaryCondition(e12);  
+  e12=ApplyBoundaryCondition(e12);
   r12=sqrt(SQR(e12.x)+SQR(e12.y)+SQR(e12.z));
   e12.x/=r12;
   e12.y/=r12;
@@ -615,7 +615,7 @@ void CalculateAdsorbateBondForce(int m)
         U=DF=0.0;
         break;
       default:
-        printf("Undefined Bond potential in routine 'CalculateAdsorbateBondForce' ('internal_force.c')\n");
+        fprintf(stderr, "Undefined Bond potential in routine 'CalculateAdsorbateBondForce' ('internal_force.c')\n");
         exit(0);
         break;
     }
@@ -785,7 +785,7 @@ void CalculateCationBondForce(int m)
         U=DF=0.0;
         break;
       default:
-        printf("Undefined Bond potential in routine 'CalculateCationBondForce' ('internal_force.c')\n");
+        fprintf(stderr, "Undefined Bond potential in routine 'CalculateCationBondForce' ('internal_force.c')\n");
         exit(0);
         break;
     }
@@ -951,7 +951,7 @@ void CalculateAdsorbateUreyBradleyForce(int m)
         U=DF=0.0;
         break;
       default:
-        printf("Undefined Urey-Bradley potential in routine 'CalculateAdsorbateUreyBradleyForce' ('internal_force.c')\n");
+        fprintf(stderr, "Undefined Urey-Bradley potential in routine 'CalculateAdsorbateUreyBradleyForce' ('internal_force.c')\n");
         exit(0);
         break;
     }
@@ -1117,7 +1117,7 @@ void CalculateCationUreyBradleyForce(int m)
         U=DF=0.0;
         break;
       default:
-        printf("Undefined Urey-Bradley potential in routine 'CalculateCationUreyBradleyForce' ('internal_force.c')\n");
+        fprintf(stderr, "Undefined Urey-Bradley potential in routine 'CalculateCationUreyBradleyForce' ('internal_force.c')\n");
         exit(0);
         break;
     }
@@ -1344,7 +1344,7 @@ void CalculateAdsorbateBendForce(int m)
         U=DF=0.0;
         break;
       default:
-        printf("Undefined Bend potential in routine 'CalculateFrameworkBendForce' ('framework_force.c')\n");
+        fprintf(stderr, "Undefined Bend potential in routine 'CalculateFrameworkBendForce' ('framework_force.c')\n");
         exit(0);
         break;
     }
@@ -1685,7 +1685,7 @@ void CalculateCationBendForce(int m)
         U=DF=0.0;
         break;
       default:
-        printf("Undefined Bend potential in routine 'CalculateFrameworkBendForce' ('framework_force.c')\n");
+        fprintf(stderr, "Undefined Bend potential in routine 'CalculateFrameworkBendForce' ('framework_force.c')\n");
         exit(0);
         break;
     }
@@ -1919,7 +1919,7 @@ void CalculateAdsorbateInversionBendForce(int m)
         //c=(Rcd.x*Rcd.x+Rcd.y*Rcd.y+Rcd.z*Rcd.z)*(Rad.x*Rad.x+Rad.y*Rad.y+Rad.z*Rad.z)-SQR(Rad.x*Rcd.x+Rad.y*Rcd.y+Rad.z*Rcd.z);
         break;
       default:
-        printf("Undefined Inversion-Bend potential in routine 'CalculateFrameworkInversionBendEnergy' ('framework_energy.c')\n");
+        fprintf(stderr, "Undefined Inversion-Bend potential in routine 'CalculateFrameworkInversionBendEnergy' ('framework_energy.c')\n");
         exit(0);
         break;
     }
@@ -1973,7 +1973,7 @@ void CalculateAdsorbateInversionBendForce(int m)
         dedcos=-SIGN(1.0,e)*parms[0]*temp*RAD2DEG*(2.0-3.0*0.014*temp+4.0*5.6e-5*temp2-5.0*7.0e-7*temp*temp2+6.0*2.2e-8*SQR(temp2))/sqrt(c*(rab2-e*e/c));
         break;
       default:
-        printf("Undefined Inversion-Bend potential in routine 'CalculateFrameworkInversionBendEnergy' ('framework_energy.c')\n");
+        fprintf(stderr, "Undefined Inversion-Bend potential in routine 'CalculateFrameworkInversionBendEnergy' ('framework_energy.c')\n");
         exit(0);
         break;
     }
@@ -2013,7 +2013,7 @@ void CalculateAdsorbateInversionBendForce(int m)
         dccdia.z=-(dccdic.z+dccdid.z);
         break;
       default:
-        printf("Undefined Inversion-Bend potential in routine 'CalculateFrameworkInversionBendEnergy' ('framework_energy.c')\n");
+        fprintf(stderr, "Undefined Inversion-Bend potential in routine 'CalculateFrameworkInversionBendEnergy' ('framework_energy.c')\n");
         exit(0);
         break;
     }
@@ -2158,7 +2158,7 @@ void CalculateCationInversionBendForce(int m)
         //c=(Rcd.x*Rcd.x+Rcd.y*Rcd.y+Rcd.z*Rcd.z)*(Rad.x*Rad.x+Rad.y*Rad.y+Rad.z*Rad.z)-SQR(Rad.x*Rcd.x+Rad.y*Rcd.y+Rad.z*Rcd.z);
         break;
       default:
-        printf("Undefined Inversion-Bend potential in routine 'CalculateFrameworkInversionBendEnergy' ('framework_energy.c')\n");
+        fprintf(stderr, "Undefined Inversion-Bend potential in routine 'CalculateFrameworkInversionBendEnergy' ('framework_energy.c')\n");
         exit(0);
         break;
     }
@@ -2212,7 +2212,7 @@ void CalculateCationInversionBendForce(int m)
         dedcos=-SIGN(1.0,e)*parms[0]*temp*RAD2DEG*(2.0-3.0*0.014*temp+4.0*5.6e-5*temp2-5.0*7.0e-7*temp*temp2+6.0*2.2e-8*SQR(temp2))/sqrt(c*(rab2-e*e/c));
         break;
       default:
-        printf("Undefined Inversion-Bend potential in routine 'CalculateFrameworkInversionBendEnergy' ('framework_energy.c')\n");
+        fprintf(stderr, "Undefined Inversion-Bend potential in routine 'CalculateFrameworkInversionBendEnergy' ('framework_energy.c')\n");
         exit(0);
         break;
     }
@@ -2252,7 +2252,7 @@ void CalculateCationInversionBendForce(int m)
         dccdia.z=-(dccdic.z+dccdid.z);
         break;
       default:
-        printf("Undefined Inversion-Bend potential in routine 'CalculateFrameworkInversionBendEnergy' ('framework_energy.c')\n");
+        fprintf(stderr, "Undefined Inversion-Bend potential in routine 'CalculateFrameworkInversionBendEnergy' ('framework_energy.c')\n");
         exit(0);
         break;
     }
@@ -2544,7 +2544,7 @@ void CalculateAdsorbateTorsionForce(int m)
         U=DF=0;
         break;
       default:
-        printf("Undefined Torsion potential in routine 'CalculateAdsorbateTorsionForce' ('internal_force.c')\n");
+        fprintf(stderr, "Undefined Torsion potential in routine 'CalculateAdsorbateTorsionForce' ('internal_force.c')\n");
         exit(0);
         break;
     }
@@ -2851,7 +2851,7 @@ void CalculateCationTorsionForce(int m)
         U=DF=0;
         break;
       default:
-        printf("Undefined Torsion potential in routine 'CalculateCationTorsionForce' ('internal_force.c')\n");
+        fprintf(stderr, "Undefined Torsion potential in routine 'CalculateCationTorsionForce' ('internal_force.c')\n");
         exit(0);
         break;
     }
@@ -3162,7 +3162,7 @@ void CalculateAdsorbateImproperTorsionForce(int m)
         U=DF=0;
         break;
       default:
-        printf("Undefined Improper-Torsion potential in routine 'CalculateAdsorbateImproperTorsionForce' ('internal_force.c')\n");
+        fprintf(stderr, "Undefined Improper-Torsion potential in routine 'CalculateAdsorbateImproperTorsionForce' ('internal_force.c')\n");
         exit(0);
         break;
     }
@@ -3464,7 +3464,7 @@ void CalculateCationImproperTorsionForce(int m)
         U=DF=0;
         break;
       default:
-        printf("Undefined Improper-Torsion potential in routine 'CalculateCationImproperTorsionForce' ('internal_force.c')\n");
+        fprintf(stderr, "Undefined Improper-Torsion potential in routine 'CalculateCationImproperTorsionForce' ('internal_force.c')\n");
         exit(0);
         break;
     }
@@ -3593,7 +3593,7 @@ void CalculateAdsorbateBondBondForce(int m)
         gammc=-parms[0]*(rab-parms[1])/rbc;
         break;
       default:
-        printf("Undefined Bond-Bond potential in routine 'CalculateAdsorbateBondBondForce' ('internal_force.c')\n");
+        fprintf(stderr, "Undefined Bond-Bond potential in routine 'CalculateAdsorbateBondBondForce' ('internal_force.c')\n");
         exit(0);
         break;
     }
@@ -3684,7 +3684,7 @@ void CalculateCationBondBondForce(int m)
         gammc=-parms[0]*(rab-parms[1])/rbc;
         break;
       default:
-        printf("Undefined Bond-Bond potential in routine 'CalculateCationBondBondForce' ('internal_force.c')\n");
+        fprintf(stderr, "Undefined Bond-Bond potential in routine 'CalculateCationBondBondForce' ('internal_force.c')\n");
         exit(0);
         break;
     }
@@ -3871,7 +3871,7 @@ void CalculateAdsorbateBondBendForce(int m)
         gamsc=(8.0*pterm/pow(parms[3],8))*pow(rbc,7);
         break;
       default:
-        printf("Undefined Bond-Bend potential in routine 'CalculateAdsorbateBondBendForce' ('internal_force.c')\n");
+        fprintf(stderr, "Undefined Bond-Bend potential in routine 'CalculateAdsorbateBondBendForce' ('internal_force.c')\n");
         exit(0);
         break;
     }
@@ -4057,7 +4057,7 @@ void CalculateCationBondBendForce(int m)
         gamsc=(8.0*pterm/pow(parms[3],8))*pow(rbc,7);
         break;
       default:
-        printf("Undefined Bond-Bend potential in routine 'CalculateCationBondBendForce' ('internal_force.c')\n");
+        fprintf(stderr, "Undefined Bond-Bend potential in routine 'CalculateCationBondBendForce' ('internal_force.c')\n");
         exit(0);
         break;
     }
@@ -4183,7 +4183,7 @@ void CalculateAdsorbateBendBendForce(int m)
         DTheta2=parms[0]*SQR(RAD2DEG)*(Theta1-parms[1])/SinTheta2;
         break;
       default:
-        printf("Undefined Bend-Bend potential in routine 'CalculateAdsorbateBendBendForce' ('internal_force.c')\n");
+        fprintf(stderr, "Undefined Bend-Bend potential in routine 'CalculateAdsorbateBendBendForce' ('internal_force.c')\n");
         exit(0);
         break;
     }
@@ -4347,7 +4347,7 @@ void CalculateCationBendBendForce(int m)
         DTheta2=parms[0]*SQR(RAD2DEG)*(Theta1-parms[1])/SinTheta2;
         break;
       default:
-        printf("Undefined Bend-Bend potential in routine 'CalculateCationBendBendForce' ('internal_force.c')\n");
+        fprintf(stderr, "Undefined Bend-Bend potential in routine 'CalculateCationBendBendForce' ('internal_force.c')\n");
         exit(0);
         break;
     }
@@ -4606,7 +4606,7 @@ void CalculateAdsorbateBendTorsionForce(int m)
         DTheta2=CosPhi*parms[0]*(Theta1-parms[1])*Smoothing(Theta1)*(Smoothing(Theta2)+(Theta2-parms[2])*SmoothingDerivative(Theta2))/SinTheta2;
         break;
       default:
-        printf("Undefined Bend-Torsion potential in routine 'CalculateAdsorbateBendTorsionForce' ('internal_force.c')\n");
+        fprintf(stderr, "Undefined Bend-Torsion potential in routine 'CalculateAdsorbateBendTorsionForce' ('internal_force.c')\n");
         exit(0);
         break;
     }
@@ -4911,7 +4911,7 @@ void CalculateCationBendTorsionForce(int m)
         DTheta2=CosPhi*parms[0]*(Theta1-parms[1])*Smoothing(Theta1)*(Smoothing(Theta2)+(Theta2-parms[2])*SmoothingDerivative(Theta2))/SinTheta2;
         break;
       default:
-        printf("Undefined Bend-Torsion potential in routine 'CalculateCationBendTorsionForce' ('internal_force.c')\n");
+        fprintf(stderr, "Undefined Bend-Torsion potential in routine 'CalculateCationBendTorsionForce' ('internal_force.c')\n");
         exit(0);
         break;
     }
@@ -5119,7 +5119,7 @@ void CalculateAdsorbateBondTorsionForce(int m)
         gamsc=0.0;
         break;
       default:
-        printf("Undefined Bond-Torsion potential in routine 'CalculateAdsorbateBondTorsionForce' ('internal_force.c')\n");
+        fprintf(stderr, "Undefined Bond-Torsion potential in routine 'CalculateAdsorbateBondTorsionForce' ('internal_force.c')\n");
         exit(0);
         break;
     }
@@ -5283,7 +5283,7 @@ void CalculateCationBondTorsionForce(int m)
         gamsc=0.0;
         break;
       default:
-        printf("Undefined Bond-Torsion potential in routine 'CalculateCationBondTorsionForce' ('internal_force.c')\n");
+        fprintf(stderr, "Undefined Bond-Torsion potential in routine 'CalculateCationBondTorsionForce' ('internal_force.c')\n");
         exit(0);
         break;
     }
@@ -5992,7 +5992,7 @@ void CalculateAdsorbateIntraBondDipoleBondDipoleForce(int m)
     v.ax=fa1.x*(posA1.x-posA.x)+fa2.x*(posA2.x-posA.x)+fb1.x*(posB1.x-posB.x)+fb2.x*(posB2.x-posB.x);
     v.bx=fa1.y*(posA1.x-posA.x)+fa2.y*(posA2.x-posA.x)+fb1.y*(posB1.x-posB.x)+fb2.y*(posB2.x-posB.x);
     v.cx=fa1.z*(posA1.x-posA.x)+fa2.z*(posA2.x-posA.x)+fb1.z*(posB1.x-posB.x)+fb2.z*(posB2.x-posB.x);
- 
+
     v.ay=fa1.x*(posA1.y-posA.y)+fa2.x*(posA2.y-posA.y)+fb1.x*(posB1.y-posB.y)+fb2.x*(posB2.y-posB.y);
     v.by=fa1.y*(posA1.y-posA.y)+fa2.y*(posA2.y-posA.y)+fb1.y*(posB1.y-posB.y)+fb2.y*(posB2.y-posB.y);
     v.cy=fa1.z*(posA1.y-posA.y)+fa2.z*(posA2.y-posA.y)+fb1.z*(posB1.y-posB.y)+fb2.z*(posB2.y-posB.y);
@@ -6009,7 +6009,7 @@ void CalculateAdsorbateIntraBondDipoleBondDipoleForce(int m)
     StrainDerivativeTensor[CurrentSystem].ay+=term.x*dr.y+v.ay;
     StrainDerivativeTensor[CurrentSystem].by+=term.y*dr.y+v.by;
     StrainDerivativeTensor[CurrentSystem].cy+=term.z*dr.y+v.cy;
- 
+
     StrainDerivativeTensor[CurrentSystem].az+=term.x*dr.z+v.az;
     StrainDerivativeTensor[CurrentSystem].bz+=term.y*dr.z+v.bz;
     StrainDerivativeTensor[CurrentSystem].cz+=term.z*dr.z+v.cz;
@@ -6161,7 +6161,7 @@ void CalculateCationIntraBondDipoleBondDipoleForce(int m)
     v.ax=fa1.x*(posA1.x-posA.x)+fa2.x*(posA2.x-posA.x)+fb1.x*(posB1.x-posB.x)+fb2.x*(posB2.x-posB.x);
     v.bx=fa1.y*(posA1.x-posA.x)+fa2.y*(posA2.x-posA.x)+fb1.y*(posB1.x-posB.x)+fb2.y*(posB2.x-posB.x);
     v.cx=fa1.z*(posA1.x-posA.x)+fa2.z*(posA2.x-posA.x)+fb1.z*(posB1.x-posB.x)+fb2.z*(posB2.x-posB.x);
- 
+
     v.ay=fa1.x*(posA1.y-posA.y)+fa2.x*(posA2.y-posA.y)+fb1.x*(posB1.y-posB.y)+fb2.x*(posB2.y-posB.y);
     v.by=fa1.y*(posA1.y-posA.y)+fa2.y*(posA2.y-posA.y)+fb1.y*(posB1.y-posB.y)+fb2.y*(posB2.y-posB.y);
     v.cy=fa1.z*(posA1.y-posA.y)+fa2.z*(posA2.y-posA.y)+fb1.z*(posB1.y-posB.y)+fb2.z*(posB2.y-posB.y);
@@ -6178,7 +6178,7 @@ void CalculateCationIntraBondDipoleBondDipoleForce(int m)
     StrainDerivativeTensor[CurrentSystem].ay+=term.x*dr.y+v.ay;
     StrainDerivativeTensor[CurrentSystem].by+=term.y*dr.y+v.by;
     StrainDerivativeTensor[CurrentSystem].cy+=term.z*dr.y+v.cy;
- 
+
     StrainDerivativeTensor[CurrentSystem].az+=term.x*dr.z+v.az;
     StrainDerivativeTensor[CurrentSystem].bz+=term.y*dr.z+v.bz;
     StrainDerivativeTensor[CurrentSystem].cz+=term.z*dr.z+v.cz;

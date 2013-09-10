@@ -104,7 +104,7 @@ VECTOR RotateAboutArbitraryLine(VECTOR p, VECTOR origin, VECTOR dir,REAL theta)
   vec.x=origin.x*(SQR(dir.y)+SQR(dir.z))+
         dir.x*(-origin.y*dir.y-origin.z*dir.z+dir.x*p.x+dir.y*p.y+dir.z*p.z)+
         ((p.x-origin.x)*(SQR(dir.y)+SQR(dir.z))+dir.x*(origin.y*dir.y+origin.z*dir.z-dir.y*p.y-dir.z*p.z))*cos(theta)+
-        (origin.y*dir.z-origin.z*dir.y-dir.z*p.y+dir.y*p.z)*sin(theta); 
+        (origin.y*dir.z-origin.z*dir.y-dir.z*p.y+dir.y*p.z)*sin(theta);
 
   vec.y=origin.y*(SQR(dir.x)+SQR(dir.z))+
         dir.y*(-origin.x*dir.x-origin.z*dir.z+dir.x*p.x+dir.y*p.y+dir.z*p.z)+
@@ -116,7 +116,7 @@ VECTOR RotateAboutArbitraryLine(VECTOR p, VECTOR origin, VECTOR dir,REAL theta)
         ((p.z-origin.z)*(SQR(dir.x)+SQR(dir.y))+dir.z*(origin.x*dir.x+origin.y*dir.y-dir.x*p.x-dir.y*p.y))*cos(theta)+
         (origin.x*dir.y-origin.y*dir.x-dir.y*p.x+dir.x*p.y)*sin(theta);
 
-  return vec; 
+  return vec;
 }
 
 // Rotate a point 'p' about the the bondvector of two beads by an angle 'theta'
@@ -172,7 +172,7 @@ void ConvertStringToUppercase(char *buffer)
 
 
 #if defined (__LP64__) || defined (__64BIT__) || defined (_LP64) || (__WORDSIZE == 64)
-  /* 
+  /*
      http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/VERSIONS/C-LANG/mt19937-64.c
 
      A C-program for MT19937-64 (2004/9/29 version).
@@ -181,10 +181,10 @@ void ConvertStringToUppercase(char *buffer)
      This is a 64-bit version of Mersenne Twister pseudorandom number
      generator.
 
-     Before using, initialize the state by using init_genrand64(seed)  
+     Before using, initialize the state by using init_genrand64(seed)
 
      Copyright (C) 2004, Makoto Matsumoto and Takuji Nishimura,
-     All rights reserved.                          
+     All rights reserved.
 
      Redistribution and use in source and binary forms, with or without
      modification, are permitted provided that the following conditions
@@ -197,8 +197,8 @@ void ConvertStringToUppercase(char *buffer)
           notice, this list of conditions and the following disclaimer in the
         documentation and/or other materials provided with the distribution.
 
-       3. The names of its contributors may not be used to endorse or promote 
-          products derived from this software without specific prior written 
+       3. The names of its contributors may not be used to endorse or promote
+          products derived from this software without specific prior written
           permission.
 
      THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
@@ -215,12 +215,12 @@ void ConvertStringToUppercase(char *buffer)
 
      References:
      T. Nishimura, ``Tables of 64-bit Mersenne Twisters''
-       ACM Transactions on Modeling and 
+       ACM Transactions on Modeling and
        Computer Simulation 10. (2000) 348--357.
      M. Matsumoto and T. Nishimura,
        ``Mersenne Twister: a 623-dimensionally equidistributed
          uniform pseudorandom number generator''
-       ACM Transactions on Modeling and 
+       ACM Transactions on Modeling and
        Computer Simulation 8. (Jan. 1998) 3--30.
 
      Any feedback is very welcome.
@@ -236,18 +236,18 @@ void ConvertStringToUppercase(char *buffer)
 
   /* The array for the state vector */
   /* mti==NN+1 means mt[NN] is not initialized */
-  static unsigned long long mt[NN]; 
+  static unsigned long long mt[NN];
   static unsigned long long mag01[2]={0ULL,MATRIX_A};
-  static int mti=NN+1; 
-  static unsigned long long mt_bak[NN]; 
+  static int mti=NN+1;
+  static unsigned long long mt_bak[NN];
   static unsigned long long mag01_bak[2];
-  static int mti_bak; 
+  static int mti_bak;
 
   /* initializes mt[NN] with a seed */
   void InitializeRandomNumberGenerator(unsigned long long seed)
   {
     mt[0]=seed;
-    for(mti=1;mti<NN;mti++) 
+    for(mti=1;mti<NN;mti++)
       mt[mti]=(6364136223846793005ULL*(mt[mti-1]^(mt[mti-1]>>62))+mti);
   }
 
@@ -257,20 +257,20 @@ void ConvertStringToUppercase(char *buffer)
     int i;
     unsigned long long x;
 
-    if(mti>=NN) 
+    if(mti>=NN)
     { /* generate NN words at one time */
 
       /* if init_genrand64() has not been called, */
       /* a default initial seed is used     */
-      if(mti==NN+1) 
-        InitializeRandomNumberGenerator(5489ULL); 
+      if(mti==NN+1)
+        InitializeRandomNumberGenerator(5489ULL);
 
-      for(i=0;i<NN-MM;i++) 
+      for(i=0;i<NN-MM;i++)
       {
         x=(mt[i]&UM)|(mt[i+1]&LM);
         mt[i]=mt[i+MM]^(x>>1)^mag01[(int)(x&1ULL)];
       }
-      for(;i<NN-1;i++) 
+      for(;i<NN-1;i++)
       {
         x=(mt[i]&UM)|(mt[i+1]&LM);
         mt[i]=mt[i+(MM-NN)]^(x>>1)^mag01[(int)(x&1ULL)];
@@ -280,7 +280,7 @@ void ConvertStringToUppercase(char *buffer)
 
       mti=0;
     }
-  
+
     x=mt[mti++];
 
     x^=(x>>29)&0x5555555555555555ULL;
@@ -360,7 +360,7 @@ void ConvertStringToUppercase(char *buffer)
     fread(&Check,1,sizeof(REAL),FilePtr);
     if(fabs(Check-123456789.0)>1e-10)
     {
-      printf("Error in binary restart-file (ReadRestartUtils)\n");
+      fprintf(stderr, "Error in binary restart-file (ReadRestartUtils)\n");
       exit(0);
     }
   }
@@ -373,14 +373,14 @@ void ConvertStringToUppercase(char *buffer)
 
 #else
 
-  /* 
+  /*
      A C-program for MT19937, with initialization improved 2002/1/26.
      Coded by Takuji Nishimura and Makoto Matsumoto.
 
-     Before using, initialize the state by using init_genrand(seed)  
+     Before using, initialize the state by using init_genrand(seed)
 
      Copyright (C) 1997 - 2002, Makoto Matsumoto and Takuji Nishimura,
-     All rights reserved.                          
+     All rights reserved.
 
      Redistribution and use in source and binary forms, with or without
      modification, are permitted provided that the following conditions
@@ -393,8 +393,8 @@ void ConvertStringToUppercase(char *buffer)
           notice, this list of conditions and the following disclaimer in the
           documentation and/or other materials provided with the distribution.
 
-       3. The names of its contributors may not be used to endorse or promote 
-          products derived from this software without specific prior written 
+       3. The names of its contributors may not be used to endorse or promote
+          products derived from this software without specific prior written
           permission.
 
      THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
@@ -415,7 +415,7 @@ void ConvertStringToUppercase(char *buffer)
      email: m-mat @ math.sci.hiroshima-u.ac.jp (remove space)
   */
 
-  /* Period parameters */  
+  /* Period parameters */
   #define N 624
   #define M 397
   #define MATRIX_A 0x9908b0dfUL   /* constant vector a */
@@ -433,7 +433,7 @@ void ConvertStringToUppercase(char *buffer)
   void InitializeRandomNumberGenerator(unsigned long s)
   {
     mt[0]=s&0xffffffffUL;
-    for(mti=1;mti<N;mti++) 
+    for(mti=1;mti<N;mti++)
     {
       mt[mti]=(1812433253UL*(mt[mti-1]^(mt[mti-1]>>30))+mti);
       /* See Knuth TAOCP Vol2. 3rd Ed. P.106 for multiplier. */
@@ -473,7 +473,7 @@ void ConvertStringToUppercase(char *buffer)
 
       mti=0;
     }
-  
+
     y = mt[mti++];
 
     /* Tempering */
@@ -494,30 +494,30 @@ void ConvertStringToUppercase(char *buffer)
   /* generates a random number on [0,1]-real-interval */
   double RandomNumber(void)
   {
-    return genrand_int32()*(1.0/4294967295.0); 
-    /* divided by 2^32-1 */ 
+    return genrand_int32()*(1.0/4294967295.0);
+    /* divided by 2^32-1 */
   }
 
   /* generates a random number on [0,1)-real-interval */
   double RandomNumber2(void)
   {
-    return genrand_int32()*(1.0/4294967296.0); 
+    return genrand_int32()*(1.0/4294967296.0);
     /* divided by 2^32 */
   }
 
   /* generates a random number on (0,1)-real-interval */
   double RandomNumber3(void)
   {
-    return (((double)genrand_int32())+0.5)*(1.0/4294967296.0); 
+    return (((double)genrand_int32())+0.5)*(1.0/4294967296.0);
     /* divided by 2^32 */
   }
 
   /* generates a random number on [0,1) with 53-bit resolution*/
-  double RandomNumber4(void) 
-  { 
-    unsigned long a=genrand_int32()>>5,b=genrand_int32()>>6; 
-    return(a*67108864.0+b)*(1.0/9007199254740992.0); 
-  } 
+  double RandomNumber4(void)
+  {
+    unsigned long a=genrand_int32()>>5,b=genrand_int32()>>6;
+    return(a*67108864.0+b)*(1.0/9007199254740992.0);
+  }
 
   void StoreRandomNumberStatus(void)
   {
@@ -559,7 +559,7 @@ void ConvertStringToUppercase(char *buffer)
   #undef M 397
   #undef MATRIX_A
   #undef UPPER_MASK
-  #undef LOWER_MASK 
+  #undef LOWER_MASK
 
 #endif
 
@@ -652,7 +652,7 @@ VECTOR RandomNumberOnCone(VECTOR v,REAL theta)
 // b[2]=a[0]*rot[2][0]+a[1]*rot[2][1]+a[2]*rot[2][2]
 // a=source vector
 // b=target vector
-// rot=rotation matrix 
+// rot=rotation matrix
 // note:
 // 1) no need to normalize a and b
 // 2) beware of the singularity when a==b !!!!
@@ -932,9 +932,9 @@ VECTOR GenerateRandomCylinderPoint(int dir,VECTOR origin,VECTOR rotation,REAL ra
       }while(sqrt(SQR(c.x)+SQR(c.y))>radius);
       break;
   }
-  c=RotateVectorAboutX(c,rotation.x); 
-  c=RotateVectorAboutY(c,rotation.y); 
-  c=RotateVectorAboutZ(c,rotation.z); 
+  c=RotateVectorAboutX(c,rotation.x);
+  c=RotateVectorAboutY(c,rotation.y);
+  c=RotateVectorAboutZ(c,rotation.z);
   c.x+=origin.x;
   c.y+=origin.y;
   c.z+=origin.z;
@@ -997,7 +997,7 @@ void EulerToQuaternions(QUATERNION *q,VECTOR Ang)
 }
 
 
-// 
+//
 // The following prototype declarations need to be added to your code (ie. header file).
 //
 
@@ -1012,66 +1012,66 @@ void EulerToQuaternions(QUATERNION *q,VECTOR Ang)
  *     dd(0:4)     (i)  vector containing the polynomial coefficients
  *     sol(1:4)    (o)  results, real part
  *     soli(1:4)   (o)  results, imaginary part
- *     Nsol        (o)  number of real solutions 
- *	17-Oct-2004 / Raoul Rausch
- *		Conversion from Fortran to C
+ *     Nsol        (o)  number of real solutions
+ *  17-Oct-2004 / Raoul Rausch
+ *    Conversion from Fortran to C
  *
  *
  *-----------------------------------------------------------------------------
  */
 int quintic(REAL dd[6], REAL sol[5], REAL soli[5], int *Nsol, REAL xstart)
 {
-	REAL  dd4[5], sol4[4], soli4[4], xnew, xs;//, soli4[4];/*dd[6], sol[5], soli[5],*/
-	REAL sum, sum1, eC;
-	const REAL eps = 1.e-8;
-	int i, Nsol4;
+  REAL  dd4[5], sol4[4], soli4[4], xnew, xs;//, soli4[4];/*dd[6], sol[5], soli[5],*/
+  REAL sum, sum1, eC;
+  const REAL eps = 1.e-8;
+  int i, Nsol4;
 
-	*Nsol = 0;
+  *Nsol = 0;
 
-	printf("\n Quintic!\n");
+  printf("\n Quintic!\n");
 
-	if (dd[5] == 0.0)
-	{ 
-		printf("\n ERROR: NOT A QUINTIC EQUATION");
-		return 0;
-	}
+  if (dd[5] == 0.0)
+  {
+    printf("\n ERROR: NOT A QUINTIC EQUATION");
+    return 0;
+  }
 
-	// Newton iteration of one real root
-	xs= xstart;
-	xnew = xstart;	//added rr
-	do
-	{
-		xs = xnew;	//added rr
-		sum = dd[0];
-		for (i=1;i<6;i++)	sum += dd[i]*pow(xs,i);	// Don't know what ** means
-		sum1 = dd[1];
-		for (i=1;i<5;i++)	sum1 += (REAL)(i+1)*dd[i+1]*pow(xs,i);
-		xnew = xs - sum/sum1;
-		//if (fabs(xnew-xs) > eps)
-		//xs =xnew;
-	}while (fabs(xnew-xs) > eps);
+  // Newton iteration of one real root
+  xs= xstart;
+  xnew = xstart;  //added rr
+  do
+  {
+    xs = xnew;  //added rr
+    sum = dd[0];
+    for (i=1;i<6;i++)  sum += dd[i]*pow(xs,i);  // Don't know what ** means
+    sum1 = dd[1];
+    for (i=1;i<5;i++)  sum1 += (REAL)(i+1)*dd[i+1]*pow(xs,i);
+    xnew = xs - sum/sum1;
+    //if (fabs(xnew-xs) > eps)
+    //xs =xnew;
+  }while (fabs(xnew-xs) > eps);
 
-	eC = xnew;
-	//
-	// "eC" is one real root of quintic equation
-	// reduce quintic to quartic equation using "eC"
-	dd4[4] = dd[5];
-	for (i=4;i>0;i--)	dd4[i-1] = dd[i] + eC*dd4[i];
+  eC = xnew;
+  //
+  // "eC" is one real root of quintic equation
+  // reduce quintic to quartic equation using "eC"
+  dd4[4] = dd[5];
+  for (i=4;i>0;i--)  dd4[i-1] = dd[i] + eC*dd4[i];
 
-	quartic(dd4, sol4, soli4, &Nsol4);
+  quartic(dd4, sol4, soli4, &Nsol4);
 
-	
-	sol[0] = eC;
-	soli[0] = 0.0;
 
-	for (i=0;i<4;i++)
-	{
-		sol[i+1] =sol4[i];
-		soli[i+1] = soli4[i];
-	}
-	*Nsol = Nsol4 + 1;
+  sol[0] = eC;
+  soli[0] = 0.0;
 
-	return 0;
+  for (i=0;i<4;i++)
+  {
+    sol[i+1] =sol4[i];
+    soli[i+1] = soli4[i];
+  }
+  *Nsol = Nsol4 + 1;
+
+  return 0;
 }
 
 /*-------------------- Global Function Description Block ----------------------
@@ -1084,105 +1084,105 @@ int quintic(REAL dd[6], REAL sol[5], REAL soli[5], int *Nsol, REAL xstart)
  *     dd(0:4)     (i)  vector containing the polynomial coefficients
  *     sol(1:4)    (o)  results, real part
  *     soli(1:4)   (o)  results, imaginary part
- *     Nsol        (o)  number of real solutions 
+ *     Nsol        (o)  number of real solutions
  *     ==================================================================
- *  	17-Oct-2004 / Raoul Rausch
- *		Conversion from Fortran to C
+ *    17-Oct-2004 / Raoul Rausch
+ *    Conversion from Fortran to C
  *
  *
  *-----------------------------------------------------------------------------
  */
  int quartic(REAL dd[5], REAL sol[4], REAL soli[4], int* Nsol)
  {
-	REAL AA[4], z[3];
-	REAL a, b, c, d, f, p, q, r, zsol, xK2, xL, xK, sqp, sqm;
-	int ncube, i;
-	*Nsol = 0;
+  REAL AA[4], z[3];
+  REAL a, b, c, d, f, p, q, r, zsol, xK2, xL, xK, sqp, sqm;
+  int ncube, i;
+  *Nsol = 0;
 
-	if (dd[4] == 0.0)
-	{
-		printf("\n ERROR: NOT A QUARTIC EQUATION");
-		return 0;
-	}
+  if (dd[4] == 0.0)
+  {
+    printf("\n ERROR: NOT A QUARTIC EQUATION");
+    return 0;
+  }
 
-	a = dd[4];
-	b = dd[3];
-	c = dd[2];
-	d = dd[1];
-	f = dd[0];
+  a = dd[4];
+  b = dd[3];
+  c = dd[2];
+  d = dd[1];
+  f = dd[0];
 
-	p = (-3.0*pow(b,2) + 8.0 *a*c)/(8.0*pow(a,2));
-	q = (pow(b,3) - 4.0*a*b*c + 8.0 *d*pow(a,2)) / (8.0*pow(a,3));
-	r = (-3.0*pow(b,4) + 16.0 *a*pow(b,2)*c - 64.0 *pow(a,2)*b*d + 256.0 *pow(a,3)*f)/(256.0*pow(a,4));
-	
-	// Solve cubic resolvent
-	AA[3] = 8.0;
-	AA[2] = -4.0*p;
-	AA[1] = -8.0*r;
-	AA[0] = 4.0*p*r - pow(q,2);
+  p = (-3.0*pow(b,2) + 8.0 *a*c)/(8.0*pow(a,2));
+  q = (pow(b,3) - 4.0*a*b*c + 8.0 *d*pow(a,2)) / (8.0*pow(a,3));
+  r = (-3.0*pow(b,4) + 16.0 *a*pow(b,2)*c - 64.0 *pow(a,2)*b*d + 256.0 *pow(a,3)*f)/(256.0*pow(a,4));
 
-	//printf("\n bcubic %.4e\t%.4e\t%.4e\t%.4e ", AA[0], AA[1], AA[2], AA[3]);
-	cubic(AA, z, &ncube);
-	//printf("\n acubic %.4e\t%.4e\t%.4e ", z[0], z[1], z[2]);
-	
-	zsol = - 1.e99;
-	for (i=0;i<ncube;i++)	
+  // Solve cubic resolvent
+  AA[3] = 8.0;
+  AA[2] = -4.0*p;
+  AA[1] = -8.0*r;
+  AA[0] = 4.0*p*r - pow(q,2);
+
+  //printf("\n bcubic %.4e\t%.4e\t%.4e\t%.4e ", AA[0], AA[1], AA[2], AA[3]);
+  cubic(AA, z, &ncube);
+  //printf("\n acubic %.4e\t%.4e\t%.4e ", z[0], z[1], z[2]);
+
+  zsol = - 1.e99;
+  for (i=0;i<ncube;i++)
           zsol = MAX2(zsol, z[i]);  //Not sure C has max fct
-	z[0] =zsol;
-	xK2 = 2.0*z[0] -p;
-	xK = sqrt(xK2);
-	xL = q/(2.0*xK);
-	sqp = xK2 - 4.0 * (z[0] + xL);
-	sqm = xK2 - 4.0 * (z[0] - xL);
+  z[0] =zsol;
+  xK2 = 2.0*z[0] -p;
+  xK = sqrt(xK2);
+  xL = q/(2.0*xK);
+  sqp = xK2 - 4.0 * (z[0] + xL);
+  sqm = xK2 - 4.0 * (z[0] - xL);
 
-	for (i=0;i<4;i++)	soli[i] = 0.0;
-	if ( (sqp >= 0.0) && (sqm >= 0.0))
-	{
-		printf("\n case 1 ");
-		sol[0] = 0.5 * (xK + sqrt(sqp));
-		sol[1] = 0.5 * (xK - sqrt(sqp));
-		sol[2] = 0.5 * (-xK + sqrt(sqm));
-		sol[3] = 0.5 * (-xK - sqrt(sqm));
-		*Nsol = 4;
-	}
-	else if ( (sqp >= 0.0) && (sqm < 0.0))
-	{
-		printf("\n case 2 ");
-		sol[0] = 0.5 * (xK + sqrt(sqp));
-		sol[1] = 0.5 * (xK - sqrt(sqp));
-		sol[2] = -0.5 * xK;
-		sol[3] = -0.5 * xK;
-		soli[2] =  sqrt(-.25 * sqm);
-		soli[3] = -sqrt(-.25 * sqm);
-		*Nsol = 2;
-	}
-	else if ( (sqp < 0.0) && (sqm >= 0.0))
-	{
-		printf("\n case 3 ");
-		sol[0] = 0.5 * (-xK + sqrt(sqm));
-		sol[1] = 0.5 * (-xK - sqrt(sqm));
-		sol[2] = 0.5 * xK;
-		sol[3] = 0.5 * xK;
-		soli[2] =  sqrt(-0.25 * sqp);
-		soli[3] = -sqrt(-0.25 * sqp);
-		*Nsol = 2;
-	}
-	else if ( (sqp < 0.0) && (sqm < 0.0))
-	{
-		printf("\n case 4 ");
-		sol[0] = -0.5 * xK;
-		sol[1] = -0.5 * xK;
-		soli[0] =  sqrt(-0.25 * sqm);
-		soli[1] = -sqrt(-0.25 * sqm);
-		sol[2] = 0.5 * xK;
-		sol[3] = 0.5 * xK;
-		soli[2] =  sqrt(-0.25 * sqp);
-		soli[3] = -sqrt(-0.25 * sqp);
-		*Nsol = 0;
-	}
-	
-	for (i=0;i<4;i++)	sol[i] -= b/(4.0*a);
-	return 0;
+  for (i=0;i<4;i++)  soli[i] = 0.0;
+  if ( (sqp >= 0.0) && (sqm >= 0.0))
+  {
+    printf("\n case 1 ");
+    sol[0] = 0.5 * (xK + sqrt(sqp));
+    sol[1] = 0.5 * (xK - sqrt(sqp));
+    sol[2] = 0.5 * (-xK + sqrt(sqm));
+    sol[3] = 0.5 * (-xK - sqrt(sqm));
+    *Nsol = 4;
+  }
+  else if ( (sqp >= 0.0) && (sqm < 0.0))
+  {
+    printf("\n case 2 ");
+    sol[0] = 0.5 * (xK + sqrt(sqp));
+    sol[1] = 0.5 * (xK - sqrt(sqp));
+    sol[2] = -0.5 * xK;
+    sol[3] = -0.5 * xK;
+    soli[2] =  sqrt(-.25 * sqm);
+    soli[3] = -sqrt(-.25 * sqm);
+    *Nsol = 2;
+  }
+  else if ( (sqp < 0.0) && (sqm >= 0.0))
+  {
+    printf("\n case 3 ");
+    sol[0] = 0.5 * (-xK + sqrt(sqm));
+    sol[1] = 0.5 * (-xK - sqrt(sqm));
+    sol[2] = 0.5 * xK;
+    sol[3] = 0.5 * xK;
+    soli[2] =  sqrt(-0.25 * sqp);
+    soli[3] = -sqrt(-0.25 * sqp);
+    *Nsol = 2;
+  }
+  else if ( (sqp < 0.0) && (sqm < 0.0))
+  {
+    printf("\n case 4 ");
+    sol[0] = -0.5 * xK;
+    sol[1] = -0.5 * xK;
+    soli[0] =  sqrt(-0.25 * sqm);
+    soli[1] = -sqrt(-0.25 * sqm);
+    sol[2] = 0.5 * xK;
+    sol[3] = 0.5 * xK;
+    soli[2] =  sqrt(-0.25 * sqp);
+    soli[3] = -sqrt(-0.25 * sqp);
+    *Nsol = 0;
+  }
+
+  for (i=0;i<4;i++)  sol[i] -= b/(4.0*a);
+  return 0;
 
  }
 
@@ -1198,115 +1198,115 @@ int quintic(REAL dd[6], REAL sol[5], REAL soli[5], int *Nsol, REAL xstart)
   *     X(1:L)      (o)  results
   *     L           (o)  number of valid solutions (beginning with X(1))
   *     ==================================================================
-  *  	17-Oct-2004 / Raoul Rausch
-  *		Conversion from Fortran to C
+  *    17-Oct-2004 / Raoul Rausch
+  *    Conversion from Fortran to C
   *
   *
   *-----------------------------------------------------------------------------
   */
 int cubic(REAL A[4], REAL X[3], int* L)
 {
-	const REAL PI = 3.1415926535897932;
-	const REAL THIRD = 1./3.;
-	REAL U[3],W, P, Q, DIS, PHI;
-	int i;
+  const REAL PI = 3.1415926535897932;
+  const REAL THIRD = 1./3.;
+  REAL U[3],W, P, Q, DIS, PHI;
+  int i;
 
-	//define cubic root as statement function
-	// In C, the function is defined outside of the cubic fct
+  //define cubic root as statement function
+  // In C, the function is defined outside of the cubic fct
 
-	// ====determine the degree of the polynomial ====
+  // ====determine the degree of the polynomial ====
 
-	if (A[3] != 0.0)
-	{
-		//cubic problem
-		W = A[2]/A[3]*THIRD;
-		P = pow((A[1]/A[3]*THIRD - pow(W,2)),3);
-		Q = -.5*(2.0*pow(W,3)-(A[1]*W-A[0])/A[3] );
-		DIS = pow(Q,2)+P;
-		if ( DIS < 0.0 )
-		{
-			//three real solutions!
-			//Confine the argument of ACOS to the interval [-1;1]!
-			PHI = acos(MIN2((REAL)1.0,MAX2((REAL)-1.0,Q/sqrt(-P))));
-			P=2.0*pow((-P),(5.e-1*THIRD));
-			for (i=0;i<3;i++)	U[i] = P*cos((PHI+2.0*((REAL)i)*PI)*THIRD)-W;
-			X[0] = MIN2(U[0], MIN2(U[1], U[2]));
-			X[1] = MAX2(MIN2(U[0], U[1]),MAX2( MIN2(U[0], U[2]), MIN2(U[1], U[2])));
-			X[2] = MAX2(U[0], MAX2(U[1], U[2]));
-			*L = 3;
-		}
-		else
-		{
-			// only one real solution!
-			DIS = sqrt(DIS);
-			X[0] = CBRT(Q+DIS)+CBRT(Q-DIS)-W;
-			*L=1;
-		}
-	}
-	else if (A[2] != 0.0)
-	{
-		// quadratic problem
-		P = 0.5*A[1]/A[2];
-		DIS = pow(P,2)-A[0]/A[2];
-		if (DIS > 0.0)
-		{
-			// 2 real solutions
-			X[0] = -P - sqrt(DIS);
-			X[1] = -P + sqrt(DIS);
-			*L=2;
-		}
-		else
-		{
-			// no real solution
-			*L=0;
-		}
-	}
-	else if (A[1] != 0.0)
-	{
-		//linear equation
-		X[0] =A[0]/A[1];
-		*L=1;
-	}
-	else
-	{
-		//no equation
-		*L=0;
-	}
+  if (A[3] != 0.0)
+  {
+    //cubic problem
+    W = A[2]/A[3]*THIRD;
+    P = pow((A[1]/A[3]*THIRD - pow(W,2)),3);
+    Q = -.5*(2.0*pow(W,3)-(A[1]*W-A[0])/A[3] );
+    DIS = pow(Q,2)+P;
+    if ( DIS < 0.0 )
+    {
+      //three real solutions!
+      //Confine the argument of ACOS to the interval [-1;1]!
+      PHI = acos(MIN2((REAL)1.0,MAX2((REAL)-1.0,Q/sqrt(-P))));
+      P=2.0*pow((-P),(5.e-1*THIRD));
+      for (i=0;i<3;i++)  U[i] = P*cos((PHI+2.0*((REAL)i)*PI)*THIRD)-W;
+      X[0] = MIN2(U[0], MIN2(U[1], U[2]));
+      X[1] = MAX2(MIN2(U[0], U[1]),MAX2( MIN2(U[0], U[2]), MIN2(U[1], U[2])));
+      X[2] = MAX2(U[0], MAX2(U[1], U[2]));
+      *L = 3;
+    }
+    else
+    {
+      // only one real solution!
+      DIS = sqrt(DIS);
+      X[0] = CBRT(Q+DIS)+CBRT(Q-DIS)-W;
+      *L=1;
+    }
+  }
+  else if (A[2] != 0.0)
+  {
+    // quadratic problem
+    P = 0.5*A[1]/A[2];
+    DIS = pow(P,2)-A[0]/A[2];
+    if (DIS > 0.0)
+    {
+      // 2 real solutions
+      X[0] = -P - sqrt(DIS);
+      X[1] = -P + sqrt(DIS);
+      *L=2;
+    }
+    else
+    {
+      // no real solution
+      *L=0;
+    }
+  }
+  else if (A[1] != 0.0)
+  {
+    //linear equation
+    X[0] =A[0]/A[1];
+    *L=1;
+  }
+  else
+  {
+    //no equation
+    *L=0;
+  }
  /*
   *     ==== perform one step of a newton iteration in order to minimize
   *          round-off errors ====
   */
-	for (i=0;i<*L;i++)
-	{
-		X[i] = X[i] - (A[0]+X[i]*(A[1]+X[i]*(A[2]+X[i]*A[3])))/(A[1]+X[i]*(2.0*A[2]+X[i]*3.0*A[3]));
-	//	printf("\n X inside cubic %.15e\n", X[i]);
-	}
+  for (i=0;i<*L;i++)
+  {
+    X[i] = X[i] - (A[0]+X[i]*(A[1]+X[i]*(A[2]+X[i]*A[3])))/(A[1]+X[i]*(2.0*A[2]+X[i]*3.0*A[3]));
+  //  printf("\n X inside cubic %.15e\n", X[i]);
+  }
 
-	return 0;
+  return 0;
 }
 
 int signR(REAL Z)
 {
-	int ret;
+  int ret;
 
-	if (Z > 0.0)	ret = 1;
-	else if (Z < 0.0)	ret = -1;
-	else ret =0;
+  if (Z > 0.0)  ret = 1;
+  else if (Z < 0.0)  ret = -1;
+  else ret =0;
 
-	return ret;
+  return ret;
 }
 
 REAL CBRT(REAL Z)
 {
-	REAL ret;
-	const REAL THIRD = 1./3.;
-	//define cubic root as statement function
-	//SIGN has different meanings in both C and Fortran
-	// Was unable to use the sign command of C, so wrote my own
-	// that why a new variable needs to be introduced that keeps track of the sign of
-	// SIGN is supposed to return a 1, -1 or 0 depending on what the sign of the argument is
-	ret = (REAL)fabs(pow((REAL)fabs(Z),(REAL)THIRD)) * (REAL)signR((REAL)Z);
-	return ret;
+  REAL ret;
+  const REAL THIRD = 1./3.;
+  //define cubic root as statement function
+  //SIGN has different meanings in both C and Fortran
+  // Was unable to use the sign command of C, so wrote my own
+  // that why a new variable needs to be introduced that keeps track of the sign of
+  // SIGN is supposed to return a 1, -1 or 0 depending on what the sign of the argument is
+  ret = (REAL)fabs(pow((REAL)fabs(Z),(REAL)THIRD)) * (REAL)signR((REAL)Z);
+  return ret;
 }
 
 
@@ -1315,7 +1315,7 @@ REAL CBRT(REAL Z)
 #define ALF 1.0e-8
 #define TOLX 1.0e-14
 void LineSearch(int np,int nb,int n,REAL *xold,REAL fold,REAL *g,REAL *p,REAL *x,
-	        REAL *f,REAL stpmax,int *check,REAL (*func)(int,int,REAL []))
+          REAL *f,REAL stpmax,int *check,REAL (*func)(int,int,REAL []))
 {
   int i;
   REAL a,alam,alam2,alamin,b,disc,f2,fold2,rhs1,rhs2,slope,sum,temp,test,tmplam;
@@ -1326,11 +1326,11 @@ void LineSearch(int np,int nb,int n,REAL *xold,REAL fold,REAL *g,REAL *p,REAL *x
   alam2=0.0;
 
   *check=0;
-  for(sum=0.0,i=0;i<n;i++) 
+  for(sum=0.0,i=0;i<n;i++)
     sum+=p[i]*p[i];
   sum=sqrt(sum);
   if(sum>stpmax)
-    for(i=0;i<n;i++) 
+    for(i=0;i<n;i++)
       p[i]*=stpmax/sum;
   for(slope=0.0,i=0;i<n;i++)
     slope+=g[i]*p[i];
@@ -1342,18 +1342,18 @@ void LineSearch(int np,int nb,int n,REAL *xold,REAL fold,REAL *g,REAL *p,REAL *x
   }
   alamin=TOLX/test;
   alam=1.0;
-  for(;;) 
+  for(;;)
   {
-    for(i=0;i<n;i++) 
+    for(i=0;i<n;i++)
       x[i]=xold[i]+alam*p[i];
     *f=(*func)(np,nb,x);
     if(alam<alamin)
     {
-      for(i=0;i<n;i++) 
+      for(i=0;i<n;i++)
         x[i]=xold[i];
       *check=1;
       return;
-    } 
+    }
     else if(*f<=fold+ALF*alam*slope) return;
     else
     {
@@ -1369,9 +1369,9 @@ void LineSearch(int np,int nb,int n,REAL *xold,REAL fold,REAL *g,REAL *p,REAL *x
         else
         {
           disc=b*b-3.0*a*slope;
-          if(disc<0.0) 
+          if(disc<0.0)
           {
-            printf("Roundoff problem in lnsrch.");
+            fprintf(stderr, "Roundoff problem in lnsrch.");
             exit(0);
           }
           else tmplam=(-b+sqrt(disc))/(3.0*a);
@@ -1396,7 +1396,7 @@ void LineSearch(int np,int nb,int n,REAL *xold,REAL fold,REAL *g,REAL *p,REAL *x
 #define SHFT(a,b,c,d) (a)=(b);(b)=(c);(c)=(d);
 
 REAL brent(int np,int nb,REAL ax, REAL bx, REAL cx, REAL (*f)(int,int,REAL), REAL tol,
-	REAL *xmin)
+  REAL *xmin)
 {
   int iter;
   REAL a,b,d,etemp,fu,fv,fw,fx,p,q,r,tol1,tol2,u,v,w,x,xm;
@@ -1411,7 +1411,7 @@ REAL brent(int np,int nb,REAL ax, REAL bx, REAL cx, REAL (*f)(int,int,REAL), REA
   {
     xm=0.5*(a+b);
     tol2=2.0*(tol1=tol*fabs(x)+ZEPS);
-    if(fabs(x-xm)<=(tol2-0.5*(b-a))) 
+    if(fabs(x-xm)<=(tol2-0.5*(b-a)))
     {
       *xmin=x;
       return fx;
@@ -1435,7 +1435,7 @@ REAL brent(int np,int nb,REAL ax, REAL bx, REAL cx, REAL (*f)(int,int,REAL), REA
         if((u-a<tol2)||(b-u<tol2))
           d=SIGN(tol1,xm-x);
       }
-    } 
+    }
     else
     {
       d=CGOLD*(e=(x >= xm ? a-x : b-x));
@@ -1447,10 +1447,10 @@ REAL brent(int np,int nb,REAL ax, REAL bx, REAL cx, REAL (*f)(int,int,REAL), REA
       if (u >= x) a=x; else b=x;
       SHFT(v,w,x,u)
       SHFT(fv,fw,fx,fu)
-    } 
+    }
     else
     {
-      if(u<x) a=u; 
+      if(u<x) a=u;
       else b=u;
       if((fu<=fw)||(w==x))
       {
@@ -1466,7 +1466,7 @@ REAL brent(int np,int nb,REAL ax, REAL bx, REAL cx, REAL (*f)(int,int,REAL), REA
       }
     }
   }
-  printf("Too many iterations in brent");
+  fprintf(stderr, "Too many iterations in brent");
   *xmin=x;
   return fx;
 }
@@ -1480,7 +1480,7 @@ REAL brent(int np,int nb,REAL ax, REAL bx, REAL cx, REAL (*f)(int,int,REAL), REA
 #define MOV3(a,b,c, d,e,f) (a)=(d);(b)=(e);(c)=(f);
 
 REAL dbrent(int np,int nb,REAL ax, REAL bx, REAL cx, REAL (*f)(int,int,REAL),
-	REAL (*df)(int,int,REAL), REAL tol, REAL *xmin)
+  REAL (*df)(int,int,REAL), REAL tol, REAL *xmin)
 {
   int iter,ok1,ok2;
   REAL a,b,d,d1,d2,du,dv,dw,dx,e=0.0;
@@ -1527,17 +1527,17 @@ REAL dbrent(int np,int nb,REAL ax, REAL bx, REAL cx, REAL (*f)(int,int,REAL),
           u=x+d;
           if((u-a<tol2)||(b-u<tol2))
             d=SIGN(tol1,xm-x);
-        } 
+        }
         else
         {
           d=0.5*(e=(dx >= 0.0 ? a-x : b-x));
         }
-      } 
+      }
       else
       {
         d=0.5*(e=(dx>=0.0?a-x:b-x));
       }
-    } 
+    }
     else
     {
       d=0.5*(e=(dx >= 0.0 ? a-x : b-x));
@@ -1560,12 +1560,12 @@ REAL dbrent(int np,int nb,REAL ax, REAL bx, REAL cx, REAL (*f)(int,int,REAL),
     du=(*df)(np,nb,u);
     if(fu<=fx)
     {
-      if(u>=x) a=x; 
+      if(u>=x) a=x;
       else b=x;
       MOV3(v,fv,dv, w,fw,dw)
       MOV3(w,fw,dw, x,fx,dx)
       MOV3(x,fx,dx, u,fu,du)
-    } 
+    }
     else
     {
       if(u<x) a=u; else b=u;
@@ -1573,14 +1573,14 @@ REAL dbrent(int np,int nb,REAL ax, REAL bx, REAL cx, REAL (*f)(int,int,REAL),
       {
         MOV3(v,fv,dv, w,fw,dw)
         MOV3(w,fw,dw, u,fu,du)
-      } 
+      }
       else if((fu<fv)||(v==x)||(v == w))
       {
         MOV3(v,fv,dv, u,fu,du)
       }
     }
   }
-  printf("Too many iterations in routine dbrent");
+  fprintf(stderr, "Too many iterations in routine dbrent");
   return 0.0;
 }
 #undef ITMAX
@@ -1593,7 +1593,7 @@ REAL dbrent(int np,int nb,REAL ax, REAL bx, REAL cx, REAL (*f)(int,int,REAL),
 #define SHFT(a,b,c,d) (a)=(b);(b)=(c);(c)=(d);
 
 REAL mnbrak(int np,int nb,REAL *ax, REAL *bx, REAL *cx, REAL *fa, REAL *fb, REAL *fc,
-	REAL (*func)(int,int,REAL))
+  REAL (*func)(int,int,REAL))
 {
   REAL ulim,u,r,q,fu,dum;
 
@@ -1622,7 +1622,7 @@ REAL mnbrak(int np,int nb,REAL *ax, REAL *bx, REAL *cx, REAL *fa, REAL *fb, REAL
         *fa=(*fb);
         *fb=fu;
         return 0.0;
-      } 
+      }
       else if(fu>*fb)
       {
         *cx=u;
@@ -1631,7 +1631,7 @@ REAL mnbrak(int np,int nb,REAL *ax, REAL *bx, REAL *cx, REAL *fa, REAL *fb, REAL
       }
       u=(*cx)+GOLD*(*cx-*bx);
       fu=(*func)(np,nb,u);
-    } 
+    }
     else if((*cx-u)*(u-ulim)>0.0)
     {
       fu=(*func)(np,nb,u);
@@ -1640,13 +1640,13 @@ REAL mnbrak(int np,int nb,REAL *ax, REAL *bx, REAL *cx, REAL *fa, REAL *fb, REAL
         SHFT(*bx,*cx,u,*cx+GOLD*(*cx-*bx))
         SHFT(*fb,*fc,fu,(*func)(np,nb,u))
       }
-    } 
+    }
     else if((u-ulim)*(ulim-*cx)>=0.0)
     {
       u=ulim;
       fu=(*func)(np,nb,u);
-    } 
-    else 
+    }
+    else
     {
       u=(*cx)+GOLD*(*cx-*bx);
       fu=(*func)(np,nb,u);
@@ -1671,7 +1671,7 @@ REAL f1dim(int np,int nb,REAL x)
   REAL f,*xt;
 
   xt=(REAL*)calloc(ncom,sizeof(REAL));
-  for(j=0;j<ncom;j++) 
+  for(j=0;j<ncom;j++)
     xt[j]=pcom[j]+x*xicom[j];
   f=(*nrfunc)(np,nb,xt);
   free(xt);
@@ -1686,10 +1686,10 @@ REAL df1dim(int np,int nb,REAL x)
 
   xt=(REAL*)calloc(ncom,sizeof(REAL));
   df=(REAL*)calloc(ncom,sizeof(REAL));
-  for(j=0;j<ncom;j++) 
+  for(j=0;j<ncom;j++)
     xt[j]=pcom[j]+x*xicom[j];
   (*nrdfun)(np,nb,xt,df);
-  for(j=0;j<ncom;j++) 
+  for(j=0;j<ncom;j++)
     df1 += df[j]*xicom[j];
   free(df);
   free(xt);
@@ -1700,7 +1700,7 @@ REAL df1dim(int np,int nb,REAL x)
 #define TOL 2.0e-4
 
 void dlinmin(int np,int nb,REAL *p, REAL *xi, int n, REAL *fret, REAL (*func)(int,int,REAL []),
-	void (*dfunc)(int,int,REAL [], REAL []))
+  void (*dfunc)(int,int,REAL [], REAL []))
 {
   REAL df1dim(int,int,REAL x);
   int j;
@@ -1762,7 +1762,7 @@ void linmin(int np,int nb,REAL *p, REAL *xi, int n, REAL *fret, REAL (*func)(int
 #define ITMAX 200
 
 void powell(int np,int nb,REAL *p, REAL **xi, int n, REAL ftol, int *iter, REAL *fret,
-	REAL (*func)(int,int,REAL []))
+  REAL (*func)(int,int,REAL []))
 {
   int i,ibig,j;
   REAL del,fp,fptt,t,*pt,*ptt,*xit;
@@ -1797,7 +1797,7 @@ void powell(int np,int nb,REAL *p, REAL **xi, int n, REAL ftol, int *iter, REAL 
       free(pt);
       return;
     }
-    if (*iter == ITMAX) printf("powell exceeding maximum iterations.");
+    if (*iter == ITMAX) fprintf(stderr, "powell exceeding maximum iterations.");
     for(j=0;j<n;j++)
     {
       ptt[j]=2.0*p[j]-pt[j];
@@ -1844,7 +1844,7 @@ void FastFourierTransform(REAL(*fftw_data)[2], unsigned long nn, int isign)
     REAL *data;
 
     data=(REAL*)fftw_data;
-    
+
 
     n=nn << 1;
     j=1;
@@ -1991,7 +1991,7 @@ int CheckEnantioFace(VECTOR posA,VECTOR posB,VECTOR posC,VECTOR posD,VECTOR posE
     return ENANTIOFACE_SI;
   }
 
-  
+
 /*
   ia = itfix(1,ntfix)                   //atom 1182 of framework  (Mof_Osa2)
   ib = itfix(2,ntfix)                   //atom 1094 of framework  (Mof_Mn2)
@@ -2083,7 +2083,7 @@ void TrimStringInPlace(char *s)
 void rtrim( char * string, char * trim )
 {
     int i;
-    for( i = strlen (string) - 1; i >= 0 
+    for( i = strlen (string) - 1; i >= 0
     && strchr ( trim, string[i] ) != NULL; i-- )
         // replace the string terminator:
         string[i] = '\0';
@@ -2149,7 +2149,7 @@ void StripWhiteSpacesInPlace(char *str)
 void ReplaceCharacterInString(char * string,char searchchar,char replacechar)
 {
   // Loop until end of string
-  while (*string!='\0') 
+  while (*string!='\0')
   {
     if(*string==searchchar)
       *string=replacechar;
@@ -2162,12 +2162,12 @@ void RemoveWhiteSpacesFromString(char *string)
   char *p2;
 
   p2=string;
-  while(*string!='\0') 
+  while(*string!='\0')
   {
     if(isspace(*string)) string++;
     else *p2++=*string++;
   }
-  *p2='\0'; 
+  *p2='\0';
 }
 
 char* StringReverse(char *s)

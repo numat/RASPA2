@@ -132,32 +132,32 @@ Complex ComplexSqrt(Complex z)
 {
   Complex c;
   REAL x,y,w,r;
-  if ((z.re==0.0)&&(z.im==0.0)) 
+  if ((z.re==0.0)&&(z.im==0.0))
   {
     c.re=0.0;
     c.im=0.0;
     return c;
-  } 
-  else 
+  }
+  else
   {
     x=z.re>=0.0?z.re:-z.re;
     y=z.im>=0.0?z.im:-z.im;
-    if (x >= y) 
+    if (x >= y)
     {
       r=y/x;
       w=sqrt(x)*sqrt(0.5*(1.0+sqrt(1.0+r*r)));
-    } 
-    else 
+    }
+    else
     {
       r=x/y;
       w=sqrt(y)*sqrt(0.5*(r+sqrt(1.0+r*r)));
     }
-    if (z.re>=0.0) 
+    if (z.re>=0.0)
     {
       c.re=w;
       c.im=z.im/(2.0*w);
-    } 
-    else 
+    }
+    else
     {
       c.im=(z.im>=0.0)?w:-w;
       c.re=z.im/(2.0*c.im);

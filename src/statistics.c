@@ -417,17 +417,17 @@ REAL_MATRIX3x3 ComputeCurrentAverageStressTensor(void)
   {
     if(BlockCount[CurrentSystem][i]>0.0)
     {
-      Average.ax+=StressTensorAverage[CurrentSystem][i].ax; 
-      Average.ay+=StressTensorAverage[CurrentSystem][i].ay; 
-      Average.az+=StressTensorAverage[CurrentSystem][i].az; 
+      Average.ax+=StressTensorAverage[CurrentSystem][i].ax;
+      Average.ay+=StressTensorAverage[CurrentSystem][i].ay;
+      Average.az+=StressTensorAverage[CurrentSystem][i].az;
 
-      Average.bx+=StressTensorAverage[CurrentSystem][i].bx; 
-      Average.by+=StressTensorAverage[CurrentSystem][i].by; 
-      Average.bz+=StressTensorAverage[CurrentSystem][i].bz; 
+      Average.bx+=StressTensorAverage[CurrentSystem][i].bx;
+      Average.by+=StressTensorAverage[CurrentSystem][i].by;
+      Average.bz+=StressTensorAverage[CurrentSystem][i].bz;
 
-      Average.cx+=StressTensorAverage[CurrentSystem][i].cx; 
-      Average.cy+=StressTensorAverage[CurrentSystem][i].cy; 
-      Average.cz+=StressTensorAverage[CurrentSystem][i].cz; 
+      Average.cx+=StressTensorAverage[CurrentSystem][i].cx;
+      Average.cy+=StressTensorAverage[CurrentSystem][i].cy;
+      Average.cz+=StressTensorAverage[CurrentSystem][i].cz;
 
       count+=BlockCount[CurrentSystem][i];
     }
@@ -848,10 +848,10 @@ void InitializesEnergiesCurrentSystem(void)
   UNoseHoover[CurrentSystem]=0.0;
   UTotal[CurrentSystem]=0.0;
 
-  NumberOfRattleCyclesStage1[CurrentSystem]=0.0;  
-  MaximumNumberOfRattleCyclesStage1[CurrentSystem]=0;  
-  NumberOfRattleCyclesStage2[CurrentSystem]=0.0;  
-  MaximumNumberOfRattleCyclesStage2[CurrentSystem]=0;  
+  NumberOfRattleCyclesStage1[CurrentSystem]=0.0;
+  MaximumNumberOfRattleCyclesStage1[CurrentSystem]=0;
+  NumberOfRattleCyclesStage2[CurrentSystem]=0.0;
+  MaximumNumberOfRattleCyclesStage2[CurrentSystem]=0;
 }
 
 void InitializesEnergyAveragesAllSystems(void)
@@ -1060,7 +1060,7 @@ void UpdateEnergyAveragesCurrentSystem(void)
   REAL PressureTail;
 
   // check for new block
-  if(CurrentCycle==BlockCycle[Block]) 
+  if(CurrentCycle==BlockCycle[Block])
     Block++;
 
   BlockCount[CurrentSystem][Block]+=1.0;
@@ -1197,7 +1197,7 @@ void UpdateEnergyAveragesCurrentSystem(void)
   HostAdsorbateEnergyTimesNumberOfMoleculesAverage[CurrentSystem][Block]+=UHostAdsorbate[CurrentSystem]*(REAL)NumberOfAdsorbateMolecules[CurrentSystem];
   AdsorbateAdsorbateEnergyTimesNumberOfMoleculesAverage[CurrentSystem][Block]+=UAdsorbateAdsorbate[CurrentSystem]*(REAL)NumberOfAdsorbateMolecules[CurrentSystem];
 
- 
+
   nr=NumberOfUnitCells[0].x*NumberOfUnitCells[0].y*NumberOfUnitCells[0].z;
   for(i=0;i<NumberOfComponents;i++)
   {
@@ -1570,9 +1570,9 @@ void PrintIntervalStatusInit(long long CurrentCycle,long long NumberOfCycles,FIL
       fprintf(FilePtr,"----------------------------------------------------------------------------------------------------------------------------------------------------\n");
     }
   }
- 
+
   fprintf(FilePtr,"Degrees of freedom: %d %d %d %d\n",DegreesOfFreedom[CurrentSystem],DegreesOfFreedomFramework[CurrentSystem],
-          DegreesOfFreedomAdsorbates[CurrentSystem],DegreesOfFreedomCations[CurrentSystem]); 
+          DegreesOfFreedomAdsorbates[CurrentSystem],DegreesOfFreedomCations[CurrentSystem]);
   fprintf(FilePtr,"Number of Framework-atoms: %6d\n",Framework[CurrentSystem].TotalNumberOfAtoms);
   if(NumberOfFractionalAdsorbateMolecules[CurrentSystem]>0)
     fprintf(FilePtr,"Number of Adsorbates:      %6d (%d integer, %d fractional)\n",
@@ -1754,7 +1754,7 @@ void PrintIntervalStatusEquilibration(long long CurrentCycle,long long NumberOfC
         FractionalMolecule=Components[i].FractionalMolecule[CurrentSystem];
         fprintf(FilePtr,"\tFractional molecule-id: %d, max. Lambda-change: %5lf\n",FractionalMolecule,MaximumCFLambdaChange[CurrentSystem][i]);
         fprintf(FilePtr,"\tLambda factors: ");
-        for(k=0;k<Components[i].NumberOfAtoms;k++) 
+        for(k=0;k<Components[i].NumberOfAtoms;k++)
         {
           if(Components[i].ExtraFrameworkMolecule)
             Lambda=Cations[CurrentSystem][FractionalMolecule].Atoms[i].CFVDWScalingParameter;
@@ -1920,7 +1920,7 @@ REAL GetAverageAdsorbatesTemperature(void)
 }
 
 REAL GetAverageCationsTemperature(void)
-{ 
+{
   int i;
   REAL sum1,sum2;
 
@@ -2111,7 +2111,7 @@ REAL GetAverageIsothermalExpansionCoefficient(void)
       HV+=EnthalpyTimesVolumeAverage[CurrentSystem][i];
       V+=VolumeAverage[CurrentSystem][i];
       H+=EnthalpyAverage[CurrentSystem][i];
-      count+=BlockCount[CurrentSystem][i]; 
+      count+=BlockCount[CurrentSystem][i];
     }
   }
   if(count>0.0)
@@ -2500,13 +2500,13 @@ void PrintIntervalStatus(long long CurrentCycle,long long NumberOfCycles, FILE *
            (double)(fac2*(Stress.ax+Stress.by+Stress.cz)*KPA_TO_BAR/3.0));
         temp=GetAverageIdealGasPartPressure();
         fprintf(FilePtr,"\tIdeal gas part:   %18.10lf [kPa] %18.10lf [atm] %18.10lf [bar]\n",
-                temp*fac2,temp*fac2*KPA_TO_ATM,temp*fac2*KPA_TO_BAR); 
+                temp*fac2,temp*fac2*KPA_TO_ATM,temp*fac2*KPA_TO_BAR);
         temp=GetAverageExcessPartPressure();
         fprintf(FilePtr,"\texcess part:      %18.10lf [kPa] %18.10lf [atm] %18.10lf [bar]\n",
-                temp*fac2,temp*fac2*KPA_TO_ATM,temp*fac2*KPA_TO_BAR); 
+                temp*fac2,temp*fac2*KPA_TO_ATM,temp*fac2*KPA_TO_BAR);
         temp=GetAverageTailCorrectionPressure();
         fprintf(FilePtr,"\ttail correction: %18.10lf [kPa] %18.10lf [atm] %18.10lf [bar]\n",
-                temp*fac2,temp*fac2*KPA_TO_ATM,temp*fac2*KPA_TO_BAR); 
+                temp*fac2,temp*fac2*KPA_TO_ATM,temp*fac2*KPA_TO_BAR);
         fprintf(FilePtr,"\n");
       }
       break;
@@ -2689,7 +2689,7 @@ void PrintIntervalStatus(long long CurrentCycle,long long NumberOfCycles, FILE *
         (double)GetAverageProperty(TemperatureAverage),
         (double)GetAverageProperty(TemperatureTranslationAverage),
         (double)GetAverageProperty(TemperatureRotationAverage));
-    } 
+    }
     if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
       fprintf(FilePtr,"Temperature Framework:  % 8.3lf (avg. % 8.3lf)\n",
         (double)(2.0*UHostKinetic[CurrentSystem]/(K_B*DegreesOfFreedomFramework[CurrentSystem])),
@@ -3819,7 +3819,7 @@ void PrintAverageTotalSystemEnergiesMC(FILE *FilePtr)
     fprintf(FilePtr,"Component %d [%s]\n",j,Components[j].Name);
     fprintf(FilePtr,"-------------------------------------------------------------\n");
 
-    // absolute adsorption 
+    // absolute adsorption
     sum=sum_vdw=sum_coul=0.0;
     sum2=sum_vdw2=sum_coul2=0.0;
     for(i=0;i<NR_BLOCKS;i++)
@@ -3861,7 +3861,7 @@ void PrintAverageTotalSystemEnergiesMC(FILE *FilePtr)
       (double)(2.0*Components[j].MOLEC_PER_UC_TO_CC_STP_CC[CurrentSystem]*sqrt(fabs((sum2/(REAL)NR_BLOCKS)-SQR(sum)/(REAL)SQR(NR_BLOCKS)))/(REAL)nr));
     fprintf(FilePtr,"\n");
 
-    // excess adsorption 
+    // excess adsorption
     sum=sum_vdw=sum_coul=0.0;
     sum2=sum_vdw2=sum_coul2=0.0;
     for(i=0;i<NR_BLOCKS;i++)
@@ -4510,7 +4510,7 @@ void AllocateStatisticsMemory(void)
 
     SurfaceAreaFrameworkAverage[i]=(REAL*)calloc(NumberOfBlocks,sizeof(REAL));
     SurfaceAreaFrameworksAverage[i]=(REAL**)calloc(Framework[i].NumberOfFrameworks,sizeof(REAL*));
-    for(j=0;j<Framework[i].NumberOfFrameworks;j++) 
+    for(j=0;j<Framework[i].NumberOfFrameworks;j++)
        SurfaceAreaFrameworksAverage[i][j]=(REAL*)calloc(NumberOfBlocks,sizeof(REAL));
     SurfaceAreaCationsAverage[i]=(REAL*)calloc(NumberOfBlocks,sizeof(REAL));
     SurfaceAreaCount[i]=(REAL*)calloc(NumberOfBlocks,sizeof(REAL));
@@ -4747,7 +4747,7 @@ void ReadRestartStatistics(FILE *FilePtr)
   fread(&Check,1,sizeof(REAL),FilePtr);
   if(fabs(Check-123456789.0)>1e-10)
   {
-    printf("Error in binary restart-file (ReadRestartStatistics)\n");
+    fprintf(stderr, "Error in binary restart-file (ReadRestartStatistics)\n");
     exit(0);
   }
 }

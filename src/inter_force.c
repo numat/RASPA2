@@ -57,7 +57,7 @@ void CalculateTotalInterVDWForce(void)
   VECTOR v,w;
   REAL length_v,length_w;
   REAL dot_product;
-  
+
 
   UAdsorbateAdsorbateVDW[CurrentSystem]=0.0;
   UAdsorbateCationVDW[CurrentSystem]=0.0;
@@ -104,7 +104,7 @@ void CalculateTotalInterVDWForce(void)
             switch(Components[TypeMolA].AnisotropicType)
             {
               case ANISOTROPIC_BISECTION:
-                printf("ERROR: 'ANISOTROPIC_BISECTION' not implemented yet in routine 'CalculateTotalInterVDWForce' (inter_force.c)\n");
+                fprintf(stderr, "ERROR: 'ANISOTROPIC_BISECTION' not implemented yet in routine 'CalculateTotalInterVDWForce' (inter_force.c)\n");
                 exit(0);
                 break;
               case ANISOTROPIC_MID_POINT:
@@ -120,9 +120,9 @@ void CalculateTotalInterVDWForce(void)
                 length_v=sqrt(SQR(v.x)+SQR(v.y)+SQR(v.z));
                 break;
               default:
-                printf("ERROR!\n");
+                fprintf(stderr, "ERROR!\n");
                 exit(0);
-                break; 
+                break;
             }
             break;
           default:
@@ -172,7 +172,7 @@ void CalculateTotalInterVDWForce(void)
                   switch(Components[TypeMolB].AnisotropicType)
                   {
                     case ANISOTROPIC_BISECTION:
-                      printf("ERROR: 'ANISOTROPIC_BISECTION' not implemented yet in routine 'CalculateTotalInterVDWForce' (inter_force.c)\n");
+                      fprintf(stderr, "ERROR: 'ANISOTROPIC_BISECTION' not implemented yet in routine 'CalculateTotalInterVDWForce' (inter_force.c)\n");
                       exit(0);
                       break;
                    case ANISOTROPIC_MID_POINT:
@@ -273,7 +273,7 @@ void CalculateTotalInterVDWForce(void)
                     Adsorbates[CurrentSystem][i].Atoms[ConnectedAtomA2].Force.z-=fa.z;
                     break;
                   default:
-                    printf("Not yet implemented in routine 'CalculateTotalInterVDWForce'\n");
+                    fprintf(stderr, "Not yet implemented in routine 'CalculateTotalInterVDWForce'\n");
                     exit(0);
                     break;
                 }
@@ -347,7 +347,7 @@ void CalculateTotalInterVDWForce(void)
                     Adsorbates[CurrentSystem][j].Atoms[ConnectedAtomB2].Force.z+=fa.z;
                     break;
                   default:
-                    printf("Not yet implemented in routine 'CalculateTotalInterVDWForce'\n");
+                    fprintf(stderr, "Not yet implemented in routine 'CalculateTotalInterVDWForce'\n");
                     exit(0);
                     break;
                 }
@@ -416,7 +416,7 @@ void CalculateTotalInterVDWForce(void)
                   switch(Components[TypeMolB].AnisotropicType)
                   {
                     case ANISOTROPIC_BISECTION:
-                      printf("ERROR: 'ANISOTROPIC_BISECTION' not implemented yet in routine 'CalculateTotalInterVDWForce' (inter_force.c)\n");
+                      fprintf(stderr, "ERROR: 'ANISOTROPIC_BISECTION' not implemented yet in routine 'CalculateTotalInterVDWForce' (inter_force.c)\n");
                       exit(0);
                       break;
                    case ANISOTROPIC_MID_POINT:
@@ -518,7 +518,7 @@ void CalculateTotalInterVDWForce(void)
                     Adsorbates[CurrentSystem][i].Atoms[ConnectedAtomA2].Force.z-=fa.z;
                     break;
                   default:
-                    printf("Not yet implemented in routine 'CalculateTotalInterVDWForce'\n");
+                    fprintf(stderr, "Not yet implemented in routine 'CalculateTotalInterVDWForce'\n");
                     exit(0);
                     break;
                 }
@@ -592,7 +592,7 @@ void CalculateTotalInterVDWForce(void)
                     Cations[CurrentSystem][j].Atoms[ConnectedAtomB2].Force.z+=fa.z;
                     break;
                   default:
-                    printf("Not yet implemented in routine 'CalculateTotalInterVDWForce'\n");
+                    fprintf(stderr, "Not yet implemented in routine 'CalculateTotalInterVDWForce'\n");
                     exit(0);
                     break;
                 }
@@ -664,7 +664,7 @@ void CalculateTotalInterVDWForce(void)
               switch(Components[TypeMolA].AnisotropicType)
               {
                 case ANISOTROPIC_BISECTION:
-                  printf("ERROR: 'ANISOTROPIC_BISECTION' not implemented yet in routine 'CalculateTotalInterVDWForce' (inter_force.c)\n");
+                  fprintf(stderr, "ERROR: 'ANISOTROPIC_BISECTION' not implemented yet in routine 'CalculateTotalInterVDWForce' (inter_force.c)\n");
                   exit(0);
                   break;
                 case ANISOTROPIC_MID_POINT:
@@ -680,7 +680,7 @@ void CalculateTotalInterVDWForce(void)
                   length_v=sqrt(SQR(v.x)+SQR(v.y)+SQR(v.z));
                   break;
                 default:
-                  printf("ERROR!\n");
+                  fprintf(stderr, "ERROR!\n");
                   exit(0);
                   break;
               }
@@ -730,7 +730,7 @@ void CalculateTotalInterVDWForce(void)
                   switch(Components[TypeMolB].AnisotropicType)
                   {
                     case ANISOTROPIC_BISECTION:
-                      printf("ERROR: 'ANISOTROPIC_BISECTION' not implemented yet in routine 'CalculateTotalInterVDWForce' (inter_force.c)\n");
+                      fprintf(stderr, "ERROR: 'ANISOTROPIC_BISECTION' not implemented yet in routine 'CalculateTotalInterVDWForce' (inter_force.c)\n");
                       exit(0);
                       break;
                    case ANISOTROPIC_MID_POINT:
@@ -832,7 +832,7 @@ void CalculateTotalInterVDWForce(void)
                     Cations[CurrentSystem][i].Atoms[ConnectedAtomA2].Force.z-=fa.z;
                     break;
                   default:
-                    printf("Not yet implemented in routine 'CalculateTotalInterVDWForce'\n");
+                    fprintf(stderr, "Not yet implemented in routine 'CalculateTotalInterVDWForce'\n");
                     exit(0);
                     break;
                 }
@@ -906,7 +906,7 @@ void CalculateTotalInterVDWForce(void)
                     Cations[CurrentSystem][j].Atoms[ConnectedAtomB2].Force.z+=fa.z;
                     break;
                   default:
-                    printf("Not yet implemented in routine 'CalculateTotalInterVDWForce'\n");
+                    fprintf(stderr, "Not yet implemented in routine 'CalculateTotalInterVDWForce'\n");
                     exit(0);
                     break;
                 }
@@ -1278,7 +1278,7 @@ int CalculateTotalInterChargeBondDipoleCoulombForce(void)
               {
                 posB=Adsorbates[CurrentSystem][k].Atoms[l].Position;
                 chargeB=Adsorbates[CurrentSystem][k].Atoms[l].Charge;
-  
+
                 dr.x=posA.x-posB.x;
                 dr.y=posA.y-posB.y;
                 dr.z=posA.z-posB.z;
@@ -1347,7 +1347,7 @@ int CalculateTotalInterChargeBondDipoleCoulombForce(void)
             {
               posB=Cations[CurrentSystem][k].Atoms[l].Position;
               chargeB=Cations[CurrentSystem][k].Atoms[l].Charge;
-  
+
               dr.x=posA.x-posB.x;
               dr.y=posA.y-posB.y;
               dr.z=posA.z-posB.z;
@@ -1439,7 +1439,7 @@ int CalculateTotalInterChargeBondDipoleCoulombForce(void)
               {
                 posB=Cations[CurrentSystem][k].Atoms[l].Position;
                 chargeB=Cations[CurrentSystem][k].Atoms[l].Charge;
-  
+
                 dr.x=posA.x-posB.x;
                 dr.y=posA.y-posB.y;
                 dr.z=posA.z-posB.z;
@@ -1463,7 +1463,7 @@ int CalculateTotalInterChargeBondDipoleCoulombForce(void)
                   Cations[CurrentSystem][i].Atoms[A2].Force.x+=fa2.x;
                   Cations[CurrentSystem][i].Atoms[A2].Force.y+=fa2.y;
                   Cations[CurrentSystem][i].Atoms[A2].Force.z+=fa2.z;
- 
+
                   // convert forces on atoms to molecular virial
                   v.ax=fa1.x*(posA1.x-posA.x)+fa2.x*(posA2.x-posA.x);
                   v.bx=fa1.y*(posA1.x-posA.x)+fa2.y*(posA2.x-posA.x);
@@ -1507,7 +1507,7 @@ int CalculateTotalInterChargeBondDipoleCoulombForce(void)
             {
               posB=Adsorbates[CurrentSystem][k].Atoms[l].Position;
               chargeB=Adsorbates[CurrentSystem][k].Atoms[l].Charge;
-  
+
               dr.x=posA.x-posB.x;
               dr.y=posA.y-posB.y;
               dr.z=posA.z-posB.z;
@@ -1617,7 +1617,7 @@ int CalculateTotalInterBondDipoleBondDipoleCoulombForce(void)
         {
           TypeB=Adsorbates[CurrentSystem][k].Type;
           for(l=0;l<Components[TypeB].NumberOfBondDipoles;l++)
-          {  
+          {
             B1=Components[TypeB].BondDipoles[l].A;
             B2=Components[TypeB].BondDipoles[l].B;
             posB1=Adsorbates[CurrentSystem][k].Atoms[B1].Position;
@@ -1669,7 +1669,7 @@ int CalculateTotalInterBondDipoleBondDipoleCoulombForce(void)
               v.ax=fa1.x*(posA1.x-posA.x)+fa2.x*(posA2.x-posA.x)+fb1.x*(posB1.x-posB.x)+fb2.x*(posB2.x-posB.x);
               v.bx=fa1.y*(posA1.x-posA.x)+fa2.y*(posA2.x-posA.x)+fb1.y*(posB1.x-posB.x)+fb2.y*(posB2.x-posB.x);
               v.cx=fa1.z*(posA1.x-posA.x)+fa2.z*(posA2.x-posA.x)+fb1.z*(posB1.x-posB.x)+fb2.z*(posB2.x-posB.x);
- 
+
               v.ay=fa1.x*(posA1.y-posA.y)+fa2.x*(posA2.y-posA.y)+fb1.x*(posB1.y-posB.y)+fb2.x*(posB2.y-posB.y);
               v.by=fa1.y*(posA1.y-posA.y)+fa2.y*(posA2.y-posA.y)+fb1.y*(posB1.y-posB.y)+fb2.y*(posB2.y-posB.y);
               v.cy=fa1.z*(posA1.y-posA.y)+fa2.z*(posA2.y-posA.y)+fb1.z*(posB1.y-posB.y)+fb2.z*(posB2.y-posB.y);
@@ -1682,11 +1682,11 @@ int CalculateTotalInterBondDipoleBondDipoleCoulombForce(void)
               StrainDerivativeTensor[CurrentSystem].ax+=term.x*dr.x-v.ax;
               StrainDerivativeTensor[CurrentSystem].bx+=term.y*dr.x-v.bx;
               StrainDerivativeTensor[CurrentSystem].cx+=term.z*dr.x-v.cx;
- 
+
               StrainDerivativeTensor[CurrentSystem].ay+=term.x*dr.y-v.ay;
               StrainDerivativeTensor[CurrentSystem].by+=term.y*dr.y-v.by;
               StrainDerivativeTensor[CurrentSystem].cy+=term.z*dr.y-v.cy;
- 
+
               StrainDerivativeTensor[CurrentSystem].az+=term.x*dr.z-v.az;
               StrainDerivativeTensor[CurrentSystem].bz+=term.y*dr.z-v.bz;
               StrainDerivativeTensor[CurrentSystem].cz+=term.z*dr.z-v.cz;
@@ -1753,7 +1753,7 @@ int CalculateTotalInterBondDipoleBondDipoleCoulombForce(void)
               v.ax=fa1.x*(posA1.x-posA.x)+fa2.x*(posA2.x-posA.x)+fb1.x*(posB1.x-posB.x)+fb2.x*(posB2.x-posB.x);
               v.bx=fa1.y*(posA1.x-posA.x)+fa2.y*(posA2.x-posA.x)+fb1.y*(posB1.x-posB.x)+fb2.y*(posB2.x-posB.x);
               v.cx=fa1.z*(posA1.x-posA.x)+fa2.z*(posA2.x-posA.x)+fb1.z*(posB1.x-posB.x)+fb2.z*(posB2.x-posB.x);
- 
+
               v.ay=fa1.x*(posA1.y-posA.y)+fa2.x*(posA2.y-posA.y)+fb1.x*(posB1.y-posB.y)+fb2.x*(posB2.y-posB.y);
               v.by=fa1.y*(posA1.y-posA.y)+fa2.y*(posA2.y-posA.y)+fb1.y*(posB1.y-posB.y)+fb2.y*(posB2.y-posB.y);
               v.cy=fa1.z*(posA1.y-posA.y)+fa2.z*(posA2.y-posA.y)+fb1.z*(posB1.y-posB.y)+fb2.z*(posB2.y-posB.y);
@@ -1770,7 +1770,7 @@ int CalculateTotalInterBondDipoleBondDipoleCoulombForce(void)
               StrainDerivativeTensor[CurrentSystem].ay+=term.x*dr.y-v.ay;
               StrainDerivativeTensor[CurrentSystem].by+=term.y*dr.y-v.by;
               StrainDerivativeTensor[CurrentSystem].cy+=term.z*dr.y-v.cy;
- 
+
               StrainDerivativeTensor[CurrentSystem].az+=term.x*dr.z-v.az;
               StrainDerivativeTensor[CurrentSystem].bz+=term.y*dr.z-v.bz;
               StrainDerivativeTensor[CurrentSystem].cz+=term.z*dr.z-v.cz;
@@ -1860,7 +1860,7 @@ int CalculateTotalInterBondDipoleBondDipoleCoulombForce(void)
               v.ax=fa1.x*(posA1.x-posA.x)+fa2.x*(posA2.x-posA.x)+fb1.x*(posB1.x-posB.x)+fb2.x*(posB2.x-posB.x);
               v.bx=fa1.y*(posA1.x-posA.x)+fa2.y*(posA2.x-posA.x)+fb1.y*(posB1.x-posB.x)+fb2.y*(posB2.x-posB.x);
               v.cx=fa1.z*(posA1.x-posA.x)+fa2.z*(posA2.x-posA.x)+fb1.z*(posB1.x-posB.x)+fb2.z*(posB2.x-posB.x);
- 
+
               v.ay=fa1.x*(posA1.y-posA.y)+fa2.x*(posA2.y-posA.y)+fb1.x*(posB1.y-posB.y)+fb2.x*(posB2.y-posB.y);
               v.by=fa1.y*(posA1.y-posA.y)+fa2.y*(posA2.y-posA.y)+fb1.y*(posB1.y-posB.y)+fb2.y*(posB2.y-posB.y);
               v.cy=fa1.z*(posA1.y-posA.y)+fa2.z*(posA2.y-posA.y)+fb1.z*(posB1.y-posB.y)+fb2.z*(posB2.y-posB.y);
@@ -1877,7 +1877,7 @@ int CalculateTotalInterBondDipoleBondDipoleCoulombForce(void)
               StrainDerivativeTensor[CurrentSystem].ay+=term.x*dr.y-v.ay;
               StrainDerivativeTensor[CurrentSystem].by+=term.y*dr.y-v.by;
               StrainDerivativeTensor[CurrentSystem].cy+=term.z*dr.y-v.cy;
- 
+
               StrainDerivativeTensor[CurrentSystem].az+=term.x*dr.z-v.az;
               StrainDerivativeTensor[CurrentSystem].bz+=term.y*dr.z-v.bz;
               StrainDerivativeTensor[CurrentSystem].cz+=term.z*dr.z-v.cz;
@@ -1906,7 +1906,7 @@ int CalculateTotalInterChargeChargeCoulombElectricFieldMC(int New,int excl_ads,i
     for(k=0;k<Adsorbates[CurrentSystem][i].NumberOfAtoms;k++)
     {
       if(i!=excl_ads)
-      { 
+      {
         typeA=Adsorbates[CurrentSystem][i].Atoms[k].Type;
         posA=Adsorbates[CurrentSystem][i].Atoms[k].Position;
         chargeA=Adsorbates[CurrentSystem][i].Atoms[k].Charge;
@@ -2266,7 +2266,7 @@ int CalculateInterElectricFieldFromInducedDipoles(void)
               Cations[CurrentSystem][i].Atoms[j].ElectricField.x+=termB.x;
               Cations[CurrentSystem][i].Atoms[j].ElectricField.y+=termB.y;
               Cations[CurrentSystem][i].Atoms[j].ElectricField.z+=termB.z;
-  
+
               Cations[CurrentSystem][k].Atoms[l].ElectricField.x+=termA.x;
               Cations[CurrentSystem][k].Atoms[l].ElectricField.y+=termA.y;
               Cations[CurrentSystem][k].Atoms[l].ElectricField.z+=termA.z;
@@ -2411,7 +2411,7 @@ int CalculateInterElectricFieldFromInducedDipoleMC(int New,int excl_ads,int excl
                   Cations[CurrentSystem][i].Atoms[j].ElectricField.x+=termB.x;
                   Cations[CurrentSystem][i].Atoms[j].ElectricField.y+=termB.y;
                   Cations[CurrentSystem][i].Atoms[j].ElectricField.z+=termB.z;
-  
+
                   Cations[CurrentSystem][k].Atoms[l].ElectricField.x+=termA.x;
                   Cations[CurrentSystem][k].Atoms[l].ElectricField.y+=termA.y;
                   Cations[CurrentSystem][k].Atoms[l].ElectricField.z+=termA.z;
@@ -2521,7 +2521,7 @@ int CalculateInterChargeInducedDipoleForce(void)
 
   if(ChargeMethod==NONE) return 0;
 
-  Bt0=Bt1=Bt2=0.0;  
+  Bt0=Bt1=Bt2=0.0;
 
   for(i=0;i<NumberOfAdsorbateMolecules[CurrentSystem];i++)
   {
@@ -2546,7 +2546,7 @@ int CalculateInterChargeInducedDipoleForce(void)
                 posB=Adsorbates[CurrentSystem][k].Atoms[l].Position;
                 dipoleB=Adsorbates[CurrentSystem][k].Atoms[l].InducedDipole;
                 chargeB=Adsorbates[CurrentSystem][k].Atoms[l].Charge;
-   
+
                 dr.x=posA.x-posB.x;
                 dr.y=posA.y-posB.y;
                 dr.z=posA.z-posB.z;
@@ -2556,7 +2556,7 @@ int CalculateInterChargeInducedDipoleForce(void)
                 if(rr<CutOffChargeChargeSquared[CurrentSystem])
                 {
                   PotentialElectricFieldBondDipoleBondDipole(dipoleA,dipoleB,dr,rr,&termA,&termB);
-  
+
                   Adsorbates[CurrentSystem][i].Atoms[j].Force.x-=chargeB*termA.x;
                   Adsorbates[CurrentSystem][i].Atoms[j].Force.y-=chargeB*termA.y;
                   Adsorbates[CurrentSystem][i].Atoms[j].Force.z-=chargeB*termA.z;
@@ -2665,11 +2665,11 @@ int CalculateInterChargeInducedDipoleForce(void)
                   Cations[CurrentSystem][k].Atoms[l].Force.x+=chargeB*termA.x;
                   Cations[CurrentSystem][k].Atoms[l].Force.y+=chargeB*termA.y;
                   Cations[CurrentSystem][k].Atoms[l].Force.z+=chargeB*termA.z;
- 
+
                   Cations[CurrentSystem][i].Atoms[j].Force.x-=chargeA*termB.x;
                   Cations[CurrentSystem][i].Atoms[j].Force.y-=chargeA*termB.y;
                   Cations[CurrentSystem][i].Atoms[j].Force.z-=chargeA*termB.z;
- 
+
                   Cations[CurrentSystem][k].Atoms[l].Force.x+=chargeA*termB.x;
                   Cations[CurrentSystem][k].Atoms[l].Force.y+=chargeA*termB.y;
                   Cations[CurrentSystem][k].Atoms[l].Force.z+=chargeA*termB.z;
@@ -2681,7 +2681,7 @@ int CalculateInterChargeInducedDipoleForce(void)
       }
     }
   }
-  
+
   return 0;
 }
 
@@ -2957,7 +2957,7 @@ int CalculateTotalInterReplicaVDWForce(void)
                 posB.x+=ReplicaShift[ncell].x;
                 posB.y+=ReplicaShift[ncell].y;
                 posB.z+=ReplicaShift[ncell].z;
- 
+
                 ReductionB=1.0;
                 ConnectedAtomB=-1;
 
@@ -3307,7 +3307,7 @@ int CalculateTotalInterReplicaChargeChargeCoulombForce(void)
                   StrainDerivativeTensor[CurrentSystem].ay+=f.x*dr.y;
                   StrainDerivativeTensor[CurrentSystem].by+=f.y*dr.y;
                   StrainDerivativeTensor[CurrentSystem].cy+=f.z*dr.y;
- 
+
                   StrainDerivativeTensor[CurrentSystem].az+=f.x*dr.z;
                   StrainDerivativeTensor[CurrentSystem].bz+=f.y*dr.z;
                   StrainDerivativeTensor[CurrentSystem].cz+=f.z*dr.z;
@@ -3357,7 +3357,7 @@ int CalculateTotalInterReplicaChargeChargeCoulombForce(void)
                   scalingB=Cations[CurrentSystem][j].Atoms[l].CFChargeScalingParameter;
                   chargeB=scalingB*Cations[CurrentSystem][j].Atoms[l].Charge;
 
-                  PotentialGradientCoulombic(chargeA,chargeB,rr,&energy,&force_factor); 
+                  PotentialGradientCoulombic(chargeA,chargeB,rr,&energy,&force_factor);
 
                   if(ncell==0)
                     UCationCationChargeChargeReal[CurrentSystem]+=energy;

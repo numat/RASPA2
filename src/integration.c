@@ -1235,16 +1235,16 @@ void Integration(void)
     case NPH:
       // update the velocity of the cell
       UpdateCellVelocity();
-      
+
       // evolve the positions a half timestep
       UpdateVelocities();
-      
+
       // evolve the positions a full timestep
       UpdatePositions();
-      
+
       // evolve the part of rigid bodies involving free rotation
       NoSquishFreeRotorOrderTwo();
-      
+
       // compute the forces on all the atoms
       CalculateForce();
 
@@ -1443,7 +1443,7 @@ int CalculateElectricField(void)
   UAdsorbateBackPolarization[CurrentSystem]=0.0;
   UCationBackPolarization[CurrentSystem]=0.0;
 
-  // set framework electric fields to zero 
+  // set framework electric fields to zero
   if((BackPolarization)||(Framework[CurrentSystem].FrameworkModel==FLEXIBLE))
   {
     for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
@@ -1460,7 +1460,7 @@ int CalculateElectricField(void)
     }
   }
 
-  // set adsorbate electric fields to zero 
+  // set adsorbate electric fields to zero
   for(i=0;i<NumberOfAdsorbateMolecules[CurrentSystem];i++)
   {
     for(j=0;j<Adsorbates[CurrentSystem][i].NumberOfAtoms;j++)
@@ -1474,7 +1474,7 @@ int CalculateElectricField(void)
     }
   }
 
-  // set cation electric fields to zero 
+  // set cation electric fields to zero
   for(i=0;i<NumberOfCationMolecules[CurrentSystem];i++)
   {
     for(j=0;j<Cations[CurrentSystem][i].NumberOfAtoms;j++)
@@ -1996,7 +1996,7 @@ void IntegrationLeapFrogAtomicVelocities(void)
     {
       Mass=PseudoAtoms[Adsorbates[CurrentSystem][i].Atoms[j].Type].Mass;
       Force=Adsorbates[CurrentSystem][i].Atoms[j].Force;
-   
+
       // centre of mass velocities at half-step to compute the kinetic energy
       tmp=0.5*DeltaT/Mass;
       Velocity.x=Adsorbates[CurrentSystem][i].Atoms[j].Velocity.x+tmp*Force.x;
@@ -2368,6 +2368,6 @@ void TestElectrostaticPotential(void)
     U+=CalculateFrameworkElectrostaticPotential(pos);
     U+=CalculateInterChargeElectrostaticPotential(pos);
 
-    printf("(%g,%g,%g) Final U= %18.10f <-> %18.10f\n",pos.x,pos.y,pos.z,U*ENERGY_TO_KELVIN,NumericalElectrostaticPotential(pos)*ENERGY_TO_KELVIN);
+    fprintf(stderr, "(%g,%g,%g) Final U= %18.10f <-> %18.10f\n",pos.x,pos.y,pos.z,U*ENERGY_TO_KELVIN,NumericalElectrostaticPotential(pos)*ENERGY_TO_KELVIN);
   }
 }

@@ -540,7 +540,7 @@ void SampleRadialDistributionFunction(int Switch)
               {
                 TypeB=Adsorbates[CurrentSystem][j].Atoms[l].Type;
                 if(PseudoAtoms[TypeB].PrintToPDB)
-                { 
+                {
                   posB=Adsorbates[CurrentSystem][j].Atoms[l].Position;
                   dr.x=posA.x-posB.x;
                   dr.y=posA.y-posB.y;
@@ -564,7 +564,7 @@ void SampleRadialDistributionFunction(int Switch)
               {
                 TypeB=Cations[CurrentSystem][j].Atoms[l].Type;
                 if(PseudoAtoms[TypeB].PrintToPDB)
-                { 
+                {
                   posB=Cations[CurrentSystem][j].Atoms[l].Position;
                   dr.x=posA.x-posB.x;
                   dr.y=posA.y-posB.y;
@@ -835,7 +835,7 @@ void SampleNumberOfMoleculesHistogram(int Switch)
         for(k=0;k<NumberOfMoleculesHistogramSize[CurrentSystem];k++)
           norm+=NumberOfMoleculesHistogram[CurrentSystem][i][k];
         norm/=delta;
- 
+
         sprintf(buffer,"NumberOfMoleculesHistograms/System_%d/Histogram_%s_%d_Density_%g%s.dat",
                 CurrentSystem,Components[i].Name,i,
                 (double)(therm_baro_stats.ExternalPressure[CurrentSystem][CurrentIsothermPressure]*PRESSURE_CONVERSION_FACTOR),
@@ -919,7 +919,7 @@ void SamplePositionHistogram(int Switch)
 
       for(i=0;i<NumberOfAdsorbateMolecules[CurrentSystem];i++)
       {
-        type=Adsorbates[CurrentSystem][i].Type; 
+        type=Adsorbates[CurrentSystem][i].Type;
         for(j=0;j<Adsorbates[CurrentSystem][i].NumberOfAtoms;j++)
         {
           pos=Adsorbates[CurrentSystem][i].Atoms[j].Position;
@@ -1170,7 +1170,7 @@ void SamplePositionHistogram(int Switch)
               {
                 fprintf(FilePtr,"# column 3: the value of the biasing spline at q (optional)\n");
                 fprintf(FilePtr,"# column 4: the free energy profile [k_BT]\n");
-              } 
+              }
               else
                 fprintf(FilePtr,"# column 3: the free energy profile [k_BT]\n");
               for(k=0;k<=PositionHistogramSize[CurrentSystem];k++)
@@ -1246,7 +1246,7 @@ void SamplePositionHistogram(int Switch)
                   F=0.0;
                   if(Components[i].BiasingDirection==C_MAPPING)
                     F=BiasingPotentialUmbrellaQ(i,(REAL)k/(REAL)PositionHistogramSize[CurrentSystem]);
-              
+
                   fprintf(FilePtr,"%g %g %g %g\n",
                     (double)k/(REAL)PositionHistogramSize[CurrentSystem],
                     (double)(PositionABCHistogram[CurrentSystem][i][j][index].z/norm.z),
@@ -1339,7 +1339,7 @@ void SamplePositionHistogram(int Switch)
               {
                 fprintf(FilePtr,"# column 3: the value of the biasing spline at q (optional)\n");
                 fprintf(FilePtr,"# column 4: the free energy profile [k_BT]\n");
-              } 
+              }
               else
                 fprintf(FilePtr,"# column 3: the free energy profile [k_BT]\n");
               for(k=0;k<=PositionHistogramSize[CurrentSystem];k++)
@@ -1413,7 +1413,7 @@ void SamplePositionHistogram(int Switch)
                   F=0.0;
                   if(Components[i].BiasingDirection==C_MAPPING)
                     F=BiasingPotentialUmbrellaQ(i,(REAL)k/(REAL)PositionHistogramSize[CurrentSystem]);
-              
+
                   fprintf(FilePtr,"%g %g %g %g\n",
                     (double)k/(REAL)PositionHistogramSize[CurrentSystem],
                     (double)(PositionABCHistogram[CurrentSystem][i][j][index].z/norm.z),
@@ -2948,7 +2948,7 @@ void SamplePoreSizeDistribution(int Switch)
 
         if(Radius>LargestRadius) LargestRadius=Radius;
       }
-  
+
       index=(int)(LargestRadius/deltaR);
       if((index>=0)&&(index<PSDHistogramSize[CurrentSystem]))
         for(k=0;k<=index;k++)
@@ -3501,7 +3501,7 @@ void SampleFrameworkSpacingHistogram(int Choice)
  * Parameters | -                                                                                        *
  * Note       | Samples the distribution of residence-times of molecules inside 'blocking-spheres'       *
  *            | (usually used to block inaccessible regions in Monte-Carlo). Also computes the fraction  *
- *            | each molecule spends inside a pocket. For a well equilibrated MD simulation these should * 
+ *            | each molecule spends inside a pocket. For a well equilibrated MD simulation these should *
  *            | be equal for the same type of molecule.                                                  *
  *********************************************************************************************************/
 
@@ -3551,9 +3551,9 @@ void SampleResidenceTimes(int Switch)
               ResidenceTimesFractionAdsorbates[i][j][k]=0.0;
 
             if(BlockedPocket(Adsorbates[i][j].Atoms[StartingBead].Position))
-              ResidenceStatusAdsorbates[i][j]=TRUE;  
+              ResidenceStatusAdsorbates[i][j]=TRUE;
             else
-              ResidenceStatusAdsorbates[i][j]=FALSE;  
+              ResidenceStatusAdsorbates[i][j]=FALSE;
           }
           for(j=0;j<NumberOfCationMolecules[i];j++)
           {
@@ -4379,7 +4379,7 @@ void SampleMoleculePropertyHistogram(int Switch)
         {
           r=ComputeBondDistanceFramework(i);
           Type=Framework[CurrentSystem].BondType[CurrentFramework][i];
-  
+
           index=(int)(r*(REAL)BondLengthRange[CurrentSystem]/BondLengthRange[CurrentSystem]);
           if(index>=0&&index<BondLengthRange[CurrentSystem])
           {
@@ -4420,7 +4420,7 @@ void SampleMoleculePropertyHistogram(int Switch)
 
       for(i=0;i<NumberOfAdsorbateMolecules[CurrentSystem];i++)
       {
-        Type=Adsorbates[CurrentSystem][i].Type; 
+        Type=Adsorbates[CurrentSystem][i].Type;
         NumberOfBonds=Components[Type].NumberOfBonds;
         NumberOfUreyBradleys=Components[Type].NumberOfUreyBradleys;
         NumberOfBends=Components[Type].NumberOfBends;
@@ -5152,7 +5152,7 @@ void SampleInfraRedSpectra(int Switch)
                 for(i=0;i<2*(fft_size/2+1);i++)
                   SpectrumPseudoAtomsAverage[CurrentSystem][1][n][k][i]+=SQR(SpectrumBuffer[i][0])+SQR(SpectrumBuffer[i][1]);
 
-                // shift down by 
+                // shift down by
                 for(i=0;i<2*m;i++)
                   SpectrumPseudoAtoms[CurrentSystem][1][n][k][i]=SpectrumPseudoAtoms[CurrentSystem][1][n][k][i+2*m];
               }
@@ -5539,7 +5539,7 @@ void SampleMeanSquaredDisplacementOrderN(int Switch)
             value_onsager[i].x=value_onsager[i].y=value_onsager[i].z=0.0;
 
           for(i=0;i<NumberOfAdsorbateMolecules[CurrentSystem];i++)
-          { 
+          {
             type=Adsorbates[CurrentSystem][i].Type;
             value=GetAdsorbateCenterOfMass(i);
             value.x-=drift.x;
@@ -5687,7 +5687,7 @@ void SampleMeanSquaredDisplacementOrderN(int Switch)
 
         FilePtr=fopen(buffer,"w");
 
-        
+
         // write msd results averaged per component to file
         for(CurrentBlock=0;CurrentBlock<MIN2(MaxNumberOfBlocksMSDOrderN,NumberOfBlocksMSDOrderN[CurrentSystem]);CurrentBlock++)
         {
@@ -6072,7 +6072,7 @@ void SampleVelocityAutoCorrelationFunctionOrderN(int Switch)
             value_onsager[i].x=value_onsager[i].y=value_onsager[i].z=0.0;
 
           for(i=0;i<NumberOfAdsorbateMolecules[CurrentSystem];i++)
-          { 
+          {
             type=Adsorbates[CurrentSystem][i].Type;
 
            if(i<NumberOfAdsorbateMolecules[CurrentSystem])
@@ -6163,9 +6163,9 @@ void SampleVelocityAutoCorrelationFunctionOrderN(int Switch)
           value.x=value.y=value.z=0.0;
           for(i=0;i<NumberOfComponents;i++)
           {
-            value.x+=VacfOrderN[CurrentSystem][CurrentBlock][i][j].x; 
-            value.y+=VacfOrderN[CurrentSystem][CurrentBlock][i][j].y; 
-            value.z+=VacfOrderN[CurrentSystem][CurrentBlock][i][j].z; 
+            value.x+=VacfOrderN[CurrentSystem][CurrentBlock][i][j].x;
+            value.y+=VacfOrderN[CurrentSystem][CurrentBlock][i][j].y;
+            value.z+=VacfOrderN[CurrentSystem][CurrentBlock][i][j].z;
             value_dir_avg+=VacfOrderNDirAvg[CurrentSystem][CurrentBlock][i][j];
             count+=VacfOrderNCount[CurrentSystem][CurrentBlock][i][j];
           }
@@ -6196,7 +6196,7 @@ void SampleVelocityAutoCorrelationFunctionOrderN(int Switch)
 
         FilePtr=fopen(buffer,"w");
 
-        
+
         // write vacf results averaged per component to file
         D=0.0;
         for(CurrentBlock=0;CurrentBlock<MIN2(MaxNumberOfBlocksVACFOrderN,NumberOfBlocksVACFOrderN[CurrentSystem]);CurrentBlock++)
@@ -6632,7 +6632,7 @@ void SampleRotationalVelocityAutoCorrelationFunctionOrderN(int Switch)
             value_onsager[i].x=value_onsager[i].y=value_onsager[i].z=0.0;
 
           for(i=0;i<NumberOfAdsorbateMolecules[CurrentSystem];i++)
-          { 
+          {
             type=Adsorbates[CurrentSystem][i].Type;
 
            if(i<NumberOfAdsorbateMolecules[CurrentSystem])
@@ -6720,9 +6720,9 @@ void SampleRotationalVelocityAutoCorrelationFunctionOrderN(int Switch)
           value.x=value.y=value.z=0.0;
           for(i=0;i<NumberOfComponents;i++)
           {
-            value.x+=RvacfOrderN[CurrentSystem][CurrentBlock][i][j].x; 
-            value.y+=RvacfOrderN[CurrentSystem][CurrentBlock][i][j].y; 
-            value.z+=RvacfOrderN[CurrentSystem][CurrentBlock][i][j].z; 
+            value.x+=RvacfOrderN[CurrentSystem][CurrentBlock][i][j].x;
+            value.y+=RvacfOrderN[CurrentSystem][CurrentBlock][i][j].y;
+            value.z+=RvacfOrderN[CurrentSystem][CurrentBlock][i][j].z;
             value_dir_avg+=RvacfOrderNDirAvg[CurrentSystem][CurrentBlock][i][j];
             count+=RvacfOrderNCount[CurrentSystem][CurrentBlock][i][j];
           }
@@ -6753,7 +6753,7 @@ void SampleRotationalVelocityAutoCorrelationFunctionOrderN(int Switch)
 
         FilePtr=fopen(buffer,"w");
 
-        
+
         // write vacf results averaged per component to file
         D=0.0;
         for(CurrentBlock=0;CurrentBlock<MIN2(MaxNumberOfBlocksRVACFOrderN,NumberOfBlocksRVACFOrderN[CurrentSystem]);CurrentBlock++)
@@ -7192,9 +7192,9 @@ void SampleMolecularOrientationAutoCorrelationFunctionOrderN(int Switch)
           value.x=value.y=value.z=0.0;
           for(i=0;i<NumberOfComponents;i++)
           {
-            value.x+=MolecularOrientationOrderN[CurrentSystem][CurrentBlock][i][j].x; 
-            value.y+=MolecularOrientationOrderN[CurrentSystem][CurrentBlock][i][j].y; 
-            value.z+=MolecularOrientationOrderN[CurrentSystem][CurrentBlock][i][j].z; 
+            value.x+=MolecularOrientationOrderN[CurrentSystem][CurrentBlock][i][j].x;
+            value.y+=MolecularOrientationOrderN[CurrentSystem][CurrentBlock][i][j].y;
+            value.z+=MolecularOrientationOrderN[CurrentSystem][CurrentBlock][i][j].z;
             value_dir_avg+=MolecularOrientationOrderNDirAvg[CurrentSystem][CurrentBlock][i][j];
             count+=MolecularOrientationOrderNCount[CurrentSystem][CurrentBlock][i][j];
           }
@@ -7481,7 +7481,7 @@ void SampleMeanSquaredDisplacement(int Switch)
       {
         fac=1.0/(Components[k].NumberOfMolecules[CurrentSystem]*CountAccumulatedMSD[CurrentSystem]);
         for(l=0;l<NumberOfComponents;l++)
-        { 
+        {
           sprintf(buffer,"MSD/System_%d/msd_onsager_%s_%d_%s_%d%s.dat",
                   CurrentSystem,Components[k].Name,k,Components[l].Name,l,FileNameAppend);
 
@@ -7744,7 +7744,7 @@ void SampleVelocityAutoCorrelationFunction(int Switch)
       {
         fac=1.0/(Components[k].NumberOfMolecules[CurrentSystem]*CountAccumulatedVACF[CurrentSystem]);
         for(l=0;l<NumberOfComponents;l++)
-        { 
+        {
           sprintf(buffer,"VACF/System_%d/vacf_onsager_%s_%d_%s_%d%s.dat",
                   CurrentSystem,Components[k].Name,k,Components[l].Name,l,FileNameAppend);
 
@@ -7810,7 +7810,7 @@ void SampleDensityProfile3DVTKGrid(int Switch)
     case ALLOCATE:
       if((DensityProfile3DVTKGridPoints.x<=0)||(DensityProfile3DVTKGridPoints.y<=0)||(DensityProfile3DVTKGridPoints.z<=0))
       {
-        printf("ERROR: number of gridpoint (%d, %d, %d) in CreateDensity3DVTKProfileGrid should be >0\n",
+        fprintf(stderr, "ERROR: number of gridpoint (%d, %d, %d) in CreateDensity3DVTKProfileGrid should be >0\n",
           DensityProfile3DVTKGridPoints.x,DensityProfile3DVTKGridPoints.y,DensityProfile3DVTKGridPoints.z);
         exit(-1);
       }
@@ -7841,7 +7841,7 @@ void SampleDensityProfile3DVTKGrid(int Switch)
           InverseCell=InverseBox[CurrentSystem];
           break;
       }
-      
+
       Size.x=Size.y=Size.z=0.0;
       shift.x=shift.y=shift.z=0.0;
       C.x=1.0;
@@ -8194,7 +8194,7 @@ void SampleCationAndAdsorptionSites(int Switch)
         count=crystallographic_stats[CurrentSystem].Count[i];
         pos=crystallographic_stats[CurrentSystem].Position[i];
         pos.x/=count;
-        pos.y/=count;    
+        pos.y/=count;
         pos.z/=count;
         posB=ConvertFromABCtoXYZ(Framework[CurrentSystem].IonsAsymmetric[i].Position);
         pos.x+=posB.x;
@@ -8793,7 +8793,7 @@ void ComputeMolecularPressureTensor(REAL_MATRIX3x3 *Pressure_matrix, REAL* Press
   // the contribution of the charges present in the system (long-range interaction)
   if((ChargeMethod==EWALD)&&(!OmitEwaldFourier))
     EwaldFourierForce();
-  
+
 
   if(ComputePolarization)
   {
@@ -8950,10 +8950,10 @@ void WriteRestartSample(FILE *FilePtr)
   fwrite(PSDRange,NumberOfSystems,sizeof(REAL),FilePtr);
 
   for(i=0;i<NumberOfSystems;i++)
-  {   
+  {
     if(ComputePSDHistogram[i])
       fwrite(PoreSizeDistributionHistogram[i],PSDHistogramSize[i],sizeof(REAL),FilePtr);
-  }   
+  }
 
   // write the end-to-end distribution
   fwrite(ComputeEndToEndDistanceHistogram,NumberOfSystems,sizeof(int),FilePtr);
@@ -9045,20 +9045,20 @@ void WriteRestartSample(FILE *FilePtr)
   }
 
   // write distance histograms
-  fwrite(ComputeDistanceHistograms,NumberOfSystems,sizeof(int),FilePtr); 
-  fwrite(WriteDistanceHistogramsEvery,NumberOfSystems,sizeof(int),FilePtr); 
-  fwrite(&NumberOfElementsDistanceHistogram,1,sizeof(int),FilePtr); 
-  fwrite(&MaxRangeDistanceHistogram,1,sizeof(REAL),FilePtr); 
+  fwrite(ComputeDistanceHistograms,NumberOfSystems,sizeof(int),FilePtr);
+  fwrite(WriteDistanceHistogramsEvery,NumberOfSystems,sizeof(int),FilePtr);
+  fwrite(&NumberOfElementsDistanceHistogram,1,sizeof(int),FilePtr);
+  fwrite(&MaxRangeDistanceHistogram,1,sizeof(REAL),FilePtr);
   for(i=0;i<NumberOfSystems;i++)
     if(ComputeDistanceHistograms[i])
-      fwrite(&NumberOfDistanceHistogramDefinitions[i],1,sizeof(int),FilePtr); 
+      fwrite(&NumberOfDistanceHistogramDefinitions[i],1,sizeof(int),FilePtr);
   for(i=0;i<NumberOfSystems;i++)
   {
     if(ComputeDistanceHistograms[i])
     {
-      fwrite(DistanceHistogramDefinitions[i],NumberOfDistanceHistogramDefinitions[i],sizeof(int[2][3]),FilePtr); 
+      fwrite(DistanceHistogramDefinitions[i],NumberOfDistanceHistogramDefinitions[i],sizeof(int[2][3]),FilePtr);
       for(j=0;j<NumberOfDistanceHistogramDefinitions[i];j++)
-        fwrite(DistanceHistograms[i][j],NumberOfElementsDistanceHistogram,sizeof(REAL),FilePtr); 
+        fwrite(DistanceHistograms[i][j],NumberOfElementsDistanceHistogram,sizeof(REAL),FilePtr);
     }
   }
 
@@ -9171,39 +9171,39 @@ void WriteRestartSample(FILE *FilePtr)
 
 
   // write spectra data
-  fwrite(ComputeInfraRedSpectra,NumberOfSystems,sizeof(int),FilePtr); 
-  fwrite(WriteInfraRedSpectraEvery,NumberOfSystems,sizeof(int),FilePtr); 
-  fwrite(sumw,5,sizeof(REAL),FilePtr); 
+  fwrite(ComputeInfraRedSpectra,NumberOfSystems,sizeof(int),FilePtr);
+  fwrite(WriteInfraRedSpectraEvery,NumberOfSystems,sizeof(int),FilePtr);
+  fwrite(sumw,5,sizeof(REAL),FilePtr);
   for(i=0;i<NumberOfSystems;i++)
   {
     if(ComputeInfraRedSpectra[i])
     {
-      fwrite(SpectrumCount[i],5,sizeof(REAL),FilePtr); 
+      fwrite(SpectrumCount[i],5,sizeof(REAL),FilePtr);
       for(j=0;j<4;j++)
       {
-        fwrite(Spectrum[i][j][0],4*2048,sizeof(REAL),FilePtr); 
-        fwrite(Spectrum[i][j][1],4*4096,sizeof(REAL),FilePtr); 
-        fwrite(Spectrum[i][j][2],4*8192,sizeof(REAL),FilePtr); 
-        fwrite(Spectrum[i][j][3],4*16384,sizeof(REAL),FilePtr); 
-        fwrite(Spectrum[i][j][4],4*32768,sizeof(REAL),FilePtr); 
+        fwrite(Spectrum[i][j][0],4*2048,sizeof(REAL),FilePtr);
+        fwrite(Spectrum[i][j][1],4*4096,sizeof(REAL),FilePtr);
+        fwrite(Spectrum[i][j][2],4*8192,sizeof(REAL),FilePtr);
+        fwrite(Spectrum[i][j][3],4*16384,sizeof(REAL),FilePtr);
+        fwrite(Spectrum[i][j][4],4*32768,sizeof(REAL),FilePtr);
 
-        fwrite(SpectrumAverage[i][j][0],4*2048,sizeof(REAL),FilePtr); 
-        fwrite(SpectrumAverage[i][j][1],4*4096,sizeof(REAL),FilePtr); 
-        fwrite(SpectrumAverage[i][j][2],4*8192,sizeof(REAL),FilePtr); 
-        fwrite(SpectrumAverage[i][j][3],4*16384,sizeof(REAL),FilePtr); 
-        fwrite(SpectrumAverage[i][j][4],4*32768,sizeof(REAL),FilePtr); 
+        fwrite(SpectrumAverage[i][j][0],4*2048,sizeof(REAL),FilePtr);
+        fwrite(SpectrumAverage[i][j][1],4*4096,sizeof(REAL),FilePtr);
+        fwrite(SpectrumAverage[i][j][2],4*8192,sizeof(REAL),FilePtr);
+        fwrite(SpectrumAverage[i][j][3],4*16384,sizeof(REAL),FilePtr);
+        fwrite(SpectrumAverage[i][j][4],4*32768,sizeof(REAL),FilePtr);
 
-        fwrite(UnweightedSpectrum[i][j][0],4*2048,sizeof(REAL),FilePtr); 
-        fwrite(UnweightedSpectrum[i][j][1],4*4096,sizeof(REAL),FilePtr); 
-        fwrite(UnweightedSpectrum[i][j][2],4*8192,sizeof(REAL),FilePtr); 
-        fwrite(UnweightedSpectrum[i][j][3],4*16384,sizeof(REAL),FilePtr); 
-        fwrite(UnweightedSpectrum[i][j][4],4*32768,sizeof(REAL),FilePtr); 
+        fwrite(UnweightedSpectrum[i][j][0],4*2048,sizeof(REAL),FilePtr);
+        fwrite(UnweightedSpectrum[i][j][1],4*4096,sizeof(REAL),FilePtr);
+        fwrite(UnweightedSpectrum[i][j][2],4*8192,sizeof(REAL),FilePtr);
+        fwrite(UnweightedSpectrum[i][j][3],4*16384,sizeof(REAL),FilePtr);
+        fwrite(UnweightedSpectrum[i][j][4],4*32768,sizeof(REAL),FilePtr);
 
-        fwrite(UnweightedSpectrumAverage[i][j][0],4*2048,sizeof(REAL),FilePtr); 
-        fwrite(UnweightedSpectrumAverage[i][j][1],4*4096,sizeof(REAL),FilePtr); 
-        fwrite(UnweightedSpectrumAverage[i][j][2],4*8192,sizeof(REAL),FilePtr); 
-        fwrite(UnweightedSpectrumAverage[i][j][3],4*16384,sizeof(REAL),FilePtr); 
-        fwrite(UnweightedSpectrumAverage[i][j][4],4*32768,sizeof(REAL),FilePtr); 
+        fwrite(UnweightedSpectrumAverage[i][j][0],4*2048,sizeof(REAL),FilePtr);
+        fwrite(UnweightedSpectrumAverage[i][j][1],4*4096,sizeof(REAL),FilePtr);
+        fwrite(UnweightedSpectrumAverage[i][j][2],4*8192,sizeof(REAL),FilePtr);
+        fwrite(UnweightedSpectrumAverage[i][j][3],4*16384,sizeof(REAL),FilePtr);
+        fwrite(UnweightedSpectrumAverage[i][j][4],4*32768,sizeof(REAL),FilePtr);
       }
       for(j=0;j<2;j++)
       {
@@ -9211,11 +9211,11 @@ void WriteRestartSample(FILE *FilePtr)
         {
           if(NumberOfPseudoAtomsType[i][k]>0)
           {
-            fwrite(SpectrumPseudoAtoms[i][j][k][0],4*2048,sizeof(REAL),FilePtr); 
-            fwrite(SpectrumPseudoAtoms[i][j][k][1],4*4096,sizeof(REAL),FilePtr); 
-            fwrite(SpectrumPseudoAtoms[i][j][k][2],4*8192,sizeof(REAL),FilePtr); 
-            fwrite(SpectrumPseudoAtoms[i][j][k][3],4*16384,sizeof(REAL),FilePtr); 
-            fwrite(SpectrumPseudoAtoms[i][j][k][4],4*32768,sizeof(REAL),FilePtr); 
+            fwrite(SpectrumPseudoAtoms[i][j][k][0],4*2048,sizeof(REAL),FilePtr);
+            fwrite(SpectrumPseudoAtoms[i][j][k][1],4*4096,sizeof(REAL),FilePtr);
+            fwrite(SpectrumPseudoAtoms[i][j][k][2],4*8192,sizeof(REAL),FilePtr);
+            fwrite(SpectrumPseudoAtoms[i][j][k][3],4*16384,sizeof(REAL),FilePtr);
+            fwrite(SpectrumPseudoAtoms[i][j][k][4],4*32768,sizeof(REAL),FilePtr);
           }
         }
       }
@@ -10264,14 +10264,14 @@ void ReadRestartSample(FILE *FilePtr)
 
 
   // sampling molecular properties (bond distance, bend angle, dihedral angle)
-  fread(ComputeMoleculeProperties,NumberOfSystems,sizeof(int),FilePtr); 
-  fread(WriteMoleculePropertiesEvery,NumberOfSystems,sizeof(int),FilePtr); 
-  fread(BondLengthHistogramSize,NumberOfSystems,sizeof(int),FilePtr); 
-  fread(BendAngleHistogramSize,NumberOfSystems,sizeof(int),FilePtr); 
-  fread(DihedralHistogramSize,NumberOfSystems,sizeof(int),FilePtr); 
-  fread(BondLengthRange,NumberOfSystems,sizeof(REAL),FilePtr); 
-  fread(BendAngleRange,NumberOfSystems,sizeof(REAL),FilePtr); 
-  fread(DihedralRange,NumberOfSystems,sizeof(REAL),FilePtr); 
+  fread(ComputeMoleculeProperties,NumberOfSystems,sizeof(int),FilePtr);
+  fread(WriteMoleculePropertiesEvery,NumberOfSystems,sizeof(int),FilePtr);
+  fread(BondLengthHistogramSize,NumberOfSystems,sizeof(int),FilePtr);
+  fread(BendAngleHistogramSize,NumberOfSystems,sizeof(int),FilePtr);
+  fread(DihedralHistogramSize,NumberOfSystems,sizeof(int),FilePtr);
+  fread(BondLengthRange,NumberOfSystems,sizeof(REAL),FilePtr);
+  fread(BendAngleRange,NumberOfSystems,sizeof(REAL),FilePtr);
+  fread(DihedralRange,NumberOfSystems,sizeof(REAL),FilePtr);
 
   SampleMoleculePropertyHistogram(ALLOCATE);
 
@@ -10282,79 +10282,79 @@ void ReadRestartSample(FILE *FilePtr)
       for(j=0;j<NumberOfComponents;j++)
       {
         for(k=0;k<MaxNumberOfBonds;k++)
-          fread(BondLengthHistogram[i][j][k],BondLengthHistogramSize[i],sizeof(REAL),FilePtr); 
-  
+          fread(BondLengthHistogram[i][j][k],BondLengthHistogramSize[i],sizeof(REAL),FilePtr);
+
         for(k=0;k<MaxNumberOfUreyBradleys;k++)
-          fread(UreyBradleyLengthHistogram[i][j][k],BondLengthHistogramSize[i],sizeof(REAL),FilePtr); 
+          fread(UreyBradleyLengthHistogram[i][j][k],BondLengthHistogramSize[i],sizeof(REAL),FilePtr);
 
         for(k=0;k<MaxNumberOfBends;k++)
-          fread(BendAngleHistogram[i][j][k],BendAngleHistogramSize[i],sizeof(REAL),FilePtr); 
+          fread(BendAngleHistogram[i][j][k],BendAngleHistogramSize[i],sizeof(REAL),FilePtr);
 
         for(k=0;k<MaxNumberOfTorsions;k++)
-          fread(TorsionAngleHistogram[i][j][k],DihedralHistogramSize[i],sizeof(REAL),FilePtr); 
+          fread(TorsionAngleHistogram[i][j][k],DihedralHistogramSize[i],sizeof(REAL),FilePtr);
 
         for(k=0;k<MaxNumberOfTorsions;k++)
-          fread(TorsionConformationHistogram[i][j][k],6,sizeof(REAL),FilePtr); 
+          fread(TorsionConformationHistogram[i][j][k],6,sizeof(REAL),FilePtr);
       }
 
       for(j=0;j<Framework[i].NumberOfBondsDefinitions;j++)
-        fread(FrameworkBondLengthHistogram[i][j],BondLengthHistogramSize[i],sizeof(REAL),FilePtr); 
+        fread(FrameworkBondLengthHistogram[i][j],BondLengthHistogramSize[i],sizeof(REAL),FilePtr);
 
       for(j=0;j<Framework[i].NumberOfUreyBradleyDefinitions;j++)
-        fread(FrameworkUreyBradleyLengthHistogram[i][j],BondLengthHistogramSize[i],sizeof(REAL),FilePtr); 
+        fread(FrameworkUreyBradleyLengthHistogram[i][j],BondLengthHistogramSize[i],sizeof(REAL),FilePtr);
 
       for(j=0;j<Framework[i].NumberOfBendDefinitions;j++)
-        fread(FrameworkBendAngleHistogram[i][j],BendAngleHistogramSize[i],sizeof(REAL),FilePtr); 
+        fread(FrameworkBendAngleHistogram[i][j],BendAngleHistogramSize[i],sizeof(REAL),FilePtr);
 
       for(j=0;j<Framework[i].NumberOfTorsionDefinitions;j++)
-        fread(FrameworkTorsionAngleHistogram[i][j],DihedralHistogramSize[i],sizeof(REAL),FilePtr); 
+        fread(FrameworkTorsionAngleHistogram[i][j],DihedralHistogramSize[i],sizeof(REAL),FilePtr);
 
-      fread(FrameworkAverageBondLength[i],Framework[i].NumberOfBondsDefinitions,sizeof(REAL),FilePtr); 
-      fread(FrameworkBondLengthCount[i],Framework[i].NumberOfBondsDefinitions,sizeof(REAL),FilePtr); 
-      fread(FrameworkAverageBendAngle[i],Framework[i].NumberOfBendDefinitions,sizeof(REAL),FilePtr); 
-      fread(FrameworkBendAngleCount[i],Framework[i].NumberOfBendDefinitions,sizeof(REAL),FilePtr); 
-      fread(FrameworkAverageTorsionAngle[i],Framework[i].NumberOfTorsionDefinitions,sizeof(REAL),FilePtr); 
-      fread(FrameworkTorsionAngleCount[i],Framework[i].NumberOfTorsionDefinitions,sizeof(REAL),FilePtr); 
+      fread(FrameworkAverageBondLength[i],Framework[i].NumberOfBondsDefinitions,sizeof(REAL),FilePtr);
+      fread(FrameworkBondLengthCount[i],Framework[i].NumberOfBondsDefinitions,sizeof(REAL),FilePtr);
+      fread(FrameworkAverageBendAngle[i],Framework[i].NumberOfBendDefinitions,sizeof(REAL),FilePtr);
+      fread(FrameworkBendAngleCount[i],Framework[i].NumberOfBendDefinitions,sizeof(REAL),FilePtr);
+      fread(FrameworkAverageTorsionAngle[i],Framework[i].NumberOfTorsionDefinitions,sizeof(REAL),FilePtr);
+      fread(FrameworkTorsionAngleCount[i],Framework[i].NumberOfTorsionDefinitions,sizeof(REAL),FilePtr);
     }
   }
 
 
   // read spectra data
-  fread(ComputeInfraRedSpectra,NumberOfSystems,sizeof(int),FilePtr); 
-  fread(WriteInfraRedSpectraEvery,NumberOfSystems,sizeof(int),FilePtr); 
+  fread(ComputeInfraRedSpectra,NumberOfSystems,sizeof(int),FilePtr);
+  fread(WriteInfraRedSpectraEvery,NumberOfSystems,sizeof(int),FilePtr);
 
   SampleInfraRedSpectra(ALLOCATE);
-  fread(sumw,5,sizeof(REAL),FilePtr); 
+  fread(sumw,5,sizeof(REAL),FilePtr);
   for(i=0;i<NumberOfSystems;i++)
   {
     if(ComputeInfraRedSpectra[i])
     {
-      fread(SpectrumCount[i],5,sizeof(REAL),FilePtr); 
+      fread(SpectrumCount[i],5,sizeof(REAL),FilePtr);
       for(j=0;j<4;j++)
       {
-        fread(Spectrum[i][j][0],4*2048,sizeof(REAL),FilePtr); 
-        fread(Spectrum[i][j][1],4*4096,sizeof(REAL),FilePtr); 
-        fread(Spectrum[i][j][2],4*8192,sizeof(REAL),FilePtr); 
-        fread(Spectrum[i][j][3],4*16384,sizeof(REAL),FilePtr); 
-        fread(Spectrum[i][j][4],4*32768,sizeof(REAL),FilePtr); 
+        fread(Spectrum[i][j][0],4*2048,sizeof(REAL),FilePtr);
+        fread(Spectrum[i][j][1],4*4096,sizeof(REAL),FilePtr);
+        fread(Spectrum[i][j][2],4*8192,sizeof(REAL),FilePtr);
+        fread(Spectrum[i][j][3],4*16384,sizeof(REAL),FilePtr);
+        fread(Spectrum[i][j][4],4*32768,sizeof(REAL),FilePtr);
 
-        fread(SpectrumAverage[i][j][0],4*2048,sizeof(REAL),FilePtr); 
-        fread(SpectrumAverage[i][j][1],4*4096,sizeof(REAL),FilePtr); 
-        fread(SpectrumAverage[i][j][2],4*8192,sizeof(REAL),FilePtr); 
-        fread(SpectrumAverage[i][j][3],4*16384,sizeof(REAL),FilePtr); 
-        fread(SpectrumAverage[i][j][4],4*32768,sizeof(REAL),FilePtr); 
- 
-        fread(UnweightedSpectrum[i][j][0],4*2048,sizeof(REAL),FilePtr); 
-        fread(UnweightedSpectrum[i][j][1],4*4096,sizeof(REAL),FilePtr); 
-        fread(UnweightedSpectrum[i][j][2],4*8192,sizeof(REAL),FilePtr); 
-        fread(UnweightedSpectrum[i][j][3],4*16384,sizeof(REAL),FilePtr); 
-        fread(UnweightedSpectrum[i][j][4],4*32768,sizeof(REAL),FilePtr); 
+        fread(SpectrumAverage[i][j][0],4*2048,sizeof(REAL),FilePtr);
+        fread(SpectrumAverage[i][j][1],4*4096,sizeof(REAL),FilePtr);
+        fread(SpectrumAverage[i][j][2],4*8192,sizeof(REAL),FilePtr);
+        fread(SpectrumAverage[i][j][3],4*16384,sizeof(REAL),FilePtr);
+        fread(SpectrumAverage[i][j][4],4*32768,sizeof(REAL),FilePtr);
 
-        fread(UnweightedSpectrumAverage[i][j][0],4*2048,sizeof(REAL),FilePtr); 
-        fread(UnweightedSpectrumAverage[i][j][1],4*4096,sizeof(REAL),FilePtr); 
-        fread(UnweightedSpectrumAverage[i][j][2],4*8192,sizeof(REAL),FilePtr); 
-        fread(UnweightedSpectrumAverage[i][j][3],4*16384,sizeof(REAL),FilePtr); 
-        fread(UnweightedSpectrumAverage[i][j][4],4*32768,sizeof(REAL),FilePtr); 
+        fread(UnweightedSpectrum[i][j][0],4*2048,sizeof(REAL),FilePtr);
+        fread(UnweightedSpectrum[i][j][1],4*4096,sizeof(REAL),FilePtr);
+        fread(UnweightedSpectrum[i][j][2],4*8192,sizeof(REAL),FilePtr);
+        fread(UnweightedSpectrum[i][j][3],4*16384,sizeof(REAL),FilePtr);
+        fread(UnweightedSpectrum[i][j][4],4*32768,sizeof(REAL),FilePtr);
+
+        fread(UnweightedSpectrumAverage[i][j][0],4*2048,sizeof(REAL),FilePtr);
+        fread(UnweightedSpectrumAverage[i][j][1],4*4096,sizeof(REAL),FilePtr);
+        fread(UnweightedSpectrumAverage[i][j][2],4*8192,sizeof(REAL),FilePtr);
+        fread(UnweightedSpectrumAverage[i][j][3],4*16384,sizeof(REAL),FilePtr);
+        fread(UnweightedSpectrumAverage[i][j][4],4*32768,sizeof(REAL),FilePtr);
       }
       for(j=0;j<2;j++)
       {
@@ -10362,11 +10362,11 @@ void ReadRestartSample(FILE *FilePtr)
         {
           if(NumberOfPseudoAtomsType[i][k]>0)
           {
-            fread(SpectrumPseudoAtoms[i][j][k][0],4*2048,sizeof(REAL),FilePtr); 
-            fread(SpectrumPseudoAtoms[i][j][k][1],4*4096,sizeof(REAL),FilePtr); 
-            fread(SpectrumPseudoAtoms[i][j][k][2],4*8192,sizeof(REAL),FilePtr); 
-            fread(SpectrumPseudoAtoms[i][j][k][3],4*16384,sizeof(REAL),FilePtr); 
-            fread(SpectrumPseudoAtoms[i][j][k][4],4*32768,sizeof(REAL),FilePtr); 
+            fread(SpectrumPseudoAtoms[i][j][k][0],4*2048,sizeof(REAL),FilePtr);
+            fread(SpectrumPseudoAtoms[i][j][k][1],4*4096,sizeof(REAL),FilePtr);
+            fread(SpectrumPseudoAtoms[i][j][k][2],4*8192,sizeof(REAL),FilePtr);
+            fread(SpectrumPseudoAtoms[i][j][k][3],4*16384,sizeof(REAL),FilePtr);
+            fread(SpectrumPseudoAtoms[i][j][k][4],4*32768,sizeof(REAL),FilePtr);
           }
         }
       }
@@ -10701,7 +10701,7 @@ void ReadRestartSample(FILE *FilePtr)
   fread(&Check,1,sizeof(REAL),FilePtr);
   if(fabs(Check-123456789.0)>1e-10)
   {
-    printf("Error in binary restart-file (ReadRestartSample)\n");
+    fprintf(stderr, "Error in binary restart-file (ReadRestartSample)\n");
     exit(0);
   }
 }

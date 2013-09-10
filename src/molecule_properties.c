@@ -43,7 +43,7 @@ REAL ComputeBondDistanceFramework(int index)
   REAL r;
 
   if(index>=Framework[CurrentSystem].NumberOfBonds[CurrentFramework])
-    printf("Error: bond index too large\n");
+    fprintf(stderr, "Error: bond index too large\n");
 
   A=Framework[CurrentSystem].Bonds[CurrentFramework][index].A;
   B=Framework[CurrentSystem].Bonds[CurrentFramework][index].B;
@@ -66,7 +66,7 @@ REAL ComputeBendAngleFramework(int index)
   REAL CosTheta,Theta,rab,rbc;
 
   if(index>=Framework[CurrentSystem].NumberOfBends[CurrentFramework])
-    printf("Error: framework bend index too large\n");
+    fprintf(stderr, "Error: framework bend index too large\n");
 
   A=Framework[CurrentSystem].Bends[CurrentFramework][index].A;
   B=Framework[CurrentSystem].Bends[CurrentFramework][index].B;
@@ -110,7 +110,7 @@ REAL ComputeTorsionAngleFramework(int index)
   REAL cost,sint,theta;
 
   if(index>=Framework[CurrentSystem].NumberOfTorsions[CurrentFramework])
-    printf("Error: framework torsion index too large\n");
+    fprintf(stderr, "Error: framework torsion index too large\n");
 
   A=Framework[CurrentSystem].Torsions[CurrentFramework][index].A;
   B=Framework[CurrentSystem].Torsions[CurrentFramework][index].B;
@@ -169,8 +169,8 @@ REAL ComputeBondDistanceAdsorbate(int m,int index)
 
   Type=Adsorbates[CurrentSystem][m].Type;
   if(index>=Components[Type].NumberOfBonds)
-    printf("Error: bond index too large\n");
-  
+    fprintf(stderr, "Error: bond index too large\n");
+
   A=Components[Type].Bonds[index].A;
   B=Components[Type].Bonds[index].B;
   posA=Adsorbates[CurrentSystem][m].Atoms[A].Position;
@@ -191,7 +191,7 @@ REAL ComputeBondDistanceCation(int m,int index)
 
   Type=Cations[CurrentSystem][m].Type;
   if(index>=Components[Type].NumberOfBonds)
-    printf("Error: bond index too large\n");
+    fprintf(stderr, "Error: bond index too large\n");
 
   A=Components[Type].Bonds[index].A;
   B=Components[Type].Bonds[index].B;
@@ -212,7 +212,7 @@ REAL ComputeUreyBradleyDistanceAdsorbate(int m,int index)
 
   Type=Adsorbates[CurrentSystem][m].Type;
   if(index>=Components[Type].NumberOfUreyBradleys)
-    printf("Error: Urey-Brdley index too large\n");
+    fprintf(stderr, "Error: Urey-Brdley index too large\n");
 
   A=Components[Type].UreyBradleys[index].A;
   C=Components[Type].UreyBradleys[index].C;
@@ -233,7 +233,7 @@ REAL ComputeUreyBradleyDistanceCation(int m,int index)
 
   Type=Cations[CurrentSystem][m].Type;
   if(index>=Components[Type].NumberOfUreyBradleys)
-    printf("Error: Urey-Bradley index too large\n");
+    fprintf(stderr, "Error: Urey-Bradley index too large\n");
 
   A=Components[Type].UreyBradleys[index].A;
   C=Components[Type].UreyBradleys[index].C;
@@ -254,7 +254,7 @@ REAL ComputeBendAngleAdsorbate(int m,int index)
 
   Type=Adsorbates[CurrentSystem][m].Type;
   if(index>=Components[Type].NumberOfBends)
-    printf("Error: bend index too large\n");
+    fprintf(stderr, "Error: bend index too large\n");
 
   A=Components[Type].Bends[index].A;
   B=Components[Type].Bends[index].B;
@@ -292,7 +292,7 @@ REAL ComputeBendAngleCation(int m,int index)
 
   Type=Cations[CurrentSystem][m].Type;
   if(index>=Components[Type].NumberOfBends)
-    printf("Error: bend index too large\n");
+    fprintf(stderr, "Error: bend index too large\n");
 
   A=Components[Type].Bends[index].A;
   B=Components[Type].Bends[index].B;
@@ -332,7 +332,7 @@ REAL ComputeTorsionAngleAdsorbate(int m,int index)
 
   Type=Adsorbates[CurrentSystem][m].Type;
   if(index>=Components[Type].NumberOfTorsions)
-    printf("Error: torsion index too large\n");
+    fprintf(stderr, "Error: torsion index too large\n");
 
   A=Components[Type].Torsions[index].A;
   B=Components[Type].Torsions[index].B;
@@ -392,7 +392,7 @@ REAL ComputeTorsionAngleCation(int m,int index)
 
   Type=Cations[CurrentSystem][m].Type;
   if(index>=Components[Type].NumberOfTorsions)
-    printf("Error: torsion index too large\n");
+    fprintf(stderr, "Error: torsion index too large\n");
 
   A=Components[Type].Torsions[index].A;
   B=Components[Type].Torsions[index].B;

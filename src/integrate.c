@@ -37,8 +37,8 @@ REAL Trapezoidal(CUBIC_SPLINE spline,REAL f(REAL),REAL a,REAL b,int n)
   REAL valuea,valueb;
   REAL tmp1,tmp2,tmp3;
 
-  printf("entering\n");
-  if(n==1) 
+  fprintf(stderr, "entering\n");
+  if(n==1)
   {
     r=a;
     if (r<spline.x[i]||r>=spline.x[i+1])
@@ -57,17 +57,17 @@ REAL Trapezoidal(CUBIC_SPLINE spline,REAL f(REAL),REAL a,REAL b,int n)
     tmp2=2.0*spline.c[i];
     tmp3=2.0*tmp1;
     valueb=((spline.d[i]*r+spline.c[i])*r+spline.b[i])*r+spline.a[i];
-    printf("leaving\n");
+    fprintf(stderr, "leaving\n");
     return (s=0.5*(b-a)*(f(valuea)+f(valueb)));
-  } 
-  else 
+  }
+  else
   {
-    for (it=1,j=1;j<n-1;j++) 
+    for (it=1,j=1;j<n-1;j++)
       it <<= 1;
     tnm=it;
     del=(b-a)/tnm;
     x=a+0.5*del;
-    for (sum=0.0,j=1;j<=it;j++,x+=del) 
+    for (sum=0.0,j=1;j<=it;j++,x+=del)
     {
       r=x;
       if (r<spline.x[i]||r>=spline.x[i+1])
@@ -80,7 +80,7 @@ REAL Trapezoidal(CUBIC_SPLINE spline,REAL f(REAL),REAL a,REAL b,int n)
       sum+=f(valuea);
     }
     s=0.5*(s+(b-a)*sum/tnm);
-    printf("leaving\n");
+    fprintf(stderr, "leaving\n");
     return s;
   }
 }
@@ -91,7 +91,7 @@ REAL QuadratureSimpson(CUBIC_SPLINE spline,REAL f(REAL),REAL a,REAL b)
   REAL s,st,ost,os;
 
   ost = os = -1.0e30;
-  for (j=1;j<=JMAX;j++) 
+  for (j=1;j<=JMAX;j++)
   {
     st=Trapezoidal(spline,f,a,b,j);
     s=(4.0*st-ost)/3.0;
@@ -100,7 +100,7 @@ REAL QuadratureSimpson(CUBIC_SPLINE spline,REAL f(REAL),REAL a,REAL b)
     os=s;
     ost=st;
   }
-  printf("Too many steps in routine qsimp");
+  fprintf(stderr, "Too many steps in routine qsimp");
   return 0.0;
 }
 #undef EPS

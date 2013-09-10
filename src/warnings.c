@@ -80,7 +80,7 @@ void CreateWarnings(void)
       }
     }
 
-    
+
 
 /*
     // check whether host-adsorbate interactions are all defined
@@ -151,11 +151,11 @@ void CreateWarnings(void)
     {
       StartingBead=Components[i].StartingBead;
       Type=Components[i].Type[StartingBead];
-      if(PotentialType[Type][Type]==MM3_HYDROGEN_VDW) 
+      if(PotentialType[Type][Type]==MM3_HYDROGEN_VDW)
       {
-        printf("Fatal error: Can not use starting bead (%d) for component (%s) using the MM3-hydrogen potential.\n",StartingBead,Components[Type].Name);
-        printf("             This potential shifts the interaction site along the carbon-hydrogen bond. When starting the CBMC from hydrogen\n");
-        printf("             this interaction site is not yet known. Growing hydrogen from the carbon present no problem.\n");
+        fprintf(stderr, "Fatal error: Can not use starting bead (%d) for component (%s) using the MM3-hydrogen potential.\n",StartingBead,Components[Type].Name);
+        fprintf(stderr, "             This potential shifts the interaction site along the carbon-hydrogen bond. When starting the CBMC from hydrogen\n");
+        fprintf(stderr, "             this interaction site is not yet known. Growing hydrogen from the carbon present no problem.\n");
         exit(0);
       }
 
@@ -183,7 +183,7 @@ void CreateWarnings(void)
           already_present=FALSE;
           for(l=0;l<NumberOfWarnings[k];l++)
           {
-            if((Warnings[k][l]==MISSING_INTERACTION)) 
+            if((Warnings[k][l]==MISSING_INTERACTION))
             {
               already_present=TRUE;
               break;
@@ -196,7 +196,7 @@ void CreateWarnings(void)
             {
               strcpy(WarningValues[k][NumberOfWarnings[k]][0],PseudoAtoms[i].Name);
               strcpy(WarningValues[k][NumberOfWarnings[k]][1],PseudoAtoms[j].Name);
-              NumberOfWarningValues[k][NumberOfWarnings[k]]=2; 
+              NumberOfWarningValues[k][NumberOfWarnings[k]]=2;
               Warnings[k][NumberOfWarnings[k]]=MISSING_INTERACTION;
               NumberOfWarnings[k]++;
             }
@@ -213,7 +213,7 @@ void CreateWarnings(void)
               {
                 strcpy(WarningValues[k][l][NumberOfWarningValues[k][l]],PseudoAtoms[i].Name);
                 strcpy(WarningValues[k][l][NumberOfWarningValues[k][l]+1],PseudoAtoms[j].Name);
-                NumberOfWarningValues[k][l]+=2;  
+                NumberOfWarningValues[k][l]+=2;
               }
             }
           }
@@ -310,7 +310,7 @@ void ReadRestartWarnings(FILE *FilePtr)
   fread(&Check,1,sizeof(REAL),FilePtr);
   if(fabs(Check-123456789.0)>1e-10)
   {
-    printf("Error in binary restart-file (ReadRestartWarnings)\n");
+    fprintf(stderr, "Error in binary restart-file (ReadRestartWarnings)\n");
     exit(0);
   }
 }
