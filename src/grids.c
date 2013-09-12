@@ -408,6 +408,7 @@ void MakeGrid(void)
   REAL value,third_derivative;
   VECTOR first_derivative;
   REAL_MATRIX3x3 second_derivative;
+  REAL smallest_r;
 
   if(MIN3(BoxProperties[CurrentSystem].cx,BoxProperties[CurrentSystem].cy,
           BoxProperties[CurrentSystem].cz)<CutOffVDW)
@@ -521,9 +522,9 @@ void MakeGrid(void)
           }
 
           // cap the value
-          if(value>1.0e12)
+          if(value>EnergyOverlapCriteria) 
           {
-            value=1.0e12;
+            value=2.0*EnergyOverlapCriteria;
             if(first_derivative.x>EnergyOverlapCriteria) first_derivative.x=EnergyOverlapCriteria;
             if(first_derivative.x<-EnergyOverlapCriteria) first_derivative.x=-EnergyOverlapCriteria;
             if(first_derivative.y>EnergyOverlapCriteria) first_derivative.y=EnergyOverlapCriteria;
@@ -620,15 +621,14 @@ void MakeGrid(void)
             pos.x=i*SizeGrid.x/NumberOfCoulombGridPoints.x+ShiftGrid.x;
             pos.y=j*SizeGrid.y/NumberOfCoulombGridPoints.y+ShiftGrid.y;
             pos.z=k*SizeGrid.z/NumberOfCoulombGridPoints.z+ShiftGrid.z;
-
-            CalculateDerivativesAtPositionReal(pos,typeA,&value,&first_derivative,&second_derivative,&third_derivative);
+            smallest_r=CalculateDerivativesAtPositionReal(pos,typeA,&value,&first_derivative,&second_derivative,&third_derivative);
             break;
         }
 
         // cap the value
-        if(value>1.0e12)
+        if(value>EnergyOverlapCriteria||smallest_r<1.0)
         {
-          value=1.0e12;
+          value=2.0*EnergyOverlapCriteria;
           if(first_derivative.x>EnergyOverlapCriteria) first_derivative.x=EnergyOverlapCriteria;
           if(first_derivative.x<-EnergyOverlapCriteria) first_derivative.x=-EnergyOverlapCriteria;
           if(first_derivative.y>EnergyOverlapCriteria) first_derivative.y=EnergyOverlapCriteria;
