@@ -2638,7 +2638,7 @@ int CalculateFrameworkAdsorbateVDWEnergy(void)
       posA=Adsorbates[CurrentSystem][i].Atoms[j].AnisotropicPosition;
       scalingA=Adsorbates[CurrentSystem][i].Atoms[j].CFVDWScalingParameter;
 
-      if((Framework[CurrentSystem].FrameworkModel==GRID)&&(VDWGrid[typeA]))
+      if((Framework[CurrentSystem].FrameworkModel==GRID)&&(VDWGrid[typeA])&&(!IsFractionalAdsorbateMolecule(i)))
       {
         UHostAdsorbateVDW[CurrentSystem]+=InterpolateVDWGrid(typeA,posA);
       }
@@ -2743,7 +2743,7 @@ int CalculateFrameworkCationVDWEnergy(void)
       posA=Cations[CurrentSystem][i].Atoms[j].AnisotropicPosition;
       scalingA=Cations[CurrentSystem][i].Atoms[j].CFVDWScalingParameter;
 
-      if((Framework[CurrentSystem].FrameworkModel==GRID)&&(VDWGrid[typeA]))
+      if((Framework[CurrentSystem].FrameworkModel==GRID)&&(VDWGrid[typeA])&&(!IsFractionalCationMolecule(i)))
       {
         UHostCationVDW[CurrentSystem]+=scalingA*InterpolateVDWGrid(typeA,posA);
       }
@@ -2832,7 +2832,7 @@ int CalculateFrameworkCationVDWEnergy(void)
 int CalculateFrameworkAdsorbateChargeChargeEnergy(void)
 {
   int i,j,k;
-  int typeA,typeB;
+  int typeA,typeB,type;
   REAL r,rr;
   REAL chargeA,chargeB;
   VECTOR posA,posB,dr;
@@ -2843,6 +2843,7 @@ int CalculateFrameworkAdsorbateChargeChargeEnergy(void)
 
   for(i=0;i<NumberOfAdsorbateMolecules[CurrentSystem];i++)
   {
+    type=Adsorbates[CurrentSystem][i].Type;
     for(j=0;j<Adsorbates[CurrentSystem][i].NumberOfAtoms;j++)
     {
       typeA=Adsorbates[CurrentSystem][i].Atoms[j].Type;
@@ -2850,7 +2851,7 @@ int CalculateFrameworkAdsorbateChargeChargeEnergy(void)
       chargeA=scalingA*Adsorbates[CurrentSystem][i].Atoms[j].Charge;
       posA=Adsorbates[CurrentSystem][i].Atoms[j].Position;
 
-      if((Framework[CurrentSystem].FrameworkModel==GRID)&&(CoulombGrid))
+      if((Framework[CurrentSystem].FrameworkModel==GRID)&&(CoulombGrid)&&(!IsFractionalAdsorbateMolecule(i)))
       {
         UHostAdsorbateChargeChargeReal[CurrentSystem]+=InterpolateCoulombGrid(typeA,posA);
       }
@@ -2887,7 +2888,7 @@ int CalculateFrameworkAdsorbateChargeChargeEnergy(void)
 int CalculateFrameworkCationChargeChargeEnergy(void)
 {
   int i,j,k;
-  int typeA,typeB;
+  int typeA,typeB,type;
   REAL r,rr;
   REAL chargeA,chargeB;
   VECTOR posA,posB,dr;
@@ -2898,6 +2899,7 @@ int CalculateFrameworkCationChargeChargeEnergy(void)
 
   for(i=0;i<NumberOfCationMolecules[CurrentSystem];i++)
   {
+    type=Cations[CurrentSystem][i].Type;
     for(j=0;j<Cations[CurrentSystem][i].NumberOfAtoms;j++)
     {
       typeA=Cations[CurrentSystem][i].Atoms[j].Type;
@@ -2905,7 +2907,7 @@ int CalculateFrameworkCationChargeChargeEnergy(void)
       chargeA=scalingA*Cations[CurrentSystem][i].Atoms[j].Charge;
       posA=Cations[CurrentSystem][i].Atoms[j].Position;
 
-      if((Framework[CurrentSystem].FrameworkModel==GRID)&&(CoulombGrid))
+      if((Framework[CurrentSystem].FrameworkModel==GRID)&&(CoulombGrid)&&(!IsFractionalCationMolecule(i)))
       {
         UHostCationChargeChargeReal[CurrentSystem]+=InterpolateCoulombGrid(typeA,posA);
       }
@@ -4729,7 +4731,7 @@ int CalculateFrameworkCationReplicaChargeChargeEnergy(void)
  *            | int CFCBSwapLambaMove(void)                                                              *
  *********************************************************************************************************/
 
-int CalculateFrameworkAdsorbateVDWEnergyDifference(int m,int comp,int New,int Old)
+int CalculateFrameworkAdsorbateVDWEnergyDifference(int m,int comp,int New,int Old,int CanUseGrid)
 {
   int i,j,k,nr_atoms,typeA,typeB,f1;
   POINT posA_new,posA_old,posB;
@@ -4741,141 +4743,84 @@ int CalculateFrameworkAdsorbateVDWEnergyDifference(int m,int comp,int New,int Ol
   // Framework-Adsorbate energy
   OVERLAP=FALSE;
   UHostVDWDelta[CurrentSystem]=0.0;
-  if(Framework[CurrentSystem].FrameworkModel!=NONE)
+
+  if(New)
   {
-    // grid interpolation; transfer to the correct coordinates
-    nr_atoms=Components[CurrentComponent].NumberOfAtoms;
-    for(j=0;j<nr_atoms;j++)
+    if(Framework[CurrentSystem].FrameworkModel!=NONE)
     {
-      typeA=Components[CurrentComponent].Type[j];
-      if(New)
+      // grid interpolation; transfer to the correct coordinates
+      nr_atoms=Components[comp].NumberOfAtoms;
+      for(j=0;j<nr_atoms;j++)
       {
+        typeA=Components[comp].Type[j];
         posA_new=TrialAnisotropicPosition[CurrentSystem][j];
         scaling_new=CFVDWScaling[j];
-      }
-      if(Old)
-      {
-        posA_old=Adsorbates[CurrentSystem][m].Atoms[j].AnisotropicPosition;
-        scaling_old=Adsorbates[CurrentSystem][m].Atoms[j].CFVDWScalingParameter;
-      }
 
-      if((Framework[CurrentSystem].FrameworkModel==GRID)&&(VDWGrid[typeA]))
-      {
-        if(New) UHostVDWDelta[CurrentSystem]+=InterpolateVDWGrid(typeA,posA_new);
-        if(Old) UHostVDWDelta[CurrentSystem]-=InterpolateVDWGrid(typeA,posA_old);
-      }
-      else if(UseCellLists[CurrentSystem])
-      {
-        // convert from xyz to abc
-        s.x=InverseBox[CurrentSystem].ax*posA_new.x+InverseBox[CurrentSystem].bx*posA_new.y+InverseBox[CurrentSystem].cx*posA_new.z;
-        s.y=InverseBox[CurrentSystem].ay*posA_new.x+InverseBox[CurrentSystem].by*posA_new.y+InverseBox[CurrentSystem].cy*posA_new.z;
-        s.z=InverseBox[CurrentSystem].az*posA_new.x+InverseBox[CurrentSystem].bz*posA_new.y+InverseBox[CurrentSystem].cz*posA_new.z;
-
-        // apply boundary condition
-        s.x-=(REAL)NINT(s.x);
-        s.y-=(REAL)NINT(s.y);
-        s.z-=(REAL)NINT(s.z);
-
-        // s between 0 and 1
-        s.x+=0.5;
-        s.y+=0.5;
-        s.z+=0.5;
-
-        // compute the corresponding cell-id
-        icell0=(int)(s.x*NumberOfCellListCells[CurrentSystem].x)+
-               ((int)(s.y*NumberOfCellListCells[CurrentSystem].y))*NumberOfCellListCells[CurrentSystem].x+
-               ((int)(s.z*NumberOfCellListCells[CurrentSystem].z))*NumberOfCellListCells[CurrentSystem].x*NumberOfCellListCells[CurrentSystem].y;
-
-        for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
+        if((Framework[CurrentSystem].FrameworkModel==GRID)&&(VDWGrid[typeA])&&CanUseGrid)
+          UHostVDWDelta[CurrentSystem]+=InterpolateVDWGrid(typeA,posA_new);
+        else if(UseCellLists[CurrentSystem])
         {
-          // loop over cells
-          for(i=0;i<27;i++)
+          // convert from xyz to abc
+          s.x=InverseBox[CurrentSystem].ax*posA_new.x+InverseBox[CurrentSystem].bx*posA_new.y+InverseBox[CurrentSystem].cx*posA_new.z;
+          s.y=InverseBox[CurrentSystem].ay*posA_new.x+InverseBox[CurrentSystem].by*posA_new.y+InverseBox[CurrentSystem].cy*posA_new.z;
+          s.z=InverseBox[CurrentSystem].az*posA_new.x+InverseBox[CurrentSystem].bz*posA_new.y+InverseBox[CurrentSystem].cz*posA_new.z;
+
+          // apply boundary condition
+          s.x-=(REAL)NINT(s.x);
+          s.y-=(REAL)NINT(s.y);
+          s.z-=(REAL)NINT(s.z);
+
+          // s between 0 and 1
+          s.x+=0.5;
+          s.y+=0.5;
+          s.z+=0.5;
+
+          // compute the corresponding cell-id
+          icell0=(int)(s.x*NumberOfCellListCells[CurrentSystem].x)+
+                 ((int)(s.y*NumberOfCellListCells[CurrentSystem].y))*NumberOfCellListCells[CurrentSystem].x+
+                 ((int)(s.z*NumberOfCellListCells[CurrentSystem].z))*NumberOfCellListCells[CurrentSystem].x*NumberOfCellListCells[CurrentSystem].y;
+
+          for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
           {
-            icell=CellListMap[CurrentSystem][icell0][i];
-
-            k=Framework[CurrentSystem].CellListHead[f1][icell];
-
-            while(k>=0)
+            // loop over cells
+            for(i=0;i<27;i++)
             {
-              typeB=Framework[CurrentSystem].Atoms[f1][k].Type;
-              posB=Framework[CurrentSystem].Atoms[f1][k].AnisotropicPosition;
+              icell=CellListMap[CurrentSystem][icell0][i];
 
-              dr.x=posA_new.x-posB.x;
-              dr.y=posA_new.y-posB.y;
-              dr.z=posA_new.z-posB.z;
-              dr=ApplyBoundaryCondition(dr);
-              rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
+              k=Framework[CurrentSystem].CellListHead[f1][icell];
 
-              if(rr<CutOffVDWSquared)
+              while(k>=0)
               {
-                energy=PotentialValue(typeA,typeB,rr,1.0);
-                if(energy>=EnergyOverlapCriteria) return OVERLAP=TRUE;
-                UHostVDWDelta[CurrentSystem]+=energy;
-              }
+                typeB=Framework[CurrentSystem].Atoms[f1][k].Type;
+                posB=Framework[CurrentSystem].Atoms[f1][k].AnisotropicPosition;
 
-              k=Framework[CurrentSystem].CellList[f1][k];
+                dr.x=posA_new.x-posB.x;
+                dr.y=posA_new.y-posB.y;
+                dr.z=posA_new.z-posB.z;
+                dr=ApplyBoundaryCondition(dr);
+                rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
+
+                if(rr<CutOffVDWSquared)
+                {
+                  energy=PotentialValue(typeA,typeB,rr,1.0);
+                  if(energy>=EnergyOverlapCriteria) return OVERLAP=TRUE;
+                  UHostVDWDelta[CurrentSystem]+=energy;
+                }
+
+                k=Framework[CurrentSystem].CellList[f1][k];
+              }
             }
           }
         }
-
-        // convert from xyz to abc
-        s.x=InverseBox[CurrentSystem].ax*posA_old.x+InverseBox[CurrentSystem].bx*posA_old.y+InverseBox[CurrentSystem].cx*posA_old.z;
-        s.y=InverseBox[CurrentSystem].ay*posA_old.x+InverseBox[CurrentSystem].by*posA_old.y+InverseBox[CurrentSystem].cy*posA_old.z;
-        s.z=InverseBox[CurrentSystem].az*posA_old.x+InverseBox[CurrentSystem].bz*posA_old.y+InverseBox[CurrentSystem].cz*posA_old.z;
-
-        // apply boundary condition
-        s.x-=(REAL)NINT(s.x);
-        s.y-=(REAL)NINT(s.y);
-        s.z-=(REAL)NINT(s.z);
-
-        // s between 0 and 1
-        s.x+=0.5;
-        s.y+=0.5;
-        s.z+=0.5;
-
-        // compute the corresponding cell-id
-        icell0=(int)(s.x*NumberOfCellListCells[CurrentSystem].x)+
-               ((int)(s.y*NumberOfCellListCells[CurrentSystem].y))*NumberOfCellListCells[CurrentSystem].x+
-               ((int)(s.z*NumberOfCellListCells[CurrentSystem].z))*NumberOfCellListCells[CurrentSystem].x*NumberOfCellListCells[CurrentSystem].y;
-
-        for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
+        else if(UseReplicas[CurrentSystem])
         {
-          // loop over cells
-          for(i=0;i<27;i++)
+          for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
           {
-            icell=CellListMap[CurrentSystem][icell0][i];
-
-            k=Framework[CurrentSystem].CellListHead[f1][icell];
-
-            while(k>=0)
+            for(k=0;k<Framework[CurrentSystem].NumberOfAtoms[f1];k++)
             {
               typeB=Framework[CurrentSystem].Atoms[f1][k].Type;
               posB=Framework[CurrentSystem].Atoms[f1][k].AnisotropicPosition;
 
-              dr.x=posA_old.x-posB.x;
-              dr.y=posA_old.y-posB.y;
-              dr.z=posA_old.z-posB.z;
-              dr=ApplyBoundaryCondition(dr);
-              rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-              if(rr<CutOffVDWSquared)
-                UHostVDWDelta[CurrentSystem]-=PotentialValue(typeA,typeB,rr,1.0);
-
-              k=Framework[CurrentSystem].CellList[f1][k];
-            }
-          }
-        }
-      }
-      else if(UseReplicas[CurrentSystem])
-      {
-        for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
-        {
-          for(k=0;k<Framework[CurrentSystem].NumberOfAtoms[f1];k++)
-          {
-            typeB=Framework[CurrentSystem].Atoms[f1][k].Type;
-            posB=Framework[CurrentSystem].Atoms[f1][k].AnisotropicPosition;
-
-            if(New)
-            {
               for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
               {
                 dr.x=posA_new.x-(posB.x+ReplicaShift[ncell].x);
@@ -4892,34 +4837,17 @@ int CalculateFrameworkAdsorbateVDWEnergyDifference(int m,int comp,int New,int Ol
                 }
               }
             }
-
-            if(Old)
-            {
-              for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
-              {
-                dr.x=posA_old.x-(posB.x+ReplicaShift[ncell].x);
-                dr.y=posA_old.y-(posB.y+ReplicaShift[ncell].y);
-                dr.z=posA_old.z-(posB.z+ReplicaShift[ncell].z);
-                dr=ApplyReplicaBoundaryCondition(dr);
-                rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-                if(rr<CutOffVDWSquared)
-                  UHostVDWDelta[CurrentSystem]-=PotentialValue(typeA,typeB,rr,scaling_old);
-              }
-            }
           }
         }
-      }
-      else
-      {
-        for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
+        else
         {
-          for(k=0;k<Framework[CurrentSystem].NumberOfAtoms[f1];k++)
+          for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
           {
-            typeB=Framework[CurrentSystem].Atoms[f1][k].Type;
-            posB=Framework[CurrentSystem].Atoms[f1][k].AnisotropicPosition;
-
-            if(New)
+            for(k=0;k<Framework[CurrentSystem].NumberOfAtoms[f1];k++)
             {
+              typeB=Framework[CurrentSystem].Atoms[f1][k].Type;
+              posB=Framework[CurrentSystem].Atoms[f1][k].AnisotropicPosition;
+
               dr.x=posA_new.x-posB.x;
               dr.y=posA_new.y-posB.y;
               dr.z=posA_new.z-posB.z;
@@ -4933,9 +4861,107 @@ int CalculateFrameworkAdsorbateVDWEnergyDifference(int m,int comp,int New,int Ol
                 UHostVDWDelta[CurrentSystem]+=energy;
               }
             }
+          }
+        }
+      }
+    }
+  }
 
-            if(Old)
+
+  if(Old)
+  {
+    if(Framework[CurrentSystem].FrameworkModel!=NONE)
+    {
+      // grid interpolation; transfer to the correct coordinates
+      nr_atoms=Components[comp].NumberOfAtoms;
+      for(j=0;j<nr_atoms;j++)
+      {
+        typeA=Components[comp].Type[j];
+        posA_old=Adsorbates[CurrentSystem][m].Atoms[j].AnisotropicPosition;
+        scaling_old=Adsorbates[CurrentSystem][m].Atoms[j].CFVDWScalingParameter;
+
+        if((Framework[CurrentSystem].FrameworkModel==GRID)&&(VDWGrid[typeA])&&CanUseGrid)
+          UHostVDWDelta[CurrentSystem]-=InterpolateVDWGrid(typeA,posA_old);
+        else if(UseCellLists[CurrentSystem])
+        {
+          // convert from xyz to abc
+          s.x=InverseBox[CurrentSystem].ax*posA_old.x+InverseBox[CurrentSystem].bx*posA_old.y+InverseBox[CurrentSystem].cx*posA_old.z;
+          s.y=InverseBox[CurrentSystem].ay*posA_old.x+InverseBox[CurrentSystem].by*posA_old.y+InverseBox[CurrentSystem].cy*posA_old.z;
+          s.z=InverseBox[CurrentSystem].az*posA_old.x+InverseBox[CurrentSystem].bz*posA_old.y+InverseBox[CurrentSystem].cz*posA_old.z;
+
+          // apply boundary condition
+          s.x-=(REAL)NINT(s.x);
+          s.y-=(REAL)NINT(s.y);
+          s.z-=(REAL)NINT(s.z);
+
+          // s between 0 and 1
+          s.x+=0.5;
+          s.y+=0.5;
+          s.z+=0.5;
+
+          // compute the corresponding cell-id
+          icell0=(int)(s.x*NumberOfCellListCells[CurrentSystem].x)+
+                 ((int)(s.y*NumberOfCellListCells[CurrentSystem].y))*NumberOfCellListCells[CurrentSystem].x+
+                 ((int)(s.z*NumberOfCellListCells[CurrentSystem].z))*NumberOfCellListCells[CurrentSystem].x*NumberOfCellListCells[CurrentSystem].y;
+
+          for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
+          {
+            // loop over cells
+            for(i=0;i<27;i++)
             {
+              icell=CellListMap[CurrentSystem][icell0][i];
+
+              k=Framework[CurrentSystem].CellListHead[f1][icell];
+
+              while(k>=0)
+              {
+                typeB=Framework[CurrentSystem].Atoms[f1][k].Type;
+                posB=Framework[CurrentSystem].Atoms[f1][k].AnisotropicPosition;
+
+                dr.x=posA_old.x-posB.x;
+                dr.y=posA_old.y-posB.y;
+                dr.z=posA_old.z-posB.z;
+                dr=ApplyBoundaryCondition(dr);
+                rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
+                if(rr<CutOffVDWSquared)
+                  UHostVDWDelta[CurrentSystem]-=PotentialValue(typeA,typeB,rr,1.0);
+
+                k=Framework[CurrentSystem].CellList[f1][k];
+              }
+            }
+          }
+        }
+        else if(UseReplicas[CurrentSystem])
+        {
+          for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
+          {
+            for(k=0;k<Framework[CurrentSystem].NumberOfAtoms[f1];k++)
+            {
+              typeB=Framework[CurrentSystem].Atoms[f1][k].Type;
+              posB=Framework[CurrentSystem].Atoms[f1][k].AnisotropicPosition;
+
+              for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
+              {
+                dr.x=posA_old.x-(posB.x+ReplicaShift[ncell].x);
+                dr.y=posA_old.y-(posB.y+ReplicaShift[ncell].y);
+                dr.z=posA_old.z-(posB.z+ReplicaShift[ncell].z);
+                dr=ApplyReplicaBoundaryCondition(dr);
+                rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
+                if(rr<CutOffVDWSquared)
+                  UHostVDWDelta[CurrentSystem]-=PotentialValue(typeA,typeB,rr,scaling_old);
+              }
+            }
+          }
+        }
+        else
+        {
+          for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
+          {
+            for(k=0;k<Framework[CurrentSystem].NumberOfAtoms[f1];k++)
+            {
+              typeB=Framework[CurrentSystem].Atoms[f1][k].Type;
+              posB=Framework[CurrentSystem].Atoms[f1][k].AnisotropicPosition;
+
               dr.x=posA_old.x-posB.x;
               dr.y=posA_old.y-posB.y;
               dr.z=posA_old.z-posB.z;
@@ -4949,6 +4975,7 @@ int CalculateFrameworkAdsorbateVDWEnergyDifference(int m,int comp,int New,int Ol
       }
     }
   }
+
   return 0;
 }
 
@@ -4975,7 +5002,7 @@ int CalculateFrameworkAdsorbateVDWEnergyDifference(int m,int comp,int New,int Ol
  *            | int CFCBSwapLambaMove(void)                                                              *
  *********************************************************************************************************/
 
-int CalculateFrameworkCationVDWEnergyDifference(int m,int comp,int New,int Old)
+int CalculateFrameworkCationVDWEnergyDifference(int m,int comp,int New,int Old,int CanUseGrid)
 {
   int i,j,k,nr_atoms,typeA,typeB,f1;
   POINT posA_new,posA_old,posB;
@@ -4987,141 +5014,83 @@ int CalculateFrameworkCationVDWEnergyDifference(int m,int comp,int New,int Old)
   // Framework-Cation energy
   OVERLAP=FALSE;
   UHostVDWDelta[CurrentSystem]=0.0;
-  if(Framework[CurrentSystem].FrameworkModel!=NONE)
+  if(New)
   {
-    // grid interpolation; transfer to the correct coordinates
-    nr_atoms=Components[CurrentComponent].NumberOfAtoms;
-    for(j=0;j<nr_atoms;j++)
+    if(Framework[CurrentSystem].FrameworkModel!=NONE)
     {
-      typeA=Components[CurrentComponent].Type[j];
-      if(New)
+      // grid interpolation; transfer to the correct coordinates
+      nr_atoms=Components[comp].NumberOfAtoms;
+      for(j=0;j<nr_atoms;j++)
       {
+        typeA=Components[comp].Type[j];
         posA_new=TrialAnisotropicPosition[CurrentSystem][j];
         scaling_new=CFVDWScaling[j];
-      }
-      if(Old)
-      {
-        posA_old=Cations[CurrentSystem][m].Atoms[j].AnisotropicPosition;
-        scaling_old=Cations[CurrentSystem][m].Atoms[j].CFVDWScalingParameter;
-      }
 
-      if((Framework[CurrentSystem].FrameworkModel==GRID)&&(VDWGrid[typeA]))
-      {
-        if(New) UHostVDWDelta[CurrentSystem]+=InterpolateVDWGrid(typeA,posA_new);
-        if(Old) UHostVDWDelta[CurrentSystem]-=InterpolateVDWGrid(typeA,posA_old);
-      }
-      else if(UseCellLists[CurrentSystem])
-      {
-        // convert from xyz to abc
-        s.x=InverseBox[CurrentSystem].ax*posA_new.x+InverseBox[CurrentSystem].bx*posA_new.y+InverseBox[CurrentSystem].cx*posA_new.z;
-        s.y=InverseBox[CurrentSystem].ay*posA_new.x+InverseBox[CurrentSystem].by*posA_new.y+InverseBox[CurrentSystem].cy*posA_new.z;
-        s.z=InverseBox[CurrentSystem].az*posA_new.x+InverseBox[CurrentSystem].bz*posA_new.y+InverseBox[CurrentSystem].cz*posA_new.z;
-
-        // apply boundary condition
-        s.x-=(REAL)NINT(s.x);
-        s.y-=(REAL)NINT(s.y);
-        s.z-=(REAL)NINT(s.z);
-
-        // s between 0 and 1
-        s.x+=0.5;
-        s.y+=0.5;
-        s.z+=0.5;
-
-        // compute the corresponding cell-id
-        icell0=(int)(s.x*NumberOfCellListCells[CurrentSystem].x)+
-               ((int)(s.y*NumberOfCellListCells[CurrentSystem].y))*NumberOfCellListCells[CurrentSystem].x+
-               ((int)(s.z*NumberOfCellListCells[CurrentSystem].z))*NumberOfCellListCells[CurrentSystem].x*NumberOfCellListCells[CurrentSystem].y;
-
-        for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
+        if((Framework[CurrentSystem].FrameworkModel==GRID)&&(VDWGrid[typeA])&&CanUseGrid)
+          UHostVDWDelta[CurrentSystem]+=InterpolateVDWGrid(typeA,posA_new);
+        else if(UseCellLists[CurrentSystem])
         {
-          // loop over cells
-          for(i=0;i<27;i++)
+          // convert from xyz to abc
+          s.x=InverseBox[CurrentSystem].ax*posA_new.x+InverseBox[CurrentSystem].bx*posA_new.y+InverseBox[CurrentSystem].cx*posA_new.z;
+          s.y=InverseBox[CurrentSystem].ay*posA_new.x+InverseBox[CurrentSystem].by*posA_new.y+InverseBox[CurrentSystem].cy*posA_new.z;
+          s.z=InverseBox[CurrentSystem].az*posA_new.x+InverseBox[CurrentSystem].bz*posA_new.y+InverseBox[CurrentSystem].cz*posA_new.z;
+
+          // apply boundary condition
+          s.x-=(REAL)NINT(s.x);
+          s.y-=(REAL)NINT(s.y);
+          s.z-=(REAL)NINT(s.z);
+
+          // s between 0 and 1
+          s.x+=0.5;
+          s.y+=0.5;
+          s.z+=0.5;
+
+          // compute the corresponding cell-id
+          icell0=(int)(s.x*NumberOfCellListCells[CurrentSystem].x)+
+                 ((int)(s.y*NumberOfCellListCells[CurrentSystem].y))*NumberOfCellListCells[CurrentSystem].x+
+                 ((int)(s.z*NumberOfCellListCells[CurrentSystem].z))*NumberOfCellListCells[CurrentSystem].x*NumberOfCellListCells[CurrentSystem].y;
+
+          for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
           {
-            icell=CellListMap[CurrentSystem][icell0][i];
-
-            k=Framework[CurrentSystem].CellListHead[f1][icell];
-
-            while(k>=0)
+            // loop over cells
+            for(i=0;i<27;i++)
             {
-              typeB=Framework[CurrentSystem].Atoms[f1][k].Type;
-              posB=Framework[CurrentSystem].Atoms[f1][k].AnisotropicPosition;
+              icell=CellListMap[CurrentSystem][icell0][i];
 
-              dr.x=posA_new.x-posB.x;
-              dr.y=posA_new.y-posB.y;
-              dr.z=posA_new.z-posB.z;
-              dr=ApplyBoundaryCondition(dr);
-              rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
+              k=Framework[CurrentSystem].CellListHead[f1][icell];
 
-              if(rr<CutOffVDWSquared)
+              while(k>=0)
               {
-                energy=PotentialValue(typeA,typeB,rr,1.0);
-                if(energy>=EnergyOverlapCriteria) return OVERLAP=TRUE;
-                UHostVDWDelta[CurrentSystem]+=energy;
-              }
+                typeB=Framework[CurrentSystem].Atoms[f1][k].Type;
+                posB=Framework[CurrentSystem].Atoms[f1][k].AnisotropicPosition;
 
-              k=Framework[CurrentSystem].CellList[f1][k];
+                dr.x=posA_new.x-posB.x;
+                dr.y=posA_new.y-posB.y;
+                dr.z=posA_new.z-posB.z;
+                dr=ApplyBoundaryCondition(dr);
+                rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
+
+                if(rr<CutOffVDWSquared)
+                {
+                  energy=PotentialValue(typeA,typeB,rr,1.0);
+                  if(energy>=EnergyOverlapCriteria) return OVERLAP=TRUE;
+                  UHostVDWDelta[CurrentSystem]+=energy;
+                }
+
+                k=Framework[CurrentSystem].CellList[f1][k];
+              }
             }
           }
         }
-
-        // convert from xyz to abc
-        s.x=InverseBox[CurrentSystem].ax*posA_old.x+InverseBox[CurrentSystem].bx*posA_old.y+InverseBox[CurrentSystem].cx*posA_old.z;
-        s.y=InverseBox[CurrentSystem].ay*posA_old.x+InverseBox[CurrentSystem].by*posA_old.y+InverseBox[CurrentSystem].cy*posA_old.z;
-        s.z=InverseBox[CurrentSystem].az*posA_old.x+InverseBox[CurrentSystem].bz*posA_old.y+InverseBox[CurrentSystem].cz*posA_old.z;
-
-        // apply boundary condition
-        s.x-=(REAL)NINT(s.x);
-        s.y-=(REAL)NINT(s.y);
-        s.z-=(REAL)NINT(s.z);
-
-        // s between 0 and 1
-        s.x+=0.5;
-        s.y+=0.5;
-        s.z+=0.5;
-
-        // compute the corresponding cell-id
-        icell0=(int)(s.x*NumberOfCellListCells[CurrentSystem].x)+
-               ((int)(s.y*NumberOfCellListCells[CurrentSystem].y))*NumberOfCellListCells[CurrentSystem].x+
-               ((int)(s.z*NumberOfCellListCells[CurrentSystem].z))*NumberOfCellListCells[CurrentSystem].x*NumberOfCellListCells[CurrentSystem].y;
-
-        for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
+        else if(UseReplicas[CurrentSystem])
         {
-          // loop over cells
-          for(i=0;i<27;i++)
+          for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
           {
-            icell=CellListMap[CurrentSystem][icell0][i];
-
-            k=Framework[CurrentSystem].CellListHead[f1][icell];
-
-            while(k>=0)
+            for(k=0;k<Framework[CurrentSystem].NumberOfAtoms[f1];k++)
             {
               typeB=Framework[CurrentSystem].Atoms[f1][k].Type;
               posB=Framework[CurrentSystem].Atoms[f1][k].AnisotropicPosition;
 
-              dr.x=posA_old.x-posB.x;
-              dr.y=posA_old.y-posB.y;
-              dr.z=posA_old.z-posB.z;
-              dr=ApplyBoundaryCondition(dr);
-              rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-              if(rr<CutOffVDWSquared)
-                UHostVDWDelta[CurrentSystem]-=PotentialValue(typeA,typeB,rr,1.0);
-
-              k=Framework[CurrentSystem].CellList[f1][k];
-            }
-          }
-        }
-      }
-      else if(UseReplicas[CurrentSystem])
-      {
-        for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
-        {
-          for(k=0;k<Framework[CurrentSystem].NumberOfAtoms[f1];k++)
-          {
-            typeB=Framework[CurrentSystem].Atoms[f1][k].Type;
-            posB=Framework[CurrentSystem].Atoms[f1][k].AnisotropicPosition;
-
-            if(New)
-            {
               for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
               {
                 dr.x=posA_new.x-(posB.x+ReplicaShift[ncell].x);
@@ -5138,34 +5107,17 @@ int CalculateFrameworkCationVDWEnergyDifference(int m,int comp,int New,int Old)
                 }
               }
             }
-
-            if(Old)
-            {
-              for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
-              {
-                dr.x=posA_old.x-(posB.x+ReplicaShift[ncell].x);
-                dr.y=posA_old.y-(posB.y+ReplicaShift[ncell].y);
-                dr.z=posA_old.z-(posB.z+ReplicaShift[ncell].z);
-                dr=ApplyReplicaBoundaryCondition(dr);
-                rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-                if(rr<CutOffVDWSquared)
-                  UHostVDWDelta[CurrentSystem]-=PotentialValue(typeA,typeB,rr,scaling_old);
-              }
-            }
           }
         }
-      }
-      else
-      {
-        for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
+        else
         {
-          for(k=0;k<Framework[CurrentSystem].NumberOfAtoms[f1];k++)
+          for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
           {
-            typeB=Framework[CurrentSystem].Atoms[f1][k].Type;
-            posB=Framework[CurrentSystem].Atoms[f1][k].AnisotropicPosition;
-
-            if(New)
+            for(k=0;k<Framework[CurrentSystem].NumberOfAtoms[f1];k++)
             {
+              typeB=Framework[CurrentSystem].Atoms[f1][k].Type;
+              posB=Framework[CurrentSystem].Atoms[f1][k].AnisotropicPosition;
+
               dr.x=posA_new.x-posB.x;
               dr.y=posA_new.y-posB.y;
               dr.z=posA_new.z-posB.z;
@@ -5179,9 +5131,107 @@ int CalculateFrameworkCationVDWEnergyDifference(int m,int comp,int New,int Old)
                 UHostVDWDelta[CurrentSystem]+=energy;
               }
             }
+          }
+        }
+      }
+    }
+  }
 
-            if(Old)
+  if(Old)
+  {
+    if(Framework[CurrentSystem].FrameworkModel!=NONE)
+    {
+      // grid interpolation; transfer to the correct coordinates
+      nr_atoms=Components[comp].NumberOfAtoms;
+      for(j=0;j<nr_atoms;j++)
+      {
+        typeA=Components[comp].Type[j];
+        posA_old=Cations[CurrentSystem][m].Atoms[j].AnisotropicPosition;
+        scaling_old=Cations[CurrentSystem][m].Atoms[j].CFVDWScalingParameter;
+
+        if((Framework[CurrentSystem].FrameworkModel==GRID)&&(VDWGrid[typeA])&&CanUseGrid)
+          UHostVDWDelta[CurrentSystem]-=InterpolateVDWGrid(typeA,posA_old);
+        else if(UseCellLists[CurrentSystem])
+        {
+          // convert from xyz to abc
+          s.x=InverseBox[CurrentSystem].ax*posA_old.x+InverseBox[CurrentSystem].bx*posA_old.y+InverseBox[CurrentSystem].cx*posA_old.z;
+          s.y=InverseBox[CurrentSystem].ay*posA_old.x+InverseBox[CurrentSystem].by*posA_old.y+InverseBox[CurrentSystem].cy*posA_old.z;
+          s.z=InverseBox[CurrentSystem].az*posA_old.x+InverseBox[CurrentSystem].bz*posA_old.y+InverseBox[CurrentSystem].cz*posA_old.z;
+
+          // apply boundary condition
+          s.x-=(REAL)NINT(s.x);
+          s.y-=(REAL)NINT(s.y);
+          s.z-=(REAL)NINT(s.z);
+
+          // s between 0 and 1
+          s.x+=0.5;
+          s.y+=0.5;
+          s.z+=0.5;
+
+          // compute the corresponding cell-id
+          icell0=(int)(s.x*NumberOfCellListCells[CurrentSystem].x)+
+                 ((int)(s.y*NumberOfCellListCells[CurrentSystem].y))*NumberOfCellListCells[CurrentSystem].x+
+                 ((int)(s.z*NumberOfCellListCells[CurrentSystem].z))*NumberOfCellListCells[CurrentSystem].x*NumberOfCellListCells[CurrentSystem].y;
+
+          for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
+          {
+            // loop over cells
+            for(i=0;i<27;i++)
             {
+              icell=CellListMap[CurrentSystem][icell0][i];
+
+              k=Framework[CurrentSystem].CellListHead[f1][icell];
+
+              while(k>=0)
+              {
+                typeB=Framework[CurrentSystem].Atoms[f1][k].Type;
+                posB=Framework[CurrentSystem].Atoms[f1][k].AnisotropicPosition;
+
+                dr.x=posA_old.x-posB.x;
+                dr.y=posA_old.y-posB.y;
+                dr.z=posA_old.z-posB.z;
+                dr=ApplyBoundaryCondition(dr);
+                rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
+                if(rr<CutOffVDWSquared)
+                  UHostVDWDelta[CurrentSystem]-=PotentialValue(typeA,typeB,rr,1.0);
+
+                k=Framework[CurrentSystem].CellList[f1][k];
+              }
+            }
+          }
+        }
+        else if(UseReplicas[CurrentSystem])
+        {
+          for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
+          {
+            for(k=0;k<Framework[CurrentSystem].NumberOfAtoms[f1];k++)
+            {
+              typeB=Framework[CurrentSystem].Atoms[f1][k].Type;
+              posB=Framework[CurrentSystem].Atoms[f1][k].AnisotropicPosition;
+
+              for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
+              {
+                dr.x=posA_old.x-(posB.x+ReplicaShift[ncell].x);
+                dr.y=posA_old.y-(posB.y+ReplicaShift[ncell].y);
+                dr.z=posA_old.z-(posB.z+ReplicaShift[ncell].z);
+                dr=ApplyReplicaBoundaryCondition(dr);
+                rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
+                if(rr<CutOffVDWSquared)
+                  UHostVDWDelta[CurrentSystem]-=PotentialValue(typeA,typeB,rr,scaling_old);
+              }
+              
+            }
+          }
+        }
+        else
+        {
+          for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
+          {
+            for(k=0;k<Framework[CurrentSystem].NumberOfAtoms[f1];k++)
+            {
+              typeB=Framework[CurrentSystem].Atoms[f1][k].Type;
+              posB=Framework[CurrentSystem].Atoms[f1][k].AnisotropicPosition;
+
               dr.x=posA_old.x-posB.x;
               dr.y=posA_old.y-posB.y;
               dr.z=posA_old.z-posB.z;
@@ -5189,12 +5239,14 @@ int CalculateFrameworkCationVDWEnergyDifference(int m,int comp,int New,int Old)
               rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
               if(rr<CutOffVDWSquared)
                 UHostVDWDelta[CurrentSystem]-=PotentialValue(typeA,typeB,rr,scaling_old);
+              
             }
           }
         }
       }
     }
   }
+
   return 0;
 }
 
@@ -5221,7 +5273,7 @@ int CalculateFrameworkCationVDWEnergyDifference(int m,int comp,int New,int Old)
  *            | int CFCBSwapLambaMove(void)                                                              *
  *********************************************************************************************************/
 
-int CalculateFrameworkAdsorbateChargeChargeEnergyDifference(int m,int comp,int New,int Old)
+int CalculateFrameworkAdsorbateChargeChargeEnergyDifference(int m,int comp,int New,int Old,int CanUseGrid)
 {
   int j,k,f1,typeA;
   POINT posA_new,posA_old,posB;
@@ -5235,43 +5287,28 @@ int CalculateFrameworkAdsorbateChargeChargeEnergyDifference(int m,int comp,int N
 
   if(ChargeMethod==NONE) return 0;
 
-  if(Framework[CurrentSystem].FrameworkModel!=NONE)
+  if(New)
   {
-    // grid interpolation; transfer to the correct coordinates
-    for(j=0;j<Components[comp].NumberOfAtoms;j++)
+    if(Framework[CurrentSystem].FrameworkModel!=NONE)
     {
-      if(New)
+      // grid interpolation; transfer to the correct coordinates
+      for(j=0;j<Components[comp].NumberOfAtoms;j++)
       {
         posA_new=TrialPosition[CurrentSystem][j];
         typeA=Components[comp].Type[j];
         chargeA_new=CFChargeScaling[j]*PseudoAtoms[typeA].Charge1;
-      }
 
-      if(Old)
-      {
-        posA_old=Adsorbates[CurrentSystem][m].Atoms[j].Position;
-        typeA=Adsorbates[CurrentSystem][m].Atoms[j].Type;
-        chargeA_old=Adsorbates[CurrentSystem][m].Atoms[j].CFChargeScalingParameter*Adsorbates[CurrentSystem][m].Atoms[j].Charge;
-      }
-      if((Framework[CurrentSystem].FrameworkModel==GRID)&&(CoulombGrid))
-      {
-        if(ChargeMethod!=NONE)
+        if((ChargeMethod!=NONE)&&(Framework[CurrentSystem].FrameworkModel==GRID)&&(CoulombGrid)&&CanUseGrid)
+          UHostChargeChargeRealDelta[CurrentSystem]+=InterpolateCoulombGrid(typeA,posA_new);
+        else if(UseReplicas[CurrentSystem])
         {
-          if(New) UHostChargeChargeRealDelta[CurrentSystem]+=InterpolateCoulombGrid(typeA,posA_new);
-          if(Old) UHostChargeChargeRealDelta[CurrentSystem]-=InterpolateCoulombGrid(typeA,posA_old);
-        }
-      }
-      else if(UseReplicas[CurrentSystem])
-      {
-        for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
-        {
-          for(k=0;k<Framework[CurrentSystem].NumberOfAtoms[f1];k++)
+          for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
           {
-            posB=Framework[CurrentSystem].Atoms[f1][k].Position;
-            chargeB=Framework[CurrentSystem].Atoms[f1][k].Charge;
-
-            if(New)
+            for(k=0;k<Framework[CurrentSystem].NumberOfAtoms[f1];k++)
             {
+              posB=Framework[CurrentSystem].Atoms[f1][k].Position;
+              chargeB=Framework[CurrentSystem].Atoms[f1][k].Charge;
+
               for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
               {
                 dr.x=posA_new.x-(posB.x+ReplicaShift[ncell].x);
@@ -5288,9 +5325,58 @@ int CalculateFrameworkAdsorbateChargeChargeEnergyDifference(int m,int comp,int N
                 }
               }
             }
-
-            if(Old)
+          }
+        }
+        else
+        {
+          for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
+          {
+            for(k=0;k<Framework[CurrentSystem].NumberOfAtoms[f1];k++)
             {
+              posB=Framework[CurrentSystem].Atoms[f1][k].Position;
+              chargeB=Framework[CurrentSystem].Atoms[f1][k].Charge;
+
+              dr.x=posA_new.x-posB.x;
+              dr.y=posA_new.y-posB.y;
+              dr.z=posA_new.z-posB.z;
+              dr=ApplyBoundaryCondition(dr);
+              rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
+
+              if(rr<CutOffChargeChargeSquared[CurrentSystem])
+              {
+                energy=PotentialValueCoulombic(chargeA_new,chargeB,sqrt(rr));
+                if(energy>=EnergyOverlapCriteria) return OVERLAP=TRUE;
+                UHostChargeChargeRealDelta[CurrentSystem]+=energy;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  if(Old)
+  {
+    if(Framework[CurrentSystem].FrameworkModel!=NONE)
+    {
+      // grid interpolation; transfer to the correct coordinates
+      for(j=0;j<Components[comp].NumberOfAtoms;j++)
+      {
+        posA_old=Adsorbates[CurrentSystem][m].Atoms[j].Position;
+        typeA=Adsorbates[CurrentSystem][m].Atoms[j].Type;
+        chargeA_old=Adsorbates[CurrentSystem][m].Atoms[j].CFChargeScalingParameter*Adsorbates[CurrentSystem][m].Atoms[j].Charge;
+        
+        if((ChargeMethod!=NONE)&&(Framework[CurrentSystem].FrameworkModel==GRID)&&(CoulombGrid)&&CanUseGrid)
+          UHostChargeChargeRealDelta[CurrentSystem]-=InterpolateCoulombGrid(typeA,posA_old);
+        else if(UseReplicas[CurrentSystem])
+        {
+          for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
+          {
+            for(k=0;k<Framework[CurrentSystem].NumberOfAtoms[f1];k++)
+            {
+              posB=Framework[CurrentSystem].Atoms[f1][k].Position;
+              chargeB=Framework[CurrentSystem].Atoms[f1][k].Charge;
+
               for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
               {
                 dr.x=posA_old.x-(posB.x+ReplicaShift[ncell].x);
@@ -5305,34 +5391,15 @@ int CalculateFrameworkAdsorbateChargeChargeEnergyDifference(int m,int comp,int N
             }
           }
         }
-      }
-      else
-      {
-        for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
+        else
         {
-          for(k=0;k<Framework[CurrentSystem].NumberOfAtoms[f1];k++)
+          for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
           {
-            posB=Framework[CurrentSystem].Atoms[f1][k].Position;
-            chargeB=Framework[CurrentSystem].Atoms[f1][k].Charge;
-
-            if(New)
+            for(k=0;k<Framework[CurrentSystem].NumberOfAtoms[f1];k++)
             {
-              dr.x=posA_new.x-posB.x;
-              dr.y=posA_new.y-posB.y;
-              dr.z=posA_new.z-posB.z;
-              dr=ApplyBoundaryCondition(dr);
-              rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
+              posB=Framework[CurrentSystem].Atoms[f1][k].Position;
+              chargeB=Framework[CurrentSystem].Atoms[f1][k].Charge;
 
-              if(rr<CutOffChargeChargeSquared[CurrentSystem])
-              {
-                energy=PotentialValueCoulombic(chargeA_new,chargeB,sqrt(rr));
-                if(energy>=EnergyOverlapCriteria) return OVERLAP=TRUE;
-                UHostChargeChargeRealDelta[CurrentSystem]+=energy;
-              }
-            }
-
-            if(Old)
-            {
               dr.x=posA_old.x-posB.x;
               dr.y=posA_old.y-posB.y;
               dr.z=posA_old.z-posB.z;
@@ -5347,6 +5414,7 @@ int CalculateFrameworkAdsorbateChargeChargeEnergyDifference(int m,int comp,int N
       }
     }
   }
+
   return 0;
 }
 
@@ -5373,7 +5441,7 @@ int CalculateFrameworkAdsorbateChargeChargeEnergyDifference(int m,int comp,int N
  *            | int CFCBSwapLambaMove(void)                                                              *
  *********************************************************************************************************/
 
-int CalculateFrameworkCationChargeChargeEnergyDifference(int m,int comp,int New,int Old)
+int CalculateFrameworkCationChargeChargeEnergyDifference(int m,int comp,int New,int Old,int CanUseGrid)
 {
   int j,k,f1,typeA;
   POINT posA_new,posA_old,posB;
@@ -5387,43 +5455,28 @@ int CalculateFrameworkCationChargeChargeEnergyDifference(int m,int comp,int New,
 
   if(ChargeMethod==NONE) return 0;
 
-  if(Framework[CurrentSystem].FrameworkModel!=NONE)
+  if(New)
   {
-    // grid interpolation; transfer to the correct coordinates
-    for(j=0;j<Components[comp].NumberOfAtoms;j++)
+    if(Framework[CurrentSystem].FrameworkModel!=NONE)
     {
-      if(New)
+      // grid interpolation; transfer to the correct coordinates
+      for(j=0;j<Components[comp].NumberOfAtoms;j++)
       {
         posA_new=TrialPosition[CurrentSystem][j];
         typeA=Components[comp].Type[j];
         chargeA_new=CFChargeScaling[j]*PseudoAtoms[typeA].Charge1;;
-      }
-
-      if(Old)
-      {
-        posA_old=Cations[CurrentSystem][m].Atoms[j].Position;
-        typeA=Cations[CurrentSystem][m].Atoms[j].Type;
-        chargeA_old=Cations[CurrentSystem][m].Atoms[j].CFChargeScalingParameter*Cations[CurrentSystem][m].Atoms[j].Charge;
-      }
-      if((Framework[CurrentSystem].FrameworkModel==GRID)&&(CoulombGrid))
-      {
-        if(ChargeMethod!=NONE)
+        
+        if((ChargeMethod!=NONE)&&(Framework[CurrentSystem].FrameworkModel==GRID)&&(CoulombGrid)&&CanUseGrid)
+          UHostChargeChargeRealDelta[CurrentSystem]+=InterpolateCoulombGrid(typeA,posA_new);
+        else if(UseReplicas[CurrentSystem])
         {
-          if(New) UHostChargeChargeRealDelta[CurrentSystem]+=InterpolateCoulombGrid(typeA,posA_new);
-          if(Old) UHostChargeChargeRealDelta[CurrentSystem]-=InterpolateCoulombGrid(typeA,posA_old);
-        }
-      }
-      else if(UseReplicas[CurrentSystem])
-      {
-        for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
-        {
-          for(k=0;k<Framework[CurrentSystem].NumberOfAtoms[f1];k++)
+          for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
           {
-            posB=Framework[CurrentSystem].Atoms[f1][k].Position;
-            chargeB=Framework[CurrentSystem].Atoms[f1][k].Charge;
-
-            if(New)
+            for(k=0;k<Framework[CurrentSystem].NumberOfAtoms[f1];k++)
             {
+              posB=Framework[CurrentSystem].Atoms[f1][k].Position;
+              chargeB=Framework[CurrentSystem].Atoms[f1][k].Charge;
+
               for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
               {
                 dr.x=posA_new.x-(posB.x+ReplicaShift[ncell].x);
@@ -5436,9 +5489,54 @@ int CalculateFrameworkCationChargeChargeEnergyDifference(int m,int comp,int New,
                   UHostChargeChargeRealDelta[CurrentSystem]+=PotentialValueCoulombic(chargeA_new,chargeB,sqrt(rr));
               }
             }
-
-            if(Old)
+          }
+        }
+        else
+        {
+          for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
+          {
+            for(k=0;k<Framework[CurrentSystem].NumberOfAtoms[f1];k++)
             {
+              posB=Framework[CurrentSystem].Atoms[f1][k].Position;
+              chargeB=Framework[CurrentSystem].Atoms[f1][k].Charge;
+
+              dr.x=posA_new.x-posB.x;
+              dr.y=posA_new.y-posB.y;
+              dr.z=posA_new.z-posB.z;
+              dr=ApplyBoundaryCondition(dr);
+              rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
+
+              if(rr<CutOffChargeChargeSquared[CurrentSystem])
+                UHostChargeChargeRealDelta[CurrentSystem]+=PotentialValueCoulombic(chargeA_new,chargeB,sqrt(rr));
+            }
+          }
+        }
+      }
+    }
+  }
+
+  if(Old)
+  {
+    if(Framework[CurrentSystem].FrameworkModel!=NONE)
+    {
+      // grid interpolation; transfer to the correct coordinates
+      for(j=0;j<Components[comp].NumberOfAtoms;j++)
+      {
+        posA_old=Cations[CurrentSystem][m].Atoms[j].Position;
+        typeA=Cations[CurrentSystem][m].Atoms[j].Type;
+        chargeA_old=Cations[CurrentSystem][m].Atoms[j].CFChargeScalingParameter*Cations[CurrentSystem][m].Atoms[j].Charge;
+        
+        if((ChargeMethod!=NONE)&&(Framework[CurrentSystem].FrameworkModel==GRID)&&(CoulombGrid)&&CanUseGrid)
+          UHostChargeChargeRealDelta[CurrentSystem]-=InterpolateCoulombGrid(typeA,posA_old);
+        else if(UseReplicas[CurrentSystem])
+        {
+          for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
+          {
+            for(k=0;k<Framework[CurrentSystem].NumberOfAtoms[f1];k++)
+            {
+              posB=Framework[CurrentSystem].Atoms[f1][k].Position;
+              chargeB=Framework[CurrentSystem].Atoms[f1][k].Charge;
+
               for(ncell=0;ncell<TotalNumberOfReplicaCells[CurrentSystem];ncell++)
               {
                 dr.x=posA_old.x-(posB.x+ReplicaShift[ncell].x);
@@ -5453,30 +5551,15 @@ int CalculateFrameworkCationChargeChargeEnergyDifference(int m,int comp,int New,
             }
           }
         }
-      }
-      else
-      {
-        for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
+        else
         {
-          for(k=0;k<Framework[CurrentSystem].NumberOfAtoms[f1];k++)
+          for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
           {
-            posB=Framework[CurrentSystem].Atoms[f1][k].Position;
-            chargeB=Framework[CurrentSystem].Atoms[f1][k].Charge;
-
-            if(New)
+            for(k=0;k<Framework[CurrentSystem].NumberOfAtoms[f1];k++)
             {
-              dr.x=posA_new.x-posB.x;
-              dr.y=posA_new.y-posB.y;
-              dr.z=posA_new.z-posB.z;
-              dr=ApplyBoundaryCondition(dr);
-              rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
+              posB=Framework[CurrentSystem].Atoms[f1][k].Position;
+              chargeB=Framework[CurrentSystem].Atoms[f1][k].Charge;
 
-              if(rr<CutOffChargeChargeSquared[CurrentSystem])
-                UHostChargeChargeRealDelta[CurrentSystem]+=PotentialValueCoulombic(chargeA_new,chargeB,sqrt(rr));
-            }
-
-            if(Old)
-            {
               dr.x=posA_old.x-posB.x;
               dr.y=posA_old.y-posB.y;
               dr.z=posA_old.z-posB.z;
@@ -5485,12 +5568,14 @@ int CalculateFrameworkCationChargeChargeEnergyDifference(int m,int comp,int New,
 
               if(rr<CutOffChargeChargeSquared[CurrentSystem])
                 UHostChargeChargeRealDelta[CurrentSystem]-=PotentialValueCoulombic(chargeA_old,chargeB,sqrt(rr));
+              
             }
           }
         }
       }
     }
   }
+
   return 0;
 }
 

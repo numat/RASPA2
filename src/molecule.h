@@ -679,6 +679,9 @@ void CalculateAnisotropicSites(void);
 
 void ReadBiasingProfile(int);
 
+int IsFractionalAdsorbateMolecule(int m);
+int IsFractionalCationMolecule(int m);
+
 int ValidFractionalPoint(int i, POINT s);
 int ValidCartesianPoint(int i, POINT pos);
 
