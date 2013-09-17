@@ -18,7 +18,7 @@ raspa.run.restype = c_void_p
 def run(structure, molecule_name, temperature, pressure, helium_void_fraction,
         unit_cells=(1, 1, 1), framework_name="streamed",
         simulation_type="MonteCarlo", cycles=2000, init_cycles=1000,
-        forcefield="GenericMOFs", input_file_type="cif"):
+        forcefield="CrystalGenerator", input_file_type="cif"):
     """Runs a simulation with the specified parameters.
 
     Args:
@@ -73,7 +73,7 @@ def run_script(input_script, structure=None, raspa_dir="auto"):
     output of RASPA, as a string.
     """
     if raspa_dir == "auto":
-        raspa_dir = env["RASPA_DIR" if "RASPA_DIR" in env else "HOME"]
+        raspa_dir = env["RASPA2_DIR" if "RASPA2_DIR" in env else "HOME"]
     ptr = raspa.run(input_script, structure or "", raspa_dir, bool(structure))
     return cast(ptr, c_char_p).value[:]
 
@@ -81,7 +81,7 @@ def run_script(input_script, structure=None, raspa_dir="auto"):
 def create_script(molecule_name, temperature, pressure, helium_void_fraction,
                   unit_cells=(1, 1, 1), framework_name="streamed",
                   simulation_type="MonteCarlo", cycles=2000,
-                  init_cycles=1000, forcefield="GenericMOFs",
+                  init_cycles=1000, forcefield="CrystalGenerator",
                   input_file_type="cif", **kwargs):
     """Creates a RASPA simulation input file from parameters.
 
@@ -156,7 +156,7 @@ def run_mixture(structure, molecules, mol_fractions, temperature,
                 pressure, helium_void_fraction,
                 unit_cells=(1, 1, 1), framework_name="streamed",
                 simulation_type="MonteCarlo", cycles=2000,
-                init_cycles=1000, forcefield="GenericMOFs",
+                init_cycles=1000, forcefield="CrystalGenerator",
                 input_file_type="cif"):
     """Runs a simulation with mixture of gases.
 
@@ -241,7 +241,7 @@ def run_mixture(structure, molecules, mol_fractions, temperature,
 
 def get_geometric_surface_area(structure, unit_cells=(1, 1, 1), cycles=2000,
                                input_file_type="cif", units="m^2/g",
-                               forcefield="GenericMOFs"):
+                               forcefield="CrystalGenerator"):
     """Calculates the geometric surface area of an inputted structure.
 
     Args:
@@ -284,7 +284,7 @@ def get_geometric_surface_area(structure, unit_cells=(1, 1, 1), cycles=2000,
 
 def get_helium_void_fraction(structure, unit_cells=(1, 1, 1), cycles=2000,
                              input_file_type="cif",
-                             forcefield="GenericMOFs"):
+                             forcefield="CrystalGenerator"):
     """Calculates the helium void fraction of the inputted structure.
 
     Args:

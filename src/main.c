@@ -72,8 +72,8 @@ int main(int argc, char **argv)
   strcat(raspa_dir,"/RASPA/simulations");
 
   // get the raspa install directory from environement if defined
-  if(getenv("RASPA_DIR")&&(strlen(getenv("RASPA_DIR"))>0))
-    raspa_dir=getenv("RASPA_DIR");
+  if(getenv("RASPA2_DIR")&&(strlen(getenv("RASPA2_DIR"))>0))
+    raspa_dir=getenv("RASPA2_DIR");
 
   // parse command-line options (":" means the option has an argument)
   while((c=getopt(argc,argv,"a:vhsc:i:d:"))!=-1)

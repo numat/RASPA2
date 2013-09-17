@@ -32,6 +32,7 @@ AC_OUTPUT(Makefile \
 src/Makefile \
 forcefield/Makefile \
 forcefield/GenericMOFs/Makefile \
+forcefield/CrystalGenerator/Makefile \
 forcefield/GarciaPerez2006/Makefile \
 forcefield/Dubbeldam2007FlexibleIRMOF-1/Makefile \
 forcefield/Dubbeldam2007FlexibleIRMOF-10/Makefile \
@@ -86,4 +87,4 @@ structures/mofs/block/Makefile \
 structures/mofs/ions/Makefile \
 structures/minerals/cif/Makefile  \
 structures/ceramics/cif/Makefile  \
-) 
+)

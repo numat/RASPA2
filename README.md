@@ -1,5 +1,5 @@
-RASPA
-=====
+RASPA2
+======
 
 A general purpose classical simulation package that can be used for the
 simulation of molecules in gases, fluids, zeolites, aluminosilicates,
@@ -13,7 +13,7 @@ This can be done through the standard automake procedure, with some small
 edits.
 
 ```bash
-cd /path/to/RASPA
+cd /path/to/RASPA2
 cp src/Makefile.am.object src/Makefile.am
 mkdir -p m4
 autoreconf --install
@@ -25,19 +25,19 @@ You then should set a `RASPA_DIR` environment variable. In the case of the
 above install directory...
 
 ```bash
-export RASPA_DIR=/path/to/RASPA/simulations
+export RASPA2_DIR=/path/to/RASPA/simulations
 ```
 
-You can now run RASPA simulations through the installed binary. Check the help.
+You can now run RASPA2 simulations through the installed binary. Check the help.
 
 ```bash
-/path/to/RASPA/simulations/bin/./simulate -h
+/path/to/RASPA2/simulations/bin/./simulate -h
 ```
 
 Streaming + Shell Scripting
 ===========================
 
-In this version of RASPA, you can run everything as a stream, allowing
+In this version of RASPA2, you can run everything as a stream, allowing
 inclusion into a bash script without dealing with files and folders. The
 above command could be streamed with the `-s` flag, replacing input files
 with data.
@@ -58,28 +58,28 @@ output=`./simulate -s -i "$script" -c "$mof"`
 Python Bindings
 ===============
 
-For use as one step in a high-throughput process, RASPA can be compiled as a
+For use as one step in a high-throughput process, RASPA2 can be compiled as a
 shared object and interfaced with other programs through Python "glue". To do
 this,
 
 ```bash
-cd /path/to/RASPA
+cd /path/to/RASPA2
 cp src/Makefile.am.shared src/Makefile.am
 mkdir -p m4
 autoreconf --install
 ./configure --prefix=$PWD/simulations
 make && make check && make install
-sudo cp simulations/lib/libraspa.so /usr/lib
+sudo cp simulations/lib/libraspa2.so /usr/lib
 ```
 
-(if you don't have sudo access, `mkdir ~/lib; cp libraspa.so ~/lib`, then
-change the path at the top of `raspa.py`)
+(if you don't have sudo access, `mkdir ~/lib; cp libraspa2.so ~/lib`, then
+change the path at the top of `raspa2.py`)
 
-This creates `libraspa.so`, which is accessible to external programs. To use
+This creates `libraspa2.so`, which is accessible to external programs. To use
 the Python program via the command line, try
 
 ```
-python raspa.py *input_file* *structure_file*
+python raspa2.py *input_file* *structure_file*
 ```
 
 This API allows for the streaming of file output, instead letting the user pipe
@@ -90,8 +90,8 @@ The Python bindings can also be used as part of a larger "glue" script. To do
 this, use
 
 ```python
-import RASPA
-results = RASPA.run(my_structure, "CO2", temperature=298.0, pressure=100000,
+import RASPA2
+results = RASPA2.run(my_structure, "CO2", temperature=298.0, pressure=1e5,
                     helium_void_fraction=0.45)
 ```
 
@@ -99,13 +99,15 @@ This allows streaming without any required input or output files, which makes
 it much easier to use with modern supercomputers (ie. [PiCloud](https://www.picloud.com))
 and modern interfaces (ie. [IPython Notebook](http://ipython.org/notebook.html)).
 
-RASPA_DIR
+RASPA2_DIR
 =========
 
-By default, RASPA expects certain files to be in specific paths. Here's the logic:
+######Note: For this version, I've renamed `RASPA_DIR` to `RASPA2_DIR`. This allows for RASPA and RASPA2 to peacefully coexist. When RASPA is completely deprecated, I may fix the nomenclature.
+
+By default, RASPA2 expects certain files to be in specific paths. Here's the logic:
 
 1. See if that file is in your current directory `$PWD`.
-2. See if that file is in a subdirectory of `$RASPA_DIR`.
+2. See if that file is in a subdirectory of `$RASPA2_DIR`.
 3. See if that file is in a subdirectory of `$HOME`.
 
 This is the case for everything without streaming, but it's also the case for
@@ -118,7 +120,7 @@ cp -r simulations/share ~/
 but you can also add this to your `.bashrc`:
 
 ```
-export RASPA_DIR=/path/to/share
+export RASPA2_DIR=/path/to/share
 ```
 
 or pass an argument to the compiled code.
