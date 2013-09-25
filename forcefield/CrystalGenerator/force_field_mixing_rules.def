@@ -61,7 +61,7 @@ Sb_SbH3        lennard-jones    225.95     4.42
 H_SbH3         lennard-jones    22.14     2.89
 C_C3H6O        lennard-jones    27.0     3.82
 CH3_C3H6O      lennard-jones    98.0     3.75
-O_C3H6         lennard-jones    79.0     3.05
+O_C3H6O        lennard-jones    79.0     3.05
 Ar             lennard-jones    119.8     3.34
 B_BF3          lennard-jones     90.58    4.08
 F_BF3          lennard-jones     25.16    3.36
