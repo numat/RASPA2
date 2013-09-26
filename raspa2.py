@@ -74,7 +74,7 @@ def run_script(input_script, structure=None, raspa_dir="auto"):
     """
     if raspa_dir == "auto":
         raspa_dir = env["RASPA2_DIR" if "RASPA2_DIR" in env else "HOME"]
-    ptr = raspa.run(input_script, structure or "", raspa_dir, bool(structure))
+    ptr = raspa.run(input_script, structure or "", raspa_dir, True)
     return cast(ptr, c_char_p).value[:]
 
 
@@ -211,7 +211,7 @@ def run_mixture(structure, molecules, mol_fractions, temperature,
                         "UnitCells                     %d %d %d" % unit_cells,
                         "HeliumVoidFraction            %.2f" % he,
                         "ExternalTemperature           %.1f" % temperature,
-                        "ExternalPressure              %f" % pressure,
+                        "ExternalPressure              %d" % pressure,
                         "Movies                        no",
                         "WriteMoviesEvery              100",
                         ""])
@@ -239,7 +239,7 @@ def run_mixture(structure, molecules, mol_fractions, temperature,
     return parse(run_script(script, structure))
 
 
-def get_geometric_surface_area(structure, unit_cells=(1, 1, 1), cycles=2000,
+def get_geometric_surface_area(structure, unit_cells=(1, 1, 1), cycles=500,
                                input_file_type="cif", units="m^2/g",
                                forcefield="CrystalGenerator"):
     """Calculates the geometric surface area of an inputted structure.
@@ -322,6 +322,47 @@ def get_helium_void_fraction(structure, unit_cells=(1, 1, 1), cycles=2000,
     return info["Average Widom Rosenbluth factor"]["Widom"][0]
 
 
+def get_density(molecule_name, temperature, pressure, cycles=5000,
+                init_cycles=2500, forcefield="CrystalGenerator"):
+    """Calculates the density through an NPT ensemble.
+
+    Args:
+        molecule_name: The molecule to test for adsorption. A file of the same
+            name must exist in `$RASPA_DIR/share/raspa/molecules/TraPPE`.
+        temperature: The temperature of the simulation, in Kelvin.
+        pressure: The pressure of the simulation, in Pascals.
+        cycles: (Optional) The number of simulation cycles to run.
+        init_cycles: (Optional) The number of initialization cycles to run.
+        forcefield: (Optional) The forcefield to use. Name must match a folder
+            in `$RASPA_DIR/share/raspa/forcefield`, which contains the properly
+            named `.def` files.
+    Returns:
+        The density, as a float, in kg/m^3.
+    """
+    mol = molecule_name
+    script = "\n".join(["SimulationType                   MonteCarlo",
+                        "NumberOfCycles                   %d" % cycles,
+                        "NumberOfInitializationCycles     %d" % init_cycles,
+                        "PrintEvery                       %d" % (cycles / 10),
+                        "",
+                        "Forcefield                       %s" % forcefield,
+                        "",
+                        "Box                              0",
+                        "BoxLengths                       30 30 30",
+                        "ExternalTemperature              %.1f" % temperature,
+                        "ExternalPressure                 %d" % pressure,
+                        "",
+                        "VolumeChangeProbability          0.25",
+                        "",
+                        "Component 0 MoleculeName               %s" % mol,
+                        "            MoleculeDefinition         TraPPE",
+                        "            TranslationProbability     0.5",
+                        "            ReinsertionProbability     0.5",
+                        "            CreateNumberOfMolecules    256"])
+    info = parse(run_script(script))
+    return info["Average Density"]["[kg/m^3]"][0]
+
+
 if __name__ == "__main__":
     import argparse
 
@@ -329,8 +370,9 @@ if __name__ == "__main__":
                                      "for crystal structures.")
     parser.add_argument("input", type=str, help="A simulation script. Can "
                         "be either a filepath or the input data itself")
-    parser.add_argument("structure", type=str, help="An input structure. Can "
-                        "be either a filepath or the input data itself")
+    parser.add_argument("--structure", type=str, default="", help="An input "
+                        "structure. Can be either a filepath or the input "
+                        "data itself")
     args = parser.parse_args()
 
     # Support both filepaths and data-streamed strings
