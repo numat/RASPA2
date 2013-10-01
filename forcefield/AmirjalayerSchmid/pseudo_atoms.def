@@ -1,7 +1,6 @@
 #number of pseudo atoms
-13
+12
 #type      print   as    chem  oxidation   mass        charge   polarization B-factor radii  connectivity anisotropic anisotropic-type   tinker-type
-UNIT       no      H     H     0           1.0         1.0      0.0          1.0      1.0    0            0           relative           0     
 He         yes     He    He    0           4.002602    0.0      0.0          1.0      1.0    0            0           relative           0
 Zn1        yes     Zn    Zn    0           65.37       0.0      0.0          1.0      1.2    0            0           relative           166
 O1         yes     O     O     0           15.9994     0.0      0.0          1.0      0.66   2            0           relative           165

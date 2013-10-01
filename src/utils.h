@@ -66,23 +66,23 @@ typedef struct quaternion
 #endif
 
 #ifndef M_PI
-#define M_PI 3.14159265358979323846264338327950288 
+#define M_PI 3.14159265358979323846264338327950288
 #endif
 
 #ifndef M_SQRT1_3
 #  define M_SQRT1_3   0.57735026918962576451      /* 1/sqrt(3) */
 #endif
 
-#define BIT(x) (1 << (x)) 
-#define SETBITS(x,y) ((x) |= (y)) 
-#define CLEARBITS(x,y) ((x) &= (~(y))) 
-#define SETBIT(x,y) SETBITS((x), (BIT((y)))) 
-#define CLEARBIT(x,y) CLEARBITS((x), (BIT((y)))) 
-#define BITSET(x,y) ((x) & (BIT(y))) 
-#define BITCLEAR(x,y) !BITSET((x), (y)) 
-#define BITSSET(x,y) (((x) & (y)) == (y)) 
-#define BITSCLEAR(x,y) (((x) & (y)) == 0) 
-#define BITVAL(x,y) (((x)>>(y)) & 1) 
+#define BIT(x) (1 << (x))
+#define SETBITS(x,y) ((x) |= (y))
+#define CLEARBITS(x,y) ((x) &= (~(y)))
+#define SETBIT(x,y) SETBITS((x), (BIT((y))))
+#define CLEARBIT(x,y) CLEARBITS((x), (BIT((y))))
+#define BITSET(x,y) ((x) & (BIT(y)))
+#define BITCLEAR(x,y) !BITSET((x), (y))
+#define BITSSET(x,y) (((x) & (y)) == (y))
+#define BITSCLEAR(x,y) (((x) & (y)) == 0)
+#define BITVAL(x,y) (((x)>>(y)) & 1)
 
 REAL Smoothing(REAL theta);
 REAL SmoothingDerivative(REAL theta);

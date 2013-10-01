@@ -1,7 +1,6 @@
 #number of pseudo atoms
-23
+22
 #type        print  as  scatt  oxidation mass       charge  polarization B-factor radii  connectivity
-UNIT         yes     H     H   0         1.0        1.0     0.0          1.0      1.0    0
 He           yes    He    He   0         4.002602   0.0     0.0          1.0      1.0    0
 O            yes      O    O   0         15.9994   -0.823   1.11         1.0      0.68   2
 Oa           yes      O    O   0         15.9994   -0.823   1.11         1.0      0.68   2

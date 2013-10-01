@@ -1359,6 +1359,7 @@ int TranslationMoveAdsorbate(void)
   int StartingBead;
   REAL BiasingWeight=1.0;
   REAL DeltaU;
+  int CanUseGrid;
 
   // return if the component currently has zero molecules
   if(NumberOfAdsorbateMolecules[CurrentSystem]==0) return 0;
@@ -1431,10 +1432,14 @@ int TranslationMoveAdsorbate(void)
   if(OVERLAP) return 0;
 
   // compute energy differences framework-adsorbate
-  CalculateFrameworkAdsorbateVDWEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE);
+
+  // if a fractional molecule is selected make sure that no grids are used
+  CanUseGrid=!IsFractionalAdsorbateMolecule(CurrentAdsorbateMolecule);
+
+  CalculateFrameworkAdsorbateVDWEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE,CanUseGrid);
   if(OVERLAP) return 0;
 
-  CalculateFrameworkAdsorbateChargeChargeEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE);
+  CalculateFrameworkAdsorbateChargeChargeEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE,CanUseGrid);
   if(OVERLAP) return 0;
 
   CalculateFrameworkAdsorbateChargeBondDipoleEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE);
@@ -1601,6 +1606,7 @@ int TranslationMoveCation(void)
   int StartingBead;
   REAL BiasingWeight=1.0;
   REAL DeltaU;
+  int CanUseGrid;
 
   // return if the component currently has zero molecules
   if(NumberOfCationMolecules[CurrentSystem]==0) return 0;
@@ -1672,11 +1678,14 @@ int TranslationMoveCation(void)
   CalculateInterBondDipoleBondDipoleEnergyDifferenceCation(CurrentCationMolecule,CurrentComponent,TRUE,TRUE);
   if(OVERLAP) return 0;
 
+  // if a fractional molecule is selected make sure that no grids are used
+  CanUseGrid=!IsFractionalCationMolecule(CurrentCationMolecule);
+
   // compute energy differences framework-cation
-  CalculateFrameworkCationVDWEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,TRUE);
+  CalculateFrameworkCationVDWEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,TRUE,CanUseGrid);
   if(OVERLAP) return 0;
 
-  CalculateFrameworkCationChargeChargeEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,TRUE);
+  CalculateFrameworkCationChargeChargeEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,TRUE,CanUseGrid);
   if(OVERLAP) return 0;
 
   CalculateFrameworkCationChargeBondDipoleEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,TRUE);
@@ -1956,6 +1965,7 @@ int RandomTranslationMoveAdsorbate(void)
   int StartingBead;
   REAL BiasingWeight=1.0;
   REAL DeltaU;
+  int CanUseGrid;
 
   // return if the component currently has zero molecules
   if(NumberOfAdsorbateMolecules[CurrentSystem]==0) return 0;
@@ -2022,10 +2032,14 @@ int RandomTranslationMoveAdsorbate(void)
   if(OVERLAP) return 0;
 
   // compute energy differences framework-adsorbate
-  CalculateFrameworkAdsorbateVDWEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE);
+
+  // if a fractional molecule is selected make sure that no grids are used
+  CanUseGrid=!IsFractionalAdsorbateMolecule(CurrentAdsorbateMolecule);
+
+  CalculateFrameworkAdsorbateVDWEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE,CanUseGrid);
   if(OVERLAP) return 0;
 
-  CalculateFrameworkAdsorbateChargeChargeEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE);
+  CalculateFrameworkAdsorbateChargeChargeEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE,CanUseGrid);
   if(OVERLAP) return 0;
 
   CalculateFrameworkAdsorbateChargeBondDipoleEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE);
@@ -2181,6 +2195,7 @@ int RandomTranslationMoveCation(void)
   int StartingBead;
   REAL BiasingWeight=1.0;
   REAL DeltaU;
+  int CanUseGrid;
 
   // return if the component currently has zero molecules
   if(NumberOfCationMolecules[CurrentSystem]==0) return 0;
@@ -2245,11 +2260,14 @@ int RandomTranslationMoveCation(void)
   CalculateInterBondDipoleBondDipoleEnergyDifferenceCation(CurrentCationMolecule,CurrentComponent,TRUE,TRUE);
   if(OVERLAP) return 0;
 
+  // if a fractional molecule is selected make sure that no grids are used
+  CanUseGrid=!IsFractionalCationMolecule(CurrentCationMolecule);
+
   // compute energy differences framework-cation
-  CalculateFrameworkCationVDWEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,TRUE);
+  CalculateFrameworkCationVDWEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,TRUE,CanUseGrid);
   if(OVERLAP) return 0;
 
-  CalculateFrameworkCationChargeChargeEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,TRUE);
+  CalculateFrameworkCationChargeChargeEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,TRUE,CanUseGrid);
   if(OVERLAP) return 0;
 
   CalculateFrameworkCationChargeBondDipoleEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,TRUE);
@@ -2443,6 +2461,7 @@ int RotationMoveAdsorbate(void)
   int StartingBead;
   REAL DeltaU;
   VECTOR pos,posA,posB,posC,posD,posE;
+  int CanUseGrid;
 
   // return if the component currently has zero molecules
   if(NumberOfAdsorbateMolecules[CurrentSystem]==0) return 0;
@@ -2547,10 +2566,14 @@ int RotationMoveAdsorbate(void)
   if(OVERLAP) return 0;
 
   // compute energy differences framework-adsorbate
-  CalculateFrameworkAdsorbateVDWEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE);
+
+  // if a fractional molecule is selected make sure that no grids are used
+  CanUseGrid=!IsFractionalAdsorbateMolecule(CurrentAdsorbateMolecule);
+
+  CalculateFrameworkAdsorbateVDWEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE,CanUseGrid);
   if(OVERLAP) return 0;
 
-  CalculateFrameworkAdsorbateChargeChargeEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE);
+  CalculateFrameworkAdsorbateChargeChargeEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE,CanUseGrid);
   if(OVERLAP) return 0;
 
   CalculateFrameworkAdsorbateChargeBondDipoleEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE);
@@ -2689,6 +2712,7 @@ int RotationMoveCation(void)
   int StartingBead;
   REAL DeltaU;
   VECTOR pos,posA,posB,posC,posD,posE;
+  int CanUseGrid;
 
   // return if the component currently has zero molecules
   if(NumberOfCationMolecules[CurrentSystem]==0) return 0;
@@ -2792,11 +2816,14 @@ int RotationMoveCation(void)
   CalculateInterBondDipoleBondDipoleEnergyDifferenceCation(CurrentCationMolecule,CurrentComponent,TRUE,TRUE);
   if(OVERLAP) return 0;
 
+  // if a fractional molecule is selected make sure that no grids are used
+  CanUseGrid=!IsFractionalCationMolecule(CurrentCationMolecule);
+
   // compute energy differences framework-cation
-  CalculateFrameworkCationVDWEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,TRUE);
+  CalculateFrameworkCationVDWEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,TRUE,CanUseGrid);
   if(OVERLAP) return 0;
 
-  CalculateFrameworkCationChargeChargeEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,TRUE);
+  CalculateFrameworkCationChargeChargeEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,TRUE,CanUseGrid);
   if(OVERLAP) return 0;
 
   CalculateFrameworkCationChargeBondDipoleEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,TRUE);
@@ -2969,6 +2996,7 @@ int PartialReinsertionAdsorbateMove(void)
   REAL RosenbluthOld,RosenbluthNew;
   REAL PreFactor;
   REAL DeltaU;
+  int UseGrids;
 
   // return if the component currently has zero molecules
   if(NumberOfAdsorbateMolecules[CurrentSystem]==0) return 0;
@@ -2994,14 +3022,21 @@ int PartialReinsertionAdsorbateMove(void)
     CFChargeScaling[i]=Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[i].CFChargeScalingParameter;
   }
 
-  // calculate the New Rosenbluth factor
+  // if a fractional molecule is selected make sure that no grids are used
+  UseGrids=Framework[CurrentSystem].FrameworkModel;
+  if(IsFractionalAdsorbateMolecule(CurrentAdsorbateMolecule)) Framework[CurrentSystem].FrameworkModel=FULL;
+
+  // grow molecule
   NumberOfBeadsAlreadyPlaced=Components[CurrentComponent].NumberOfUnchangedAtomsConfig[d];
   for(i=0;i<NumberOfBeadsAlreadyPlaced;i++)
     BeadsAlreadyPlaced[i]=Components[CurrentComponent].UnchangedAtomsConfig[d][i];
   for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
     NewPosition[CurrentSystem][i]=Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[i].Position;
-
   RosenbluthNew=GrowMolecule(CBMC_PARTIAL_INSERTION);
+
+  // restore whether or not to use grids
+  Framework[CurrentSystem].FrameworkModel=UseGrids;
+
   if (OVERLAP) return 0;
 
   for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
@@ -3010,13 +3045,21 @@ int PartialReinsertionAdsorbateMove(void)
       return 0;
   }
 
-  // calculate the Old Rosenbluth factor
+  // if a fractional molecule is selected make sure that no grids are used
+  UseGrids=Framework[CurrentSystem].FrameworkModel;
+  if(IsFractionalAdsorbateMolecule(CurrentAdsorbateMolecule)) Framework[CurrentSystem].FrameworkModel=FULL;
+
+  // retrace molecule
   NumberOfBeadsAlreadyPlaced=Components[CurrentComponent].NumberOfUnchangedAtomsConfig[d];
   for(i=0;i<NumberOfBeadsAlreadyPlaced;i++)
     BeadsAlreadyPlaced[i]=Components[CurrentComponent].UnchangedAtomsConfig[d][i];
   for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
     OldPosition[i]=Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[i].Position;
   RosenbluthOld=RetraceMolecule(CBMC_PARTIAL_INSERTION);
+
+  // restore whether or not to use grids
+  Framework[CurrentSystem].FrameworkModel=UseGrids;
+
   if (OVERLAP) return 0;
 
   PartialReinsertionAccepted[CurrentSystem][CurrentComponent][0]+=1.0;
@@ -3200,6 +3243,7 @@ int PartialReinsertionCationMove(void)
   REAL RosenbluthOld,RosenbluthNew;
   REAL PreFactor;
   REAL DeltaU;
+  int UseGrids;
 
   // return if the component currently has zero molecules
   if(NumberOfCationMolecules[CurrentSystem]==0) return 0;
@@ -3225,13 +3269,21 @@ int PartialReinsertionCationMove(void)
     CFChargeScaling[i]=Cations[CurrentSystem][CurrentCationMolecule].Atoms[i].CFChargeScalingParameter;
   }
 
-  // calculate the New Rosenbluth factor
+  // if a fractional molecule is selected make sure that no grids are used
+  UseGrids=Framework[CurrentSystem].FrameworkModel;
+  if(IsFractionalCationMolecule(CurrentCationMolecule)) Framework[CurrentSystem].FrameworkModel=FULL;
+
+  // grow molecule
   NumberOfBeadsAlreadyPlaced=Components[CurrentComponent].NumberOfUnchangedAtomsConfig[d];
   for(i=0;i<NumberOfBeadsAlreadyPlaced;i++)
     BeadsAlreadyPlaced[i]=Components[CurrentComponent].UnchangedAtomsConfig[d][i];
   for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
     NewPosition[CurrentSystem][i]=Cations[CurrentSystem][CurrentCationMolecule].Atoms[i].Position;
   RosenbluthNew=GrowMolecule(CBMC_PARTIAL_INSERTION);
+
+  // restore whether or not to use grids
+  Framework[CurrentSystem].FrameworkModel=UseGrids;
+
   if (OVERLAP) return 0;
 
   for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
@@ -3240,13 +3292,21 @@ int PartialReinsertionCationMove(void)
       return 0;
   }
 
-  // calculate the Old Rosenbluth factor
+  // if a fractional molecule is selected make sure that no grids are used
+  UseGrids=Framework[CurrentSystem].FrameworkModel;
+  if(IsFractionalCationMolecule(CurrentCationMolecule)) Framework[CurrentSystem].FrameworkModel=FULL;
+
+  // retrace molecule
   NumberOfBeadsAlreadyPlaced=Components[CurrentComponent].NumberOfUnchangedAtomsConfig[d];
   for(i=0;i<NumberOfBeadsAlreadyPlaced;i++)
     BeadsAlreadyPlaced[i]=Components[CurrentComponent].UnchangedAtomsConfig[d][i];
   for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
     OldPosition[i]=Cations[CurrentSystem][CurrentCationMolecule].Atoms[i].Position;
   RosenbluthOld=RetraceMolecule(CBMC_PARTIAL_INSERTION);
+
+  // restore whether or not to use grids
+  Framework[CurrentSystem].FrameworkModel=UseGrids;
+
   if (OVERLAP) return 0;
 
   PartialReinsertionAccepted[CurrentSystem][CurrentComponent][0]+=1.0;
@@ -3477,6 +3537,7 @@ int ReinsertionAdsorbateMove(void)
   REAL RosenbluthOld,RosenbluthNew;
   REAL PreFactor,BiasingWeight=1.0;
   REAL DeltaU;
+  int UseGrids;
 
   // return if the component currently has zero molecules
   if(NumberOfAdsorbateMolecules[CurrentSystem]==0) return 0;
@@ -3486,6 +3547,7 @@ int ReinsertionAdsorbateMove(void)
   // choose a random molecule of this component
   CurrentCationMolecule=-1;
   CurrentAdsorbateMolecule=SelectRandomMoleculeOfType(CurrentComponent);
+
 
   ReinsertionAttempts[CurrentSystem][CurrentComponent]+=1.0;
 
@@ -3497,8 +3559,17 @@ int ReinsertionAdsorbateMove(void)
     CFChargeScaling[i]=Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[i].CFChargeScalingParameter;
   }
 
+  // if a fractional molecule is selected make sure that no grids are used
+  UseGrids=Framework[CurrentSystem].FrameworkModel;
+  if(IsFractionalAdsorbateMolecule(CurrentAdsorbateMolecule)) Framework[CurrentSystem].FrameworkModel=FULL;
+
+  // grow new molecule
   NumberOfBeadsAlreadyPlaced=0;
   RosenbluthNew=GrowMolecule(CBMC_INSERTION);
+
+  // restore whether or not to use grids
+  Framework[CurrentSystem].FrameworkModel=UseGrids;
+
   if (OVERLAP) return 0;
 
   for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
@@ -3513,7 +3584,16 @@ int ReinsertionAdsorbateMove(void)
 
   for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
     OldPosition[i]=Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[i].Position;
+
+  // if a fractional molecule is selected make sure that no grids are used
+  UseGrids=Framework[CurrentSystem].FrameworkModel;
+  if(IsFractionalAdsorbateMolecule(CurrentAdsorbateMolecule)) Framework[CurrentSystem].FrameworkModel=FULL;
+
+  // retrace molecule
   RosenbluthOld=RetraceMolecule(CBMC_RETRACE_REINSERTION);
+
+  // restore whether or not to use grids
+  Framework[CurrentSystem].FrameworkModel=UseGrids;
 
   PreFactor=1.0;
   if((ChargeMethod==EWALD)&&(!OmitEwaldFourier))
@@ -3706,6 +3786,7 @@ int ReinsertionCationMove(void)
   REAL RosenbluthOld,RosenbluthNew;
   REAL PreFactor;
   REAL DeltaU;
+  int UseGrids;
 
   // return if the component currently has zero molecules
   if(NumberOfCationMolecules[CurrentSystem]==0) return 0;
@@ -3726,8 +3807,17 @@ int ReinsertionCationMove(void)
     CFChargeScaling[i]=Cations[CurrentSystem][CurrentCationMolecule].Atoms[i].CFChargeScalingParameter;
   }
 
+  // if a fractional molecule is selected make sure that no grids are used
+  UseGrids=Framework[CurrentSystem].FrameworkModel;
+  if(IsFractionalCationMolecule(CurrentCationMolecule)) Framework[CurrentSystem].FrameworkModel=FULL;
+
+  // grow molecule
   NumberOfBeadsAlreadyPlaced=0;
   RosenbluthNew=GrowMolecule(CBMC_INSERTION);
+
+  // restore whether or not to use grids
+  Framework[CurrentSystem].FrameworkModel=UseGrids;
+
   if (OVERLAP) return 0;
 
   for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
@@ -3736,10 +3826,18 @@ int ReinsertionCationMove(void)
       return 0;
   }
 
+  // if a fractional molecule is selected make sure that no grids are used
+  UseGrids=Framework[CurrentSystem].FrameworkModel;
+  if(IsFractionalCationMolecule(CurrentCationMolecule)) Framework[CurrentSystem].FrameworkModel=FULL;
+
+  // retrace molecule
   NumberOfBeadsAlreadyPlaced=0;
   for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
     OldPosition[i]=Cations[CurrentSystem][CurrentCationMolecule].Atoms[i].Position;
   RosenbluthOld=RetraceMolecule(CBMC_RETRACE_REINSERTION);
+
+  // restore whether or not to use grids
+  Framework[CurrentSystem].FrameworkModel=UseGrids;
 
   PreFactor=1.0;
   if(ChargeMethod!=NONE)
@@ -3970,6 +4068,7 @@ int ReinsertionInPlaceAdsorbateMove(void)
   REAL RosenbluthOld,RosenbluthNew;
   REAL PreFactor,BiasingWeight=1.0;
   REAL DeltaU;
+  int UseGrids;
 
   // return if the component currently has zero molecules
   if(NumberOfAdsorbateMolecules[CurrentSystem]==0) return 0;
@@ -3982,11 +4081,19 @@ int ReinsertionInPlaceAdsorbateMove(void)
 
   ReinsertionInPlaceAttempts[CurrentSystem][CurrentComponent]+=1.0;
 
-  NumberOfBeadsAlreadyPlaced=0;
+  // if a fractional molecule is selected make sure that no grids are used
+  UseGrids=Framework[CurrentSystem].FrameworkModel;
+  if(IsFractionalAdsorbateMolecule(CurrentAdsorbateMolecule)) Framework[CurrentSystem].FrameworkModel=FULL;
 
+  // grow molecule
+  NumberOfBeadsAlreadyPlaced=0;
   StartingBead=Components[CurrentComponent].StartingBead;
   NewPosition[CurrentSystem][StartingBead]=Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[StartingBead].Position;
   RosenbluthNew=GrowMolecule(CBMC_PARTIAL_INSERTION);
+
+  // restore whether or not to use grids
+  Framework[CurrentSystem].FrameworkModel=UseGrids;
+
   if (OVERLAP) return 0;
 
   for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
@@ -4005,10 +4112,18 @@ int ReinsertionInPlaceAdsorbateMove(void)
     CFChargeScaling[i]=Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[i].CFChargeScalingParameter;
   }
 
+  // if a fractional molecule is selected make sure that no grids are used
+  UseGrids=Framework[CurrentSystem].FrameworkModel;
+  if(IsFractionalAdsorbateMolecule(CurrentAdsorbateMolecule)) Framework[CurrentSystem].FrameworkModel=FULL;
+
+  // retrace molecule
   NumberOfBeadsAlreadyPlaced=0;
   for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
     OldPosition[i]=Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[i].Position;
   RosenbluthOld=RetraceMolecule(CBMC_PARTIAL_INSERTION);
+
+  // restore whether or not to use grids
+  Framework[CurrentSystem].FrameworkModel=UseGrids;
 
   PreFactor=1.0;
   if(ChargeMethod!=NONE)
@@ -4204,6 +4319,7 @@ int ReinsertionInPlaceCationMove(void)
   REAL RosenbluthOld,RosenbluthNew;
   REAL PreFactor;
   REAL DeltaU;
+  int UseGrids;
 
   // return if the component currently has zero molecules
   if(NumberOfCationMolecules[CurrentSystem]==0) return 0;
@@ -4216,10 +4332,19 @@ int ReinsertionInPlaceCationMove(void)
 
   ReinsertionInPlaceAttempts[CurrentSystem][CurrentComponent]+=1.0;
 
+  // if a fractional molecule is selected make sure that no grids are used
+  UseGrids=Framework[CurrentSystem].FrameworkModel;
+  if(IsFractionalCationMolecule(CurrentCationMolecule)) Framework[CurrentSystem].FrameworkModel=FULL;
+
+  // grow molecule
   NumberOfBeadsAlreadyPlaced=0;
   StartingBead=Components[CurrentComponent].StartingBead;
   NewPosition[CurrentSystem][StartingBead]=Cations[CurrentSystem][CurrentCationMolecule].Atoms[StartingBead].Position;
   RosenbluthNew=GrowMolecule(CBMC_PARTIAL_INSERTION);
+
+  // restore whether or not to use grids
+  Framework[CurrentSystem].FrameworkModel=UseGrids;
+
   if (OVERLAP) return 0;
 
   for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
@@ -4236,10 +4361,18 @@ int ReinsertionInPlaceCationMove(void)
     CFChargeScaling[i]=Cations[CurrentSystem][CurrentCationMolecule].Atoms[i].CFChargeScalingParameter;
   }
 
+  // if a fractional molecule is selected make sure that no grids are used
+  UseGrids=Framework[CurrentSystem].FrameworkModel;
+  if(IsFractionalCationMolecule(CurrentCationMolecule)) Framework[CurrentSystem].FrameworkModel=FULL;
+
+  // retrace molecule
   NumberOfBeadsAlreadyPlaced=0;
   for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
     OldPosition[i]=Cations[CurrentSystem][CurrentCationMolecule].Atoms[i].Position;
   RosenbluthOld=RetraceMolecule(CBMC_PARTIAL_INSERTION);
+
+  // restore whether or not to use grids
+  Framework[CurrentSystem].FrameworkModel=UseGrids;
 
   PreFactor=1.0;
   if((ChargeMethod==EWALD)&&(!OmitEwaldFourier))
@@ -4465,6 +4598,7 @@ int ReinsertionInPlaneAdsorbateMove(void)
   VECTOR displacement,rotated_displacement;
   REAL vNew,choice;
   REAL DeltaU;
+  int UseGrids;
 
   // return if the component currently has zero molecules
   if(NumberOfAdsorbateMolecules[CurrentSystem]==0) return 0;
@@ -4549,11 +4683,20 @@ int ReinsertionInPlaneAdsorbateMove(void)
   rotated_displacement=RotateVectorAboutY(rotated_displacement,BarrierAngle[CurrentSystem].y);
   rotated_displacement=RotateVectorAboutZ(rotated_displacement,BarrierAngle[CurrentSystem].z);
 
+  // if a fractional molecule is selected make sure that no grids are used
+  UseGrids=Framework[CurrentSystem].FrameworkModel;
+  if(IsFractionalAdsorbateMolecule(CurrentAdsorbateMolecule)) Framework[CurrentSystem].FrameworkModel=FULL;
+
+  // grow molecule
   StartingBead=Components[CurrentComponent].StartingBead;
   NewPosition[CurrentSystem][StartingBead].x=Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[StartingBead].Position.x+rotated_displacement.x;
   NewPosition[CurrentSystem][StartingBead].y=Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[StartingBead].Position.y+rotated_displacement.y;
   NewPosition[CurrentSystem][StartingBead].z=Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[StartingBead].Position.z+rotated_displacement.z;
   RosenbluthNew=GrowMolecule(CBMC_PARTIAL_INSERTION);
+
+  // restore whether or not to use grids
+  Framework[CurrentSystem].FrameworkModel=UseGrids;
+
   if (OVERLAP) return 0;
 
   for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
@@ -4564,10 +4707,18 @@ int ReinsertionInPlaneAdsorbateMove(void)
 
   ReinsertionInPlaneAccepted[CurrentSystem][CurrentComponent][0]+=1.0;
 
+  // if a fractional molecule is selected make sure that no grids are used
+  UseGrids=Framework[CurrentSystem].FrameworkModel;
+  if(IsFractionalAdsorbateMolecule(CurrentAdsorbateMolecule)) Framework[CurrentSystem].FrameworkModel=FULL;
+ 
+  // retrace molecule 
   NumberOfBeadsAlreadyPlaced=0;
   for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
     OldPosition[i]=Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[i].Position;
   RosenbluthOld=RetraceMolecule(CBMC_PARTIAL_INSERTION);
+
+  // restore whether or not to use grids
+  Framework[CurrentSystem].FrameworkModel=UseGrids;
 
   PreFactor=1.0;
   if(ChargeMethod!=NONE)
@@ -4757,6 +4908,7 @@ int ReinsertionInPlaneCationMove(void)
   VECTOR displacement,rotated_displacement;
   REAL vNew,choice;
   REAL DeltaU;
+  int UseGrids;
 
   // return if the component currently has zero molecules
   if(NumberOfCationMolecules[CurrentSystem]==0) return 0;
@@ -4840,12 +4992,20 @@ int ReinsertionInPlaneCationMove(void)
   rotated_displacement=RotateVectorAboutY(rotated_displacement,BarrierAngle[CurrentSystem].y);
   rotated_displacement=RotateVectorAboutZ(rotated_displacement,BarrierAngle[CurrentSystem].z);
 
+  // if a fractional molecule is selected make sure that no grids are used
+  UseGrids=Framework[CurrentSystem].FrameworkModel;
+  if(IsFractionalCationMolecule(CurrentCationMolecule)) Framework[CurrentSystem].FrameworkModel=FULL;
+
+  // grow molecule
   StartingBead=Components[CurrentComponent].StartingBead;
   NewPosition[CurrentSystem][StartingBead].x=Cations[CurrentSystem][CurrentCationMolecule].Atoms[StartingBead].Position.x+rotated_displacement.x;
   NewPosition[CurrentSystem][StartingBead].y=Cations[CurrentSystem][CurrentCationMolecule].Atoms[StartingBead].Position.y+rotated_displacement.y;
   NewPosition[CurrentSystem][StartingBead].z=Cations[CurrentSystem][CurrentCationMolecule].Atoms[StartingBead].Position.z+rotated_displacement.z;
-
   RosenbluthNew=GrowMolecule(CBMC_PARTIAL_INSERTION);
+
+  // restore whether or not to use grids
+  Framework[CurrentSystem].FrameworkModel=UseGrids;
+
   if (OVERLAP) return 0;
 
   for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
@@ -4856,10 +5016,18 @@ int ReinsertionInPlaneCationMove(void)
 
   ReinsertionInPlaneAccepted[CurrentSystem][CurrentComponent][0]+=1.0;
 
+  // if a fractional molecule is selected make sure that no grids are used
+  UseGrids=Framework[CurrentSystem].FrameworkModel;
+  if(IsFractionalCationMolecule(CurrentCationMolecule)) Framework[CurrentSystem].FrameworkModel=FULL;
+
+  // retrace molecule
   NumberOfBeadsAlreadyPlaced=0;
   for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
     OldPosition[i]=Cations[CurrentSystem][CurrentCationMolecule].Atoms[i].Position;
   RosenbluthOld=RetraceMolecule(CBMC_PARTIAL_INSERTION);
+
+  // restore whether or not to use grids
+  Framework[CurrentSystem].FrameworkModel=UseGrids;
 
   PreFactor=1.0;
   if(ChargeMethod!=NONE)
@@ -5203,7 +5371,7 @@ int IdentityChangeAdsorbateMove(void)
   IdentityChangeAttempts[CurrentSystem][OldComponent][NewComponent]+=1.0;
 
   // set Continuous Fraction (CF) atomic scaling-factors to unity
-  for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
+  for(i=0;i<MAX2(Components[NewComponent].NumberOfAtoms,Components[OldComponent].NumberOfAtoms);i++)
   {
     CFVDWScaling[i]=1.0;
     CFChargeScaling[i]=1.0;
@@ -5245,6 +5413,11 @@ int IdentityChangeAdsorbateMove(void)
   // retrace the 'Old'-component
   NumberOfBeadsAlreadyPlaced=0;
   CurrentComponent=OldComponent;
+  for(i=0;i<Components[OldComponent].NumberOfAtoms;i++)
+    OldPosition[i]=Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[i].Position;
+  RosenbluthOld=RetraceMolecule(CBMC_PARTIAL_INSERTION);
+
+
 
 /*
   NumberOfBeadsAlreadyPlaced=Components[CurrentComponent].NumberOfUnchangedAtomsIdentityConfig[d];
@@ -5256,9 +5429,6 @@ int IdentityChangeAdsorbateMove(void)
     //TrialAnisotropicPosition[CurrentSystem][i]=Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[i].AnisotropicPosition;
   }
 */
-  for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
-    OldPosition[i]=Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[i].Position;
-  RosenbluthOld=RetraceMolecule(CBMC_PARTIAL_INSERTION);
 
 
   // compute the tail-correction difference
@@ -5304,6 +5474,7 @@ int IdentityChangeAdsorbateMove(void)
   PartialFugacityOld=Components[OldComponent].FugacityCoefficient[CurrentSystem]*Components[OldComponent].PartialPressure[CurrentSystem];
 
   // acceptance-rule
+ 
   if(RandomNumber()<PreFactor*((RosenbluthNew/RosenbluthIdealNew)*PartialFugacityNew*
                     (REAL)(Components[OldComponent].NumberOfMolecules[CurrentSystem]-(Components[OldComponent].CFMoleculePresent[CurrentSystem]?1:0))/
                    ((RosenbluthOld/RosenbluthIdealOld)*PartialFugacityOld*
@@ -5412,6 +5583,8 @@ int IdentityChangeAdsorbateMove(void)
       // register the changes in the stored structure factors
       if((ChargeMethod==EWALD)&&(!OmitEwaldFourier))
         AcceptEwaldAdsorbateMove(0);
+
+
     }
 
     // register the changes in the types for the 'Old'-component atoms
@@ -5439,6 +5612,8 @@ int IdentityChangeAdsorbateMove(void)
     {
       Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[i].Position=TrialPosition[CurrentSystem][i];
       Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[i].AnisotropicPosition=TrialAnisotropicPosition[CurrentSystem][i];
+      Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[i].CFVDWScalingParameter=1.0;
+      Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[i].CFChargeScalingParameter=1.0;
       type=Components[NewComponent].Type[i];
       Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[i].Type=type;
       Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[i].Charge=Components[NewComponent].Charge[i];
@@ -5483,6 +5658,7 @@ int IdentityChangeAdsorbateMove(void)
 
     UTotal[CurrentSystem]+=DeltaU;
   }
+
   return 0;
 }
 
@@ -5527,7 +5703,7 @@ int IdentityChangeCationMove(void)
   IdentityChangeAttempts[CurrentSystem][OldComponent][NewComponent]+=1.0;
 
   // set Continuous Fraction (CF) atomic scaling-factors to unity
-  for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
+  for(i=0;i<MAX2(Components[NewComponent].NumberOfAtoms,Components[OldComponent].NumberOfAtoms);i++)
   {
     CFVDWScaling[i]=1.0;
     CFChargeScaling[i]=1.0;
@@ -5741,7 +5917,8 @@ int IdentityChangeCationMove(void)
     {
       Cations[CurrentSystem][CurrentCationMolecule].Atoms[i].Position=TrialPosition[CurrentSystem][i];
       Cations[CurrentSystem][CurrentCationMolecule].Atoms[i].AnisotropicPosition=TrialAnisotropicPosition[CurrentSystem][i];
-
+      Cations[CurrentSystem][CurrentCationMolecule].Atoms[i].CFVDWScalingParameter=1.0;
+      Cations[CurrentSystem][CurrentCationMolecule].Atoms[i].CFChargeScalingParameter=1.0;
       type=Components[NewComponent].Type[i];
       Cations[CurrentSystem][CurrentCationMolecule].Atoms[i].Type=type;
       Cations[CurrentSystem][CurrentCationMolecule].Atoms[i].Charge=Components[NewComponent].Charge[i];
@@ -12371,6 +12548,9 @@ void HybridNVEMove(void)
   if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
     InitializeFrameworkVelocities();
 
+
+  InitializeForces();
+
   StoredUKinetic=UKinetic[CurrentSystem];
   StoredUHostKinetic=UHostKinetic[CurrentSystem];
   StoredUAdsorbateTranslationalKinetic=UAdsorbateTranslationalKinetic[CurrentSystem];
@@ -12380,7 +12560,45 @@ void HybridNVEMove(void)
   StoredUAdsorbateKinetic=UAdsorbateKinetic[CurrentSystem];
   StoredUCationKinetic=UCationKinetic[CurrentSystem];
 
-  InitializeForces();
+  // register the starting temperatures
+  if(DegreesOfFreedom[CurrentSystem]>0)
+  {
+    HybridNVEStartTemperature[CurrentSystem]+=2.0*StoredUKinetic/(K_B*DegreesOfFreedom[CurrentSystem]);
+    HybridNVEStartTemperatureCount[CurrentSystem]+=1.0;
+  }
+
+  if(DegreesOfFreedomTranslation[CurrentSystem]>0)
+  {
+    HybridNVEStartTranslationalTemperature[CurrentSystem]+=2.0*(StoredUHostKinetic+
+       StoredUAdsorbateTranslationalKinetic+StoredUCationTranslationalKinetic)/
+                                              (K_B*DegreesOfFreedomTranslation[CurrentSystem]);
+    HybridNVEStartTemperatureTranslationCount[CurrentSystem]+=1.0;
+  }
+
+  if(DegreesOfFreedomRotation[CurrentSystem]>0)
+  {
+    HybridNVEStartRotationalTemperature[CurrentSystem]+=2.0*(StoredUAdsorbateRotationalKinetic+
+          StoredUCationRotationalKinetic)/(K_B*DegreesOfFreedomRotation[CurrentSystem]);
+    HybridNVEStartTemperatureRotationCount[CurrentSystem]+=1.0;
+  }
+
+  if(DegreesOfFreedomFramework[CurrentSystem]>0)
+  {
+    HybridNVEStartTemperatureFramework[CurrentSystem]+=2.0*StoredUHostKinetic/(K_B*DegreesOfFreedomFramework[CurrentSystem]);
+    HybridNVEStartTemperatureFrameworkCount[CurrentSystem]+=1.0;
+  }
+
+  if(DegreesOfFreedomAdsorbates[CurrentSystem]>0)
+  {
+    HybridNVEStartTemperatureAdsorbate[CurrentSystem]+=2.0*StoredUAdsorbateKinetic/(K_B*DegreesOfFreedomAdsorbates[CurrentSystem]);
+    HybridNVEStartTemperatureAdsorbateCount[CurrentSystem]+=1.0;
+  }
+
+  if(DegreesOfFreedomCations[CurrentSystem]>0)
+  {
+    HybridNVEStartTemperatureCation[CurrentSystem]+=2.0*StoredUCationKinetic/(K_B*DegreesOfFreedomCations[CurrentSystem]);
+    HybridNVEStartTemperatureCationCount[CurrentSystem]+=1.0;
+  }
 
   ReferenceEnergy=ConservedEnergy[CurrentSystem];
   Drift=0.0;
@@ -12399,45 +12617,6 @@ void HybridNVEMove(void)
   {
     HybridNVEAccepted[CurrentSystem]+=1.0;
 
-    // register the starting temperatures
-    if(DegreesOfFreedom[CurrentSystem]>0)
-    {
-      HybridNVEStartTemperature[CurrentSystem]+=2.0*StoredUKinetic/(K_B*DegreesOfFreedom[CurrentSystem]);
-      HybridNVEStartTemperatureCount[CurrentSystem]+=1.0;
-    }
-
-    if(DegreesOfFreedomTranslation[CurrentSystem]>0)
-    {
-      HybridNVEStartTranslationalTemperature[CurrentSystem]+=2.0*(StoredUHostKinetic+
-         StoredUAdsorbateTranslationalKinetic+StoredUCationTranslationalKinetic)/
-                                                (K_B*DegreesOfFreedomTranslation[CurrentSystem]);
-      HybridNVEStartTemperatureTranslationCount[CurrentSystem]+=1.0;
-    }
-
-    if(DegreesOfFreedomRotation[CurrentSystem]>0)
-    {
-      HybridNVEStartRotationalTemperature[CurrentSystem]+=2.0*(StoredUAdsorbateRotationalKinetic+
-            StoredUCationRotationalKinetic)/(K_B*DegreesOfFreedomRotation[CurrentSystem]);
-      HybridNVEStartTemperatureRotationCount[CurrentSystem]+=1.0;
-    }
-
-    if(DegreesOfFreedomFramework[CurrentSystem]>0)
-    {
-      HybridNVEStartTemperatureFramework[CurrentSystem]+=2.0*StoredUHostKinetic/(K_B*DegreesOfFreedomFramework[CurrentSystem]);
-      HybridNVEStartTemperatureFrameworkCount[CurrentSystem]+=1.0;
-    }
-
-    if(DegreesOfFreedomAdsorbates[CurrentSystem]>0)
-    {
-      HybridNVEStartTemperatureAdsorbate[CurrentSystem]+=2.0*StoredUAdsorbateKinetic/(K_B*DegreesOfFreedomAdsorbates[CurrentSystem]);
-      HybridNVEStartTemperatureAdsorbateCount[CurrentSystem]+=1.0;
-    }
-
-    if(DegreesOfFreedomCations[CurrentSystem]>0)
-    {
-      HybridNVEStartTemperatureCation[CurrentSystem]+=2.0*StoredUCationKinetic/(K_B*DegreesOfFreedomCations[CurrentSystem]);
-      HybridNVEStartTemperatureCationCount[CurrentSystem]+=1.0;
-    }
 
     // register the end temperatures
     HybridNVEDrift[CurrentSystem]+=Drift;
@@ -12652,7 +12831,7 @@ void PrintHybridNVEStatistics(FILE *FilePtr)
     fprintf(FilePtr,"total amount of MD-time simulated: %18.10lf [ps]\n\n",
         (double)((REAL)NumberOfHybridNVESteps*DeltaT*HybridNVEAccepted[CurrentSystem]));
 
-    if(HybridNVEAccepted[CurrentSystem]>0.0)
+    if(HybridNVEAttempts[CurrentSystem]>0.0)
     {
       fprintf(FilePtr,"\tAverage drift in the energy:               % 18.10lf\n\n",
                   (double)(HybridNVEDrift[CurrentSystem]/HybridNVEDriftCount[CurrentSystem]));
@@ -14017,6 +14196,7 @@ int CFSwapLambaAdsorbateMove(void)
   int SelectedRetraceMolecule;
   REAL PartialFugacity,LambdaNew,LambdaOld,BiasNew,BiasOld,UTailDelta;
   REAL LambdaNewFractionalMoleculeStored,LambdaOldFractionalMoleculeStored;
+  REAL temp;
 
   FractionalMolecule=Components[CurrentComponent].FractionalMolecule[CurrentSystem];
   CurrentAdsorbateMolecule=FractionalMolecule;
@@ -14111,10 +14291,10 @@ int CFSwapLambaAdsorbateMove(void)
   if(OVERLAP) goto label_CFSwapLambaMove_rejected;
 
   // compute energy differences framework-adsorbate
-  CalculateFrameworkAdsorbateVDWEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE);
+  CalculateFrameworkAdsorbateVDWEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE,FALSE);
   if(OVERLAP) goto label_CFSwapLambaMove_rejected;
 
-  CalculateFrameworkAdsorbateChargeChargeEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE);
+  CalculateFrameworkAdsorbateChargeChargeEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE,FALSE);
   if(OVERLAP) goto label_CFSwapLambaMove_rejected;
 
   CalculateFrameworkAdsorbateChargeBondDipoleEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE);
@@ -14244,10 +14424,10 @@ int CFSwapLambaAdsorbateMove(void)
       if(OVERLAP) goto label_CFSwapLambaMove_rejected;
 
       // compute energy differences framework-adsorbate
-      CalculateFrameworkAdsorbateVDWEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,FALSE);
+      CalculateFrameworkAdsorbateVDWEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,FALSE,FALSE);
       if(OVERLAP) goto label_CFSwapLambaMove_rejected;
 
-      CalculateFrameworkAdsorbateChargeChargeEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,FALSE);
+      CalculateFrameworkAdsorbateChargeChargeEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,FALSE,FALSE);
       if(OVERLAP) goto label_CFSwapLambaMove_rejected;
 
       CalculateFrameworkAdsorbateChargeBondDipoleEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,FALSE);
@@ -14335,9 +14515,9 @@ int CFSwapLambaAdsorbateMove(void)
       CalculateInterBondDipoleBondDipoleEnergyDifferenceAdsorbate(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE);
 
       // compute energy differences framework-adsorbate
-      CalculateFrameworkAdsorbateVDWEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE);
+      CalculateFrameworkAdsorbateVDWEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE,FALSE);
 
-      CalculateFrameworkAdsorbateChargeChargeEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE);
+      CalculateFrameworkAdsorbateChargeChargeEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE,FALSE);
 
       CalculateFrameworkAdsorbateChargeBondDipoleEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE);
 
@@ -14874,10 +15054,10 @@ int CFSwapLambaCationMove(void)
   if(OVERLAP) goto label_CFSwapLambaMove_rejected;
 
   // compute energy differences framework-adsorbate
-  CalculateFrameworkCationVDWEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,TRUE);
+  CalculateFrameworkCationVDWEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,TRUE,FALSE);
   if(OVERLAP) goto label_CFSwapLambaMove_rejected;
 
-  CalculateFrameworkCationChargeChargeEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,TRUE);
+  CalculateFrameworkCationChargeChargeEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,TRUE,FALSE);
   if(OVERLAP) goto label_CFSwapLambaMove_rejected;
 
   CalculateFrameworkCationChargeBondDipoleEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,TRUE);
@@ -15007,10 +15187,10 @@ int CFSwapLambaCationMove(void)
       if(OVERLAP) goto label_CFSwapLambaMove_rejected;
 
       // compute energy differences framework-adsorbate
-      CalculateFrameworkCationVDWEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,FALSE);
+      CalculateFrameworkCationVDWEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,FALSE,FALSE);
       if(OVERLAP) goto label_CFSwapLambaMove_rejected;
 
-      CalculateFrameworkCationChargeChargeEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,FALSE);
+      CalculateFrameworkCationChargeChargeEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,FALSE,FALSE);
       if(OVERLAP) goto label_CFSwapLambaMove_rejected;
 
       CalculateFrameworkCationChargeBondDipoleEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,FALSE);
@@ -15098,9 +15278,9 @@ int CFSwapLambaCationMove(void)
       CalculateInterBondDipoleBondDipoleEnergyDifferenceCation(CurrentCationMolecule,CurrentComponent,TRUE,TRUE);
 
       // compute energy differences framework-adsorbate
-      CalculateFrameworkCationVDWEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,TRUE);
+      CalculateFrameworkCationVDWEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,TRUE,FALSE);
 
-      CalculateFrameworkCationChargeChargeEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,TRUE);
+      CalculateFrameworkCationChargeChargeEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,TRUE,FALSE);
 
       CalculateFrameworkCationChargeBondDipoleEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,TRUE);
 
@@ -15722,10 +15902,10 @@ int CFCBSwapLambaAdsorbateMove(void)
   if(OVERLAP) goto label_CFCBSwapLambaMove_rejected;
 
   // compute energy differences framework-adsorbate
-  CalculateFrameworkAdsorbateVDWEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE);
+  CalculateFrameworkAdsorbateVDWEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE,FALSE);
   if(OVERLAP) goto label_CFCBSwapLambaMove_rejected;
 
-  CalculateFrameworkAdsorbateChargeChargeEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE);
+  CalculateFrameworkAdsorbateChargeChargeEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE,FALSE);
   if(OVERLAP) goto label_CFCBSwapLambaMove_rejected;
 
   CalculateFrameworkAdsorbateChargeBondDipoleEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE);
@@ -15855,10 +16035,10 @@ int CFCBSwapLambaAdsorbateMove(void)
       if(OVERLAP) goto label_CFCBSwapLambaMove_rejected;
 
       // compute energy differences framework-adsorbate
-      CalculateFrameworkAdsorbateVDWEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,FALSE);
+      CalculateFrameworkAdsorbateVDWEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,FALSE,FALSE);
       if(OVERLAP) goto label_CFCBSwapLambaMove_rejected;
 
-      CalculateFrameworkAdsorbateChargeChargeEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,FALSE);
+      CalculateFrameworkAdsorbateChargeChargeEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,FALSE,FALSE);
       if(OVERLAP) goto label_CFCBSwapLambaMove_rejected;
 
       CalculateFrameworkAdsorbateChargeBondDipoleEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,FALSE);
@@ -15946,9 +16126,9 @@ int CFCBSwapLambaAdsorbateMove(void)
       CalculateInterBondDipoleBondDipoleEnergyDifferenceAdsorbate(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE);
 
       // compute energy differences framework-adsorbate
-      CalculateFrameworkAdsorbateVDWEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE);
+      CalculateFrameworkAdsorbateVDWEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE,FALSE);
 
-      CalculateFrameworkAdsorbateChargeChargeEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE);
+      CalculateFrameworkAdsorbateChargeChargeEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE,FALSE);
 
       CalculateFrameworkAdsorbateChargeBondDipoleEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE);
 
@@ -16609,10 +16789,10 @@ int CFGibbsParticleTransferAdsorbateMove(void)
   if(OVERLAP) goto label_CFGibbsParticleTransferMove_rejected;
 
   // compute energy differences framework-adsorbate
-  CalculateFrameworkAdsorbateVDWEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE);
+  CalculateFrameworkAdsorbateVDWEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE,FALSE);
   if(OVERLAP) goto label_CFGibbsParticleTransferMove_rejected;
 
-  CalculateFrameworkAdsorbateChargeChargeEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE);
+  CalculateFrameworkAdsorbateChargeChargeEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE,FALSE);
   if(OVERLAP) goto label_CFGibbsParticleTransferMove_rejected;
 
   CalculateFrameworkAdsorbateChargeBondDipoleEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE);
@@ -16753,10 +16933,10 @@ int CFGibbsParticleTransferAdsorbateMove(void)
   if(OVERLAP) goto label_CFGibbsParticleTransferMove_rejected;
 
   // compute energy differences framework-adsorbate
-  CalculateFrameworkAdsorbateVDWEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE);
+  CalculateFrameworkAdsorbateVDWEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE,FALSE);
   if(OVERLAP) goto label_CFGibbsParticleTransferMove_rejected;
 
-  CalculateFrameworkAdsorbateChargeChargeEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE);
+  CalculateFrameworkAdsorbateChargeChargeEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE,FALSE);
   if(OVERLAP) goto label_CFGibbsParticleTransferMove_rejected;
 
   CalculateFrameworkAdsorbateChargeBondDipoleEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE);
@@ -16881,10 +17061,10 @@ int CFGibbsParticleTransferAdsorbateMove(void)
       if(OVERLAP) goto label_CFGibbsParticleTransferMove_rejected;
 
       // compute energy differences framework-adsorbate
-      CalculateFrameworkAdsorbateVDWEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,FALSE);
+      CalculateFrameworkAdsorbateVDWEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,FALSE,FALSE);
       if(OVERLAP) goto label_CFGibbsParticleTransferMove_rejected;
 
-      CalculateFrameworkAdsorbateChargeChargeEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,FALSE);
+      CalculateFrameworkAdsorbateChargeChargeEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,FALSE,FALSE);
       if(OVERLAP) goto label_CFGibbsParticleTransferMove_rejected;
 
       CalculateFrameworkAdsorbateChargeBondDipoleEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,FALSE);
@@ -16967,9 +17147,9 @@ int CFGibbsParticleTransferAdsorbateMove(void)
       CalculateInterBondDipoleBondDipoleEnergyDifferenceAdsorbate(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE);
 
       // compute energy differences framework-adsorbate
-      CalculateFrameworkAdsorbateVDWEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE);
+      CalculateFrameworkAdsorbateVDWEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE,FALSE);
 
-      CalculateFrameworkAdsorbateChargeChargeEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE);
+      CalculateFrameworkAdsorbateChargeChargeEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE,FALSE);
 
       CalculateFrameworkAdsorbateChargeBondDipoleEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE);
 
@@ -17062,9 +17242,9 @@ int CFGibbsParticleTransferAdsorbateMove(void)
       CalculateInterBondDipoleBondDipoleEnergyDifferenceAdsorbate(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE);
 
       // compute energy differences framework-adsorbate
-      CalculateFrameworkAdsorbateVDWEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE);
+      CalculateFrameworkAdsorbateVDWEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE,FALSE);
 
-      CalculateFrameworkAdsorbateChargeChargeEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE);
+      CalculateFrameworkAdsorbateChargeChargeEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE,FALSE);
 
       CalculateFrameworkAdsorbateChargeBondDipoleEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,TRUE);
 
@@ -17149,10 +17329,10 @@ int CFGibbsParticleTransferAdsorbateMove(void)
       if(OVERLAP) goto label_CFGibbsParticleTransferMove_rejected;
 
       // compute energy differences framework-adsorbate
-      CalculateFrameworkAdsorbateVDWEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,FALSE);
+      CalculateFrameworkAdsorbateVDWEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,FALSE,FALSE);
       if(OVERLAP) goto label_CFGibbsParticleTransferMove_rejected;
 
-      CalculateFrameworkAdsorbateChargeChargeEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,FALSE);
+      CalculateFrameworkAdsorbateChargeChargeEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,FALSE,FALSE);
       if(OVERLAP) goto label_CFGibbsParticleTransferMove_rejected;
 
       CalculateFrameworkAdsorbateChargeBondDipoleEnergyDifference(CurrentAdsorbateMolecule,CurrentComponent,TRUE,FALSE);
@@ -18098,10 +18278,10 @@ int CFGibbsParticleTransferCationMove(void)
   if(OVERLAP) goto label_CFGibbsParticleTransferMove_rejected;
 
   // compute energy differences framework-adsorbate
-  CalculateFrameworkCationVDWEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,TRUE);
+  CalculateFrameworkCationVDWEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,TRUE,FALSE);
   if(OVERLAP) goto label_CFGibbsParticleTransferMove_rejected;
 
-  CalculateFrameworkCationChargeChargeEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,TRUE);
+  CalculateFrameworkCationChargeChargeEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,TRUE,FALSE);
   if(OVERLAP) goto label_CFGibbsParticleTransferMove_rejected;
 
   CalculateFrameworkCationChargeBondDipoleEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,TRUE);
@@ -18242,10 +18422,10 @@ int CFGibbsParticleTransferCationMove(void)
   if(OVERLAP) goto label_CFGibbsParticleTransferMove_rejected;
 
   // compute energy differences framework-adsorbate
-  CalculateFrameworkCationVDWEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,TRUE);
+  CalculateFrameworkCationVDWEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,TRUE,FALSE);
   if(OVERLAP) goto label_CFGibbsParticleTransferMove_rejected;
 
-  CalculateFrameworkCationChargeChargeEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,TRUE);
+  CalculateFrameworkCationChargeChargeEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,TRUE,FALSE);
   if(OVERLAP) goto label_CFGibbsParticleTransferMove_rejected;
 
   CalculateFrameworkCationChargeBondDipoleEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,TRUE);
@@ -18371,10 +18551,10 @@ int CFGibbsParticleTransferCationMove(void)
       if(OVERLAP) goto label_CFGibbsParticleTransferMove_rejected;
 
       // compute energy differences framework-adsorbate
-      CalculateFrameworkCationVDWEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,FALSE);
+      CalculateFrameworkCationVDWEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,FALSE,FALSE);
       if(OVERLAP) goto label_CFGibbsParticleTransferMove_rejected;
 
-      CalculateFrameworkCationChargeChargeEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,FALSE);
+      CalculateFrameworkCationChargeChargeEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,FALSE,FALSE);
       if(OVERLAP) goto label_CFGibbsParticleTransferMove_rejected;
 
       CalculateFrameworkCationChargeBondDipoleEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,FALSE);
@@ -18460,9 +18640,9 @@ int CFGibbsParticleTransferCationMove(void)
       CalculateInterBondDipoleBondDipoleEnergyDifferenceCation(CurrentCationMolecule,CurrentComponent,TRUE,TRUE);
 
       // compute energy differences framework-adsorbate
-      CalculateFrameworkCationVDWEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,TRUE);
+      CalculateFrameworkCationVDWEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,TRUE,FALSE);
 
-      CalculateFrameworkCationChargeChargeEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,TRUE);
+      CalculateFrameworkCationChargeChargeEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,TRUE,FALSE);
 
       CalculateFrameworkCationChargeBondDipoleEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,TRUE);
 
@@ -18558,9 +18738,9 @@ int CFGibbsParticleTransferCationMove(void)
       CalculateInterBondDipoleBondDipoleEnergyDifferenceCation(CurrentCationMolecule,CurrentComponent,TRUE,TRUE);
 
       // compute energy differences framework-adsorbate
-      CalculateFrameworkCationVDWEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,TRUE);
+      CalculateFrameworkCationVDWEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,TRUE,FALSE);
 
-      CalculateFrameworkCationChargeChargeEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,TRUE);
+      CalculateFrameworkCationChargeChargeEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,TRUE,FALSE);
 
       CalculateFrameworkCationChargeBondDipoleEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,TRUE);
 
@@ -18642,10 +18822,10 @@ int CFGibbsParticleTransferCationMove(void)
       if(OVERLAP) goto label_CFGibbsParticleTransferMove_rejected;
 
       // compute energy differences framework-adsorbate
-      CalculateFrameworkCationVDWEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,FALSE);
+      CalculateFrameworkCationVDWEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,FALSE,FALSE);
       if(OVERLAP) goto label_CFGibbsParticleTransferMove_rejected;
 
-      CalculateFrameworkCationChargeChargeEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,FALSE);
+      CalculateFrameworkCationChargeChargeEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,FALSE,FALSE);
       if(OVERLAP) goto label_CFGibbsParticleTransferMove_rejected;
 
       CalculateFrameworkCationChargeBondDipoleEnergyDifference(CurrentCationMolecule,CurrentComponent,TRUE,FALSE);

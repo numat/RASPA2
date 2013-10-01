@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <float.h>
 #include <string.h>
 #include "constants.h"
 #include "molecule.h"
@@ -88,7 +89,7 @@ void CalculateDerivativesAtPositionVDW(VECTOR pos,int typeA,REAL *value,VECTOR *
   }
 }
 
-void CalculateDerivativesAtPositionReal(VECTOR pos,int typeA,REAL *value,VECTOR *first_derivative,
+REAL CalculateDerivativesAtPositionReal(VECTOR pos,int typeA,REAL *value,VECTOR *first_derivative,
                                        REAL_MATRIX3x3 *second_derivative,REAL *third_derivative)
 {
   int i,f;
@@ -96,6 +97,7 @@ void CalculateDerivativesAtPositionReal(VECTOR pos,int typeA,REAL *value,VECTOR 
   VECTOR dr;
   REAL ChargeA,ChargeB;
   REAL r,rr,F,DF,DDF,DDDF;
+  REAL smallest_r;
 
   *value=0;
   first_derivative->x=0.0;
@@ -107,6 +109,7 @@ void CalculateDerivativesAtPositionReal(VECTOR pos,int typeA,REAL *value,VECTOR 
   *third_derivative=0.0;
 
   ChargeA=1.0;
+  smallest_r=DBL_MAX;
   for(f=0;f<Framework[CurrentSystem].NumberOfFrameworks;f++)
   {
     for(i=0;i<Framework[CurrentSystem].NumberOfAtoms[f];i++)
@@ -121,6 +124,8 @@ void CalculateDerivativesAtPositionReal(VECTOR pos,int typeA,REAL *value,VECTOR 
       if(rr<CutOffChargeChargeSquared[CurrentSystem])
       {
         r=sqrt(rr);
+
+        if(r<smallest_r) smallest_r=r;
 
         F=COULOMBIC_CONVERSION_FACTOR*ChargeA*ChargeB*(erfc(Alpha[CurrentSystem]*r)/r);
 
@@ -151,6 +156,7 @@ void CalculateDerivativesAtPositionReal(VECTOR pos,int typeA,REAL *value,VECTOR 
       }
     }
   }
+  return smallest_r;
 }
 
 

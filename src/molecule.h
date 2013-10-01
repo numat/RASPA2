@@ -114,7 +114,7 @@ typedef struct PseudoAtom
   REAL Mass;                                   // the mass of the pseudo-atom
   REAL Charge1;                                // the charge of the pseudo-atom
   REAL_MATRIX3x3 Polarization;                 // the polarization of the atom
-  int HasCharges;                              // whether or not the atom-type has charges 
+  int HasCharges;                              // whether or not the atom-type has charges
   int IsPolarizable;                           // whether or not the atom-type has a induced point dipole
   int Interaction;                             // whether or not the atom-type has interactions
   REAL Radius;                                 // the radius (used for calculating Bonds in the zeolite)
@@ -126,8 +126,8 @@ typedef struct PseudoAtom
   int FrameworkAtom;                           // whether or nor the atom-type is a framework atom
   int OxidationNumber;                         // the oxidation number
   REAL Occupancy;
-  REAL ScatteringDispersionReal; 
-  REAL ScatteringDispersionImaginary; 
+  REAL ScatteringDispersionReal;
+  REAL ScatteringDispersionImaginary;
   char ScatteringSource[80];
   int HasVDWInteraction;
   int CoreShell;
@@ -161,7 +161,7 @@ typedef struct group_definitions
 
   REAL_MATRIX3x3 InverseOriginalCoordinateSystem;  // the rotational matrix
   TRIPLE orientation;               // three atoms to compute quaternions from
-  REAL rot_min;                  
+  REAL rot_min;
 
   int HasPermanentDipoles;
   int NumberOfPermanentDipoles;
@@ -227,7 +227,7 @@ typedef struct atom
   VECTOR ReferenceVelocity;       // the 'reference' velocity of the atom
   VECTOR Force;                   // the force acting on the atom
   VECTOR ReferenceForce;          // the force acting on the atom
-  VECTOR RattleGradient;          // 
+  VECTOR RattleGradient;          //
 
   VECTOR ElectricField;           // the electricfield vector
   VECTOR ReferenceElectricField;  // the 'reference' electricfield vector
@@ -678,6 +678,9 @@ int ReturnAtomBondedToHydrogen(int Type,int c);
 void CalculateAnisotropicSites(void);
 
 void ReadBiasingProfile(int);
+
+int IsFractionalAdsorbateMolecule(int m);
+int IsFractionalCationMolecule(int m);
 
 int ValidFractionalPoint(int i, POINT s);
 int ValidCartesianPoint(int i, POINT pos);

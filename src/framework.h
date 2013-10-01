@@ -177,7 +177,7 @@ typedef struct FrameworkComponent
   int *NumberOfFixedAtoms;                  // the number of fixed atoms per framework
   int *NumberOfFreeAtoms;                   // the number of free atoms per framework
   int *NumberOfUnitCellAtoms;               // the number of unit cell atoms per framework
-  int *MaxNumberOfAtoms;                   
+  int *MaxNumberOfAtoms;
   ATOM **Atoms;                             // list of framework-atoms per framework
 
   int **CellListHead;                        // the starting atom per cell
@@ -229,7 +229,7 @@ typedef struct FrameworkComponent
 
   int NumberOfAsymmetricIons;
   FRAMEWORK_ASYMMETRIC_ATOM *IonsAsymmetric;
-  
+
   int RestrictFrameworkAtomsToBox;
 
   int ReadCIFAsCartesian;
@@ -255,7 +255,7 @@ typedef struct FrameworkComponent
   int NumberOfIntra123Interactions;
   int NumberOfIntra1234Interactions;
 
-  int NumberOfBondsDefinitions;                                  // the number of bond definitions 
+  int NumberOfBondsDefinitions;                                  // the number of bond definitions
   int *BondDefinitionType;                                       // the type of the bonds (i.e. HARMONIC_BOND)
   PAIR *BondDefinitions;                                         // the pair of pseudo-atoms in the bond definition
   REAL (*BondArgumentDefinitions)[MAX_BOND_POTENTIAL_ARGUMENTS]; // the parameters corresponding to this bond
@@ -279,7 +279,7 @@ typedef struct FrameworkComponent
   REAL **BondDipoleMagnitude;            // the magntiude of the bond-dipole for this bond-pair (per framework)
 
   int NumberOfUreyBradleyDefinitions;                                          // the number of Urey-Bradley definitions
-  int *UreyBradleyDefinitionType;                                              // the type of the Urey-Bradleys 
+  int *UreyBradleyDefinitionType;                                              // the type of the Urey-Bradleys
   TRIPLE *UreyBradleyDefinitions;                                              // the triple of pseudo-atoms in the Urey-Bradley definition
   REAL (*UreyBradleyArgumentDefinitions)[MAX_UREYBRADLEY_POTENTIAL_ARGUMENTS]; // the parameters corresponding to this Urey-Bradley
   int *NumberOfUreyBradleysPerType;                                            // the number of Urey-Bradleys for this type
@@ -377,7 +377,7 @@ typedef struct FrameworkComponent
   int **BendBendType;
   REAL (**BendBendArguments)[MAX_BEND_BEND_POTENTIAL_ARGUMENTS];
 
-  int NumberOfBondTorsionDefinitions;  
+  int NumberOfBondTorsionDefinitions;
   int *BondTorsionDefinitionType;
   QUAD *BondTorsionDefinitions;
   REAL (*BondTorsionArgumentDefinitions)[MAX_BOND_TORSION_POTENTIAL_ARGUMENTS];
@@ -388,7 +388,7 @@ typedef struct FrameworkComponent
   int **BondTorsionType;
   REAL (**BondTorsionArguments)[MAX_BOND_TORSION_POTENTIAL_ARGUMENTS];
 
-  int NumberOfBendTorsionDefinitions;                               
+  int NumberOfBendTorsionDefinitions;
   int *BendTorsionDefinitionType;
   QUAD *BendTorsionDefinitions;
   REAL (*BendTorsionArgumentDefinitions)[MAX_BEND_TORSION_POTENTIAL_ARGUMENTS];

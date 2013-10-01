@@ -153,6 +153,39 @@ void OpenOutputFile(void)
       sprintf(buffer2,"%s.data",buffer2);
       OutputFilePtr[i]=fopen(buffer2,"w");
     }
+=======
+    case OUTPUT_TO_FILE:
+      mkdir("Output",S_IRWXU);
+      for(i=0;i<NumberOfSystems;i++)
+      {
+        sprintf(buffer,"Output/System_%d",i);
+        mkdir(buffer,S_IRWXU);
+      }
+      for(i=0;i<NumberOfSystems;i++)
+      {
+        sprintf(buffer,"Output/System_%d/output_%s_%d.%d.%d_%lf_%lf%s",
+                i,
+                Framework[i].Name[0],
+                NumberOfUnitCells[i].x,
+                NumberOfUnitCells[i].y,
+                NumberOfUnitCells[i].z,
+                (double)therm_baro_stats.ExternalTemperature[i],
+                (double)(therm_baro_stats.ExternalPressure[i][CurrentIsothermPressure]*PRESSURE_CONVERSION_FACTOR),
+                FileNameAppend);
+
+        // limit length of file-name
+        strncpy(buffer2,buffer,250);
+        sprintf(buffer2,"%s.data",buffer2);
+
+        //if(!(OutputFilePtr[i]=fopen(buffer2,"r+")))
+        //   OutputFilePtr[i]=fopen(buffer2,"a");
+        OutputFilePtr[i]=fopen(buffer2,"w");
+      }
+      break;
+    case OUTPUT_TO_SCREEN:
+      //OutputFilePtr=stdout;
+      break;
+>>>>>>> 0e10d81ca70cf055577d79525c6a9c6edae50ac1
   }
 }
 
@@ -234,7 +267,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
   fprintf(FilePtr,"Compiler and run-time data\n");
   fprintf(FilePtr,"===========================================================================\n");
 
-  fprintf(FilePtr,"%s\n","RASPA 1.8-3");
+  fprintf(FilePtr,"%s\n","RASPA 1.8-5");
 
   #if defined (__LP64__) || defined (__64BIT__) || defined (_LP64) || (__WORDSIZE == 64)
     fprintf(FilePtr,"Compiled as a 64-bits application\n");
@@ -2346,7 +2379,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
     fprintf(FilePtr,"\n");
 
     fprintf(FilePtr,"The force field and all the interactions:\n");
-    for(i=0;i<NumberOfPseudoAtoms;i++)
+    for(i=1;i<NumberOfPseudoAtoms;i++)
       for(j=i;j<NumberOfPseudoAtoms;j++)
       {
         switch(PotentialType[i][j])

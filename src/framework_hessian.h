@@ -22,7 +22,7 @@
 #include <molecule.h>
 
 void CalculateDerivativesAtPositionVDW(VECTOR,int,REAL *,VECTOR *,REAL_MATRIX3x3 *,REAL *);
-void CalculateDerivativesAtPositionReal(VECTOR,int,REAL *,VECTOR *,REAL_MATRIX3x3 *,REAL *);
+REAL CalculateDerivativesAtPositionReal(VECTOR,int,REAL *,VECTOR *,REAL_MATRIX3x3 *,REAL *);
 
 void ComputeFrameworkAdsorbateVDWHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX HessianMatrix,REAL_MATRIX3x3 *StrainDerivative,int ComputeGradient,int ComputeHessian);
 void ComputeFrameworkAdsorbateChargeChargeHessian(REAL *Energy,REAL* Gradient,REAL_MATRIX HessianMatrix,REAL_MATRIX3x3 *StrainDerivative,int ComputeGradient,int ComputeHessian);

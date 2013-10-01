@@ -417,6 +417,7 @@ void MakeGrid(void)
   REAL value,third_derivative;
   VECTOR first_derivative;
   REAL_MATRIX3x3 second_derivative;
+  REAL smallest_r;
 
   if(MIN3(BoxProperties[CurrentSystem].cx,BoxProperties[CurrentSystem].cy,
           BoxProperties[CurrentSystem].cz)<CutOffVDW)
@@ -530,9 +531,9 @@ void MakeGrid(void)
           }
 
           // cap the value
-          if(value>1.0e12)
+          if(value>EnergyOverlapCriteria) 
           {
-            value=1.0e12;
+            value=2.0*EnergyOverlapCriteria;
             if(first_derivative.x>EnergyOverlapCriteria) first_derivative.x=EnergyOverlapCriteria;
             if(first_derivative.x<-EnergyOverlapCriteria) first_derivative.x=-EnergyOverlapCriteria;
             if(first_derivative.y>EnergyOverlapCriteria) first_derivative.y=EnergyOverlapCriteria;
@@ -629,15 +630,14 @@ void MakeGrid(void)
             pos.x=i*SizeGrid.x/NumberOfCoulombGridPoints.x+ShiftGrid.x;
             pos.y=j*SizeGrid.y/NumberOfCoulombGridPoints.y+ShiftGrid.y;
             pos.z=k*SizeGrid.z/NumberOfCoulombGridPoints.z+ShiftGrid.z;
-
-            CalculateDerivativesAtPositionReal(pos,typeA,&value,&first_derivative,&second_derivative,&third_derivative);
+            smallest_r=CalculateDerivativesAtPositionReal(pos,typeA,&value,&first_derivative,&second_derivative,&third_derivative);
             break;
         }
 
         // cap the value
-        if(value>1.0e12)
+        if(value>EnergyOverlapCriteria||smallest_r<1.0)
         {
-          value=1.0e12;
+          value=2.0*EnergyOverlapCriteria;
           if(first_derivative.x>EnergyOverlapCriteria) first_derivative.x=EnergyOverlapCriteria;
           if(first_derivative.x<-EnergyOverlapCriteria) first_derivative.x=-EnergyOverlapCriteria;
           if(first_derivative.y>EnergyOverlapCriteria) first_derivative.y=EnergyOverlapCriteria;
@@ -1392,6 +1392,18 @@ REAL InterpolateCoulombForceGrid(int typeA,VECTOR pos,VECTOR *Force)
   return PseudoAtoms[typeA].Charge1*value;
 }
 
+int HasVDWInteractionWithFramework(int type)
+{
+  int i;
+
+  for(i=1;i<NumberOfPseudoAtoms;i++)
+  {
+    if(PseudoAtoms[i].FrameworkAtom)
+      if((PotentialType[type][i]!=ZERO_POTENTIAL)&&(PotentialType[type][i]!=NONE)) return TRUE;
+  }
+  return FALSE;
+}
+
 
 void TestForceGrid(FILE *FilePtr)
 {
@@ -1475,6 +1487,21 @@ void TestForceGrid(FILE *FilePtr)
         resf[6]=CoulombForce.y;
         resf[7]=CoulombForce.z;
 
+        for(j=0;j<4;j++)
+        {
+          bolf[j]+=exp(-resf[0]*Beta[CurrentSystem]);
+          ebolf[j]+=resf[j]*exp(-resf[0]*Beta[CurrentSystem]);
+        }
+
+        if(!HasVDWInteractionWithFramework(typeA))
+        {
+          CalculateFrameworkForceAtPosition(pos,0,&Vlj,&Force,&Vcoul,&CoulombForce);
+          resf[0]=Vlj;
+          resf[1]=Force.x;
+          resf[2]=Force.y;
+          resf[3]=Force.z;
+        }
+
         Framework[CurrentSystem].FrameworkModel=GRID;
         CalculateFrameworkForceAtPosition(pos,typeA,&Vlj,&Force,&Vcoul,&CoulombForce);
 
@@ -1488,8 +1515,26 @@ void TestForceGrid(FILE *FilePtr)
         rest[6]=CoulombForce.y;
         rest[7]=CoulombForce.z;
 
-        // VDW
-        for(j=0;j<8;j++)
+        for(j=0;j<4;j++)
+        {
+          bolt[j]+=exp(-rest[0]*Beta[CurrentSystem]);
+          ebolt[j]+=rest[j]*exp(-rest[0]*Beta[CurrentSystem]);
+
+          errb[j]+=exp(-resf[0]*Beta[CurrentSystem])*SQR(resf[j]-rest[j]);
+          eeb[j]+=exp(-resf[0]*Beta[CurrentSystem])*SQR(resf[j]);
+        }
+
+        // if the atom does not have VDW, then use the 'UNIT'-atom
+        if(!HasVDWInteractionWithFramework(typeA))
+        {
+          CalculateFrameworkForceAtPosition(pos,0,&Vlj,&Force,&Vcoul,&CoulombForce);
+          rest[0]=Vlj;
+          rest[1]=Force.x;
+          rest[2]=Force.y;
+          rest[3]=Force.z;
+        }
+
+        for(j=4;j<8;j++)
         {
           bolt[j]+=exp(-rest[0]*Beta[CurrentSystem]);
           ebolt[j]+=rest[j]*exp(-rest[0]*Beta[CurrentSystem]);

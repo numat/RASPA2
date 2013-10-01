@@ -45,6 +45,7 @@
 #include "grids.h"
 #include "spacegroup.h"
 #include "spectra.h"
+#include "molecule.h"
 
 // not used
 void CalculateFrameworkFullForce(int m)
@@ -4079,7 +4080,6 @@ void CalculateFrameworkAdsorbateVDWForce(void)
   REAL length_v,length_w;
   REAL dot_product;
 
-
   UHostAdsorbateVDW[CurrentSystem]=0.0;
   for(i=0;i<NumberOfAdsorbateMolecules[CurrentSystem];i++)
   {
@@ -4145,7 +4145,7 @@ void CalculateFrameworkAdsorbateVDWForce(void)
         }
       }
 
-      if((Framework[CurrentSystem].FrameworkModel==GRID)&&(VDWGrid[typeA]))
+      if((Framework[CurrentSystem].FrameworkModel==GRID)&&(VDWGrid[typeA])&&(!IsFractionalAdsorbateMolecule(i)))
       {
         UHostAdsorbateVDW[CurrentSystem]+=InterpolateVDWForceGrid(typeA,posA,&f);
         Adsorbates[CurrentSystem][i].Atoms[j].Force.x+=f.x;
@@ -4427,7 +4427,6 @@ void CalculateFrameworkCationVDWForce(void)
   REAL length_v,length_w;
   REAL dot_product;
 
-
   UHostCationVDW[CurrentSystem]=0.0;
   for(i=0;i<NumberOfCationMolecules[CurrentSystem];i++)
   {
@@ -4493,7 +4492,7 @@ void CalculateFrameworkCationVDWForce(void)
         }
       }
 
-      if((Framework[CurrentSystem].FrameworkModel==GRID)&&(VDWGrid[typeA]))
+      if((Framework[CurrentSystem].FrameworkModel==GRID)&&(VDWGrid[typeA])&&(!IsFractionalCationMolecule(i)))
       {
         UHostCationVDW[CurrentSystem]+=InterpolateVDWForceGrid(typeA,posA,&f);
         Cations[CurrentSystem][i].Atoms[j].Force.x+=f.x;
@@ -4767,12 +4766,14 @@ int CalculateFrameworkAdsorbateChargeChargeForce(void)
   REAL energy,chargeA,chargeB,temp;
   VECTOR posA,posB,dr,f;
   REAL scalingA;
+  int TypeMolA;
 
   UHostAdsorbateChargeChargeReal[CurrentSystem]=0.0;
   if(ChargeMethod==NONE) return 0;
 
   for(i=0;i<NumberOfAdsorbateMolecules[CurrentSystem];i++)
   {
+    TypeMolA=Adsorbates[CurrentSystem][i].Type;
     for(j=0;j<Adsorbates[CurrentSystem][i].NumberOfAtoms;j++)
     {
       typeA=Adsorbates[CurrentSystem][i].Atoms[j].Type;
@@ -4780,7 +4781,7 @@ int CalculateFrameworkAdsorbateChargeChargeForce(void)
       chargeA=scalingA*Adsorbates[CurrentSystem][i].Atoms[j].Charge;
       posA=Adsorbates[CurrentSystem][i].Atoms[j].Position;
 
-      if((Framework[CurrentSystem].FrameworkModel==GRID)&&(CoulombGrid))
+      if((Framework[CurrentSystem].FrameworkModel==GRID)&&(CoulombGrid)&&(!IsFractionalAdsorbateMolecule(i)))
       {
         UHostAdsorbateChargeChargeReal[CurrentSystem]+=InterpolateCoulombForceGrid(typeA,posA,&f);
         Adsorbates[CurrentSystem][i].Atoms[j].Force.x+=f.x;
@@ -4856,12 +4857,14 @@ int CalculateFrameworkCationChargeChargeForce(void)
   REAL chargeA,chargeB,temp;
   VECTOR posA,posB,dr,f;
   REAL scalingA;
+  int TypeMolA;
 
   UHostCationChargeChargeReal[CurrentSystem]=0.0;
   if(ChargeMethod==NONE) return 0;
 
   for(i=0;i<NumberOfCationMolecules[CurrentSystem];i++)
   {
+    TypeMolA=Cations[CurrentSystem][i].Type;
     for(j=0;j<Cations[CurrentSystem][i].NumberOfAtoms;j++)
     {
       typeA=Cations[CurrentSystem][i].Atoms[j].Type;
@@ -4869,7 +4872,7 @@ int CalculateFrameworkCationChargeChargeForce(void)
       chargeA=scalingA*Cations[CurrentSystem][i].Atoms[j].Charge;
       posA=Cations[CurrentSystem][i].Atoms[j].Position;
 
-      if((Framework[CurrentSystem].FrameworkModel==GRID)&&(CoulombGrid))
+      if((Framework[CurrentSystem].FrameworkModel==GRID)&&(CoulombGrid)&&(!IsFractionalCationMolecule(i)))
       {
         UHostCationChargeChargeReal[CurrentSystem]+=InterpolateCoulombForceGrid(typeA,posA,&f);
         Cations[CurrentSystem][i].Atoms[j].Force.x+=f.x;

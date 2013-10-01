@@ -1,7 +1,6 @@
 #number of pseudo atoms
-80
+79
 #type      print   as    chem   oxidation  mass       charge    polarization B-factor radii  connectivity
-UNIT       no      H     H      0          1.0        1.0       0.0          1.0      1.0    0
 He         yes     He    He     0          4.002602   0.0       0.0          1.0      1.0    0
 Osa        yes     O     O      0          15.9994   -0.35      0.0          1.0      0.68   2
 Osb        yes     O     O      0          15.9994   -0.44      0.0          1.0      0.68   2
