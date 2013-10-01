@@ -1212,6 +1212,7 @@ void ReadFrameworkDefinitionCIF(void)
           CurrentPseudoAtom.AnisotropicType=0.0;
           CurrentPseudoAtom.HasVDWInteraction=TRUE;
           CurrentPseudoAtom.Hybridization=HYBRIDIZATION_UNINITIALIZED;
+          CurrentPseudoAtom.CF=FALSE;
 
           CurrentAsymmetricAtom.Position.x=0.0;
           CurrentAsymmetricAtom.Position.y=0.0;
@@ -1531,6 +1532,7 @@ void ReadFrameworkDefinitionCIF(void)
             CurrentPseudoAtom.AnisotropicCorrection=FALSE;
           else
             CurrentPseudoAtom.AnisotropicCorrection=TRUE;
+
 
           // only add when the pseudo-atom type is not yet present
           // this means that the 'pseudo_atoms.def' file has precedence over the cif-file settings
@@ -6808,7 +6810,7 @@ void ReadFrameworkSpecificDefinition(void)
 
   CurrentFramework=0;
 
-  if(strlen(Framework[CurrentSystem].FrameworkDefinitions)<1) return 0;
+  if(strlen(Framework[CurrentSystem].FrameworkDefinitions)<1) return;
 
   switch(Framework[CurrentSystem].FlexibleModelInputType)
   {
@@ -6824,7 +6826,7 @@ void ReadFrameworkSpecificDefinition(void)
         if(!(FilePtr=fopen(buffer,"r")))
         {
           fprintf(stderr, "Error:  file %s does not exists.\n",buffer);
-          return 0;
+          return;
           exit(1);
         }
       }

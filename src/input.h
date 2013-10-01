@@ -25,6 +25,7 @@ char *ReadLine(char *buffer, size_t length, FILE *file);
 
 int ReadInputFile(char *);
 void ReadRestartFile(void);
+void ReadRestartFileOld(void);
 void ReadBinaryRestartFiles(void);
 
 #endif

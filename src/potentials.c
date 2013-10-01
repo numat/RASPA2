@@ -10459,7 +10459,8 @@ void PotentialSecondDerivative(int typeA,int typeB,REAL rr,REAL *energy,REAL *fa
 void PotentialThirdDerivative(int typeA,int typeB,REAL rr,REAL *energy,REAL *factor1,REAL *factor2,REAL *factor3)
 {
   REAL fcVal1,fcVal2,fcVal3,U,rri3;
-  REAL arg1,arg2,arg3;
+  REAL arg1,arg2,arg3,arg4;
+  REAL r;
 
   switch(PotentialType[typeA][typeB])
   {
@@ -10484,6 +10485,24 @@ void PotentialThirdDerivative(int typeA,int typeB,REAL rr,REAL *energy,REAL *fac
       fcVal1=24.0*arg1*(rri3*(1.0-2.0*rri3))/rr;
       fcVal2=96.0*arg1*(rri3*(7.0*rri3-2.0))/SQR(rr);
       fcVal3=384.0*arg1*(rri3*(5.0-28.0*rri3))/SQR(SQR(rr));
+      break;
+// Ambar/Hanjun edit
+    case MORSE2:
+      // p_0*[exp{p_1*(1-r/p_2)}-2*exp{0.5*p_1*(1-r/p_2)}]
+      // =================================================================================
+      // p_0/k_B [K]       force constant
+      // p_1     [A^-1]    parameter
+      // p_2     [A]       reference distance
+      // p_3/k_B [K]       (non-zero for a shifted potential)
+      arg1=PotentialParms[typeA][typeB][0];
+      arg2=PotentialParms[typeA][typeB][1];
+      arg3=PotentialParms[typeA][typeB][2];
+      arg4=PotentialParms[typeA][typeB][3];
+      r=sqrt(rr);
+      U=arg1*(exp(arg2*(1.0-r/arg3))-2.0*exp(0.5*arg2*(1.0-r/arg3)))-arg4;
+      fcVal1=arg1*arg2*(exp(0.5*arg2*(1.0-r/arg3))-exp(arg2*(1.0-r/arg3)))/(arg3*r);
+      fcVal2=arg1*arg2*exp(-arg2*r/arg3)*(exp(arg2*(0.5+0.5*r/arg3))*(-arg3-0.5*arg2*r)+exp(arg2)*(arg3+arg2*r))/(rr*r*SQR(arg3));
+      fcVal3=(arg2*arg1*exp((arg2*(arg3 - r))/arg3)*((12*SQR(arg3))/exp((arg2*(arg3 - r))/(2*arg3)) - 12*SQR(arg3) - 4*SQR(arg2)*rr - 12*arg2*arg3*r + (SQR(arg2)*rr)/exp((arg2*(arg3 - r))/(2*arg3)) + (6*arg2*arg3*r)/exp((arg2*(arg3 - r))/(2*arg3))))/(4*CUBE(arg3)*SQR(rr)*r);
       break;
     default:
       U=0.0;
@@ -12165,6 +12184,8 @@ void PotentialGradientBondDipoleBondDipole(REAL DipoleMagnitudeA,REAL ri2,VECTOR
   REAL SwitchingValue,SwitchingValueDerivative;
   VECTOR termA,termB;
 
+  r=sqrt(rr);
+
   switch(ChargeMethod)
   {
     case NONE:
@@ -12385,6 +12406,8 @@ void PotentialElectricFieldBondDipoleBondDipole(VECTOR dipoleA,VECTOR dipoleB,VE
   REAL U,Bt0,Bt1,Bt2;
   REAL cosA,cosB;
   REAL SwitchingValue,SwitchingValueDerivative;
+
+  r=sqrt(rr);
 
   switch(ChargeMethod)
   {

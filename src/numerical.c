@@ -4878,7 +4878,7 @@ void CalculateStrainDerivativeOfNumericalParts(void)
 
 void AddRemainderOfCrossTermNumerically(REAL_MATRIX HessianMatrix)
 {
-  int i,j,n;
+  int i,n;
   INT_VECTOR3 index;
   REAL_MATRIX3x3 StrainDerivativeForward1,StrainDerivativeForward2;
   REAL_MATRIX3x3 StrainDerivativeBackward1,StrainDerivativeBackward2;
@@ -5101,7 +5101,7 @@ void AddRemainderOfBornTermNumerically(REAL_MATRIX HessianMatrix)
   int StoredBoundaryCondition,StoreComputeBornTerm;
   int n,ncell,k1,k2,k3;
   const REAL delta=1e-8;
-  int StoredBornTerm;
+  //int StoredBornTerm;
 
   StoredBox=Box[CurrentSystem];
   StoredBoundaryCondition=BoundaryCondition[CurrentSystem];
