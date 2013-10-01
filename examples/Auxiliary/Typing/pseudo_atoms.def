@@ -1,7 +1,6 @@
 #number of pseudo atoms
-43
+42
 #type      print   as  scat  oxydation   mass       charge    polarization B-factor radii  connectivity
-UNIT       no      H      H          0   1.0        1.0       0.0          1.0      1.0    0
 He         yes     He     He         0   4.002602   0.0       0.0          1.0      1.0    0
 Zn         yes     Zn1    Zn         0   65.37      0.0       0.0          1.0      1.448  0
 Zn1        yes     Zn1    Zn         0   65.37      0.0       0.0          1.0      1.448  0

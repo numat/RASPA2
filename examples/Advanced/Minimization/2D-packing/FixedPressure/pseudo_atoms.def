@@ -1,6 +1,5 @@
 #number of pseudo atoms
-3
+2
 #type      print   as    chem   oxidation  mass       charge    polarization B-factor radii  connectivity
-UNIT       no      H     H      0          1.0        0.0       0.0          1.0      1.0    0
 LJ1        yes     C     C      0          1.0        0.0       0.0          1.0      1.0    0
 LJ2        yes     N     N      0          1.0        0.0       0.0          1.0      1.0    0

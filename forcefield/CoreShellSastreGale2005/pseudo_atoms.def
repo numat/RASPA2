@@ -1,7 +1,6 @@
 #number of pseudo atoms
-13
+12
 #type      print   as    chem  oxidation   mass        charge   polarization B-factor radii  connectivity anisotropic anisotropic-type   tinker-type
-UNIT       yes     H     -     0           1.0         1.0      0.0          1.0      1.0    0            0           relative           0
 O          yes     O     O     0           15.9994     0.86902  0.0          1.0      0.68   2            0           relative           0
 Ogg        yes     O     O     0           15.9994     1.733957 0.0          1.0      0.68   2            0           relative           0
 shOgg      no      O     O     0           0.0        -3.733957 0.0          1.0      0.0    2            0           relative           0
