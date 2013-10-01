@@ -2907,6 +2907,11 @@ void ReadForceFieldDefinitionsMixingRules(void)
         TailCorrection[i][j]=FALSE;
   }
 
+  PotentialType[0][0]=LENNARD_JONES;
+  PotentialParms[0][0][0]=1.0*KELVIN_TO_ENERGY;
+  PotentialParms[0][0][1]=1.0;
+  PotentialParms[0][0][2]=(REAL)0.0;
+
   fscanf(FilePtr,"%*[^\n]");fscanf(FilePtr,"%*c");
   fscanf(FilePtr,"%d\n",&temp);     // read NumberOfInteractions
   NumberOfInteractions=temp;

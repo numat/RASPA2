@@ -228,7 +228,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
   fprintf(FilePtr,"Compiler and run-time data\n");
   fprintf(FilePtr,"===========================================================================\n");
 
-  fprintf(FilePtr,"%s\n","RASPA 1.8-4");
+  fprintf(FilePtr,"%s\n","RASPA 1.8-5");
 
   #if defined (__LP64__) || defined (__64BIT__) || defined (_LP64) || (__WORDSIZE == 64)
     fprintf(FilePtr,"Compiled as a 64-bits application\n");
@@ -2340,7 +2340,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
     fprintf(FilePtr,"\n");
 
     fprintf(FilePtr,"The force field and all the interactions:\n");
-    for(i=0;i<NumberOfPseudoAtoms;i++)
+    for(i=1;i<NumberOfPseudoAtoms;i++)
       for(j=i;j<NumberOfPseudoAtoms;j++)
       {
         switch(PotentialType[i][j])

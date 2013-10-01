@@ -289,7 +289,7 @@ void ReadPseudoAtomsDefinitions(void)
   ReadLine(line,1024,FilePtr); // skip line
   ReadLine(line,1024,FilePtr); // skip line
   sscanf(line,"%d\n",&temp);
-  NumberOfPseudoAtoms=temp;
+  NumberOfPseudoAtoms=temp+1;
 
   PseudoAtoms=(PSEUDO_ATOM*)calloc(NumberOfPseudoAtoms,sizeof(PSEUDO_ATOM));
 
@@ -309,10 +309,53 @@ void ReadPseudoAtomsDefinitions(void)
     PseudoAtoms[i].HasVDWInteraction=TRUE;
   }
 
+  // one pseudo-atom that is always present is 'UNIT'
+  strcpy(PseudoAtoms[0].Name,"UNIT");
+  strcpy(PseudoAtoms[0].PrintToPDBName,"H");
+  strcpy(PseudoAtoms[0].ChemicalElement,"H");
+  strcpy(PseudoAtoms[0].OxidationStateString,"");
+  PseudoAtoms[0].OxidationState=0.0;
+  strcpy(PseudoAtoms[0].ScatteringSource,"H");
+  PseudoAtoms[0].Occupancy=1.0;
+  PseudoAtoms[0].FrameworkAtom=FALSE;
+  PseudoAtoms[0].PrintToPDB=FALSE;
+  PseudoAtoms[0].ScatteringType=0;
+  PseudoAtoms[0].AnomalousScatteringType=0;
+  PseudoAtoms[0].TemperatureFactor=0.0;
+  PseudoAtoms[0].AnisotropicTemperatureFactor.ax=0.0;
+  PseudoAtoms[0].AnisotropicTemperatureFactor.ay=0.0;
+  PseudoAtoms[0].AnisotropicTemperatureFactor.az=0.0;
+  PseudoAtoms[0].AnisotropicTemperatureFactor.bx=0.0;
+  PseudoAtoms[0].AnisotropicTemperatureFactor.by=0.0;
+  PseudoAtoms[0].AnisotropicTemperatureFactor.bz=0.0;
+  PseudoAtoms[0].AnisotropicTemperatureFactor.cx=0.0;
+  PseudoAtoms[0].AnisotropicTemperatureFactor.cy=0.0;
+  PseudoAtoms[0].AnisotropicTemperatureFactor.cz=0.0;
+  PseudoAtoms[0].ScatteringDispersionImaginary=0.0;
+  PseudoAtoms[0].ScatteringDispersionImaginary=0.0;
+  PseudoAtoms[0].Mass=1.0;
+  PseudoAtoms[0].Charge1=1.0;
+  PseudoAtoms[0].ChargeDefinitionType=CHARGE_ATOM_FROM_PSEUDO_ATOM_DEFINITION;
+  PseudoAtoms[0].Polarization.ax=PseudoAtoms[0].Polarization.ay=PseudoAtoms[0].Polarization.az=0.0;
+  PseudoAtoms[0].Polarization.bx=PseudoAtoms[0].Polarization.by=PseudoAtoms[0].Polarization.bz=0.0;
+  PseudoAtoms[0].Polarization.cx=PseudoAtoms[0].Polarization.cy=PseudoAtoms[0].Polarization.cz=0.0;
+  PseudoAtoms[0].HasCharges=TRUE;
+  PseudoAtoms[0].IsPolarizable=FALSE;
+  PseudoAtoms[0].Interaction=TRUE;
+  PseudoAtoms[0].Radius=1.0;
+  PseudoAtoms[0].Connectivity=0;
+  PseudoAtoms[0].TinkerType=0;
+  PseudoAtoms[0].AnisotropicCorrection=FALSE;
+  PseudoAtoms[0].AnisotropicDisplacement=0.0;
+  PseudoAtoms[0].AnisotropicType=0.0;
+  PseudoAtoms[0].HasVDWInteraction=TRUE;
+  PseudoAtoms[0].Hybridization=HYBRIDIZATION_UNINITIALIZED;
+  PseudoAtoms[0].CF=FALSE;
+
 
   ReadLine(line,1024,FilePtr); // skip line
 
-  for(i=0;i<NumberOfPseudoAtoms;i++)
+  for(i=1;i<NumberOfPseudoAtoms;i++)
   {
     temp1=temp2=temp3=temp4=temp5=temp6=0.0;
     PseudoAtoms[i].Connectivity=0;

@@ -1371,6 +1371,18 @@ REAL InterpolateCoulombForceGrid(int typeA,VECTOR pos,VECTOR *Force)
   return PseudoAtoms[typeA].Charge1*value;
 }
 
+int HasVDWInteractionWithFramework(int type)
+{
+  int i;
+
+  for(i=1;i<NumberOfPseudoAtoms;i++)
+  {
+    if(PseudoAtoms[i].FrameworkAtom)
+      if((PotentialType[type][i]!=ZERO_POTENTIAL)&&(PotentialType[type][i]!=NONE)) return TRUE;
+  }
+  return FALSE;
+}
+
 
 void TestForceGrid(FILE *FilePtr)
 {
@@ -1454,6 +1466,21 @@ void TestForceGrid(FILE *FilePtr)
         resf[6]=CoulombForce.y;
         resf[7]=CoulombForce.z;
 
+        for(j=0;j<4;j++)
+        {
+          bolf[j]+=exp(-resf[0]*Beta[CurrentSystem]);
+          ebolf[j]+=resf[j]*exp(-resf[0]*Beta[CurrentSystem]);
+        }
+
+        if(!HasVDWInteractionWithFramework(typeA))
+        {
+          CalculateFrameworkForceAtPosition(pos,0,&Vlj,&Force,&Vcoul,&CoulombForce);
+          resf[0]=Vlj;
+          resf[1]=Force.x;
+          resf[2]=Force.y;
+          resf[3]=Force.z;
+        }
+
         Framework[CurrentSystem].FrameworkModel=GRID;
         CalculateFrameworkForceAtPosition(pos,typeA,&Vlj,&Force,&Vcoul,&CoulombForce);
 
@@ -1467,8 +1494,26 @@ void TestForceGrid(FILE *FilePtr)
         rest[6]=CoulombForce.y;
         rest[7]=CoulombForce.z;
 
-        // VDW
-        for(j=0;j<8;j++)
+        for(j=0;j<4;j++)
+        {
+          bolt[j]+=exp(-rest[0]*Beta[CurrentSystem]);
+          ebolt[j]+=rest[j]*exp(-rest[0]*Beta[CurrentSystem]);
+
+          errb[j]+=exp(-resf[0]*Beta[CurrentSystem])*SQR(resf[j]-rest[j]);
+          eeb[j]+=exp(-resf[0]*Beta[CurrentSystem])*SQR(resf[j]);
+        }
+
+        // if the atom does not have VDW, then use the 'UNIT'-atom
+        if(!HasVDWInteractionWithFramework(typeA))
+        {
+          CalculateFrameworkForceAtPosition(pos,0,&Vlj,&Force,&Vcoul,&CoulombForce);
+          rest[0]=Vlj;
+          rest[1]=Force.x;
+          rest[2]=Force.y;
+          rest[3]=Force.z;
+        }
+
+        for(j=4;j<8;j++)
         {
           bolt[j]+=exp(-rest[0]*Beta[CurrentSystem]);
           ebolt[j]+=rest[j]*exp(-rest[0]*Beta[CurrentSystem]);
