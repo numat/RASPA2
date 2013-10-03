@@ -1046,7 +1046,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
   fprintf(FilePtr,"Molecule properties: %s\n",ComputeMoleculeProperties[system]?"yes":"no");
   if(ComputeMoleculeProperties[system])
   {
-    fprintf(FilePtr,"\tMolecular properties are written to file every %d cycles\n",WriteNumberOfMoleculesHistogramEvery[system]);
+    fprintf(FilePtr,"\tMolecular properties are written to file every %d cycles\n",WriteMoleculePropertiesEvery[system]);
     fprintf(FilePtr,"\tNumber of elements of the bond-distance histogram: %d\n",BondLengthHistogramSize[system]);
     fprintf(FilePtr,"\tNumber of elements of the bend-angle histogram: %d\n",BendAngleHistogramSize[system]);
     fprintf(FilePtr,"\tNumber of elements of the dihedral histogram: %d\n",DihedralHistogramSize[system]);
