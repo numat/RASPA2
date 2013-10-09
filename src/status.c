@@ -690,6 +690,20 @@ REAL PrintBendEnergyStatus(int nr,char *string,int BendType,REAL *parms,REAL The
                 U*ENERGY_TO_KJ_PER_MOL,
                 U*ENERGY_TO_KCAL_PER_MOL);
       break;
+    case TAFIPOLSKY_BEND:
+      // 0.5*p_0*(1+cos(theta))*(1+cos(2*theta))
+      // ===============================================
+      // p_0/k_B [K]
+      U=0.5*parms[0]*(1+cos(Theta))*(1+2.0*cos(Theta));
+      fprintf(OutputFilePtr[CurrentSystem],"%4d TAFIPOLSKY_BEND %s, p_0/k_B=%8.5f [K/rad^2], Theta: %8.5f [degrees], Energy: %8.5f [K] %8.5f [kJ/mol] %8.5f [kcal/mol]\n",
+                nr,
+                string,
+                parms[0]*ENERGY_TO_KELVIN,
+                Theta*RAD2DEG,
+                U*ENERGY_TO_KELVIN,
+                U*ENERGY_TO_KJ_PER_MOL,
+                U*ENERGY_TO_KCAL_PER_MOL);
+      break;
     case MM3_BEND:
       // p_0*(Theta-p_1)^2(1-0.014*(Theta-p_1)+5.6e-5*(Theta-p_1)^2-7e-7*(Theta-p_1)^3+2.2e-8(Theta-p_1)^4)
       // =================================================================================================

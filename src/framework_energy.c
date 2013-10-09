@@ -906,6 +906,12 @@ REAL CalculateFrameworkBendEnergy(int flag,int f2,int atom_id)
               temp=parms[1]*Theta-parms[2];
               U=parms[0]*(1.0+cos(temp));
               break;
+            case TAFIPOLSKY_BEND:
+              // 0.5*p_0*(1+cos(theta))*(1+cos(2*theta))
+              // ===============================================
+              // p_0/k_B [K]
+              U=0.5*parms[0]*(1.0+cos(Theta))*(1.0+cos(2.0*Theta));
+              break;
             case MM3_BEND:
             case MM3_IN_PLANE_BEND:
               // p_0*(theta-p_1)^2(1-0.014*(theta-p_1)+5.6e-5*(theta-p_1)^2-7e-7*(theta-p_1)^3+2.2e-8(theta-p_1)^4)

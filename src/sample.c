@@ -4341,8 +4341,9 @@ void SampleMoleculePropertyHistogram(int Switch)
 
       for(i=0;i<NumberOfSystems;i++)
       {
-        if(ComputeMoleculeProperties[i])
+        if(ComputeMoleculeProperties[i]&&(Framework[i].FrameworkModel==FLEXIBLE))
         {
+          if(Framework[i].FrameworkModel==FLEXIBLE)
           FrameworkBondLengthHistogram[i]=(REAL**)calloc(Framework[i].NumberOfBonds[0],sizeof(REAL*));
           for(j=0;j<Framework[i].NumberOfBonds[0];j++)
             FrameworkBondLengthHistogram[i][j]=(REAL*)calloc(BondLengthHistogramSize[i],sizeof(REAL));
@@ -4763,25 +4764,25 @@ void SampleInfraRedSpectra(int Switch)
             Spectrum[k][i][4]=(REAL *)calloc(4*32768,sizeof(REAL));
 
             SpectrumAverage[k][i]=(REAL **)malloc(5*sizeof(REAL*));
-            SpectrumAverage[k][i][0]=(REAL *)calloc(4*2048,sizeof(REAL));
-            SpectrumAverage[k][i][1]=(REAL *)calloc(4*4096,sizeof(REAL));
-            SpectrumAverage[k][i][2]=(REAL *)calloc(4*8192,sizeof(REAL));
-            SpectrumAverage[k][i][3]=(REAL *)calloc(4*16384,sizeof(REAL));
-            SpectrumAverage[k][i][4]=(REAL *)calloc(4*32768,sizeof(REAL));
+            SpectrumAverage[k][i][0]=(REAL *)calloc(4*2048+1,sizeof(REAL));
+            SpectrumAverage[k][i][1]=(REAL *)calloc(4*4096+1,sizeof(REAL));
+            SpectrumAverage[k][i][2]=(REAL *)calloc(4*8192+1,sizeof(REAL));
+            SpectrumAverage[k][i][3]=(REAL *)calloc(4*16384+1,sizeof(REAL));
+            SpectrumAverage[k][i][4]=(REAL *)calloc(4*32768+1,sizeof(REAL));
 
             UnweightedSpectrum[k][i]=(REAL **)malloc(5*sizeof(REAL*));
-            UnweightedSpectrum[k][i][0]=(REAL *)calloc(4*2048,sizeof(REAL));
-            UnweightedSpectrum[k][i][1]=(REAL *)calloc(4*4096,sizeof(REAL));
-            UnweightedSpectrum[k][i][2]=(REAL *)calloc(4*8192,sizeof(REAL));
-            UnweightedSpectrum[k][i][3]=(REAL *)calloc(4*16384,sizeof(REAL));
-            UnweightedSpectrum[k][i][4]=(REAL *)calloc(4*32768,sizeof(REAL));
+            UnweightedSpectrum[k][i][0]=(REAL *)calloc(4*2048+1,sizeof(REAL));
+            UnweightedSpectrum[k][i][1]=(REAL *)calloc(4*4096+1,sizeof(REAL));
+            UnweightedSpectrum[k][i][2]=(REAL *)calloc(4*8192+1,sizeof(REAL));
+            UnweightedSpectrum[k][i][3]=(REAL *)calloc(4*16384+1,sizeof(REAL));
+            UnweightedSpectrum[k][i][4]=(REAL *)calloc(4*32768+1,sizeof(REAL));
 
             UnweightedSpectrumAverage[k][i]=(REAL **)malloc(5*sizeof(REAL*));
-            UnweightedSpectrumAverage[k][i][0]=(REAL *)calloc(4*2048,sizeof(REAL));
-            UnweightedSpectrumAverage[k][i][1]=(REAL *)calloc(4*4096,sizeof(REAL));
-            UnweightedSpectrumAverage[k][i][2]=(REAL *)calloc(4*8192,sizeof(REAL));
-            UnweightedSpectrumAverage[k][i][3]=(REAL *)calloc(4*16384,sizeof(REAL));
-            UnweightedSpectrumAverage[k][i][4]=(REAL *)calloc(4*32768,sizeof(REAL));
+            UnweightedSpectrumAverage[k][i][0]=(REAL *)calloc(4*2048+1,sizeof(REAL));
+            UnweightedSpectrumAverage[k][i][1]=(REAL *)calloc(4*4096+1,sizeof(REAL));
+            UnweightedSpectrumAverage[k][i][2]=(REAL *)calloc(4*8192+1,sizeof(REAL));
+            UnweightedSpectrumAverage[k][i][3]=(REAL *)calloc(4*16384+1,sizeof(REAL));
+            UnweightedSpectrumAverage[k][i][4]=(REAL *)calloc(4*32768+1,sizeof(REAL));
           }
           for(i=0;i<2;i++)
           {
@@ -4792,18 +4793,18 @@ void SampleInfraRedSpectra(int Switch)
                if(NumberOfPseudoAtomsType[k][j]>0)
                {
                  SpectrumPseudoAtoms[k][i][j]=(REAL **)malloc(5*sizeof(REAL*));
-                 SpectrumPseudoAtoms[k][i][j][0]=(REAL *)calloc(4*2048,sizeof(REAL));
-                 SpectrumPseudoAtoms[k][i][j][1]=(REAL *)calloc(4*4096,sizeof(REAL));
-                 SpectrumPseudoAtoms[k][i][j][2]=(REAL *)calloc(4*8192,sizeof(REAL));
-                 SpectrumPseudoAtoms[k][i][j][3]=(REAL *)calloc(4*16384,sizeof(REAL));
-                 SpectrumPseudoAtoms[k][i][j][4]=(REAL *)calloc(4*32768,sizeof(REAL));
+                 SpectrumPseudoAtoms[k][i][j][0]=(REAL *)calloc(4*2048+1,sizeof(REAL));
+                 SpectrumPseudoAtoms[k][i][j][1]=(REAL *)calloc(4*4096+1,sizeof(REAL));
+                 SpectrumPseudoAtoms[k][i][j][2]=(REAL *)calloc(4*8192+1,sizeof(REAL));
+                 SpectrumPseudoAtoms[k][i][j][3]=(REAL *)calloc(4*16384+1,sizeof(REAL));
+                 SpectrumPseudoAtoms[k][i][j][4]=(REAL *)calloc(4*32768+1,sizeof(REAL));
 
                  SpectrumPseudoAtomsAverage[k][i][j]=(REAL **)malloc(5*sizeof(REAL*));
-                 SpectrumPseudoAtomsAverage[k][i][j][0]=(REAL *)calloc(4*2048,sizeof(REAL));
-                 SpectrumPseudoAtomsAverage[k][i][j][1]=(REAL *)calloc(4*4096,sizeof(REAL));
-                 SpectrumPseudoAtomsAverage[k][i][j][2]=(REAL *)calloc(4*8192,sizeof(REAL));
-                 SpectrumPseudoAtomsAverage[k][i][j][3]=(REAL *)calloc(4*16384,sizeof(REAL));
-                 SpectrumPseudoAtomsAverage[k][i][j][4]=(REAL *)calloc(4*32768,sizeof(REAL));
+                 SpectrumPseudoAtomsAverage[k][i][j][0]=(REAL *)calloc(4*2048+1,sizeof(REAL));
+                 SpectrumPseudoAtomsAverage[k][i][j][1]=(REAL *)calloc(4*4096+1,sizeof(REAL));
+                 SpectrumPseudoAtomsAverage[k][i][j][2]=(REAL *)calloc(4*8192+1,sizeof(REAL));
+                 SpectrumPseudoAtomsAverage[k][i][j][3]=(REAL *)calloc(4*16384+1,sizeof(REAL));
+                 SpectrumPseudoAtomsAverage[k][i][j][4]=(REAL *)calloc(4*32768+1,sizeof(REAL));
                }
              }
           }
