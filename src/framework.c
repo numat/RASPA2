@@ -8788,6 +8788,12 @@ int ReadFrameworkDefinition(void)
                         Framework[CurrentSystem].BendArguments[CurrentFramework][index][0]*=KELVIN_TO_ENERGY;
                         Framework[CurrentSystem].BendArguments[CurrentFramework][index][2]=theta;
                         break;
+                      case TAFIPOLSKY_BEND:
+                        // 0.5*p_0*(1+cos(theta))*(1+cos(2*theta))
+                        // ===============================================
+                        // p_0/k_B [K]
+                        Framework[CurrentSystem].BendArguments[CurrentFramework][index][0]*=KELVIN_TO_ENERGY;
+                        break;
                       case MM3_BEND:
                       case MM3_IN_PLANE_BEND:
                         // p_0*(theta-p_1)^2(1-0.014*(theta-p_1)+5.6e-5*(theta-p_1)^2-7e-7*(theta-p_1)^3+2.2e-8(theta-p_1)^4)

@@ -4341,30 +4341,31 @@ void SampleMoleculePropertyHistogram(int Switch)
 
       for(i=0;i<NumberOfSystems;i++)
       {
-        if(ComputeMoleculeProperties[i])
+        if(ComputeMoleculeProperties[i]&&(Framework[i].FrameworkModel==FLEXIBLE))
         {
-          FrameworkBondLengthHistogram[i]=(REAL**)calloc(Framework[i].NumberOfBondsDefinitions,sizeof(REAL*));
-          for(j=0;j<Framework[i].NumberOfBondsDefinitions;j++)
+          if(Framework[i].FrameworkModel==FLEXIBLE)
+          FrameworkBondLengthHistogram[i]=(REAL**)calloc(Framework[i].NumberOfBonds[0],sizeof(REAL*));
+          for(j=0;j<Framework[i].NumberOfBonds[0];j++)
             FrameworkBondLengthHistogram[i][j]=(REAL*)calloc(BondLengthHistogramSize[i],sizeof(REAL));
 
-          FrameworkUreyBradleyLengthHistogram[i]=(REAL**)calloc(Framework[i].NumberOfUreyBradleyDefinitions,sizeof(REAL*));
-          for(j=0;j<Framework[i].NumberOfUreyBradleyDefinitions;j++)
+          FrameworkUreyBradleyLengthHistogram[i]=(REAL**)calloc(Framework[i].NumberOfUreyBradleys[0],sizeof(REAL*));
+          for(j=0;j<Framework[i].NumberOfUreyBradleys[0];j++)
             FrameworkUreyBradleyLengthHistogram[i][j]=(REAL*)calloc(BondLengthHistogramSize[i],sizeof(REAL));
 
-          FrameworkBendAngleHistogram[i]=(REAL**)calloc(Framework[i].NumberOfBendDefinitions,sizeof(REAL*));
-          for(j=0;j<Framework[i].NumberOfBendDefinitions;j++)
+          FrameworkBendAngleHistogram[i]=(REAL**)calloc(Framework[i].NumberOfBends[0],sizeof(REAL*));
+          for(j=0;j<Framework[i].NumberOfBends[0];j++)
             FrameworkBendAngleHistogram[i][j]=(REAL*)calloc(BendAngleHistogramSize[i],sizeof(REAL));
 
-          FrameworkTorsionAngleHistogram[i]=(REAL**)calloc(Framework[i].NumberOfTorsionDefinitions,sizeof(REAL*));
-          for(j=0;j<Framework[i].NumberOfTorsionDefinitions;j++)
+          FrameworkTorsionAngleHistogram[i]=(REAL**)calloc(Framework[i].NumberOfTorsions[0],sizeof(REAL*));
+          for(j=0;j<Framework[i].NumberOfTorsions[0];j++)
             FrameworkTorsionAngleHistogram[i][j]=(REAL*)calloc(DihedralHistogramSize[i],sizeof(REAL));
 
-          FrameworkAverageBondLength[i]=(REAL*)calloc(Framework[i].NumberOfBondsDefinitions,sizeof(REAL));
-          FrameworkBondLengthCount[i]=(REAL*)calloc(Framework[i].NumberOfBondsDefinitions,sizeof(REAL));
-          FrameworkAverageBendAngle[i]=(REAL*)calloc(Framework[i].NumberOfBendDefinitions,sizeof(REAL));
-          FrameworkBendAngleCount[i]=(REAL*)calloc(Framework[i].NumberOfBendDefinitions,sizeof(REAL));
-          FrameworkAverageTorsionAngle[i]=(REAL*)calloc(Framework[i].NumberOfTorsionDefinitions,sizeof(REAL));
-          FrameworkTorsionAngleCount[i]=(REAL*)calloc(Framework[i].NumberOfTorsionDefinitions,sizeof(REAL));
+          FrameworkAverageBondLength[i]=(REAL*)calloc(Framework[i].NumberOfBonds[0],sizeof(REAL));
+          FrameworkBondLengthCount[i]=(REAL*)calloc(Framework[i].NumberOfBonds[0],sizeof(REAL));
+          FrameworkAverageBendAngle[i]=(REAL*)calloc(Framework[i].NumberOfBends[0],sizeof(REAL));
+          FrameworkBendAngleCount[i]=(REAL*)calloc(Framework[i].NumberOfBends[0],sizeof(REAL));
+          FrameworkAverageTorsionAngle[i]=(REAL*)calloc(Framework[i].NumberOfTorsions[0],sizeof(REAL));
+          FrameworkTorsionAngleCount[i]=(REAL*)calloc(Framework[i].NumberOfTorsions[0],sizeof(REAL));
         }
       }
       break;
@@ -4373,47 +4374,46 @@ void SampleMoleculePropertyHistogram(int Switch)
     case SAMPLE:
       if(!ComputeMoleculeProperties[CurrentSystem]) return;
 
+      CurrentFramework=0;
+
       if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
       {
         for(i=0;i<Framework[CurrentSystem].NumberOfBonds[CurrentFramework];i++)
         {
-          r=ComputeBondDistanceFramework(i);
-          Type=Framework[CurrentSystem].BondType[CurrentFramework][i];
+          r=ComputeBondDistanceFramework(i)/BondLengthRange[CurrentSystem];
 
-          index=(int)(r*(REAL)BondLengthRange[CurrentSystem]/BondLengthRange[CurrentSystem]);
-          if(index>=0&&index<BondLengthRange[CurrentSystem])
+          index=(int)(r*(REAL)BondLengthHistogramSize[CurrentSystem]);
+          if(index>=0&&index<BondLengthHistogramSize[CurrentSystem])
           {
-            FrameworkBondLengthHistogram[CurrentSystem][Type][index]+=1.0;
-            FrameworkAverageBondLength[CurrentSystem][Type]+=r;
-            FrameworkBondLengthCount[CurrentSystem][Type]+=1.0;
+            FrameworkBondLengthHistogram[CurrentSystem][i][index]+=1.0;
+            FrameworkAverageBondLength[CurrentSystem][i]+=r;
+            FrameworkBondLengthCount[CurrentSystem][i]+=1.0;
           }
         }
 
         for(i=0;i<Framework[CurrentSystem].NumberOfBends[CurrentFramework];i++)
         {
-          theta=ComputeBendAngleFramework(i);
-          Type=Framework[CurrentSystem].BendDefinitionType[i];
+          theta=ComputeBendAngleFramework(i)/BendAngleRange[CurrentSystem];
 
-          index=(int)(theta*(REAL)BendAngleRange[CurrentSystem]/BendAngleRange[CurrentSystem]);
-          if(index>=0&&index<BendAngleRange[CurrentSystem])
+          index=(int)(theta*(REAL)BendAngleHistogramSize[CurrentSystem]);
+          if(index>=0&&index<BendAngleHistogramSize[CurrentSystem])
           {
-            FrameworkBendAngleHistogram[CurrentSystem][Type][index]+=1.0;
-            FrameworkAverageBendAngle[CurrentSystem][Type]+=theta;
-            FrameworkBendAngleCount[CurrentSystem][Type]+=1.0;
+            FrameworkBendAngleHistogram[CurrentSystem][i][index]+=1.0;
+            FrameworkAverageBendAngle[CurrentSystem][i]+=theta;
+            FrameworkBendAngleCount[CurrentSystem][i]+=1.0;
           }
         }
 
         for(i=0;i<Framework[CurrentSystem].NumberOfTorsions[CurrentFramework];i++)
         {
-          phi=ComputeTorsionAngleFramework(i);
-          Type=Framework[CurrentSystem].TorsionDefinitionType[i];
+          phi=ComputeTorsionAngleFramework(i)/DihedralRange[CurrentSystem];
 
-          index=(int)((phi/DihedralRange[CurrentSystem])*(REAL)DihedralHistogramSize[CurrentSystem]);
-          if(index>=0&&index<DihedralRange[CurrentSystem])
+          index=(int)(phi*(REAL)DihedralHistogramSize[CurrentSystem]);
+          if(index>=0&&index<DihedralHistogramSize[CurrentSystem])
           {
-            FrameworkTorsionAngleHistogram[CurrentSystem][Type][index]+=1.0;
-            FrameworkAverageTorsionAngle[CurrentSystem][Type]+=phi;
-            FrameworkTorsionAngleCount[CurrentSystem][Type]+=1.0;
+            FrameworkTorsionAngleHistogram[CurrentSystem][i][index]+=1.0;
+            FrameworkAverageTorsionAngle[CurrentSystem][i]+=phi;
+            FrameworkTorsionAngleCount[CurrentSystem][i]+=1.0;
           }
         }
       }
@@ -4510,16 +4510,16 @@ void SampleMoleculePropertyHistogram(int Switch)
       mkdir(buffer,S_IRWXU);
       if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
       {
-        for(j=0;j<Framework[CurrentSystem].NumberOfBondsDefinitions;j++)
+        for(j=0;j<Framework[CurrentSystem].NumberOfBonds[0];j++)
         {
           norm=0.0;
           for(k=0;k<BondLengthHistogramSize[CurrentSystem];k++)
             norm+=FrameworkBondLengthHistogram[CurrentSystem][j][k];
           norm*=BondLengthRange[CurrentSystem]/BondLengthHistogramSize[CurrentSystem];
 
-          sprintf(buffer,"MoleculeProperties/System_%d/Histogram_Framework_BondLength_%d_%s_%s%s.dat",CurrentSystem,j,
-              PseudoAtoms[Framework[CurrentSystem].BondDefinitions[j].A].Name,
-              PseudoAtoms[Framework[CurrentSystem].BondDefinitions[j].B].Name,
+          sprintf(buffer,"MoleculeProperties/System_%d/Histogram_Framework_BondLength_%d_%d_%d%s.dat",CurrentSystem,j,
+              Framework[CurrentSystem].Bonds[0][j].A,
+              Framework[CurrentSystem].Bonds[0][j].B,
               FileNameAppend);
           FilePtr=fopen(buffer,"w");
           fprintf(FilePtr,"# average bond length: %lf [A]\n",
@@ -4533,17 +4533,17 @@ void SampleMoleculePropertyHistogram(int Switch)
           fclose(FilePtr);
         }
 
-        for(j=0;j<Framework[CurrentSystem].NumberOfBendDefinitions;j++)
+        for(j=0;j<Framework[CurrentSystem].NumberOfBends[0];j++)
         {
           norm=0.0;
           for(k=0;k<BendAngleHistogramSize[CurrentSystem];k++)
             norm+=FrameworkBendAngleHistogram[CurrentSystem][j][k];
           norm*=BendAngleRange[CurrentSystem]/BendAngleHistogramSize[CurrentSystem];
 
-          sprintf(buffer,"MoleculeProperties/System_%d/Histogram_Framework_BendAngle_%d_%s_%s_%s%s.dat",CurrentSystem,j,
-             PseudoAtoms[Framework[CurrentSystem].BendDefinitions[j].A].Name,
-             PseudoAtoms[Framework[CurrentSystem].BendDefinitions[j].B].Name,
-             PseudoAtoms[Framework[CurrentSystem].BendDefinitions[j].C].Name,
+          sprintf(buffer,"MoleculeProperties/System_%d/Histogram_Framework_BendAngle_%d_%d_%d_%d%s.dat",CurrentSystem,j,
+             Framework[CurrentSystem].Bends[0][j].A,
+             Framework[CurrentSystem].Bends[0][j].B,
+             Framework[CurrentSystem].Bends[0][j].C,
              FileNameAppend);
           FilePtr=fopen(buffer,"w");
           fprintf(FilePtr,"# average bend angle: %lf [degrees]\n",
@@ -4557,17 +4557,18 @@ void SampleMoleculePropertyHistogram(int Switch)
           fclose(FilePtr);
         }
 
-        for(j=0;j<Framework[CurrentSystem].NumberOfTorsionDefinitions;j++)
+        for(j=0;j<Framework[CurrentSystem].NumberOfTorsions[0];j++)
         {
           norm=0.0;
           for(k=0;k<DihedralHistogramSize[CurrentSystem];k++)
             norm+=FrameworkTorsionAngleHistogram[CurrentSystem][j][k];
           norm*=DihedralRange[CurrentSystem]/DihedralHistogramSize[CurrentSystem];
 
-          sprintf(buffer,"MoleculeProperties/System_%d/Histogram_Framework_TorsionAngle_%d_%s_%s_%s%s.dat",CurrentSystem,j,
-             PseudoAtoms[Framework[CurrentSystem].TorsionDefinitions[j].A].Name,
-             PseudoAtoms[Framework[CurrentSystem].TorsionDefinitions[j].B].Name,
-             PseudoAtoms[Framework[CurrentSystem].TorsionDefinitions[j].C].Name,
+          sprintf(buffer,"MoleculeProperties/System_%d/Histogram_Framework_TorsionAngle_%d_%d_%d_%d_%d%s.dat",CurrentSystem,j,
+             Framework[CurrentSystem].Torsions[0][j].A,
+             Framework[CurrentSystem].Torsions[0][j].B,
+             Framework[CurrentSystem].Torsions[0][j].C,
+             Framework[CurrentSystem].Torsions[0][j].D,
              FileNameAppend);
           FilePtr=fopen(buffer,"w");
           fprintf(FilePtr,"# average torsion angle: %lf [degrees]\n",
@@ -4763,25 +4764,25 @@ void SampleInfraRedSpectra(int Switch)
             Spectrum[k][i][4]=(REAL *)calloc(4*32768,sizeof(REAL));
 
             SpectrumAverage[k][i]=(REAL **)malloc(5*sizeof(REAL*));
-            SpectrumAverage[k][i][0]=(REAL *)calloc(4*2048,sizeof(REAL));
-            SpectrumAverage[k][i][1]=(REAL *)calloc(4*4096,sizeof(REAL));
-            SpectrumAverage[k][i][2]=(REAL *)calloc(4*8192,sizeof(REAL));
-            SpectrumAverage[k][i][3]=(REAL *)calloc(4*16384,sizeof(REAL));
-            SpectrumAverage[k][i][4]=(REAL *)calloc(4*32768,sizeof(REAL));
+            SpectrumAverage[k][i][0]=(REAL *)calloc(4*2048+1,sizeof(REAL));
+            SpectrumAverage[k][i][1]=(REAL *)calloc(4*4096+1,sizeof(REAL));
+            SpectrumAverage[k][i][2]=(REAL *)calloc(4*8192+1,sizeof(REAL));
+            SpectrumAverage[k][i][3]=(REAL *)calloc(4*16384+1,sizeof(REAL));
+            SpectrumAverage[k][i][4]=(REAL *)calloc(4*32768+1,sizeof(REAL));
 
             UnweightedSpectrum[k][i]=(REAL **)malloc(5*sizeof(REAL*));
-            UnweightedSpectrum[k][i][0]=(REAL *)calloc(4*2048,sizeof(REAL));
-            UnweightedSpectrum[k][i][1]=(REAL *)calloc(4*4096,sizeof(REAL));
-            UnweightedSpectrum[k][i][2]=(REAL *)calloc(4*8192,sizeof(REAL));
-            UnweightedSpectrum[k][i][3]=(REAL *)calloc(4*16384,sizeof(REAL));
-            UnweightedSpectrum[k][i][4]=(REAL *)calloc(4*32768,sizeof(REAL));
+            UnweightedSpectrum[k][i][0]=(REAL *)calloc(4*2048+1,sizeof(REAL));
+            UnweightedSpectrum[k][i][1]=(REAL *)calloc(4*4096+1,sizeof(REAL));
+            UnweightedSpectrum[k][i][2]=(REAL *)calloc(4*8192+1,sizeof(REAL));
+            UnweightedSpectrum[k][i][3]=(REAL *)calloc(4*16384+1,sizeof(REAL));
+            UnweightedSpectrum[k][i][4]=(REAL *)calloc(4*32768+1,sizeof(REAL));
 
             UnweightedSpectrumAverage[k][i]=(REAL **)malloc(5*sizeof(REAL*));
-            UnweightedSpectrumAverage[k][i][0]=(REAL *)calloc(4*2048,sizeof(REAL));
-            UnweightedSpectrumAverage[k][i][1]=(REAL *)calloc(4*4096,sizeof(REAL));
-            UnweightedSpectrumAverage[k][i][2]=(REAL *)calloc(4*8192,sizeof(REAL));
-            UnweightedSpectrumAverage[k][i][3]=(REAL *)calloc(4*16384,sizeof(REAL));
-            UnweightedSpectrumAverage[k][i][4]=(REAL *)calloc(4*32768,sizeof(REAL));
+            UnweightedSpectrumAverage[k][i][0]=(REAL *)calloc(4*2048+1,sizeof(REAL));
+            UnweightedSpectrumAverage[k][i][1]=(REAL *)calloc(4*4096+1,sizeof(REAL));
+            UnweightedSpectrumAverage[k][i][2]=(REAL *)calloc(4*8192+1,sizeof(REAL));
+            UnweightedSpectrumAverage[k][i][3]=(REAL *)calloc(4*16384+1,sizeof(REAL));
+            UnweightedSpectrumAverage[k][i][4]=(REAL *)calloc(4*32768+1,sizeof(REAL));
           }
           for(i=0;i<2;i++)
           {
@@ -4792,18 +4793,18 @@ void SampleInfraRedSpectra(int Switch)
                if(NumberOfPseudoAtomsType[k][j]>0)
                {
                  SpectrumPseudoAtoms[k][i][j]=(REAL **)malloc(5*sizeof(REAL*));
-                 SpectrumPseudoAtoms[k][i][j][0]=(REAL *)calloc(4*2048,sizeof(REAL));
-                 SpectrumPseudoAtoms[k][i][j][1]=(REAL *)calloc(4*4096,sizeof(REAL));
-                 SpectrumPseudoAtoms[k][i][j][2]=(REAL *)calloc(4*8192,sizeof(REAL));
-                 SpectrumPseudoAtoms[k][i][j][3]=(REAL *)calloc(4*16384,sizeof(REAL));
-                 SpectrumPseudoAtoms[k][i][j][4]=(REAL *)calloc(4*32768,sizeof(REAL));
+                 SpectrumPseudoAtoms[k][i][j][0]=(REAL *)calloc(4*2048+1,sizeof(REAL));
+                 SpectrumPseudoAtoms[k][i][j][1]=(REAL *)calloc(4*4096+1,sizeof(REAL));
+                 SpectrumPseudoAtoms[k][i][j][2]=(REAL *)calloc(4*8192+1,sizeof(REAL));
+                 SpectrumPseudoAtoms[k][i][j][3]=(REAL *)calloc(4*16384+1,sizeof(REAL));
+                 SpectrumPseudoAtoms[k][i][j][4]=(REAL *)calloc(4*32768+1,sizeof(REAL));
 
                  SpectrumPseudoAtomsAverage[k][i][j]=(REAL **)malloc(5*sizeof(REAL*));
-                 SpectrumPseudoAtomsAverage[k][i][j][0]=(REAL *)calloc(4*2048,sizeof(REAL));
-                 SpectrumPseudoAtomsAverage[k][i][j][1]=(REAL *)calloc(4*4096,sizeof(REAL));
-                 SpectrumPseudoAtomsAverage[k][i][j][2]=(REAL *)calloc(4*8192,sizeof(REAL));
-                 SpectrumPseudoAtomsAverage[k][i][j][3]=(REAL *)calloc(4*16384,sizeof(REAL));
-                 SpectrumPseudoAtomsAverage[k][i][j][4]=(REAL *)calloc(4*32768,sizeof(REAL));
+                 SpectrumPseudoAtomsAverage[k][i][j][0]=(REAL *)calloc(4*2048+1,sizeof(REAL));
+                 SpectrumPseudoAtomsAverage[k][i][j][1]=(REAL *)calloc(4*4096+1,sizeof(REAL));
+                 SpectrumPseudoAtomsAverage[k][i][j][2]=(REAL *)calloc(4*8192+1,sizeof(REAL));
+                 SpectrumPseudoAtomsAverage[k][i][j][3]=(REAL *)calloc(4*16384+1,sizeof(REAL));
+                 SpectrumPseudoAtomsAverage[k][i][j][4]=(REAL *)calloc(4*32768+1,sizeof(REAL));
                }
              }
           }

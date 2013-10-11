@@ -1085,7 +1085,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
   fprintf(FilePtr,"Molecule properties: %s\n",ComputeMoleculeProperties[system]?"yes":"no");
   if(ComputeMoleculeProperties[system])
   {
-    fprintf(FilePtr,"\tMolecular properties are written to file every %d cycles\n",WriteNumberOfMoleculesHistogramEvery[system]);
+    fprintf(FilePtr,"\tMolecular properties are written to file every %d cycles\n",WriteMoleculePropertiesEvery[system]);
     fprintf(FilePtr,"\tNumber of elements of the bond-distance histogram: %d\n",BondLengthHistogramSize[system]);
     fprintf(FilePtr,"\tNumber of elements of the bend-angle histogram: %d\n",BendAngleHistogramSize[system]);
     fprintf(FilePtr,"\tNumber of elements of the dihedral histogram: %d\n",DihedralHistogramSize[system]);
@@ -4342,6 +4342,13 @@ void PrintPreSimulationStatusCurrentSystem(int system)
                    (double)(Components[i].BendArguments[j][0]*ENERGY_TO_KELVIN),
                    (double)(Components[i].BendArguments[j][1]),
                    (double)(Components[i].BendArguments[j][2]*RAD2DEG));
+                 break;
+               case TAFIPOLSKY_BEND:
+                 // 0.5*p_0*(1+cos(theta))*(1+cos(2*theta))
+                 // ===============================================
+                 // p_0/k_B [K]
+                 fprintf(FilePtr,"\t\tTAFIPOLSKY_BEND: p_0/k_B=%-10.6f [K]\n",
+                   (double)(Components[i].BendArguments[j][0]*ENERGY_TO_KELVIN));
                  break;
                case MM3_BEND:
                  // p_0*(theta-p_1)^2(1-0.014*(theta-p_1)+5.6e-5*(theta-p_1)^2-7e-7*(theta-p_1)^3+2.2e-8(theta-p_1)^4)

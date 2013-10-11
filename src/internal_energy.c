@@ -245,6 +245,16 @@ REAL GenerateBendAngle(int i)
         energy=parms[0]*(1.0+cos(parms[1]*theta-parms[2]));
       }while(RandomNumber()>SQR(sin(theta))*exp(-Beta[CurrentSystem]*energy));
       break;
+    case TAFIPOLSKY_BEND:
+      // 0.5*p_0*(1+cos(theta))*(1+cos(2*theta))
+      // ===============================================
+      // p_0/k_B [K]
+      do
+      {
+        theta=M_PI*RandomNumber();
+        energy=0.5*parms[0]*(1.0+cos(theta))*(1.0+cos(2.0*theta));
+      }while(RandomNumber()>SQR(sin(theta))*exp(-Beta[CurrentSystem]*energy));
+      break;
     case MM3_BEND:
     case MM3_IN_PLANE_BEND:
       // p_0*(theta-p_1)^2(1-0.014*(theta-p_1)+5.6e-5*(theta-p_1)^2-7e-7*(theta-p_1)^3+2.2e-8(theta-p_1)^4)
@@ -1282,6 +1292,12 @@ REAL CalculateBendEnergy(int Itype,int Iu)
       temp=parms[1]*Theta-parms[2];
       U=parms[0]*(1.0+cos(temp));
       break;
+    case TAFIPOLSKY_BEND:
+      // 0.5*p_0*(1+cos(theta))*(1+cos(2*theta))
+      // ===============================================
+      // p_0/k_B [K]
+      U=0.5*parms[0]*(1.0+cos(Theta))*(1.0+cos(2.0*Theta));
+      break;
     case MM3_BEND:
     case MM3_IN_PLANE_BEND:
       // p_0*(theta-p_1)^2(1-0.014*(theta-p_1)+5.6e-5*(theta-p_1)^2-7e-7*(theta-p_1)^3+2.2e-8(theta-p_1)^4)
@@ -1457,6 +1473,12 @@ REAL CalculateBendEnergyAdsorbate(int m)
         temp=parms[1]*Theta-parms[2];
         U=parms[0]*(1.0+cos(temp));
         break;
+      case TAFIPOLSKY_BEND:
+         // 0.5*p_0*(1+cos(theta))*(1+cos(2*theta))
+         // ===============================================
+         // p_0/k_B [K]
+         U=0.5*parms[0]*(1.0+cos(Theta))*(1.0+cos(2.0*Theta));
+         break;  
       case MM3_BEND:
       case MM3_IN_PLANE_BEND:
         // p_0*(theta-p_1)^2(1-0.014*(theta-p_1)+5.6e-5*(theta-p_1)^2-7e-7*(theta-p_1)^3+2.2e-8(theta-p_1)^4)
@@ -1645,6 +1667,12 @@ REAL CalculateBendEnergyCation(int m)
         temp=parms[1]*Theta-parms[2];
         U=parms[0]*(1.0+cos(temp));
         break;
+      case TAFIPOLSKY_BEND:
+         // 0.5*p_0*(1+cos(theta))*(1+cos(2*theta))
+         // ===============================================
+         // p_0/k_B [K]
+         U=0.5*parms[0]*(1.0+cos(Theta))*(1.0+cos(2.0*Theta));
+         break;
       case MM3_BEND:
       case MM3_IN_PLANE_BEND:
         // p_0*(theta-p_1)^2(1-0.014*(theta-p_1)+5.6e-5*(theta-p_1)^2-7e-7*(theta-p_1)^3+2.2e-8(theta-p_1)^4)
