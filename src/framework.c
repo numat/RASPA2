@@ -382,11 +382,16 @@ void ReadFrameworkDefinitionCIF(void)
 
   if (STREAM)
   {
+#ifdef __unix__
     if (!(FilePtr=fmemopen((void *)INPUT_CRYSTAL, strlen(INPUT_CRYSTAL), "r")))
     {
       printf("Error reading streamed CIF molecule.");
       exit(1);
     }
+#else
+    fprintf(stderr, "Streaming only allowed on POSIX systems (for now)\n.");
+    exit(1);
+#endif
   }
   else
   {
@@ -2731,11 +2736,16 @@ void ReadFrameworkDefinitionMOL(void)
 
   if (STREAM)
   {
+#ifdef __unix__
     if (!(FilePtr=fmemopen((void *)INPUT_CRYSTAL, strlen(INPUT_CRYSTAL), "r")))
     {
       printf("Error reading streamed MOL molecule.");
       exit(1);
     }
+#else
+    fprintf(stderr, "Streaming only allowed on POSIX systems (for now)\n.");
+    exit(1);
+#endif
   }
   else
   {
@@ -3067,11 +3077,16 @@ void ReadFrameworkDefinitionDLPOLY(void)
 
   if (STREAM)
   {
+#ifdef __unix__
     if (!(FilePtr=fmemopen((void *)INPUT_CRYSTAL, strlen(INPUT_CRYSTAL), "r")))
     {
       printf("Error reading streamed CSSR molecule.");
       exit(1);
     }
+#else
+    fprintf(stderr, "Streaming only allowed on POSIX systems (for now)\n.");
+    exit(1);
+#endif
   }
   else
   {

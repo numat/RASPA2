@@ -124,9 +124,14 @@ void OpenOutputFile(void)
 
   if (STREAM)
   {
+#ifdef __unix__
     // Loads output contents into a global
     for(i=0;i<NumberOfSystems;i++)
       OutputFilePtr[i]=open_memstream(&FILE_CONTENTS[i], &FILE_SIZES[i]);
+#else
+    fprintf(stderr, "Streaming only allowed on POSIX systems (for now)\n.");
+    exit(1);
+#endif
   }
   else
   {
@@ -153,39 +158,6 @@ void OpenOutputFile(void)
       sprintf(buffer2,"%s.data",buffer2);
       OutputFilePtr[i]=fopen(buffer2,"w");
     }
-=======
-    case OUTPUT_TO_FILE:
-      mkdir("Output",S_IRWXU);
-      for(i=0;i<NumberOfSystems;i++)
-      {
-        sprintf(buffer,"Output/System_%d",i);
-        mkdir(buffer,S_IRWXU);
-      }
-      for(i=0;i<NumberOfSystems;i++)
-      {
-        sprintf(buffer,"Output/System_%d/output_%s_%d.%d.%d_%lf_%lf%s",
-                i,
-                Framework[i].Name[0],
-                NumberOfUnitCells[i].x,
-                NumberOfUnitCells[i].y,
-                NumberOfUnitCells[i].z,
-                (double)therm_baro_stats.ExternalTemperature[i],
-                (double)(therm_baro_stats.ExternalPressure[i][CurrentIsothermPressure]*PRESSURE_CONVERSION_FACTOR),
-                FileNameAppend);
-
-        // limit length of file-name
-        strncpy(buffer2,buffer,250);
-        sprintf(buffer2,"%s.data",buffer2);
-
-        //if(!(OutputFilePtr[i]=fopen(buffer2,"r+")))
-        //   OutputFilePtr[i]=fopen(buffer2,"a");
-        OutputFilePtr[i]=fopen(buffer2,"w");
-      }
-      break;
-    case OUTPUT_TO_SCREEN:
-      //OutputFilePtr=stdout;
-      break;
->>>>>>> 0e10d81ca70cf055577d79525c6a9c6edae50ac1
   }
 }
 

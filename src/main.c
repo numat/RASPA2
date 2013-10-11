@@ -72,6 +72,9 @@ int main(int argc, char **argv)
   strcat(raspa_dir,"/RASPA/simulations");
 
   // get the raspa install directory from environement if defined
+  if(getenv("RASPA_DIR")&&(strlen(getenv("RASPA_DIR"))>0))
+    raspa_dir=getenv("RASPA_DIR");
+  // allow multiple versions of raspa to coexist peacefully by using different dirs
   if(getenv("RASPA2_DIR")&&(strlen(getenv("RASPA2_DIR"))>0))
     raspa_dir=getenv("RASPA2_DIR");
 
@@ -134,12 +137,15 @@ char* run(char *inputData, char *inputCrystal, char *raspaDir, bool stream)
   REAL energy, force_factor;
   char *output = NULL, *temp = NULL, *delimiter = NULL;
 
-  // There are a lot of globals kicking around. It's messy. TODO clean.
+  // There are a lot of globals kicking around.
   INPUT_CRYSTAL = strdup(inputCrystal);
   RASPA_DIRECTORY = strdup(raspaDir);
   STREAM = stream;
 
-  ReadInputFile(inputData);
+  if (STREAM)
+    ReadInput(inputData);
+  else
+    ReadInputFile(inputData);
 
   // write the initial positions to files
   if (!STREAM)

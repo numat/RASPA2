@@ -22,8 +22,10 @@
 extern int EwaldAutomatic;
 
 char *ReadLine(char *buffer, size_t length, FILE *file);
+char *LoadFile(char *);
 
 int ReadInputFile(char *);
+int ReadInput(char *);
 void ReadRestartFile(void);
 void ReadRestartFileOld(void);
 void ReadBinaryRestartFiles(void);

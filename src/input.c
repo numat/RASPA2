@@ -56,8 +56,6 @@
 #include "status.h"
 #include "charge_equilibration.h"
 
-extern bool STREAM;
-
 int EwaldAutomatic;
 static int *read_frameworks;
 static int *InitializeBox;
@@ -137,8 +135,6 @@ void CheckConstraintInputCation(CATION_MOLECULE** cations,int molecule_nr,int at
   }
 }
 
-
-
 // Reads at most 'length-1' characters from a file into a buffer
 // The character sequence is zero-terminated
 // more characters then the line are discarded
@@ -162,18 +158,47 @@ char *ReadLine(char *buffer, size_t length, FILE *file)
   return p;
 }
 
-// read the input file and parses the options
-// all string are converted to lowercase
-// leading spaces are removed
-// line-input after a parsed command is ignored
-int ReadInputFile(char *input)
+// Loads the contents of a file specified by `path` into a string
+char* LoadFile(char *path)
+{
+  char *buffer=0;
+  long length;
+  FILE *FilePtr;
+
+  if(!(FilePtr=fopen(path, "r")))
+  {
+    printf("Error opening input-file '%s' (routine int LoadFile(char *path))\n", path);
+    return NULL;
+  }
+  fseek(FilePtr, 0, SEEK_END);
+  length = ftell(FilePtr);
+  fseek(FilePtr, 0, SEEK_SET);
+  buffer = malloc(length);
+  if (buffer)
+    fread(buffer, 1, length, FilePtr);
+  fclose(FilePtr);
+  return buffer;
+}
+
+// Load the contents of a file into an in-memory buffer and pass to the parser
+// (Separating file reading from parsing exposes useful functionality)
+int ReadInputFile(char *filename)
+{
+  return ReadInput(LoadFile(filename));
+}
+
+// Reads the input and parses the options
+//  * all string are converted to lowercase
+//  * leading spaces are removed
+//  * line-input after a parsed command is ignored
+int ReadInput(char *input)
 {
   int i,j,k,l,m,n,index,nr_sites;
   int Restart,RestartStyle,Type;
   int StartingBead,Swapable,A1,B1;
-  FILE *FilePtr;
-  char line[16384],string[1024];
-  char keyword[1024],arguments[16384],firstargument[1024],*arg_pointer;
+  char string[1024],keyword[1024],firstargument[1024],arguments[16384];
+  char *line,*tokptr,*arg_pointer,*tmp;
+  int linesize = 0;
   REAL det,r;
   REAL A,B,C,tempd;
   int temp_int;
@@ -195,9 +220,6 @@ int ReadInputFile(char *input)
   CurrentPrism=0;
   CurrentCylinder=0;
   CurrentSphere=0;
-
-  //NumberOfFixedFrameworkAtoms=0;
-  //FixedFrameworkAtoms=NULL;
 
   // not set, means get the random seed from the system time
   seed=0lu;
@@ -298,7 +320,6 @@ int ReadInputFile(char *input)
   InverseCutOffVDW=1.0/CutOffVDW;
   CutOffVDWSquared=SQR(CutOffVDW);
 
-
   CutOffChargeBondDipole=12.0;
   CutOffChargeBondDipoleSquared=SQR(CutOffChargeBondDipole);
 
@@ -366,7 +387,6 @@ int ReadInputFile(char *input)
   NumberOfBuffersVACF=20;
   BufferLengthVACF=5000;
 
-  //
   ParallelMolFractionComponentA=0;
   ParallelMolFractionComponentB=1;
 
@@ -547,27 +567,14 @@ int ReadInputFile(char *input)
 
   // first pass to get NumberOfSystems and NumberOfComponents etc.
   // also loof for a binary restart-file, in that case immediately return
-  if (STREAM)
-  {
-    if(!(FilePtr=fmemopen((void *)input, strlen(input), "r")))
-    {
-        printf("Error reading string into memory! What's up with that?");
-        exit(1);
-    }
-  }
-  else
-  {
-    if(!(FilePtr=fopen(input, "r")))
-    {
-      printf("Error opening input-file '%s' (routine int ReadInputFile(char *input))\n",input);
-      exit(1);
-    }
-  }
-
   NumberOfSystems=0;
   NumberOfComponents=0;
-  NumberOfReactions=0;                                             // CFC-RXMC
-  while(ReadLine(line,16384,FilePtr))
+  NumberOfReactions=0;
+
+  // This loops through the string line-by-line, using the reentrant form of
+  // `strtok` to be less ambiguous about the state of things
+  tmp = strdup(input);
+  for (line=strtok_r(tmp, "\n", &tokptr); line; line=strtok_r(NULL, "\n", &tokptr))
   {
     // extract first word
     strcpy(keyword,"keyword");
@@ -652,13 +659,11 @@ int ReadInputFile(char *input)
 
         // no need to reed the rest of the input file
         // instead read the binary status file
-        fclose(FilePtr);
         ReadBinaryRestartFiles();
         return 0;
       }
     }
   }
-  fclose(FilePtr);
 
   // set units, either reduced or real units
   SetSimulationUnits();
@@ -881,20 +886,13 @@ int ReadInputFile(char *input)
   ReciprocalCutOffSquared=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
 
   // second pass to get the number of frameworks per system
-  if (STREAM)
-  {
-    FilePtr=fmemopen((void *)input, strlen(input), "r");
-  }
-  else
-  {
-    FilePtr=fopen(input,"r");
-  }
-
   CurrentSystem=0;
   CurrentComponent=0;
-  while(ReadLine(line,16384,FilePtr))
+  tmp = strdup(input);
+  tokptr = 0;
+  for (line=strtok_r(tmp, "\n", &tokptr); line; line=strtok_r(NULL, "\n", &tokptr))
   {
-   // extract first word
+    // extract first word
     strcpy(keyword,"keyword");
     sscanf(line,"%s%[^\n]",keyword,arguments);
     sscanf(arguments,"%s",firstargument);
@@ -937,7 +935,6 @@ int ReadInputFile(char *input)
     }
     if(strcasecmp("CFLambdaHistogramSize",keyword)==0) sscanf(arguments,"%d",&Components[CurrentComponent].CFLambdaHistogramSize);
   }
-  fclose(FilePtr);
 
 
   AllocateThermoBaroStatMemory();
@@ -954,7 +951,6 @@ int ReadInputFile(char *input)
       for(k=0;k<Components[j].CFLambdaHistogramSize;k++)
         Components[j].CFBiasingFactors[i][k]=0.0;
     }
-
 
     ReciprocalCutOffSquared[i]=-1.0;
 
@@ -1338,19 +1334,12 @@ int ReadInputFile(char *input)
   AllocateStatisticsMemory();
 
   // final pass, most memory is now already allocated
-  if (STREAM)
-  {
-    FilePtr=fmemopen((void *)input, strlen(input), "r");
-  }
-  else
-  {
-    FilePtr=fopen(input,"r");
-  }
-
   CurrentComponent=0;
   CurrentReaction=0;
   LineNumber=0;
-  while(ReadLine(line,16384,FilePtr))
+  tmp = strdup(input);
+  tokptr = 0;
+  for (line=strtok_r(tmp, "\n", &tokptr); line; line=strtok_r(NULL, "\n", &tokptr))
   {
     LineNumber++;
 
@@ -1422,7 +1411,6 @@ int ReadInputFile(char *input)
 
         // no need to reed the rest of the input file
         // instead read the binary status file
-        fclose(FilePtr);
         ReadBinaryRestartFiles();
         return 0;
       }
@@ -2132,11 +2120,12 @@ int ReadInputFile(char *input)
     {
       if(sscanf(arguments,"%d",&CurrentSystem))
       {
-        fgets(arguments,1024,FilePtr);
+        strcpy(arguments, strtok_r(NULL, "\n", &tokptr));
         sscanf(arguments,"%lf %lf %lf\n",&Box[CurrentSystem].ax,&Box[CurrentSystem].bx,&Box[CurrentSystem].cx);
-        fgets(arguments,1024,FilePtr);
+        strcpy(arguments, strtok_r(NULL, "\n", &tokptr));
+        sscanf(arguments,"%lf %lf %lf\n",&Box[CurrentSystem].ax,&Box[CurrentSystem].bx,&Box[CurrentSystem].cx);
         sscanf(arguments,"%lf %lf %lf\n",&Box[CurrentSystem].ay,&Box[CurrentSystem].by,&Box[CurrentSystem].cy);
-        fgets(arguments,1024,FilePtr);
+        strcpy(arguments, strtok_r(NULL, "\n", &tokptr));
         sscanf(arguments,"%lf %lf %lf\n",&Box[CurrentSystem].az,&Box[CurrentSystem].bz,&Box[CurrentSystem].cz);
 
         NumberOfUnitCells[CurrentSystem].x=1;
@@ -5154,7 +5143,6 @@ int ReadInputFile(char *input)
       if(strcasecmp("no",firstargument)==0) Framework[CurrentSystem].RemoveHydrogenDisorder=FALSE;
     }
   }
-  fclose(FilePtr);
 
   // if the frameworks can be moved apart, the system is set to 'flexible'
   // the individual frameworks can be either 'fleixble' or 'rigid'
@@ -7834,35 +7822,21 @@ int ReadInputFile(char *input)
   for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
     WriteFrameworkDefinition();
 
-  //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
   // CFC-RXMC : Initializing Lambda, Pi and randomly picking a fractional molecule
-  //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
   if(NumberOfReactions>0)
   {
     for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
     {
-       for(CurrentReaction=0;CurrentReaction<NumberOfReactions;CurrentReaction++)
-       {
-          CFCRXMCLambda[CurrentSystem][CurrentReaction]=0.5;
-          for(CurrentComponent=0;CurrentComponent<NumberOfComponents;CurrentComponent++)
-          {
-             //Components[CurrentComponent].RXMCFractionalMolecule[CurrentReaction]=(int)(RandomNumber()*Components[CurrentComponent].NumberOfMolecules[CurrentSystem]);
-             //Adsorbates[CurrentSystem][Components[CurrentComponent].RXMCFractionalMolecule[CurrentReaction]].Pi=0.5;
-          }
-       }
+      for(CurrentReaction=0;CurrentReaction<NumberOfReactions;CurrentReaction++)
+      {
+         CFCRXMCLambda[CurrentSystem][CurrentReaction]=0.5;
+      }
     }
   }
-  //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-  //PutNoiseOnFrameworkAtomicPositions();
 
   CurrentSystem=0;
   CurrentComponent=0;
   CurrentFramework=0;
-
-  if (!STREAM) {
-    fprintf(stderr, "Done reading '%s'\n", input);
-  }
 
   return 0;
 }

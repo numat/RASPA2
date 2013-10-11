@@ -102,13 +102,11 @@ and modern interfaces (ie. [IPython Notebook](http://ipython.org/notebook.html))
 RASPA2_DIR
 =========
 
-######Note: For this version, I've renamed `RASPA_DIR` to `RASPA2_DIR`. This allows for RASPA and RASPA2 to peacefully coexist. When RASPA is completely deprecated, I may fix the nomenclature.
-
-By default, RASPA2 expects certain files to be in specific paths. Here's the logic:
 
 1. See if that file is in your current directory `$PWD`.
 2. See if that file is in a subdirectory of `$RASPA2_DIR`.
-3. See if that file is in a subdirectory of `$HOME`.
+3. See if that file is in a subdirectory of `$RASPA_DIR`.
+4. See if that file is in a subdirectory of `$HOME`.
 
 This is the case for everything without streaming, but it's also the case for
 simulation gases and force fields with streaming. I like the solution:
