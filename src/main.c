@@ -96,7 +96,6 @@ int main(int argc, char **argv)
         printf("\t-d the raspa directory\n");
         printf("\t-a appends the string to output-files\n");
         return 0;
-        return 0;
       case 'i': // set the input-filename
         input = strdup(optarg);
         break;

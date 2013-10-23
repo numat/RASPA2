@@ -15,10 +15,11 @@ raspa.run.argtypes = (c_char_p, c_char_p, c_char_p, c_bool)
 raspa.run.restype = c_void_p
 
 
-def run(structure, molecule_name, temperature, pressure, helium_void_fraction,
-        unit_cells=(1, 1, 1), framework_name="streamed",
-        simulation_type="MonteCarlo", cycles=2000, init_cycles=1000,
-        forcefield="CrystalGenerator", input_file_type="cif"):
+def run(structure, molecule_name, temperature=273.15, pressure=101325,
+        helium_void_fraction=1.0, unit_cells=(1, 1, 1),
+        framework_name="streamed", simulation_type="MonteCarlo", cycles=2000,
+        init_cycles=1000, forcefield="CrystalGenerator",
+        input_file_type="cif"):
     """Runs a simulation with the specified parameters.
 
     Args:
@@ -26,10 +27,10 @@ def run(structure, molecule_name, temperature, pressure, helium_void_fraction,
             `input_file_type` (default is "cif").
         molecule_name: The molecule to test for adsorption. A file of the same
             name must exist in `$RASPA_DIR/share/raspa/molecules/TraPPE`.
-        temperature: The temperature of the simulation, in Kelvin.
-        pressure: The pressure of the simulation, in Pascals.
-        helium_void_fraction: The helium void fraction of the input structure.
-            Can be estimated by running RASPA with helium.
+        temperature: (Optional) The temperature of the simulation, in Kelvin.
+        pressure: (Optional) The pressure of the simulation, in Pascals.
+        helium_void_fraction: (Optional) The helium void fraction of the input
+            structure. Required for excess adsorption back-calculation.
         unit_cells: (Optional) The number of unit cells to use, by dimension.
         framework_name: (Optional) If not streaming, this will load the
             structure at `$RASPA_DIR/share/raspa/structures`. Ignored if
@@ -72,16 +73,23 @@ def run_script(input_script, structure=None, raspa_dir="auto"):
     will output files and folders. Otherwise, this function will return the
     output of RASPA, as a string.
     """
+    # This is the same logic used by the C code
     if raspa_dir == "auto":
-        raspa_dir = env["RASPA2_DIR" if "RASPA2_DIR" in env else "HOME"]
+        if "RASPA2_DIR" in env:
+            raspa_dir = env["RASPA2_DIR"]
+        elif "RASPA_DIR" in env:
+            raspa_dir = env["RASPA_DIR"]
+        else:
+            raspa_dir = env["HOME"]
+
     ptr = raspa.run(input_script, structure or "", raspa_dir, True)
     return cast(ptr, c_char_p).value[:]
 
 
-def create_script(molecule_name, temperature, pressure, helium_void_fraction,
-                  unit_cells=(1, 1, 1), framework_name="streamed",
-                  simulation_type="MonteCarlo", cycles=2000,
-                  init_cycles=1000, forcefield="CrystalGenerator",
+def create_script(molecule_name, temperature=273.15, pressure=101325,
+                  helium_void_fraction=1.0, unit_cells=(1, 1, 1),
+                  framework_name="streamed", simulation_type="MonteCarlo",
+                  cycles=2000, init_cycles=1000, forcefield="CrystalGenerator",
                   input_file_type="cif", **kwargs):
     """Creates a RASPA simulation input file from parameters.
 
@@ -90,10 +98,10 @@ def create_script(molecule_name, temperature, pressure, helium_void_fraction,
             for the simulation
         molecule_name: The molecule to test for adsorption. A file of the same
             name must exist in `$RASPA_DIR/share/raspa/molecules/TraPPE`.
-        temperature: The temperature of the simulation, in Kelvin.
-        pressure: The pressure of the simulation, in Pascals.
-        helium_void_fraction: The helium void fraction of the input structure.
-            Can be estimated by running RASPA with helium.
+        temperature: (Optional) The temperature of the simulation, in Kelvin.
+        pressure: (Optional) The pressure of the simulation, in Pascals.
+        helium_void_fraction: (Optional) The helium void fraction of the input
+            structure. Required for excess adsorption back-calculation.
         unit_cells: (Optional) The number of unit cells to use, by dimension.
         framework_name: (Optional) If not streaming, this will load the
             structure at `$RASPA_DIR/share/raspa/structures`. Ignored if
@@ -152,8 +160,8 @@ def create_script(molecule_name, temperature, pressure, helium_void_fraction,
                       "            CreateNumberOfMolecules  0"])
 
 
-def run_mixture(structure, molecules, mol_fractions, temperature,
-                pressure, helium_void_fraction,
+def run_mixture(structure, molecules, mol_fractions, temperature=273.15,
+                pressure=101325, helium_void_fraction=1.0,
                 unit_cells=(1, 1, 1), framework_name="streamed",
                 simulation_type="MonteCarlo", cycles=2000,
                 init_cycles=1000, forcefield="CrystalGenerator",
@@ -167,10 +175,10 @@ def run_mixture(structure, molecules, mol_fractions, temperature,
             names must exist in `$RASPA_DIR/share/raspa/molecules/TraPPE`.
         mol_fractions: The mol fractions of each gas that you want to separate.
             Corresponds to the `molecules` list.
-        temperature: The temperature of the simulation, in Kelvin.
-        pressure: The pressure of the simulation, in Pascals.
-        helium_void_fraction: The helium void fraction of the input structure.
-            Can be estimated by running RASPA with helium.
+        temperature: (Optional) The temperature of the simulation, in Kelvin.
+        pressure: (Optional) The pressure of the simulation, in Pascals.
+        helium_void_fraction: (Optional) The helium void fraction of the input
+            structure. Required for excess adsorption back-calculation.
         unit_cells: (Optional) The number of unit cells to use, by dimension.
         framework_name: (Optional) If not streaming, this will load the
             structure at `$RASPA_DIR/share/raspa/structures`. Ignored if
@@ -322,15 +330,15 @@ def get_helium_void_fraction(structure, unit_cells=(1, 1, 1), cycles=2000,
     return info["Average Widom Rosenbluth factor"]["Widom"][0]
 
 
-def get_density(molecule_name, temperature, pressure, cycles=5000,
-                init_cycles=2500, forcefield="CrystalGenerator"):
+def get_density(molecule_name, temperature=273.15, pressure=101325,
+                cycles=5000, init_cycles=2500, forcefield="CrystalGenerator"):
     """Calculates the density through an NPT ensemble.
 
     Args:
         molecule_name: The molecule to test for adsorption. A file of the same
             name must exist in `$RASPA_DIR/share/raspa/molecules/TraPPE`.
-        temperature: The temperature of the simulation, in Kelvin.
-        pressure: The pressure of the simulation, in Pascals.
+        temperature: (Optional) The temperature of the simulation, in Kelvin.
+        pressure: (Optional) The pressure of the simulation, in Pascals.
         cycles: (Optional) The number of simulation cycles to run.
         init_cycles: (Optional) The number of initialization cycles to run.
         forcefield: (Optional) The forcefield to use. Name must match a folder

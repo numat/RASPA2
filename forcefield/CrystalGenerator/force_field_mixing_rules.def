@@ -3,8 +3,40 @@ truncated
 # general rule tailcorrections
 no
 # number of defined interactions
-64
+96
 # type interaction
+O_             lennard-jones    48.1581   3.03315
+N_             lennard-jones    38.9492   3.26256
+C_             lennard-jones    47.8562   3.47299
+F_             lennard-jones    36.4834   3.0932
+B_             lennard-jones    47.8058   3.58141
+P_             lennard-jones   161.03     3.69723
+S_             lennard-jones   173.107    3.59032
+Cl_            lennard-jones   142.562    3.51932
+Br_            lennard-jones   186.191    3.51905
+H_             lennard-jones     7.64893  2.84642
+Zn_            lennard-jones    62.3992   2.46155
+Be_            lennard-jones    42.7736   2.44552
+Cr_            lennard-jones     7.54829  2.69319
+Fe_            lennard-jones     6.54185  2.5943
+Mn_            lennard-jones     6.54185  2.63795
+Cu_            lennard-jones     2.5161   3.11369
+Co_            lennard-jones     7.04507  2.55866
+Ga_            lennard-jones   208.836    3.90481
+Ti_            lennard-jones     8.55473  2.8286
+Sc_            lennard-jones     9.56117  2.93551
+V_             lennard-jones     8.05151  2.80099
+Ni_            lennard-jones     7.54829  2.52481
+Zr_            lennard-jones    34.7221   2.78317
+Mg_            lennard-jones    55.8574   2.69141
+Ne_            lennard-jones    21.1352   2.88918
+Ag_            lennard-jones    18.1159   2.80455
+In_            lennard-jones   301.428    3.97608
+Cd_            lennard-jones   114.734    2.53728
+Sb_            lennard-jones   225.946    3.93777
+Te_            lennard-jones   200.281    3.98232
+Al_            lennard-Jones   155.998    3.91105
+Si_            lennard-Jones   155.998    3.80414
 Mof_Rb         lennard-jones   20.128     3.666
 Mof_Sr         lennard-jones   118.252    3.244
 Mof_Cs         lennard-jones    22.644    4.025
@@ -68,6 +100,6 @@ F_BF3          lennard-jones     25.16    3.36
 Si_SiF4        lennard-jones     202.3    4.295
 F_SiF4         lennard-jones     25.16    3.36
 Ge_GeF4        lennard-jones    190.7     4.28
-F_GeF4         lennard-jones     25.16    3.36 
+F_GeF4         lennard-jones     25.16    3.36
 # general mixing rule for Lennard-Jones
 Lorentz-Berthelot
