@@ -66,7 +66,7 @@ void MonteCarloSimulation(void)
   if(ContinueAfterCrash)
   {
     if(SimulationStage==POSITION_INITIALIZATION) goto ContinueAfterCrashLabel1;
-    else if(SimulationStage==VELOCITY_EQUILIBRATION) goto ContinueAfterCrashLabel2;
+    else if(SimulationStage==CF_WANG_LANDAU_EQUILIBRATION) goto ContinueAfterCrashLabel2;
     else goto ContinueAfterCrashLabel3;
   }
 

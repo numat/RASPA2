@@ -2,4 +2,4 @@
 rm config.cache
 export CFLAGS="-Wall -O0 -g"
 export CC="gcc"
-./configure --prefix=${HOME}/RASPA/simulations
+./configure --prefix=${HOME}/RASPA-DEBUG/simulations
