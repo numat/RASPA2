@@ -8,7 +8,7 @@ from ctypes import cdll, c_void_p, c_char_p, c_bool, cast
 import os
 env = os.environ
 
-from RASPA.parser import parse
+from parser import parse
 
 raspa = cdll.LoadLibrary("/usr/lib/libraspa2.so")
 raspa.run.argtypes = (c_char_p, c_char_p, c_char_p, c_bool)

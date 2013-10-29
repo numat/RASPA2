@@ -3,7 +3,7 @@ truncated
 # general rule tailcorrections
 no
 # number of defined interactions
-96
+98
 # type interaction
 O_             lennard-jones    48.1581   3.03315
 N_             lennard-jones    38.9492   3.26256
@@ -62,6 +62,8 @@ Mof_Mg         lennard-jones    55.8574   2.69141
 N_nh3          lennard-jones    0.0       0.0
 H_nh3          lennard-jones    0.0       0.0
 M_nh3          lennard-jones    140.0     3.40
+Li             lennard-jones    12.58     2.184
+Na             lennard-jones    15.096    2.658
 He             lennard-jones    10.9      2.64
 Xe             lennard-jones    221.0     4.10
 Kr             lennard-jones    166.4     3.636
