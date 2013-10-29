@@ -781,7 +781,6 @@ void WriteRestartSimulation(FILE *FilePtr)
   fwrite(&WritePseudoAtomsToOutput,sizeof(WritePseudoAtomsToOutput),1,FilePtr);
   fwrite(&WriteMoleculeDefinitionToOutput,sizeof(WriteMoleculeDefinitionToOutput),1,FilePtr);
   fwrite(&InputFileType,sizeof(InputFileType),1,FilePtr);
-  //fwrite(&ContinueAfterCrash,sizeof(ContinueAfterCrash),1,FilePtr);
   fwrite(&WriteBinaryRestartFileEvery,sizeof(WriteBinaryRestartFileEvery),1,FilePtr);
 
   fwrite(&OmitInterMolecularInteractions,sizeof(int),1,FilePtr);
@@ -1364,7 +1363,6 @@ void ReadRestartSimulation(FILE *FilePtr)
   fread(&WritePseudoAtomsToOutput,sizeof(WritePseudoAtomsToOutput),1,FilePtr);
   fread(&WriteMoleculeDefinitionToOutput,sizeof(WriteMoleculeDefinitionToOutput),1,FilePtr);
   fread(&InputFileType,sizeof(InputFileType),1,FilePtr);
-  //fread(&ContinueAfterCrash,sizeof(ContinueAfterCrash),1,FilePtr);
   fread(&WriteBinaryRestartFileEvery,sizeof(WriteBinaryRestartFileEvery),1,FilePtr);
 
   fread(&OmitInterMolecularInteractions,sizeof(int),1,FilePtr);

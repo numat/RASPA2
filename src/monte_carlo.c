@@ -66,8 +66,9 @@ void MonteCarloSimulation(void)
   if(ContinueAfterCrash)
   {
     if(SimulationStage==POSITION_INITIALIZATION) goto ContinueAfterCrashLabel1;
-    else if(SimulationStage==VELOCITY_EQUILIBRATION) goto ContinueAfterCrashLabel2;
-    else goto ContinueAfterCrashLabel3;
+    else if(SimulationStage==CF_WANG_LANDAU_EQUILIBRATION) goto ContinueAfterCrashLabel2;
+    else if(SimulationStage==PRODUCTION) goto ContinueAfterCrashLabel3;
+    else goto ContinueAfterCrashLabel4;
   }
 
   // allocate memory for sampling routines
@@ -129,7 +130,7 @@ void MonteCarloSimulation(void)
     SimulationStage=POSITION_INITIALIZATION;
     for(CurrentCycle=0;CurrentCycle<NumberOfInitializationCycles;CurrentCycle++)
     {
-      if((CurrentCycle>0)&&(WriteBinaryRestartFileEvery>0)&&(CurrentCycle%WriteBinaryRestartFileEvery==0))
+      if((WriteBinaryRestartFileEvery>0)&&(CurrentCycle%WriteBinaryRestartFileEvery==0))
         WriteBinaryRestartFiles();
 
       // a label to jump to for a restart, everything before here is skipped
@@ -300,7 +301,7 @@ void MonteCarloSimulation(void)
       SimulationStage=CF_WANG_LANDAU_EQUILIBRATION;
       for(CurrentCycle=0;CurrentCycle<NumberOfEquilibrationCycles;CurrentCycle++)
       {
-        if((CurrentCycle>0)&&(WriteBinaryRestartFileEvery>0)&&(CurrentCycle%WriteBinaryRestartFileEvery==0))
+        if((WriteBinaryRestartFileEvery>0)&&(CurrentCycle%WriteBinaryRestartFileEvery==0))
           WriteBinaryRestartFiles();
 
         // a label to jump to for a restart, everything before here is skipped
@@ -679,7 +680,7 @@ void MonteCarloSimulation(void)
         }
       }
 
-      if((CurrentCycle>0)&&(WriteBinaryRestartFileEvery>0)&&(CurrentCycle%WriteBinaryRestartFileEvery==0))
+      if((WriteBinaryRestartFileEvery>0)&&(CurrentCycle%WriteBinaryRestartFileEvery==0))
         WriteBinaryRestartFiles();
 
       // a label to jump to for a restart, everything before here is skipped
@@ -711,6 +712,37 @@ void MonteCarloSimulation(void)
       }
     }
 
+    SimulationStage=FINISHED;
+
+    // write last binary restart-file
+    // sampled properties can be remade from the binary restart-file
+    if(WriteBinaryRestartFileEvery>0)
+       WriteBinaryRestartFiles();
+
+    ContinueAfterCrashLabel4: ;
+
+    for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
+    {
+      SampleRadialDistributionFunction(PRINT);
+      SampleNumberOfMoleculesHistogram(PRINT);
+      SamplePositionHistogram(PRINT);
+      SampleFreeEnergyProfile(PRINT);
+      SamplePoreSizeDistribution(PRINT);
+      SampleEndToEndDistanceHistogram(PRINT);
+      SampleEnergyHistogram(PRINT);
+      SampleThermoDynamicsFactor(PRINT);
+      SampleFrameworkSpacingHistogram(PRINT);
+      SampleResidenceTimes(PRINT);
+      SampleDistanceHistogram(PRINT);
+      SampleBendAngleHistogram(PRINT);
+      SampleDihedralAngleHistogram(PRINT);
+      SampleAngleBetweenPlanesHistogram(PRINT);
+      SampleMoleculePropertyHistogram(PRINT);
+      SampleDensityProfile3DVTKGrid(PRINT);
+      SampleCationAndAdsorptionSites(PRINT);
+      SampleDcTSTConfigurationFiles(PRINT);
+    }
+
     for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
       PrintRestartFile();
 
@@ -722,10 +754,6 @@ void MonteCarloSimulation(void)
   // set current prssure to the last one
   CurrentIsothermPressure=NumberOfIsothermPressures-1;
 
-  // write last binary restart-file
-  // sampled properties can be remade from the binary restart-file
-  if(WriteBinaryRestartFileEvery>0)
-     WriteBinaryRestartFiles();
 
   // finalize output
   SampleRadialDistributionFunction(FINALIZE);

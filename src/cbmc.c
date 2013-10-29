@@ -3215,7 +3215,7 @@ void GrowReservoirMolecule(void)
   while(OVERLAP==TRUE);
 
 
-  for(accepted=0;accepted<200;accepted+=1.0)
+  for(accepted=0;accepted<20;accepted+=1.0)
   {
     for(k=0;k<Components[CurrentComponent].NumberOfAtoms;k++)
       StoredPosition[k]=NewPosition[CurrentSystem][k];
@@ -3233,14 +3233,12 @@ void GrowReservoirMolecule(void)
     if(RandomNumber()<RosenbluthNew/RosenbluthOld)
     {
       accepted+=1.0;
-      //printf("IG: accepted\n");
     }
     else
     {
       rejected-=1.0;
       for(k=0;k<Components[CurrentComponent].NumberOfAtoms;k++)
         NewPosition[CurrentSystem][k]=StoredPosition[k];
-      //printf("IG: rejected\n");
     }
   }
 

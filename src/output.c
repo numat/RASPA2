@@ -24,6 +24,7 @@
 #include <sys/sysctl.h>
 #include <math.h>
 #include <time.h>
+#include <unistd.h>
 #include "simulation.h"
 #include "ewald.h"
 #include "molecule.h"
@@ -6252,6 +6253,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
   fprintf(FilePtr,"Starting simulation\n");
   fprintf(FilePtr,"+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
   fprintf(FilePtr,"\n");
+  fflush(FilePtr);
 }
 
 void PrintPostSimulationStatus(void)
@@ -7409,7 +7411,7 @@ void WriteBinaryRestartFiles(void)
   if (STREAM)
     return;
 
-  fprintf(stderr, "Writing Crash-file!\n");
+  fprintf(stderr, "Writing Crash-file!: %lld\n",CurrentCycle);
 
   mkdir("CrashRestart",S_IRWXU);
 
@@ -7446,6 +7448,7 @@ void ReadRestartOutput(FILE* FilePtr)
   fpos_t pos;
   char buffer[1024],buffer2[256];
   REAL Check;
+  char test_byte;
 
   if (STREAM)
     return;
@@ -7458,12 +7461,20 @@ void ReadRestartOutput(FILE* FilePtr)
     mkdir(buffer,S_IRWXU);
   }
 
+
   OutputFilePtr=(FILE**)calloc(NumberOfSystems,sizeof(FILE*));
 
   for(i=0;i<NumberOfSystems;i++)
   {
     // read the current position into the output file (in bytes)
     fread(&pos,1,sizeof(fpos_t),FilePtr);
+
+    fread(&Check,1,sizeof(REAL),FilePtr);
+    if(fabs(Check-123456789.0)>1e-10)
+    {
+      fprintf(stderr, "Error in binary restart-file (ReadRestartOutput)\n");
+      exit(0);
+    }
 
     // construct outputfilename
     sprintf(buffer,"Output/System_%d/output_%s_%d.%d.%d_%lf_%lf%s",
@@ -7481,25 +7492,58 @@ void ReadRestartOutput(FILE* FilePtr)
     sprintf(buffer2,"%s.data",buffer2);
 
     // check if the file exists
-    if((OutputFilePtr[i]=fopen(buffer2,"r+")))
+    if( access(buffer2,F_OK )==0) 
     {
-      // the file exists, try to reposition to the saved state, if not possible start at the beginning of the file
-      if(fsetpos(OutputFilePtr[i],&pos)!=0)
-        rewind(OutputFilePtr[i]);
+       // output-file exists
+      if(((OutputFilePtr[i]=fopen(buffer2,"r+"))!=NULL)||(pos.__pos<0))
+      {
+        // get the size of file in bytes
+        fseek(OutputFilePtr[i], 0L, SEEK_END);
+        long sz = ftell(OutputFilePtr[i]);
+
+        // rewind to beginning
+        fseek(OutputFilePtr[i], 0L, SEEK_SET);
+
+        // try to reposition to the saved state
+        fsetpos(OutputFilePtr[i],&pos);
+
+        if(sz>0)
+        {
+          fseek(OutputFilePtr[i],-1L, SEEK_CUR);              // move the position 1 byte back
+          fread(&test_byte,1, sizeof(char),OutputFilePtr[i]); // do an fread() of 1 byte to check if beyond the file's end
+        }
+        else
+          clearerr(OutputFilePtr[i]); // file-size 0
+        
+        if(feof(OutputFilePtr[i])||(pos.__pos>sz))
+        {
+          // the position is beyond the file' end
+          fprintf(stderr,"Failed to Reposition output-file at %ld ( beyond file-length %ld)\n",pos.__pos,sz);
+          fclose(OutputFilePtr[i]);                          // close file
+          OutputFilePtr[i]=fopen(buffer2,"w");      // create new file by reopening as "w"
+          PrintPreSimulationStatusCurrentSystem(i); // print the pre-simulation status again
+        }
+        else
+        {
+          fprintf(stderr,"Succesfully repositioned output-file of size %ld to position %ld\n",sz,pos.__pos);
+        }
+      }
+      else
+      {
+        fprintf(stderr,"Failed to reposition output-file\n");
+        fclose(FilePtr);
+        OutputFilePtr[i]=fopen(buffer2,"w");        // create new file by reopening as "w"
+        PrintPreSimulationStatusCurrentSystem(i);   // print the pre-simulation status again
+      }
     }
     else // the file does not exists
     {
-      OutputFilePtr[i]=fopen(buffer2,"a");      // create new file
+      fprintf(stderr,"File does not exist, recreating output-file\n");
+      OutputFilePtr[i]=fopen(buffer2,"w");      // create new file
       PrintPreSimulationStatusCurrentSystem(i); // print the pre-simulation status again
     }
   }
 
-  fread(&Check,1,sizeof(REAL),FilePtr);
-  if(fabs(Check-123456789.0)>1e-10)
-  {
-    fprintf(stderr, "Error in binary restart-file (ReadRestartOutput)\n");
-    exit(0);
-  }
 }
 
 void WriteRestartOutput(FILE* FilePtr)
