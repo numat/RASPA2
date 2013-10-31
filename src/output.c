@@ -7495,7 +7495,11 @@ void ReadRestartOutput(FILE* FilePtr)
     if( access(buffer2,F_OK )==0) 
     {
        // output-file exists
+    #if defined (__APPLE__)
+      if(((OutputFilePtr[i]=fopen(buffer2,"r+"))!=NULL)||(pos<0))
+    #else
       if(((OutputFilePtr[i]=fopen(buffer2,"r+"))!=NULL)||(pos.__pos<0))
+    #endif
       {
         // get the size of file in bytes
         fseek(OutputFilePtr[i], 0L, SEEK_END);
@@ -7515,17 +7519,29 @@ void ReadRestartOutput(FILE* FilePtr)
         else
           clearerr(OutputFilePtr[i]); // file-size 0
         
+      #if defined (__APPLE__)
+        if(feof(OutputFilePtr[i])||(pos>sz))
+      #else
         if(feof(OutputFilePtr[i])||(pos.__pos>sz))
+      #endif
         {
           // the position is beyond the file' end
+        #if defined (__APPLE__)
+          fprintf(stderr,"Failed to Reposition output-file at %lld ( beyond file-length %ld)\n",pos,sz);
+        #else
           fprintf(stderr,"Failed to Reposition output-file at %ld ( beyond file-length %ld)\n",pos.__pos,sz);
+        #endif
           fclose(OutputFilePtr[i]);                          // close file
           OutputFilePtr[i]=fopen(buffer2,"w");      // create new file by reopening as "w"
           PrintPreSimulationStatusCurrentSystem(i); // print the pre-simulation status again
         }
         else
         {
+        #if defined (__APPLE__)
+          fprintf(stderr,"Succesfully repositioned output-file of size %ld to position %lld\n",sz,pos);
+        #else
           fprintf(stderr,"Succesfully repositioned output-file of size %ld to position %ld\n",sz,pos.__pos);
+        #endif
         }
       }
       else

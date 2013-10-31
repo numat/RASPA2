@@ -57,10 +57,10 @@ int WriteVTKGrids;
 
 typedef struct color
 {
-  int r;
-  int g;
-  int b;
-  int alpha;
+  double r;
+  double g;
+  double b;
+  double alpha;
 } COLOR;
 
 enum {BLUE,RED,GRAY,ORANGE,YELLOW,TAN,SILVER,GREEN,WHITE,PINK,CYAN,PURPLE,LIME,MAUVRE,OCHRE,
@@ -1365,7 +1365,7 @@ int SamplePDBMovies(int Choice,int Subdir)
   VECTOR dr,r,com,com_pdb,flexible_drift;
 
   if (STREAM)
-    return;
+    return 0;
 
   switch(Choice)
   {
@@ -1944,7 +1944,7 @@ void FreeEnergyProfile3D(void)
     NewPosition[0][start].z=pos.z+shift.z;
     FirstBeadPosition.x=pos.x+shift.x;
     FirstBeadPosition.y=pos.y+shift.y;
-    FirstBeadPosition.z=pos.z*0.75+0.25+shift.z;
+    FirstBeadPosition.z=pos.z+shift.z;
 
     NewPosition[CurrentSystem][start]=FirstBeadPosition;
 
