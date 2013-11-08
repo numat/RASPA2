@@ -6887,7 +6887,7 @@ void ReadFrameworkSpecificDefinition(void)
 
   CurrentFramework=0;
 
-  if(strlen(Framework[CurrentSystem].FrameworkDefinitions)<1) return 0;
+  if(strlen(Framework[CurrentSystem].FrameworkDefinitions)<1) return;
 
   switch(Framework[CurrentSystem].FlexibleModelInputType)
   {
@@ -6903,7 +6903,6 @@ void ReadFrameworkSpecificDefinition(void)
         if(!(FilePtr=fopen(buffer,"r")))
         {
           fprintf(stderr, "Error:  file %s does not exists.\n",buffer);
-          return 0;
           exit(1);
         }
       }
