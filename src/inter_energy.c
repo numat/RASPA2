@@ -2306,7 +2306,7 @@ int CalculateTotalInterBondDipoleBondDipoleCoulombEnergy(void)
  *            | int RandomTranslationMoveAdsorbate(void)                                                 *
  *            | int RotationMoveAdsorbate(void)                                                          *
  *            | int CFSwapLambaMove(void)                                                                *
- *            | int CFCBSwapLambaMove(void)                                                              *
+ *            | int CBCFSwapLambaMove(void)                                                              *
  *********************************************************************************************************/
 
 int CalculateInterVDWEnergyDifferenceAdsorbate(int m,int comp,int New,int Old)
@@ -2595,7 +2595,7 @@ int CalculateInterVDWEnergyDifferenceAdsorbate(int m,int comp,int New,int Old)
  *            | int RandomTranslationMoveCation(void)                                                    *
  *            | int RotationMoveCation(void)                                                             *
  *            | int CFSwapLambaMove(void)                                                                *
- *            | int CFCBSwapLambaMove(void)                                                              *
+ *            | int CBCFSwapLambaMove(void)                                                              *
  *********************************************************************************************************/
 
 int CalculateInterVDWEnergyDifferenceCation(int m,int comp,int New,int Old)
@@ -2887,7 +2887,7 @@ int CalculateInterVDWEnergyDifferenceCation(int m,int comp,int New,int Old)
  *            | int RandomTranslationMoveAdsorbate(void)                                                 *
  *            | int RotationMoveAdsorbate(void)                                                          *
  *            | int CFSwapLambaMove(void)                                                                *
- *            | int CFCBSwapLambaMove(void)                                                              *
+ *            | int CBCFSwapLambaMove(void)                                                              *
  *********************************************************************************************************/
 
 int CalculateInterChargeChargeEnergyDifferenceAdsorbate(int m,int comp,int New,int Old)
@@ -3166,7 +3166,7 @@ int CalculateInterChargeChargeEnergyDifferenceAdsorbate(int m,int comp,int New,i
  *            | int RandomTranslationMoveCation(void)                                                    *
  *            | int RotationMoveCation(void)                                                             *
  *            | int CFSwapLambaMove(void)                                                                *
- *            | int CFCBSwapLambaMove(void)                                                              *
+ *            | int CBCFSwapLambaMove(void)                                                              *
  *********************************************************************************************************/
 
 int CalculateInterChargeChargeEnergyDifferenceCation(int m,int comp,int New,int Old)
@@ -3425,7 +3425,7 @@ int CalculateInterChargeChargeEnergyDifferenceCation(int m,int comp,int New,int 
  *            | int RandomTranslationMoveAdsorbate(void)                                                 *
  *            | int RotationMoveAdsorbate(void)                                                          *
  *            | int CFSwapLambaMove(void)                                                                *
- *            | int CFCBSwapLambaMove(void)                                                              *
+ *            | int CBCFSwapLambaMove(void)                                                              *
  *********************************************************************************************************/
 
 int CalculateInterChargeBondDipoleEnergyDifferenceAdsorbate(int m,int comp,int New,int Old)
@@ -3987,7 +3987,7 @@ int CalculateInterChargeBondDipoleEnergyDifferenceAdsorbate(int m,int comp,int N
  *            | int RandomTranslationMoveAdsorbate(void)                                                 *
  *            | int RotationMoveAdsorbate(void)                                                          *
  *            | int CFSwapLambaMove(void)                                                                *
- *            | int CFCBSwapLambaMove(void)                                                              *
+ *            | int CBCFSwapLambaMove(void)                                                              *
  *********************************************************************************************************/
 
 int CalculateInterBondDipoleBondDipoleEnergyDifferenceAdsorbate(int m,int comp,int New,int Old)
@@ -4344,7 +4344,7 @@ int CalculateInterBondDipoleBondDipoleEnergyDifferenceAdsorbate(int m,int comp,i
  *            | int RandomTranslationMoveCation(void)                                                    *
  *            | int RotationMoveCation(void)                                                             *
  *            | int CFSwapLambaMove(void)                                                                *
- *            | int CFCBSwapLambaMove(void)                                                              *
+ *            | int CBCFSwapLambaMove(void)                                                              *
  *********************************************************************************************************/
 
 int CalculateInterChargeBondDipoleEnergyDifferenceCation(int m,int comp,int New,int Old)
@@ -4906,7 +4906,7 @@ int CalculateInterChargeBondDipoleEnergyDifferenceCation(int m,int comp,int New,
  *            | int RandomTranslationMoveCation(void)                                                    *
  *            | int RotationMoveCation(void)                                                             *
  *            | int CFSwapLambaMove(void)                                                                *
- *            | int CFCBSwapLambaMove(void)                                                              *
+ *            | int CBCFSwapLambaMove(void)                                                              *
  *********************************************************************************************************/
 
 int CalculateInterBondDipoleBondDipoleEnergyDifferenceCation(int m,int comp,int New,int Old)

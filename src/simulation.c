@@ -358,9 +358,6 @@ REAL_MATRIX3x3 *MolecularStressTensor;
 REAL_MATRIX9x9 *BornTerm;
 REAL_MATRIX9x9 *RelaxationTerm;
 
-REAL ProbabilityVolumeChangeMove;
-REAL ProbabilityBoxShapeChangeMove;
-REAL ProbabilityGibbsVolumeChangeMove;
 REAL ProbabilityParallelTemperingMove;
 REAL ProbabilityHyperParallelTemperingMove;
 REAL ProbabilityParallelMolFractionMove;
@@ -368,8 +365,12 @@ REAL ProbabilityChiralInversionMove;
 REAL ProbabilityHybridNVEMove;
 REAL ProbabilityHybridNPHMove;
 REAL ProbabilityHybridNPHPRMove;
+REAL ProbabilityVolumeChangeMove;
+REAL ProbabilityBoxShapeChangeMove;
+REAL ProbabilityGibbsVolumeChangeMove;
 REAL ProbabilityFrameworkChangeMove;
 REAL ProbabilityFrameworkShiftMove;
+
 
 void ScaleBornTerm(REAL r)
 {

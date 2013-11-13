@@ -395,19 +395,18 @@ extern int *DegreesOfFreedomRotationalCations;
 extern int *DegreesOfFreedomVibrationalCations;
 extern int *DegreesOfFreedomConstraintCations;
 
-extern REAL ProbabilityVolumeChangeMove;
-extern REAL ProbabilityBoxShapeChangeMove;
 extern REAL ProbabilityParallelTemperingMove;
 extern REAL ProbabilityHyperParallelTemperingMove;
 extern REAL ProbabilityParallelMolFractionMove;
 extern REAL ProbabilityChiralInversionMove;
-extern REAL ProbabilityGibbsVolumeChangeMove;
 extern REAL ProbabilityHybridNVEMove;
 extern REAL ProbabilityHybridNPHMove;
 extern REAL ProbabilityHybridNPHPRMove;
+extern REAL ProbabilityVolumeChangeMove;
+extern REAL ProbabilityBoxShapeChangeMove;
+extern REAL ProbabilityGibbsVolumeChangeMove;
 extern REAL ProbabilityFrameworkChangeMove;
 extern REAL ProbabilityFrameworkShiftMove;
-extern REAL ProbabilityCFLambdaMove;
 
 void ScaleBornTerm(REAL r);
 void AddContributionToCrossTerm(int i,REAL_MATRIX CrossTerm,REAL DDF,REAL DF,VECTOR dr);

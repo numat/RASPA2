@@ -4734,7 +4734,7 @@ int CalculateFrameworkCationReplicaChargeChargeEnergy(void)
  *            | int RandomTranslationMoveAdsorbate(void)                                                 *
  *            | int RotationMoveAdsorbate(void)                                                          *
  *            | int CFSwapLambaMove(void)                                                                *
- *            | int CFCBSwapLambaMove(void)                                                              *
+ *            | int CBCFSwapLambaMove(void)                                                              *
  *********************************************************************************************************/
 
 int CalculateFrameworkAdsorbateVDWEnergyDifference(int m,int comp,int New,int Old,int CanUseGrid)
@@ -5005,7 +5005,7 @@ int CalculateFrameworkAdsorbateVDWEnergyDifference(int m,int comp,int New,int Ol
  *            | int RandomTranslationMoveCation(void)                                                    *
  *            | int RotationMoveCation(void)                                                             *
  *            | int CFSwapLambaMove(void)                                                                *
- *            | int CFCBSwapLambaMove(void)                                                              *
+ *            | int CBCFSwapLambaMove(void)                                                              *
  *********************************************************************************************************/
 
 int CalculateFrameworkCationVDWEnergyDifference(int m,int comp,int New,int Old,int CanUseGrid)
@@ -5276,7 +5276,7 @@ int CalculateFrameworkCationVDWEnergyDifference(int m,int comp,int New,int Old,i
  *            | int RandomTranslationMoveAdsorbate(void)                                                 *
  *            | int RotationMoveAdsorbate(void)                                                          *
  *            | int CFSwapLambaMove(void)                                                                *
- *            | int CFCBSwapLambaMove(void)                                                              *
+ *            | int CBCFSwapLambaMove(void)                                                              *
  *********************************************************************************************************/
 
 int CalculateFrameworkAdsorbateChargeChargeEnergyDifference(int m,int comp,int New,int Old,int CanUseGrid)
@@ -5444,7 +5444,7 @@ int CalculateFrameworkAdsorbateChargeChargeEnergyDifference(int m,int comp,int N
  *            | int RandomTranslationMoveAdsorbate(void)                                                 *
  *            | int RotationMoveAdsorbate(void)                                                          *
  *            | int CFSwapLambaMove(void)                                                                *
- *            | int CFCBSwapLambaMove(void)                                                              *
+ *            | int CBCFSwapLambaMove(void)                                                              *
  *********************************************************************************************************/
 
 int CalculateFrameworkCationChargeChargeEnergyDifference(int m,int comp,int New,int Old,int CanUseGrid)
@@ -5607,7 +5607,7 @@ int CalculateFrameworkCationChargeChargeEnergyDifference(int m,int comp,int New,
  *            | int RandomTranslationMoveAdsorbate(void)                                                 *
  *            | int RotationMoveAdsorbate(void)                                                          *
  *            | int CFSwapLambaMove(void)                                                                *
- *            | int CFCBSwapLambaMove(void)                                                              *
+ *            | int CBCFSwapLambaMove(void)                                                              *
  *********************************************************************************************************/
 
 int CalculateFrameworkAdsorbateChargeBondDipoleEnergyDifference(int m,int comp,int New,int Old)
@@ -5958,7 +5958,7 @@ int CalculateFrameworkAdsorbateChargeBondDipoleEnergyDifference(int m,int comp,i
  *            | int RandomTranslationMoveCation(void)                                                    *
  *            | int RotationMoveCation(void)                                                             *
  *            | int CFSwapLambaMove(void)                                                                *
- *            | int CFCBSwapLambaMove(void)                                                              *
+ *            | int CBCFSwapLambaMove(void)                                                              *
  *********************************************************************************************************/
 
 int CalculateFrameworkCationChargeBondDipoleEnergyDifference(int m,int comp,int New,int Old)
@@ -6309,7 +6309,7 @@ int CalculateFrameworkCationChargeBondDipoleEnergyDifference(int m,int comp,int 
  *            | int RandomTranslationMoveAdsorbate(void)                                                 *
  *            | int RotationMoveAdsorbate(void)                                                          *
  *            | int CFSwapLambaMove(void)                                                                *
- *            | int CFCBSwapLambaMove(void)                                                              *
+ *            | int CBCFSwapLambaMove(void)                                                              *
  *********************************************************************************************************/
 
 int CalculateFrameworkAdsorbateBondDipoleBondDipoleEnergyDifference(int m,int comp,int New,int Old)
@@ -6540,7 +6540,7 @@ int CalculateFrameworkAdsorbateBondDipoleBondDipoleEnergyDifference(int m,int co
  *            | int RandomTranslationMoveAdsorbate(void)                                                 *
  *            | int RotationMoveAdsorbate(void)                                                          *
  *            | int CFSwapLambaMove(void)                                                                *
- *            | int CFCBSwapLambaMove(void)                                                              *
+ *            | int CBCFSwapLambaMove(void)                                                              *
  *********************************************************************************************************/
 
 int CalculateFrameworkCationBondDipoleBondDipoleEnergyDifference(int m,int comp,int New,int Old)

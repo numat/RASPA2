@@ -1486,7 +1486,7 @@ void PrintIntervalStatusInit(long long CurrentCycle,long long NumberOfCycles,FIL
       if(Components[i].CFMoleculePresent[CurrentSystem])
       {
         FractionalMolecule=Components[i].FractionalMolecule[CurrentSystem];
-        fprintf(FilePtr,"\tFractional molecule-id: %d, max. Lambda-change: %5lf\n",FractionalMolecule,MaximumCFLambdaChange[CurrentSystem][i]);
+        fprintf(FilePtr,"\tFractional molecule-id: %d, max. Lambda-change: %5lf (CFMC) %5lf (CB/CFMC)\n",FractionalMolecule,MaximumCFLambdaChange[CurrentSystem][i],MaximumCBCFLambdaChange[CurrentSystem][i]);
         fprintf(FilePtr,"\tLambda factors: ");
         for(k=0;k<Components[i].NumberOfAtoms;k++)
         {
@@ -1524,7 +1524,7 @@ void PrintIntervalStatusInit(long long CurrentCycle,long long NumberOfCycles,FIL
       if(Components[i].CFMoleculePresent[CurrentSystem])
       {
         FractionalMolecule=Components[i].FractionalMolecule[CurrentSystem];
-        fprintf(FilePtr,"\tFractional molecule-id: %d, max. Lambda-change: %5lf\n",FractionalMolecule,MaximumCFLambdaChange[CurrentSystem][i]);
+        fprintf(FilePtr,"\tFractional molecule-id: %d, max. Lambda-change: %5lf (CFMC) %5lf (CB/CFMC)\n",FractionalMolecule,MaximumCFLambdaChange[CurrentSystem][i],MaximumCBCFLambdaChange[CurrentSystem][i]);
         fprintf(FilePtr,"\tLambda factors: ");
         for(k=0;k<Components[i].NumberOfAtoms;k++)
         {
@@ -1713,7 +1713,7 @@ void PrintIntervalStatusEquilibration(long long CurrentCycle,long long NumberOfC
       if(Components[i].CFMoleculePresent[CurrentSystem])
       {
         FractionalMolecule=Components[i].FractionalMolecule[CurrentSystem];
-        fprintf(FilePtr,"\tFractional molecule-id: %d, max. Lambda-change: %5lf\n",FractionalMolecule,MaximumCFLambdaChange[CurrentSystem][i]);
+        fprintf(FilePtr,"\tFractional molecule-id: %d, max. Lambda-change: %5lf (CFMC) %5lf (CB/CFMC)\n",FractionalMolecule,MaximumCFLambdaChange[CurrentSystem][i],MaximumCBCFLambdaChange[CurrentSystem][i]);
         fprintf(FilePtr,"\tLambda factors: ");
         for(k=0;k<Components[i].NumberOfAtoms;k++)
         {
@@ -1752,7 +1752,7 @@ void PrintIntervalStatusEquilibration(long long CurrentCycle,long long NumberOfC
       if(Components[i].CFMoleculePresent[CurrentSystem])
       {
         FractionalMolecule=Components[i].FractionalMolecule[CurrentSystem];
-        fprintf(FilePtr,"\tFractional molecule-id: %d, max. Lambda-change: %5lf\n",FractionalMolecule,MaximumCFLambdaChange[CurrentSystem][i]);
+        fprintf(FilePtr,"\tFractional molecule-id: %d, max. Lambda-change: %5lf (CFMC) %5lf (CB/CFMC)\n",FractionalMolecule,MaximumCFLambdaChange[CurrentSystem][i],MaximumCBCFLambdaChange[CurrentSystem][i]);
         fprintf(FilePtr,"\tLambda factors: ");
         for(k=0;k<Components[i].NumberOfAtoms;k++)
         {
@@ -2558,7 +2558,7 @@ void PrintIntervalStatus(long long CurrentCycle,long long NumberOfCycles, FILE *
       if(Components[i].CFMoleculePresent[CurrentSystem])
       {
         FractionalMolecule=Components[i].FractionalMolecule[CurrentSystem];
-        fprintf(FilePtr,"\tFractional molecule-id: %d, max. Lambda-change: %5lf\n",FractionalMolecule,MaximumCFLambdaChange[CurrentSystem][i]);
+        fprintf(FilePtr,"\tFractional molecule-id: %d, max. Lambda-change: %5lf (CFMC) %5lf (CB/CFMC)\n",FractionalMolecule,MaximumCFLambdaChange[CurrentSystem][i],MaximumCBCFLambdaChange[CurrentSystem][i]);
         fprintf(FilePtr,"\tLambda factors: ");
         for(k=0;k<Components[i].NumberOfAtoms;k++)
         {
@@ -2600,7 +2600,7 @@ void PrintIntervalStatus(long long CurrentCycle,long long NumberOfCycles, FILE *
       if(Components[i].CFMoleculePresent[CurrentSystem])
       {
         FractionalMolecule=Components[i].FractionalMolecule[CurrentSystem];
-        fprintf(FilePtr,"\tFractional molecule-id: %d, max. Lambda-change: %5lf\n",FractionalMolecule,MaximumCFLambdaChange[CurrentSystem][i]);
+        fprintf(FilePtr,"\tFractional molecule-id: %d, max. Lambda-change: %5lf (CFMC) %5lf (CB/CFMC)\n",FractionalMolecule,MaximumCFLambdaChange[CurrentSystem][i],MaximumCBCFLambdaChange[CurrentSystem][i]);
         fprintf(FilePtr,"\tLambda factors: ");
         for(k=0;k<Components[i].NumberOfAtoms;k++)
         {

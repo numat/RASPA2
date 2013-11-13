@@ -80,6 +80,7 @@ extern REAL TargetAccRatioCFCRXMCLambdaChange;
 
 extern int CFWangLandauEvery;
 extern REAL **MaximumCFLambdaChange;
+extern REAL **MaximumCBCFLambdaChange;
 extern REAL TargetAccRatioLambdaChange;
 
 //----------------------------------------------------------------------------------------
@@ -164,8 +165,9 @@ void PrintFrameworkStatistics(FILE *FilePtr);
 void PrintFrameworkShiftStatistics(FILE *FilePtr);
 void PrintGibbsIdentityChangeStatistics(FILE *FilePtr);
 void PrintCFSwapLambdaStatistics(FILE *FilePtr);
-void PrintCFCBSwapLambdaStatistics(FILE *FilePtr);
+void PrintCBCFSwapLambdaStatistics(FILE *FilePtr);
 void PrintCFGibbsLambdaStatistics(FILE *FilePtr);
+void PrintCBCFGibbsLambdaStatistics(FILE *FilePtr);
 
 REAL WidomAdsorbateMove(void);
 REAL WidomCationMove(void);
@@ -186,17 +188,19 @@ void CFSwapLambaMove(void);
 int CFSwapLambaAdsorbateMove(void);
 int CFSwapLambaCationMove(void);
 void OptimizeCFLambdaChangeAcceptence(void);
-void CFCBSwapLambaMove(void);
-int CFCBSwapLambaAdsorbateMove(void);
-int CFCBSwapLambaCationMove(void);
+void CBCFSwapLambaMove(void);
+int CBCFSwapLambaAdsorbateMove(void);
+int CBCFSwapLambaCationMove(void);
+void OptimizeCBCFLambdaChangeAcceptence(void);
 
 void CFGibbsParticleTransferMove(void);
 int CFGibbsParticleTransferAdsorbateMove(void);
 int CFGibbsParticleTransferCationMove(void);
+void OptimizeCFGibbsLambdaChangeAcceptence(void);
 void CBCFGibbsParticleTransferMove(void);
 int CBCFGibbsParticleTransferAdsorbateMove(void);
 int CBCFGibbsParticleTransferCationMove(void);
-void OptimizeCFGibbsLambdaChangeAcceptence(void);
+void OptimizeCBCFGibbsLambdaChangeAcceptence(void);
 
 void WriteRestartMcMoves(FILE *FilePtr);
 void AllocateMCMovesMemory(void);

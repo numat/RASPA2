@@ -488,6 +488,7 @@ typedef struct Component
   REAL ProbabilityTranslationMove;
   int  TranslationDirection;
   REAL_MATRIX3x3 TranslationMatrix;
+  int  SwapEvery;
   REAL ProbabilityRandomTranslationMove;
   REAL ProbabilityRotationMove;
   REAL ProbabilityPartialReinsertionMove;
@@ -497,14 +498,27 @@ typedef struct Component
   REAL ProbabilityIdentityChangeMove;
   REAL ProbabilitySwapMove;
   REAL ProbabilityCFSwapLambdaMove;
-  REAL ProbabilityCFCBSwapLambdaMove;
-  int  SwapEvery;
+  REAL ProbabilityCBCFSwapLambdaMove;
   REAL ProbabilityWidomMove;
+  REAL ProbabilitySurfaceAreaMove;
   REAL ProbabilityGibbsChangeMove;
-  REAL ProbabilityGibbsIdentityChangeMove;
   REAL ProbabilityCFGibbsChangeMove;
   REAL ProbabilityCBCFGibbsChangeMove;
-  REAL ProbabilitySurfaceAreaMove;
+  REAL ProbabilityGibbsIdentityChangeMove;
+
+  REAL ProbabilityParallelTemperingMove;
+  REAL ProbabilityHyperParallelTemperingMove;
+  REAL ProbabilityParallelMolFractionMove;
+  REAL ProbabilityChiralInversionMove;
+  REAL ProbabilityHybridNVEMove;
+  REAL ProbabilityHybridNPHMove;
+  REAL ProbabilityHybridNPHPRMove;
+  REAL ProbabilityVolumeChangeMove;
+  REAL ProbabilityBoxShapeChangeMove;
+  REAL ProbabilityGibbsVolumeChangeMove;
+  REAL ProbabilityFrameworkChangeMove;
+  REAL ProbabilityFrameworkShiftMove;
+
   int RestrictMovesToBox;
   VECTOR BoxAxisABC_Min,BoxAxisABC_Min2,BoxAxisABC_Min3,BoxAxisABC_Min4;
   VECTOR BoxAxisABC_Max,BoxAxisABC_Max2,BoxAxisABC_Max3,BoxAxisABC_Max4;
@@ -540,13 +554,26 @@ typedef struct Component
   REAL FractionOfIdentityChangeMove;
   REAL FractionOfSwapMove;
   REAL FractionOfCFSwapLambdaMove;
-  REAL FractionOfCFCBSwapLambdaMove;
+  REAL FractionOfCBCFSwapLambdaMove;
   REAL FractionOfWidomMove;
+  REAL FractionOfSurfaceAreaMove;
   REAL FractionOfGibbsChangeMove;
   REAL FractionOfGibbsIdentityChangeMove;
   REAL FractionOfCFGibbsChangeMove;
   REAL FractionOfCBCFGibbsChangeMove;
-  REAL FractionOfSurfaceAreaMove;
+
+  REAL FractionOfParallelTemperingMove;
+  REAL FractionOfHyperParallelTemperingMove;
+  REAL FractionOfParallelMolFractionMove;
+  REAL FractionOfChiralInversionMove;
+  REAL FractionOfHybridNVEMove;
+  REAL FractionOfHybridNPHMove;
+  REAL FractionOfHybridNPHPRMove;
+  REAL FractionOfVolumeChangeMove;
+  REAL FractionOfBoxShapeChangeMove;
+  REAL FractionOfGibbsVolumeChangeMove;
+  REAL FractionOfFrameworkChangeMove;
+  REAL FractionOfFrameworkShiftMove;
 
   int NumberOfChiralityCenters;
 

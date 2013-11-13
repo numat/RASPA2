@@ -2470,6 +2470,7 @@ int ReadInput(char *input)
     if(strcasecmp("RegrowProbability",keyword)==0) sscanf(arguments,"%lf",&Components[CurrentComponent].ProbabilityReinsertionMove);
     if(strcasecmp("ReinsertionInPlaceProbability",keyword)==0) sscanf(arguments,"%lf",&Components[CurrentComponent].ProbabilityReinsertionInPlaceMove);
     if(strcasecmp("RegrowInPlaceProbability",keyword)==0) sscanf(arguments,"%lf",&Components[CurrentComponent].ProbabilityReinsertionInPlaceMove);
+    if(strcasecmp("ReinsertionInPlaceProbability",keyword)==0) sscanf(arguments,"%lf",&Components[CurrentComponent].ProbabilityReinsertionInPlaceMove);
     if(strcasecmp("HybridMCMDMoveProbability",keyword)==0) sscanf(arguments,"%lf",&ProbabilityHybridNVEMove);
     if(strcasecmp("HybridNVEMoveProbability",keyword)==0) sscanf(arguments,"%lf",&ProbabilityHybridNVEMove);
     if(strcasecmp("HybridNPHMoveProbability",keyword)==0) sscanf(arguments,"%lf",&ProbabilityHybridNPHMove);
@@ -2504,10 +2505,10 @@ int ReadInput(char *input)
           Swapable=TRUE;
         }
       }
-    if(strcasecmp("CFCBSwapLambdaProbability",keyword)==0)
-      if(sscanf(arguments,"%lf",&Components[CurrentComponent].ProbabilityCFCBSwapLambdaMove))
+    if(strcasecmp("CBCFSwapLambdaProbability",keyword)==0)
+      if(sscanf(arguments,"%lf",&Components[CurrentComponent].ProbabilityCBCFSwapLambdaMove))
       {
-        if(Components[CurrentComponent].ProbabilityCFCBSwapLambdaMove>0.0)
+        if(Components[CurrentComponent].ProbabilityCBCFSwapLambdaMove>0.0)
         {
           Components[CurrentComponent].Swapable=TRUE;
           Components[CurrentComponent].CFMoleculePresent[CurrentSystem]=TRUE;
@@ -5497,6 +5498,7 @@ int ReadInput(char *input)
     for(j=0;j<NumberOfComponents;j++)
     {
       MaximumCFLambdaChange[i][j]=0.5;
+      MaximumCBCFLambdaChange[i][j]=0.5;
       switch(Components[j].TranslationDirection)
       {
         case XYZ_DIR:

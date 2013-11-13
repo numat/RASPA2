@@ -3090,13 +3090,25 @@ void RescaleComponentProbabilities(void)
             Components[i].ProbabilityIdentityChangeMove+
             Components[i].ProbabilitySwapMove+
             Components[i].ProbabilityCFSwapLambdaMove+
-            Components[i].ProbabilityCFCBSwapLambdaMove+
+            Components[i].ProbabilityCBCFSwapLambdaMove+
             Components[i].ProbabilityWidomMove+
             Components[i].ProbabilitySurfaceAreaMove+
             Components[i].ProbabilityGibbsChangeMove+
             Components[i].ProbabilityGibbsIdentityChangeMove+
             Components[i].ProbabilityCFGibbsChangeMove+
-            Components[i].ProbabilityCBCFGibbsChangeMove;
+            Components[i].ProbabilityCBCFGibbsChangeMove+
+            ProbabilityParallelTemperingMove+
+            ProbabilityHyperParallelTemperingMove+
+            ProbabilityParallelMolFractionMove+
+            ProbabilityChiralInversionMove+
+            ProbabilityHybridNVEMove+
+            ProbabilityHybridNPHMove+
+            ProbabilityHybridNPHPRMove+
+            ProbabilityVolumeChangeMove+
+            ProbabilityBoxShapeChangeMove+
+            ProbabilityGibbsVolumeChangeMove+
+            ProbabilityFrameworkChangeMove+
+            ProbabilityFrameworkShiftMove;
 
     Components[i].ProbabilityRandomTranslationMove+=Components[i].ProbabilityTranslationMove;
     Components[i].ProbabilityRotationMove+=Components[i].ProbabilityRandomTranslationMove;
@@ -3107,13 +3119,26 @@ void RescaleComponentProbabilities(void)
     Components[i].ProbabilityIdentityChangeMove+=Components[i].ProbabilityReinsertionInPlaneMove;
     Components[i].ProbabilitySwapMove+=Components[i].ProbabilityIdentityChangeMove;
     Components[i].ProbabilityCFSwapLambdaMove+=Components[i].ProbabilitySwapMove;
-    Components[i].ProbabilityCFCBSwapLambdaMove+=Components[i].ProbabilityCFSwapLambdaMove;
-    Components[i].ProbabilityWidomMove+=Components[i].ProbabilityCFCBSwapLambdaMove;
+    Components[i].ProbabilityCBCFSwapLambdaMove+=Components[i].ProbabilityCFSwapLambdaMove;
+    Components[i].ProbabilityWidomMove+=Components[i].ProbabilityCBCFSwapLambdaMove;
     Components[i].ProbabilitySurfaceAreaMove+=Components[i].ProbabilityWidomMove;
     Components[i].ProbabilityGibbsChangeMove+=Components[i].ProbabilitySurfaceAreaMove;
     Components[i].ProbabilityGibbsIdentityChangeMove+=Components[i].ProbabilityGibbsChangeMove;
     Components[i].ProbabilityCFGibbsChangeMove+=Components[i].ProbabilityGibbsIdentityChangeMove;
     Components[i].ProbabilityCBCFGibbsChangeMove+=Components[i].ProbabilityCFGibbsChangeMove;
+
+    Components[i].ProbabilityParallelTemperingMove=ProbabilityParallelTemperingMove+Components[i].ProbabilityCBCFGibbsChangeMove;
+    Components[i].ProbabilityHyperParallelTemperingMove=ProbabilityHyperParallelTemperingMove+Components[i].ProbabilityParallelTemperingMove;
+    Components[i].ProbabilityParallelMolFractionMove=ProbabilityParallelMolFractionMove+Components[i].ProbabilityHyperParallelTemperingMove;
+    Components[i].ProbabilityChiralInversionMove=ProbabilityChiralInversionMove+Components[i].ProbabilityParallelMolFractionMove;
+    Components[i].ProbabilityHybridNVEMove=ProbabilityHybridNVEMove+Components[i].ProbabilityChiralInversionMove;
+    Components[i].ProbabilityHybridNPHMove=ProbabilityHybridNPHMove+Components[i].ProbabilityHybridNVEMove;
+    Components[i].ProbabilityHybridNPHPRMove=ProbabilityHybridNPHPRMove+Components[i].ProbabilityHybridNPHMove;
+    Components[i].ProbabilityVolumeChangeMove=ProbabilityVolumeChangeMove+Components[i].ProbabilityHybridNPHPRMove;
+    Components[i].ProbabilityBoxShapeChangeMove=ProbabilityBoxShapeChangeMove+Components[i].ProbabilityVolumeChangeMove;
+    Components[i].ProbabilityGibbsVolumeChangeMove=ProbabilityGibbsVolumeChangeMove+Components[i].ProbabilityBoxShapeChangeMove;
+    Components[i].ProbabilityFrameworkChangeMove=ProbabilityFrameworkChangeMove+Components[i].ProbabilityGibbsVolumeChangeMove;
+    Components[i].ProbabilityFrameworkShiftMove=ProbabilityFrameworkShiftMove+Components[i].ProbabilityFrameworkChangeMove;
 
     if(TotProb>1e-5)
     {
@@ -3127,13 +3152,26 @@ void RescaleComponentProbabilities(void)
       Components[i].ProbabilityIdentityChangeMove/=TotProb;
       Components[i].ProbabilitySwapMove/=TotProb;
       Components[i].ProbabilityCFSwapLambdaMove/=TotProb;
-      Components[i].ProbabilityCFCBSwapLambdaMove/=TotProb;
+      Components[i].ProbabilityCBCFSwapLambdaMove/=TotProb;
       Components[i].ProbabilityWidomMove/=TotProb;
       Components[i].ProbabilitySurfaceAreaMove/=TotProb;
       Components[i].ProbabilityGibbsChangeMove/=TotProb;
       Components[i].ProbabilityGibbsIdentityChangeMove/=TotProb;
       Components[i].ProbabilityCFGibbsChangeMove/=TotProb;
       Components[i].ProbabilityCBCFGibbsChangeMove/=TotProb;
+
+      Components[i].ProbabilityParallelTemperingMove/=TotProb;
+      Components[i].ProbabilityHyperParallelTemperingMove/=TotProb;
+      Components[i].ProbabilityParallelMolFractionMove/=TotProb;
+      Components[i].ProbabilityChiralInversionMove/=TotProb;
+      Components[i].ProbabilityHybridNVEMove/=TotProb;
+      Components[i].ProbabilityHybridNPHMove/=TotProb;
+      Components[i].ProbabilityHybridNPHPRMove/=TotProb;
+      Components[i].ProbabilityVolumeChangeMove/=TotProb;
+      Components[i].ProbabilityBoxShapeChangeMove/=TotProb;
+      Components[i].ProbabilityGibbsVolumeChangeMove/=TotProb;
+      Components[i].ProbabilityFrameworkChangeMove/=TotProb;
+      Components[i].ProbabilityFrameworkShiftMove/=TotProb;
     }
 
     Components[i].FractionOfTranslationMove=Components[i].ProbabilityTranslationMove;
@@ -3146,13 +3184,26 @@ void RescaleComponentProbabilities(void)
     Components[i].FractionOfIdentityChangeMove=Components[i].ProbabilityIdentityChangeMove-Components[i].ProbabilityReinsertionInPlaneMove;
     Components[i].FractionOfSwapMove=Components[i].ProbabilitySwapMove-Components[i].ProbabilityIdentityChangeMove;
     Components[i].FractionOfCFSwapLambdaMove=Components[i].ProbabilityCFSwapLambdaMove-Components[i].ProbabilitySwapMove;
-    Components[i].FractionOfCFCBSwapLambdaMove=Components[i].ProbabilityCFCBSwapLambdaMove-Components[i].ProbabilityCFSwapLambdaMove;
-    Components[i].FractionOfWidomMove=Components[i].ProbabilityWidomMove-Components[i].ProbabilityCFCBSwapLambdaMove;
+    Components[i].FractionOfCBCFSwapLambdaMove=Components[i].ProbabilityCBCFSwapLambdaMove-Components[i].ProbabilityCFSwapLambdaMove;
+    Components[i].FractionOfWidomMove=Components[i].ProbabilityWidomMove-Components[i].ProbabilityCBCFSwapLambdaMove;
     Components[i].FractionOfSurfaceAreaMove=Components[i].ProbabilitySurfaceAreaMove-Components[i].ProbabilityWidomMove;
     Components[i].FractionOfGibbsChangeMove=Components[i].ProbabilityGibbsChangeMove-Components[i].ProbabilitySurfaceAreaMove;
     Components[i].FractionOfGibbsIdentityChangeMove=Components[i].ProbabilityGibbsIdentityChangeMove-Components[i].ProbabilityGibbsChangeMove;
     Components[i].FractionOfCFGibbsChangeMove=Components[i].ProbabilityCFGibbsChangeMove-Components[i].ProbabilityGibbsIdentityChangeMove;
     Components[i].FractionOfCBCFGibbsChangeMove=Components[i].ProbabilityCBCFGibbsChangeMove-Components[i].ProbabilityCFGibbsChangeMove;
+
+    Components[i].FractionOfParallelTemperingMove=Components[i].ProbabilityParallelTemperingMove-Components[i].ProbabilityCBCFGibbsChangeMove;
+    Components[i].FractionOfHyperParallelTemperingMove=Components[i].ProbabilityHyperParallelTemperingMove-Components[i].ProbabilityParallelTemperingMove;
+    Components[i].FractionOfParallelMolFractionMove=Components[i].ProbabilityParallelMolFractionMove-Components[i].ProbabilityHyperParallelTemperingMove;
+    Components[i].FractionOfChiralInversionMove=Components[i].ProbabilityChiralInversionMove-Components[i].ProbabilityParallelMolFractionMove;
+    Components[i].FractionOfHybridNVEMove=Components[i].ProbabilityHybridNVEMove-Components[i].ProbabilityChiralInversionMove;
+    Components[i].FractionOfHybridNPHMove=Components[i].ProbabilityHybridNPHMove-Components[i].ProbabilityHybridNVEMove;
+    Components[i].FractionOfHybridNPHPRMove=Components[i].ProbabilityHybridNPHPRMove-Components[i].ProbabilityHybridNPHMove;
+    Components[i].FractionOfVolumeChangeMove=Components[i].ProbabilityVolumeChangeMove-Components[i].ProbabilityHybridNPHPRMove;
+    Components[i].FractionOfBoxShapeChangeMove=Components[i].ProbabilityBoxShapeChangeMove-Components[i].ProbabilityVolumeChangeMove;
+    Components[i].FractionOfGibbsVolumeChangeMove=Components[i].ProbabilityGibbsVolumeChangeMove-Components[i].ProbabilityBoxShapeChangeMove;
+    Components[i].FractionOfFrameworkChangeMove=Components[i].ProbabilityFrameworkChangeMove-Components[i].ProbabilityGibbsVolumeChangeMove;
+    Components[i].FractionOfFrameworkShiftMove=Components[i].ProbabilityFrameworkShiftMove-Components[i].ProbabilityFrameworkChangeMove;
   }
 }
 
