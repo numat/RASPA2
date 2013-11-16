@@ -3741,9 +3741,9 @@ void PrintPreSimulationStatusCurrentSystem(int system)
       fprintf(FilePtr,"\t\tPercentage of random translation moves:            %lf\n",(double)(100.0*Components[i].FractionOfRandomTranslationMove));
       fprintf(FilePtr,"\t\tPercentage of rotation moves:                      %lf\n",(double)(100.0*Components[i].FractionOfRotationMove));
       fprintf(FilePtr,"\t\tPercentage of partial reinsertion moves:           %lf\n",(double)(100.0*Components[i].FractionOfPartialReinsertionMove));
-      fprintf(FilePtr,"\t\tPercentage of regrow moves:                        %lf\n",(double)(100.0*Components[i].FractionOfReinsertionMove));
-      fprintf(FilePtr,"\t\tPercentage of regrow-in-place moves:               %lf\n",(double)(100.0*Components[i].FractionOfReinsertionInPlaceMove));
-      fprintf(FilePtr,"\t\tPercentage of regrow-in-plane moves:               %lf\n",(double)(100.0*Components[i].FractionOfReinsertionInPlaneMove));
+      fprintf(FilePtr,"\t\tPercentage of reinsertion moves:                   %lf\n",(double)(100.0*Components[i].FractionOfReinsertionMove));
+      fprintf(FilePtr,"\t\tPercentage of reinsertion-in-place moves:          %lf\n",(double)(100.0*Components[i].FractionOfReinsertionInPlaceMove));
+      fprintf(FilePtr,"\t\tPercentage of reinsertion-in-plane moves:          %lf\n",(double)(100.0*Components[i].FractionOfReinsertionInPlaneMove));
       fprintf(FilePtr,"\t\tPercentage of identity-change moves:               %lf\n",(double)(100.0*Components[i].FractionOfIdentityChangeMove));
       for(j=0;j<Components[i].NumberOfIdentityChanges;j++)
         fprintf(FilePtr,"\t\t\tmove %d    component %d => %d\n",j,i,Components[i].IdentityChanges[j]);
