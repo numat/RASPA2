@@ -389,6 +389,16 @@ REAL *CpuTimeGibbsVolumeChangeMove;
 REAL *CpuTimeFrameworkChangeMove;
 REAL *CpuTimeFrameworkShiftMove;
 
+int OptimizeVolumeChange;
+int OptimizeGibbsVolumeChange;
+int OptimizeTranslation;
+int OptimizeFrameworkChange;
+int OptimizeFrameworkShift;
+int OptimizeCFLambdaChange;
+int OptimizeCFGibbsLambdaChange;
+int OptimizeCBCFLambdaChange;
+int OptimizeCBCFGibbsLambdaChange;
+
 
 void ScaleBornTerm(REAL r)
 {
@@ -1114,6 +1124,16 @@ void WriteRestartSimulation(FILE *FilePtr)
   fwrite(CpuTimeFrameworkChangeMove,sizeof(REAL),NumberOfSystems,FilePtr);
   fwrite(CpuTimeFrameworkShiftMove,sizeof(REAL),NumberOfSystems,FilePtr);
 
+  fwrite(&OptimizeVolumeChange,sizeof(int),1,FilePtr);
+  fwrite(&OptimizeGibbsVolumeChange,sizeof(int),1,FilePtr);
+  fwrite(&OptimizeTranslation,sizeof(int),1,FilePtr);
+  fwrite(&OptimizeFrameworkChange,sizeof(int),1,FilePtr);
+  fwrite(&OptimizeFrameworkShift,sizeof(int),1,FilePtr);
+  fwrite(&OptimizeCFLambdaChange,sizeof(int),1,FilePtr);
+  fwrite(&OptimizeCFGibbsLambdaChange,sizeof(int),1,FilePtr);
+  fwrite(&OptimizeCBCFLambdaChange,sizeof(int),1,FilePtr);
+  fwrite(&OptimizeCBCFGibbsLambdaChange,sizeof(int),1,FilePtr);
+
   Check=123456789.0;
   fwrite(&Check,1,sizeof(REAL),FilePtr);
 }
@@ -1733,6 +1753,16 @@ void ReadRestartSimulation(FILE *FilePtr)
   fread(CpuTimeGibbsVolumeChangeMove,sizeof(REAL),NumberOfSystems,FilePtr);
   fread(CpuTimeFrameworkChangeMove,sizeof(REAL),NumberOfSystems,FilePtr);
   fread(CpuTimeFrameworkShiftMove,sizeof(REAL),NumberOfSystems,FilePtr);
+
+  fread(&OptimizeVolumeChange,sizeof(int),1,FilePtr);
+  fread(&OptimizeGibbsVolumeChange,sizeof(int),1,FilePtr);
+  fread(&OptimizeTranslation,sizeof(int),1,FilePtr);
+  fread(&OptimizeFrameworkChange,sizeof(int),1,FilePtr);
+  fread(&OptimizeFrameworkShift,sizeof(int),1,FilePtr);
+  fread(&OptimizeCFLambdaChange,sizeof(int),1,FilePtr);
+  fread(&OptimizeCFGibbsLambdaChange,sizeof(int),1,FilePtr);
+  fread(&OptimizeCBCFLambdaChange,sizeof(int),1,FilePtr);
+  fread(&OptimizeCBCFGibbsLambdaChange,sizeof(int),1,FilePtr);
 
   fread(&Check,1,sizeof(REAL),FilePtr);
   if(fabs(Check-123456789.0)>1e-10)

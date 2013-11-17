@@ -426,6 +426,16 @@ extern REAL *CpuTimeGibbsVolumeChangeMove;
 extern REAL *CpuTimeFrameworkChangeMove;
 extern REAL *CpuTimeFrameworkShiftMove;
 
+extern int OptimizeVolumeChange;
+extern int OptimizeGibbsVolumeChange;
+extern int OptimizeTranslation;
+extern int OptimizeFrameworkChange;
+extern int OptimizeFrameworkShift;
+extern int OptimizeCFLambdaChange;
+extern int OptimizeCFGibbsLambdaChange;
+extern int OptimizeCBCFLambdaChange;
+extern int OptimizeCBCFGibbsLambdaChange;
+
 void ScaleBornTerm(REAL r);
 void AddContributionToCrossTerm(int i,REAL_MATRIX CrossTerm,REAL DDF,REAL DF,VECTOR dr);
 void AddContributionToBornTerm(REAL DDF,REAL DF,VECTOR dr);

@@ -285,6 +285,17 @@ int ReadInput(char *input)
   PrintEvery=5000;
   OptimizeAcceptenceEvery=5000;
 
+  OptimizeVolumeChange=TRUE;
+  OptimizeGibbsVolumeChange=TRUE;
+  OptimizeTranslation=TRUE;
+  OptimizeFrameworkChange=TRUE;
+  OptimizeFrameworkShift=TRUE;
+  OptimizeCFLambdaChange=TRUE;
+  OptimizeCFGibbsLambdaChange=TRUE;
+  OptimizeCBCFLambdaChange=TRUE;
+  OptimizeCBCFGibbsLambdaChange=TRUE;
+
+
   // default values for the restart-file
   ContinueAfterCrash=FALSE;
   WriteBinaryRestartFileEvery=0;
@@ -4538,6 +4549,51 @@ int ReadInput(char *input)
       if(strcasecmp("LJ_And_Real_Biasing",firstargument)==0) BiasingMethod=LJ_AND_REAL_BIASING;
     }
     if(strcasecmp("OptimizeAcceptenceEvery",keyword)==0) sscanf(arguments,"%d",&OptimizeAcceptenceEvery);
+    if(strcasecmp("OptimizeVolumeChange",keyword)==0)
+    {
+      if(strcasecmp("yes",firstargument)==0) OptimizeVolumeChange=TRUE;
+      if(strcasecmp("no",firstargument)==0) OptimizeVolumeChange=FALSE;
+    }
+    if(strcasecmp("OptimizeGibbsVolumeChange",keyword)==0)
+    {
+      if(strcasecmp("yes",firstargument)==0) OptimizeGibbsVolumeChange=TRUE;
+      if(strcasecmp("no",firstargument)==0) OptimizeGibbsVolumeChange=FALSE;
+    }
+    if(strcasecmp("OptimizeTranslation",keyword)==0)
+    {
+      if(strcasecmp("yes",firstargument)==0) OptimizeTranslation=TRUE;
+      if(strcasecmp("no",firstargument)==0) OptimizeTranslation=FALSE;
+    }
+    if(strcasecmp("OptimizeFrameworkChange",keyword)==0)
+    {
+      if(strcasecmp("yes",firstargument)==0) OptimizeFrameworkChange=TRUE;
+      if(strcasecmp("no",firstargument)==0) OptimizeFrameworkChange=FALSE;
+    }
+    if(strcasecmp("OptimizeFrameworkShift",keyword)==0)
+    {
+      if(strcasecmp("yes",firstargument)==0) OptimizeFrameworkShift=TRUE;
+      if(strcasecmp("no",firstargument)==0) OptimizeFrameworkShift=FALSE;
+    }
+    if(strcasecmp("OptimizeCFLambdaChange",keyword)==0)
+    {
+      if(strcasecmp("yes",firstargument)==0) OptimizeCFLambdaChange=TRUE;
+      if(strcasecmp("no",firstargument)==0) OptimizeCFLambdaChange=FALSE;
+    }
+    if(strcasecmp("OptimizeCFGibbsLambdaChange",keyword)==0)
+    {
+      if(strcasecmp("yes",firstargument)==0) OptimizeCFGibbsLambdaChange=TRUE;
+      if(strcasecmp("no",firstargument)==0) OptimizeCFGibbsLambdaChange=FALSE;
+    }
+    if(strcasecmp("OptimizeCBCFLambdaChange",keyword)==0)
+    {
+      if(strcasecmp("yes",firstargument)==0) OptimizeCBCFLambdaChange=TRUE;
+      if(strcasecmp("no",firstargument)==0) OptimizeCBCFLambdaChange=FALSE;
+    }
+    if(strcasecmp("OptimizeCBCFGibbsLambdaChange",keyword)==0)
+    {
+      if(strcasecmp("yes",firstargument)==0) OptimizeCBCFGibbsLambdaChange=TRUE;
+      if(strcasecmp("no",firstargument)==0) OptimizeCBCFGibbsLambdaChange=FALSE;
+    }
     if(strcasecmp("MinimumInnerCycles",keyword)==0) sscanf(arguments,"%d",&MinimumInnerCycles);
     if(strcasecmp("NumberOfTrialPositions",keyword)==0) sscanf(arguments,"%d",&NumberOfTrialPositions);
     if(strcasecmp("NumberOfTrialPositionsTorsion",keyword)==0) sscanf(arguments,"%d",&NumberOfTrialPositionsTorsion);

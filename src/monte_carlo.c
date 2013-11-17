@@ -246,16 +246,16 @@ void MonteCarloSimulation(void)
       {
         for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
         {
-          OptimizeVolumeChangeAcceptence();
-          OptimizeGibbsVolumeChangeAcceptence();
-          OptimizeTranslationAcceptence();
-          if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+          if(OptimizeVolumeChange) OptimizeVolumeChangeAcceptence();
+          if(OptimizeGibbsVolumeChange) OptimizeGibbsVolumeChangeAcceptence();
+          if(OptimizeTranslation) OptimizeTranslationAcceptence();
+          if((Framework[CurrentSystem].FrameworkModel==FLEXIBLE)&&(OptimizeFrameworkChange))
             OptimizeFrameworkChangeAcceptence();
-          OptimizeFrameworkShiftAcceptence();
-          OptimizeCFLambdaChangeAcceptence();
-          OptimizeCFGibbsLambdaChangeAcceptence();
-          OptimizeCBCFLambdaChangeAcceptence();
-          OptimizeCBCFGibbsLambdaChangeAcceptence();
+          if(OptimizeFrameworkShift) OptimizeFrameworkShiftAcceptence();
+          if(OptimizeCFLambdaChange) OptimizeCFLambdaChangeAcceptence();
+          if(OptimizeCFGibbsLambdaChange) OptimizeCFGibbsLambdaChangeAcceptence();
+          if(OptimizeCBCFLambdaChange) OptimizeCBCFLambdaChangeAcceptence();
+          if(OptimizeCBCFGibbsLambdaChange) OptimizeCBCFGibbsLambdaChangeAcceptence();
           RescaleMaximumRotationAnglesSmallMC();
         }
       }
@@ -412,16 +412,16 @@ void MonteCarloSimulation(void)
         {
           for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
           {
-            OptimizeVolumeChangeAcceptence();
-            OptimizeGibbsVolumeChangeAcceptence();
-            OptimizeTranslationAcceptence();
-            if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+            if(OptimizeVolumeChange) OptimizeVolumeChangeAcceptence();
+            if(OptimizeGibbsVolumeChange) OptimizeGibbsVolumeChangeAcceptence();
+            if(OptimizeTranslation) OptimizeTranslationAcceptence();
+            if((Framework[CurrentSystem].FrameworkModel==FLEXIBLE)&&(OptimizeFrameworkChange))
               OptimizeFrameworkChangeAcceptence();
-            OptimizeFrameworkShiftAcceptence();
-            OptimizeCFLambdaChangeAcceptence();
-            OptimizeCFGibbsLambdaChangeAcceptence();
-            OptimizeCBCFLambdaChangeAcceptence();
-            OptimizeCBCFGibbsLambdaChangeAcceptence();
+            if(OptimizeFrameworkShift) OptimizeFrameworkShiftAcceptence();
+            if(OptimizeCFLambdaChange) OptimizeCFLambdaChangeAcceptence();
+            if(OptimizeCFGibbsLambdaChange) OptimizeCFGibbsLambdaChangeAcceptence();
+            if(OptimizeCBCFLambdaChange) OptimizeCBCFLambdaChangeAcceptence();
+            if(OptimizeCBCFGibbsLambdaChange) OptimizeCBCFGibbsLambdaChangeAcceptence();
             RescaleMaximumRotationAnglesSmallMC();
           }
         }
@@ -763,16 +763,16 @@ void MonteCarloSimulation(void)
       {
         for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
         {
-          OptimizeVolumeChangeAcceptence();
-          OptimizeGibbsVolumeChangeAcceptence();
-          OptimizeTranslationAcceptence();
-          if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+          if(OptimizeVolumeChange) OptimizeVolumeChangeAcceptence();
+          if(OptimizeGibbsVolumeChange) OptimizeGibbsVolumeChangeAcceptence();
+          if(OptimizeTranslation) OptimizeTranslationAcceptence();
+          if((Framework[CurrentSystem].FrameworkModel==FLEXIBLE)&(OptimizeFrameworkChange))
             OptimizeFrameworkChangeAcceptence();
-          OptimizeFrameworkShiftAcceptence();
-          OptimizeCFLambdaChangeAcceptence();
-          OptimizeCFGibbsLambdaChangeAcceptence();
-          OptimizeCBCFLambdaChangeAcceptence();
-          OptimizeCBCFGibbsLambdaChangeAcceptence();
+          if(OptimizeFrameworkShift) OptimizeFrameworkShiftAcceptence();
+          if(OptimizeCFLambdaChange) OptimizeCFLambdaChangeAcceptence();
+          if(OptimizeCFGibbsLambdaChange) OptimizeCFGibbsLambdaChangeAcceptence();
+          if(OptimizeCBCFLambdaChange) OptimizeCBCFLambdaChangeAcceptence();
+          if(OptimizeCBCFGibbsLambdaChange) OptimizeCBCFGibbsLambdaChangeAcceptence();
           RescaleMaximumRotationAnglesSmallMC();
         }
       }
