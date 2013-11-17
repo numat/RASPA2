@@ -21,6 +21,7 @@
 #include <time.h>
 #include <string.h>
 #include <ctype.h>
+#include <sys/time.h>
 #include "molecule.h"
 #include "utils.h"
 #include "integrate.h"
@@ -34,6 +35,19 @@
 #ifdef HAVE_FFTW3
 #include <fftw3.h>
 #endif
+
+
+double get_wall_time(void)
+{
+  struct timeval time;
+  if (gettimeofday(&time,NULL)) return 0;
+  return (double)time.tv_sec + (double)time.tv_usec * .000001;
+}
+
+double get_cpu_time(void)
+{
+  return (double)clock() / CLOCKS_PER_SEC;
+}
 
 REAL Smoothing(REAL theta)
 {

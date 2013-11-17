@@ -408,6 +408,24 @@ extern REAL ProbabilityGibbsVolumeChangeMove;
 extern REAL ProbabilityFrameworkChangeMove;
 extern REAL ProbabilityFrameworkShiftMove;
 
+extern REAL CpuTimeProductionRun;
+extern REAL CpuTimeInitialization;
+extern REAL CpuTimeEquilibration;
+extern REAL CpuTotal;
+
+extern REAL *CpuTimeParallelTemperingMove;
+extern REAL *CpuTimeHyperParallelTemperingMove;
+extern REAL *CpuTimeParallelMolFractionMove;
+extern REAL *CpuTimeChiralInversionMove;
+extern REAL *CpuTimeHybridNVEMove;
+extern REAL *CpuTimeHybridNPHMove;
+extern REAL *CpuTimeHybridNPHPRMove;
+extern REAL *CpuTimeVolumeChangeMove;
+extern REAL *CpuTimeBoxShapeChangeMove;
+extern REAL *CpuTimeGibbsVolumeChangeMove;
+extern REAL *CpuTimeFrameworkChangeMove;
+extern REAL *CpuTimeFrameworkShiftMove;
+
 void ScaleBornTerm(REAL r);
 void AddContributionToCrossTerm(int i,REAL_MATRIX CrossTerm,REAL DDF,REAL DF,VECTOR dr);
 void AddContributionToBornTerm(REAL DDF,REAL DF,VECTOR dr);

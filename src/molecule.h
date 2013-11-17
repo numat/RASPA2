@@ -502,9 +502,9 @@ typedef struct Component
   REAL ProbabilityWidomMove;
   REAL ProbabilitySurfaceAreaMove;
   REAL ProbabilityGibbsChangeMove;
+  REAL ProbabilityGibbsIdentityChangeMove;
   REAL ProbabilityCFGibbsChangeMove;
   REAL ProbabilityCBCFGibbsChangeMove;
-  REAL ProbabilityGibbsIdentityChangeMove;
 
   REAL ProbabilityParallelTemperingMove;
   REAL ProbabilityHyperParallelTemperingMove;
@@ -518,6 +518,25 @@ typedef struct Component
   REAL ProbabilityGibbsVolumeChangeMove;
   REAL ProbabilityFrameworkChangeMove;
   REAL ProbabilityFrameworkShiftMove;
+
+  REAL *CpuTimeTranslationMove;
+  REAL *CpuTimeRandomTranslationMove;
+  REAL *CpuTimeRotationMove;
+  REAL *CpuTimePartialReinsertionMove;
+  REAL *CpuTimeReinsertionMove;
+  REAL *CpuTimeReinsertionInPlaceMove;
+  REAL *CpuTimeReinsertionInPlaneMove;
+  REAL *CpuTimeIdentityChangeMove;
+  REAL *CpuTimeSwapMoveInsertion;
+  REAL *CpuTimeSwapMoveDeletion;
+  REAL *CpuTimeCFSwapLambdaMove;
+  REAL *CpuTimeCBCFSwapLambdaMove;
+  REAL *CpuTimeWidomMove;
+  REAL *CpuTimeSurfaceAreaMove;
+  REAL *CpuTimeGibbsChangeMove;
+  REAL *CpuTimeGibbsIdentityChangeMove;
+  REAL *CpuTimeCFGibbsChangeMove;
+  REAL *CpuTimeCBCFGibbsChangeMove;
 
   int RestrictMovesToBox;
   VECTOR BoxAxisABC_Min,BoxAxisABC_Min2,BoxAxisABC_Min3,BoxAxisABC_Min4;
@@ -713,6 +732,8 @@ int ValidFractionalPoint(int i, POINT s);
 int ValidCartesianPoint(int i, POINT pos);
 
 void CheckChiralityMolecules(void);
+
+void PrintCPUStatistics(FILE *FilePtr);
 
 void WriteRestartPseudoAtoms(FILE *FilePtr);
 void ReadRestartPseudoAtoms(FILE *FilePtr);

@@ -7069,8 +7069,6 @@ int VolumeMove(void)
   REAL Pressure,StoredVolume;
   VECTOR com,d;
 
-  CurrentSystem=(int)(RandomNumber()*NumberOfSystems);
-
   NumberOfMolecules=NumberOfAdsorbateMolecules[CurrentSystem]+NumberOfCationMolecules[CurrentSystem];
   if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
     NumberOfMolecules+=Framework[CurrentSystem].TotalNumberOfAtoms;
@@ -7603,8 +7601,6 @@ int BoxShapeChangeMove(void)
 
   REAL UHostPolarizationStored,UAdsorbatePolarizationStored,UCationPolarizationStored;
   REAL UHostBackPolarizationStored,UAdsorbateBackPolarizationStored,UCationBackPolarizationStored;
-
-  CurrentSystem=(int)(RandomNumber()*NumberOfSystems);
 
   Pressure=therm_baro_stats.ExternalPressure[CurrentSystem][0];
 
@@ -8176,6 +8172,9 @@ int ParallelTemperingMove(void)
   ADSORBATE_MOLECULE *adsorbate_pointer;
   CATION_MOLECULE *cation_pointer;
   ATOM *temp_framework_pointer;
+  REAL cpu_before,cpu_after;
+
+  cpu_before=get_cpu_time();
 
   SystemA=(int)(((REAL)NumberOfSystems-(REAL)1.0)*RandomNumber());
   SystemB=SystemA+1;
@@ -8334,6 +8333,11 @@ int ParallelTemperingMove(void)
     SWAP(UCationCationBondDipoleBondDipoleFourier[SystemA],UCationCationBondDipoleBondDipoleFourier[SystemB],temp_real);
     SWAP(UCationCationCoulomb[SystemA],UCationCationCoulomb[SystemB],temp_real);
   }
+
+  cpu_after=get_cpu_time();
+  CpuTimeParallelTemperingMove[SystemA]+=0.5*(cpu_after-cpu_before);
+  CpuTimeParallelTemperingMove[SystemB]+=0.5*(cpu_after-cpu_before);
+
   return 0;
 }
 
@@ -8384,6 +8388,9 @@ int HyperParallelTemperingMove(void)
   ADSORBATE_MOLECULE *adsorbate_pointer;
   CATION_MOLECULE *cation_pointer;
   ATOM *temp_framework_pointer;
+  REAL cpu_before,cpu_after;
+
+  cpu_before=get_cpu_time();
 
   SystemA=(int)(((REAL)NumberOfSystems-(REAL)1.0)*RandomNumber());
   SystemB=SystemA+1;
@@ -8545,6 +8552,10 @@ int HyperParallelTemperingMove(void)
     SWAP(UCationCationBondDipoleBondDipoleFourier[SystemA],UCationCationBondDipoleBondDipoleFourier[SystemB],temp_real);
     SWAP(UCationCationCoulomb[SystemA],UCationCationCoulomb[SystemB],temp_real);
   }
+
+  cpu_after=get_cpu_time();
+  CpuTimeParallelTemperingMove[SystemA]+=0.5*(cpu_after-cpu_before);
+  CpuTimeParallelTemperingMove[SystemB]+=0.5*(cpu_after-cpu_before);
   return 0;
 }
 
@@ -8595,6 +8606,9 @@ int ParallelMolFractionMove(void)
   ATOM *temp_framework_pointer;
   REAL QSA,QSB;
   int NRA,NRB,NSA,NSB;
+  REAL cpu_before,cpu_after;
+
+  cpu_before=get_cpu_time();
 
   SystemA=(int)(((REAL)NumberOfSystems-(REAL)1.0)*RandomNumber());
   SystemB=SystemA+1;
@@ -8777,6 +8791,9 @@ int ParallelMolFractionMove(void)
     SWAP(DegreesOfFreedomVibrationalCations[SystemA],DegreesOfFreedomVibrationalCations[SystemB],temp_real);
     SWAP(DegreesOfFreedomConstraintCations[SystemA],DegreesOfFreedomConstraintCations[SystemB],temp_real);
   }
+  cpu_after=get_cpu_time();
+  CpuTimeParallelTemperingMove[SystemA]+=0.5*(cpu_after-cpu_before);
+  CpuTimeParallelTemperingMove[SystemB]+=0.5*(cpu_after-cpu_before);
   return 0;
 }
 
@@ -8870,8 +8887,6 @@ int ChiralInversionMove(void)
 
   REAL UHostPolarizationStored,UAdsorbatePolarizationStored,UCationPolarizationStored;
   REAL UHostBackPolarizationStored,UAdsorbateBackPolarizationStored,UCationBackPolarizationStored;
-
-  CurrentSystem=(int)(RandomNumber()*NumberOfSystems);
 
   NumberOfMolecules=NumberOfAdsorbateMolecules[CurrentSystem]+NumberOfCationMolecules[CurrentSystem];
   if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
@@ -9299,10 +9314,6 @@ int FrameworkChangeMove(void)
   int AnisotropicNeighboringAtoms;
   int Atoms[20];
   int NumberOfAtoms,TypeA;
-
-
-  // choose a system at random
-  CurrentSystem=(int)(RandomNumber()*(REAL)NumberOfSystems);
 
   if(Framework[CurrentSystem].FrameworkModel!=FLEXIBLE) return 0;
 
@@ -12942,8 +12953,6 @@ void HybridNPHMove(void)
   REAL StoredVolume;
   REAL_MATRIX3x3 StoredBox;
 
-  CurrentSystem=(int)(RandomNumber()*NumberOfSystems);
-
   HybridNPHAttempts[CurrentSystem]+=1.0;
 
   StoredBox=Box[CurrentSystem];
@@ -13488,8 +13497,6 @@ void HybridNPHPRMove(void)
 
   REAL StoredVolume;
   REAL_MATRIX3x3 StoredBox;
-
-  CurrentSystem=(int)(RandomNumber()*NumberOfSystems);
 
   HybridNPHPRAttempts[CurrentSystem]+=1.0;
 
@@ -17818,7 +17825,6 @@ int CFGibbsParticleTransferAdsorbateMove(void)
   REAL BiasOldA,BiasOldB,BiasNewA,BiasNewB;
   REAL LambdaNewA,LambdaNewB,LambdaOldA,LambdaOldB;
   int CurrentSystemStored;
-
   int FractionalMolecule;
 
   CurrentSystemStored=CurrentSystem;
@@ -19309,7 +19315,6 @@ int CFGibbsParticleTransferCationMove(void)
   REAL BiasOldA,BiasOldB,BiasNewA,BiasNewB;
   REAL LambdaNewA,LambdaNewB,LambdaOldA,LambdaOldB;
   int CurrentSystemStored;
-
   int FractionalMolecule;
 
   CurrentSystemStored=CurrentSystem;
@@ -22696,7 +22701,6 @@ int CBCFGibbsParticleTransferCationMove(void)
   REAL LambdaNewA,LambdaNewB,LambdaOldA,LambdaOldB;
   REAL UDeltaPolarization[2];
   int CurrentSystemStored;
-
   CurrentSystemStored=CurrentSystem;
 
   UTailNew[0]=UTailNew[1]=0.0;

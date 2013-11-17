@@ -240,7 +240,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
   fprintf(FilePtr,"Compiler and run-time data\n");
   fprintf(FilePtr,"===========================================================================\n");
 
-  fprintf(FilePtr,"%s\n","RASPA 1.8-5");
+  fprintf(FilePtr,"%s\n","RASPA 1.8-6");
 
   #if defined (__LP64__) || defined (__64BIT__) || defined (_LP64) || (__WORDSIZE == 64)
     fprintf(FilePtr,"Compiled as a 64-bits application\n");
@@ -6314,6 +6314,8 @@ void PrintPostSimulationStatus(void)
     PrintCBCFSwapLambdaStatistics(FilePtr);
     PrintCFGibbsLambdaStatistics(FilePtr);
     PrintCBCFGibbsLambdaStatistics(FilePtr);
+    fprintf(FilePtr,"\n\n");
+    PrintCPUStatistics(FilePtr);
     fprintf(FilePtr,"\n\n");
 
     UHostHostRunning=UHostHost[CurrentSystem];

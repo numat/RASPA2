@@ -57,7 +57,11 @@ void MonteCarloSimulation(void)
   int i,j;
   int NumberOfParticleMoves;
   int NumberOfSteps;
+  int SelectedSystem;
+  double cpu_start,cpu_end;
+  double cpu_before,cpu_after;
   REAL ran;
+
 
   // for a crash-recovery we skip the initialization/equilibration and jump to the
   // position right after the crash-file was written in the production run
@@ -135,6 +139,8 @@ void MonteCarloSimulation(void)
       // this is the point where the previous binary restart file was written
       ContinueAfterCrashLabel1: ;
 
+      cpu_start=get_cpu_time();
+
       // detect erroneous chirality changes
       for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
         CheckChiralityMolecules();
@@ -152,13 +158,16 @@ void MonteCarloSimulation(void)
       for(i=0;i<NumberOfSystems;i++)
       {
         // choose a random system
-        CurrentSystem=(int)(RandomNumber()*(REAL)NumberOfSystems);
+        SelectedSystem=(int)(RandomNumber()*(REAL)NumberOfSystems);
 
-        NumberOfParticleMoves=MAX2(MinimumInnerCycles,NumberOfAdsorbateMolecules[CurrentSystem]+NumberOfCationMolecules[CurrentSystem]);
+        NumberOfParticleMoves=MAX2(MinimumInnerCycles,NumberOfAdsorbateMolecules[SelectedSystem]+NumberOfCationMolecules[SelectedSystem]);
         NumberOfSteps=NumberOfParticleMoves*NumberOfComponents;
 
         for(j=0;j<NumberOfSteps;j++)
         {
+          // set the selected system
+          CurrentSystem=SelectedSystem;
+
           // choose a random component
           CurrentComponent=(int)(RandomNumber()*(REAL)NumberOfComponents);
 
@@ -250,6 +259,10 @@ void MonteCarloSimulation(void)
           RescaleMaximumRotationAnglesSmallMC();
         }
       }
+      cpu_end=get_cpu_time();
+      CpuTotal+=(cpu_end-cpu_start);
+      CpuTimeInitialization+=(cpu_end-cpu_start);
+
     }
 
 
@@ -279,6 +292,8 @@ void MonteCarloSimulation(void)
         // this is the point where the previous binary restart file was written
         ContinueAfterCrashLabel2: ;
 
+        cpu_start=get_cpu_time();
+
         // detect erroneous chirality changes
         for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
           CheckChiralityMolecules();
@@ -297,13 +312,16 @@ void MonteCarloSimulation(void)
         for(i=0;i<NumberOfSystems;i++)
         {
           // choose a random system
-          CurrentSystem=(int)(RandomNumber()*(REAL)NumberOfSystems);
+          SelectedSystem=(int)(RandomNumber()*(REAL)NumberOfSystems);
 
-          NumberOfParticleMoves=MAX2(MinimumInnerCycles,NumberOfAdsorbateMolecules[CurrentSystem]+NumberOfCationMolecules[CurrentSystem]);
+          NumberOfParticleMoves=MAX2(MinimumInnerCycles,NumberOfAdsorbateMolecules[SelectedSystem]+NumberOfCationMolecules[SelectedSystem]);
           NumberOfSteps=NumberOfParticleMoves*NumberOfComponents;
 
           for(j=0;j<NumberOfSteps;j++)
           {
+            // set the selected system
+            CurrentSystem=SelectedSystem;
+
             // choose a random component
             CurrentComponent=(int)(RandomNumber()*(REAL)NumberOfComponents);
 
@@ -410,6 +428,10 @@ void MonteCarloSimulation(void)
 
         if(CurrentCycle%CFWangLandauEvery==0)
           CFWangLandauIteration(PRINT);
+
+        cpu_end=get_cpu_time();
+        CpuTotal+=(cpu_end-cpu_start);
+        CpuTimeEquilibration+=(cpu_end-cpu_start);
       }
 
       CFWangLandauIteration(FINALIZE);
@@ -448,6 +470,8 @@ void MonteCarloSimulation(void)
     SimulationStage=PRODUCTION;
     for(CurrentCycle=0;CurrentCycle<NumberOfCycles;CurrentCycle++)
     {
+      cpu_start=get_cpu_time();
+
       // detect erroneous chirality changes
       for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
         CheckChiralityMolecules();
@@ -498,14 +522,17 @@ void MonteCarloSimulation(void)
       for(i=0;i<NumberOfSystems;i++)
       {
         // choose a random system
-        CurrentSystem=(int)(RandomNumber()*(REAL)NumberOfSystems);
+        SelectedSystem=(int)(RandomNumber()*(REAL)NumberOfSystems);
 
-        NumberOfParticleMoves=MAX2(MinimumInnerCycles,NumberOfAdsorbateMolecules[CurrentSystem]+NumberOfCationMolecules[CurrentSystem]);
+        NumberOfParticleMoves=MAX2(MinimumInnerCycles,NumberOfAdsorbateMolecules[SelectedSystem]+NumberOfCationMolecules[SelectedSystem]);
         NumberOfSteps=NumberOfParticleMoves*NumberOfComponents;
 
         // loop over the MC 'steps' per MC 'cycle'
         for(j=0;j<NumberOfSteps;j++)
         {
+          // set the selected system
+          CurrentSystem=SelectedSystem;
+
           // choose a random component
           CurrentComponent=(int)(RandomNumber()*(REAL)NumberOfComponents);
 
@@ -513,66 +540,217 @@ void MonteCarloSimulation(void)
           ran=RandomNumber();
 
           if(ran<Components[CurrentComponent].ProbabilityTranslationMove)
+          {
+            cpu_before=get_cpu_time();
             TranslationMove();
+            cpu_after=get_cpu_time();
+            Components[CurrentComponent].CpuTimeTranslationMove[CurrentSystem]+=(cpu_after-cpu_before);
+          }
           else if(ran<Components[CurrentComponent].ProbabilityRandomTranslationMove)
+          {
+            cpu_before=get_cpu_time();
             RandomTranslationMove();
+            cpu_after=get_cpu_time();
+            Components[CurrentComponent].CpuTimeRandomTranslationMove[CurrentSystem]+=(cpu_after-cpu_before);
+          }
           else if(ran<Components[CurrentComponent].ProbabilityRotationMove)
+          {
+            cpu_before=get_cpu_time();
             RotationMove();
+            cpu_after=get_cpu_time();
+            Components[CurrentComponent].CpuTimeRotationMove[CurrentSystem]+=(cpu_after-cpu_before);
+          }
           else if(ran<Components[CurrentComponent].ProbabilityPartialReinsertionMove)
+          {
+            cpu_before=get_cpu_time();
             PartialReinsertionMove();
+            cpu_after=get_cpu_time();
+            Components[CurrentComponent].CpuTimePartialReinsertionMove[CurrentSystem]+=(cpu_after-cpu_before);
+          }
           else if(ran<Components[CurrentComponent].ProbabilityReinsertionMove)
+          {
+            cpu_before=get_cpu_time();
             ReinsertionMove();
+            cpu_after=get_cpu_time();
+            Components[CurrentComponent].CpuTimeReinsertionMove[CurrentSystem]+=(cpu_after-cpu_before);
+          }
           else if(ran<Components[CurrentComponent].ProbabilityReinsertionInPlaceMove)
+          {
+            cpu_before=get_cpu_time();
             ReinsertionInPlaceMove();
+            cpu_after=get_cpu_time();
+            Components[CurrentComponent].CpuTimeReinsertionInPlaceMove[CurrentSystem]+=(cpu_after-cpu_before);
+          }
           else if(ran<Components[CurrentComponent].ProbabilityReinsertionInPlaneMove)
+          {
+            cpu_before=get_cpu_time();
             ReinsertionInPlaneMove();
+            cpu_after=get_cpu_time();
+            Components[CurrentComponent].CpuTimeReinsertionInPlaneMove[CurrentSystem]+=(cpu_after-cpu_before);
+          }
           else if(ran<Components[CurrentComponent].ProbabilityIdentityChangeMove)
+          {
+            cpu_before=get_cpu_time();
             IdentityChangeMove();
+            cpu_after=get_cpu_time();
+            Components[CurrentComponent].CpuTimeIdentityChangeMove[CurrentSystem]+=(cpu_after-cpu_before);
+          }
           else if(ran<Components[CurrentComponent].ProbabilitySwapMove)
           {
-            if(RandomNumber()<0.5) SwapAddMove();
-            else SwapRemoveMove();
+            if(RandomNumber()<0.5) 
+            {
+              cpu_before=get_cpu_time();
+              SwapAddMove();
+              cpu_after=get_cpu_time();
+              Components[CurrentComponent].CpuTimeSwapMoveInsertion[CurrentSystem]+=(cpu_after-cpu_before);
+            }
+            else 
+            {
+              cpu_before=get_cpu_time();
+              SwapRemoveMove();
+              cpu_after=get_cpu_time();
+              Components[CurrentComponent].CpuTimeSwapMoveDeletion[CurrentSystem]+=(cpu_after-cpu_before);
+            }
           }
           else if(ran<Components[CurrentComponent].ProbabilityCFSwapLambdaMove)
+          {
+            cpu_before=get_cpu_time();
             CFSwapLambaMove();
+            cpu_after=get_cpu_time();
+            Components[CurrentComponent].CpuTimeCFSwapLambdaMove[CurrentSystem]+=(cpu_after-cpu_before);
+          }
           else if(ran<Components[CurrentComponent].ProbabilityCBCFSwapLambdaMove)
+          {
+            cpu_before=get_cpu_time();
             CBCFSwapLambaMove();
+            cpu_after=get_cpu_time();
+            Components[CurrentComponent].CpuTimeCBCFSwapLambdaMove[CurrentSystem]+=(cpu_after-cpu_before);
+          }
           else if(ran<Components[CurrentComponent].ProbabilityWidomMove)
+          {
+            cpu_before=get_cpu_time();
             WidomMove();
+            cpu_after=get_cpu_time();
+            Components[CurrentComponent].CpuTimeWidomMove[CurrentSystem]+=(cpu_after-cpu_before);
+          }
           else if(ran<Components[CurrentComponent].ProbabilitySurfaceAreaMove)
+          {
+            cpu_before=get_cpu_time();
             SurfaceAreaMove();
+            cpu_after=get_cpu_time();
+            Components[CurrentComponent].CpuTimeSurfaceAreaMove[CurrentSystem]+=(cpu_after-cpu_before);
+          }
           else if(ran<Components[CurrentComponent].ProbabilityGibbsChangeMove)
+          {
+            cpu_before=get_cpu_time();
             GibbsParticleTransferMove();
+            cpu_after=get_cpu_time();
+            Components[CurrentComponent].CpuTimeGibbsChangeMove[0]+=0.5*(cpu_after-cpu_before);
+            Components[CurrentComponent].CpuTimeGibbsChangeMove[1]+=0.5*(cpu_after-cpu_before);
+          }
           else if(ran<Components[CurrentComponent].ProbabilityGibbsIdentityChangeMove)
+          {
+            cpu_before=get_cpu_time();
             GibbsIdentityChangeMove();
+            cpu_after=get_cpu_time();
+            Components[CurrentComponent].CpuTimeGibbsIdentityChangeMove[0]+=0.5*(cpu_after-cpu_before);
+            Components[CurrentComponent].CpuTimeGibbsIdentityChangeMove[1]+=0.5*(cpu_after-cpu_before);
+          }
           else if(ran<Components[CurrentComponent].ProbabilityCFGibbsChangeMove)
+          {
+            cpu_before=get_cpu_time();
             CFGibbsParticleTransferMove();
+            cpu_after=get_cpu_time();
+            Components[CurrentComponent].CpuTimeCFGibbsChangeMove[0]+=0.5*(cpu_after-cpu_before);
+            Components[CurrentComponent].CpuTimeCFGibbsChangeMove[1]+=0.5*(cpu_after-cpu_before);
+          }
           else if(ran<Components[CurrentComponent].ProbabilityCBCFGibbsChangeMove)
+          {
+            cpu_before=get_cpu_time();
             CBCFGibbsParticleTransferMove();
+            cpu_after=get_cpu_time();
+            Components[CurrentComponent].CpuTimeCBCFGibbsChangeMove[0]+=0.5*(cpu_after-cpu_before);
+            Components[CurrentComponent].CpuTimeCBCFGibbsChangeMove[1]+=0.5*(cpu_after-cpu_before);
+          }
           else if(ran<Components[CurrentComponent].ProbabilityParallelTemperingMove) 
+          {
+            // note: cpu-timings done in the move itself
             ParallelTemperingMove();
+          }
           else if(ran<Components[CurrentComponent].ProbabilityHyperParallelTemperingMove) 
+          {
+            // note: cpu-timings done in the move itself
             HyperParallelTemperingMove();
+          }
           else if(ran<Components[CurrentComponent].ProbabilityParallelMolFractionMove) 
+          {
+            // note: cpu-timings done in the move itself
             ParallelMolFractionMove();
+          }
           else if(ran<Components[CurrentComponent].ProbabilityChiralInversionMove) 
+          {
+            cpu_before=get_cpu_time();
             ChiralInversionMove();
+            cpu_after=get_cpu_time();
+            CpuTimeChiralInversionMove[CurrentSystem]+=(cpu_after-cpu_before);
+          }
           else if(ran<Components[CurrentComponent].ProbabilityHybridNVEMove) 
+          {
+            cpu_before=get_cpu_time();
             HybridNVEMove();
+            cpu_after=get_cpu_time();
+            CpuTimeHybridNVEMove[CurrentSystem]+=(cpu_after-cpu_before);
+          }
           else if(ran<Components[CurrentComponent].ProbabilityHybridNPHMove) 
+          {
+            cpu_before=get_cpu_time();
             HybridNPHMove();
+            cpu_after=get_cpu_time();
+            CpuTimeHybridNPHMove[CurrentSystem]+=(cpu_after-cpu_before);
+          }
           else if(ran<Components[CurrentComponent].ProbabilityHybridNPHPRMove) 
+          {
+            cpu_before=get_cpu_time();
             HybridNPHPRMove();
+            cpu_after=get_cpu_time();
+            CpuTimeHybridNPHPRMove[CurrentSystem]+=(cpu_after-cpu_before);
+          }
           else if(ran<Components[CurrentComponent].ProbabilityVolumeChangeMove) 
+          {
+            cpu_before=get_cpu_time();
             VolumeMove();
+            cpu_after=get_cpu_time();
+            CpuTimeVolumeChangeMove[CurrentSystem]+=(cpu_after-cpu_before);
+          }
           else if(ran<Components[CurrentComponent].ProbabilityBoxShapeChangeMove) 
+          {
+            cpu_before=get_cpu_time();
             BoxShapeChangeMove();
+            cpu_after=get_cpu_time();
+            CpuTimeBoxShapeChangeMove[CurrentSystem]+=(cpu_after-cpu_before);
+          }
           else if(ran<Components[CurrentComponent].ProbabilityGibbsVolumeChangeMove) 
+          {
+            cpu_before=get_cpu_time();
             GibbsVolumeMove();
+            cpu_after=get_cpu_time();
+            CpuTimeGibbsVolumeChangeMove[0]+=0.5*(cpu_after-cpu_before);
+            CpuTimeGibbsVolumeChangeMove[1]+=0.5*(cpu_after-cpu_before);
+          }
           else if(ran<Components[CurrentComponent].ProbabilityFrameworkChangeMove) 
+          {
+            cpu_before=get_cpu_time();
             FrameworkChangeMove();
+            cpu_after=get_cpu_time();
+            CpuTimeFrameworkChangeMove[CurrentSystem]+=(cpu_after-cpu_before);
+          }
           else if(ran<Components[CurrentComponent].ProbabilityFrameworkShiftMove) 
+          {
+            cpu_before=get_cpu_time();
             FrameworkShiftMove();
+            cpu_after=get_cpu_time();
+            CpuTimeFrameworkShiftMove[CurrentSystem]+=(cpu_after-cpu_before);
+          }
           
           #ifdef DEBUG
             DebugEnergyStatus();
@@ -598,6 +776,10 @@ void MonteCarloSimulation(void)
           RescaleMaximumRotationAnglesSmallMC();
         }
       }
+
+      cpu_end=get_cpu_time();
+      CpuTotal+=(cpu_end-cpu_start);
+      CpuTimeProductionRun+=(cpu_end-cpu_start);
 
       if((WriteBinaryRestartFileEvery>0)&&(CurrentCycle%WriteBinaryRestartFileEvery==0))
         WriteBinaryRestartFiles();
