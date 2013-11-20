@@ -358,9 +358,6 @@ REAL_MATRIX3x3 *MolecularStressTensor;
 REAL_MATRIX9x9 *BornTerm;
 REAL_MATRIX9x9 *RelaxationTerm;
 
-REAL ProbabilityVolumeChangeMove;
-REAL ProbabilityBoxShapeChangeMove;
-REAL ProbabilityGibbsVolumeChangeMove;
 REAL ProbabilityParallelTemperingMove;
 REAL ProbabilityHyperParallelTemperingMove;
 REAL ProbabilityParallelMolFractionMove;
@@ -368,8 +365,40 @@ REAL ProbabilityChiralInversionMove;
 REAL ProbabilityHybridNVEMove;
 REAL ProbabilityHybridNPHMove;
 REAL ProbabilityHybridNPHPRMove;
+REAL ProbabilityVolumeChangeMove;
+REAL ProbabilityBoxShapeChangeMove;
+REAL ProbabilityGibbsVolumeChangeMove;
 REAL ProbabilityFrameworkChangeMove;
 REAL ProbabilityFrameworkShiftMove;
+
+REAL CpuTimeProductionRun;
+REAL CpuTimeInitialization;
+REAL CpuTimeEquilibration;
+REAL CpuTotal;
+
+REAL *CpuTimeParallelTemperingMove;
+REAL *CpuTimeHyperParallelTemperingMove;
+REAL *CpuTimeParallelMolFractionMove;
+REAL *CpuTimeChiralInversionMove;
+REAL *CpuTimeHybridNVEMove;
+REAL *CpuTimeHybridNPHMove;
+REAL *CpuTimeHybridNPHPRMove;
+REAL *CpuTimeVolumeChangeMove;
+REAL *CpuTimeBoxShapeChangeMove;
+REAL *CpuTimeGibbsVolumeChangeMove;
+REAL *CpuTimeFrameworkChangeMove;
+REAL *CpuTimeFrameworkShiftMove;
+
+int OptimizeVolumeChange;
+int OptimizeGibbsVolumeChange;
+int OptimizeTranslation;
+int OptimizeFrameworkChange;
+int OptimizeFrameworkShift;
+int OptimizeCFLambdaChange;
+int OptimizeCFGibbsLambdaChange;
+int OptimizeCBCFLambdaChange;
+int OptimizeCBCFGibbsLambdaChange;
+
 
 void ScaleBornTerm(REAL r)
 {
@@ -1076,6 +1105,35 @@ void WriteRestartSimulation(FILE *FilePtr)
   fwrite(&ProbabilityFrameworkChangeMove,sizeof(REAL),1,FilePtr);
   fwrite(&ProbabilityFrameworkShiftMove,sizeof(REAL),1,FilePtr);
 
+
+  fwrite(&CpuTimeProductionRun,sizeof(REAL),1,FilePtr);
+  fwrite(&CpuTimeInitialization,sizeof(REAL),1,FilePtr);
+  fwrite(&CpuTimeEquilibration,sizeof(REAL),1,FilePtr);
+  fwrite(&CpuTotal,sizeof(REAL),1,FilePtr);
+
+  fwrite(CpuTimeParallelTemperingMove,sizeof(REAL),NumberOfSystems,FilePtr);
+  fwrite(CpuTimeHyperParallelTemperingMove,sizeof(REAL),NumberOfSystems,FilePtr);
+  fwrite(CpuTimeParallelMolFractionMove,sizeof(REAL),NumberOfSystems,FilePtr);
+  fwrite(CpuTimeChiralInversionMove,sizeof(REAL),NumberOfSystems,FilePtr);
+  fwrite(CpuTimeHybridNVEMove,sizeof(REAL),NumberOfSystems,FilePtr);
+  fwrite(CpuTimeHybridNPHMove,sizeof(REAL),NumberOfSystems,FilePtr);
+  fwrite(CpuTimeHybridNPHPRMove,sizeof(REAL),NumberOfSystems,FilePtr);
+  fwrite(CpuTimeVolumeChangeMove,sizeof(REAL),NumberOfSystems,FilePtr);
+  fwrite(CpuTimeBoxShapeChangeMove,sizeof(REAL),NumberOfSystems,FilePtr);
+  fwrite(CpuTimeGibbsVolumeChangeMove,sizeof(REAL),NumberOfSystems,FilePtr);
+  fwrite(CpuTimeFrameworkChangeMove,sizeof(REAL),NumberOfSystems,FilePtr);
+  fwrite(CpuTimeFrameworkShiftMove,sizeof(REAL),NumberOfSystems,FilePtr);
+
+  fwrite(&OptimizeVolumeChange,sizeof(int),1,FilePtr);
+  fwrite(&OptimizeGibbsVolumeChange,sizeof(int),1,FilePtr);
+  fwrite(&OptimizeTranslation,sizeof(int),1,FilePtr);
+  fwrite(&OptimizeFrameworkChange,sizeof(int),1,FilePtr);
+  fwrite(&OptimizeFrameworkShift,sizeof(int),1,FilePtr);
+  fwrite(&OptimizeCFLambdaChange,sizeof(int),1,FilePtr);
+  fwrite(&OptimizeCFGibbsLambdaChange,sizeof(int),1,FilePtr);
+  fwrite(&OptimizeCBCFLambdaChange,sizeof(int),1,FilePtr);
+  fwrite(&OptimizeCBCFGibbsLambdaChange,sizeof(int),1,FilePtr);
+
   Check=123456789.0;
   fwrite(&Check,1,sizeof(REAL),FilePtr);
 }
@@ -1083,6 +1141,24 @@ void WriteRestartSimulation(FILE *FilePtr)
 void AllocateSimulationMemory(void)
 {
   int i;
+
+  CpuTimeProductionRun=0.0;
+  CpuTimeInitialization=0.0;
+  CpuTimeEquilibration=0.0;
+  CpuTotal=0.0;
+
+  CpuTimeParallelTemperingMove=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+  CpuTimeHyperParallelTemperingMove=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+  CpuTimeParallelMolFractionMove=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+  CpuTimeChiralInversionMove=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+  CpuTimeHybridNVEMove=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+  CpuTimeHybridNPHMove=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+  CpuTimeHybridNPHPRMove=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+  CpuTimeVolumeChangeMove=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+  CpuTimeBoxShapeChangeMove=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+  CpuTimeGibbsVolumeChangeMove=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+  CpuTimeFrameworkChangeMove=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+  CpuTimeFrameworkShiftMove=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
 
   Box=(REAL_MATRIX3x3*)calloc(NumberOfSystems,sizeof(REAL_MATRIX3x3));
   InverseBox=(REAL_MATRIX3x3*)calloc(NumberOfSystems,sizeof(REAL_MATRIX3x3));
@@ -1659,6 +1735,34 @@ void ReadRestartSimulation(FILE *FilePtr)
   fread(&ProbabilityHybridNPHPRMove,sizeof(REAL),1,FilePtr);
   fread(&ProbabilityFrameworkChangeMove,sizeof(REAL),1,FilePtr);
   fread(&ProbabilityFrameworkShiftMove,sizeof(REAL),1,FilePtr);
+
+  fread(&CpuTimeProductionRun,sizeof(REAL),1,FilePtr);
+  fread(&CpuTimeInitialization,sizeof(REAL),1,FilePtr);
+  fread(&CpuTimeEquilibration,sizeof(REAL),1,FilePtr);
+  fread(&CpuTotal,sizeof(REAL),1,FilePtr);
+
+  fread(CpuTimeParallelTemperingMove,sizeof(REAL),NumberOfSystems,FilePtr);
+  fread(CpuTimeHyperParallelTemperingMove,sizeof(REAL),NumberOfSystems,FilePtr);
+  fread(CpuTimeParallelMolFractionMove,sizeof(REAL),NumberOfSystems,FilePtr);
+  fread(CpuTimeChiralInversionMove,sizeof(REAL),NumberOfSystems,FilePtr);
+  fread(CpuTimeHybridNVEMove,sizeof(REAL),NumberOfSystems,FilePtr);
+  fread(CpuTimeHybridNPHMove,sizeof(REAL),NumberOfSystems,FilePtr);
+  fread(CpuTimeHybridNPHPRMove,sizeof(REAL),NumberOfSystems,FilePtr);
+  fread(CpuTimeVolumeChangeMove,sizeof(REAL),NumberOfSystems,FilePtr);
+  fread(CpuTimeBoxShapeChangeMove,sizeof(REAL),NumberOfSystems,FilePtr);
+  fread(CpuTimeGibbsVolumeChangeMove,sizeof(REAL),NumberOfSystems,FilePtr);
+  fread(CpuTimeFrameworkChangeMove,sizeof(REAL),NumberOfSystems,FilePtr);
+  fread(CpuTimeFrameworkShiftMove,sizeof(REAL),NumberOfSystems,FilePtr);
+
+  fread(&OptimizeVolumeChange,sizeof(int),1,FilePtr);
+  fread(&OptimizeGibbsVolumeChange,sizeof(int),1,FilePtr);
+  fread(&OptimizeTranslation,sizeof(int),1,FilePtr);
+  fread(&OptimizeFrameworkChange,sizeof(int),1,FilePtr);
+  fread(&OptimizeFrameworkShift,sizeof(int),1,FilePtr);
+  fread(&OptimizeCFLambdaChange,sizeof(int),1,FilePtr);
+  fread(&OptimizeCFGibbsLambdaChange,sizeof(int),1,FilePtr);
+  fread(&OptimizeCBCFLambdaChange,sizeof(int),1,FilePtr);
+  fread(&OptimizeCBCFGibbsLambdaChange,sizeof(int),1,FilePtr);
 
   fread(&Check,1,sizeof(REAL),FilePtr);
   if(fabs(Check-123456789.0)>1e-10)

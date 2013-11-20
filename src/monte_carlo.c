@@ -55,11 +55,13 @@ void DebugEnergyStatus(void);
 void MonteCarloSimulation(void)
 {
   int i,j;
-  int NumberOfSystemMoves;
   int NumberOfParticleMoves;
   int NumberOfSteps;
-  int ran_int;
+  int SelectedSystem;
+  double cpu_start,cpu_end;
+  double cpu_before,cpu_after;
   REAL ran;
+
 
   // for a crash-recovery we skip the initialization/equilibration and jump to the
   // position right after the crash-file was written in the production run
@@ -137,6 +139,8 @@ void MonteCarloSimulation(void)
       // this is the point where the previous binary restart file was written
       ContinueAfterCrashLabel1: ;
 
+      cpu_start=get_cpu_time();
+
       // detect erroneous chirality changes
       for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
         CheckChiralityMolecules();
@@ -151,113 +155,87 @@ void MonteCarloSimulation(void)
         }
       }
 
-      // moves
       for(i=0;i<NumberOfSystems;i++)
       {
-        // choose system at random
-        CurrentSystem=(int)(RandomNumber()*(REAL)NumberOfSystems);
+        // choose a random system
+        SelectedSystem=(int)(RandomNumber()*(REAL)NumberOfSystems);
 
-        NumberOfSystemMoves=12;
-        NumberOfParticleMoves=MAX2(MinimumInnerCycles,NumberOfAdsorbateMolecules[CurrentSystem]+NumberOfCationMolecules[CurrentSystem]);
-        NumberOfSteps=(NumberOfSystemMoves+NumberOfParticleMoves)*NumberOfComponents;
+        NumberOfParticleMoves=MAX2(MinimumInnerCycles,NumberOfAdsorbateMolecules[SelectedSystem]+NumberOfCationMolecules[SelectedSystem]);
+        NumberOfSteps=NumberOfParticleMoves*NumberOfComponents;
 
         for(j=0;j<NumberOfSteps;j++)
         {
-          ran_int=(int)(RandomNumber()*NumberOfSteps);
-          switch(ran_int)
+          // set the selected system
+          CurrentSystem=SelectedSystem;
+
+          // choose a random component
+          CurrentComponent=(int)(RandomNumber()*(REAL)NumberOfComponents);
+
+          // choose any of the MC moves randomly with the selected probability
+          ran=RandomNumber();
+
+          if(ran<Components[CurrentComponent].ProbabilityTranslationMove)
+            TranslationMove();
+          else if(ran<Components[CurrentComponent].ProbabilityRandomTranslationMove)
+            RandomTranslationMove();
+          else if(ran<Components[CurrentComponent].ProbabilityRotationMove)
+            RotationMove();
+          else if(ran<Components[CurrentComponent].ProbabilityPartialReinsertionMove)
+            PartialReinsertionMove();
+          else if(ran<Components[CurrentComponent].ProbabilityReinsertionMove)
+            ReinsertionMove();
+          else if(ran<Components[CurrentComponent].ProbabilityReinsertionInPlaceMove)
+            ReinsertionInPlaceMove();
+          else if(ran<Components[CurrentComponent].ProbabilityReinsertionInPlaneMove)
+            ReinsertionInPlaneMove();
+          else if(ran<Components[CurrentComponent].ProbabilityIdentityChangeMove)
+            IdentityChangeMove();
+          else if(ran<Components[CurrentComponent].ProbabilitySwapMove)
           {
-            case 0:
-              if(RandomNumber()<ProbabilityParallelTemperingMove) ParallelTemperingMove();
-              break;
-            case 1:
-              if(RandomNumber()<ProbabilityHyperParallelTemperingMove) HyperParallelTemperingMove();
-              break;
-            case 2:
-              if(RandomNumber()<ProbabilityParallelMolFractionMove) ParallelMolFractionMove();
-              break;
-            case 3:
-              if(RandomNumber()<ProbabilityChiralInversionMove) ChiralInversionMove();
-              break;
-            case 4:
-              if(RandomNumber()<ProbabilityHybridNVEMove) HybridNVEMove();
-              break;
-            case 5:
-              if(RandomNumber()<ProbabilityHybridNPHMove) HybridNPHMove();
-              break;
-            case 6:
-              if(RandomNumber()<ProbabilityHybridNPHPRMove) HybridNPHPRMove();
-              break;
-            case 7:
-              if(RandomNumber()<ProbabilityVolumeChangeMove) VolumeMove();
-              break;
-            case 8:
-              if(RandomNumber()<ProbabilityBoxShapeChangeMove) BoxShapeChangeMove();
-              break;
-            case 9:
-              if(RandomNumber()<ProbabilityGibbsVolumeChangeMove) GibbsVolumeMove();
-              break;
-            case 10:
-              if(RandomNumber()<ProbabilityFrameworkChangeMove) FrameworkChangeMove();
-              break;
-            case 11:
-              if(RandomNumber()<ProbabilityFrameworkShiftMove) FrameworkShiftMove();
-              break;
-            default:
-              // choose component at random
-              CurrentComponent=(int)(RandomNumber()*(REAL)NumberOfComponents);
-
-              // choose the Monte Carlo move at random
-              ran=RandomNumber();
-
-              if(ran<Components[CurrentComponent].ProbabilityTranslationMove)
-              {
-                #ifdef DEBUG
-                  fprintf(stderr, "Chosen MC-move: TranslationMove\n");
-                #endif
-                TranslationMove();
-              }
-              else if(ran<Components[CurrentComponent].ProbabilityRandomTranslationMove)
-                RandomTranslationMove();
-              else if(ran<Components[CurrentComponent].ProbabilityRotationMove)
-              {
-                #ifdef DEBUG
-                  fprintf(stderr, "Chosen MC-move: RotationMove\n");
-                #endif
-                RotationMove();
-              }
-              else if(ran<Components[CurrentComponent].ProbabilityPartialReinsertionMove)
-                PartialReinsertionMove();
-              else if(ran<Components[CurrentComponent].ProbabilityReinsertionMove)
-                ReinsertionMove();
-              else if(ran<Components[CurrentComponent].ProbabilityReinsertionInPlaceMove)
-                ReinsertionInPlaceMove();
-              else if(ran<Components[CurrentComponent].ProbabilityReinsertionInPlaneMove)
-                ReinsertionInPlaneMove();
-              else if(ran<Components[CurrentComponent].ProbabilityIdentityChangeMove)
-                IdentityChangeMove();
-              else if(ran<Components[CurrentComponent].ProbabilitySwapMove)
-              {
-                if(RandomNumber()<0.5) SwapAddMove();
-                else SwapRemoveMove();
-              }
-              else if(ran<Components[CurrentComponent].ProbabilityCFSwapLambdaMove)
-                CFSwapLambaMove();
-              else if(ran<Components[CurrentComponent].ProbabilityCFCBSwapLambdaMove)
-                CFCBSwapLambaMove();
-              else if(ran<Components[CurrentComponent].ProbabilityWidomMove)
-                ;
-              else if(ran<Components[CurrentComponent].ProbabilitySurfaceAreaMove)
-                ;
-              else if(ran<Components[CurrentComponent].ProbabilityGibbsChangeMove)
-                GibbsParticleTransferMove();
-              else if(ran<Components[CurrentComponent].ProbabilityGibbsIdentityChangeMove)
-                GibbsIdentityChangeMove();
-              else if(ran<Components[CurrentComponent].ProbabilityCFGibbsChangeMove)
-                CFGibbsParticleTransferMove();
-              else if(ran<Components[CurrentComponent].ProbabilityCBCFGibbsChangeMove)
-                CBCFGibbsParticleTransferMove();
-              break;
+            if(RandomNumber()<0.5) SwapAddMove();
+            else SwapRemoveMove();
           }
+          else if(ran<Components[CurrentComponent].ProbabilityCFSwapLambdaMove)
+            CFSwapLambaMove();
+          else if(ran<Components[CurrentComponent].ProbabilityCBCFSwapLambdaMove)
+            CBCFSwapLambaMove();
+          else if(ran<Components[CurrentComponent].ProbabilityWidomMove)
+            ;
+          else if(ran<Components[CurrentComponent].ProbabilitySurfaceAreaMove)
+            ;
+          else if(ran<Components[CurrentComponent].ProbabilityGibbsChangeMove)
+            GibbsParticleTransferMove();
+          else if(ran<Components[CurrentComponent].ProbabilityGibbsIdentityChangeMove)
+            GibbsIdentityChangeMove();
+          else if(ran<Components[CurrentComponent].ProbabilityCFGibbsChangeMove)
+            CFGibbsParticleTransferMove();
+          else if(ran<Components[CurrentComponent].ProbabilityCBCFGibbsChangeMove)
+            CBCFGibbsParticleTransferMove();
+          else if(ran<Components[CurrentComponent].ProbabilityParallelTemperingMove)
+            ParallelTemperingMove();
+          else if(ran<Components[CurrentComponent].ProbabilityHyperParallelTemperingMove)
+            HyperParallelTemperingMove();
+          else if(ran<Components[CurrentComponent].ProbabilityParallelMolFractionMove)
+            ParallelMolFractionMove();
+          else if(ran<Components[CurrentComponent].ProbabilityChiralInversionMove)
+            ChiralInversionMove();
+          else if(ran<Components[CurrentComponent].ProbabilityHybridNVEMove)
+            HybridNVEMove();
+          else if(ran<Components[CurrentComponent].ProbabilityHybridNPHMove)
+            HybridNPHMove();
+          else if(ran<Components[CurrentComponent].ProbabilityHybridNPHPRMove)
+            HybridNPHPRMove();
+          else if(ran<Components[CurrentComponent].ProbabilityVolumeChangeMove)
+            VolumeMove();
+          else if(ran<Components[CurrentComponent].ProbabilityBoxShapeChangeMove)
+            BoxShapeChangeMove();
+          else if(ran<Components[CurrentComponent].ProbabilityGibbsVolumeChangeMove)
+            GibbsVolumeMove();
+          else if(ran<Components[CurrentComponent].ProbabilityFrameworkChangeMove)
+            FrameworkChangeMove();
+          else if(ran<Components[CurrentComponent].ProbabilityFrameworkShiftMove)
+            FrameworkShiftMove();
+
           #ifdef DEBUG
             DebugEnergyStatus();
           #endif
@@ -268,17 +246,23 @@ void MonteCarloSimulation(void)
       {
         for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
         {
-          OptimizeVolumeChangeAcceptence();
-          OptimizeGibbsVolumeChangeAcceptence();
-          OptimizeTranslationAcceptence();
-          if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+          if(OptimizeVolumeChange) OptimizeVolumeChangeAcceptence();
+          if(OptimizeGibbsVolumeChange) OptimizeGibbsVolumeChangeAcceptence();
+          if(OptimizeTranslation) OptimizeTranslationAcceptence();
+          if((Framework[CurrentSystem].FrameworkModel==FLEXIBLE)&&(OptimizeFrameworkChange))
             OptimizeFrameworkChangeAcceptence();
-          OptimizeFrameworkShiftAcceptence();
-          OptimizeCFLambdaChangeAcceptence();
-          OptimizeCFGibbsLambdaChangeAcceptence();
+          if(OptimizeFrameworkShift) OptimizeFrameworkShiftAcceptence();
+          if(OptimizeCFLambdaChange) OptimizeCFLambdaChangeAcceptence();
+          if(OptimizeCFGibbsLambdaChange) OptimizeCFGibbsLambdaChangeAcceptence();
+          if(OptimizeCBCFLambdaChange) OptimizeCBCFLambdaChangeAcceptence();
+          if(OptimizeCBCFGibbsLambdaChange) OptimizeCBCFGibbsLambdaChangeAcceptence();
           RescaleMaximumRotationAnglesSmallMC();
         }
       }
+      cpu_end=get_cpu_time();
+      CpuTotal+=(cpu_end-cpu_start);
+      CpuTimeInitialization+=(cpu_end-cpu_start);
+
     }
 
 
@@ -308,6 +292,8 @@ void MonteCarloSimulation(void)
         // this is the point where the previous binary restart file was written
         ContinueAfterCrashLabel2: ;
 
+        cpu_start=get_cpu_time();
+
         // detect erroneous chirality changes
         for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
           CheckChiralityMolecules();
@@ -325,122 +311,97 @@ void MonteCarloSimulation(void)
         // moves
         for(i=0;i<NumberOfSystems;i++)
         {
-          // choose system at random
-          CurrentSystem=(int)(RandomNumber()*(REAL)NumberOfSystems);
+          // choose a random system
+          SelectedSystem=(int)(RandomNumber()*(REAL)NumberOfSystems);
 
-          NumberOfSystemMoves=12;
-          NumberOfParticleMoves=MAX2(MinimumInnerCycles,NumberOfAdsorbateMolecules[CurrentSystem]+NumberOfCationMolecules[CurrentSystem]);
-          NumberOfSteps=(NumberOfSystemMoves+NumberOfParticleMoves)*NumberOfComponents;
+          NumberOfParticleMoves=MAX2(MinimumInnerCycles,NumberOfAdsorbateMolecules[SelectedSystem]+NumberOfCationMolecules[SelectedSystem]);
+          NumberOfSteps=NumberOfParticleMoves*NumberOfComponents;
 
           for(j=0;j<NumberOfSteps;j++)
           {
-            ran_int=(int)(RandomNumber()*NumberOfSteps);
-            switch(ran_int)
+            // set the selected system
+            CurrentSystem=SelectedSystem;
+
+            // choose a random component
+            CurrentComponent=(int)(RandomNumber()*(REAL)NumberOfComponents);
+
+            // choose any of the MC moves randomly with the selected probability
+            ran=RandomNumber();
+
+            if(ran<Components[CurrentComponent].ProbabilityTranslationMove)
+              TranslationMove();
+            else if(ran<Components[CurrentComponent].ProbabilityRandomTranslationMove)
+              RandomTranslationMove();
+            else if(ran<Components[CurrentComponent].ProbabilityRotationMove)
+              RotationMove();
+            else if(ran<Components[CurrentComponent].ProbabilityPartialReinsertionMove)
+              PartialReinsertionMove();
+            else if(ran<Components[CurrentComponent].ProbabilityReinsertionMove)
+              ReinsertionMove();
+            else if(ran<Components[CurrentComponent].ProbabilityReinsertionInPlaceMove)
+              ReinsertionInPlaceMove();
+            else if(ran<Components[CurrentComponent].ProbabilityReinsertionInPlaneMove)
+              ReinsertionInPlaneMove();
+            else if(ran<Components[CurrentComponent].ProbabilityIdentityChangeMove)
+              IdentityChangeMove();
+            else if(ran<Components[CurrentComponent].ProbabilitySwapMove)
             {
-              case 0:
-                if(RandomNumber()<ProbabilityParallelTemperingMove) ParallelTemperingMove();
-                break;
-              case 1:
-                if(RandomNumber()<ProbabilityHyperParallelTemperingMove) HyperParallelTemperingMove();
-                break;
-              case 2:
-                if(RandomNumber()<ProbabilityParallelMolFractionMove) ParallelMolFractionMove();
-                break;
-              case 3:
-                if(RandomNumber()<ProbabilityChiralInversionMove) ChiralInversionMove();
-                break;
-              case 4:
-                if(RandomNumber()<ProbabilityHybridNVEMove) HybridNVEMove();
-                break;
-              case 5:
-                if(RandomNumber()<ProbabilityHybridNPHMove) HybridNPHMove();
-                break;
-              case 6:
-                if(RandomNumber()<ProbabilityHybridNPHPRMove) HybridNPHPRMove();
-                break;
-              case 7:
-                if(RandomNumber()<ProbabilityVolumeChangeMove) VolumeMove();
-                break;
-              case 8:
-                if(RandomNumber()<ProbabilityBoxShapeChangeMove) BoxShapeChangeMove();
-                break;
-              case 9:
-                if(RandomNumber()<ProbabilityGibbsVolumeChangeMove) GibbsVolumeMove();
-                break;
-              case 10:
-                if(RandomNumber()<ProbabilityFrameworkChangeMove) FrameworkChangeMove();
-                break;
-              case 11:
-                if(RandomNumber()<ProbabilityFrameworkShiftMove) FrameworkShiftMove();
-                break;
-              default:
-                // choose component at random
-                CurrentComponent=(int)(RandomNumber()*(REAL)NumberOfComponents);
-
-                // choose the Monte Carlo move at random
-                ran=RandomNumber();
-
-                if(ran<Components[CurrentComponent].ProbabilityTranslationMove)
-                {
-                  #ifdef DEBUG
-                    fprintf(stderr, "Chosen MC-move: TranslationMove\n");
-                  #endif
-                  TranslationMove();
-                }
-                else if(ran<Components[CurrentComponent].ProbabilityRandomTranslationMove)
-                  RandomTranslationMove();
-                else if(ran<Components[CurrentComponent].ProbabilityRotationMove)
-                {
-                  #ifdef DEBUG
-                    fprintf(stderr, "Chosen MC-move: RotationMove\n");
-                  #endif
-                  RotationMove();
-                }
-                else if(ran<Components[CurrentComponent].ProbabilityPartialReinsertionMove)
-                  PartialReinsertionMove();
-                else if(ran<Components[CurrentComponent].ProbabilityReinsertionMove)
-                  ReinsertionMove();
-                else if(ran<Components[CurrentComponent].ProbabilityReinsertionInPlaceMove)
-                  ReinsertionInPlaceMove();
-                else if(ran<Components[CurrentComponent].ProbabilityReinsertionInPlaneMove)
-                  ReinsertionInPlaneMove();
-                else if(ran<Components[CurrentComponent].ProbabilityIdentityChangeMove)
-                  IdentityChangeMove();
-                else if(ran<Components[CurrentComponent].ProbabilitySwapMove)
-                {
-                  if(RandomNumber()<0.5) SwapAddMove();
-                  else SwapRemoveMove();
-                }
-                else if(ran<Components[CurrentComponent].ProbabilityCFSwapLambdaMove)
-                {
-                  CFSwapLambaMove();
-                  CFWangLandauIteration(SAMPLE);
-                }
-                else if(ran<Components[CurrentComponent].ProbabilityCFCBSwapLambdaMove)
-                {
-                  CFWangLandauIteration(SAMPLE);
-                  CFCBSwapLambaMove();
-                }
-                else if(ran<Components[CurrentComponent].ProbabilityWidomMove)
-                  ;
-                else if(ran<Components[CurrentComponent].ProbabilitySurfaceAreaMove)
-                  ;
-                else if(ran<Components[CurrentComponent].ProbabilityGibbsChangeMove)
-                  GibbsParticleTransferMove();
-                else if(ran<Components[CurrentComponent].ProbabilityGibbsIdentityChangeMove)
-                  GibbsIdentityChangeMove();
-                else if(ran<Components[CurrentComponent].ProbabilityCFGibbsChangeMove)
-                {
-                  CFWangLandauIteration(SAMPLE);
-                  CFGibbsParticleTransferMove();
-                }
-                else if(ran<Components[CurrentComponent].ProbabilityCBCFGibbsChangeMove)
-                {
-                  CFWangLandauIteration(SAMPLE);
-                  CBCFGibbsParticleTransferMove();
-                }
-                break;
+              if(RandomNumber()<0.5) SwapAddMove();
+              else SwapRemoveMove();
             }
+            else if(ran<Components[CurrentComponent].ProbabilityCFSwapLambdaMove)
+            {
+              CFSwapLambaMove();
+              CFWangLandauIteration(SAMPLE);
+            }
+            else if(ran<Components[CurrentComponent].ProbabilityCBCFSwapLambdaMove)
+            {
+              CFWangLandauIteration(SAMPLE);
+              CBCFSwapLambaMove();
+            }
+            else if(ran<Components[CurrentComponent].ProbabilityWidomMove)
+              ;
+            else if(ran<Components[CurrentComponent].ProbabilitySurfaceAreaMove)
+              ;
+            else if(ran<Components[CurrentComponent].ProbabilityGibbsChangeMove)
+              GibbsParticleTransferMove();
+            else if(ran<Components[CurrentComponent].ProbabilityGibbsIdentityChangeMove)
+              GibbsIdentityChangeMove();
+            else if(ran<Components[CurrentComponent].ProbabilityCFGibbsChangeMove)
+            {
+              CFWangLandauIteration(SAMPLE);
+              CFGibbsParticleTransferMove();
+            }
+            else if(ran<Components[CurrentComponent].ProbabilityCBCFGibbsChangeMove)
+            {
+              CFWangLandauIteration(SAMPLE);
+              CBCFGibbsParticleTransferMove();
+            }
+            else if(ran<Components[CurrentComponent].ProbabilityParallelTemperingMove)
+              ParallelTemperingMove();
+            else if(ran<Components[CurrentComponent].ProbabilityHyperParallelTemperingMove)
+              HyperParallelTemperingMove();
+            else if(ran<Components[CurrentComponent].ProbabilityParallelMolFractionMove)
+              ParallelMolFractionMove();
+            else if(ran<Components[CurrentComponent].ProbabilityChiralInversionMove)
+              ChiralInversionMove();
+            else if(ran<Components[CurrentComponent].ProbabilityHybridNVEMove)
+              HybridNVEMove();
+            else if(ran<Components[CurrentComponent].ProbabilityHybridNPHMove)
+              HybridNPHMove();
+            else if(ran<Components[CurrentComponent].ProbabilityHybridNPHPRMove)
+              HybridNPHPRMove();
+            else if(ran<Components[CurrentComponent].ProbabilityVolumeChangeMove)
+              VolumeMove();
+            else if(ran<Components[CurrentComponent].ProbabilityBoxShapeChangeMove)
+              BoxShapeChangeMove();
+            else if(ran<Components[CurrentComponent].ProbabilityGibbsVolumeChangeMove)
+              GibbsVolumeMove();
+            else if(ran<Components[CurrentComponent].ProbabilityFrameworkChangeMove)
+              FrameworkChangeMove();
+            else if(ran<Components[CurrentComponent].ProbabilityFrameworkShiftMove)
+              FrameworkShiftMove();
+
             #ifdef DEBUG
               DebugEnergyStatus();
             #endif
@@ -451,20 +412,26 @@ void MonteCarloSimulation(void)
         {
           for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
           {
-            OptimizeVolumeChangeAcceptence();
-            OptimizeGibbsVolumeChangeAcceptence();
-            OptimizeTranslationAcceptence();
-            if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+            if(OptimizeVolumeChange) OptimizeVolumeChangeAcceptence();
+            if(OptimizeGibbsVolumeChange) OptimizeGibbsVolumeChangeAcceptence();
+            if(OptimizeTranslation) OptimizeTranslationAcceptence();
+            if((Framework[CurrentSystem].FrameworkModel==FLEXIBLE)&&(OptimizeFrameworkChange))
               OptimizeFrameworkChangeAcceptence();
-            OptimizeFrameworkShiftAcceptence();
-            OptimizeCFLambdaChangeAcceptence();
-            OptimizeCFGibbsLambdaChangeAcceptence();
+            if(OptimizeFrameworkShift) OptimizeFrameworkShiftAcceptence();
+            if(OptimizeCFLambdaChange) OptimizeCFLambdaChangeAcceptence();
+            if(OptimizeCFGibbsLambdaChange) OptimizeCFGibbsLambdaChangeAcceptence();
+            if(OptimizeCBCFLambdaChange) OptimizeCBCFLambdaChangeAcceptence();
+            if(OptimizeCBCFGibbsLambdaChange) OptimizeCBCFGibbsLambdaChangeAcceptence();
             RescaleMaximumRotationAnglesSmallMC();
           }
         }
 
         if(CurrentCycle%CFWangLandauEvery==0)
           CFWangLandauIteration(PRINT);
+
+        cpu_end=get_cpu_time();
+        CpuTotal+=(cpu_end-cpu_start);
+        CpuTimeEquilibration+=(cpu_end-cpu_start);
       }
 
       CFWangLandauIteration(FINALIZE);
@@ -503,6 +470,8 @@ void MonteCarloSimulation(void)
     SimulationStage=PRODUCTION;
     for(CurrentCycle=0;CurrentCycle<NumberOfCycles;CurrentCycle++)
     {
+      cpu_start=get_cpu_time();
+
       // detect erroneous chirality changes
       for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
         CheckChiralityMolecules();
@@ -552,111 +521,237 @@ void MonteCarloSimulation(void)
       // moves
       for(i=0;i<NumberOfSystems;i++)
       {
-        // choose system at random
-        CurrentSystem=(int)(RandomNumber()*(REAL)NumberOfSystems);
+        // choose a random system
+        SelectedSystem=(int)(RandomNumber()*(REAL)NumberOfSystems);
 
-        NumberOfSystemMoves=12;
-        NumberOfParticleMoves=MAX2(MinimumInnerCycles,NumberOfAdsorbateMolecules[CurrentSystem]+NumberOfCationMolecules[CurrentSystem]);
-        NumberOfSteps=(NumberOfSystemMoves+NumberOfParticleMoves)*NumberOfComponents;
+        NumberOfParticleMoves=MAX2(MinimumInnerCycles,NumberOfAdsorbateMolecules[SelectedSystem]+NumberOfCationMolecules[SelectedSystem]);
+        NumberOfSteps=NumberOfParticleMoves*NumberOfComponents;
 
         // loop over the MC 'steps' per MC 'cycle'
         for(j=0;j<NumberOfSteps;j++)
         {
-          // choose any of the MC moves randomly
-          ran_int=(int)(RandomNumber()*NumberOfSteps);
-          switch(ran_int)
-          {
-            case 0:
-              if(RandomNumber()<ProbabilityParallelTemperingMove) ParallelTemperingMove();
-              break;
-            case 1:
-              if(RandomNumber()<ProbabilityHyperParallelTemperingMove) HyperParallelTemperingMove();
-              break;
-            case 2:
-              if(RandomNumber()<ProbabilityParallelMolFractionMove) ParallelMolFractionMove();
-              break;
-            case 3:
-              if(RandomNumber()<ProbabilityChiralInversionMove) ChiralInversionMove();
-              break;
-            case 4:
-              if(RandomNumber()<ProbabilityHybridNVEMove) HybridNVEMove();
-              break;
-            case 5:
-              if(RandomNumber()<ProbabilityHybridNPHMove) HybridNPHMove();
-              break;
-            case 6:
-              if(RandomNumber()<ProbabilityHybridNPHPRMove) HybridNPHPRMove();
-              break;
-            case 7:
-              if(RandomNumber()<ProbabilityVolumeChangeMove) VolumeMove();
-              break;
-            case 8:
-              if(RandomNumber()<ProbabilityBoxShapeChangeMove) BoxShapeChangeMove();
-              break;
-            case 9:
-              if(RandomNumber()<ProbabilityGibbsVolumeChangeMove) GibbsVolumeMove();
-              break;
-            case 10:
-              if(RandomNumber()<ProbabilityFrameworkChangeMove) FrameworkChangeMove();
-              break;
-            case 11:
-              if(RandomNumber()<ProbabilityFrameworkShiftMove) FrameworkShiftMove();
-              break;
-            default:
-              // choose component at random
-              CurrentComponent=(int)(RandomNumber()*(REAL)NumberOfComponents);
+          // set the selected system
+          CurrentSystem=SelectedSystem;
 
-              // choose the Monte Carlo move at random
-              ran=RandomNumber();
-              if(ran<Components[CurrentComponent].ProbabilityTranslationMove)
-              {
-                #ifdef DEBUG
-                  fprintf(stderr, "Chosen MC-move: TranslationMove\n");
-                #endif
-                TranslationMove();
-              }
-              else if(ran<Components[CurrentComponent].ProbabilityRandomTranslationMove)
-                RandomTranslationMove();
-              else if(ran<Components[CurrentComponent].ProbabilityRotationMove)
-              {
-                #ifdef DEBUG
-                  fprintf(stderr, "Chosen MC-move: RotationMove\n");
-                #endif
-                RotationMove();
-              }
-              else if(ran<Components[CurrentComponent].ProbabilityPartialReinsertionMove)
-                PartialReinsertionMove();
-              else if(ran<Components[CurrentComponent].ProbabilityReinsertionMove)
-                ReinsertionMove();
-              else if(ran<Components[CurrentComponent].ProbabilityReinsertionInPlaceMove)
-                ReinsertionInPlaceMove();
-              else if(ran<Components[CurrentComponent].ProbabilityReinsertionInPlaneMove)
-                ReinsertionInPlaneMove();
-              else if(ran<Components[CurrentComponent].ProbabilityIdentityChangeMove)
-                IdentityChangeMove();
-              else if(ran<Components[CurrentComponent].ProbabilitySwapMove)
-              {
-                if(RandomNumber()<0.5) SwapAddMove();
-                else SwapRemoveMove();
-              }
-              else if(ran<Components[CurrentComponent].ProbabilityCFSwapLambdaMove)
-                CFSwapLambaMove();
-              else if(ran<Components[CurrentComponent].ProbabilityCFCBSwapLambdaMove)
-                CFCBSwapLambaMove();
-              else if(ran<Components[CurrentComponent].ProbabilityWidomMove)
-                WidomMove();
-              else if(ran<Components[CurrentComponent].ProbabilitySurfaceAreaMove)
-                SurfaceAreaMove();
-              else if(ran<Components[CurrentComponent].ProbabilityGibbsChangeMove)
-                GibbsParticleTransferMove();
-              else if(ran<Components[CurrentComponent].ProbabilityGibbsIdentityChangeMove)
-                GibbsIdentityChangeMove();
-              else if(ran<Components[CurrentComponent].ProbabilityCFGibbsChangeMove)
-                CFGibbsParticleTransferMove();
-              else if(ran<Components[CurrentComponent].ProbabilityCBCFGibbsChangeMove)
-                CBCFGibbsParticleTransferMove();
-              break;
+          // choose a random component
+          CurrentComponent=(int)(RandomNumber()*(REAL)NumberOfComponents);
+
+          // choose any of the MC moves randomly with the selected probability
+          ran=RandomNumber();
+
+          if(ran<Components[CurrentComponent].ProbabilityTranslationMove)
+          {
+            cpu_before=get_cpu_time();
+            TranslationMove();
+            cpu_after=get_cpu_time();
+            Components[CurrentComponent].CpuTimeTranslationMove[CurrentSystem]+=(cpu_after-cpu_before);
           }
+          else if(ran<Components[CurrentComponent].ProbabilityRandomTranslationMove)
+          {
+            cpu_before=get_cpu_time();
+            RandomTranslationMove();
+            cpu_after=get_cpu_time();
+            Components[CurrentComponent].CpuTimeRandomTranslationMove[CurrentSystem]+=(cpu_after-cpu_before);
+          }
+          else if(ran<Components[CurrentComponent].ProbabilityRotationMove)
+          {
+            cpu_before=get_cpu_time();
+            RotationMove();
+            cpu_after=get_cpu_time();
+            Components[CurrentComponent].CpuTimeRotationMove[CurrentSystem]+=(cpu_after-cpu_before);
+          }
+          else if(ran<Components[CurrentComponent].ProbabilityPartialReinsertionMove)
+          {
+            cpu_before=get_cpu_time();
+            PartialReinsertionMove();
+            cpu_after=get_cpu_time();
+            Components[CurrentComponent].CpuTimePartialReinsertionMove[CurrentSystem]+=(cpu_after-cpu_before);
+          }
+          else if(ran<Components[CurrentComponent].ProbabilityReinsertionMove)
+          {
+            cpu_before=get_cpu_time();
+            ReinsertionMove();
+            cpu_after=get_cpu_time();
+            Components[CurrentComponent].CpuTimeReinsertionMove[CurrentSystem]+=(cpu_after-cpu_before);
+          }
+          else if(ran<Components[CurrentComponent].ProbabilityReinsertionInPlaceMove)
+          {
+            cpu_before=get_cpu_time();
+            ReinsertionInPlaceMove();
+            cpu_after=get_cpu_time();
+            Components[CurrentComponent].CpuTimeReinsertionInPlaceMove[CurrentSystem]+=(cpu_after-cpu_before);
+          }
+          else if(ran<Components[CurrentComponent].ProbabilityReinsertionInPlaneMove)
+          {
+            cpu_before=get_cpu_time();
+            ReinsertionInPlaneMove();
+            cpu_after=get_cpu_time();
+            Components[CurrentComponent].CpuTimeReinsertionInPlaneMove[CurrentSystem]+=(cpu_after-cpu_before);
+          }
+          else if(ran<Components[CurrentComponent].ProbabilityIdentityChangeMove)
+          {
+            cpu_before=get_cpu_time();
+            IdentityChangeMove();
+            cpu_after=get_cpu_time();
+            Components[CurrentComponent].CpuTimeIdentityChangeMove[CurrentSystem]+=(cpu_after-cpu_before);
+          }
+          else if(ran<Components[CurrentComponent].ProbabilitySwapMove)
+          {
+            if(RandomNumber()<0.5) 
+            {
+              cpu_before=get_cpu_time();
+              SwapAddMove();
+              cpu_after=get_cpu_time();
+              Components[CurrentComponent].CpuTimeSwapMoveInsertion[CurrentSystem]+=(cpu_after-cpu_before);
+            }
+            else 
+            {
+              cpu_before=get_cpu_time();
+              SwapRemoveMove();
+              cpu_after=get_cpu_time();
+              Components[CurrentComponent].CpuTimeSwapMoveDeletion[CurrentSystem]+=(cpu_after-cpu_before);
+            }
+          }
+          else if(ran<Components[CurrentComponent].ProbabilityCFSwapLambdaMove)
+          {
+            cpu_before=get_cpu_time();
+            CFSwapLambaMove();
+            cpu_after=get_cpu_time();
+            Components[CurrentComponent].CpuTimeCFSwapLambdaMove[CurrentSystem]+=(cpu_after-cpu_before);
+          }
+          else if(ran<Components[CurrentComponent].ProbabilityCBCFSwapLambdaMove)
+          {
+            cpu_before=get_cpu_time();
+            CBCFSwapLambaMove();
+            cpu_after=get_cpu_time();
+            Components[CurrentComponent].CpuTimeCBCFSwapLambdaMove[CurrentSystem]+=(cpu_after-cpu_before);
+          }
+          else if(ran<Components[CurrentComponent].ProbabilityWidomMove)
+          {
+            cpu_before=get_cpu_time();
+            WidomMove();
+            cpu_after=get_cpu_time();
+            Components[CurrentComponent].CpuTimeWidomMove[CurrentSystem]+=(cpu_after-cpu_before);
+          }
+          else if(ran<Components[CurrentComponent].ProbabilitySurfaceAreaMove)
+          {
+            cpu_before=get_cpu_time();
+            SurfaceAreaMove();
+            cpu_after=get_cpu_time();
+            Components[CurrentComponent].CpuTimeSurfaceAreaMove[CurrentSystem]+=(cpu_after-cpu_before);
+          }
+          else if(ran<Components[CurrentComponent].ProbabilityGibbsChangeMove)
+          {
+            cpu_before=get_cpu_time();
+            GibbsParticleTransferMove();
+            cpu_after=get_cpu_time();
+            Components[CurrentComponent].CpuTimeGibbsChangeMove[0]+=0.5*(cpu_after-cpu_before);
+            Components[CurrentComponent].CpuTimeGibbsChangeMove[1]+=0.5*(cpu_after-cpu_before);
+          }
+          else if(ran<Components[CurrentComponent].ProbabilityGibbsIdentityChangeMove)
+          {
+            cpu_before=get_cpu_time();
+            GibbsIdentityChangeMove();
+            cpu_after=get_cpu_time();
+            Components[CurrentComponent].CpuTimeGibbsIdentityChangeMove[0]+=0.5*(cpu_after-cpu_before);
+            Components[CurrentComponent].CpuTimeGibbsIdentityChangeMove[1]+=0.5*(cpu_after-cpu_before);
+          }
+          else if(ran<Components[CurrentComponent].ProbabilityCFGibbsChangeMove)
+          {
+            cpu_before=get_cpu_time();
+            CFGibbsParticleTransferMove();
+            cpu_after=get_cpu_time();
+            Components[CurrentComponent].CpuTimeCFGibbsChangeMove[0]+=0.5*(cpu_after-cpu_before);
+            Components[CurrentComponent].CpuTimeCFGibbsChangeMove[1]+=0.5*(cpu_after-cpu_before);
+          }
+          else if(ran<Components[CurrentComponent].ProbabilityCBCFGibbsChangeMove)
+          {
+            cpu_before=get_cpu_time();
+            CBCFGibbsParticleTransferMove();
+            cpu_after=get_cpu_time();
+            Components[CurrentComponent].CpuTimeCBCFGibbsChangeMove[0]+=0.5*(cpu_after-cpu_before);
+            Components[CurrentComponent].CpuTimeCBCFGibbsChangeMove[1]+=0.5*(cpu_after-cpu_before);
+          }
+          else if(ran<Components[CurrentComponent].ProbabilityParallelTemperingMove) 
+          {
+            // note: cpu-timings done in the move itself
+            ParallelTemperingMove();
+          }
+          else if(ran<Components[CurrentComponent].ProbabilityHyperParallelTemperingMove) 
+          {
+            // note: cpu-timings done in the move itself
+            HyperParallelTemperingMove();
+          }
+          else if(ran<Components[CurrentComponent].ProbabilityParallelMolFractionMove) 
+          {
+            // note: cpu-timings done in the move itself
+            ParallelMolFractionMove();
+          }
+          else if(ran<Components[CurrentComponent].ProbabilityChiralInversionMove) 
+          {
+            cpu_before=get_cpu_time();
+            ChiralInversionMove();
+            cpu_after=get_cpu_time();
+            CpuTimeChiralInversionMove[CurrentSystem]+=(cpu_after-cpu_before);
+          }
+          else if(ran<Components[CurrentComponent].ProbabilityHybridNVEMove) 
+          {
+            cpu_before=get_cpu_time();
+            HybridNVEMove();
+            cpu_after=get_cpu_time();
+            CpuTimeHybridNVEMove[CurrentSystem]+=(cpu_after-cpu_before);
+          }
+          else if(ran<Components[CurrentComponent].ProbabilityHybridNPHMove) 
+          {
+            cpu_before=get_cpu_time();
+            HybridNPHMove();
+            cpu_after=get_cpu_time();
+            CpuTimeHybridNPHMove[CurrentSystem]+=(cpu_after-cpu_before);
+          }
+          else if(ran<Components[CurrentComponent].ProbabilityHybridNPHPRMove) 
+          {
+            cpu_before=get_cpu_time();
+            HybridNPHPRMove();
+            cpu_after=get_cpu_time();
+            CpuTimeHybridNPHPRMove[CurrentSystem]+=(cpu_after-cpu_before);
+          }
+          else if(ran<Components[CurrentComponent].ProbabilityVolumeChangeMove) 
+          {
+            cpu_before=get_cpu_time();
+            VolumeMove();
+            cpu_after=get_cpu_time();
+            CpuTimeVolumeChangeMove[CurrentSystem]+=(cpu_after-cpu_before);
+          }
+          else if(ran<Components[CurrentComponent].ProbabilityBoxShapeChangeMove) 
+          {
+            cpu_before=get_cpu_time();
+            BoxShapeChangeMove();
+            cpu_after=get_cpu_time();
+            CpuTimeBoxShapeChangeMove[CurrentSystem]+=(cpu_after-cpu_before);
+          }
+          else if(ran<Components[CurrentComponent].ProbabilityGibbsVolumeChangeMove) 
+          {
+            cpu_before=get_cpu_time();
+            GibbsVolumeMove();
+            cpu_after=get_cpu_time();
+            CpuTimeGibbsVolumeChangeMove[0]+=0.5*(cpu_after-cpu_before);
+            CpuTimeGibbsVolumeChangeMove[1]+=0.5*(cpu_after-cpu_before);
+          }
+          else if(ran<Components[CurrentComponent].ProbabilityFrameworkChangeMove) 
+          {
+            cpu_before=get_cpu_time();
+            FrameworkChangeMove();
+            cpu_after=get_cpu_time();
+            CpuTimeFrameworkChangeMove[CurrentSystem]+=(cpu_after-cpu_before);
+          }
+          else if(ran<Components[CurrentComponent].ProbabilityFrameworkShiftMove) 
+          {
+            cpu_before=get_cpu_time();
+            FrameworkShiftMove();
+            cpu_after=get_cpu_time();
+            CpuTimeFrameworkShiftMove[CurrentSystem]+=(cpu_after-cpu_before);
+          }
+          
           #ifdef DEBUG
             DebugEnergyStatus();
           #endif
@@ -668,17 +763,23 @@ void MonteCarloSimulation(void)
       {
         for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
         {
-          OptimizeVolumeChangeAcceptence();
-          OptimizeGibbsVolumeChangeAcceptence();
-          OptimizeTranslationAcceptence();
-          if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+          if(OptimizeVolumeChange) OptimizeVolumeChangeAcceptence();
+          if(OptimizeGibbsVolumeChange) OptimizeGibbsVolumeChangeAcceptence();
+          if(OptimizeTranslation) OptimizeTranslationAcceptence();
+          if((Framework[CurrentSystem].FrameworkModel==FLEXIBLE)&(OptimizeFrameworkChange))
             OptimizeFrameworkChangeAcceptence();
-          OptimizeFrameworkShiftAcceptence();
-          OptimizeCFLambdaChangeAcceptence();
-          OptimizeCFGibbsLambdaChangeAcceptence();
+          if(OptimizeFrameworkShift) OptimizeFrameworkShiftAcceptence();
+          if(OptimizeCFLambdaChange) OptimizeCFLambdaChangeAcceptence();
+          if(OptimizeCFGibbsLambdaChange) OptimizeCFGibbsLambdaChangeAcceptence();
+          if(OptimizeCBCFLambdaChange) OptimizeCBCFLambdaChangeAcceptence();
+          if(OptimizeCBCFGibbsLambdaChange) OptimizeCBCFGibbsLambdaChangeAcceptence();
           RescaleMaximumRotationAnglesSmallMC();
         }
       }
+
+      cpu_end=get_cpu_time();
+      CpuTotal+=(cpu_end-cpu_start);
+      CpuTimeProductionRun+=(cpu_end-cpu_start);
 
       if((WriteBinaryRestartFileEvery>0)&&(CurrentCycle%WriteBinaryRestartFileEvery==0))
         WriteBinaryRestartFiles();

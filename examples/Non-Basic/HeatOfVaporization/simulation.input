@@ -18,7 +18,7 @@ BoxAngles 90 90 90
 ExternalTemperature 185.0
 ComputePressure yes
 
-GibbsVolumeChangeProbability 1.0
+GibbsVolumeChangeProbability 0.1
 
 Component 0 MoleculeName             ethane
             StartingBead             0

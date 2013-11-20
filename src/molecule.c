@@ -889,6 +889,25 @@ void ReadComponentDefinition(int comp)
 
   Components[comp].RMCMOL=(VECTOR*)calloc(Components[comp].NumberOfAtoms,sizeof(VECTOR));
 
+  Components[comp].CpuTimeTranslationMove=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+  Components[comp].CpuTimeRandomTranslationMove=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+  Components[comp].CpuTimeRotationMove=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+  Components[comp].CpuTimePartialReinsertionMove=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+  Components[comp].CpuTimeReinsertionMove=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+  Components[comp].CpuTimeReinsertionInPlaceMove=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+  Components[comp].CpuTimeReinsertionInPlaneMove=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+  Components[comp].CpuTimeIdentityChangeMove=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+  Components[comp].CpuTimeSwapMoveInsertion=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+  Components[comp].CpuTimeSwapMoveDeletion=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+  Components[comp].CpuTimeCFSwapLambdaMove=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+  Components[comp].CpuTimeCBCFSwapLambdaMove=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+  Components[comp].CpuTimeWidomMove=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+  Components[comp].CpuTimeSurfaceAreaMove=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+  Components[comp].CpuTimeGibbsChangeMove=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+  Components[comp].CpuTimeCFGibbsChangeMove=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+  Components[comp].CpuTimeCBCFGibbsChangeMove=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+  Components[comp].CpuTimeGibbsIdentityChangeMove=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+
   Components[comp].MaximumCBMCChangeBondLength=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
   Components[comp].MaximumCBMCChangeBendAngle=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
   Components[comp].MaximumCBMCRotationOnCone=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
@@ -3090,13 +3109,25 @@ void RescaleComponentProbabilities(void)
             Components[i].ProbabilityIdentityChangeMove+
             Components[i].ProbabilitySwapMove+
             Components[i].ProbabilityCFSwapLambdaMove+
-            Components[i].ProbabilityCFCBSwapLambdaMove+
+            Components[i].ProbabilityCBCFSwapLambdaMove+
             Components[i].ProbabilityWidomMove+
             Components[i].ProbabilitySurfaceAreaMove+
             Components[i].ProbabilityGibbsChangeMove+
             Components[i].ProbabilityGibbsIdentityChangeMove+
             Components[i].ProbabilityCFGibbsChangeMove+
-            Components[i].ProbabilityCBCFGibbsChangeMove;
+            Components[i].ProbabilityCBCFGibbsChangeMove+
+            ProbabilityParallelTemperingMove+
+            ProbabilityHyperParallelTemperingMove+
+            ProbabilityParallelMolFractionMove+
+            ProbabilityChiralInversionMove+
+            ProbabilityHybridNVEMove+
+            ProbabilityHybridNPHMove+
+            ProbabilityHybridNPHPRMove+
+            ProbabilityVolumeChangeMove+
+            ProbabilityBoxShapeChangeMove+
+            ProbabilityGibbsVolumeChangeMove+
+            ProbabilityFrameworkChangeMove+
+            ProbabilityFrameworkShiftMove;
 
     Components[i].ProbabilityRandomTranslationMove+=Components[i].ProbabilityTranslationMove;
     Components[i].ProbabilityRotationMove+=Components[i].ProbabilityRandomTranslationMove;
@@ -3107,13 +3138,26 @@ void RescaleComponentProbabilities(void)
     Components[i].ProbabilityIdentityChangeMove+=Components[i].ProbabilityReinsertionInPlaneMove;
     Components[i].ProbabilitySwapMove+=Components[i].ProbabilityIdentityChangeMove;
     Components[i].ProbabilityCFSwapLambdaMove+=Components[i].ProbabilitySwapMove;
-    Components[i].ProbabilityCFCBSwapLambdaMove+=Components[i].ProbabilityCFSwapLambdaMove;
-    Components[i].ProbabilityWidomMove+=Components[i].ProbabilityCFCBSwapLambdaMove;
+    Components[i].ProbabilityCBCFSwapLambdaMove+=Components[i].ProbabilityCFSwapLambdaMove;
+    Components[i].ProbabilityWidomMove+=Components[i].ProbabilityCBCFSwapLambdaMove;
     Components[i].ProbabilitySurfaceAreaMove+=Components[i].ProbabilityWidomMove;
     Components[i].ProbabilityGibbsChangeMove+=Components[i].ProbabilitySurfaceAreaMove;
     Components[i].ProbabilityGibbsIdentityChangeMove+=Components[i].ProbabilityGibbsChangeMove;
     Components[i].ProbabilityCFGibbsChangeMove+=Components[i].ProbabilityGibbsIdentityChangeMove;
     Components[i].ProbabilityCBCFGibbsChangeMove+=Components[i].ProbabilityCFGibbsChangeMove;
+
+    Components[i].ProbabilityParallelTemperingMove=ProbabilityParallelTemperingMove+Components[i].ProbabilityCBCFGibbsChangeMove;
+    Components[i].ProbabilityHyperParallelTemperingMove=ProbabilityHyperParallelTemperingMove+Components[i].ProbabilityParallelTemperingMove;
+    Components[i].ProbabilityParallelMolFractionMove=ProbabilityParallelMolFractionMove+Components[i].ProbabilityHyperParallelTemperingMove;
+    Components[i].ProbabilityChiralInversionMove=ProbabilityChiralInversionMove+Components[i].ProbabilityParallelMolFractionMove;
+    Components[i].ProbabilityHybridNVEMove=ProbabilityHybridNVEMove+Components[i].ProbabilityChiralInversionMove;
+    Components[i].ProbabilityHybridNPHMove=ProbabilityHybridNPHMove+Components[i].ProbabilityHybridNVEMove;
+    Components[i].ProbabilityHybridNPHPRMove=ProbabilityHybridNPHPRMove+Components[i].ProbabilityHybridNPHMove;
+    Components[i].ProbabilityVolumeChangeMove=ProbabilityVolumeChangeMove+Components[i].ProbabilityHybridNPHPRMove;
+    Components[i].ProbabilityBoxShapeChangeMove=ProbabilityBoxShapeChangeMove+Components[i].ProbabilityVolumeChangeMove;
+    Components[i].ProbabilityGibbsVolumeChangeMove=ProbabilityGibbsVolumeChangeMove+Components[i].ProbabilityBoxShapeChangeMove;
+    Components[i].ProbabilityFrameworkChangeMove=ProbabilityFrameworkChangeMove+Components[i].ProbabilityGibbsVolumeChangeMove;
+    Components[i].ProbabilityFrameworkShiftMove=ProbabilityFrameworkShiftMove+Components[i].ProbabilityFrameworkChangeMove;
 
     if(TotProb>1e-5)
     {
@@ -3127,13 +3171,26 @@ void RescaleComponentProbabilities(void)
       Components[i].ProbabilityIdentityChangeMove/=TotProb;
       Components[i].ProbabilitySwapMove/=TotProb;
       Components[i].ProbabilityCFSwapLambdaMove/=TotProb;
-      Components[i].ProbabilityCFCBSwapLambdaMove/=TotProb;
+      Components[i].ProbabilityCBCFSwapLambdaMove/=TotProb;
       Components[i].ProbabilityWidomMove/=TotProb;
       Components[i].ProbabilitySurfaceAreaMove/=TotProb;
       Components[i].ProbabilityGibbsChangeMove/=TotProb;
       Components[i].ProbabilityGibbsIdentityChangeMove/=TotProb;
       Components[i].ProbabilityCFGibbsChangeMove/=TotProb;
       Components[i].ProbabilityCBCFGibbsChangeMove/=TotProb;
+
+      Components[i].ProbabilityParallelTemperingMove/=TotProb;
+      Components[i].ProbabilityHyperParallelTemperingMove/=TotProb;
+      Components[i].ProbabilityParallelMolFractionMove/=TotProb;
+      Components[i].ProbabilityChiralInversionMove/=TotProb;
+      Components[i].ProbabilityHybridNVEMove/=TotProb;
+      Components[i].ProbabilityHybridNPHMove/=TotProb;
+      Components[i].ProbabilityHybridNPHPRMove/=TotProb;
+      Components[i].ProbabilityVolumeChangeMove/=TotProb;
+      Components[i].ProbabilityBoxShapeChangeMove/=TotProb;
+      Components[i].ProbabilityGibbsVolumeChangeMove/=TotProb;
+      Components[i].ProbabilityFrameworkChangeMove/=TotProb;
+      Components[i].ProbabilityFrameworkShiftMove/=TotProb;
     }
 
     Components[i].FractionOfTranslationMove=Components[i].ProbabilityTranslationMove;
@@ -3146,13 +3203,26 @@ void RescaleComponentProbabilities(void)
     Components[i].FractionOfIdentityChangeMove=Components[i].ProbabilityIdentityChangeMove-Components[i].ProbabilityReinsertionInPlaneMove;
     Components[i].FractionOfSwapMove=Components[i].ProbabilitySwapMove-Components[i].ProbabilityIdentityChangeMove;
     Components[i].FractionOfCFSwapLambdaMove=Components[i].ProbabilityCFSwapLambdaMove-Components[i].ProbabilitySwapMove;
-    Components[i].FractionOfCFCBSwapLambdaMove=Components[i].ProbabilityCFCBSwapLambdaMove-Components[i].ProbabilityCFSwapLambdaMove;
-    Components[i].FractionOfWidomMove=Components[i].ProbabilityWidomMove-Components[i].ProbabilityCFCBSwapLambdaMove;
+    Components[i].FractionOfCBCFSwapLambdaMove=Components[i].ProbabilityCBCFSwapLambdaMove-Components[i].ProbabilityCFSwapLambdaMove;
+    Components[i].FractionOfWidomMove=Components[i].ProbabilityWidomMove-Components[i].ProbabilityCBCFSwapLambdaMove;
     Components[i].FractionOfSurfaceAreaMove=Components[i].ProbabilitySurfaceAreaMove-Components[i].ProbabilityWidomMove;
     Components[i].FractionOfGibbsChangeMove=Components[i].ProbabilityGibbsChangeMove-Components[i].ProbabilitySurfaceAreaMove;
     Components[i].FractionOfGibbsIdentityChangeMove=Components[i].ProbabilityGibbsIdentityChangeMove-Components[i].ProbabilityGibbsChangeMove;
     Components[i].FractionOfCFGibbsChangeMove=Components[i].ProbabilityCFGibbsChangeMove-Components[i].ProbabilityGibbsIdentityChangeMove;
     Components[i].FractionOfCBCFGibbsChangeMove=Components[i].ProbabilityCBCFGibbsChangeMove-Components[i].ProbabilityCFGibbsChangeMove;
+
+    Components[i].FractionOfParallelTemperingMove=Components[i].ProbabilityParallelTemperingMove-Components[i].ProbabilityCBCFGibbsChangeMove;
+    Components[i].FractionOfHyperParallelTemperingMove=Components[i].ProbabilityHyperParallelTemperingMove-Components[i].ProbabilityParallelTemperingMove;
+    Components[i].FractionOfParallelMolFractionMove=Components[i].ProbabilityParallelMolFractionMove-Components[i].ProbabilityHyperParallelTemperingMove;
+    Components[i].FractionOfChiralInversionMove=Components[i].ProbabilityChiralInversionMove-Components[i].ProbabilityParallelMolFractionMove;
+    Components[i].FractionOfHybridNVEMove=Components[i].ProbabilityHybridNVEMove-Components[i].ProbabilityChiralInversionMove;
+    Components[i].FractionOfHybridNPHMove=Components[i].ProbabilityHybridNPHMove-Components[i].ProbabilityHybridNVEMove;
+    Components[i].FractionOfHybridNPHPRMove=Components[i].ProbabilityHybridNPHPRMove-Components[i].ProbabilityHybridNPHMove;
+    Components[i].FractionOfVolumeChangeMove=Components[i].ProbabilityVolumeChangeMove-Components[i].ProbabilityHybridNPHPRMove;
+    Components[i].FractionOfBoxShapeChangeMove=Components[i].ProbabilityBoxShapeChangeMove-Components[i].ProbabilityVolumeChangeMove;
+    Components[i].FractionOfGibbsVolumeChangeMove=Components[i].ProbabilityGibbsVolumeChangeMove-Components[i].ProbabilityBoxShapeChangeMove;
+    Components[i].FractionOfFrameworkChangeMove=Components[i].ProbabilityFrameworkChangeMove-Components[i].ProbabilityGibbsVolumeChangeMove;
+    Components[i].FractionOfFrameworkShiftMove=Components[i].ProbabilityFrameworkShiftMove-Components[i].ProbabilityFrameworkChangeMove;
   }
 }
 
@@ -5483,6 +5553,239 @@ int ValidCartesianPoint(int i, POINT pos)
   return FALSE;
 }
 
+void PrintCPUStatistics(FILE *FilePtr)
+{
+  int i,j;
+  REAL CpuTimeTranslationMove,CpuTimeRandomTranslationMove,CpuTimeRotationMove,CpuTimePartialReinsertionMove;
+  REAL CpuTimeReinsertionMove,CpuTimeReinsertionInPlaceMove,CpuTimeReinsertionInPlaneMove;
+  REAL CpuTimeIdentityChangeMove,CpuTimeSwapMoveInsertion,CpuTimeSwapMoveDeletion;
+  REAL CpuTimeCFSwapLambdaMove,CpuTimeCBCFSwapLambdaMove,CpuTimeWidomMove;
+  REAL CpuTimeSurfaceAreaMove,CpuTimeGibbsChangeMove,CpuTimeCFGibbsChangeMove;
+  REAL CpuTimeCBCFGibbsChangeMove,CpuTimeGibbsIdentityChangeMove;
+  REAL CpuTimeParallelTemperingMoveTotal,CpuTimeHyperParallelTemperingMoveTotal,CpuTimeParallelMolFractionMoveTotal;
+  REAL CpuTimeChiralInversionMoveTotal,CpuTimeHybridNVEMoveTotal,CpuTimeHybridNPHMoveTotal;
+  REAL CpuTimeHybridNPHPRMoveTotal,CpuTimeVolumeChangeMoveTotal,CpuTimeBoxShapeChangeMoveTotal;
+  REAL CpuTimeGibbsVolumeChangeMoveTotal,CpuTimeFrameworkChangeMoveTotal,CpuTimeFrameworkShiftMoveTotal;
+
+  CpuTimeTranslationMove=0.0;
+  CpuTimeRandomTranslationMove=0.0;
+  CpuTimeRotationMove=0.0;
+  CpuTimePartialReinsertionMove=0.0;
+  CpuTimeReinsertionMove=0.0;
+  CpuTimeReinsertionInPlaceMove=0.0;
+  CpuTimeReinsertionInPlaneMove=0.0;
+  CpuTimeIdentityChangeMove=0.0;
+  CpuTimeSwapMoveInsertion=0.0;
+  CpuTimeSwapMoveDeletion=0.0;
+  CpuTimeCFSwapLambdaMove=0.0;
+  CpuTimeCBCFSwapLambdaMove=0.0;
+  CpuTimeWidomMove=0.0;
+  CpuTimeSurfaceAreaMove=0.0;
+  CpuTimeGibbsChangeMove=0.0;
+  CpuTimeCFGibbsChangeMove=0.0;
+  CpuTimeCBCFGibbsChangeMove=0.0;
+  CpuTimeGibbsIdentityChangeMove=0.0;
+
+
+  fprintf(FilePtr,"Total CPU timings:\n");
+  fprintf(FilePtr,"===========================================\n");
+  fprintf(FilePtr,"initialization:    %18.10g [s]\n",CpuTimeInitialization);
+  fprintf(FilePtr,"equilibration:     %18.10g [s]\n",CpuTimeEquilibration);
+  fprintf(FilePtr,"production run:    %18.10g [s]\n",CpuTimeProductionRun);
+  fprintf(FilePtr,"total time:        %18.10g [s]\n\n",CpuTotal);
+
+
+  fprintf(FilePtr,"Production run CPU timings of the MC moves:\n");
+  fprintf(FilePtr,"===========================================\n");
+  for(i=0;i<NumberOfComponents;i++)
+  {
+    fprintf(FilePtr,"Component: %d (%s)\n",i,Components[i].Name);
+    fprintf(FilePtr,"\ttranslation:                        %18.10g [s]\n",Components[i].CpuTimeTranslationMove[CurrentSystem]);
+    fprintf(FilePtr,"\trandom translation:                 %18.10g [s]\n",Components[i].CpuTimeRandomTranslationMove[CurrentSystem]);
+    fprintf(FilePtr,"\trandom rotation:                    %18.10g [s]\n",Components[i].CpuTimeRotationMove[CurrentSystem]);
+    fprintf(FilePtr,"\tpartial reinsertion:                %18.10g [s]\n",Components[i].CpuTimePartialReinsertionMove[CurrentSystem]);
+    fprintf(FilePtr,"\treinsertion:                        %18.10g [s]\n",Components[i].CpuTimeReinsertionMove[CurrentSystem]);
+    fprintf(FilePtr,"\treinsertion in-place:               %18.10g [s]\n",Components[i].CpuTimeReinsertionInPlaceMove[CurrentSystem]);
+    fprintf(FilePtr,"\treinsertion in-plane:               %18.10g [s]\n",Components[i].CpuTimeReinsertionInPlaneMove[CurrentSystem]);
+    fprintf(FilePtr,"\tidentity switch:                    %18.10g [s]\n",Components[i].CpuTimeIdentityChangeMove[CurrentSystem]);
+    fprintf(FilePtr,"\tswap (insertion):                   %18.10g [s]\n",Components[i].CpuTimeSwapMoveInsertion[CurrentSystem]);
+    fprintf(FilePtr,"\tswap (deletion):                    %18.10g [s]\n",Components[i].CpuTimeSwapMoveDeletion[CurrentSystem]);
+    fprintf(FilePtr,"\tswap lambda (CFMC):                 %18.10g [s]\n",Components[i].CpuTimeCFSwapLambdaMove[CurrentSystem]);
+    fprintf(FilePtr,"\tswap lambda (CB/CFMC):              %18.10g [s]\n",Components[i].CpuTimeCBCFSwapLambdaMove[CurrentSystem]);
+    fprintf(FilePtr,"\tWidom:                              %18.10g [s]\n",Components[i].CpuTimeWidomMove[CurrentSystem]);
+    fprintf(FilePtr,"\tsurface area:                       %18.10g [s]\n",Components[i].CpuTimeSurfaceAreaMove[CurrentSystem]);
+    fprintf(FilePtr,"\tGibbs particle transform:           %18.10g [s]\n",Components[i].CpuTimeGibbsChangeMove[CurrentSystem]);
+    fprintf(FilePtr,"\tGibbs particle transform (CFMC):    %18.10g [s]\n",Components[i].CpuTimeCFGibbsChangeMove[CurrentSystem]);
+    fprintf(FilePtr,"\tGibbs particle transform (CB/CFMC): %18.10g [s]\n",Components[i].CpuTimeCBCFGibbsChangeMove[CurrentSystem]);
+    fprintf(FilePtr,"\tGibbs indentity change:             %18.10g [s]\n",Components[i].CpuTimeGibbsIdentityChangeMove[CurrentSystem]);
+
+    CpuTimeTranslationMove+=Components[i].CpuTimeTranslationMove[CurrentSystem];
+    CpuTimeRandomTranslationMove+=Components[i].CpuTimeRandomTranslationMove[CurrentSystem];
+    CpuTimeRotationMove+=Components[i].CpuTimeRotationMove[CurrentSystem];
+    CpuTimePartialReinsertionMove+=Components[i].CpuTimePartialReinsertionMove[CurrentSystem];
+    CpuTimeReinsertionMove+=Components[i].CpuTimeReinsertionMove[CurrentSystem];
+    CpuTimeReinsertionInPlaceMove+=Components[i].CpuTimeReinsertionInPlaceMove[CurrentSystem];
+    CpuTimeReinsertionInPlaneMove+=Components[i].CpuTimeReinsertionInPlaneMove[CurrentSystem];
+    CpuTimeIdentityChangeMove+=Components[i].CpuTimeIdentityChangeMove[CurrentSystem];
+    CpuTimeSwapMoveInsertion+=Components[i].CpuTimeSwapMoveInsertion[CurrentSystem];
+    CpuTimeSwapMoveDeletion+=Components[i].CpuTimeSwapMoveInsertion[CurrentSystem];
+    CpuTimeCFSwapLambdaMove+=Components[i].CpuTimeCFSwapLambdaMove[CurrentSystem];
+    CpuTimeCBCFSwapLambdaMove+=Components[i].CpuTimeCBCFSwapLambdaMove[CurrentSystem];
+    CpuTimeWidomMove+=Components[i].CpuTimeWidomMove[CurrentSystem];
+    CpuTimeSurfaceAreaMove+=Components[i].CpuTimeSurfaceAreaMove[CurrentSystem];
+    CpuTimeGibbsChangeMove+=Components[i].CpuTimeGibbsChangeMove[CurrentSystem];
+    CpuTimeCFGibbsChangeMove+=Components[i].CpuTimeCFGibbsChangeMove[CurrentSystem];
+    CpuTimeCBCFGibbsChangeMove+=Components[i].CpuTimeCBCFGibbsChangeMove[CurrentSystem];
+    CpuTimeGibbsIdentityChangeMove+=Components[i].CpuTimeGibbsIdentityChangeMove[CurrentSystem];
+  }
+
+  fprintf(FilePtr,"\nTotal all components:\n");
+  fprintf(FilePtr,"\ttranslation:                        %18.10g [s]\n",CpuTimeTranslationMove);
+  fprintf(FilePtr,"\trandom translation:                 %18.10g [s]\n",CpuTimeRandomTranslationMove);
+  fprintf(FilePtr,"\trandom rotation:                    %18.10g [s]\n",CpuTimeRotationMove);
+  fprintf(FilePtr,"\tpartial reinsertion:                %18.10g [s]\n",CpuTimePartialReinsertionMove);
+  fprintf(FilePtr,"\treinsertion:                        %18.10g [s]\n",CpuTimeReinsertionMove);
+  fprintf(FilePtr,"\treinsertion in-place:               %18.10g [s]\n",CpuTimeReinsertionInPlaceMove);
+  fprintf(FilePtr,"\treinsertion in-plane:               %18.10g [s]\n",CpuTimeReinsertionInPlaneMove);
+  fprintf(FilePtr,"\tidentity switch:                    %18.10g [s]\n",CpuTimeIdentityChangeMove);
+  fprintf(FilePtr,"\tswap (insertion):                   %18.10g [s]\n",CpuTimeSwapMoveInsertion);
+  fprintf(FilePtr,"\tswap (deletion):                    %18.10g [s]\n",CpuTimeSwapMoveDeletion);
+  fprintf(FilePtr,"\tswap lambda (CFMC):                 %18.10g [s]\n",CpuTimeCFSwapLambdaMove);
+  fprintf(FilePtr,"\tswap lambda (CB/CFMC):              %18.10g [s]\n",CpuTimeCBCFSwapLambdaMove);
+  fprintf(FilePtr,"\tWidom:                              %18.10g [s]\n",CpuTimeWidomMove);
+  fprintf(FilePtr,"\tsurface area:                       %18.10g [s]\n",CpuTimeSurfaceAreaMove);
+  fprintf(FilePtr,"\tGibbs particle transform:           %18.10g [s]\n",CpuTimeGibbsChangeMove);
+  fprintf(FilePtr,"\tGibbs particle transform (CFMC):    %18.10g [s]\n",CpuTimeCFGibbsChangeMove);
+  fprintf(FilePtr,"\tGibbs particle transform (CB/CFMC): %18.10g [s]\n",CpuTimeCBCFGibbsChangeMove);
+  fprintf(FilePtr,"\tGibbs indentity change:             %18.10g [s]\n",CpuTimeGibbsIdentityChangeMove);
+
+  fprintf(FilePtr,"\nSystem moves:\n");
+  fprintf(FilePtr,"\tparallel tempering:            %18.10g [s]\n",CpuTimeParallelTemperingMove[CurrentSystem]);
+  fprintf(FilePtr,"\thyper parallel tempering:      %18.10g [s]\n",CpuTimeHyperParallelTemperingMove[CurrentSystem]);
+  fprintf(FilePtr,"\tmol-fraction replica-exchange: %18.10g [s]\n",CpuTimeParallelMolFractionMove[CurrentSystem]);
+  fprintf(FilePtr,"\tchiral inversion:              %18.10g [s]\n",CpuTimeChiralInversionMove[CurrentSystem]);
+  fprintf(FilePtr,"\thybrid MC/MD (NVE):            %18.10g [s]\n",CpuTimeHybridNVEMove[CurrentSystem]);
+  fprintf(FilePtr,"\thybrid MC/MD (NPH):            %18.10g [s]\n",CpuTimeHybridNPHMove[CurrentSystem]);
+  fprintf(FilePtr,"\thybrid MC/MD (NPHPR):          %18.10g [s]\n",CpuTimeHybridNPHPRMove[CurrentSystem]);
+  fprintf(FilePtr,"\tvolume change:                 %18.10g [s]\n",CpuTimeVolumeChangeMove[CurrentSystem]);
+  fprintf(FilePtr,"\tbox change:                    %18.10g [s]\n",CpuTimeBoxShapeChangeMove[CurrentSystem]);
+  fprintf(FilePtr,"\tGibbs volume change:           %18.10g [s]\n",CpuTimeGibbsVolumeChangeMove[CurrentSystem]);
+  fprintf(FilePtr,"\tframework change:              %18.10g [s]\n",CpuTimeFrameworkChangeMove[CurrentSystem]);
+  fprintf(FilePtr,"\tframework shift:               %18.10g [s]\n",CpuTimeFrameworkShiftMove[CurrentSystem]);
+  fprintf(FilePtr,"\n");
+
+
+  fprintf(FilePtr,"Production run CPU timings of the MC moves summed over all systems and components:\n");
+  fprintf(FilePtr,"==================================================================================\n");
+
+  CpuTimeTranslationMove=0.0;
+  CpuTimeRandomTranslationMove=0.0;
+  CpuTimeRotationMove=0.0;
+  CpuTimePartialReinsertionMove=0.0;
+  CpuTimeReinsertionMove=0.0;
+  CpuTimeReinsertionInPlaceMove=0.0;
+  CpuTimeReinsertionInPlaneMove=0.0;
+  CpuTimeIdentityChangeMove=0.0;
+  CpuTimeSwapMoveInsertion=0.0;
+  CpuTimeSwapMoveDeletion=0.0;
+  CpuTimeCFSwapLambdaMove=0.0;
+  CpuTimeCBCFSwapLambdaMove=0.0;
+  CpuTimeWidomMove=0.0;
+  CpuTimeSurfaceAreaMove=0.0;
+  CpuTimeGibbsChangeMove=0.0;
+  CpuTimeCFGibbsChangeMove=0.0;
+  CpuTimeCBCFGibbsChangeMove=0.0;
+  CpuTimeGibbsIdentityChangeMove=0.0;
+
+  for(j=0;j<NumberOfSystems;j++)
+  {
+    for(i=0;i<NumberOfComponents;i++)
+    {
+      CpuTimeTranslationMove+=Components[i].CpuTimeTranslationMove[j];
+      CpuTimeRandomTranslationMove+=Components[i].CpuTimeRandomTranslationMove[j];
+      CpuTimeRotationMove+=Components[i].CpuTimeRotationMove[j];
+      CpuTimePartialReinsertionMove+=Components[i].CpuTimePartialReinsertionMove[j];
+      CpuTimeReinsertionMove+=Components[i].CpuTimeReinsertionMove[j];
+      CpuTimeReinsertionInPlaceMove+=Components[i].CpuTimeReinsertionInPlaceMove[j];
+      CpuTimeReinsertionInPlaneMove+=Components[i].CpuTimeReinsertionInPlaneMove[j];
+      CpuTimeIdentityChangeMove+=Components[i].CpuTimeIdentityChangeMove[j];
+      CpuTimeSwapMoveInsertion+=Components[i].CpuTimeSwapMoveInsertion[j];
+      CpuTimeSwapMoveDeletion+=Components[i].CpuTimeSwapMoveInsertion[j];
+      CpuTimeCFSwapLambdaMove+=Components[i].CpuTimeCFSwapLambdaMove[j];
+      CpuTimeCBCFSwapLambdaMove+=Components[i].CpuTimeCBCFSwapLambdaMove[j];
+      CpuTimeWidomMove+=Components[i].CpuTimeWidomMove[j];
+      CpuTimeSurfaceAreaMove+=Components[i].CpuTimeSurfaceAreaMove[j];
+      CpuTimeGibbsChangeMove+=Components[i].CpuTimeGibbsChangeMove[j];
+      CpuTimeCFGibbsChangeMove+=Components[i].CpuTimeCFGibbsChangeMove[j];
+      CpuTimeCBCFGibbsChangeMove+=Components[i].CpuTimeCBCFGibbsChangeMove[j];
+      CpuTimeGibbsIdentityChangeMove+=Components[i].CpuTimeGibbsIdentityChangeMove[j];
+    }
+  }
+
+  fprintf(FilePtr,"\nParticles moves:\n");
+  fprintf(FilePtr,"\ttranslation:                        %18.10g [s]\n",CpuTimeTranslationMove);
+  fprintf(FilePtr,"\trandom translation:                 %18.10g [s]\n",CpuTimeRandomTranslationMove);
+  fprintf(FilePtr,"\trandom rotation:                    %18.10g [s]\n",CpuTimeRotationMove);
+  fprintf(FilePtr,"\tpartial reinsertion:                %18.10g [s]\n",CpuTimePartialReinsertionMove);
+  fprintf(FilePtr,"\treinsertion:                        %18.10g [s]\n",CpuTimeReinsertionMove);
+  fprintf(FilePtr,"\treinsertion in-place:               %18.10g [s]\n",CpuTimeReinsertionInPlaceMove);
+  fprintf(FilePtr,"\treinsertion in-plane:               %18.10g [s]\n",CpuTimeReinsertionInPlaneMove);
+  fprintf(FilePtr,"\tidentity switch:                    %18.10g [s]\n",CpuTimeIdentityChangeMove);
+  fprintf(FilePtr,"\tswap (insertion):                   %18.10g [s]\n",CpuTimeSwapMoveInsertion);
+  fprintf(FilePtr,"\tswap (deletion):                    %18.10g [s]\n",CpuTimeSwapMoveDeletion);
+  fprintf(FilePtr,"\tswap lambda (CFMC):                 %18.10g [s]\n",CpuTimeCFSwapLambdaMove);
+  fprintf(FilePtr,"\tswap lambda (CB/CFMC):              %18.10g [s]\n",CpuTimeCBCFSwapLambdaMove);
+  fprintf(FilePtr,"\tWidom:                              %18.10g [s]\n",CpuTimeWidomMove);
+  fprintf(FilePtr,"\tsurface area:                       %18.10g [s]\n",CpuTimeSurfaceAreaMove);
+  fprintf(FilePtr,"\tGibbs particle transform:           %18.10g [s]\n",CpuTimeGibbsChangeMove);
+  fprintf(FilePtr,"\tGibbs particle transform (CFMC):    %18.10g [s]\n",CpuTimeCFGibbsChangeMove);
+  fprintf(FilePtr,"\tGibbs particle transform (CB/CFMC): %18.10g [s]\n",CpuTimeCBCFGibbsChangeMove);
+  fprintf(FilePtr,"\tGibbs indentity change:             %18.10g [s]\n",CpuTimeGibbsIdentityChangeMove);
+
+  CpuTimeParallelTemperingMoveTotal=0.0;
+  CpuTimeHyperParallelTemperingMoveTotal=0.0;
+  CpuTimeParallelMolFractionMoveTotal=0.0;
+  CpuTimeChiralInversionMoveTotal=0.0;
+  CpuTimeHybridNVEMoveTotal=0.0;
+  CpuTimeHybridNPHMoveTotal=0.0;
+  CpuTimeHybridNPHPRMoveTotal=0.0;
+  CpuTimeVolumeChangeMoveTotal=0.0;
+  CpuTimeBoxShapeChangeMoveTotal=0.0;
+  CpuTimeGibbsVolumeChangeMoveTotal=0.0;
+  CpuTimeFrameworkChangeMoveTotal=0.0;
+  CpuTimeFrameworkShiftMoveTotal=0.0;
+  for(j=0;j<NumberOfSystems;j++)
+  {
+    CpuTimeParallelTemperingMoveTotal+=CpuTimeParallelTemperingMove[j];
+    CpuTimeHyperParallelTemperingMoveTotal+=CpuTimeHyperParallelTemperingMove[j];
+    CpuTimeParallelMolFractionMoveTotal+=CpuTimeParallelMolFractionMove[j];
+    CpuTimeChiralInversionMoveTotal+=CpuTimeChiralInversionMove[j];
+    CpuTimeHybridNVEMoveTotal+=CpuTimeHybridNVEMove[j];
+    CpuTimeHybridNPHMoveTotal+=CpuTimeHybridNPHMove[j];
+    CpuTimeHybridNPHPRMoveTotal+=CpuTimeHybridNPHPRMove[j];
+    CpuTimeVolumeChangeMoveTotal+=CpuTimeVolumeChangeMove[j];
+    CpuTimeBoxShapeChangeMoveTotal+=CpuTimeBoxShapeChangeMove[j];
+    CpuTimeGibbsVolumeChangeMoveTotal+=CpuTimeGibbsVolumeChangeMove[j];
+    CpuTimeFrameworkChangeMoveTotal+=CpuTimeFrameworkChangeMove[j];
+    CpuTimeFrameworkShiftMoveTotal+=CpuTimeFrameworkShiftMove[j];
+  }
+
+  fprintf(FilePtr,"\nSystem moves:\n");
+  fprintf(FilePtr,"\tparallel tempering:            %18.10g [s]\n",CpuTimeParallelTemperingMoveTotal);
+  fprintf(FilePtr,"\thyper parallel tempering:      %18.10g [s]\n",CpuTimeHyperParallelTemperingMoveTotal);
+  fprintf(FilePtr,"\tmol-fraction replica-exchange: %18.10g [s]\n",CpuTimeParallelMolFractionMoveTotal);
+  fprintf(FilePtr,"\tchiral inversion:              %18.10g [s]\n",CpuTimeChiralInversionMoveTotal);
+  fprintf(FilePtr,"\thybrid MC/MD (NVE):            %18.10g [s]\n",CpuTimeHybridNVEMoveTotal);
+  fprintf(FilePtr,"\thybrid MC/MD (NPH):            %18.10g [s]\n",CpuTimeHybridNPHMoveTotal);
+  fprintf(FilePtr,"\thybrid MC/MD (NPHPR):          %18.10g [s]\n",CpuTimeHybridNPHPRMoveTotal);
+  fprintf(FilePtr,"\tvolume change:                 %18.10g [s]\n",CpuTimeVolumeChangeMoveTotal);
+  fprintf(FilePtr,"\tbox change:                    %18.10g [s]\n",CpuTimeBoxShapeChangeMoveTotal);
+  fprintf(FilePtr,"\tGibbs volume change:           %18.10g [s]\n",CpuTimeGibbsVolumeChangeMoveTotal);
+  fprintf(FilePtr,"\tframework change:              %18.10g [s]\n",CpuTimeFrameworkChangeMoveTotal);
+  fprintf(FilePtr,"\tframework shift:               %18.10g [s]\n",CpuTimeFrameworkShiftMoveTotal);
+  fprintf(FilePtr,"\n");
+}
+
 
 
 void WriteRestartPseudoAtoms(FILE *FilePtr)
@@ -5515,6 +5818,8 @@ void WriteRestartPseudoAtoms(FILE *FilePtr)
   fwrite(SwitchingVDWFactors3,sizeof(REAL),4,FilePtr);
   fwrite(SwitchingVDWFactors5,sizeof(REAL),6,FilePtr);
   fwrite(SwitchingVDWFactors7,sizeof(REAL),8,FilePtr);
+
+
 
   Check=123456789.0;
   fwrite(&Check,1,sizeof(REAL),FilePtr);
@@ -6092,6 +6397,25 @@ void WriteRestartComponent(FILE *FilePtr)
     fwrite(Components[i].RestrictMovesToSphere,sizeof(int),MAX_NUMBER_OF_SPHERES,FilePtr);
     fwrite(Components[i].RestrictSphereCenter,sizeof(VECTOR),MAX_NUMBER_OF_SPHERES,FilePtr);
     fwrite(Components[i].RestrictSphereRadius,sizeof(REAL),MAX_NUMBER_OF_SPHERES,FilePtr);
+
+    fwrite(Components[i].CpuTimeTranslationMove,sizeof(REAL),NumberOfSystems,FilePtr);
+    fwrite(Components[i].CpuTimeRandomTranslationMove,sizeof(REAL),NumberOfSystems,FilePtr);
+    fwrite(Components[i].CpuTimeRotationMove,sizeof(REAL),NumberOfSystems,FilePtr);
+    fwrite(Components[i].CpuTimePartialReinsertionMove,sizeof(REAL),NumberOfSystems,FilePtr);
+    fwrite(Components[i].CpuTimeReinsertionMove,sizeof(REAL),NumberOfSystems,FilePtr);
+    fwrite(Components[i].CpuTimeReinsertionInPlaceMove,sizeof(REAL),NumberOfSystems,FilePtr);
+    fwrite(Components[i].CpuTimeReinsertionInPlaneMove,sizeof(REAL),NumberOfSystems,FilePtr);
+    fwrite(Components[i].CpuTimeIdentityChangeMove,sizeof(REAL),NumberOfSystems,FilePtr);
+    fwrite(Components[i].CpuTimeSwapMoveInsertion,sizeof(REAL),NumberOfSystems,FilePtr);
+    fwrite(Components[i].CpuTimeSwapMoveDeletion,sizeof(REAL),NumberOfSystems,FilePtr);
+    fwrite(Components[i].CpuTimeCFSwapLambdaMove,sizeof(REAL),NumberOfSystems,FilePtr);
+    fwrite(Components[i].CpuTimeCBCFSwapLambdaMove,sizeof(REAL),NumberOfSystems,FilePtr);
+    fwrite(Components[i].CpuTimeWidomMove,sizeof(REAL),NumberOfSystems,FilePtr);
+    fwrite(Components[i].CpuTimeSurfaceAreaMove,sizeof(REAL),NumberOfSystems,FilePtr);
+    fwrite(Components[i].CpuTimeGibbsChangeMove,sizeof(REAL),NumberOfSystems,FilePtr);
+    fwrite(Components[i].CpuTimeCFGibbsChangeMove,sizeof(REAL),NumberOfSystems,FilePtr);
+    fwrite(Components[i].CpuTimeCBCFGibbsChangeMove,sizeof(REAL),NumberOfSystems,FilePtr);
+    fwrite(Components[i].CpuTimeGibbsIdentityChangeMove,sizeof(REAL),NumberOfSystems,FilePtr);
   }
 
   Check=123456789.0;
@@ -6534,6 +6858,25 @@ void ReadRestartComponent(FILE *FilePtr)
     fread(Components[i].RestrictMovesToSphere,sizeof(int),MAX_NUMBER_OF_SPHERES,FilePtr);
     fread(Components[i].RestrictSphereCenter,sizeof(VECTOR),MAX_NUMBER_OF_SPHERES,FilePtr);
     fread(Components[i].RestrictSphereRadius,sizeof(REAL),MAX_NUMBER_OF_SPHERES,FilePtr);
+
+    fread(Components[i].CpuTimeTranslationMove,sizeof(REAL),NumberOfSystems,FilePtr);
+    fread(Components[i].CpuTimeRandomTranslationMove,sizeof(REAL),NumberOfSystems,FilePtr);
+    fread(Components[i].CpuTimeRotationMove,sizeof(REAL),NumberOfSystems,FilePtr);
+    fread(Components[i].CpuTimePartialReinsertionMove,sizeof(REAL),NumberOfSystems,FilePtr);
+    fread(Components[i].CpuTimeReinsertionMove,sizeof(REAL),NumberOfSystems,FilePtr);
+    fread(Components[i].CpuTimeReinsertionInPlaceMove,sizeof(REAL),NumberOfSystems,FilePtr);
+    fread(Components[i].CpuTimeReinsertionInPlaneMove,sizeof(REAL),NumberOfSystems,FilePtr);
+    fread(Components[i].CpuTimeIdentityChangeMove,sizeof(REAL),NumberOfSystems,FilePtr);
+    fread(Components[i].CpuTimeSwapMoveInsertion,sizeof(REAL),NumberOfSystems,FilePtr);
+    fread(Components[i].CpuTimeSwapMoveDeletion,sizeof(REAL),NumberOfSystems,FilePtr);
+    fread(Components[i].CpuTimeCFSwapLambdaMove,sizeof(REAL),NumberOfSystems,FilePtr);
+    fread(Components[i].CpuTimeCBCFSwapLambdaMove,sizeof(REAL),NumberOfSystems,FilePtr);
+    fread(Components[i].CpuTimeWidomMove,sizeof(REAL),NumberOfSystems,FilePtr);
+    fread(Components[i].CpuTimeSurfaceAreaMove,sizeof(REAL),NumberOfSystems,FilePtr);
+    fread(Components[i].CpuTimeGibbsChangeMove,sizeof(REAL),NumberOfSystems,FilePtr);
+    fread(Components[i].CpuTimeCFGibbsChangeMove,sizeof(REAL),NumberOfSystems,FilePtr);
+    fread(Components[i].CpuTimeCBCFGibbsChangeMove,sizeof(REAL),NumberOfSystems,FilePtr);
+    fread(Components[i].CpuTimeGibbsIdentityChangeMove,sizeof(REAL),NumberOfSystems,FilePtr);
   }
 
   fread(&Check,1,sizeof(REAL),FilePtr);

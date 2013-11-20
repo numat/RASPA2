@@ -395,19 +395,46 @@ extern int *DegreesOfFreedomRotationalCations;
 extern int *DegreesOfFreedomVibrationalCations;
 extern int *DegreesOfFreedomConstraintCations;
 
-extern REAL ProbabilityVolumeChangeMove;
-extern REAL ProbabilityBoxShapeChangeMove;
 extern REAL ProbabilityParallelTemperingMove;
 extern REAL ProbabilityHyperParallelTemperingMove;
 extern REAL ProbabilityParallelMolFractionMove;
 extern REAL ProbabilityChiralInversionMove;
-extern REAL ProbabilityGibbsVolumeChangeMove;
 extern REAL ProbabilityHybridNVEMove;
 extern REAL ProbabilityHybridNPHMove;
 extern REAL ProbabilityHybridNPHPRMove;
+extern REAL ProbabilityVolumeChangeMove;
+extern REAL ProbabilityBoxShapeChangeMove;
+extern REAL ProbabilityGibbsVolumeChangeMove;
 extern REAL ProbabilityFrameworkChangeMove;
 extern REAL ProbabilityFrameworkShiftMove;
-extern REAL ProbabilityCFLambdaMove;
+
+extern REAL CpuTimeProductionRun;
+extern REAL CpuTimeInitialization;
+extern REAL CpuTimeEquilibration;
+extern REAL CpuTotal;
+
+extern REAL *CpuTimeParallelTemperingMove;
+extern REAL *CpuTimeHyperParallelTemperingMove;
+extern REAL *CpuTimeParallelMolFractionMove;
+extern REAL *CpuTimeChiralInversionMove;
+extern REAL *CpuTimeHybridNVEMove;
+extern REAL *CpuTimeHybridNPHMove;
+extern REAL *CpuTimeHybridNPHPRMove;
+extern REAL *CpuTimeVolumeChangeMove;
+extern REAL *CpuTimeBoxShapeChangeMove;
+extern REAL *CpuTimeGibbsVolumeChangeMove;
+extern REAL *CpuTimeFrameworkChangeMove;
+extern REAL *CpuTimeFrameworkShiftMove;
+
+extern int OptimizeVolumeChange;
+extern int OptimizeGibbsVolumeChange;
+extern int OptimizeTranslation;
+extern int OptimizeFrameworkChange;
+extern int OptimizeFrameworkShift;
+extern int OptimizeCFLambdaChange;
+extern int OptimizeCFGibbsLambdaChange;
+extern int OptimizeCBCFLambdaChange;
+extern int OptimizeCBCFGibbsLambdaChange;
 
 void ScaleBornTerm(REAL r);
 void AddContributionToCrossTerm(int i,REAL_MATRIX CrossTerm,REAL DDF,REAL DF,VECTOR dr);

@@ -12,7 +12,7 @@ ExternalTemperature 250.0
 ExternalPressure 1e6
 ComputeMolecularPressure yes
 
-VolumeChangeProbability       0.25
+VolumeChangeProbability       0.05
 
 Component 0 MoleculeName             CO2
             MoleculeDefinition       TraPPE

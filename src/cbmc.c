@@ -2572,7 +2572,7 @@ void SetConnectivityMatrix(void)
     for(j=0;j<Components[CurrentComponent].NumberOfAtoms;j++)
       MoleculeTodoConnectivity[i][j]=MoleculeConnectivity[i][j];
 
-  // set elements to FALSE for beads that are already placed (see CBMC-move which only regrows a part of a molecule)
+  // set elements to FALSE for beads that are already placed (see CBMC-move which only reinsertion a part of a molecule)
   // the matrix can now be used to determine future atoms that still have to be placed
   for(i=0;i<NumberOfBeadsAlreadyPlaced;i++)
     for(j=0;j<Components[CurrentComponent].NumberOfAtoms;j++)
