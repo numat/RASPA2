@@ -7711,6 +7711,7 @@ void WriteFrameworkDefinition(void)
           switch(PotentialType[i][j])
           {
             case ZERO_POTENTIAL:
+            case ZERO_POTENTIAL_CONTINUOUS_FRACTIONAL:
               break;
             case LENNARD_JONES:
               // 4*p_0*((p_1/r)^12-(p_1/r)^6)

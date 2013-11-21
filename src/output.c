@@ -240,7 +240,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
   fprintf(FilePtr,"Compiler and run-time data\n");
   fprintf(FilePtr,"===========================================================================\n");
 
-  fprintf(FilePtr,"%s\n","RASPA 1.8-6");
+  fprintf(FilePtr,"%s\n","RASPA 1.8-7");
 
   #if defined (__LP64__) || defined (__64BIT__) || defined (_LP64) || (__WORDSIZE == 64)
     fprintf(FilePtr,"Compiled as a 64-bits application\n");
@@ -2359,6 +2359,11 @@ void PrintPreSimulationStatusCurrentSystem(int system)
         {
           case ZERO_POTENTIAL:
             fprintf(FilePtr,"%7s - %7s [ZERO_POTENTIAL]\n",
+              PseudoAtoms[i].Name,
+              PseudoAtoms[j].Name);
+            break;
+          case ZERO_POTENTIAL_CONTINUOUS_FRACTIONAL:
+            fprintf(FilePtr,"%7s - %7s [ZERO_POTENTIAL_CONTINUOUS_FRACTIONAL]\n",
               PseudoAtoms[i].Name,
               PseudoAtoms[j].Name);
             break;
