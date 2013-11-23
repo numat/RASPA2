@@ -44,13 +44,14 @@ extern REAL *UAdsorbateFourierDelta;
 
 extern VECTOR **MaximumTranslation;
 extern VECTOR **MaximumTranslationInPlane;
-extern REAL **MaximumRotation;
+extern VECTOR **MaximumRotation;
 
 extern VECTOR **TrialPosition;
 extern VECTOR **TrialAnisotropicPosition;
 extern VECTOR **ElectricFieldAtTrialPosition;
 extern VECTOR **InducedDipoleAtTrialPosition;
 extern REAL TargetAccRatioTranslation;
+extern REAL TargetAccRatioRotation;
 
 extern REAL *MaximumVolumeChange;
 extern REAL TargetAccRatioVolumeChange;
@@ -90,6 +91,7 @@ void InitializeMCMovesStatisticsAllSystems(void);
 void TranslationMove(void);
 void RandomTranslationMove(void);
 void RotationMove(void);
+void RandomRotationMove(void);
 void PartialReinsertionMove(void);
 void ReinsertionMove(void);
 void ReinsertionInPlaceMove(void);
@@ -113,6 +115,7 @@ int IdentityChangeAdsorbateMove(void);
 int PartialReinsertionAdsorbateMove(void);
 
 void OptimizeTranslationAcceptence(void);
+void OptimizeRotationAcceptence(void);
 void OptimizeTranslationInPlaneAcceptence(void);
 void OptimizeGibbsVolumeChangeAcceptence(void);
 void OptimizeVolumeChangeAcceptence(void);
@@ -147,6 +150,7 @@ void PrintGibbsSwapStatistics(FILE *FilePtr);
 void PrintTranslationStatistics(FILE *FilePtr);
 void PrintRandomTranslationStatistics(FILE *FilePtr);
 void PrintRotationStatistics(FILE *FilePtr);
+void PrintRandomRotationStatistics(FILE *FilePtr);
 void PrintSwapAddStatistics(FILE *FilePtr);
 void PrintSwapRemoveStatistics(FILE *FilePtr);
 void PrintReinsertionStatistics(FILE *FilePtr);

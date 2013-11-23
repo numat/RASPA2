@@ -429,6 +429,7 @@ extern REAL *CpuTimeFrameworkShiftMove;
 extern int OptimizeVolumeChange;
 extern int OptimizeGibbsVolumeChange;
 extern int OptimizeTranslation;
+extern int OptimizeRotation;
 extern int OptimizeFrameworkChange;
 extern int OptimizeFrameworkShift;
 extern int OptimizeCFLambdaChange;

@@ -288,6 +288,7 @@ int ReadInput(char *input)
   OptimizeVolumeChange=TRUE;
   OptimizeGibbsVolumeChange=TRUE;
   OptimizeTranslation=TRUE;
+  OptimizeRotation=TRUE;
   OptimizeFrameworkChange=TRUE;
   OptimizeFrameworkShift=TRUE;
   OptimizeCFLambdaChange=TRUE;
@@ -316,6 +317,7 @@ int ReadInput(char *input)
 
   TargetAccRatioSmallMCScheme=0.4;
   TargetAccRatioTranslation=0.5;
+  TargetAccRatioRotation=0.5;
   TargetAccRatioLambdaChange=0.5;
   TargetAccRatioVolumeChange=0.5;
   TargetAccRatioBoxShapeChange=0.5;
@@ -2441,6 +2443,7 @@ int ReadInput(char *input)
     }
     if(strcasecmp("TranslationProbability",keyword)==0) sscanf(arguments,"%lf",&Components[CurrentComponent].ProbabilityTranslationMove);
     if(strcasecmp("TargetAccRatioTranslation",keyword)==0) sscanf(arguments,"%lf",&TargetAccRatioTranslation);
+    if(strcasecmp("TargetAccRatioRotation",keyword)==0) sscanf(arguments,"%lf",&TargetAccRatioRotation);
     if(strcasecmp("TranslationDirection",keyword)==0)
     {
       if(strcasecmp("XYZ",firstargument)==0) Components[CurrentComponent].TranslationDirection=XYZ_DIR;
@@ -2475,6 +2478,7 @@ int ReadInput(char *input)
     }
     if(strcasecmp("RandomTranslationProbability",keyword)==0) sscanf(arguments,"%lf",&Components[CurrentComponent].ProbabilityRandomTranslationMove);
     if(strcasecmp("RotationProbability",keyword)==0) sscanf(arguments,"%lf",&Components[CurrentComponent].ProbabilityRotationMove);
+    if(strcasecmp("RandomRotationProbability",keyword)==0) sscanf(arguments,"%lf",&Components[CurrentComponent].ProbabilityRandomRotationMove);
     if(strcasecmp("CBMCProbability",keyword)==0) sscanf(arguments,"%lf",&Components[CurrentComponent].ProbabilityPartialReinsertionMove);
     if(strcasecmp("PartialReinsertionProbability",keyword)==0) sscanf(arguments,"%lf",&Components[CurrentComponent].ProbabilityPartialReinsertionMove);
     if(strcasecmp("ReinsertionProbability",keyword)==0) sscanf(arguments,"%lf",&Components[CurrentComponent].ProbabilityReinsertionMove);
@@ -4564,6 +4568,11 @@ int ReadInput(char *input)
       if(strcasecmp("yes",firstargument)==0) OptimizeTranslation=TRUE;
       if(strcasecmp("no",firstargument)==0) OptimizeTranslation=FALSE;
     }
+    if(strcasecmp("OptimizeRotation",keyword)==0)
+    {
+      if(strcasecmp("yes",firstargument)==0) OptimizeRotation=TRUE;
+      if(strcasecmp("no",firstargument)==0) OptimizeRotation=FALSE;
+    }
     if(strcasecmp("OptimizeFrameworkChange",keyword)==0)
     {
       if(strcasecmp("yes",firstargument)==0) OptimizeFrameworkChange=TRUE;
@@ -5567,6 +5576,9 @@ int ReadInput(char *input)
           MaximumTranslation[i][j].x=1.3;
           MaximumTranslation[i][j].y=1.3;
           MaximumTranslation[i][j].z=1.3;
+          MaximumRotation[i][j].x=25.0*DEG2RAD;
+          MaximumRotation[i][j].y=25.0*DEG2RAD;
+          MaximumRotation[i][j].z=25.0*DEG2RAD;
           break;
         case ABC_DIR:
         case AB_DIR:
@@ -5579,6 +5591,9 @@ int ReadInput(char *input)
           MaximumTranslation[i][j].x=0.03;
           MaximumTranslation[i][j].y=0.03;
           MaximumTranslation[i][j].z=0.03;
+          MaximumRotation[i][j].x=25.0*DEG2RAD;
+          MaximumRotation[i][j].y=25.0*DEG2RAD;
+          MaximumRotation[i][j].z=25.0*DEG2RAD;
           break;
       }
       MaximumTranslationInPlane[i][j].x=0.3;

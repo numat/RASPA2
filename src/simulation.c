@@ -392,6 +392,7 @@ REAL *CpuTimeFrameworkShiftMove;
 int OptimizeVolumeChange;
 int OptimizeGibbsVolumeChange;
 int OptimizeTranslation;
+int OptimizeRotation;
 int OptimizeFrameworkChange;
 int OptimizeFrameworkShift;
 int OptimizeCFLambdaChange;
@@ -1127,6 +1128,7 @@ void WriteRestartSimulation(FILE *FilePtr)
   fwrite(&OptimizeVolumeChange,sizeof(int),1,FilePtr);
   fwrite(&OptimizeGibbsVolumeChange,sizeof(int),1,FilePtr);
   fwrite(&OptimizeTranslation,sizeof(int),1,FilePtr);
+  fwrite(&OptimizeRotation,sizeof(int),1,FilePtr);
   fwrite(&OptimizeFrameworkChange,sizeof(int),1,FilePtr);
   fwrite(&OptimizeFrameworkShift,sizeof(int),1,FilePtr);
   fwrite(&OptimizeCFLambdaChange,sizeof(int),1,FilePtr);
@@ -1757,6 +1759,7 @@ void ReadRestartSimulation(FILE *FilePtr)
   fread(&OptimizeVolumeChange,sizeof(int),1,FilePtr);
   fread(&OptimizeGibbsVolumeChange,sizeof(int),1,FilePtr);
   fread(&OptimizeTranslation,sizeof(int),1,FilePtr);
+  fread(&OptimizeRotation,sizeof(int),1,FilePtr);
   fread(&OptimizeFrameworkChange,sizeof(int),1,FilePtr);
   fread(&OptimizeFrameworkShift,sizeof(int),1,FilePtr);
   fread(&OptimizeCFLambdaChange,sizeof(int),1,FilePtr);

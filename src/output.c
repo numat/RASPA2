@@ -240,7 +240,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
   fprintf(FilePtr,"Compiler and run-time data\n");
   fprintf(FilePtr,"===========================================================================\n");
 
-  fprintf(FilePtr,"%s\n","RASPA 1.8-7");
+  fprintf(FilePtr,"%s\n","RASPA 1.8-8");
 
   #if defined (__LP64__) || defined (__64BIT__) || defined (_LP64) || (__WORDSIZE == 64)
     fprintf(FilePtr,"Compiled as a 64-bits application\n");
@@ -3745,6 +3745,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
       }
       fprintf(FilePtr,"\t\tPercentage of random translation moves:            %lf\n",(double)(100.0*Components[i].FractionOfRandomTranslationMove));
       fprintf(FilePtr,"\t\tPercentage of rotation moves:                      %lf\n",(double)(100.0*Components[i].FractionOfRotationMove));
+      fprintf(FilePtr,"\t\tPercentage of random rotation moves:               %lf\n",(double)(100.0*Components[i].FractionOfRandomRotationMove));
       fprintf(FilePtr,"\t\tPercentage of partial reinsertion moves:           %lf\n",(double)(100.0*Components[i].FractionOfPartialReinsertionMove));
       fprintf(FilePtr,"\t\tPercentage of reinsertion moves:                   %lf\n",(double)(100.0*Components[i].FractionOfReinsertionMove));
       fprintf(FilePtr,"\t\tPercentage of reinsertion-in-place moves:          %lf\n",(double)(100.0*Components[i].FractionOfReinsertionInPlaceMove));
@@ -6292,8 +6293,9 @@ void PrintPostSimulationStatus(void)
     fprintf(FilePtr,"\n");
     PrintSmallMCAddStatistics(FilePtr);
     PrintTranslationStatistics(FilePtr);
-    PrintRotationStatistics(FilePtr);
     PrintRandomTranslationStatistics(FilePtr);
+    PrintRotationStatistics(FilePtr);
+    PrintRandomRotationStatistics(FilePtr);
     PrintSwapAddStatistics(FilePtr);
     PrintSwapRemoveStatistics(FilePtr);
     PrintReinsertionStatistics(FilePtr);
@@ -6980,7 +6982,7 @@ void PrintRestartFile(void)
        (double)MaximumTranslation[CurrentSystem][j].x,(double)MaximumTranslation[CurrentSystem][j].y,(double)MaximumTranslation[CurrentSystem][j].z);
     fprintf(FilePtrOut,"\tMaximum-translation-in-plane-change component %d: %lf,%lf,%lf\n",j,
        (double)MaximumTranslationInPlane[CurrentSystem][j].x,(double)MaximumTranslationInPlane[CurrentSystem][j].y,(double)MaximumTranslationInPlane[CurrentSystem][j].z);
-    fprintf(FilePtrOut,"\tMaximum-rotation-change component %d: %lf\n",j,(double)MaximumRotation[CurrentSystem][j]);
+    fprintf(FilePtrOut,"\tMaximum-rotation-change component %d: %lf %lf %lf\n",j,(double)MaximumRotation[CurrentSystem][j].x,(double)MaximumRotation[CurrentSystem][j].y,(double)MaximumRotation[CurrentSystem][j].z);
   }
   fprintf(FilePtrOut,"\n");
 
@@ -7471,18 +7473,14 @@ void ReadRestartOutput(FILE* FilePtr)
 
 
   OutputFilePtr=(FILE**)calloc(NumberOfSystems,sizeof(FILE*));
+  FILE_CONTENTS = (char**)malloc(NumberOfSystems * sizeof(char*));
+  FILE_SIZES=(size_t*)malloc(NumberOfSystems * sizeof(size_t));
 
   for(i=0;i<NumberOfSystems;i++)
   {
     // read the current position into the output file (in bytes)
     fread(&pos,1,sizeof(fpos_t),FilePtr);
 
-    fread(&Check,1,sizeof(REAL),FilePtr);
-    if(fabs(Check-123456789.0)>1e-10)
-    {
-      fprintf(stderr, "Error in binary restart-file (ReadRestartOutput)\n");
-      exit(0);
-    }
 
     // construct outputfilename
     sprintf(buffer,"Output/System_%d/output_%s_%d.%d.%d_%lf_%lf%s",
@@ -7567,7 +7565,12 @@ void ReadRestartOutput(FILE* FilePtr)
       PrintPreSimulationStatusCurrentSystem(i); // print the pre-simulation status again
     }
   }
-
+  fread(&Check,1,sizeof(REAL),FilePtr);
+  if(fabs(Check-123456789.0)>1e-10)
+  {
+    fprintf(stderr, "Error in binary restart-file (ReadRestartOutput)\n");
+    exit(0);
+  }
 }
 
 void WriteRestartOutput(FILE* FilePtr)

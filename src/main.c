@@ -302,10 +302,11 @@ char* run(char *inputData, char *inputCrystal, char *raspaDir, bool stream)
       strcat(output, "\n\nEND OF SIMULATION\n\n");
     }
     strcat(output, FILE_CONTENTS[NumberOfSystems - 1]);
+
+    for (i = 0; i < NumberOfSystems-1; i++)
+      free(FILE_CONTENTS[i]);
   }
 
-  for (i = 0; i < NumberOfSystems-1; i++)
-    free(FILE_CONTENTS[i]);
   free(FILE_CONTENTS);
   free(FILE_SIZES);
 
