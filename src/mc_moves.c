@@ -4766,6 +4766,15 @@ int ReinsertionInPlaceAdsorbateMove(void)
   CurrentCationMolecule=-1;
   CurrentAdsorbateMolecule=SelectRandomMoleculeOfType(CurrentComponent);
 
+  // set Continuous Fraction (CF) atomic scaling-factors, translation is at fixed CF-'lambda'
+  // if no CF is used, then these scaling factors are unity
+  for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
+  {
+    CFVDWScaling[i]=Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[i].CFVDWScalingParameter;
+    CFChargeScaling[i]=Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[i].CFChargeScalingParameter;
+  }
+
+
   ReinsertionInPlaceAttempts[CurrentSystem][CurrentComponent]+=1.0;
 
   // if a fractional molecule is selected make sure that no grids are used
@@ -4790,14 +4799,6 @@ int ReinsertionInPlaceAdsorbateMove(void)
   }
 
   ReinsertionInPlaceAccepted[CurrentSystem][CurrentComponent][0]+=1.0;
-
-  // set Continuous Fraction (CF) atomic scaling-factors, translation is at fixed CF-'lambda'
-  // if no CF is used, then these scaling factors are unity
-  for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
-  {
-    CFVDWScaling[i]=Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[i].CFVDWScalingParameter;
-    CFChargeScaling[i]=Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[i].CFChargeScalingParameter;
-  }
 
   // if a fractional molecule is selected make sure that no grids are used
   UseGrids=Framework[CurrentSystem].FrameworkModel;
@@ -5017,6 +5018,14 @@ int ReinsertionInPlaceCationMove(void)
   CurrentCationMolecule=SelectRandomMoleculeOfType(CurrentComponent);
   CurrentAdsorbateMolecule=-1;
 
+  // set Continuous Fraction (CF) atomic scaling-factors, translation is at fixed CF-'lambda'
+  // if no CF is used, then these scaling factors are unity
+  for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
+  {
+    CFVDWScaling[i]=Cations[CurrentSystem][CurrentCationMolecule].Atoms[i].CFVDWScalingParameter;
+    CFChargeScaling[i]=Cations[CurrentSystem][CurrentCationMolecule].Atoms[i].CFChargeScalingParameter;
+  }
+
   ReinsertionInPlaceAttempts[CurrentSystem][CurrentComponent]+=1.0;
 
   // if a fractional molecule is selected make sure that no grids are used
@@ -5040,13 +5049,6 @@ int ReinsertionInPlaceCationMove(void)
       return 0;
   }
 
-  // set Continuous Fraction (CF) atomic scaling-factors, translation is at fixed CF-'lambda'
-  // if no CF is used, then these scaling factors are unity
-  for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
-  {
-    CFVDWScaling[i]=Cations[CurrentSystem][CurrentCationMolecule].Atoms[i].CFVDWScalingParameter;
-    CFChargeScaling[i]=Cations[CurrentSystem][CurrentCationMolecule].Atoms[i].CFChargeScalingParameter;
-  }
 
   // if a fractional molecule is selected make sure that no grids are used
   UseGrids=Framework[CurrentSystem].FrameworkModel;
@@ -5297,7 +5299,6 @@ int ReinsertionInPlaneAdsorbateMove(void)
   CurrentAdsorbateMolecule=SelectRandomMoleculeOfType(CurrentComponent);
 
   ReinsertionInPlaneAttempts[CurrentSystem][CurrentComponent]+=1.0;
-
 
   // set Continuous Fraction (CF) atomic scaling-factors, translation is at fixed CF-'lambda'
   // if no CF is used, then these scaling factors are unity
