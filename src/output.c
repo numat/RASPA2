@@ -6896,7 +6896,7 @@ void PrintEnergyDriftStatus(FILE *FilePtr)
 
 void PrintRestartFile(void)
 {
-  int j,k,l;
+  int i,j,k,l;
   FILE *FilePtrOut;
   char buffer[1024];
   int index;
@@ -6978,6 +6978,11 @@ void PrintRestartFile(void)
   {
     fprintf(FilePtrOut,"Component %d (%s)\n",j,Components[j].Name);
     fprintf(FilePtrOut,"\tFractional-molecule-id component %d: %d\n",j,Components[j].FractionalMolecule[CurrentSystem]);
+    fprintf(FilePtrOut,"\tNumber-of-biasing-factors component %d: %d\n",j,Components[j].CFLambdaHistogramSize);
+    fprintf(FilePtrOut,"\tBiasing-factors component %d: ",j);
+    for(i=0;i<Components[j].CFLambdaHistogramSize;i++)
+      fprintf(FilePtrOut," %lf",Components[j].CFBiasingFactors[CurrentSystem][i]);
+    fprintf(FilePtrOut,"\n");
     fprintf(FilePtrOut,"\tMaximum-translation-change component %d: %lf,%lf,%lf\n",j,
        (double)MaximumTranslation[CurrentSystem][j].x,(double)MaximumTranslation[CurrentSystem][j].y,(double)MaximumTranslation[CurrentSystem][j].z);
     fprintf(FilePtrOut,"\tMaximum-translation-in-plane-change component %d: %lf,%lf,%lf\n",j,

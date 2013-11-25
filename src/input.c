@@ -7931,6 +7931,8 @@ void ReadRestartFile(void)
   int *typeArrayAdsorbates,*typeArrayCations;
   int totalNumberOfAdsorbateMolecules;
   int totalNumberOfCationMolecules;
+  char *arg_pointer;
+  int n;
 
   extra_framework_boolean=FALSE;
   for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
@@ -8177,6 +8179,38 @@ void ReadRestartFile(void)
         if(sscanf(arguments,"component %d: %d",&int_temp1,&int_temp2)==2)
           Components[int_temp1].FractionalMolecule[CurrentSystem]=int_temp2;
       }
+
+      if(strcasecmp(keyword,"Number-of-biasing-factors")==0)
+      {
+        int_temp1=int_temp2=0;
+        if(sscanf(arguments,"component %d: %d",&int_temp1,&int_temp2)==2)
+        {
+          if(temp2!=Components[int_temp1].CFLambdaHistogramSize)
+          {
+            Components[int_temp1].CFLambdaHistogramSize=int_temp2;
+
+            // realloc memory
+            Components[int_temp1].CFBiasingFactors[CurrentSystem]=(REAL*)realloc(Components[int_temp1].CFBiasingFactors[CurrentSystem],
+                         Components[int_temp1].CFLambdaHistogramSize*sizeof(REAL));
+          }
+        }
+      }
+      if(strcasecmp(keyword,"Biasing-factors")==0)
+      {
+        int_temp1=int_temp2=0;
+        if(sscanf(arguments,"component %d: %n",&int_temp1,&n)==1)
+        {
+          arg_pointer=arguments;
+         
+          for(i=0;i<Components[int_temp1].CFLambdaHistogramSize;i++)
+          {
+            arg_pointer+=n;
+            sscanf(arg_pointer,"%lf%n",&Components[int_temp1].CFBiasingFactors[CurrentSystem][i],&n);
+            fprintf(stderr,"TEST: %lf\n",Components[int_temp1].CFBiasingFactors[CurrentSystem][i]);
+          }
+        }
+      }
+
       if(strcasecmp(keyword,"Maximum-translation-change")==0)
       {
         int_temp1=int_temp2=0;
