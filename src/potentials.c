@@ -5684,7 +5684,7 @@ REAL PotentialValue(int typeA,int typeB,REAL rr,REAL scaling)
     case ZERO_POTENTIAL:
       return 0.0;
     case ZERO_POTENTIAL_CONTINUOUS_FRACTIONAL:
-      if(rr<1.0) return 2.0*EnergyOverlapCriteria;
+      if(rr<OverlapDistanceSquared) return 2.0*EnergyOverlapCriteria;
       return 0.0;
     case HARD_SPHERE:
       arg1=PotentialParms[typeA][typeB][0];
@@ -5738,7 +5738,7 @@ REAL PotentialValue(int typeA,int typeB,REAL rr,REAL scaling)
       // p_0/k_B [K]    strength parameter epsilon
       // p_1     [A]    size parameter sigma
       // p_3/k_B [K]    (non-zero for a shifted potential)
-      if(rr<1.0) return 2.0*EnergyOverlapCriteria;
+      if(rr<OverlapDistanceSquared) return 2.0*EnergyOverlapCriteria;
       arg1=PotentialParms[typeA][typeB][0];
       arg2=SQR(PotentialParms[typeA][typeB][1]);
       arg3=PotentialParms[typeA][typeB][2];
@@ -5749,7 +5749,7 @@ REAL PotentialValue(int typeA,int typeB,REAL rr,REAL scaling)
       // ======================================================================================
       // p_0/k_B [K]    strength parameter epsilon
       // p_1     [A]    size parameter sigma
-      if(rr<1.0) return 2.0*EnergyOverlapCriteria;
+      if(rr<OverlapDistanceSquared) return 2.0*EnergyOverlapCriteria;
       arg1=PotentialParms[typeA][typeB][0];
       arg2=SQR(PotentialParms[typeA][typeB][1]);
       rri3=1.0/(CUBE(rr/arg2)+0.5*SQR(1.0-scaling));
@@ -5765,7 +5765,7 @@ REAL PotentialValue(int typeA,int typeB,REAL rr,REAL scaling)
       // ======================================================================================
       // p_0/k_B [K]    strength parameter epsilon
       // p_1     [A]    size parameter sigma
-      if(rr<1.0) return 2.0*EnergyOverlapCriteria;
+      if(rr<OverlapDistanceSquared) return 2.0*EnergyOverlapCriteria;
       arg1=PotentialParms[typeA][typeB][0];
       arg2=SQR(PotentialParms[typeA][typeB][1]);
       rri3=1.0/(CUBE(rr/arg2)+0.5*SQR(1.0-scaling));
@@ -7016,7 +7016,7 @@ void PotentialGradient(int typeA,int typeB,REAL rr,REAL *energy,REAL *force_fact
     case ZERO_POTENTIAL_CONTINUOUS_FRACTIONAL:
       U=0.0;
       fcVal=0.0;
-      if(rr<1.0) U=2.0*EnergyOverlapCriteria;
+      if(rr<OverlapDistanceSquared) U=2.0*EnergyOverlapCriteria;
       break;
     case HARD_SPHERE:
       U=0.0;
@@ -7091,7 +7091,7 @@ void PotentialGradient(int typeA,int typeB,REAL rr,REAL *energy,REAL *force_fact
       U=scaling*(4.0*arg1*(rri3*(rri3-1.0))-arg3);
       term1=0.5*SQR(scaling-1.0)*pow(arg2,3);
       fcVal=(24*arg1*scaling*SQR(rr)*pow(arg2,3)*(pow(rr,3)+(term1-2.0*pow(arg2,3))))/pow(pow(rr,3)+term1,3);
-      if(rr<1.0) U=2.0*EnergyOverlapCriteria;
+      if(rr<OverlapDistanceSquared) U=2.0*EnergyOverlapCriteria;
       break;
     case LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED3:
       // {4*p_0*((p_1/r)^12-(p_1/r)^6)}*S(r)
@@ -7113,7 +7113,7 @@ void PotentialGradient(int typeA,int typeB,REAL rr,REAL *energy,REAL *force_fact
         fcVal=U*SwitchingValueDerivative/r+fcVal*SwitchingValue;
         U*=SwitchingValue;
       }
-      if(rr<1.0) U=2.0*EnergyOverlapCriteria;
+      if(rr<OverlapDistanceSquared) U=2.0*EnergyOverlapCriteria;
       break;
     case LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED5:
       // {4*p_0*((p_1/r)^12-(p_1/r)^6)}*S(r)
@@ -7136,7 +7136,7 @@ void PotentialGradient(int typeA,int typeB,REAL rr,REAL *energy,REAL *force_fact
         fcVal=U*SwitchingValueDerivative/r+fcVal*SwitchingValue;
         U*=SwitchingValue;
       }
-      if(rr<1.0) U=2.0*EnergyOverlapCriteria;
+      if(rr<OverlapDistanceSquared) U=2.0*EnergyOverlapCriteria;
       break;
     case WCA:
       // 4*p_0*((p_1/r)^12-(p_1/r)^6)
@@ -8643,7 +8643,7 @@ void PotentialSecondDerivative(int typeA,int typeB,REAL rr,REAL *energy,REAL *fa
       U=0.0;
       fcVal1=0.0;
       fcVal2=0.0;
-      if(rr<1.0) U=2.0*EnergyOverlapCriteria;
+      if(rr<OverlapDistanceSquared) U=2.0*EnergyOverlapCriteria;
       break;
     case HARD_SPHERE:
       U=0.0;
@@ -8732,7 +8732,7 @@ void PotentialSecondDerivative(int typeA,int typeB,REAL rr,REAL *energy,REAL *fa
       term1=0.5*SQR(scaling-1.0)*pow(arg2,3);
       fcVal1=(24*arg1*scaling*SQR(rr)*pow(arg2,3)*(pow(rr,3)+(term1-2.0*pow(arg2,3))))/pow(pow(rr,3)+term1,3);
       fcVal2=0.0;
-      if(rr<1.0) U=2.0*EnergyOverlapCriteria;
+      if(rr<OverlapDistanceSquared) U=2.0*EnergyOverlapCriteria;
       break;
     case LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED3:
       // {4*p_0*((p_1/r)^12-(p_1/r)^6)}*S(r)
@@ -8756,7 +8756,7 @@ void PotentialSecondDerivative(int typeA,int typeB,REAL rr,REAL *energy,REAL *fa
         fcVal2=0.0;
         U*=SwitchingValue;
       }
-      if(rr<1.0) U=2.0*EnergyOverlapCriteria;
+      if(rr<OverlapDistanceSquared) U=2.0*EnergyOverlapCriteria;
       break;
     case LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED5:
       // {4*p_0*((p_1/r)^12-(p_1/r)^6)}*S(r)
@@ -8781,7 +8781,7 @@ void PotentialSecondDerivative(int typeA,int typeB,REAL rr,REAL *energy,REAL *fa
         fcVal2=0.0;
         U*=SwitchingValue;
       }
-      if(rr<1.0) U=2.0*EnergyOverlapCriteria;
+      if(rr<OverlapDistanceSquared) U=2.0*EnergyOverlapCriteria;
       break;
     case WCA:
       // 4*p_0*((p_1/r)^12-(p_1/r)^6)
@@ -10522,7 +10522,7 @@ void PotentialThirdDerivative(int typeA,int typeB,REAL rr,REAL *energy,REAL *fac
       fcVal1=0.0;
       fcVal2=0.0;
       fcVal3=0.0;
-      if(rr<1.0) U=2.0*EnergyOverlapCriteria;
+      if(rr<OverlapDistanceSquared) U=2.0*EnergyOverlapCriteria;
       break;
     case LENNARD_JONES:
       // 4*p_0*((p_1/r)^12-(p_1/r)^6)

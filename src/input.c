@@ -211,6 +211,7 @@ int ReadInput(char *input)
   int LineNumber;
   int CurrentPrism,CurrentCylinder,CurrentSphere;
   int NumberOfCFBiasingFactors;
+  REAL OverlapDistance;
 
   NumberOfFixedAtomTypes=0;
   NumberOfActiveAtomTypes=0;
@@ -345,6 +346,8 @@ int ReadInput(char *input)
   BlockEnergyGridOverlapCriteria=EnergyOverlapCriteria/5.0;
 
   // default value for the cut-off
+  OverlapDistance=1.0;
+  OverlapDistanceSquared=1.0;
   CutOffVDW=12.0;
   InverseCutOffVDW=1.0/CutOffVDW;
   CutOffVDWSquared=SQR(CutOffVDW);
@@ -1407,6 +1410,11 @@ int ReadInput(char *input)
 
     // read simulation parameters
     if(strcasecmp("TimeStep",keyword)==0) sscanf(arguments,"%lf",&DeltaT);
+    if(strcasecmp("OverlapDistance",keyword)==0) 
+    {
+      sscanf(arguments,"%lf",&OverlapDistance);
+      OverlapDistanceSquared=OverlapDistance*OverlapDistance;
+    }
     if(strcasecmp("CutOff",keyword)==0) sscanf(arguments,"%lf",&CutOffVDW);
     if(strcasecmp("CutOffVDW",keyword)==0) sscanf(arguments,"%lf",&CutOffVDW);
     if(strcasecmp("CutOffVDWSwitch",keyword)==0) sscanf(arguments,"%lf",&CutOffVDWSwitch);

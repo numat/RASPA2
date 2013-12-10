@@ -119,6 +119,7 @@ int SymmetrizeFrameworkCharges;
 int UseChargesFromMOLFile;
 int UseChargesFromCIFFile;
 
+REAL OverlapDistanceSquared;
 REAL CutOffVDW;
 REAL CutOffVDWSquared;
 REAL CutOffVDWSwitch;
@@ -849,6 +850,7 @@ void WriteRestartSimulation(FILE *FilePtr)
   fwrite(&UseChargesFromMOLFile,sizeof(int),1,FilePtr);
   fwrite(&UseChargesFromCIFFile,sizeof(int),1,FilePtr);
 
+  fwrite(&OverlapDistanceSquared,sizeof(OverlapDistanceSquared),1,FilePtr);
   fwrite(&CutOffVDW,sizeof(CutOffVDW),1,FilePtr);
   fwrite(&CutOffVDWSquared,sizeof(CutOffVDWSquared),1,FilePtr);
   fwrite(&CutOffVDWSwitch,sizeof(CutOffVDWSwitch),1,FilePtr);
@@ -1479,6 +1481,7 @@ void ReadRestartSimulation(FILE *FilePtr)
   fread(&UseChargesFromMOLFile,sizeof(int),1,FilePtr);
   fread(&UseChargesFromCIFFile,sizeof(int),1,FilePtr);
 
+  fread(&OverlapDistanceSquared,sizeof(OverlapDistanceSquared),1,FilePtr);
   fread(&CutOffVDW,sizeof(CutOffVDW),1,FilePtr);
   fread(&CutOffVDWSquared,sizeof(CutOffVDWSquared),1,FilePtr);
   fread(&CutOffVDWSwitch,sizeof(CutOffVDWSwitch),1,FilePtr);

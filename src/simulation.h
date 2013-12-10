@@ -146,6 +146,7 @@ extern int QuenchCoreShellVelocitiesEvery;
 
 extern int MinimumInnerCycles;
 
+extern REAL OverlapDistanceSquared;
 extern REAL CutOffVDW;
 extern REAL CutOffVDWSquared;
 extern REAL CutOffVDWSwitch;
