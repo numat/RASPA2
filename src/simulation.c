@@ -1771,6 +1771,6 @@ void ReadRestartSimulation(FILE *FilePtr)
   if(fabs(Check-123456789.0)>1e-10)
   {
     fprintf(stderr, "Error in binary restart-file (ReadRestartSimulation)\n");
-    exit(0);
+    ContinueAfterCrash=FALSE;
   }
 }

@@ -5895,7 +5895,7 @@ void ReadRestartPseudoAtoms(FILE *FilePtr)
   if(fabs(Check-123456789.0)>1e-10)
   {
     fprintf(stderr, "Error in binary restart-file (ReadRestartPseudoAtoms)\n");
-    exit(0);
+    ContinueAfterCrash=FALSE;
   }
 
 }
@@ -6063,7 +6063,7 @@ void ReadRestartMolecules(FILE *FilePtr)
   if(fabs(Check-123456789.0)>1e-10)
   {
     fprintf(stderr, "Error in binary restart-file (ReadRestartMolecules)\n");
-    exit(0);
+    ContinueAfterCrash=FALSE;
   }
 }
 
@@ -6917,6 +6917,6 @@ void ReadRestartComponent(FILE *FilePtr)
   if(fabs(Check-123456789.0)>1e-10)
   {
     fprintf(stderr, "Error in binary restart-file (ReadRestartComponent)\n");
-    exit(0);
+    ContinueAfterCrash=FALSE;
   }
 }

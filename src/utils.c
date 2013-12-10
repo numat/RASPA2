@@ -375,7 +375,7 @@ void ConvertStringToUppercase(char *buffer)
     if(fabs(Check-123456789.0)>1e-10)
     {
       fprintf(stderr, "Error in binary restart-file (ReadRestartUtils)\n");
-      exit(0);
+      ContinueAfterCrash=FALSE;
     }
   }
 

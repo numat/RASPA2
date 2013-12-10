@@ -240,7 +240,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
   fprintf(FilePtr,"Compiler and run-time data\n");
   fprintf(FilePtr,"===========================================================================\n");
 
-  fprintf(FilePtr,"%s\n","RASPA 1.8-8");
+  fprintf(FilePtr,"%s\n","RASPA 1.9-0");
 
   #if defined (__LP64__) || defined (__64BIT__) || defined (_LP64) || (__WORDSIZE == 64)
     fprintf(FilePtr,"Compiled as a 64-bits application\n");
@@ -2198,13 +2198,25 @@ void PrintPreSimulationStatusCurrentSystem(int system)
   fprintf(FilePtr,"===========================================================================\n");
   fprintf(FilePtr,"Biasing method: %s\n",BiasingMethod==LJ_BIASING?"using only the VDW part":
                    "using the VDW and the real part of the Ewald summation");
-  fprintf(FilePtr,"Number of trial positions:                             %d\n",NumberOfTrialPositions);
-  fprintf(FilePtr,"Number of trial positions coupled Torsion-selection:   %d\n",NumberOfTrialPositionsTorsion);
-  fprintf(FilePtr,"Number of trial position for the first bead:           %d\n",NumberOfTrialPositionsForTheFirstBead);
-  fprintf(FilePtr,"Number of trial moves per open bead:                   %d\n",NumberOfTrialMovesPerOpenBead);
-  fprintf(FilePtr,"Target acceptance ratio small-mc scheme:               %lf\n",(double)TargetAccRatioSmallMCScheme);
-  fprintf(FilePtr,"Energy overlap criteria:                               %lg\n",(double)EnergyOverlapCriteria);
-  fprintf(FilePtr,"Minimal Rosenbluth factor:                             %lg\n",(double)MinimumRosenbluthFactor);
+  fprintf(FilePtr,"Number of trial positions:                                       %d\n",NumberOfTrialPositions);
+  fprintf(FilePtr,"Number of trial positions (reinsertion):                         %d\n",NumberOfTrialPositionsReinsertion);
+  fprintf(FilePtr,"Number of trial positions (partial reinsertion):                 %d\n",NumberOfTrialPositionsPartialReinsertion);
+  fprintf(FilePtr,"Number of trial positions (identity-change):                     %d\n",NumberOfTrialPositionsIdentityChange);
+  fprintf(FilePtr,"Number of trial positions (Gibbs particle transfer):             %d\n",NumberOfTrialPositionsGibbs);
+  fprintf(FilePtr,"Number of trial positions (insertion/deletion):                  %d\n",NumberOfTrialPositionsSwap);
+  fprintf(FilePtr,"Number of trial positions (Widom insertion):                     %d\n",NumberOfTrialPositionsWidom);
+  fprintf(FilePtr,"Number of trial positions coupled Torsion-selection:             %d\n",NumberOfTrialPositionsTorsion);
+  fprintf(FilePtr,"Number of trial positions first bead:                            %d\n",NumberOfTrialPositionsForTheFirstBead);
+  fprintf(FilePtr,"Number of trial positions first bead (reinsertion):              %d\n",NumberOfTrialPositionsForTheFirstBeadReinsertion);
+  fprintf(FilePtr,"Number of trial positions first bead (partial reinsertion):      %d\n",NumberOfTrialPositionsForTheFirstBeadPartialReinsertion);
+  fprintf(FilePtr,"Number of trial positions first bead (identity-change):          %d\n",NumberOfTrialPositionsForTheFirstBeadIdentityChange);
+  fprintf(FilePtr,"Number of trial positions first bead (Gibbs particle transfer):  %d\n",NumberOfTrialPositionsForTheFirstBeadGibbs);
+  fprintf(FilePtr,"Number of trial positions first bead (insertion/deletion):       %d\n",NumberOfTrialPositionsForTheFirstBeadSwap);
+  fprintf(FilePtr,"Number of trial positions first bead (Widom insertion):          %d\n",NumberOfTrialPositionsForTheFirstBeadWidom);
+  fprintf(FilePtr,"Number of trial moves per open bead:                             %d\n",NumberOfTrialMovesPerOpenBead);
+  fprintf(FilePtr,"Target acceptance ratio small-mc scheme:                         %lf\n",(double)TargetAccRatioSmallMCScheme);
+  fprintf(FilePtr,"Energy overlap criteria:                                         %lg\n",(double)EnergyOverlapCriteria);
+  fprintf(FilePtr,"Minimal Rosenbluth factor:                                       %lg\n",(double)MinimumRosenbluthFactor);
   fprintf(FilePtr,"\n\n");
 
   if(WritePseudoAtomsToOutput)
@@ -7574,7 +7586,7 @@ void ReadRestartOutput(FILE* FilePtr)
   if(fabs(Check-123456789.0)>1e-10)
   {
     fprintf(stderr, "Error in binary restart-file (ReadRestartOutput)\n");
-    exit(0);
+    ContinueAfterCrash=FALSE;
   }
 }
 

@@ -3684,6 +3684,11 @@ int PartialReinsertionAdsorbateMove(void)
   REAL PreFactor;
   REAL DeltaU;
   int UseGrids;
+  int StoredNumberOfTrialPositions;
+  int StoredNumberOfTrialPositionsFirstBead;
+
+  StoredNumberOfTrialPositions=NumberOfTrialPositions;
+  StoredNumberOfTrialPositionsFirstBead=NumberOfTrialPositionsForTheFirstBead;
 
   // return if the component currently has zero molecules
   if(NumberOfAdsorbateMolecules[CurrentSystem]==0) return 0;
@@ -3691,6 +3696,7 @@ int PartialReinsertionAdsorbateMove(void)
   if(Components[CurrentComponent].NumberOfMolecules[CurrentSystem]==0) return 0;
 
   if(Components[CurrentComponent].NumberOfConfigMoves==0) return 0;
+
 
   // choose a random molecule of this component
   CurrentCationMolecule=-1;
@@ -3719,7 +3725,12 @@ int PartialReinsertionAdsorbateMove(void)
     BeadsAlreadyPlaced[i]=Components[CurrentComponent].UnchangedAtomsConfig[d][i];
   for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
     NewPosition[CurrentSystem][i]=Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[i].Position;
+
+  NumberOfTrialPositions=NumberOfTrialPositionsPartialReinsertion;
+  NumberOfTrialPositionsForTheFirstBead=NumberOfTrialPositionsForTheFirstBeadPartialReinsertion;
   RosenbluthNew=GrowMolecule(CBMC_PARTIAL_INSERTION);
+  NumberOfTrialPositions=StoredNumberOfTrialPositions;
+  NumberOfTrialPositionsForTheFirstBead=StoredNumberOfTrialPositionsFirstBead;
 
   // restore whether or not to use grids
   Framework[CurrentSystem].FrameworkModel=UseGrids;
@@ -3742,7 +3753,11 @@ int PartialReinsertionAdsorbateMove(void)
     BeadsAlreadyPlaced[i]=Components[CurrentComponent].UnchangedAtomsConfig[d][i];
   for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
     OldPosition[i]=Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[i].Position;
+  NumberOfTrialPositions=NumberOfTrialPositionsPartialReinsertion;
+  NumberOfTrialPositionsForTheFirstBead=NumberOfTrialPositionsForTheFirstBeadPartialReinsertion;
   RosenbluthOld=RetraceMolecule(CBMC_PARTIAL_INSERTION);
+  NumberOfTrialPositions=StoredNumberOfTrialPositions;
+  NumberOfTrialPositionsForTheFirstBead=StoredNumberOfTrialPositionsFirstBead;
 
   // restore whether or not to use grids
   Framework[CurrentSystem].FrameworkModel=UseGrids;
@@ -3931,6 +3946,11 @@ int PartialReinsertionCationMove(void)
   REAL PreFactor;
   REAL DeltaU;
   int UseGrids;
+  int StoredNumberOfTrialPositions;
+  int StoredNumberOfTrialPositionsFirstBead;
+
+  StoredNumberOfTrialPositions=NumberOfTrialPositions;
+  StoredNumberOfTrialPositionsFirstBead=NumberOfTrialPositionsForTheFirstBead;
 
   // return if the component currently has zero molecules
   if(NumberOfCationMolecules[CurrentSystem]==0) return 0;
@@ -3966,7 +3986,12 @@ int PartialReinsertionCationMove(void)
     BeadsAlreadyPlaced[i]=Components[CurrentComponent].UnchangedAtomsConfig[d][i];
   for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
     NewPosition[CurrentSystem][i]=Cations[CurrentSystem][CurrentCationMolecule].Atoms[i].Position;
+
+  NumberOfTrialPositions=NumberOfTrialPositionsPartialReinsertion;
+  NumberOfTrialPositionsForTheFirstBead=NumberOfTrialPositionsForTheFirstBeadPartialReinsertion;
   RosenbluthNew=GrowMolecule(CBMC_PARTIAL_INSERTION);
+  NumberOfTrialPositions=StoredNumberOfTrialPositions;
+  NumberOfTrialPositionsForTheFirstBead=StoredNumberOfTrialPositionsFirstBead;
 
   // restore whether or not to use grids
   Framework[CurrentSystem].FrameworkModel=UseGrids;
@@ -3989,7 +4014,11 @@ int PartialReinsertionCationMove(void)
     BeadsAlreadyPlaced[i]=Components[CurrentComponent].UnchangedAtomsConfig[d][i];
   for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
     OldPosition[i]=Cations[CurrentSystem][CurrentCationMolecule].Atoms[i].Position;
+  NumberOfTrialPositions=NumberOfTrialPositionsPartialReinsertion;
+  NumberOfTrialPositionsForTheFirstBead=NumberOfTrialPositionsForTheFirstBeadPartialReinsertion;
   RosenbluthOld=RetraceMolecule(CBMC_PARTIAL_INSERTION);
+  NumberOfTrialPositions=StoredNumberOfTrialPositions;
+  NumberOfTrialPositionsForTheFirstBead=StoredNumberOfTrialPositionsFirstBead;
 
   // restore whether or not to use grids
   Framework[CurrentSystem].FrameworkModel=UseGrids;
@@ -4225,6 +4254,11 @@ int ReinsertionAdsorbateMove(void)
   REAL PreFactor,BiasingWeight=1.0;
   REAL DeltaU;
   int UseGrids;
+  int StoredNumberOfTrialPositions;
+  int StoredNumberOfTrialPositionsFirstBead;
+
+  StoredNumberOfTrialPositions=NumberOfTrialPositions;
+  StoredNumberOfTrialPositionsFirstBead=NumberOfTrialPositionsForTheFirstBead;
 
   // return if the component currently has zero molecules
   if(NumberOfAdsorbateMolecules[CurrentSystem]==0) return 0;
@@ -4252,7 +4286,11 @@ int ReinsertionAdsorbateMove(void)
 
   // grow new molecule
   NumberOfBeadsAlreadyPlaced=0;
+  NumberOfTrialPositions=NumberOfTrialPositionsReinsertion;
+  NumberOfTrialPositionsForTheFirstBead=NumberOfTrialPositionsForTheFirstBeadReinsertion;
   RosenbluthNew=GrowMolecule(CBMC_INSERTION);
+  NumberOfTrialPositions=StoredNumberOfTrialPositions;
+  NumberOfTrialPositionsForTheFirstBead=StoredNumberOfTrialPositionsFirstBead;
 
   // restore whether or not to use grids
   Framework[CurrentSystem].FrameworkModel=UseGrids;
@@ -4277,7 +4315,11 @@ int ReinsertionAdsorbateMove(void)
   if(IsFractionalAdsorbateMolecule(CurrentAdsorbateMolecule)) Framework[CurrentSystem].FrameworkModel=FULL;
 
   // retrace molecule
+  NumberOfTrialPositions=NumberOfTrialPositionsReinsertion;
+  NumberOfTrialPositionsForTheFirstBead=NumberOfTrialPositionsForTheFirstBeadReinsertion;
   RosenbluthOld=RetraceMolecule(CBMC_RETRACE_REINSERTION);
+  NumberOfTrialPositions=StoredNumberOfTrialPositions;
+  NumberOfTrialPositionsForTheFirstBead=StoredNumberOfTrialPositionsFirstBead;
 
   // restore whether or not to use grids
   Framework[CurrentSystem].FrameworkModel=UseGrids;
@@ -4474,6 +4516,11 @@ int ReinsertionCationMove(void)
   REAL PreFactor;
   REAL DeltaU;
   int UseGrids;
+  int StoredNumberOfTrialPositions;
+  int StoredNumberOfTrialPositionsFirstBead;
+
+  StoredNumberOfTrialPositions=NumberOfTrialPositions;
+  StoredNumberOfTrialPositionsFirstBead=NumberOfTrialPositionsForTheFirstBead;
 
   // return if the component currently has zero molecules
   if(NumberOfCationMolecules[CurrentSystem]==0) return 0;
@@ -4500,7 +4547,11 @@ int ReinsertionCationMove(void)
 
   // grow molecule
   NumberOfBeadsAlreadyPlaced=0;
+  NumberOfTrialPositions=NumberOfTrialPositionsReinsertion;
+  NumberOfTrialPositionsForTheFirstBead=NumberOfTrialPositionsForTheFirstBeadReinsertion;
   RosenbluthNew=GrowMolecule(CBMC_INSERTION);
+  NumberOfTrialPositions=StoredNumberOfTrialPositions;
+  NumberOfTrialPositionsForTheFirstBead=StoredNumberOfTrialPositionsFirstBead;
 
   // restore whether or not to use grids
   Framework[CurrentSystem].FrameworkModel=UseGrids;
@@ -4521,7 +4572,11 @@ int ReinsertionCationMove(void)
   NumberOfBeadsAlreadyPlaced=0;
   for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
     OldPosition[i]=Cations[CurrentSystem][CurrentCationMolecule].Atoms[i].Position;
+  NumberOfTrialPositions=NumberOfTrialPositionsReinsertion;
+  NumberOfTrialPositionsForTheFirstBead=NumberOfTrialPositionsForTheFirstBeadReinsertion;
   RosenbluthOld=RetraceMolecule(CBMC_RETRACE_REINSERTION);
+  NumberOfTrialPositions=StoredNumberOfTrialPositions;
+  NumberOfTrialPositionsForTheFirstBead=StoredNumberOfTrialPositionsFirstBead;
 
   // restore whether or not to use grids
   Framework[CurrentSystem].FrameworkModel=UseGrids;
@@ -4756,6 +4811,11 @@ int ReinsertionInPlaceAdsorbateMove(void)
   REAL PreFactor,BiasingWeight=1.0;
   REAL DeltaU;
   int UseGrids;
+  int StoredNumberOfTrialPositions;
+  int StoredNumberOfTrialPositionsFirstBead;
+
+  StoredNumberOfTrialPositions=NumberOfTrialPositions;
+  StoredNumberOfTrialPositionsFirstBead=NumberOfTrialPositionsForTheFirstBead;
 
   // return if the component currently has zero molecules
   if(NumberOfAdsorbateMolecules[CurrentSystem]==0) return 0;
@@ -4785,7 +4845,12 @@ int ReinsertionInPlaceAdsorbateMove(void)
   NumberOfBeadsAlreadyPlaced=0;
   StartingBead=Components[CurrentComponent].StartingBead;
   NewPosition[CurrentSystem][StartingBead]=Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[StartingBead].Position;
+
+  NumberOfTrialPositions=NumberOfTrialPositionsReinsertion;
+  NumberOfTrialPositionsForTheFirstBead=NumberOfTrialPositionsForTheFirstBeadReinsertion;
   RosenbluthNew=GrowMolecule(CBMC_PARTIAL_INSERTION);
+  NumberOfTrialPositions=StoredNumberOfTrialPositions;
+  NumberOfTrialPositionsForTheFirstBead=StoredNumberOfTrialPositionsFirstBead;
 
   // restore whether or not to use grids
   Framework[CurrentSystem].FrameworkModel=UseGrids;
@@ -4808,7 +4873,11 @@ int ReinsertionInPlaceAdsorbateMove(void)
   NumberOfBeadsAlreadyPlaced=0;
   for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
     OldPosition[i]=Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[i].Position;
+  NumberOfTrialPositions=NumberOfTrialPositionsReinsertion;
+  NumberOfTrialPositionsForTheFirstBead=NumberOfTrialPositionsForTheFirstBeadReinsertion;
   RosenbluthOld=RetraceMolecule(CBMC_PARTIAL_INSERTION);
+  NumberOfTrialPositions=StoredNumberOfTrialPositions;
+  NumberOfTrialPositionsForTheFirstBead=StoredNumberOfTrialPositionsFirstBead;
 
   // restore whether or not to use grids
   Framework[CurrentSystem].FrameworkModel=UseGrids;
@@ -5008,6 +5077,11 @@ int ReinsertionInPlaceCationMove(void)
   REAL PreFactor;
   REAL DeltaU;
   int UseGrids;
+  int StoredNumberOfTrialPositions;
+  int StoredNumberOfTrialPositionsFirstBead;
+
+  StoredNumberOfTrialPositions=NumberOfTrialPositions;
+  StoredNumberOfTrialPositionsFirstBead=NumberOfTrialPositionsForTheFirstBead;
 
   // return if the component currently has zero molecules
   if(NumberOfCationMolecules[CurrentSystem]==0) return 0;
@@ -5036,7 +5110,11 @@ int ReinsertionInPlaceCationMove(void)
   NumberOfBeadsAlreadyPlaced=0;
   StartingBead=Components[CurrentComponent].StartingBead;
   NewPosition[CurrentSystem][StartingBead]=Cations[CurrentSystem][CurrentCationMolecule].Atoms[StartingBead].Position;
+  NumberOfTrialPositions=NumberOfTrialPositionsReinsertion;
+  NumberOfTrialPositionsForTheFirstBead=NumberOfTrialPositionsForTheFirstBeadReinsertion;
   RosenbluthNew=GrowMolecule(CBMC_PARTIAL_INSERTION);
+  NumberOfTrialPositions=StoredNumberOfTrialPositions;
+  NumberOfTrialPositionsForTheFirstBead=StoredNumberOfTrialPositionsFirstBead;
 
   // restore whether or not to use grids
   Framework[CurrentSystem].FrameworkModel=UseGrids;
@@ -5058,7 +5136,11 @@ int ReinsertionInPlaceCationMove(void)
   NumberOfBeadsAlreadyPlaced=0;
   for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
     OldPosition[i]=Cations[CurrentSystem][CurrentCationMolecule].Atoms[i].Position;
+  NumberOfTrialPositions=NumberOfTrialPositionsReinsertion;
+  NumberOfTrialPositionsForTheFirstBead=NumberOfTrialPositionsForTheFirstBeadReinsertion;
   RosenbluthOld=RetraceMolecule(CBMC_PARTIAL_INSERTION);
+  NumberOfTrialPositions=StoredNumberOfTrialPositions;
+  NumberOfTrialPositionsForTheFirstBead=StoredNumberOfTrialPositionsFirstBead;
 
   // restore whether or not to use grids
   Framework[CurrentSystem].FrameworkModel=UseGrids;
@@ -5288,6 +5370,11 @@ int ReinsertionInPlaneAdsorbateMove(void)
   REAL vNew,choice;
   REAL DeltaU;
   int UseGrids;
+  int StoredNumberOfTrialPositions;
+  int StoredNumberOfTrialPositionsFirstBead;
+
+  StoredNumberOfTrialPositions=NumberOfTrialPositions;
+  StoredNumberOfTrialPositionsFirstBead=NumberOfTrialPositionsForTheFirstBead;
 
   // return if the component currently has zero molecules
   if(NumberOfAdsorbateMolecules[CurrentSystem]==0) return 0;
@@ -5380,7 +5467,11 @@ int ReinsertionInPlaneAdsorbateMove(void)
   NewPosition[CurrentSystem][StartingBead].x=Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[StartingBead].Position.x+rotated_displacement.x;
   NewPosition[CurrentSystem][StartingBead].y=Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[StartingBead].Position.y+rotated_displacement.y;
   NewPosition[CurrentSystem][StartingBead].z=Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[StartingBead].Position.z+rotated_displacement.z;
+  NumberOfTrialPositions=NumberOfTrialPositionsReinsertion;
+  NumberOfTrialPositionsForTheFirstBead=NumberOfTrialPositionsForTheFirstBeadReinsertion;
   RosenbluthNew=GrowMolecule(CBMC_PARTIAL_INSERTION);
+  NumberOfTrialPositions=StoredNumberOfTrialPositions;
+  NumberOfTrialPositionsForTheFirstBead=StoredNumberOfTrialPositionsFirstBead;
 
   // restore whether or not to use grids
   Framework[CurrentSystem].FrameworkModel=UseGrids;
@@ -5403,7 +5494,11 @@ int ReinsertionInPlaneAdsorbateMove(void)
   NumberOfBeadsAlreadyPlaced=0;
   for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
     OldPosition[i]=Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[i].Position;
+  NumberOfTrialPositions=NumberOfTrialPositionsReinsertion;
+  NumberOfTrialPositionsForTheFirstBead=NumberOfTrialPositionsForTheFirstBeadReinsertion;
   RosenbluthOld=RetraceMolecule(CBMC_PARTIAL_INSERTION);
+  NumberOfTrialPositions=StoredNumberOfTrialPositions;
+  NumberOfTrialPositionsForTheFirstBead=StoredNumberOfTrialPositionsFirstBead;
 
   // restore whether or not to use grids
   Framework[CurrentSystem].FrameworkModel=UseGrids;
@@ -5597,6 +5692,11 @@ int ReinsertionInPlaneCationMove(void)
   REAL vNew,choice;
   REAL DeltaU;
   int UseGrids;
+  int StoredNumberOfTrialPositions;
+  int StoredNumberOfTrialPositionsFirstBead;
+
+  StoredNumberOfTrialPositions=NumberOfTrialPositions;
+  StoredNumberOfTrialPositionsFirstBead=NumberOfTrialPositionsForTheFirstBead;
 
   // return if the component currently has zero molecules
   if(NumberOfCationMolecules[CurrentSystem]==0) return 0;
@@ -5689,7 +5789,11 @@ int ReinsertionInPlaneCationMove(void)
   NewPosition[CurrentSystem][StartingBead].x=Cations[CurrentSystem][CurrentCationMolecule].Atoms[StartingBead].Position.x+rotated_displacement.x;
   NewPosition[CurrentSystem][StartingBead].y=Cations[CurrentSystem][CurrentCationMolecule].Atoms[StartingBead].Position.y+rotated_displacement.y;
   NewPosition[CurrentSystem][StartingBead].z=Cations[CurrentSystem][CurrentCationMolecule].Atoms[StartingBead].Position.z+rotated_displacement.z;
+  NumberOfTrialPositions=NumberOfTrialPositionsReinsertion;
+  NumberOfTrialPositionsForTheFirstBead=NumberOfTrialPositionsForTheFirstBeadReinsertion;
   RosenbluthNew=GrowMolecule(CBMC_PARTIAL_INSERTION);
+  NumberOfTrialPositions=StoredNumberOfTrialPositions;
+  NumberOfTrialPositionsForTheFirstBead=StoredNumberOfTrialPositionsFirstBead;
 
   // restore whether or not to use grids
   Framework[CurrentSystem].FrameworkModel=UseGrids;
@@ -5712,7 +5816,11 @@ int ReinsertionInPlaneCationMove(void)
   NumberOfBeadsAlreadyPlaced=0;
   for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
     OldPosition[i]=Cations[CurrentSystem][CurrentCationMolecule].Atoms[i].Position;
+  NumberOfTrialPositions=NumberOfTrialPositionsReinsertion;
+  NumberOfTrialPositionsForTheFirstBead=NumberOfTrialPositionsForTheFirstBeadReinsertion;
   RosenbluthOld=RetraceMolecule(CBMC_PARTIAL_INSERTION);
+  NumberOfTrialPositions=StoredNumberOfTrialPositions;
+  NumberOfTrialPositionsForTheFirstBead=StoredNumberOfTrialPositionsFirstBead;
 
   // restore whether or not to use grids
   Framework[CurrentSystem].FrameworkModel=UseGrids;
@@ -6032,6 +6140,11 @@ int IdentityChangeAdsorbateMove(void)
   REAL RosenbluthIdealOld,RosenbluthIdealNew;
   REAL PreFactor,PartialFugacityNew,PartialFugacityOld;
   REAL DeltaU;
+  int StoredNumberOfTrialPositions;
+  int StoredNumberOfTrialPositionsFirstBead;
+
+  StoredNumberOfTrialPositions=NumberOfTrialPositions;
+  StoredNumberOfTrialPositionsFirstBead=NumberOfTrialPositionsForTheFirstBead;
 
   // Choose the 'Old' and 'New'-component
   OldComponent=CurrentComponent;
@@ -6088,8 +6201,11 @@ int IdentityChangeAdsorbateMove(void)
   }
 */
 
-
+  NumberOfTrialPositions=NumberOfTrialPositionsIdentityChange;
+  NumberOfTrialPositionsForTheFirstBead=NumberOfTrialPositionsForTheFirstBeadIdentityChange;
   RosenbluthNew=GrowMolecule(CBMC_PARTIAL_INSERTION);
+  NumberOfTrialPositions=StoredNumberOfTrialPositions;
+  NumberOfTrialPositionsForTheFirstBead=StoredNumberOfTrialPositionsFirstBead;
   if (OVERLAP) return 0;
 
   for(i=0;i<Components[NewComponent].NumberOfAtoms;i++)
@@ -6103,7 +6219,11 @@ int IdentityChangeAdsorbateMove(void)
   CurrentComponent=OldComponent;
   for(i=0;i<Components[OldComponent].NumberOfAtoms;i++)
     OldPosition[i]=Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[i].Position;
+  NumberOfTrialPositions=NumberOfTrialPositionsIdentityChange;
+  NumberOfTrialPositionsForTheFirstBead=NumberOfTrialPositionsForTheFirstBeadIdentityChange;
   RosenbluthOld=RetraceMolecule(CBMC_PARTIAL_INSERTION);
+  NumberOfTrialPositions=StoredNumberOfTrialPositions;
+  NumberOfTrialPositionsForTheFirstBead=StoredNumberOfTrialPositionsFirstBead;
 
 
 
@@ -6365,6 +6485,11 @@ int IdentityChangeCationMove(void)
   REAL RosenbluthIdealOld,RosenbluthIdealNew;
   REAL PreFactor,PartialFugacityNew,PartialFugacityOld;
   REAL DeltaU;
+  int StoredNumberOfTrialPositions;
+  int StoredNumberOfTrialPositionsFirstBead;
+
+  StoredNumberOfTrialPositions=NumberOfTrialPositions;
+  StoredNumberOfTrialPositionsFirstBead=NumberOfTrialPositionsForTheFirstBead;
 
   OldComponent=CurrentComponent;
   d=(int)(RandomNumber()*(REAL)Components[OldComponent].NumberOfIdentityChanges);
@@ -6406,7 +6531,11 @@ int IdentityChangeCationMove(void)
   // grow the 'New'-component
   NumberOfBeadsAlreadyPlaced=0;
   CurrentComponent=NewComponent;
+  NumberOfTrialPositions=NumberOfTrialPositionsIdentityChange;
+  NumberOfTrialPositionsForTheFirstBead=NumberOfTrialPositionsForTheFirstBeadIdentityChange;
   RosenbluthNew=GrowMolecule(CBMC_PARTIAL_INSERTION);
+  NumberOfTrialPositions=StoredNumberOfTrialPositions;
+  NumberOfTrialPositionsForTheFirstBead=StoredNumberOfTrialPositionsFirstBead;
   if (OVERLAP) return 0;
 
   for(i=0;i<Components[NewComponent].NumberOfAtoms;i++)
@@ -6424,7 +6553,11 @@ int IdentityChangeCationMove(void)
   CurrentComponent=OldComponent;
   for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
     OldPosition[i]=Cations[CurrentSystem][CurrentCationMolecule].Atoms[i].Position;
+  NumberOfTrialPositions=NumberOfTrialPositionsIdentityChange;
+  NumberOfTrialPositionsForTheFirstBead=NumberOfTrialPositionsForTheFirstBeadIdentityChange;
   RosenbluthOld=RetraceMolecule(CBMC_PARTIAL_INSERTION);
+  NumberOfTrialPositions=StoredNumberOfTrialPositions;
+  NumberOfTrialPositionsForTheFirstBead=StoredNumberOfTrialPositionsFirstBead;
 
   // compute the tail-correction difference
   UTailOld=TailMolecularEnergyDifferenceRemove();
@@ -6719,6 +6852,11 @@ int SwapAddAdsorbateMove(void)
   REAL RosenbluthNew,PartialFugacity,UTailNew;
   REAL RosenbluthIdealNew;
   REAL DeltaU;
+  int StoredNumberOfTrialPositions;
+  int StoredNumberOfTrialPositionsFirstBead;
+
+  StoredNumberOfTrialPositions=NumberOfTrialPositions;
+  StoredNumberOfTrialPositionsFirstBead=NumberOfTrialPositionsForTheFirstBead;
 
   SwapAddAttempts[CurrentSystem][CurrentComponent]+=1.0;
   CurrentAdsorbateMolecule=NumberOfAdsorbateMolecules[CurrentSystem];
@@ -6732,7 +6870,11 @@ int SwapAddAdsorbateMove(void)
   }
 
   NumberOfBeadsAlreadyPlaced=0;
+  NumberOfTrialPositions=NumberOfTrialPositionsSwap;
+  NumberOfTrialPositionsForTheFirstBead=NumberOfTrialPositionsForTheFirstBeadSwap;
   RosenbluthNew=GrowMolecule(CBMC_INSERTION);
+  NumberOfTrialPositions=StoredNumberOfTrialPositions;
+  NumberOfTrialPositionsForTheFirstBead=StoredNumberOfTrialPositionsFirstBead;
   if (OVERLAP) return 0;
 
   for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
@@ -6919,6 +7061,11 @@ int SwapRemoveAdsorbateMove(void)
   REAL RosenbluthOld,PartialFugacity,UTailOld;
   REAL RosenbluthIdealOld;
   REAL DeltaU;
+  int StoredNumberOfTrialPositions;
+  int StoredNumberOfTrialPositionsFirstBead;
+
+  StoredNumberOfTrialPositions=NumberOfTrialPositions;
+  StoredNumberOfTrialPositionsFirstBead=NumberOfTrialPositionsForTheFirstBead;
 
   SwapRemoveAttempts[CurrentSystem][CurrentComponent]+=1.0;
 
@@ -6940,7 +7087,11 @@ int SwapRemoveAdsorbateMove(void)
   NumberOfBeadsAlreadyPlaced=0;
   for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
     OldPosition[i]=Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[i].Position;
+  NumberOfTrialPositions=NumberOfTrialPositionsSwap;
+  NumberOfTrialPositionsForTheFirstBead=NumberOfTrialPositionsForTheFirstBeadSwap;
   RosenbluthOld=RetraceMolecule(CBMC_DELETION);
+  NumberOfTrialPositions=StoredNumberOfTrialPositions;
+  NumberOfTrialPositionsForTheFirstBead=StoredNumberOfTrialPositionsFirstBead;
   if (OVERLAP) return 0;
 
   SwapRemoveAccepted[CurrentSystem][CurrentComponent][0]+=1.0;
@@ -7115,6 +7266,11 @@ int SwapAddCationMove(void)
   REAL RosenbluthNew,PartialFugacity,UTailNew;
   REAL RosenbluthIdealNew;
   REAL DeltaU;
+  int StoredNumberOfTrialPositions;
+  int StoredNumberOfTrialPositionsFirstBead;
+
+  StoredNumberOfTrialPositions=NumberOfTrialPositions;
+  StoredNumberOfTrialPositionsFirstBead=NumberOfTrialPositionsForTheFirstBead;
 
   SwapAddAttempts[CurrentSystem][CurrentComponent]+=1.0;
   CurrentAdsorbateMolecule=NumberOfAdsorbateMolecules[CurrentSystem];
@@ -7128,7 +7284,11 @@ int SwapAddCationMove(void)
   }
 
   NumberOfBeadsAlreadyPlaced=0;
+  NumberOfTrialPositions=NumberOfTrialPositionsSwap;
+  NumberOfTrialPositionsForTheFirstBead=NumberOfTrialPositionsForTheFirstBeadSwap;
   RosenbluthNew=GrowMolecule(CBMC_INSERTION);
+  NumberOfTrialPositions=StoredNumberOfTrialPositions;
+  NumberOfTrialPositionsForTheFirstBead=StoredNumberOfTrialPositionsFirstBead;
   if (OVERLAP) return 0;
 
   for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
@@ -7306,6 +7466,11 @@ int SwapRemoveCationMove(void)
   REAL RosenbluthOld,PartialFugacity,UTailOld;
   REAL RosenbluthIdealOld;
   REAL DeltaU;
+  int StoredNumberOfTrialPositions;
+  int StoredNumberOfTrialPositionsFirstBead;
+
+  StoredNumberOfTrialPositions=NumberOfTrialPositions;
+  StoredNumberOfTrialPositionsFirstBead=NumberOfTrialPositionsForTheFirstBead;
 
   SwapRemoveAttempts[CurrentSystem][CurrentComponent]+=1.0;
 
@@ -7330,7 +7495,11 @@ int SwapRemoveCationMove(void)
   NumberOfBeadsAlreadyPlaced=0;
   for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
     OldPosition[i]=Cations[CurrentSystem][CurrentCationMolecule].Atoms[i].Position;
+  NumberOfTrialPositions=NumberOfTrialPositionsSwap;
+  NumberOfTrialPositionsForTheFirstBead=NumberOfTrialPositionsForTheFirstBeadSwap;
   RosenbluthOld=RetraceMolecule(CBMC_DELETION);
+  NumberOfTrialPositions=StoredNumberOfTrialPositions;
+  NumberOfTrialPositionsForTheFirstBead=StoredNumberOfTrialPositionsFirstBead;
   if (OVERLAP) return 0;
   SwapRemoveAccepted[CurrentSystem][CurrentComponent][0]+=1.0;
 
@@ -7577,6 +7746,11 @@ REAL WidomAdsorbateMove(void)
 {
   int i;
   REAL RosenbluthNew,UTailNew,DeltaU;
+  int StoredNumberOfTrialPositions;
+  int StoredNumberOfTrialPositionsFirstBead;
+
+  StoredNumberOfTrialPositions=NumberOfTrialPositions;
+  StoredNumberOfTrialPositionsFirstBead=NumberOfTrialPositionsForTheFirstBead;
 
   CurrentAdsorbateMolecule=NumberOfAdsorbateMolecules[CurrentSystem];
   CurrentCationMolecule=NumberOfCationMolecules[CurrentSystem];
@@ -7591,7 +7765,11 @@ REAL WidomAdsorbateMove(void)
   }
 
   NumberOfBeadsAlreadyPlaced=0;
+  NumberOfTrialPositions=NumberOfTrialPositionsWidom;
+  NumberOfTrialPositionsForTheFirstBead=NumberOfTrialPositionsForTheFirstBeadWidom;
   RosenbluthNew=GrowMolecule(CBMC_INSERTION);
+  NumberOfTrialPositions=StoredNumberOfTrialPositions;
+  NumberOfTrialPositionsForTheFirstBead=StoredNumberOfTrialPositionsFirstBead;
 
   if(OVERLAP)
     return 0.0;
@@ -7662,6 +7840,11 @@ REAL WidomCationMove(void)
 {
   int i;
   REAL RosenbluthNew,UTailNew,DeltaU;
+  int StoredNumberOfTrialPositions;
+  int StoredNumberOfTrialPositionsFirstBead;
+
+  StoredNumberOfTrialPositions=NumberOfTrialPositions;
+  StoredNumberOfTrialPositionsFirstBead=NumberOfTrialPositionsForTheFirstBead;
 
   CurrentCationMolecule=NumberOfCationMolecules[CurrentSystem];
   CurrentAdsorbateMolecule=NumberOfAdsorbateMolecules[CurrentSystem];
@@ -7676,7 +7859,11 @@ REAL WidomCationMove(void)
   }
 
   NumberOfBeadsAlreadyPlaced=0;
+  NumberOfTrialPositions=NumberOfTrialPositionsWidom;
+  NumberOfTrialPositionsForTheFirstBead=NumberOfTrialPositionsForTheFirstBeadWidom;
   RosenbluthNew=GrowMolecule(CBMC_INSERTION);
+  NumberOfTrialPositions=StoredNumberOfTrialPositions;
+  NumberOfTrialPositionsForTheFirstBead=StoredNumberOfTrialPositionsFirstBead;
   if(OVERLAP) return 0;
 
   for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
@@ -10710,6 +10897,11 @@ int GibbsParticleTransferAdsorbateMove(void)
   REAL NetChargeDeltaNew,NetChargeDeltaOld;
   int CurrentSystemStored;
   REAL DeltaU;
+  int StoredNumberOfTrialPositions;
+  int StoredNumberOfTrialPositionsFirstBead;
+
+  StoredNumberOfTrialPositions=NumberOfTrialPositions;
+  StoredNumberOfTrialPositionsFirstBead=NumberOfTrialPositionsForTheFirstBead;
 
   CurrentSystemStored=CurrentSystem;
 
@@ -10743,7 +10935,11 @@ int GibbsParticleTransferAdsorbateMove(void)
   CurrentAdsorbateMolecule=NumberOfAdsorbateMolecules[CurrentSystem];
   CurrentCationMolecule=NumberOfCationMolecules[CurrentSystem];
   NumberOfBeadsAlreadyPlaced=0;
+  NumberOfTrialPositions=NumberOfTrialPositionsGibbs;
+  NumberOfTrialPositionsForTheFirstBead=NumberOfTrialPositionsForTheFirstBeadSwap;
   RosenbluthNew=GrowMolecule(CBMC_INSERTION);
+  NumberOfTrialPositions=StoredNumberOfTrialPositions;
+  NumberOfTrialPositionsForTheFirstBead=StoredNumberOfTrialPositionsFirstBead;
   if (OVERLAP) return 0;
 
   UTailNew=TailMolecularEnergyDifferenceAdd();
@@ -10791,7 +10987,11 @@ int GibbsParticleTransferAdsorbateMove(void)
   NumberOfBeadsAlreadyPlaced=0;
   for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
     OldPosition[i]=Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[i].Position;
+  NumberOfTrialPositions=NumberOfTrialPositionsGibbs;
+  NumberOfTrialPositionsForTheFirstBead=NumberOfTrialPositionsForTheFirstBeadGibbs;
   RosenbluthOld=RetraceMolecule(CBMC_DELETION);
+  NumberOfTrialPositions=StoredNumberOfTrialPositions;
+  NumberOfTrialPositionsForTheFirstBead=StoredNumberOfTrialPositionsFirstBead;
 
   UTailOld=TailMolecularEnergyDifferenceRemove();
   RosenbluthOld*=exp(-Beta[CurrentSystem]*UTailOld);
@@ -11095,6 +11295,11 @@ int GibbsParticleTransferCationMove(void)
   REAL NetChargeDeltaNew,NetChargeDeltaOld;
   int CurrentSystemStored;
   REAL DeltaU;
+  int StoredNumberOfTrialPositions;
+  int StoredNumberOfTrialPositionsFirstBead;
+
+  StoredNumberOfTrialPositions=NumberOfTrialPositions;
+  StoredNumberOfTrialPositionsFirstBead=NumberOfTrialPositionsForTheFirstBead;
 
   CurrentSystemStored=CurrentSystem;
 
@@ -11128,7 +11333,11 @@ int GibbsParticleTransferCationMove(void)
   CurrentAdsorbateMolecule=NumberOfAdsorbateMolecules[CurrentSystem];
   CurrentCationMolecule=NumberOfCationMolecules[CurrentSystem];
   NumberOfBeadsAlreadyPlaced=0;
+  NumberOfTrialPositions=NumberOfTrialPositionsGibbs;
+  NumberOfTrialPositionsForTheFirstBead=NumberOfTrialPositionsForTheFirstBeadSwap;
   RosenbluthNew=GrowMolecule(CBMC_INSERTION);
+  NumberOfTrialPositions=StoredNumberOfTrialPositions;
+  NumberOfTrialPositionsForTheFirstBead=StoredNumberOfTrialPositionsFirstBead;
   if (OVERLAP) return 0;
 
   UTailNew=TailMolecularEnergyDifferenceAdd();
@@ -11176,7 +11385,11 @@ int GibbsParticleTransferCationMove(void)
   NumberOfBeadsAlreadyPlaced=0;
   for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
     OldPosition[i]=Cations[CurrentSystem][CurrentCationMolecule].Atoms[i].Position;
+  NumberOfTrialPositions=NumberOfTrialPositionsGibbs;
+  NumberOfTrialPositionsForTheFirstBead=NumberOfTrialPositionsForTheFirstBeadGibbs;
   RosenbluthOld=RetraceMolecule(CBMC_DELETION);
+  NumberOfTrialPositions=StoredNumberOfTrialPositions;
+  NumberOfTrialPositionsForTheFirstBead=StoredNumberOfTrialPositionsFirstBead;
 
   UTailOld=TailMolecularEnergyDifferenceRemove();
   RosenbluthOld*=exp(-Beta[CurrentSystem]*UTailOld);
@@ -12041,6 +12254,11 @@ int GibbsIdentityChangeAdsorbateMove(void)
   int CurrentSystemStored;
   GROUP *group_temp;
   ATOM *atom_temp;
+  int StoredNumberOfTrialPositions;
+  int StoredNumberOfTrialPositionsFirstBead;
+
+  StoredNumberOfTrialPositions=NumberOfTrialPositions;
+  StoredNumberOfTrialPositionsFirstBead=NumberOfTrialPositionsForTheFirstBead;
 
   CurrentSystemStored=CurrentSystem;
 
@@ -12109,7 +12327,11 @@ int GibbsIdentityChangeAdsorbateMove(void)
 
   // grow the 'New'-component
   NumberOfBeadsAlreadyPlaced=0;
+  NumberOfTrialPositions=NumberOfTrialPositionsIdentityChange;
+  NumberOfTrialPositionsForTheFirstBead=NumberOfTrialPositionsForTheFirstBeadIdentityChange;
   RosenbluthNewA=GrowMolecule(CBMC_PARTIAL_INSERTION);
+  NumberOfTrialPositions=StoredNumberOfTrialPositions;
+  NumberOfTrialPositionsForTheFirstBead=StoredNumberOfTrialPositionsFirstBead;
   if (OVERLAP) return 0;
 
   // in box B an attempt is made to change a molecule of type B into A
@@ -12132,7 +12354,11 @@ int GibbsIdentityChangeAdsorbateMove(void)
 
   // grow the 'New'-component
   NumberOfBeadsAlreadyPlaced=0;
+  NumberOfTrialPositions=NumberOfTrialPositionsIdentityChange;
+  NumberOfTrialPositionsForTheFirstBead=NumberOfTrialPositionsForTheFirstBeadIdentityChange;
   RosenbluthNewB=GrowMolecule(CBMC_PARTIAL_INSERTION);
+  NumberOfTrialPositions=StoredNumberOfTrialPositions;
+  NumberOfTrialPositionsForTheFirstBead=StoredNumberOfTrialPositionsFirstBead;
   if (OVERLAP) return 0;
 
   // in box A an attempt is made to change a molecule of type A into B
@@ -12151,7 +12377,11 @@ int GibbsIdentityChangeAdsorbateMove(void)
   NumberOfBeadsAlreadyPlaced=0;
   for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
     OldPosition[i]=Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[i].Position;
+  NumberOfTrialPositions=NumberOfTrialPositionsIdentityChange;
+  NumberOfTrialPositionsForTheFirstBead=NumberOfTrialPositionsForTheFirstBeadIdentityChange;
   RosenbluthOldA=RetraceMolecule(CBMC_PARTIAL_INSERTION);
+  NumberOfTrialPositions=StoredNumberOfTrialPositions;
+  NumberOfTrialPositionsForTheFirstBead=StoredNumberOfTrialPositionsFirstBead;
 
   // compute the tail-correction and Ewald-correction difference in Box I
   UTailCorrectionDifferenceA=TailMolecularEnergyDifferenceAddRemove(ComponentB,ComponentA);
@@ -12183,7 +12413,11 @@ int GibbsIdentityChangeAdsorbateMove(void)
   NumberOfBeadsAlreadyPlaced=0;
   for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
     OldPosition[i]=Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[i].Position;
+  NumberOfTrialPositions=NumberOfTrialPositionsIdentityChange;
+  NumberOfTrialPositionsForTheFirstBead=NumberOfTrialPositionsForTheFirstBeadIdentityChange;
   RosenbluthOldB=RetraceMolecule(CBMC_PARTIAL_INSERTION);
+  NumberOfTrialPositions=StoredNumberOfTrialPositions;
+  NumberOfTrialPositionsForTheFirstBead=StoredNumberOfTrialPositionsFirstBead;
 
   // compute the tail-correction and Ewald-correction difference in Box II
   UTailCorrectionDifferenceB=TailMolecularEnergyDifferenceAddRemove(ComponentA,ComponentB);
@@ -12504,6 +12738,11 @@ int GibbsIdentityChangeCationMove(void)
   int CurrentSystemStored;
   GROUP *group_temp;
   ATOM *atom_temp;
+  int StoredNumberOfTrialPositions;
+  int StoredNumberOfTrialPositionsFirstBead;
+
+  StoredNumberOfTrialPositions=NumberOfTrialPositions;
+  StoredNumberOfTrialPositionsFirstBead=NumberOfTrialPositionsForTheFirstBead;
 
   CurrentSystemStored=CurrentSystem;
 
@@ -12572,7 +12811,11 @@ int GibbsIdentityChangeCationMove(void)
 
   // grow the 'New'-component
   NumberOfBeadsAlreadyPlaced=0;
+  NumberOfTrialPositions=NumberOfTrialPositionsIdentityChange;
+  NumberOfTrialPositionsForTheFirstBead=NumberOfTrialPositionsForTheFirstBeadIdentityChange;
   RosenbluthNewA=GrowMolecule(CBMC_PARTIAL_INSERTION);
+  NumberOfTrialPositions=StoredNumberOfTrialPositions;
+  NumberOfTrialPositionsForTheFirstBead=StoredNumberOfTrialPositionsFirstBead;
   if (OVERLAP) return 0;
 
   // in box B an attempt is made to change a molecule of type B into A
@@ -12595,7 +12838,11 @@ int GibbsIdentityChangeCationMove(void)
 
   // grow the 'New'-component
   NumberOfBeadsAlreadyPlaced=0;
+  NumberOfTrialPositions=NumberOfTrialPositionsIdentityChange;
+  NumberOfTrialPositionsForTheFirstBead=NumberOfTrialPositionsForTheFirstBeadIdentityChange;
   RosenbluthNewB=GrowMolecule(CBMC_PARTIAL_INSERTION);
+  NumberOfTrialPositions=StoredNumberOfTrialPositions;
+  NumberOfTrialPositionsForTheFirstBead=StoredNumberOfTrialPositionsFirstBead;
   if (OVERLAP) return 0;
 
   // in box A an attempt is made to change a molecule of type A into B
@@ -12614,7 +12861,11 @@ int GibbsIdentityChangeCationMove(void)
   NumberOfBeadsAlreadyPlaced=0;
   for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
     OldPosition[i]=Cations[CurrentSystem][CurrentCationMolecule].Atoms[i].Position;
+  NumberOfTrialPositions=NumberOfTrialPositionsIdentityChange;
+  NumberOfTrialPositionsForTheFirstBead=NumberOfTrialPositionsForTheFirstBeadIdentityChange;
   RosenbluthOldA=RetraceMolecule(CBMC_PARTIAL_INSERTION);
+  NumberOfTrialPositions=StoredNumberOfTrialPositions;
+  NumberOfTrialPositionsForTheFirstBead=StoredNumberOfTrialPositionsFirstBead;
 
   // compute the tail-correction and Ewald-correction difference in Box I
   UTailCorrectionDifferenceA=TailMolecularEnergyDifferenceAddRemove(ComponentB,ComponentA);
@@ -12645,7 +12896,11 @@ int GibbsIdentityChangeCationMove(void)
   NumberOfBeadsAlreadyPlaced=0;
   for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
     OldPosition[i]=Cations[CurrentSystem][CurrentCationMolecule].Atoms[i].Position;
+  NumberOfTrialPositions=NumberOfTrialPositionsIdentityChange;
+  NumberOfTrialPositionsForTheFirstBead=NumberOfTrialPositionsForTheFirstBeadIdentityChange;
   RosenbluthOldB=RetraceMolecule(CBMC_PARTIAL_INSERTION);
+  NumberOfTrialPositions=StoredNumberOfTrialPositions;
+  NumberOfTrialPositionsForTheFirstBead=StoredNumberOfTrialPositionsFirstBead;
 
   // compute the tail-correction and Ewald-correction difference in Box II
   UTailCorrectionDifferenceB=TailMolecularEnergyDifferenceAddRemove(ComponentA,ComponentB);
@@ -16519,6 +16774,11 @@ int CBCFSwapLambaAdsorbateMove(void)
   REAL LambdaOldFractionalMoleculeStored;
   REAL UTailNew,UTailOld;
   REAL RosenbluthIdealNew,RosenbluthIdealOld;
+  int StoredNumberOfTrialPositions;
+  int StoredNumberOfTrialPositionsFirstBead;
+
+  StoredNumberOfTrialPositions=NumberOfTrialPositions;
+  StoredNumberOfTrialPositionsFirstBead=NumberOfTrialPositionsForTheFirstBead;
 
   UTailNew=UTailOld=0.0;
 
@@ -16728,7 +16988,11 @@ int CBCFSwapLambaAdsorbateMove(void)
       }
 
       NumberOfBeadsAlreadyPlaced=0;
+      NumberOfTrialPositions=NumberOfTrialPositionsSwap;
+      NumberOfTrialPositionsForTheFirstBead=NumberOfTrialPositionsForTheFirstBeadSwap;
       RosenbluthNew=GrowMolecule(CBMC_INSERTION);
+      NumberOfTrialPositions=StoredNumberOfTrialPositions;
+      NumberOfTrialPositionsForTheFirstBead=StoredNumberOfTrialPositionsFirstBead;
       if (OVERLAP) goto label_CFSwapLambaMove_rejected;
 
       for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
@@ -16913,7 +17177,11 @@ int CBCFSwapLambaAdsorbateMove(void)
         OldPosition[i]=Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[i].Position;
 
       NumberOfBeadsAlreadyPlaced=0;
+      NumberOfTrialPositions=NumberOfTrialPositionsSwap;
+      NumberOfTrialPositionsForTheFirstBead=NumberOfTrialPositionsForTheFirstBeadSwap;
       RosenbluthOld=RetraceMolecule(CBMC_DELETION);
+      NumberOfTrialPositions=StoredNumberOfTrialPositions;
+      NumberOfTrialPositionsForTheFirstBead=StoredNumberOfTrialPositionsFirstBead;
       if (OVERLAP) goto label_CFSwapLambaMove_rejected;
 
       UTailOld=TailMolecularEnergyDifferenceRemove();
@@ -17460,6 +17728,11 @@ int CBCFSwapLambaCationMove(void)
   REAL PartialFugacity,LambdaNew,LambdaOld,BiasNew,BiasOld;
   REAL LambdaOldFractionalMoleculeStored;
   REAL RosenbluthIdealNew,RosenbluthIdealOld,UTailNew,UTailOld;
+  int StoredNumberOfTrialPositions;
+  int StoredNumberOfTrialPositionsFirstBead;
+
+  StoredNumberOfTrialPositions=NumberOfTrialPositions;
+  StoredNumberOfTrialPositionsFirstBead=NumberOfTrialPositionsForTheFirstBead;
 
   UTailNew=UTailOld=0.0;
 
@@ -17665,7 +17938,11 @@ int CBCFSwapLambaCationMove(void)
       }
 
       NumberOfBeadsAlreadyPlaced=0;
+      NumberOfTrialPositions=NumberOfTrialPositionsSwap;
+      NumberOfTrialPositionsForTheFirstBead=NumberOfTrialPositionsForTheFirstBeadSwap;
       RosenbluthNew=GrowMolecule(CBMC_INSERTION);
+      NumberOfTrialPositions=StoredNumberOfTrialPositions;
+      NumberOfTrialPositionsForTheFirstBead=StoredNumberOfTrialPositionsFirstBead;
       if (OVERLAP) goto label_CFSwapLambaMove_rejected;
 
       for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
@@ -17853,7 +18130,11 @@ int CBCFSwapLambaCationMove(void)
         OldPosition[i]=Cations[CurrentSystem][CurrentCationMolecule].Atoms[i].Position;
 
       NumberOfBeadsAlreadyPlaced=0;
+      NumberOfTrialPositions=NumberOfTrialPositionsSwap;
+      NumberOfTrialPositionsForTheFirstBead=NumberOfTrialPositionsForTheFirstBeadSwap;
       RosenbluthOld=RetraceMolecule(CBMC_DELETION);
+      NumberOfTrialPositions=StoredNumberOfTrialPositions;
+      NumberOfTrialPositionsForTheFirstBead=StoredNumberOfTrialPositionsFirstBead;
       if (OVERLAP) goto label_CFSwapLambaMove_rejected;
 
       UTailOld=TailMolecularEnergyDifferenceRemove();
@@ -21595,6 +21876,11 @@ int CBCFGibbsParticleTransferAdsorbateMove(void)
   REAL LambdaNewA,LambdaNewB,LambdaOldA,LambdaOldB;
   REAL UDeltaPolarization[2];
   int CurrentSystemStored;
+  int StoredNumberOfTrialPositions;
+  int StoredNumberOfTrialPositionsFirstBead;
+
+  StoredNumberOfTrialPositions=NumberOfTrialPositions;
+  StoredNumberOfTrialPositionsFirstBead=NumberOfTrialPositionsForTheFirstBead;
 
   CurrentSystemStored=CurrentSystem;
 
@@ -21836,7 +22122,11 @@ int CBCFGibbsParticleTransferAdsorbateMove(void)
       CurrentCationMolecule=-1;
 
       NumberOfBeadsAlreadyPlaced=0;
+      NumberOfTrialPositions=NumberOfTrialPositionsGibbs;
+      NumberOfTrialPositionsForTheFirstBead=NumberOfTrialPositionsForTheFirstBeadGibbs;
       RosenbluthNewA=GrowMolecule(CBMC_INSERTION);
+      NumberOfTrialPositions=StoredNumberOfTrialPositions;
+      NumberOfTrialPositionsForTheFirstBead=StoredNumberOfTrialPositionsFirstBead;
       if (OVERLAP) goto label_CBCFGibbsParticleTransferMove_rejected;
 
       for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
@@ -22017,7 +22307,11 @@ int CBCFGibbsParticleTransferAdsorbateMove(void)
         OldPosition[i]=Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[i].Position;
 
       NumberOfBeadsAlreadyPlaced=0;
+      NumberOfTrialPositions=NumberOfTrialPositionsGibbs;
+      NumberOfTrialPositionsForTheFirstBead=NumberOfTrialPositionsForTheFirstBeadGibbs;
       RosenbluthOldA=RetraceMolecule(CBMC_DELETION);
+      NumberOfTrialPositions=StoredNumberOfTrialPositions;
+      NumberOfTrialPositionsForTheFirstBead=StoredNumberOfTrialPositionsFirstBead;
       if (OVERLAP) goto label_CBCFGibbsParticleTransferMove_rejected;
 
       UTailOld[CurrentSystem]=TailMolecularEnergyDifferenceRemove();
@@ -22304,7 +22598,11 @@ int CBCFGibbsParticleTransferAdsorbateMove(void)
       CurrentCationMolecule=-1;
 
       NumberOfBeadsAlreadyPlaced=0;
+      NumberOfTrialPositions=NumberOfTrialPositionsGibbs;
+      NumberOfTrialPositionsForTheFirstBead=NumberOfTrialPositionsForTheFirstBeadGibbs;
       RosenbluthNewB=GrowMolecule(CBMC_INSERTION);
+      NumberOfTrialPositions=StoredNumberOfTrialPositions;
+      NumberOfTrialPositionsForTheFirstBead=StoredNumberOfTrialPositionsFirstBead;
       if (OVERLAP) goto label_CBCFGibbsParticleTransferMove_rejected;
 
       for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
@@ -22485,7 +22783,11 @@ int CBCFGibbsParticleTransferAdsorbateMove(void)
         OldPosition[i]=Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[i].Position;
 
       NumberOfBeadsAlreadyPlaced=0;
+      NumberOfTrialPositions=NumberOfTrialPositionsGibbs;
+      NumberOfTrialPositionsForTheFirstBead=NumberOfTrialPositionsForTheFirstBeadGibbs;
       RosenbluthOldB=RetraceMolecule(CBMC_DELETION);
+      NumberOfTrialPositions=StoredNumberOfTrialPositions;
+      NumberOfTrialPositionsForTheFirstBead=StoredNumberOfTrialPositionsFirstBead;
       if (OVERLAP) goto label_CBCFGibbsParticleTransferMove_rejected;
 
       UTailOld[CurrentSystem]=TailMolecularEnergyDifferenceRemove();
@@ -23390,6 +23692,11 @@ int CBCFGibbsParticleTransferCationMove(void)
   REAL UDeltaPolarization[2];
   int CurrentSystemStored;
   CurrentSystemStored=CurrentSystem;
+  int StoredNumberOfTrialPositions;
+  int StoredNumberOfTrialPositionsFirstBead;
+
+  StoredNumberOfTrialPositions=NumberOfTrialPositions;
+  StoredNumberOfTrialPositionsFirstBead=NumberOfTrialPositionsForTheFirstBead;
 
   UTailNew[0]=UTailNew[1]=0.0;
   UTailOld[0]=UTailOld[1]=0.0;
@@ -23629,7 +23936,11 @@ int CBCFGibbsParticleTransferCationMove(void)
       CurrentAdsorbateMolecule=-1;
 
       NumberOfBeadsAlreadyPlaced=0;
+      NumberOfTrialPositions=NumberOfTrialPositionsGibbs;
+      NumberOfTrialPositionsForTheFirstBead=NumberOfTrialPositionsForTheFirstBeadGibbs;
       RosenbluthNewA=GrowMolecule(CBMC_INSERTION);
+      NumberOfTrialPositions=StoredNumberOfTrialPositions;
+      NumberOfTrialPositionsForTheFirstBead=StoredNumberOfTrialPositionsFirstBead;
       if (OVERLAP) goto label_CBCFGibbsParticleTransferMove_rejected;
 
       for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
@@ -23810,7 +24121,11 @@ int CBCFGibbsParticleTransferCationMove(void)
         OldPosition[i]=Cations[CurrentSystem][CurrentCationMolecule].Atoms[i].Position;
 
       NumberOfBeadsAlreadyPlaced=0;
+      NumberOfTrialPositions=NumberOfTrialPositionsGibbs;
+      NumberOfTrialPositionsForTheFirstBead=NumberOfTrialPositionsForTheFirstBeadGibbs;
       RosenbluthOldA=RetraceMolecule(CBMC_DELETION);
+      NumberOfTrialPositions=StoredNumberOfTrialPositions;
+      NumberOfTrialPositionsForTheFirstBead=StoredNumberOfTrialPositionsFirstBead;
       if (OVERLAP) goto label_CBCFGibbsParticleTransferMove_rejected;
 
       UTailOld[CurrentSystem]=TailMolecularEnergyDifferenceRemove();
@@ -24097,7 +24412,11 @@ int CBCFGibbsParticleTransferCationMove(void)
       CurrentAdsorbateMolecule=-1;
 
       NumberOfBeadsAlreadyPlaced=0;
+      NumberOfTrialPositions=NumberOfTrialPositionsGibbs;
+      NumberOfTrialPositionsForTheFirstBead=NumberOfTrialPositionsForTheFirstBeadGibbs;
       RosenbluthNewB=GrowMolecule(CBMC_INSERTION);
+      NumberOfTrialPositions=StoredNumberOfTrialPositions;
+      NumberOfTrialPositionsForTheFirstBead=StoredNumberOfTrialPositionsFirstBead;
       if (OVERLAP) goto label_CBCFGibbsParticleTransferMove_rejected;
 
       for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
@@ -24278,7 +24597,11 @@ int CBCFGibbsParticleTransferCationMove(void)
         OldPosition[i]=Cations[CurrentSystem][CurrentCationMolecule].Atoms[i].Position;
 
       NumberOfBeadsAlreadyPlaced=0;
+      NumberOfTrialPositions=NumberOfTrialPositionsGibbs;
+      NumberOfTrialPositionsForTheFirstBead=NumberOfTrialPositionsForTheFirstBeadGibbs;
       RosenbluthOldB=RetraceMolecule(CBMC_DELETION);
+      NumberOfTrialPositions=StoredNumberOfTrialPositions;
+      NumberOfTrialPositionsForTheFirstBead=StoredNumberOfTrialPositionsFirstBead;
       if (OVERLAP) goto label_CBCFGibbsParticleTransferMove_rejected;
 
       UTailOld[CurrentSystem]=TailMolecularEnergyDifferenceRemove();
@@ -26123,7 +26446,7 @@ void ReadRestartMcMoves(FILE *FilePtr)
   if(fabs(Check-123456789.0)>1e-10)
   {
     fprintf(stderr, "Error in binary restart-file (ReadRestartMcMoves)\n");
-    exit(0);
+    ContinueAfterCrash=FALSE;
   }
 }
 

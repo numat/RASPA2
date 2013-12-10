@@ -29,6 +29,23 @@ extern int NumberOfTrialPositions;
 extern int NumberOfTrialPositionsForTheFirstBead;
 extern int NumberOfTrialMovesPerOpenBead;
 extern int NumberOfTrialPositionsTorsion;
+
+extern int MaxNumberOfTrialPositions;
+extern int NumberOfTrialPositionsReinsertion;
+extern int NumberOfTrialPositionsPartialReinsertion;
+extern int NumberOfTrialPositionsIdentityChange;
+extern int NumberOfTrialPositionsGibbs;
+extern int NumberOfTrialPositionsSwap;
+extern int NumberOfTrialPositionsWidom;
+
+extern int MaxNumberOfTrialPositionsForTheFirstBead;
+extern int NumberOfTrialPositionsForTheFirstBeadReinsertion;
+extern int NumberOfTrialPositionsForTheFirstBeadPartialReinsertion;
+extern int NumberOfTrialPositionsForTheFirstBeadIdentityChange;
+extern int NumberOfTrialPositionsForTheFirstBeadGibbs;
+extern int NumberOfTrialPositionsForTheFirstBeadSwap;
+extern int NumberOfTrialPositionsForTheFirstBeadWidom;
+
 extern REAL TargetAccRatioSmallMCScheme;
 extern REAL EnergyOverlapCriteria;
 extern REAL MinimumRosenbluthFactor;

@@ -89,6 +89,23 @@ int NumberOfTrialPositions;
 int NumberOfTrialPositionsForTheFirstBead;
 int NumberOfTrialMovesPerOpenBead;
 int NumberOfTrialPositionsTorsion;
+
+int MaxNumberOfTrialPositions;
+int NumberOfTrialPositionsReinsertion;
+int NumberOfTrialPositionsPartialReinsertion;
+int NumberOfTrialPositionsIdentityChange;
+int NumberOfTrialPositionsGibbs;
+int NumberOfTrialPositionsSwap;
+int NumberOfTrialPositionsWidom;
+
+int MaxNumberOfTrialPositionsForTheFirstBead;
+int NumberOfTrialPositionsForTheFirstBeadReinsertion;
+int NumberOfTrialPositionsForTheFirstBeadPartialReinsertion;
+int NumberOfTrialPositionsForTheFirstBeadIdentityChange;
+int NumberOfTrialPositionsForTheFirstBeadGibbs;
+int NumberOfTrialPositionsForTheFirstBeadSwap;
+int NumberOfTrialPositionsForTheFirstBeadWidom;
+
 REAL TargetAccRatioSmallMCScheme;
 REAL EnergyOverlapCriteria;
 REAL MinimumRosenbluthFactor;
@@ -3533,6 +3550,21 @@ void WriteRestartCBMC(FILE *FilePtr)
   fwrite(&NumberOfTrialPositionsForTheFirstBead,sizeof(NumberOfTrialPositionsForTheFirstBead),1,FilePtr);
   fwrite(&NumberOfTrialMovesPerOpenBead,sizeof(NumberOfTrialMovesPerOpenBead),1,FilePtr);
   fwrite(&NumberOfTrialPositionsTorsion,sizeof(NumberOfTrialPositionsTorsion),1,FilePtr);
+
+  fwrite(&NumberOfTrialPositionsReinsertion,sizeof(NumberOfTrialPositionsReinsertion),1,FilePtr);
+  fwrite(&NumberOfTrialPositionsPartialReinsertion,sizeof(NumberOfTrialPositionsPartialReinsertion),1,FilePtr);
+  fwrite(&NumberOfTrialPositionsIdentityChange,sizeof(NumberOfTrialPositionsIdentityChange),1,FilePtr);
+  fwrite(&NumberOfTrialPositionsGibbs,sizeof(NumberOfTrialPositionsGibbs),1,FilePtr);
+  fwrite(&NumberOfTrialPositionsSwap,sizeof(NumberOfTrialPositionsSwap),1,FilePtr);
+  fwrite(&NumberOfTrialPositionsWidom,sizeof(NumberOfTrialPositionsWidom),1,FilePtr);
+
+  fwrite(&NumberOfTrialPositionsForTheFirstBeadReinsertion,sizeof(NumberOfTrialPositionsForTheFirstBeadReinsertion),1,FilePtr);
+  fwrite(&NumberOfTrialPositionsForTheFirstBeadPartialReinsertion,sizeof(NumberOfTrialPositionsForTheFirstBeadPartialReinsertion),1,FilePtr);
+  fwrite(&NumberOfTrialPositionsForTheFirstBeadIdentityChange,sizeof(NumberOfTrialPositionsForTheFirstBeadIdentityChange),1,FilePtr);
+  fwrite(&NumberOfTrialPositionsForTheFirstBeadGibbs,sizeof(NumberOfTrialPositionsForTheFirstBeadGibbs),1,FilePtr);
+  fwrite(&NumberOfTrialPositionsForTheFirstBeadSwap,sizeof(NumberOfTrialPositionsForTheFirstBeadSwap),1,FilePtr);
+  fwrite(&NumberOfTrialPositionsForTheFirstBeadWidom,sizeof(NumberOfTrialPositionsForTheFirstBeadWidom),1,FilePtr);
+
   fwrite(&TargetAccRatioSmallMCScheme,sizeof(TargetAccRatioSmallMCScheme),1,FilePtr);
   fwrite(&EnergyOverlapCriteria,sizeof(EnergyOverlapCriteria),1,FilePtr);
   fwrite(&MinimumRosenbluthFactor,sizeof(MinimumRosenbluthFactor),1,FilePtr);
@@ -3564,7 +3596,23 @@ void AllocateCBMCMemory(void)
   int i;
   int MaxNumberOfIntraMolecularInteractions,MaxTrial;
 
-  MaxTrial=MAX3(NumberOfTrialPositions,NumberOfTrialPositionsTorsion,NumberOfTrialPositionsForTheFirstBead);
+  MaxNumberOfTrialPositions=NumberOfTrialPositions;
+  if(NumberOfTrialPositionsReinsertion>MaxNumberOfTrialPositions) MaxNumberOfTrialPositions=NumberOfTrialPositionsReinsertion;
+  if(NumberOfTrialPositionsPartialReinsertion>MaxNumberOfTrialPositions) MaxNumberOfTrialPositions=NumberOfTrialPositionsPartialReinsertion;
+  if(NumberOfTrialPositionsIdentityChange>MaxNumberOfTrialPositions) MaxNumberOfTrialPositions=NumberOfTrialPositionsIdentityChange;
+  if(NumberOfTrialPositionsGibbs>MaxNumberOfTrialPositions) MaxNumberOfTrialPositions=NumberOfTrialPositionsGibbs;
+  if(NumberOfTrialPositionsSwap>MaxNumberOfTrialPositions) MaxNumberOfTrialPositions=NumberOfTrialPositionsSwap;
+  if(NumberOfTrialPositionsWidom>MaxNumberOfTrialPositions) MaxNumberOfTrialPositions=NumberOfTrialPositionsWidom;
+
+  MaxNumberOfTrialPositionsForTheFirstBead=NumberOfTrialPositionsForTheFirstBead;
+  if(NumberOfTrialPositionsForTheFirstBeadReinsertion>MaxNumberOfTrialPositionsForTheFirstBead) MaxNumberOfTrialPositionsForTheFirstBead=NumberOfTrialPositionsForTheFirstBeadReinsertion;
+  if(NumberOfTrialPositionsForTheFirstBeadPartialReinsertion>MaxNumberOfTrialPositionsForTheFirstBead) MaxNumberOfTrialPositionsForTheFirstBead=NumberOfTrialPositionsForTheFirstBeadPartialReinsertion;
+  if(NumberOfTrialPositionsForTheFirstBeadIdentityChange>MaxNumberOfTrialPositionsForTheFirstBead) MaxNumberOfTrialPositionsForTheFirstBead=NumberOfTrialPositionsForTheFirstBeadIdentityChange;
+  if(NumberOfTrialPositionsForTheFirstBeadGibbs>MaxNumberOfTrialPositionsForTheFirstBead) MaxNumberOfTrialPositionsForTheFirstBead=NumberOfTrialPositionsForTheFirstBeadGibbs;
+  if(NumberOfTrialPositionsForTheFirstBeadSwap>MaxNumberOfTrialPositionsForTheFirstBead) MaxNumberOfTrialPositionsForTheFirstBead=NumberOfTrialPositionsForTheFirstBeadSwap;
+  if(NumberOfTrialPositionsForTheFirstBeadWidom>MaxNumberOfTrialPositionsForTheFirstBead) MaxNumberOfTrialPositionsForTheFirstBead=NumberOfTrialPositionsForTheFirstBeadWidom;
+
+  MaxTrial=MAX3(MaxNumberOfTrialPositions,NumberOfTrialPositionsTorsion,MaxNumberOfTrialPositionsForTheFirstBead);
 
   RosenbluthTorsion=(REAL*)calloc(NumberOfTrialPositionsTorsion,sizeof(REAL));
 
@@ -3594,8 +3642,8 @@ void AllocateCBMCMemory(void)
   CFVDWScaling=(REAL*)calloc(MaxNumberOfBeads,sizeof(REAL));
   CFChargeScaling=(REAL*)calloc(MaxNumberOfBeads,sizeof(REAL));
 
-  TrialPositions=(VECTOR**)calloc(NumberOfTrialPositions,sizeof(VECTOR*));
-  for(i=0;i<NumberOfTrialPositions;i++)
+  TrialPositions=(VECTOR**)calloc(MaxNumberOfTrialPositions,sizeof(VECTOR*));
+  for(i=0;i<MaxNumberOfTrialPositions;i++)
     TrialPositions[i]=(VECTOR*)calloc(MaxNumberOfBeads,sizeof(VECTOR));
 
   BoltzmannFactors=(REAL*)calloc(MaxTrial,sizeof(REAL));
@@ -3766,43 +3814,43 @@ void AllocateCBMCMemory(void)
   UHostPermanentDipolePermanentDipoleOld=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
 
   // trial energies
-  UBondTrial=(REAL*)calloc(NumberOfTrialPositions,sizeof(REAL));
-  UBendTrial=(REAL*)calloc(NumberOfTrialPositions,sizeof(REAL));
-  UBendBendTrial=(REAL*)calloc(NumberOfTrialPositions,sizeof(REAL));
-  UUreyBradleyTrial=(REAL*)calloc(NumberOfTrialPositions,sizeof(REAL));
-  UInversionBendTrial=(REAL*)calloc(NumberOfTrialPositions,sizeof(REAL));
-  UTorsionTrial=(REAL*)calloc(NumberOfTrialPositions,sizeof(REAL));
-  UImproperTorsionTrial=(REAL*)calloc(NumberOfTrialPositions,sizeof(REAL));
-  UBondBondTrial=(REAL*)calloc(NumberOfTrialPositions,sizeof(REAL));
-  UBondBendTrial=(REAL*)calloc(NumberOfTrialPositions,sizeof(REAL));
-  UBondTorsionTrial=(REAL*)calloc(NumberOfTrialPositions,sizeof(REAL));
-  UBendTorsionTrial=(REAL*)calloc(NumberOfTrialPositions,sizeof(REAL));
-  UIntraVDWTrial=(REAL*)calloc(NumberOfTrialPositions,sizeof(REAL));
-  UIntraChargeChargeTrial=(REAL*)calloc(NumberOfTrialPositions,sizeof(REAL));
-  UIntraChargeBondDipoleTrial=(REAL*)calloc(NumberOfTrialPositions,sizeof(REAL));
-  UIntraBondDipoleBondDipoleTrial=(REAL*)calloc(NumberOfTrialPositions,sizeof(REAL));
+  UBondTrial=(REAL*)calloc(MaxNumberOfTrialPositions,sizeof(REAL));
+  UBendTrial=(REAL*)calloc(MaxNumberOfTrialPositions,sizeof(REAL));
+  UBendBendTrial=(REAL*)calloc(MaxNumberOfTrialPositions,sizeof(REAL));
+  UUreyBradleyTrial=(REAL*)calloc(MaxNumberOfTrialPositions,sizeof(REAL));
+  UInversionBendTrial=(REAL*)calloc(MaxNumberOfTrialPositions,sizeof(REAL));
+  UTorsionTrial=(REAL*)calloc(MaxNumberOfTrialPositions,sizeof(REAL));
+  UImproperTorsionTrial=(REAL*)calloc(MaxNumberOfTrialPositions,sizeof(REAL));
+  UBondBondTrial=(REAL*)calloc(MaxNumberOfTrialPositions,sizeof(REAL));
+  UBondBendTrial=(REAL*)calloc(MaxNumberOfTrialPositions,sizeof(REAL));
+  UBondTorsionTrial=(REAL*)calloc(MaxNumberOfTrialPositions,sizeof(REAL));
+  UBendTorsionTrial=(REAL*)calloc(MaxNumberOfTrialPositions,sizeof(REAL));
+  UIntraVDWTrial=(REAL*)calloc(MaxNumberOfTrialPositions,sizeof(REAL));
+  UIntraChargeChargeTrial=(REAL*)calloc(MaxNumberOfTrialPositions,sizeof(REAL));
+  UIntraChargeBondDipoleTrial=(REAL*)calloc(MaxNumberOfTrialPositions,sizeof(REAL));
+  UIntraBondDipoleBondDipoleTrial=(REAL*)calloc(MaxNumberOfTrialPositions,sizeof(REAL));
 
-  UHostVDWTrial=(REAL*)calloc(NumberOfTrialPositions,sizeof(REAL));
-  UAdsorbateVDWTrial=(REAL*)calloc(NumberOfTrialPositions,sizeof(REAL));
-  UCationVDWTrial=(REAL*)calloc(NumberOfTrialPositions,sizeof(REAL));
-  UHostChargeChargeTrial=(REAL*)calloc(NumberOfTrialPositions,sizeof(REAL));
-  UAdsorbateChargeChargeTrial=(REAL*)calloc(NumberOfTrialPositions,sizeof(REAL));
-  UCationChargeChargeTrial=(REAL*)calloc(NumberOfTrialPositions,sizeof(REAL));
-  UHostChargeBondDipoleTrial=(REAL*)calloc(NumberOfTrialPositions,sizeof(REAL));
-  UAdsorbateChargeBondDipoleTrial=(REAL*)calloc(NumberOfTrialPositions,sizeof(REAL));
-  UCationChargeBondDipoleTrial=(REAL*)calloc(NumberOfTrialPositions,sizeof(REAL));
-  UHostChargePermanentDipoleTrial=(REAL*)calloc(NumberOfTrialPositions,sizeof(REAL));
-  UAdsorbateChargePermanentDipoleTrial=(REAL*)calloc(NumberOfTrialPositions,sizeof(REAL));
-  UCationChargePermanentDipoleTrial=(REAL*)calloc(NumberOfTrialPositions,sizeof(REAL));
-  UHostBondDipoleBondDipoleTrial=(REAL*)calloc(NumberOfTrialPositions,sizeof(REAL));
-  UAdsorbateBondDipoleBondDipoleTrial=(REAL*)calloc(NumberOfTrialPositions,sizeof(REAL));
-  UCationBondDipoleBondDipoleTrial=(REAL*)calloc(NumberOfTrialPositions,sizeof(REAL));
-  UHostBondDipolePermanentDipoleTrial=(REAL*)calloc(NumberOfTrialPositions,sizeof(REAL));
-  UAdsorbateBondDipolePermanentDipoleTrial=(REAL*)calloc(NumberOfTrialPositions,sizeof(REAL));
-  UCationBondDipolePermanentDipoleTrial=(REAL*)calloc(NumberOfTrialPositions,sizeof(REAL));
-  UHostPermanentDipolePermanentDipoleTrial=(REAL*)calloc(NumberOfTrialPositions,sizeof(REAL));
-  UAdsorbatePermanentDipolePermanentDipoleTrial=(REAL*)calloc(NumberOfTrialPositions,sizeof(REAL));
-  UCationPermanentDipolePermanentDipoleTrial=(REAL*)calloc(NumberOfTrialPositions,sizeof(REAL));
+  UHostVDWTrial=(REAL*)calloc(MaxNumberOfTrialPositions,sizeof(REAL));
+  UAdsorbateVDWTrial=(REAL*)calloc(MaxNumberOfTrialPositions,sizeof(REAL));
+  UCationVDWTrial=(REAL*)calloc(MaxNumberOfTrialPositions,sizeof(REAL));
+  UHostChargeChargeTrial=(REAL*)calloc(MaxNumberOfTrialPositions,sizeof(REAL));
+  UAdsorbateChargeChargeTrial=(REAL*)calloc(MaxNumberOfTrialPositions,sizeof(REAL));
+  UCationChargeChargeTrial=(REAL*)calloc(MaxNumberOfTrialPositions,sizeof(REAL));
+  UHostChargeBondDipoleTrial=(REAL*)calloc(MaxNumberOfTrialPositions,sizeof(REAL));
+  UAdsorbateChargeBondDipoleTrial=(REAL*)calloc(MaxNumberOfTrialPositions,sizeof(REAL));
+  UCationChargeBondDipoleTrial=(REAL*)calloc(MaxNumberOfTrialPositions,sizeof(REAL));
+  UHostChargePermanentDipoleTrial=(REAL*)calloc(MaxNumberOfTrialPositions,sizeof(REAL));
+  UAdsorbateChargePermanentDipoleTrial=(REAL*)calloc(MaxNumberOfTrialPositions,sizeof(REAL));
+  UCationChargePermanentDipoleTrial=(REAL*)calloc(MaxNumberOfTrialPositions,sizeof(REAL));
+  UHostBondDipoleBondDipoleTrial=(REAL*)calloc(MaxNumberOfTrialPositions,sizeof(REAL));
+  UAdsorbateBondDipoleBondDipoleTrial=(REAL*)calloc(MaxNumberOfTrialPositions,sizeof(REAL));
+  UCationBondDipoleBondDipoleTrial=(REAL*)calloc(MaxNumberOfTrialPositions,sizeof(REAL));
+  UHostBondDipolePermanentDipoleTrial=(REAL*)calloc(MaxNumberOfTrialPositions,sizeof(REAL));
+  UAdsorbateBondDipolePermanentDipoleTrial=(REAL*)calloc(MaxNumberOfTrialPositions,sizeof(REAL));
+  UCationBondDipolePermanentDipoleTrial=(REAL*)calloc(MaxNumberOfTrialPositions,sizeof(REAL));
+  UHostPermanentDipolePermanentDipoleTrial=(REAL*)calloc(MaxNumberOfTrialPositions,sizeof(REAL));
+  UAdsorbatePermanentDipolePermanentDipoleTrial=(REAL*)calloc(MaxNumberOfTrialPositions,sizeof(REAL));
+  UCationPermanentDipolePermanentDipoleTrial=(REAL*)calloc(MaxNumberOfTrialPositions,sizeof(REAL));
 }
 
 void ReadRestartCBMC(FILE *FilePtr)
@@ -3813,6 +3861,22 @@ void ReadRestartCBMC(FILE *FilePtr)
   fread(&NumberOfTrialPositionsForTheFirstBead,sizeof(NumberOfTrialPositionsForTheFirstBead),1,FilePtr);
   fread(&NumberOfTrialMovesPerOpenBead,sizeof(NumberOfTrialMovesPerOpenBead),1,FilePtr);
   fread(&NumberOfTrialPositionsTorsion,sizeof(NumberOfTrialPositionsTorsion),1,FilePtr);
+
+  fread(&NumberOfTrialPositionsReinsertion,sizeof(NumberOfTrialPositionsReinsertion),1,FilePtr);
+  fread(&NumberOfTrialPositionsPartialReinsertion,sizeof(NumberOfTrialPositionsPartialReinsertion),1,FilePtr);
+  fread(&NumberOfTrialPositionsIdentityChange,sizeof(NumberOfTrialPositionsIdentityChange),1,FilePtr);
+  fread(&NumberOfTrialPositionsGibbs,sizeof(NumberOfTrialPositionsGibbs),1,FilePtr);
+  fread(&NumberOfTrialPositionsSwap,sizeof(NumberOfTrialPositionsSwap),1,FilePtr);
+  fread(&NumberOfTrialPositionsWidom,sizeof(NumberOfTrialPositionsWidom),1,FilePtr);
+
+  fread(&NumberOfTrialPositionsForTheFirstBeadReinsertion,sizeof(NumberOfTrialPositionsForTheFirstBeadReinsertion),1,FilePtr);
+  fread(&NumberOfTrialPositionsForTheFirstBeadPartialReinsertion,sizeof(NumberOfTrialPositionsForTheFirstBeadPartialReinsertion),1,FilePtr);
+  fread(&NumberOfTrialPositionsForTheFirstBeadIdentityChange,sizeof(NumberOfTrialPositionsForTheFirstBeadIdentityChange),1,FilePtr);
+  fread(&NumberOfTrialPositionsForTheFirstBeadGibbs,sizeof(NumberOfTrialPositionsForTheFirstBeadGibbs),1,FilePtr);
+  fread(&NumberOfTrialPositionsForTheFirstBeadSwap,sizeof(NumberOfTrialPositionsForTheFirstBeadSwap),1,FilePtr);
+  fread(&NumberOfTrialPositionsForTheFirstBeadWidom,sizeof(NumberOfTrialPositionsForTheFirstBeadWidom),1,FilePtr);
+
+
   fread(&TargetAccRatioSmallMCScheme,sizeof(TargetAccRatioSmallMCScheme),1,FilePtr);
   fread(&EnergyOverlapCriteria,sizeof(EnergyOverlapCriteria),1,FilePtr);
   fread(&MinimumRosenbluthFactor,sizeof(MinimumRosenbluthFactor),1,FilePtr);
@@ -3841,6 +3905,6 @@ void ReadRestartCBMC(FILE *FilePtr)
   if(fabs(Check-123456789.0)>1e-10)
   {
     fprintf(stderr, "Error in binary restart-file (ReadRestartCBMC)\n");
-    exit(0);
+    ContinueAfterCrash=FALSE;
   }
 }

@@ -312,6 +312,22 @@ int ReadInput(char *input)
   NumberOfTrialPositionsForTheFirstBead=10;
   NumberOfTrialPositionsTorsion=100;
   NumberOfTrialMovesPerOpenBead=150;
+
+  NumberOfTrialPositionsReinsertion=10;
+  NumberOfTrialPositionsPartialReinsertion=10;
+  NumberOfTrialPositionsIdentityChange=10;
+  NumberOfTrialPositionsGibbs=10;
+  NumberOfTrialPositionsSwap=10;
+  NumberOfTrialPositionsWidom=10;
+
+  NumberOfTrialPositionsForTheFirstBeadReinsertion=10;
+  NumberOfTrialPositionsForTheFirstBeadPartialReinsertion=10;
+  NumberOfTrialPositionsForTheFirstBeadIdentityChange=10;
+  NumberOfTrialPositionsForTheFirstBeadGibbs=10;
+  NumberOfTrialPositionsForTheFirstBeadSwap=10;
+  NumberOfTrialPositionsForTheFirstBeadWidom=10;
+
+
   EnergyOverlapCriteria=1.0e5;
   MinimumRosenbluthFactor=1.0e-150;
 
@@ -673,7 +689,7 @@ int ReadInput(char *input)
         // no need to reed the rest of the input file
         // instead read the binary status file
         ReadBinaryRestartFiles();
-        return 0;
+        if(ContinueAfterCrash) return 0;
       }
     }
   }
@@ -1425,7 +1441,7 @@ int ReadInput(char *input)
         // no need to reed the rest of the input file
         // instead read the binary status file
         ReadBinaryRestartFiles();
-        return 0;
+        if(ContinueAfterCrash) return 0;
       }
       if(strcasecmp("no",firstargument)==0) ContinueAfterCrash=FALSE;
     }
@@ -4605,6 +4621,20 @@ int ReadInput(char *input)
     }
     if(strcasecmp("MinimumInnerCycles",keyword)==0) sscanf(arguments,"%d",&MinimumInnerCycles);
     if(strcasecmp("NumberOfTrialPositions",keyword)==0) sscanf(arguments,"%d",&NumberOfTrialPositions);
+    if(strcasecmp("NumberOfTrialPositionsReinsertion",keyword)==0) sscanf(arguments,"%d",&NumberOfTrialPositionsReinsertion);
+    if(strcasecmp("NumberOfTrialPositionsPartialReinsertion",keyword)==0) sscanf(arguments,"%d",&NumberOfTrialPositionsPartialReinsertion);
+    if(strcasecmp("NumberOfTrialPositionsIdentityChange",keyword)==0) sscanf(arguments,"%d",&NumberOfTrialPositionsIdentityChange);
+    if(strcasecmp("NumberOfTrialPositionsGibbs",keyword)==0) sscanf(arguments,"%d",&NumberOfTrialPositionsGibbs);
+    if(strcasecmp("NumberOfTrialPositionsSwap",keyword)==0) sscanf(arguments,"%d",&NumberOfTrialPositionsSwap);
+    if(strcasecmp("NumberOfTrialPositionsWidom",keyword)==0) sscanf(arguments,"%d",&NumberOfTrialPositionsWidom);
+
+    if(strcasecmp("NumberOfTrialPositionsForTheFirstBeadReinsertion",keyword)==0) sscanf(arguments,"%d",&NumberOfTrialPositionsForTheFirstBeadReinsertion);
+    if(strcasecmp("NumberOfTrialPositionsForTheFirstBeadPartialReinsertion",keyword)==0) sscanf(arguments,"%d",&NumberOfTrialPositionsForTheFirstBeadPartialReinsertion);
+    if(strcasecmp("NumberOfTrialPositionsForTheFirstBeadIdentityChange",keyword)==0) sscanf(arguments,"%d",&NumberOfTrialPositionsForTheFirstBeadIdentityChange);
+    if(strcasecmp("NumberOfTrialPositionsForTheFirstBeadGibbs",keyword)==0) sscanf(arguments,"%d",&NumberOfTrialPositionsForTheFirstBeadGibbs);
+    if(strcasecmp("NumberOfTrialPositionsForTheFirstBeadSwap",keyword)==0) sscanf(arguments,"%d",&NumberOfTrialPositionsForTheFirstBeadSwap);
+    if(strcasecmp("NumberOfTrialPositionsForTheFirstBeadWidom",keyword)==0) sscanf(arguments,"%d",&NumberOfTrialPositionsForTheFirstBeadWidom);
+
     if(strcasecmp("NumberOfTrialPositionsTorsion",keyword)==0) sscanf(arguments,"%d",&NumberOfTrialPositionsTorsion);
     if(strcasecmp("NumberOfTrialPositionsForTheFirstBead",keyword)==0)
        sscanf(arguments,"%d",&NumberOfTrialPositionsForTheFirstBead);
@@ -8632,25 +8662,25 @@ void ReadBinaryRestartFiles(void)
   sprintf(buffer,"CrashRestart/binary_restart.dat");
   if((FilePtr=fopen(buffer,"r")))
   {
-    ReadRestartConstants(FilePtr);
-    ReadRestartSimulation(FilePtr);
-    ReadRestartWarnings(FilePtr);
-    ReadRestartPseudoAtoms(FilePtr);
-    ReadRestartComponent(FilePtr);
-    ReadRestartMolecules(FilePtr);
-    ReadRestartFramework(FilePtr);
-    ReadRestartCBMC(FilePtr);
-    ReadRestartEwald(FilePtr);
-    ReadRestartStatistics(FilePtr);
-    ReadRestartMcMoves(FilePtr);
-    ReadRestartSample(FilePtr);
-    ReadRestartThermoBarostats(FilePtr);
-    ReadRestartEquationOfState(FilePtr);
-    ReadRestartGrids(FilePtr);
-    ReadRestartMinimization(FilePtr);
-    ReadRestartUtils(FilePtr);
-    ReadRestartMovies(FilePtr);
-    ReadRestartOutput(FilePtr);
+    if(ContinueAfterCrash) ReadRestartConstants(FilePtr);
+    if(ContinueAfterCrash) ReadRestartSimulation(FilePtr);
+    if(ContinueAfterCrash) ReadRestartWarnings(FilePtr);
+    if(ContinueAfterCrash) ReadRestartPseudoAtoms(FilePtr);
+    if(ContinueAfterCrash) ReadRestartComponent(FilePtr);
+    if(ContinueAfterCrash) ReadRestartMolecules(FilePtr);
+    if(ContinueAfterCrash) ReadRestartFramework(FilePtr);
+    if(ContinueAfterCrash) ReadRestartCBMC(FilePtr);
+    if(ContinueAfterCrash) ReadRestartEwald(FilePtr);
+    if(ContinueAfterCrash) ReadRestartStatistics(FilePtr);
+    if(ContinueAfterCrash) ReadRestartMcMoves(FilePtr);
+    if(ContinueAfterCrash) ReadRestartSample(FilePtr);
+    if(ContinueAfterCrash) ReadRestartThermoBarostats(FilePtr);
+    if(ContinueAfterCrash) ReadRestartEquationOfState(FilePtr);
+    if(ContinueAfterCrash) ReadRestartGrids(FilePtr);
+    if(ContinueAfterCrash) ReadRestartMinimization(FilePtr);
+    if(ContinueAfterCrash) ReadRestartUtils(FilePtr);
+    if(ContinueAfterCrash) ReadRestartMovies(FilePtr);
+    if(ContinueAfterCrash) ReadRestartOutput(FilePtr);
 
     fclose(FilePtr);
   }
