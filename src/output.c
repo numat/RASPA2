@@ -6995,6 +6995,8 @@ void PrintRestartFile(void)
     fprintf(FilePtrOut,"\tBiasing-factors component %d: ",j);
     for(i=0;i<Components[j].CFLambdaHistogramSize;i++)
       fprintf(FilePtrOut," %lf",Components[j].CFBiasingFactors[CurrentSystem][i]);
+    fprintf(FilePtrOut,"\tMaximum-CF-Lambda-change component %d: %lf\n",j,MaximumCFLambdaChange[CurrentSystem][j]);
+    fprintf(FilePtrOut,"\tMaximum-CBCF-Lambda-change component %d: %lf\n",j,MaximumCBCFLambdaChange[CurrentSystem][j]);
     fprintf(FilePtrOut,"\n");
     fprintf(FilePtrOut,"\tMaximum-translation-change component %d: %lf,%lf,%lf\n",j,
        (double)MaximumTranslation[CurrentSystem][j].x,(double)MaximumTranslation[CurrentSystem][j].y,(double)MaximumTranslation[CurrentSystem][j].z);

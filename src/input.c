@@ -8244,7 +8244,6 @@ void ReadRestartFile(void)
           {
             arg_pointer+=n;
             sscanf(arg_pointer,"%lf%n",&Components[int_temp1].CFBiasingFactors[CurrentSystem][i],&n);
-            fprintf(stderr,"TEST: %lf\n",Components[int_temp1].CFBiasingFactors[CurrentSystem][i]);
           }
         }
       }
@@ -8260,6 +8259,27 @@ void ReadRestartFile(void)
           MaximumTranslation[CurrentSystem][int_temp1].x=temp3;
         }
       }
+
+      if(strcasecmp(keyword,"Maximum-CF-Lambda-change")==0)
+      {
+        int_temp1=int_temp2=0;
+        temp1=temp2=temp3=0.0;
+        if(sscanf(arguments,"component %d: %lf",&int_temp1,&temp1)==2)
+        {
+          MaximumCFLambdaChange[CurrentSystem][int_temp1]=temp1;
+        }
+      }
+
+      if(strcasecmp(keyword,"Maximum-CBCF-Lambda-change")==0)
+      {
+        int_temp1=int_temp2=0;
+        temp1=temp2=temp3=0.0;
+        if(sscanf(arguments,"component %d: %lf",&int_temp1,&temp1)==2)
+        {
+          MaximumCBCFLambdaChange[CurrentSystem][int_temp1]=temp1;
+        }
+      }
+
       if(strcasecmp(keyword,"Maximum-translation-in-plane-change")==0)
       {
         int_temp1=int_temp2=0;

@@ -165,11 +165,11 @@ static REAL **TotalCFGibbsLambdaAccepted;
 REAL **MaximumCFLambdaChange;
 
 static REAL (**CBCFSwapLambdaAttempts)[3];
-static REAL (**CBCFSwapLambdaAccepted)[3];
+static REAL (**CBCFSwapLambdaAccepted)[3][2];
 static REAL **TotalCBCFSwapLambdaAttempts;
 static REAL **TotalCBCFSwapLambdaAccepted;
 static REAL (**CBCFGibbsLambdaAttempts)[3];
-static REAL (**CBCFGibbsLambdaAccepted)[3];
+static REAL (**CBCFGibbsLambdaAccepted)[3][2];
 static REAL **TotalCBCFGibbsLambdaAttempts;
 static REAL **TotalCBCFGibbsLambdaAccepted;
 REAL **MaximumCBCFLambdaChange;
@@ -431,9 +431,12 @@ void InitializeMCMovesStatisticsAllSystems(void)
       CBCFSwapLambdaAttempts[j][i][0]=0.0;
       CBCFSwapLambdaAttempts[j][i][1]=0.0;
       CBCFSwapLambdaAttempts[j][i][2]=0.0;
-      CBCFSwapLambdaAccepted[j][i][0]=0.0;
-      CBCFSwapLambdaAccepted[j][i][1]=0.0;
-      CBCFSwapLambdaAccepted[j][i][2]=0.0;
+      CBCFSwapLambdaAccepted[j][i][0][0]=0.0;
+      CBCFSwapLambdaAccepted[j][i][1][0]=0.0;
+      CBCFSwapLambdaAccepted[j][i][2][0]=0.0;
+      CBCFSwapLambdaAccepted[j][i][0][1]=0.0;
+      CBCFSwapLambdaAccepted[j][i][1][1]=0.0;
+      CBCFSwapLambdaAccepted[j][i][2][1]=0.0;
       TotalCBCFSwapLambdaAttempts[j][i]=0.0;
       TotalCBCFSwapLambdaAccepted[j][i]=0.0;
 
@@ -449,9 +452,12 @@ void InitializeMCMovesStatisticsAllSystems(void)
       CBCFGibbsLambdaAttempts[j][i][0]=0.0;
       CBCFGibbsLambdaAttempts[j][i][1]=0.0;
       CBCFGibbsLambdaAttempts[j][i][2]=0.0;
-      CBCFGibbsLambdaAccepted[j][i][0]=0.0;
-      CBCFGibbsLambdaAccepted[j][i][1]=0.0;
-      CBCFGibbsLambdaAccepted[j][i][2]=0.0;
+      CBCFGibbsLambdaAccepted[j][i][0][0]=0.0;
+      CBCFGibbsLambdaAccepted[j][i][1][0]=0.0;
+      CBCFGibbsLambdaAccepted[j][i][2][0]=0.0;
+      CBCFGibbsLambdaAccepted[j][i][0][1]=0.0;
+      CBCFGibbsLambdaAccepted[j][i][1][1]=0.0;
+      CBCFGibbsLambdaAccepted[j][i][2][1]=0.0;
       TotalCBCFGibbsLambdaAttempts[j][i]=0.0;
       TotalCBCFGibbsLambdaAccepted[j][i]=0.0;
 
@@ -17036,6 +17042,7 @@ int CBCFSwapLambaAdsorbateMove(void)
       // Components[CurrentComponent].NumberOfMolecules[CurrentSystem] is actually N+1, since it contains the fractional molecule that should be subtracted
       RosenbluthNew*=Beta[CurrentSystem]*PartialFugacity*Volume[CurrentSystem]/
                      (Components[CurrentComponent].NumberOfMolecules[CurrentSystem]);
+      CBCFSwapLambdaAccepted[CurrentSystem][CurrentComponent][1][0]++;
       break;
     case CF_DELETE_MOVE:
       SelectedRetraceMolecule=SelectRandomMoleculeOfTypeExcludingFractionalMolecule(CurrentComponent);
@@ -17230,7 +17237,7 @@ int CBCFSwapLambaAdsorbateMove(void)
         Adsorbates[CurrentSystem][SelectedRetraceMolecule].Atoms[i].CFVDWScalingParameter=LambdaNew;
         Adsorbates[CurrentSystem][SelectedRetraceMolecule].Atoms[i].CFChargeScalingParameter=pow(LambdaNew,5);
       }
-
+      CBCFSwapLambdaAccepted[CurrentSystem][CurrentComponent][2][0]++;
       break;
     default:
       // calculate the energy of the current configuration with a change in lambda (but with the same positions)
@@ -17332,6 +17339,7 @@ int CBCFSwapLambaAdsorbateMove(void)
       UAdsorbateCationBondDipoleBondDipoleFourierDeltaFirstStep=UAdsorbateCationBondDipoleBondDipoleFourierDelta[CurrentSystem];
 
       DeltaUFirstStep=DeltaU;
+      CBCFSwapLambdaAccepted[CurrentSystem][CurrentComponent][0][0]++;
       break;
   }
 
@@ -17411,7 +17419,7 @@ int CBCFSwapLambaAdsorbateMove(void)
     switch(MoveType)
     {
       case CF_INSERT_MOVE:
-        CBCFSwapLambdaAccepted[CurrentSystem][CurrentComponent][1]++;
+        CBCFSwapLambdaAccepted[CurrentSystem][CurrentComponent][1][1]++;
 
         InsertAdsorbateMolecule();
 
@@ -17532,7 +17540,7 @@ int CBCFSwapLambaAdsorbateMove(void)
 
         break;
       case CF_DELETE_MOVE:
-        CBCFSwapLambdaAccepted[CurrentSystem][CurrentComponent][2]++;
+        CBCFSwapLambdaAccepted[CurrentSystem][CurrentComponent][2][1]++;
 
         // remove old fractional molecule
         CurrentAdsorbateMolecule=FractionalMolecule;
@@ -17654,7 +17662,7 @@ int CBCFSwapLambaAdsorbateMove(void)
                 UDeltaPolarization-UTailOld;
         break;
       default:
-        CBCFSwapLambdaAccepted[CurrentSystem][CurrentComponent][0]++;
+        CBCFSwapLambdaAccepted[CurrentSystem][CurrentComponent][0][1]++;
         for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
         {
           Adsorbates[CurrentSystem][FractionalMolecule].Atoms[i].CFVDWScalingParameter=CFVDWScaling[i];
@@ -17988,6 +17996,7 @@ int CBCFSwapLambaCationMove(void)
       // Components[CurrentComponent].NumberOfMolecules[CurrentSystem] is actually N+1, since it contains the fractional molecule that should be subtracted
       RosenbluthNew*=Beta[CurrentSystem]*PartialFugacity*Volume[CurrentSystem]/
                      (Components[CurrentComponent].NumberOfMolecules[CurrentSystem]);
+      CBCFSwapLambdaAccepted[CurrentSystem][CurrentComponent][1][0]++;
       break;
     case CF_DELETE_MOVE:
       // a new fractional molecule will be retraced containing the remainder of lambda
@@ -18188,6 +18197,7 @@ int CBCFSwapLambaCationMove(void)
         Cations[CurrentSystem][SelectedRetraceMolecule].Atoms[i].CFVDWScalingParameter=LambdaNew;
         Cations[CurrentSystem][SelectedRetraceMolecule].Atoms[i].CFChargeScalingParameter=pow(LambdaNew,5);
       }
+      CBCFSwapLambdaAccepted[CurrentSystem][CurrentComponent][2][0]++;
       break;
     default:
       // calculate the energy of the current configuration with a change in lambda (but with the same positions)
@@ -18289,6 +18299,7 @@ int CBCFSwapLambaCationMove(void)
       UAdsorbateCationBondDipoleBondDipoleFourierDeltaFirstStep=UAdsorbateCationBondDipoleBondDipoleFourierDelta[CurrentSystem];
 
       DeltaUFirstStep=DeltaU;
+      CBCFSwapLambdaAccepted[CurrentSystem][CurrentComponent][0][0]++;
       break;
   }
 
@@ -18367,7 +18378,7 @@ int CBCFSwapLambaCationMove(void)
     switch(MoveType)
     {
       case CF_INSERT_MOVE:
-        CBCFSwapLambdaAccepted[CurrentSystem][CurrentComponent][1]++;
+        CBCFSwapLambdaAccepted[CurrentSystem][CurrentComponent][1][1]++;
 
         InsertCationMolecule();
 
@@ -18486,7 +18497,7 @@ int CBCFSwapLambaCationMove(void)
 
         break;
       case CF_DELETE_MOVE:
-        CBCFSwapLambdaAccepted[CurrentSystem][CurrentComponent][2]++;
+        CBCFSwapLambdaAccepted[CurrentSystem][CurrentComponent][2][1]++;
 
         // remove old fractional molecule
         CurrentCationMolecule=FractionalMolecule;
@@ -18607,7 +18618,7 @@ int CBCFSwapLambaCationMove(void)
                 UDeltaPolarization-UTailOld;
         break;
       default:
-        CBCFSwapLambdaAccepted[CurrentSystem][CurrentComponent][0]++;
+        CBCFSwapLambdaAccepted[CurrentSystem][CurrentComponent][0][1]++;
         for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
         {
           Cations[CurrentSystem][FractionalMolecule].Atoms[i].CFVDWScalingParameter=CFVDWScaling[i];
@@ -18667,7 +18678,7 @@ void OptimizeCBCFLambdaChangeAcceptence(void)
     if(Components[i].FractionOfCBCFSwapLambdaMove>0.0)
     {
       if(CBCFSwapLambdaAttempts[CurrentSystem][i][0]>0.0)
-        ratio=CBCFSwapLambdaAccepted[CurrentSystem][i][0]/CBCFSwapLambdaAttempts[CurrentSystem][i][0];
+        ratio=CBCFSwapLambdaAccepted[CurrentSystem][i][0][1]/CBCFSwapLambdaAttempts[CurrentSystem][i][0];
       else
         ratio=0.0;
 
@@ -18681,8 +18692,10 @@ void OptimizeCBCFLambdaChangeAcceptence(void)
          MaximumCBCFLambdaChange[CurrentSystem][i]=1.0;
 
       TotalCBCFSwapLambdaAttempts[CurrentSystem][i]+=CBCFSwapLambdaAttempts[CurrentSystem][i][0];
-      TotalCBCFSwapLambdaAccepted[CurrentSystem][i]+=CBCFSwapLambdaAccepted[CurrentSystem][i][0];
-      CBCFSwapLambdaAttempts[CurrentSystem][i][0]=CBCFSwapLambdaAccepted[CurrentSystem][i][0]=0.0;
+      TotalCBCFSwapLambdaAccepted[CurrentSystem][i]+=CBCFSwapLambdaAccepted[CurrentSystem][i][0][1];
+      CBCFSwapLambdaAttempts[CurrentSystem][i][0]=0.0;
+      CBCFSwapLambdaAccepted[CurrentSystem][i][0][0]=0.0;
+      CBCFSwapLambdaAccepted[CurrentSystem][i][0][1]=0.0;
     }
   }
 }
@@ -18711,22 +18724,31 @@ void PrintCBCFSwapLambdaStatistics(FILE *FilePtr)
     {
       if(Components[i].FractionOfCBCFSwapLambdaMove>0.0)
       {
-        fprintf(FilePtr,"Component [%s] total tried: %lf constant-lambda accepted: %lf (%lf [%%])\n",
+        fprintf(FilePtr,"Component [%s] total tried: %lf succesfull growth: %lf (%lf [%%]) constant-lambda accepted: %lf (%lf [%%])\n",
           Components[i].Name,
           (double)CBCFSwapLambdaAttempts[CurrentSystem][i][0],
-          (double)CBCFSwapLambdaAccepted[CurrentSystem][i][0],
+          (double)CBCFSwapLambdaAccepted[CurrentSystem][i][0][0],
           (double)(CBCFSwapLambdaAttempts[CurrentSystem][i][0]>(REAL)0.0?
-            100.0*CBCFSwapLambdaAccepted[CurrentSystem][i][0]/CBCFSwapLambdaAttempts[CurrentSystem][i][0]:(REAL)0.0));
-        fprintf(FilePtr,"               total tried: %lf insert-lambda accepted: %lf (%lf [%%])\n",
+            100.0*CBCFSwapLambdaAccepted[CurrentSystem][i][0][0]/CBCFSwapLambdaAttempts[CurrentSystem][i][0]:(REAL)0.0),
+          (double)CBCFSwapLambdaAccepted[CurrentSystem][i][0][1],
+          (double)(CBCFSwapLambdaAttempts[CurrentSystem][i][0]>(REAL)0.0?
+            100.0*CBCFSwapLambdaAccepted[CurrentSystem][i][0][1]/CBCFSwapLambdaAttempts[CurrentSystem][i][0]:(REAL)0.0));
+        fprintf(FilePtr,"               total tried: %lf succesfull growth: %lf (%lf [%%]) insert-lambda accepted: %lf (%lf [%%])\n",
           (double)CBCFSwapLambdaAttempts[CurrentSystem][i][1],
-          (double)CBCFSwapLambdaAccepted[CurrentSystem][i][1],
+          (double)CBCFSwapLambdaAccepted[CurrentSystem][i][1][0],
           (double)(CBCFSwapLambdaAttempts[CurrentSystem][i][1]>(REAL)0.0?
-            100.0*CBCFSwapLambdaAccepted[CurrentSystem][i][1]/CBCFSwapLambdaAttempts[CurrentSystem][i][1]:(REAL)0.0));
-        fprintf(FilePtr,"               total tried: %lf remove-lambda accepted: %lf (%lf [%%])\n",
+            100.0*CBCFSwapLambdaAccepted[CurrentSystem][i][1][0]/CBCFSwapLambdaAttempts[CurrentSystem][i][1]:(REAL)0.0),
+          (double)CBCFSwapLambdaAccepted[CurrentSystem][i][1][1],
+          (double)(CBCFSwapLambdaAttempts[CurrentSystem][i][1]>(REAL)0.0?
+            100.0*CBCFSwapLambdaAccepted[CurrentSystem][i][1][1]/CBCFSwapLambdaAttempts[CurrentSystem][i][1]:(REAL)0.0));
+        fprintf(FilePtr,"               total tried: %lf succesfull retrace: %lf (%lf [%%]) remove-lambda accepted: %lf (%lf [%%])\n",
           (double)CBCFSwapLambdaAttempts[CurrentSystem][i][2],
-          (double)CBCFSwapLambdaAccepted[CurrentSystem][i][2],
+          (double)CBCFSwapLambdaAccepted[CurrentSystem][i][2][0],
           (double)(CBCFSwapLambdaAttempts[CurrentSystem][i][2]>(REAL)0.0?
-            100.0*CBCFSwapLambdaAccepted[CurrentSystem][i][2]/CBCFSwapLambdaAttempts[CurrentSystem][i][2]:(REAL)0.0));
+            100.0*CBCFSwapLambdaAccepted[CurrentSystem][i][2][0]/CBCFSwapLambdaAttempts[CurrentSystem][i][2]:(REAL)0.0),
+          (double)CBCFSwapLambdaAccepted[CurrentSystem][i][2][1],
+          (double)(CBCFSwapLambdaAttempts[CurrentSystem][i][2]>(REAL)0.0?
+            100.0*CBCFSwapLambdaAccepted[CurrentSystem][i][2][1]/CBCFSwapLambdaAttempts[CurrentSystem][i][2]:(REAL)0.0));
 
         total=0.0;
         for(k=0;k<Components[i].CFLambdaHistogramSize;k++)
@@ -21995,6 +22017,9 @@ int CBCFGibbsParticleTransferAdsorbateMove(void)
   switch(MoveTypeA)
   {
     case CF_INSERT_MOVE:
+      // assume retrace will succeed
+      CBCFGibbsLambdaAccepted[B][CurrentComponent][2][0]++;
+
       CurrentAdsorbateMolecule=FractionalMoleculeA;
       CurrentCationMolecule=-1;
 
@@ -22165,6 +22190,7 @@ int CBCFGibbsParticleTransferAdsorbateMove(void)
 
       RosenbluthNewA*=((Components[CurrentComponent].NumberOfMolecules[B]-1)*Volume[A])/
                       (Components[CurrentComponent].NumberOfMolecules[A]*Volume[B]);
+      CBCFGibbsLambdaAccepted[A][CurrentComponent][1][0]++;
       break;
     case CF_DELETE_MOVE:
       SelectedRetraceMoleculeA=SelectRandomMoleculeOfTypeExcludingFractionalMolecule(CurrentComponent);
@@ -22353,6 +22379,7 @@ int CBCFGibbsParticleTransferAdsorbateMove(void)
         Adsorbates[CurrentSystem][SelectedRetraceMoleculeA].Atoms[i].CFVDWScalingParameter=LambdaNewA;
         Adsorbates[CurrentSystem][SelectedRetraceMoleculeA].Atoms[i].CFChargeScalingParameter=pow(LambdaNewA,5);
       }
+      CBCFGibbsLambdaAccepted[CurrentSystem][CurrentComponent][2][0]++;
       break;
     default:
       CurrentAdsorbateMolecule=FractionalMoleculeA;
@@ -22461,6 +22488,7 @@ int CBCFGibbsParticleTransferAdsorbateMove(void)
       UAdsorbateCationBondDipoleBondDipoleFourierDeltaFirstStep[CurrentSystem]=UAdsorbateCationBondDipoleBondDipoleFourierDelta[CurrentSystem];
 
       DeltaUFirstStep[CurrentSystem]=DeltaU[CurrentSystem];
+      CBCFGibbsLambdaAccepted[CurrentSystem][CurrentComponent][0][0]++;
       break;
   }
 
@@ -22641,6 +22669,7 @@ int CBCFGibbsParticleTransferAdsorbateMove(void)
       }
       RosenbluthNewB*=((Components[CurrentComponent].NumberOfMolecules[A]-1)*Volume[B])/
                       (Components[CurrentComponent].NumberOfMolecules[B]*Volume[A]);
+      CBCFGibbsLambdaAccepted[CurrentSystem][CurrentComponent][1][0]++;
       break;
     case CF_DELETE_MOVE:
       SelectedRetraceMoleculeB=SelectRandomMoleculeOfTypeExcludingFractionalMolecule(CurrentComponent);
@@ -22937,6 +22966,7 @@ int CBCFGibbsParticleTransferAdsorbateMove(void)
       UAdsorbateCationBondDipoleBondDipoleFourierDeltaFirstStep[CurrentSystem]=UAdsorbateCationBondDipoleBondDipoleFourierDelta[CurrentSystem];
 
       DeltaUFirstStep[CurrentSystem]=DeltaU[CurrentSystem];
+      CBCFGibbsLambdaAccepted[CurrentSystem][CurrentComponent][0][0]++;
       break;
   }
 
@@ -23091,7 +23121,7 @@ int CBCFGibbsParticleTransferAdsorbateMove(void)
     switch(MoveTypeA)
     {
       case CF_INSERT_MOVE:
-        CBCFGibbsLambdaAccepted[CurrentSystem][CurrentComponent][1]++;
+        CBCFGibbsLambdaAccepted[CurrentSystem][CurrentComponent][1][1]++;
 
         for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
         {
@@ -23215,7 +23245,7 @@ int CBCFGibbsParticleTransferAdsorbateMove(void)
                UDeltaPolarization[CurrentSystem]+UTailNew[CurrentSystem];
         break;
       case CF_DELETE_MOVE:
-        CBCFGibbsLambdaAccepted[CurrentSystem][CurrentComponent][2]++;
+        CBCFGibbsLambdaAccepted[CurrentSystem][CurrentComponent][2][1]++;
 
         // remove old fractional molecule
         CurrentAdsorbateMolecule=FractionalMoleculeA;
@@ -23336,7 +23366,7 @@ int CBCFGibbsParticleTransferAdsorbateMove(void)
                 UDeltaPolarization[CurrentSystem]-UTailOld[CurrentSystem];
         break;
       default:
-        CBCFGibbsLambdaAccepted[CurrentSystem][CurrentComponent][0]++;
+        CBCFGibbsLambdaAccepted[CurrentSystem][CurrentComponent][0][1]++;
 
         for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
         {
@@ -23350,7 +23380,7 @@ int CBCFGibbsParticleTransferAdsorbateMove(void)
     switch(MoveTypeB)
     {
       case CF_INSERT_MOVE:
-        CBCFGibbsLambdaAccepted[CurrentSystem][CurrentComponent][2]++;
+        CBCFGibbsLambdaAccepted[CurrentSystem][CurrentComponent][1][1]++;
 
         for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
         {
@@ -23474,7 +23504,7 @@ int CBCFGibbsParticleTransferAdsorbateMove(void)
                UDeltaPolarization[CurrentSystem]+UTailNew[CurrentSystem];
         break;
       case CF_DELETE_MOVE:
-        CBCFGibbsLambdaAccepted[CurrentSystem][CurrentComponent][1]++;
+        CBCFGibbsLambdaAccepted[CurrentSystem][CurrentComponent][2][1]++;
 
         // remove old fractional molecule
         CurrentAdsorbateMolecule=FractionalMoleculeB;
@@ -23595,7 +23625,7 @@ int CBCFGibbsParticleTransferAdsorbateMove(void)
                 UDeltaPolarization[CurrentSystem]-UTailOld[CurrentSystem];
         break;
       default:
-        CBCFGibbsLambdaAccepted[CurrentSystem][CurrentComponent][0]++;
+        CBCFGibbsLambdaAccepted[CurrentSystem][CurrentComponent][0][1]++;
 
         for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
         {
@@ -23809,6 +23839,9 @@ int CBCFGibbsParticleTransferCationMove(void)
   switch(MoveTypeA)
   {
     case CF_INSERT_MOVE:
+      // assume retrace succeeds (because after growing it can immediately reject the move)
+      CBCFGibbsLambdaAccepted[B][CurrentComponent][2][0]++;
+
       CurrentCationMolecule=FractionalMoleculeA;
       CurrentAdsorbateMolecule=-1;
 
@@ -23979,6 +24012,7 @@ int CBCFGibbsParticleTransferCationMove(void)
 
       RosenbluthNewA*=((Components[CurrentComponent].NumberOfMolecules[B]-1)*Volume[A])/
                       (Components[CurrentComponent].NumberOfMolecules[A]*Volume[B]);
+      CBCFGibbsLambdaAccepted[A][CurrentComponent][1][0]++;
       break;
     case CF_DELETE_MOVE:
       SelectedRetraceMoleculeA=SelectRandomMoleculeOfTypeExcludingFractionalMolecule(CurrentComponent);
@@ -24167,6 +24201,7 @@ int CBCFGibbsParticleTransferCationMove(void)
         Cations[CurrentSystem][SelectedRetraceMoleculeA].Atoms[i].CFVDWScalingParameter=LambdaNewA;
         Cations[CurrentSystem][SelectedRetraceMoleculeA].Atoms[i].CFChargeScalingParameter=pow(LambdaNewA,5);
       }
+      CBCFGibbsLambdaAccepted[CurrentSystem][CurrentComponent][2][0]++;
       break;
     default:
       CurrentCationMolecule=FractionalMoleculeA;
@@ -24275,6 +24310,7 @@ int CBCFGibbsParticleTransferCationMove(void)
       UAdsorbateCationBondDipoleBondDipoleFourierDeltaFirstStep[CurrentSystem]=UAdsorbateCationBondDipoleBondDipoleFourierDelta[CurrentSystem];
 
       DeltaUFirstStep[CurrentSystem]=DeltaU[CurrentSystem];
+      CBCFGibbsLambdaAccepted[CurrentSystem][CurrentComponent][0][0]++;
       break;
   }
 
@@ -24455,6 +24491,7 @@ int CBCFGibbsParticleTransferCationMove(void)
       }
       RosenbluthNewB*=((Components[CurrentComponent].NumberOfMolecules[A]-1)*Volume[B])/
                       (Components[CurrentComponent].NumberOfMolecules[B]*Volume[A]);
+      CBCFGibbsLambdaAccepted[CurrentSystem][CurrentComponent][1][0]++;
       break;
     case CF_DELETE_MOVE:
       SelectedRetraceMoleculeB=SelectRandomMoleculeOfTypeExcludingFractionalMolecule(CurrentComponent);
@@ -24751,6 +24788,7 @@ int CBCFGibbsParticleTransferCationMove(void)
       UAdsorbateCationBondDipoleBondDipoleFourierDeltaFirstStep[CurrentSystem]=UAdsorbateCationBondDipoleBondDipoleFourierDelta[CurrentSystem];
 
       DeltaUFirstStep[CurrentSystem]=DeltaU[CurrentSystem];
+      CBCFGibbsLambdaAccepted[CurrentSystem][CurrentComponent][0][0]++;
       break;
   }
 
@@ -24905,7 +24943,7 @@ int CBCFGibbsParticleTransferCationMove(void)
     switch(MoveTypeA)
     {
       case CF_INSERT_MOVE:
-        CBCFGibbsLambdaAccepted[CurrentSystem][CurrentComponent][1]++;
+        CBCFGibbsLambdaAccepted[CurrentSystem][CurrentComponent][1][1]++;
 
         for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
         {
@@ -25029,7 +25067,7 @@ int CBCFGibbsParticleTransferCationMove(void)
                UDeltaPolarization[CurrentSystem]+UTailNew[CurrentSystem];
         break;
       case CF_DELETE_MOVE:
-        CBCFGibbsLambdaAccepted[CurrentSystem][CurrentComponent][2]++;
+        CBCFGibbsLambdaAccepted[CurrentSystem][CurrentComponent][2][1]++;
 
         // remove old fractional molecule
         CurrentCationMolecule=FractionalMoleculeA;
@@ -25150,7 +25188,7 @@ int CBCFGibbsParticleTransferCationMove(void)
                 UDeltaPolarization[CurrentSystem]-UTailOld[CurrentSystem];
         break;
       default:
-        CBCFGibbsLambdaAccepted[CurrentSystem][CurrentComponent][0]++;
+        CBCFGibbsLambdaAccepted[CurrentSystem][CurrentComponent][0][1]++;
 
         for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
         {
@@ -25164,7 +25202,7 @@ int CBCFGibbsParticleTransferCationMove(void)
     switch(MoveTypeB)
     {
       case CF_INSERT_MOVE:
-        CBCFGibbsLambdaAccepted[CurrentSystem][CurrentComponent][2]++;
+        CBCFGibbsLambdaAccepted[CurrentSystem][CurrentComponent][1][1]++;
 
         for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
         {
@@ -25288,7 +25326,7 @@ int CBCFGibbsParticleTransferCationMove(void)
                UDeltaPolarization[CurrentSystem]+UTailNew[CurrentSystem];
         break;
       case CF_DELETE_MOVE:
-        CBCFGibbsLambdaAccepted[CurrentSystem][CurrentComponent][1]++;
+        CBCFGibbsLambdaAccepted[CurrentSystem][CurrentComponent][2][1]++;
 
         // remove old fractional molecule
         CurrentCationMolecule=FractionalMoleculeB;
@@ -25409,7 +25447,7 @@ int CBCFGibbsParticleTransferCationMove(void)
                 UDeltaPolarization[CurrentSystem]-UTailOld[CurrentSystem];
         break;
       default:
-        CBCFGibbsLambdaAccepted[CurrentSystem][CurrentComponent][0]++;
+        CBCFGibbsLambdaAccepted[CurrentSystem][CurrentComponent][0][1]++;
 
         for(i=0;i<Components[CurrentComponent].NumberOfAtoms;i++)
         {
@@ -25493,22 +25531,31 @@ void PrintCBCFGibbsLambdaStatistics(FILE *FilePtr)
     {
       if(Components[i].FractionOfCBCFGibbsChangeMove>0.0)
       {
-        fprintf(FilePtr,"Component [%s] total tried: %lf constant-lambda accepted: %lf (%lf [%%])\n",
+        fprintf(FilePtr,"Component [%s] total tried: %lf succesfull growth: %lf (%lf [%%]) constant-lambda accepted: %lf (%lf [%%])\n",
           Components[i].Name,
           (double)CBCFGibbsLambdaAttempts[CurrentSystem][i][0],
-          (double)CBCFGibbsLambdaAccepted[CurrentSystem][i][0],
+          (double)CBCFGibbsLambdaAccepted[CurrentSystem][i][0][0],
           (double)(CBCFGibbsLambdaAttempts[CurrentSystem][i][0]>(REAL)0.0?
-            100.0*CBCFGibbsLambdaAccepted[CurrentSystem][i][0]/CBCFGibbsLambdaAttempts[CurrentSystem][i][0]:(REAL)0.0));
-        fprintf(FilePtr,"               total tried: %lf insert-lambda accepted: %lf (%lf [%%])\n",
+            100.0*CBCFGibbsLambdaAccepted[CurrentSystem][i][0][0]/CBCFGibbsLambdaAttempts[CurrentSystem][i][0]:(REAL)0.0),
+          (double)CBCFGibbsLambdaAccepted[CurrentSystem][i][0][1],
+          (double)(CBCFGibbsLambdaAttempts[CurrentSystem][i][0]>(REAL)0.0?
+            100.0*CBCFGibbsLambdaAccepted[CurrentSystem][i][0][1]/CBCFGibbsLambdaAttempts[CurrentSystem][i][0]:(REAL)0.0));
+        fprintf(FilePtr,"               total tried: %lf succesfull growth: %lf (%lf [%%]) insert-lambda accepted: %lf (%lf [%%])\n",
           (double)CBCFGibbsLambdaAttempts[CurrentSystem][i][1],
-          (double)CBCFGibbsLambdaAccepted[CurrentSystem][i][1],
+          (double)CBCFGibbsLambdaAccepted[CurrentSystem][i][1][0],
           (double)(CBCFGibbsLambdaAttempts[CurrentSystem][i][1]>(REAL)0.0?
-            100.0*CBCFGibbsLambdaAccepted[CurrentSystem][i][1]/CBCFGibbsLambdaAttempts[CurrentSystem][i][1]:(REAL)0.0));
-        fprintf(FilePtr,"               total tried: %lf remove-lambda accepted: %lf (%lf [%%])\n",
+            100.0*CBCFGibbsLambdaAccepted[CurrentSystem][i][1][0]/CBCFGibbsLambdaAttempts[CurrentSystem][i][1]:(REAL)0.0),
+          (double)CBCFGibbsLambdaAccepted[CurrentSystem][i][1][1],
+          (double)(CBCFGibbsLambdaAttempts[CurrentSystem][i][1]>(REAL)0.0?
+            100.0*CBCFGibbsLambdaAccepted[CurrentSystem][i][1][1]/CBCFGibbsLambdaAttempts[CurrentSystem][i][1]:(REAL)0.0));
+        fprintf(FilePtr,"               total tried: %lf succesfull retrace: %lf (%lf [%%]) remove-lambda accepted: %lf (%lf [%%])\n",
           (double)CBCFGibbsLambdaAttempts[CurrentSystem][i][2],
-          (double)CBCFGibbsLambdaAccepted[CurrentSystem][i][2],
+          (double)CBCFGibbsLambdaAccepted[CurrentSystem][i][2][0],
           (double)(CBCFGibbsLambdaAttempts[CurrentSystem][i][2]>(REAL)0.0?
-            100.0*CBCFGibbsLambdaAccepted[CurrentSystem][i][2]/CBCFGibbsLambdaAttempts[CurrentSystem][i][2]:(REAL)0.0));
+            100.0*CBCFGibbsLambdaAccepted[CurrentSystem][i][2][0]/CBCFGibbsLambdaAttempts[CurrentSystem][i][2]:(REAL)0.0),
+          (double)CBCFGibbsLambdaAccepted[CurrentSystem][i][2][1],
+          (double)(CBCFGibbsLambdaAttempts[CurrentSystem][i][2]>(REAL)0.0?
+            100.0*CBCFGibbsLambdaAccepted[CurrentSystem][i][2][1]/CBCFGibbsLambdaAttempts[CurrentSystem][i][2]:(REAL)0.0));
 
         total=0.0;
         for(k=0;k<Components[i].CFLambdaHistogramSize;k++)
@@ -25547,7 +25594,7 @@ void OptimizeCBCFGibbsLambdaChangeAcceptence(void)
     if(Components[i].FractionOfCBCFGibbsChangeMove>0.0)
     {
       if(CBCFGibbsLambdaAttempts[CurrentSystem][i][0]>0.0)
-        ratio=CBCFGibbsLambdaAccepted[CurrentSystem][i][0]/CBCFGibbsLambdaAttempts[CurrentSystem][i][0];
+        ratio=CBCFGibbsLambdaAccepted[CurrentSystem][i][0][1]/CBCFGibbsLambdaAttempts[CurrentSystem][i][0];
       else
         ratio=0.0;
 
@@ -25561,8 +25608,10 @@ void OptimizeCBCFGibbsLambdaChangeAcceptence(void)
          MaximumCBCFLambdaChange[CurrentSystem][i]=1.0;
 
       TotalCBCFGibbsLambdaAttempts[CurrentSystem][i]+=CBCFGibbsLambdaAttempts[CurrentSystem][i][0];
-      TotalCBCFGibbsLambdaAccepted[CurrentSystem][i]+=CBCFGibbsLambdaAccepted[CurrentSystem][i][0];
-      CBCFGibbsLambdaAttempts[CurrentSystem][i][0]=CBCFGibbsLambdaAccepted[CurrentSystem][i][0]=0.0;
+      TotalCBCFGibbsLambdaAccepted[CurrentSystem][i]+=CBCFGibbsLambdaAccepted[CurrentSystem][i][0][1];
+      CBCFGibbsLambdaAttempts[CurrentSystem][i][0]=0.0;
+      CBCFGibbsLambdaAccepted[CurrentSystem][i][0][0]=0.0;
+      CBCFGibbsLambdaAccepted[CurrentSystem][i][0][1]=0.0;
     }
   }
 }
@@ -25611,11 +25660,11 @@ void WriteRestartMcMoves(FILE *FilePtr)
     fwrite(MaximumCFLambdaChange[i],sizeof(REAL),NumberOfComponents,FilePtr);
 
     fwrite(CBCFSwapLambdaAttempts[i],sizeof(REAL[3]),NumberOfComponents,FilePtr);
-    fwrite(CBCFSwapLambdaAccepted[i],sizeof(REAL[3]),NumberOfComponents,FilePtr);
+    fwrite(CBCFSwapLambdaAccepted[i],sizeof(REAL[3][2]),NumberOfComponents,FilePtr);
     fwrite(TotalCBCFSwapLambdaAttempts[i],sizeof(REAL),NumberOfComponents,FilePtr);
     fwrite(TotalCBCFSwapLambdaAccepted[i],sizeof(REAL),NumberOfComponents,FilePtr);
     fwrite(CBCFGibbsLambdaAttempts[i],sizeof(REAL[3]),NumberOfComponents,FilePtr);
-    fwrite(CBCFGibbsLambdaAccepted[i],sizeof(REAL[3]),NumberOfComponents,FilePtr);
+    fwrite(CBCFGibbsLambdaAccepted[i],sizeof(REAL[3][2]),NumberOfComponents,FilePtr);
     fwrite(TotalCBCFGibbsLambdaAttempts[i],sizeof(REAL),NumberOfComponents,FilePtr);
     fwrite(TotalCBCFGibbsLambdaAccepted[i],sizeof(REAL),NumberOfComponents,FilePtr);
     fwrite(MaximumCBCFLambdaChange[i],sizeof(REAL),NumberOfComponents,FilePtr);
@@ -25895,11 +25944,11 @@ void AllocateMCMovesMemory(void)
   MaximumCFLambdaChange=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
 
   CBCFSwapLambdaAttempts=(REAL(**)[3])calloc(NumberOfSystems,sizeof(REAL(*)[3]));
-  CBCFSwapLambdaAccepted=(REAL(**)[3])calloc(NumberOfSystems,sizeof(REAL(*)[3]));
+  CBCFSwapLambdaAccepted=(REAL(**)[3][2])calloc(NumberOfSystems,sizeof(REAL(*)[3][2]));
   TotalCBCFSwapLambdaAttempts=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
   TotalCBCFSwapLambdaAccepted=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
   CBCFGibbsLambdaAttempts=(REAL(**)[3])calloc(NumberOfSystems,sizeof(REAL(*)[3]));
-  CBCFGibbsLambdaAccepted=(REAL(**)[3])calloc(NumberOfSystems,sizeof(REAL(*)[3]));
+  CBCFGibbsLambdaAccepted=(REAL(**)[3][2])calloc(NumberOfSystems,sizeof(REAL(*)[3][2]));
   TotalCBCFGibbsLambdaAttempts=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
   TotalCBCFGibbsLambdaAccepted=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
   MaximumCBCFLambdaChange=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
@@ -25981,11 +26030,11 @@ void AllocateMCMovesMemory(void)
     MaximumCFLambdaChange[i]=(REAL*)calloc(NumberOfComponents,sizeof(REAL));
 
     CBCFSwapLambdaAttempts[i]=(REAL(*)[3])calloc(NumberOfComponents,sizeof(REAL[3]));
-    CBCFSwapLambdaAccepted[i]=(REAL(*)[3])calloc(NumberOfComponents,sizeof(REAL[3]));
+    CBCFSwapLambdaAccepted[i]=(REAL(*)[3][2])calloc(NumberOfComponents,sizeof(REAL[3][2]));
     TotalCBCFSwapLambdaAttempts[i]=(REAL*)calloc(NumberOfComponents,sizeof(REAL));
     TotalCBCFSwapLambdaAccepted[i]=(REAL*)calloc(NumberOfComponents,sizeof(REAL));
     CBCFGibbsLambdaAttempts[i]=(REAL(*)[3])calloc(NumberOfComponents,sizeof(REAL[3]));
-    CBCFGibbsLambdaAccepted[i]=(REAL(*)[3])calloc(NumberOfComponents,sizeof(REAL[3]));
+    CBCFGibbsLambdaAccepted[i]=(REAL(*)[3][2])calloc(NumberOfComponents,sizeof(REAL[3][2]));
     TotalCBCFGibbsLambdaAttempts[i]=(REAL*)calloc(NumberOfComponents,sizeof(REAL));
     TotalCBCFGibbsLambdaAccepted[i]=(REAL*)calloc(NumberOfComponents,sizeof(REAL));
     MaximumCBCFLambdaChange[i]=(REAL*)calloc(NumberOfComponents,sizeof(REAL));
@@ -26248,11 +26297,11 @@ void ReadRestartMcMoves(FILE *FilePtr)
     fread(MaximumCFLambdaChange[i],sizeof(REAL),NumberOfComponents,FilePtr);
 
     fread(CBCFSwapLambdaAttempts[i],sizeof(REAL[3]),NumberOfComponents,FilePtr);
-    fread(CBCFSwapLambdaAccepted[i],sizeof(REAL[3]),NumberOfComponents,FilePtr);
+    fread(CBCFSwapLambdaAccepted[i],sizeof(REAL[3][2]),NumberOfComponents,FilePtr);
     fread(TotalCBCFSwapLambdaAttempts[i],sizeof(REAL),NumberOfComponents,FilePtr);
     fread(TotalCBCFSwapLambdaAccepted[i],sizeof(REAL),NumberOfComponents,FilePtr);
     fread(CBCFGibbsLambdaAttempts[i],sizeof(REAL[3]),NumberOfComponents,FilePtr);
-    fread(CBCFGibbsLambdaAccepted[i],sizeof(REAL[3]),NumberOfComponents,FilePtr);
+    fread(CBCFGibbsLambdaAccepted[i],sizeof(REAL[3][2]),NumberOfComponents,FilePtr);
     fread(TotalCBCFGibbsLambdaAttempts[i],sizeof(REAL),NumberOfComponents,FilePtr);
     fread(TotalCBCFGibbsLambdaAccepted[i],sizeof(REAL),NumberOfComponents,FilePtr);
     fread(MaximumCBCFLambdaChange[i],sizeof(REAL),NumberOfComponents,FilePtr);
