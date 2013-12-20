@@ -892,6 +892,7 @@ void ReadComponentDefinition(int comp)
   Components[comp].CpuTimeTranslationMove=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
   Components[comp].CpuTimeRandomTranslationMove=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
   Components[comp].CpuTimeRotationMove=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+  Components[comp].CpuTimeRandomRotationMove=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
   Components[comp].CpuTimePartialReinsertionMove=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
   Components[comp].CpuTimeReinsertionMove=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
   Components[comp].CpuTimeReinsertionInPlaceMove=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
@@ -3102,6 +3103,7 @@ void RescaleComponentProbabilities(void)
     TotProb=Components[i].ProbabilityTranslationMove+
             Components[i].ProbabilityRandomTranslationMove+
             Components[i].ProbabilityRotationMove+
+            Components[i].ProbabilityRandomRotationMove+
             Components[i].ProbabilityPartialReinsertionMove+
             Components[i].ProbabilityReinsertionMove+
             Components[i].ProbabilityReinsertionInPlaceMove+
@@ -3131,7 +3133,8 @@ void RescaleComponentProbabilities(void)
 
     Components[i].ProbabilityRandomTranslationMove+=Components[i].ProbabilityTranslationMove;
     Components[i].ProbabilityRotationMove+=Components[i].ProbabilityRandomTranslationMove;
-    Components[i].ProbabilityPartialReinsertionMove+=Components[i].ProbabilityRotationMove;
+    Components[i].ProbabilityRandomRotationMove+=Components[i].ProbabilityRotationMove;
+    Components[i].ProbabilityPartialReinsertionMove+=Components[i].ProbabilityRandomRotationMove;
     Components[i].ProbabilityReinsertionMove+=Components[i].ProbabilityPartialReinsertionMove;
     Components[i].ProbabilityReinsertionInPlaceMove+=Components[i].ProbabilityReinsertionMove;
     Components[i].ProbabilityReinsertionInPlaneMove+=Components[i].ProbabilityReinsertionInPlaceMove;
@@ -3164,6 +3167,7 @@ void RescaleComponentProbabilities(void)
       Components[i].ProbabilityTranslationMove/=TotProb;
       Components[i].ProbabilityRandomTranslationMove/=TotProb;
       Components[i].ProbabilityRotationMove/=TotProb;
+      Components[i].ProbabilityRandomRotationMove/=TotProb;
       Components[i].ProbabilityPartialReinsertionMove/=TotProb;
       Components[i].ProbabilityReinsertionMove/=TotProb;
       Components[i].ProbabilityReinsertionInPlaceMove/=TotProb;
@@ -3196,7 +3200,8 @@ void RescaleComponentProbabilities(void)
     Components[i].FractionOfTranslationMove=Components[i].ProbabilityTranslationMove;
     Components[i].FractionOfRandomTranslationMove=Components[i].ProbabilityRandomTranslationMove-Components[i].ProbabilityTranslationMove;
     Components[i].FractionOfRotationMove=Components[i].ProbabilityRotationMove-Components[i].ProbabilityRandomTranslationMove;
-    Components[i].FractionOfPartialReinsertionMove=Components[i].ProbabilityPartialReinsertionMove-Components[i].ProbabilityRotationMove;
+    Components[i].FractionOfRandomRotationMove=Components[i].ProbabilityRandomRotationMove-Components[i].ProbabilityRotationMove;
+    Components[i].FractionOfPartialReinsertionMove=Components[i].ProbabilityPartialReinsertionMove-Components[i].ProbabilityRandomRotationMove;
     Components[i].FractionOfReinsertionMove=Components[i].ProbabilityReinsertionMove-Components[i].ProbabilityPartialReinsertionMove;
     Components[i].FractionOfReinsertionInPlaceMove=Components[i].ProbabilityReinsertionInPlaceMove-Components[i].ProbabilityReinsertionMove;
     Components[i].FractionOfReinsertionInPlaneMove=Components[i].ProbabilityReinsertionInPlaneMove-Components[i].ProbabilityReinsertionInPlaceMove;
@@ -5556,7 +5561,7 @@ int ValidCartesianPoint(int i, POINT pos)
 void PrintCPUStatistics(FILE *FilePtr)
 {
   int i,j;
-  REAL CpuTimeTranslationMove,CpuTimeRandomTranslationMove,CpuTimeRotationMove,CpuTimePartialReinsertionMove;
+  REAL CpuTimeTranslationMove,CpuTimeRandomTranslationMove,CpuTimeRotationMove,CpuTimeRandomRotationMove,CpuTimePartialReinsertionMove;
   REAL CpuTimeReinsertionMove,CpuTimeReinsertionInPlaceMove,CpuTimeReinsertionInPlaneMove;
   REAL CpuTimeIdentityChangeMove,CpuTimeSwapMoveInsertion,CpuTimeSwapMoveDeletion;
   REAL CpuTimeCFSwapLambdaMove,CpuTimeCBCFSwapLambdaMove,CpuTimeWidomMove;
@@ -5570,6 +5575,7 @@ void PrintCPUStatistics(FILE *FilePtr)
   CpuTimeTranslationMove=0.0;
   CpuTimeRandomTranslationMove=0.0;
   CpuTimeRotationMove=0.0;
+  CpuTimeRandomRotationMove=0.0;
   CpuTimePartialReinsertionMove=0.0;
   CpuTimeReinsertionMove=0.0;
   CpuTimeReinsertionInPlaceMove=0.0;
@@ -5602,7 +5608,8 @@ void PrintCPUStatistics(FILE *FilePtr)
     fprintf(FilePtr,"Component: %d (%s)\n",i,Components[i].Name);
     fprintf(FilePtr,"\ttranslation:                        %18.10g [s]\n",Components[i].CpuTimeTranslationMove[CurrentSystem]);
     fprintf(FilePtr,"\trandom translation:                 %18.10g [s]\n",Components[i].CpuTimeRandomTranslationMove[CurrentSystem]);
-    fprintf(FilePtr,"\trandom rotation:                    %18.10g [s]\n",Components[i].CpuTimeRotationMove[CurrentSystem]);
+    fprintf(FilePtr,"\trotation:                           %18.10g [s]\n",Components[i].CpuTimeRotationMove[CurrentSystem]);
+    fprintf(FilePtr,"\trandom rotation:                    %18.10g [s]\n",Components[i].CpuTimeRandomRotationMove[CurrentSystem]);
     fprintf(FilePtr,"\tpartial reinsertion:                %18.10g [s]\n",Components[i].CpuTimePartialReinsertionMove[CurrentSystem]);
     fprintf(FilePtr,"\treinsertion:                        %18.10g [s]\n",Components[i].CpuTimeReinsertionMove[CurrentSystem]);
     fprintf(FilePtr,"\treinsertion in-place:               %18.10g [s]\n",Components[i].CpuTimeReinsertionInPlaceMove[CurrentSystem]);
@@ -5622,6 +5629,7 @@ void PrintCPUStatistics(FILE *FilePtr)
     CpuTimeTranslationMove+=Components[i].CpuTimeTranslationMove[CurrentSystem];
     CpuTimeRandomTranslationMove+=Components[i].CpuTimeRandomTranslationMove[CurrentSystem];
     CpuTimeRotationMove+=Components[i].CpuTimeRotationMove[CurrentSystem];
+    CpuTimeRandomRotationMove+=Components[i].CpuTimeRandomRotationMove[CurrentSystem];
     CpuTimePartialReinsertionMove+=Components[i].CpuTimePartialReinsertionMove[CurrentSystem];
     CpuTimeReinsertionMove+=Components[i].CpuTimeReinsertionMove[CurrentSystem];
     CpuTimeReinsertionInPlaceMove+=Components[i].CpuTimeReinsertionInPlaceMove[CurrentSystem];
@@ -5642,7 +5650,8 @@ void PrintCPUStatistics(FILE *FilePtr)
   fprintf(FilePtr,"\nTotal all components:\n");
   fprintf(FilePtr,"\ttranslation:                        %18.10g [s]\n",CpuTimeTranslationMove);
   fprintf(FilePtr,"\trandom translation:                 %18.10g [s]\n",CpuTimeRandomTranslationMove);
-  fprintf(FilePtr,"\trandom rotation:                    %18.10g [s]\n",CpuTimeRotationMove);
+  fprintf(FilePtr,"\trotation:                           %18.10g [s]\n",CpuTimeRotationMove);
+  fprintf(FilePtr,"\trandom rotation:                    %18.10g [s]\n",CpuTimeRandomRotationMove);
   fprintf(FilePtr,"\tpartial reinsertion:                %18.10g [s]\n",CpuTimePartialReinsertionMove);
   fprintf(FilePtr,"\treinsertion:                        %18.10g [s]\n",CpuTimeReinsertionMove);
   fprintf(FilePtr,"\treinsertion in-place:               %18.10g [s]\n",CpuTimeReinsertionInPlaceMove);
@@ -5681,6 +5690,7 @@ void PrintCPUStatistics(FILE *FilePtr)
   CpuTimeTranslationMove=0.0;
   CpuTimeRandomTranslationMove=0.0;
   CpuTimeRotationMove=0.0;
+  CpuTimeRandomRotationMove=0.0;
   CpuTimePartialReinsertionMove=0.0;
   CpuTimeReinsertionMove=0.0;
   CpuTimeReinsertionInPlaceMove=0.0;
@@ -5704,6 +5714,7 @@ void PrintCPUStatistics(FILE *FilePtr)
       CpuTimeTranslationMove+=Components[i].CpuTimeTranslationMove[j];
       CpuTimeRandomTranslationMove+=Components[i].CpuTimeRandomTranslationMove[j];
       CpuTimeRotationMove+=Components[i].CpuTimeRotationMove[j];
+      CpuTimeRandomRotationMove+=Components[i].CpuTimeRandomRotationMove[j];
       CpuTimePartialReinsertionMove+=Components[i].CpuTimePartialReinsertionMove[j];
       CpuTimeReinsertionMove+=Components[i].CpuTimeReinsertionMove[j];
       CpuTimeReinsertionInPlaceMove+=Components[i].CpuTimeReinsertionInPlaceMove[j];
@@ -5725,7 +5736,8 @@ void PrintCPUStatistics(FILE *FilePtr)
   fprintf(FilePtr,"\nParticles moves:\n");
   fprintf(FilePtr,"\ttranslation:                        %18.10g [s]\n",CpuTimeTranslationMove);
   fprintf(FilePtr,"\trandom translation:                 %18.10g [s]\n",CpuTimeRandomTranslationMove);
-  fprintf(FilePtr,"\trandom rotation:                    %18.10g [s]\n",CpuTimeRotationMove);
+  fprintf(FilePtr,"\trotation:                           %18.10g [s]\n",CpuTimeRotationMove);
+  fprintf(FilePtr,"\trandom rotation:                    %18.10g [s]\n",CpuTimeRandomRotationMove);
   fprintf(FilePtr,"\tpartial reinsertion:                %18.10g [s]\n",CpuTimePartialReinsertionMove);
   fprintf(FilePtr,"\treinsertion:                        %18.10g [s]\n",CpuTimeReinsertionMove);
   fprintf(FilePtr,"\treinsertion in-place:               %18.10g [s]\n",CpuTimeReinsertionInPlaceMove);
@@ -5883,7 +5895,7 @@ void ReadRestartPseudoAtoms(FILE *FilePtr)
   if(fabs(Check-123456789.0)>1e-10)
   {
     fprintf(stderr, "Error in binary restart-file (ReadRestartPseudoAtoms)\n");
-    exit(0);
+    ContinueAfterCrash=FALSE;
   }
 
 }
@@ -6051,7 +6063,7 @@ void ReadRestartMolecules(FILE *FilePtr)
   if(fabs(Check-123456789.0)>1e-10)
   {
     fprintf(stderr, "Error in binary restart-file (ReadRestartMolecules)\n");
-    exit(0);
+    ContinueAfterCrash=FALSE;
   }
 }
 
@@ -6401,6 +6413,7 @@ void WriteRestartComponent(FILE *FilePtr)
     fwrite(Components[i].CpuTimeTranslationMove,sizeof(REAL),NumberOfSystems,FilePtr);
     fwrite(Components[i].CpuTimeRandomTranslationMove,sizeof(REAL),NumberOfSystems,FilePtr);
     fwrite(Components[i].CpuTimeRotationMove,sizeof(REAL),NumberOfSystems,FilePtr);
+    fwrite(Components[i].CpuTimeRandomRotationMove,sizeof(REAL),NumberOfSystems,FilePtr);
     fwrite(Components[i].CpuTimePartialReinsertionMove,sizeof(REAL),NumberOfSystems,FilePtr);
     fwrite(Components[i].CpuTimeReinsertionMove,sizeof(REAL),NumberOfSystems,FilePtr);
     fwrite(Components[i].CpuTimeReinsertionInPlaceMove,sizeof(REAL),NumberOfSystems,FilePtr);
@@ -6859,9 +6872,30 @@ void ReadRestartComponent(FILE *FilePtr)
     fread(Components[i].RestrictSphereCenter,sizeof(VECTOR),MAX_NUMBER_OF_SPHERES,FilePtr);
     fread(Components[i].RestrictSphereRadius,sizeof(REAL),MAX_NUMBER_OF_SPHERES,FilePtr);
 
+    Components[i].CpuTimeTranslationMove=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+    Components[i].CpuTimeRandomTranslationMove=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+    Components[i].CpuTimeRotationMove=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+    Components[i].CpuTimeRandomRotationMove=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+    Components[i].CpuTimePartialReinsertionMove=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+    Components[i].CpuTimeReinsertionMove=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+    Components[i].CpuTimeReinsertionInPlaceMove=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+    Components[i].CpuTimeReinsertionInPlaneMove=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+    Components[i].CpuTimeIdentityChangeMove=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+    Components[i].CpuTimeSwapMoveInsertion=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+    Components[i].CpuTimeSwapMoveDeletion=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+    Components[i].CpuTimeCFSwapLambdaMove=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+    Components[i].CpuTimeCBCFSwapLambdaMove=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+    Components[i].CpuTimeWidomMove=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+    Components[i].CpuTimeSurfaceAreaMove=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+    Components[i].CpuTimeGibbsChangeMove=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+    Components[i].CpuTimeCFGibbsChangeMove=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+    Components[i].CpuTimeCBCFGibbsChangeMove=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+    Components[i].CpuTimeGibbsIdentityChangeMove=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+
     fread(Components[i].CpuTimeTranslationMove,sizeof(REAL),NumberOfSystems,FilePtr);
     fread(Components[i].CpuTimeRandomTranslationMove,sizeof(REAL),NumberOfSystems,FilePtr);
     fread(Components[i].CpuTimeRotationMove,sizeof(REAL),NumberOfSystems,FilePtr);
+    fread(Components[i].CpuTimeRandomRotationMove,sizeof(REAL),NumberOfSystems,FilePtr);
     fread(Components[i].CpuTimePartialReinsertionMove,sizeof(REAL),NumberOfSystems,FilePtr);
     fread(Components[i].CpuTimeReinsertionMove,sizeof(REAL),NumberOfSystems,FilePtr);
     fread(Components[i].CpuTimeReinsertionInPlaceMove,sizeof(REAL),NumberOfSystems,FilePtr);
@@ -6883,6 +6917,6 @@ void ReadRestartComponent(FILE *FilePtr)
   if(fabs(Check-123456789.0)>1e-10)
   {
     fprintf(stderr, "Error in binary restart-file (ReadRestartComponent)\n");
-    exit(0);
+    ContinueAfterCrash=FALSE;
   }
 }

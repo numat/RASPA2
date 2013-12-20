@@ -240,7 +240,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
   fprintf(FilePtr,"Compiler and run-time data\n");
   fprintf(FilePtr,"===========================================================================\n");
 
-  fprintf(FilePtr,"%s\n","RASPA 1.8-6");
+  fprintf(FilePtr,"%s\n","RASPA 1.9-1");
 
   #if defined (__LP64__) || defined (__64BIT__) || defined (_LP64) || (__WORDSIZE == 64)
     fprintf(FilePtr,"Compiled as a 64-bits application\n");
@@ -2198,13 +2198,25 @@ void PrintPreSimulationStatusCurrentSystem(int system)
   fprintf(FilePtr,"===========================================================================\n");
   fprintf(FilePtr,"Biasing method: %s\n",BiasingMethod==LJ_BIASING?"using only the VDW part":
                    "using the VDW and the real part of the Ewald summation");
-  fprintf(FilePtr,"Number of trial positions:                             %d\n",NumberOfTrialPositions);
-  fprintf(FilePtr,"Number of trial positions coupled Torsion-selection:   %d\n",NumberOfTrialPositionsTorsion);
-  fprintf(FilePtr,"Number of trial position for the first bead:           %d\n",NumberOfTrialPositionsForTheFirstBead);
-  fprintf(FilePtr,"Number of trial moves per open bead:                   %d\n",NumberOfTrialMovesPerOpenBead);
-  fprintf(FilePtr,"Target acceptance ratio small-mc scheme:               %lf\n",(double)TargetAccRatioSmallMCScheme);
-  fprintf(FilePtr,"Energy overlap criteria:                               %lg\n",(double)EnergyOverlapCriteria);
-  fprintf(FilePtr,"Minimal Rosenbluth factor:                             %lg\n",(double)MinimumRosenbluthFactor);
+  fprintf(FilePtr,"Number of trial positions:                                       %d\n",NumberOfTrialPositions);
+  fprintf(FilePtr,"Number of trial positions (reinsertion):                         %d\n",NumberOfTrialPositionsReinsertion);
+  fprintf(FilePtr,"Number of trial positions (partial reinsertion):                 %d\n",NumberOfTrialPositionsPartialReinsertion);
+  fprintf(FilePtr,"Number of trial positions (identity-change):                     %d\n",NumberOfTrialPositionsIdentityChange);
+  fprintf(FilePtr,"Number of trial positions (Gibbs particle transfer):             %d\n",NumberOfTrialPositionsGibbs);
+  fprintf(FilePtr,"Number of trial positions (insertion/deletion):                  %d\n",NumberOfTrialPositionsSwap);
+  fprintf(FilePtr,"Number of trial positions (Widom insertion):                     %d\n",NumberOfTrialPositionsWidom);
+  fprintf(FilePtr,"Number of trial positions coupled Torsion-selection:             %d\n",NumberOfTrialPositionsTorsion);
+  fprintf(FilePtr,"Number of trial positions first bead:                            %d\n",NumberOfTrialPositionsForTheFirstBead);
+  fprintf(FilePtr,"Number of trial positions first bead (reinsertion):              %d\n",NumberOfTrialPositionsForTheFirstBeadReinsertion);
+  fprintf(FilePtr,"Number of trial positions first bead (partial reinsertion):      %d\n",NumberOfTrialPositionsForTheFirstBeadPartialReinsertion);
+  fprintf(FilePtr,"Number of trial positions first bead (identity-change):          %d\n",NumberOfTrialPositionsForTheFirstBeadIdentityChange);
+  fprintf(FilePtr,"Number of trial positions first bead (Gibbs particle transfer):  %d\n",NumberOfTrialPositionsForTheFirstBeadGibbs);
+  fprintf(FilePtr,"Number of trial positions first bead (insertion/deletion):       %d\n",NumberOfTrialPositionsForTheFirstBeadSwap);
+  fprintf(FilePtr,"Number of trial positions first bead (Widom insertion):          %d\n",NumberOfTrialPositionsForTheFirstBeadWidom);
+  fprintf(FilePtr,"Number of trial moves per open bead:                             %d\n",NumberOfTrialMovesPerOpenBead);
+  fprintf(FilePtr,"Target acceptance ratio small-mc scheme:                         %lf\n",(double)TargetAccRatioSmallMCScheme);
+  fprintf(FilePtr,"Energy overlap criteria:                                         %lg\n",(double)EnergyOverlapCriteria);
+  fprintf(FilePtr,"Minimal Rosenbluth factor:                                       %lg\n",(double)MinimumRosenbluthFactor);
   fprintf(FilePtr,"\n\n");
 
   if(WritePseudoAtomsToOutput)
@@ -2283,6 +2295,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
   {
     fprintf(FilePtr,"Forcefield: %s\n",ForceField);
     fprintf(FilePtr,"===========================================================================\n");
+    fprintf(FilePtr,"Minimal distance: %lg\n",(double)sqrt(OverlapDistanceSquared));
     if(BoundaryCondition[system]==FINITE)
       fprintf(FilePtr,"No VDW cutOff\n");
     else
@@ -2359,6 +2372,11 @@ void PrintPreSimulationStatusCurrentSystem(int system)
         {
           case ZERO_POTENTIAL:
             fprintf(FilePtr,"%7s - %7s [ZERO_POTENTIAL]\n",
+              PseudoAtoms[i].Name,
+              PseudoAtoms[j].Name);
+            break;
+          case ZERO_POTENTIAL_CONTINUOUS_FRACTIONAL:
+            fprintf(FilePtr,"%7s - %7s [ZERO_POTENTIAL_CONTINUOUS_FRACTIONAL]\n",
               PseudoAtoms[i].Name,
               PseudoAtoms[j].Name);
             break;
@@ -3740,6 +3758,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
       }
       fprintf(FilePtr,"\t\tPercentage of random translation moves:            %lf\n",(double)(100.0*Components[i].FractionOfRandomTranslationMove));
       fprintf(FilePtr,"\t\tPercentage of rotation moves:                      %lf\n",(double)(100.0*Components[i].FractionOfRotationMove));
+      fprintf(FilePtr,"\t\tPercentage of random rotation moves:               %lf\n",(double)(100.0*Components[i].FractionOfRandomRotationMove));
       fprintf(FilePtr,"\t\tPercentage of partial reinsertion moves:           %lf\n",(double)(100.0*Components[i].FractionOfPartialReinsertionMove));
       fprintf(FilePtr,"\t\tPercentage of reinsertion moves:                   %lf\n",(double)(100.0*Components[i].FractionOfReinsertionMove));
       fprintf(FilePtr,"\t\tPercentage of reinsertion-in-place moves:          %lf\n",(double)(100.0*Components[i].FractionOfReinsertionInPlaceMove));
@@ -6287,8 +6306,9 @@ void PrintPostSimulationStatus(void)
     fprintf(FilePtr,"\n");
     PrintSmallMCAddStatistics(FilePtr);
     PrintTranslationStatistics(FilePtr);
-    PrintRotationStatistics(FilePtr);
     PrintRandomTranslationStatistics(FilePtr);
+    PrintRotationStatistics(FilePtr);
+    PrintRandomRotationStatistics(FilePtr);
     PrintSwapAddStatistics(FilePtr);
     PrintSwapRemoveStatistics(FilePtr);
     PrintReinsertionStatistics(FilePtr);
@@ -6889,7 +6909,7 @@ void PrintEnergyDriftStatus(FILE *FilePtr)
 
 void PrintRestartFile(void)
 {
-  int j,k,l;
+  int i,j,k,l;
   FILE *FilePtrOut;
   char buffer[1024];
   int index;
@@ -6971,11 +6991,18 @@ void PrintRestartFile(void)
   {
     fprintf(FilePtrOut,"Component %d (%s)\n",j,Components[j].Name);
     fprintf(FilePtrOut,"\tFractional-molecule-id component %d: %d\n",j,Components[j].FractionalMolecule[CurrentSystem]);
+    fprintf(FilePtrOut,"\tNumber-of-biasing-factors component %d: %d\n",j,Components[j].CFLambdaHistogramSize);
+    fprintf(FilePtrOut,"\tBiasing-factors component %d: ",j);
+    for(i=0;i<Components[j].CFLambdaHistogramSize;i++)
+      fprintf(FilePtrOut," %lf",Components[j].CFBiasingFactors[CurrentSystem][i]);
+    fprintf(FilePtrOut,"\tMaximum-CF-Lambda-change component %d: %lf\n",j,MaximumCFLambdaChange[CurrentSystem][j]);
+    fprintf(FilePtrOut,"\tMaximum-CBCF-Lambda-change component %d: %lf\n",j,MaximumCBCFLambdaChange[CurrentSystem][j]);
+    fprintf(FilePtrOut,"\n");
     fprintf(FilePtrOut,"\tMaximum-translation-change component %d: %lf,%lf,%lf\n",j,
        (double)MaximumTranslation[CurrentSystem][j].x,(double)MaximumTranslation[CurrentSystem][j].y,(double)MaximumTranslation[CurrentSystem][j].z);
     fprintf(FilePtrOut,"\tMaximum-translation-in-plane-change component %d: %lf,%lf,%lf\n",j,
        (double)MaximumTranslationInPlane[CurrentSystem][j].x,(double)MaximumTranslationInPlane[CurrentSystem][j].y,(double)MaximumTranslationInPlane[CurrentSystem][j].z);
-    fprintf(FilePtrOut,"\tMaximum-rotation-change component %d: %lf\n",j,(double)MaximumRotation[CurrentSystem][j]);
+    fprintf(FilePtrOut,"\tMaximum-rotation-change component %d: %lf %lf %lf\n",j,(double)MaximumRotation[CurrentSystem][j].x,(double)MaximumRotation[CurrentSystem][j].y,(double)MaximumRotation[CurrentSystem][j].z);
   }
   fprintf(FilePtrOut,"\n");
 
@@ -7466,18 +7493,14 @@ void ReadRestartOutput(FILE* FilePtr)
 
 
   OutputFilePtr=(FILE**)calloc(NumberOfSystems,sizeof(FILE*));
+  FILE_CONTENTS = (char**)malloc(NumberOfSystems * sizeof(char*));
+  FILE_SIZES=(size_t*)malloc(NumberOfSystems * sizeof(size_t));
 
   for(i=0;i<NumberOfSystems;i++)
   {
     // read the current position into the output file (in bytes)
     fread(&pos,1,sizeof(fpos_t),FilePtr);
 
-    fread(&Check,1,sizeof(REAL),FilePtr);
-    if(fabs(Check-123456789.0)>1e-10)
-    {
-      fprintf(stderr, "Error in binary restart-file (ReadRestartOutput)\n");
-      exit(0);
-    }
 
     // construct outputfilename
     sprintf(buffer,"Output/System_%d/output_%s_%d.%d.%d_%lf_%lf%s",
@@ -7562,7 +7585,12 @@ void ReadRestartOutput(FILE* FilePtr)
       PrintPreSimulationStatusCurrentSystem(i); // print the pre-simulation status again
     }
   }
-
+  fread(&Check,1,sizeof(REAL),FilePtr);
+  if(fabs(Check-123456789.0)>1e-10)
+  {
+    fprintf(stderr, "Error in binary restart-file (ReadRestartOutput)\n");
+    ContinueAfterCrash=FALSE;
+  }
 }
 
 void WriteRestartOutput(FILE* FilePtr)

@@ -211,6 +211,7 @@ int ReadInput(char *input)
   int LineNumber;
   int CurrentPrism,CurrentCylinder,CurrentSphere;
   int NumberOfCFBiasingFactors;
+  REAL OverlapDistance;
 
   NumberOfFixedAtomTypes=0;
   NumberOfActiveAtomTypes=0;
@@ -288,6 +289,7 @@ int ReadInput(char *input)
   OptimizeVolumeChange=TRUE;
   OptimizeGibbsVolumeChange=TRUE;
   OptimizeTranslation=TRUE;
+  OptimizeRotation=TRUE;
   OptimizeFrameworkChange=TRUE;
   OptimizeFrameworkShift=TRUE;
   OptimizeCFLambdaChange=TRUE;
@@ -311,11 +313,28 @@ int ReadInput(char *input)
   NumberOfTrialPositionsForTheFirstBead=10;
   NumberOfTrialPositionsTorsion=100;
   NumberOfTrialMovesPerOpenBead=150;
+
+  NumberOfTrialPositionsReinsertion=10;
+  NumberOfTrialPositionsPartialReinsertion=10;
+  NumberOfTrialPositionsIdentityChange=10;
+  NumberOfTrialPositionsGibbs=10;
+  NumberOfTrialPositionsSwap=10;
+  NumberOfTrialPositionsWidom=10;
+
+  NumberOfTrialPositionsForTheFirstBeadReinsertion=10;
+  NumberOfTrialPositionsForTheFirstBeadPartialReinsertion=10;
+  NumberOfTrialPositionsForTheFirstBeadIdentityChange=10;
+  NumberOfTrialPositionsForTheFirstBeadGibbs=10;
+  NumberOfTrialPositionsForTheFirstBeadSwap=10;
+  NumberOfTrialPositionsForTheFirstBeadWidom=10;
+
+
   EnergyOverlapCriteria=1.0e5;
   MinimumRosenbluthFactor=1.0e-150;
 
   TargetAccRatioSmallMCScheme=0.4;
   TargetAccRatioTranslation=0.5;
+  TargetAccRatioRotation=0.5;
   TargetAccRatioLambdaChange=0.5;
   TargetAccRatioVolumeChange=0.5;
   TargetAccRatioBoxShapeChange=0.5;
@@ -327,6 +346,8 @@ int ReadInput(char *input)
   BlockEnergyGridOverlapCriteria=EnergyOverlapCriteria/5.0;
 
   // default value for the cut-off
+  OverlapDistance=1.0;
+  OverlapDistanceSquared=1.0;
   CutOffVDW=12.0;
   InverseCutOffVDW=1.0/CutOffVDW;
   CutOffVDWSquared=SQR(CutOffVDW);
@@ -671,7 +692,7 @@ int ReadInput(char *input)
         // no need to reed the rest of the input file
         // instead read the binary status file
         ReadBinaryRestartFiles();
-        return 0;
+        if(ContinueAfterCrash) return 0;
       }
     }
   }
@@ -1389,6 +1410,11 @@ int ReadInput(char *input)
 
     // read simulation parameters
     if(strcasecmp("TimeStep",keyword)==0) sscanf(arguments,"%lf",&DeltaT);
+    if(strcasecmp("OverlapDistance",keyword)==0) 
+    {
+      sscanf(arguments,"%lf",&OverlapDistance);
+      OverlapDistanceSquared=OverlapDistance*OverlapDistance;
+    }
     if(strcasecmp("CutOff",keyword)==0) sscanf(arguments,"%lf",&CutOffVDW);
     if(strcasecmp("CutOffVDW",keyword)==0) sscanf(arguments,"%lf",&CutOffVDW);
     if(strcasecmp("CutOffVDWSwitch",keyword)==0) sscanf(arguments,"%lf",&CutOffVDWSwitch);
@@ -1423,7 +1449,7 @@ int ReadInput(char *input)
         // no need to reed the rest of the input file
         // instead read the binary status file
         ReadBinaryRestartFiles();
-        return 0;
+        if(ContinueAfterCrash) return 0;
       }
       if(strcasecmp("no",firstargument)==0) ContinueAfterCrash=FALSE;
     }
@@ -2441,6 +2467,7 @@ int ReadInput(char *input)
     }
     if(strcasecmp("TranslationProbability",keyword)==0) sscanf(arguments,"%lf",&Components[CurrentComponent].ProbabilityTranslationMove);
     if(strcasecmp("TargetAccRatioTranslation",keyword)==0) sscanf(arguments,"%lf",&TargetAccRatioTranslation);
+    if(strcasecmp("TargetAccRatioRotation",keyword)==0) sscanf(arguments,"%lf",&TargetAccRatioRotation);
     if(strcasecmp("TranslationDirection",keyword)==0)
     {
       if(strcasecmp("XYZ",firstargument)==0) Components[CurrentComponent].TranslationDirection=XYZ_DIR;
@@ -2475,6 +2502,7 @@ int ReadInput(char *input)
     }
     if(strcasecmp("RandomTranslationProbability",keyword)==0) sscanf(arguments,"%lf",&Components[CurrentComponent].ProbabilityRandomTranslationMove);
     if(strcasecmp("RotationProbability",keyword)==0) sscanf(arguments,"%lf",&Components[CurrentComponent].ProbabilityRotationMove);
+    if(strcasecmp("RandomRotationProbability",keyword)==0) sscanf(arguments,"%lf",&Components[CurrentComponent].ProbabilityRandomRotationMove);
     if(strcasecmp("CBMCProbability",keyword)==0) sscanf(arguments,"%lf",&Components[CurrentComponent].ProbabilityPartialReinsertionMove);
     if(strcasecmp("PartialReinsertionProbability",keyword)==0) sscanf(arguments,"%lf",&Components[CurrentComponent].ProbabilityPartialReinsertionMove);
     if(strcasecmp("ReinsertionProbability",keyword)==0) sscanf(arguments,"%lf",&Components[CurrentComponent].ProbabilityReinsertionMove);
@@ -4564,6 +4592,11 @@ int ReadInput(char *input)
       if(strcasecmp("yes",firstargument)==0) OptimizeTranslation=TRUE;
       if(strcasecmp("no",firstargument)==0) OptimizeTranslation=FALSE;
     }
+    if(strcasecmp("OptimizeRotation",keyword)==0)
+    {
+      if(strcasecmp("yes",firstargument)==0) OptimizeRotation=TRUE;
+      if(strcasecmp("no",firstargument)==0) OptimizeRotation=FALSE;
+    }
     if(strcasecmp("OptimizeFrameworkChange",keyword)==0)
     {
       if(strcasecmp("yes",firstargument)==0) OptimizeFrameworkChange=TRUE;
@@ -4596,6 +4629,20 @@ int ReadInput(char *input)
     }
     if(strcasecmp("MinimumInnerCycles",keyword)==0) sscanf(arguments,"%d",&MinimumInnerCycles);
     if(strcasecmp("NumberOfTrialPositions",keyword)==0) sscanf(arguments,"%d",&NumberOfTrialPositions);
+    if(strcasecmp("NumberOfTrialPositionsReinsertion",keyword)==0) sscanf(arguments,"%d",&NumberOfTrialPositionsReinsertion);
+    if(strcasecmp("NumberOfTrialPositionsPartialReinsertion",keyword)==0) sscanf(arguments,"%d",&NumberOfTrialPositionsPartialReinsertion);
+    if(strcasecmp("NumberOfTrialPositionsIdentityChange",keyword)==0) sscanf(arguments,"%d",&NumberOfTrialPositionsIdentityChange);
+    if(strcasecmp("NumberOfTrialPositionsGibbs",keyword)==0) sscanf(arguments,"%d",&NumberOfTrialPositionsGibbs);
+    if(strcasecmp("NumberOfTrialPositionsSwap",keyword)==0) sscanf(arguments,"%d",&NumberOfTrialPositionsSwap);
+    if(strcasecmp("NumberOfTrialPositionsWidom",keyword)==0) sscanf(arguments,"%d",&NumberOfTrialPositionsWidom);
+
+    if(strcasecmp("NumberOfTrialPositionsForTheFirstBeadReinsertion",keyword)==0) sscanf(arguments,"%d",&NumberOfTrialPositionsForTheFirstBeadReinsertion);
+    if(strcasecmp("NumberOfTrialPositionsForTheFirstBeadPartialReinsertion",keyword)==0) sscanf(arguments,"%d",&NumberOfTrialPositionsForTheFirstBeadPartialReinsertion);
+    if(strcasecmp("NumberOfTrialPositionsForTheFirstBeadIdentityChange",keyword)==0) sscanf(arguments,"%d",&NumberOfTrialPositionsForTheFirstBeadIdentityChange);
+    if(strcasecmp("NumberOfTrialPositionsForTheFirstBeadGibbs",keyword)==0) sscanf(arguments,"%d",&NumberOfTrialPositionsForTheFirstBeadGibbs);
+    if(strcasecmp("NumberOfTrialPositionsForTheFirstBeadSwap",keyword)==0) sscanf(arguments,"%d",&NumberOfTrialPositionsForTheFirstBeadSwap);
+    if(strcasecmp("NumberOfTrialPositionsForTheFirstBeadWidom",keyword)==0) sscanf(arguments,"%d",&NumberOfTrialPositionsForTheFirstBeadWidom);
+
     if(strcasecmp("NumberOfTrialPositionsTorsion",keyword)==0) sscanf(arguments,"%d",&NumberOfTrialPositionsTorsion);
     if(strcasecmp("NumberOfTrialPositionsForTheFirstBead",keyword)==0)
        sscanf(arguments,"%d",&NumberOfTrialPositionsForTheFirstBead);
@@ -5567,6 +5614,9 @@ int ReadInput(char *input)
           MaximumTranslation[i][j].x=1.3;
           MaximumTranslation[i][j].y=1.3;
           MaximumTranslation[i][j].z=1.3;
+          MaximumRotation[i][j].x=25.0*DEG2RAD;
+          MaximumRotation[i][j].y=25.0*DEG2RAD;
+          MaximumRotation[i][j].z=25.0*DEG2RAD;
           break;
         case ABC_DIR:
         case AB_DIR:
@@ -5579,6 +5629,9 @@ int ReadInput(char *input)
           MaximumTranslation[i][j].x=0.03;
           MaximumTranslation[i][j].y=0.03;
           MaximumTranslation[i][j].z=0.03;
+          MaximumRotation[i][j].x=25.0*DEG2RAD;
+          MaximumRotation[i][j].y=25.0*DEG2RAD;
+          MaximumRotation[i][j].z=25.0*DEG2RAD;
           break;
       }
       MaximumTranslationInPlane[i][j].x=0.3;
@@ -7916,6 +7969,8 @@ void ReadRestartFile(void)
   int *typeArrayAdsorbates,*typeArrayCations;
   int totalNumberOfAdsorbateMolecules;
   int totalNumberOfCationMolecules;
+  char *arg_pointer;
+  int n;
 
   extra_framework_boolean=FALSE;
   for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
@@ -8162,6 +8217,37 @@ void ReadRestartFile(void)
         if(sscanf(arguments,"component %d: %d",&int_temp1,&int_temp2)==2)
           Components[int_temp1].FractionalMolecule[CurrentSystem]=int_temp2;
       }
+
+      if(strcasecmp(keyword,"Number-of-biasing-factors")==0)
+      {
+        int_temp1=int_temp2=0;
+        if(sscanf(arguments,"component %d: %d",&int_temp1,&int_temp2)==2)
+        {
+          if(temp2!=Components[int_temp1].CFLambdaHistogramSize)
+          {
+            Components[int_temp1].CFLambdaHistogramSize=int_temp2;
+
+            // realloc memory
+            Components[int_temp1].CFBiasingFactors[CurrentSystem]=(REAL*)realloc(Components[int_temp1].CFBiasingFactors[CurrentSystem],
+                         Components[int_temp1].CFLambdaHistogramSize*sizeof(REAL));
+          }
+        }
+      }
+      if(strcasecmp(keyword,"Biasing-factors")==0)
+      {
+        int_temp1=int_temp2=0;
+        if(sscanf(arguments,"component %d: %n",&int_temp1,&n)==1)
+        {
+          arg_pointer=arguments;
+         
+          for(i=0;i<Components[int_temp1].CFLambdaHistogramSize;i++)
+          {
+            arg_pointer+=n;
+            sscanf(arg_pointer,"%lf%n",&Components[int_temp1].CFBiasingFactors[CurrentSystem][i],&n);
+          }
+        }
+      }
+
       if(strcasecmp(keyword,"Maximum-translation-change")==0)
       {
         int_temp1=int_temp2=0;
@@ -8173,6 +8259,27 @@ void ReadRestartFile(void)
           MaximumTranslation[CurrentSystem][int_temp1].x=temp3;
         }
       }
+
+      if(strcasecmp(keyword,"Maximum-CF-Lambda-change")==0)
+      {
+        int_temp1=int_temp2=0;
+        temp1=temp2=temp3=0.0;
+        if(sscanf(arguments,"component %d: %lf",&int_temp1,&temp1)==2)
+        {
+          MaximumCFLambdaChange[CurrentSystem][int_temp1]=temp1;
+        }
+      }
+
+      if(strcasecmp(keyword,"Maximum-CBCF-Lambda-change")==0)
+      {
+        int_temp1=int_temp2=0;
+        temp1=temp2=temp3=0.0;
+        if(sscanf(arguments,"component %d: %lf",&int_temp1,&temp1)==2)
+        {
+          MaximumCBCFLambdaChange[CurrentSystem][int_temp1]=temp1;
+        }
+      }
+
       if(strcasecmp(keyword,"Maximum-translation-in-plane-change")==0)
       {
         int_temp1=int_temp2=0;
@@ -8583,25 +8690,25 @@ void ReadBinaryRestartFiles(void)
   sprintf(buffer,"CrashRestart/binary_restart.dat");
   if((FilePtr=fopen(buffer,"r")))
   {
-    ReadRestartConstants(FilePtr);
-    ReadRestartSimulation(FilePtr);
-    ReadRestartWarnings(FilePtr);
-    ReadRestartPseudoAtoms(FilePtr);
-    ReadRestartComponent(FilePtr);
-    ReadRestartMolecules(FilePtr);
-    ReadRestartFramework(FilePtr);
-    ReadRestartCBMC(FilePtr);
-    ReadRestartEwald(FilePtr);
-    ReadRestartStatistics(FilePtr);
-    ReadRestartMcMoves(FilePtr);
-    ReadRestartSample(FilePtr);
-    ReadRestartThermoBarostats(FilePtr);
-    ReadRestartEquationOfState(FilePtr);
-    ReadRestartGrids(FilePtr);
-    ReadRestartMinimization(FilePtr);
-    ReadRestartUtils(FilePtr);
-    ReadRestartMovies(FilePtr);
-    ReadRestartOutput(FilePtr);
+    if(ContinueAfterCrash) ReadRestartConstants(FilePtr);
+    if(ContinueAfterCrash) ReadRestartSimulation(FilePtr);
+    if(ContinueAfterCrash) ReadRestartWarnings(FilePtr);
+    if(ContinueAfterCrash) ReadRestartPseudoAtoms(FilePtr);
+    if(ContinueAfterCrash) ReadRestartComponent(FilePtr);
+    if(ContinueAfterCrash) ReadRestartMolecules(FilePtr);
+    if(ContinueAfterCrash) ReadRestartFramework(FilePtr);
+    if(ContinueAfterCrash) ReadRestartCBMC(FilePtr);
+    if(ContinueAfterCrash) ReadRestartEwald(FilePtr);
+    if(ContinueAfterCrash) ReadRestartStatistics(FilePtr);
+    if(ContinueAfterCrash) ReadRestartMcMoves(FilePtr);
+    if(ContinueAfterCrash) ReadRestartSample(FilePtr);
+    if(ContinueAfterCrash) ReadRestartThermoBarostats(FilePtr);
+    if(ContinueAfterCrash) ReadRestartEquationOfState(FilePtr);
+    if(ContinueAfterCrash) ReadRestartGrids(FilePtr);
+    if(ContinueAfterCrash) ReadRestartMinimization(FilePtr);
+    if(ContinueAfterCrash) ReadRestartUtils(FilePtr);
+    if(ContinueAfterCrash) ReadRestartMovies(FilePtr);
+    if(ContinueAfterCrash) ReadRestartOutput(FilePtr);
 
     fclose(FilePtr);
   }

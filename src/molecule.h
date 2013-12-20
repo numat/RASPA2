@@ -487,10 +487,11 @@ typedef struct Component
   int TranslationMethod;
   REAL ProbabilityTranslationMove;
   int  TranslationDirection;
-  REAL_MATRIX3x3 TranslationMatrix;
   int  SwapEvery;
+  REAL_MATRIX3x3 TranslationMatrix;
   REAL ProbabilityRandomTranslationMove;
   REAL ProbabilityRotationMove;
+  REAL ProbabilityRandomRotationMove;
   REAL ProbabilityPartialReinsertionMove;
   REAL ProbabilityReinsertionMove;
   REAL ProbabilityReinsertionInPlaceMove;
@@ -522,6 +523,7 @@ typedef struct Component
   REAL *CpuTimeTranslationMove;
   REAL *CpuTimeRandomTranslationMove;
   REAL *CpuTimeRotationMove;
+  REAL *CpuTimeRandomRotationMove;
   REAL *CpuTimePartialReinsertionMove;
   REAL *CpuTimeReinsertionMove;
   REAL *CpuTimeReinsertionInPlaceMove;
@@ -566,6 +568,7 @@ typedef struct Component
   REAL FractionOfTranslationMove;
   REAL FractionOfRandomTranslationMove;
   REAL FractionOfRotationMove;
+  REAL FractionOfRandomRotationMove;
   REAL FractionOfPartialReinsertionMove;
   REAL FractionOfReinsertionMove;
   REAL FractionOfReinsertionInPlaceMove;

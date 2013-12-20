@@ -119,6 +119,7 @@ int SymmetrizeFrameworkCharges;
 int UseChargesFromMOLFile;
 int UseChargesFromCIFFile;
 
+REAL OverlapDistanceSquared;
 REAL CutOffVDW;
 REAL CutOffVDWSquared;
 REAL CutOffVDWSwitch;
@@ -392,6 +393,7 @@ REAL *CpuTimeFrameworkShiftMove;
 int OptimizeVolumeChange;
 int OptimizeGibbsVolumeChange;
 int OptimizeTranslation;
+int OptimizeRotation;
 int OptimizeFrameworkChange;
 int OptimizeFrameworkShift;
 int OptimizeCFLambdaChange;
@@ -848,6 +850,7 @@ void WriteRestartSimulation(FILE *FilePtr)
   fwrite(&UseChargesFromMOLFile,sizeof(int),1,FilePtr);
   fwrite(&UseChargesFromCIFFile,sizeof(int),1,FilePtr);
 
+  fwrite(&OverlapDistanceSquared,sizeof(OverlapDistanceSquared),1,FilePtr);
   fwrite(&CutOffVDW,sizeof(CutOffVDW),1,FilePtr);
   fwrite(&CutOffVDWSquared,sizeof(CutOffVDWSquared),1,FilePtr);
   fwrite(&CutOffVDWSwitch,sizeof(CutOffVDWSwitch),1,FilePtr);
@@ -1127,6 +1130,7 @@ void WriteRestartSimulation(FILE *FilePtr)
   fwrite(&OptimizeVolumeChange,sizeof(int),1,FilePtr);
   fwrite(&OptimizeGibbsVolumeChange,sizeof(int),1,FilePtr);
   fwrite(&OptimizeTranslation,sizeof(int),1,FilePtr);
+  fwrite(&OptimizeRotation,sizeof(int),1,FilePtr);
   fwrite(&OptimizeFrameworkChange,sizeof(int),1,FilePtr);
   fwrite(&OptimizeFrameworkShift,sizeof(int),1,FilePtr);
   fwrite(&OptimizeCFLambdaChange,sizeof(int),1,FilePtr);
@@ -1477,6 +1481,7 @@ void ReadRestartSimulation(FILE *FilePtr)
   fread(&UseChargesFromMOLFile,sizeof(int),1,FilePtr);
   fread(&UseChargesFromCIFFile,sizeof(int),1,FilePtr);
 
+  fread(&OverlapDistanceSquared,sizeof(OverlapDistanceSquared),1,FilePtr);
   fread(&CutOffVDW,sizeof(CutOffVDW),1,FilePtr);
   fread(&CutOffVDWSquared,sizeof(CutOffVDWSquared),1,FilePtr);
   fread(&CutOffVDWSwitch,sizeof(CutOffVDWSwitch),1,FilePtr);
@@ -1757,6 +1762,7 @@ void ReadRestartSimulation(FILE *FilePtr)
   fread(&OptimizeVolumeChange,sizeof(int),1,FilePtr);
   fread(&OptimizeGibbsVolumeChange,sizeof(int),1,FilePtr);
   fread(&OptimizeTranslation,sizeof(int),1,FilePtr);
+  fread(&OptimizeRotation,sizeof(int),1,FilePtr);
   fread(&OptimizeFrameworkChange,sizeof(int),1,FilePtr);
   fread(&OptimizeFrameworkShift,sizeof(int),1,FilePtr);
   fread(&OptimizeCFLambdaChange,sizeof(int),1,FilePtr);
@@ -1768,6 +1774,6 @@ void ReadRestartSimulation(FILE *FilePtr)
   if(fabs(Check-123456789.0)>1e-10)
   {
     fprintf(stderr, "Error in binary restart-file (ReadRestartSimulation)\n");
-    exit(0);
+    ContinueAfterCrash=FALSE;
   }
 }

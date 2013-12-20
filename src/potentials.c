@@ -198,6 +198,9 @@ void ChangeVDWtoCFVDW(void)
       {
         switch(PotentialType[i][j])
         {
+          case ZERO_POTENTIAL:
+            PotentialType[i][j]=ZERO_POTENTIAL_CONTINUOUS_FRACTIONAL;
+            break;
           case LENNARD_JONES:
             PotentialType[i][j]=LENNARD_JONES_CONTINUOUS_FRACTIONAL;
             break;
@@ -222,6 +225,9 @@ void ParseForceFieldSelfParameters(char *Arguments,int i,char *PotentialName)
   // zero potential
   if((strcasecmp(PotentialName,"NONE")==0)||(strcasecmp(PotentialName,"ZERO_POTENTIAL")==0))
     PotentialType[i][i]=ZERO_POTENTIAL;
+
+  if((strcasecmp(PotentialName,"NONE_CONTINUOUS_FRACTIONAL")==0)||(strcasecmp(PotentialName,"ZERO_POTENTIAL_CONTINUOUS_FRACTIONAL")==0))
+    PotentialType[i][i]=ZERO_POTENTIAL_CONTINUOUS_FRACTIONAL;
 
   if((strcasecmp(PotentialName,"HARD_SPHERE")==0)||(strcasecmp(PotentialName,"HARD-SPHERE")==0))
   {
@@ -1355,6 +1361,11 @@ void ParseForceFieldBinaryParameters(char *Arguments,int i,int j,char *Potential
   {
     PotentialType[i][j]=ZERO_POTENTIAL;
     PotentialType[j][i]=ZERO_POTENTIAL;
+  }
+  if((strcasecmp(PotentialName,"NONE_CONTINUOUS_FRACTIONAL")==0)||(strcasecmp(PotentialName,"NoneContinuousFractional")==0))
+  {
+    PotentialType[i][j]=ZERO_POTENTIAL_CONTINUOUS_FRACTIONAL;
+    PotentialType[j][i]=ZERO_POTENTIAL_CONTINUOUS_FRACTIONAL;
   }
   if(strncasecmp(PotentialName,"zero-potential",strlen("zero-potential"))==0)
   {
@@ -2970,6 +2981,11 @@ void ReadForceFieldDefinitionsMixingRules(void)
           PotentialType[i][j]=ZERO_POTENTIAL;
           PotentialType[j][i]=ZERO_POTENTIAL;
         }
+        if((PotentialType[i][i]==ZERO_POTENTIAL_CONTINUOUS_FRACTIONAL)||(PotentialType[j][j]==ZERO_POTENTIAL_CONTINUOUS_FRACTIONAL))
+        {
+          PotentialType[i][j]=ZERO_POTENTIAL_CONTINUOUS_FRACTIONAL;
+          PotentialType[j][i]=ZERO_POTENTIAL_CONTINUOUS_FRACTIONAL;
+        }
         if(PotentialType[i][i]==HARD_SPHERE)
         {
           PotentialType[i][j]=HARD_SPHERE;
@@ -3553,6 +3569,11 @@ void ReadForceFieldDefinitionsMixingRules(void)
         {
           PotentialType[i][j]=ZERO_POTENTIAL;
           PotentialType[j][i]=ZERO_POTENTIAL;
+        }
+        if((PotentialType[i][i]==ZERO_POTENTIAL_CONTINUOUS_FRACTIONAL)||(PotentialType[j][j]==ZERO_POTENTIAL_CONTINUOUS_FRACTIONAL))
+        {
+          PotentialType[i][j]=ZERO_POTENTIAL_CONTINUOUS_FRACTIONAL;
+          PotentialType[j][i]=ZERO_POTENTIAL_CONTINUOUS_FRACTIONAL;
         }
         if(PotentialType[i][i]==HARD_SPHERE)
         {
@@ -4276,6 +4297,10 @@ void ReadForceFieldDefinitions(void)
           PotentialType[i][j]=ZERO_POTENTIAL;
           PotentialType[j][i]=ZERO_POTENTIAL;
           break;
+        case ZERO_POTENTIAL_CONTINUOUS_FRACTIONAL:
+          PotentialType[i][j]=ZERO_POTENTIAL_CONTINUOUS_FRACTIONAL;
+          PotentialType[j][i]=ZERO_POTENTIAL_CONTINUOUS_FRACTIONAL;
+          break;
         case HARD_SPHERE:
           PotentialType[i][j]=HARD_SPHERE;
           PotentialType[j][i]=HARD_SPHERE;
@@ -4674,6 +4699,10 @@ void ReadForceFieldDefinitions(void)
        case ZERO_POTENTIAL:
           PotentialType[i][j]=ZERO_POTENTIAL;
           PotentialType[j][i]=ZERO_POTENTIAL;
+          break;
+       case ZERO_POTENTIAL_CONTINUOUS_FRACTIONAL:
+          PotentialType[i][j]=ZERO_POTENTIAL_CONTINUOUS_FRACTIONAL;
+          PotentialType[j][i]=ZERO_POTENTIAL_CONTINUOUS_FRACTIONAL;
           break;
         case HARD_SPHERE:
           PotentialType[i][j]=HARD_SPHERE;
@@ -5080,6 +5109,7 @@ void ComputePotentialShifts(void)
       {
         case UNDEFINED_POTENTIAL:
         case ZERO_POTENTIAL:
+        case ZERO_POTENTIAL_CONTINUOUS_FRACTIONAL:
         case HARD_SPHERE:
           TailCorrection[i][j]=FALSE;
           break;
@@ -5639,7 +5669,7 @@ void ComputeDampingCoefficientsSecondDerivatives(REAL r, REAL b,REAL *f6,REAL *f
 
 REAL PotentialValue(int typeA,int typeB,REAL rr,REAL scaling)
 {
-  REAL fcVal,r,U,rri3,rri3_2,rri5;
+  REAL r,U,rri3,rri3_2,rri5;
   REAL arg1,arg2,arg3,arg4,arg5,arg6,arg7;
   REAL ri6,ri9;
   REAL exp1,exp2,exp_term,P;
@@ -5652,15 +5682,14 @@ REAL PotentialValue(int typeA,int typeB,REAL rr,REAL scaling)
   {
     case UNDEFINED_POTENTIAL:
     case ZERO_POTENTIAL:
-      U=0.0;
-      fcVal=0.0;
-      break;
+      return 0.0;
+    case ZERO_POTENTIAL_CONTINUOUS_FRACTIONAL:
+      if(rr<OverlapDistanceSquared) return 2.0*EnergyOverlapCriteria;
+      return 0.0;
     case HARD_SPHERE:
       arg1=PotentialParms[typeA][typeB][0];
       if(rr<SQR(arg1)) return 2.0*EnergyOverlapCriteria;
-      U=0.0;
-      fcVal=0.0;
-      break;
+      return 0.0;
     case LENNARD_JONES:
       // 4*p_0*((p_1/r)^12-(p_1/r)^6)
       // ======================================================================================
@@ -5709,7 +5738,7 @@ REAL PotentialValue(int typeA,int typeB,REAL rr,REAL scaling)
       // p_0/k_B [K]    strength parameter epsilon
       // p_1     [A]    size parameter sigma
       // p_3/k_B [K]    (non-zero for a shifted potential)
-      if(rr<1.0) return 2.0*EnergyOverlapCriteria;
+      if(rr<OverlapDistanceSquared) return 2.0*EnergyOverlapCriteria;
       arg1=PotentialParms[typeA][typeB][0];
       arg2=SQR(PotentialParms[typeA][typeB][1]);
       arg3=PotentialParms[typeA][typeB][2];
@@ -5720,7 +5749,7 @@ REAL PotentialValue(int typeA,int typeB,REAL rr,REAL scaling)
       // ======================================================================================
       // p_0/k_B [K]    strength parameter epsilon
       // p_1     [A]    size parameter sigma
-      if(rr<1.0) return 2.0*EnergyOverlapCriteria;
+      if(rr<OverlapDistanceSquared) return 2.0*EnergyOverlapCriteria;
       arg1=PotentialParms[typeA][typeB][0];
       arg2=SQR(PotentialParms[typeA][typeB][1]);
       rri3=1.0/(CUBE(rr/arg2)+0.5*SQR(1.0-scaling));
@@ -5736,7 +5765,7 @@ REAL PotentialValue(int typeA,int typeB,REAL rr,REAL scaling)
       // ======================================================================================
       // p_0/k_B [K]    strength parameter epsilon
       // p_1     [A]    size parameter sigma
-      if(rr<1.0) return 2.0*EnergyOverlapCriteria;
+      if(rr<OverlapDistanceSquared) return 2.0*EnergyOverlapCriteria;
       arg1=PotentialParms[typeA][typeB][0];
       arg2=SQR(PotentialParms[typeA][typeB][1]);
       rri3=1.0/(CUBE(rr/arg2)+0.5*SQR(1.0-scaling));
@@ -6984,6 +7013,11 @@ void PotentialGradient(int typeA,int typeB,REAL rr,REAL *energy,REAL *force_fact
       U=0.0;
       fcVal=0.0;
       break;
+    case ZERO_POTENTIAL_CONTINUOUS_FRACTIONAL:
+      U=0.0;
+      fcVal=0.0;
+      if(rr<OverlapDistanceSquared) U=2.0*EnergyOverlapCriteria;
+      break;
     case HARD_SPHERE:
       U=0.0;
       fcVal=0.0;
@@ -7057,7 +7091,7 @@ void PotentialGradient(int typeA,int typeB,REAL rr,REAL *energy,REAL *force_fact
       U=scaling*(4.0*arg1*(rri3*(rri3-1.0))-arg3);
       term1=0.5*SQR(scaling-1.0)*pow(arg2,3);
       fcVal=(24*arg1*scaling*SQR(rr)*pow(arg2,3)*(pow(rr,3)+(term1-2.0*pow(arg2,3))))/pow(pow(rr,3)+term1,3);
-      if(rr<1.0) U=2.0*EnergyOverlapCriteria;
+      if(rr<OverlapDistanceSquared) U=2.0*EnergyOverlapCriteria;
       break;
     case LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED3:
       // {4*p_0*((p_1/r)^12-(p_1/r)^6)}*S(r)
@@ -7079,7 +7113,7 @@ void PotentialGradient(int typeA,int typeB,REAL rr,REAL *energy,REAL *force_fact
         fcVal=U*SwitchingValueDerivative/r+fcVal*SwitchingValue;
         U*=SwitchingValue;
       }
-      if(rr<1.0) U=2.0*EnergyOverlapCriteria;
+      if(rr<OverlapDistanceSquared) U=2.0*EnergyOverlapCriteria;
       break;
     case LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED5:
       // {4*p_0*((p_1/r)^12-(p_1/r)^6)}*S(r)
@@ -7102,7 +7136,7 @@ void PotentialGradient(int typeA,int typeB,REAL rr,REAL *energy,REAL *force_fact
         fcVal=U*SwitchingValueDerivative/r+fcVal*SwitchingValue;
         U*=SwitchingValue;
       }
-      if(rr<1.0) U=2.0*EnergyOverlapCriteria;
+      if(rr<OverlapDistanceSquared) U=2.0*EnergyOverlapCriteria;
       break;
     case WCA:
       // 4*p_0*((p_1/r)^12-(p_1/r)^6)
@@ -8605,6 +8639,12 @@ void PotentialSecondDerivative(int typeA,int typeB,REAL rr,REAL *energy,REAL *fa
       fcVal1=0.0;
       fcVal2=0.0;
       break;
+    case ZERO_POTENTIAL_CONTINUOUS_FRACTIONAL:
+      U=0.0;
+      fcVal1=0.0;
+      fcVal2=0.0;
+      if(rr<OverlapDistanceSquared) U=2.0*EnergyOverlapCriteria;
+      break;
     case HARD_SPHERE:
       U=0.0;
       fcVal1=0.0;
@@ -8692,7 +8732,7 @@ void PotentialSecondDerivative(int typeA,int typeB,REAL rr,REAL *energy,REAL *fa
       term1=0.5*SQR(scaling-1.0)*pow(arg2,3);
       fcVal1=(24*arg1*scaling*SQR(rr)*pow(arg2,3)*(pow(rr,3)+(term1-2.0*pow(arg2,3))))/pow(pow(rr,3)+term1,3);
       fcVal2=0.0;
-      if(rr<1.0) U=2.0*EnergyOverlapCriteria;
+      if(rr<OverlapDistanceSquared) U=2.0*EnergyOverlapCriteria;
       break;
     case LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED3:
       // {4*p_0*((p_1/r)^12-(p_1/r)^6)}*S(r)
@@ -8716,7 +8756,7 @@ void PotentialSecondDerivative(int typeA,int typeB,REAL rr,REAL *energy,REAL *fa
         fcVal2=0.0;
         U*=SwitchingValue;
       }
-      if(rr<1.0) U=2.0*EnergyOverlapCriteria;
+      if(rr<OverlapDistanceSquared) U=2.0*EnergyOverlapCriteria;
       break;
     case LENNARD_JONES_CONTINUOUS_FRACTIONAL_SMOOTHED5:
       // {4*p_0*((p_1/r)^12-(p_1/r)^6)}*S(r)
@@ -8741,7 +8781,7 @@ void PotentialSecondDerivative(int typeA,int typeB,REAL rr,REAL *energy,REAL *fa
         fcVal2=0.0;
         U*=SwitchingValue;
       }
-      if(rr<1.0) U=2.0*EnergyOverlapCriteria;
+      if(rr<OverlapDistanceSquared) U=2.0*EnergyOverlapCriteria;
       break;
     case WCA:
       // 4*p_0*((p_1/r)^12-(p_1/r)^6)
@@ -10477,6 +10517,13 @@ void PotentialThirdDerivative(int typeA,int typeB,REAL rr,REAL *energy,REAL *fac
       fcVal2=0.0;
       fcVal3=0.0;
       break;
+    case ZERO_POTENTIAL_CONTINUOUS_FRACTIONAL:
+      U=0.0;
+      fcVal1=0.0;
+      fcVal2=0.0;
+      fcVal3=0.0;
+      if(rr<OverlapDistanceSquared) U=2.0*EnergyOverlapCriteria;
+      break;
     case LENNARD_JONES:
       // 4*p_0*((p_1/r)^12-(p_1/r)^6)
       // ======================================================================================
@@ -10546,6 +10593,7 @@ REAL PotentialCorrection(int typeA,int typeB,REAL r)
   {
     case UNDEFINED_POTENTIAL:
     case ZERO_POTENTIAL:
+    case ZERO_POTENTIAL_CONTINUOUS_FRACTIONAL:
     case HARD_SPHERE:
       return 0.0;
     case LENNARD_JONES:
@@ -10874,6 +10922,7 @@ REAL PotentialCorrectionPressure(int typeA,int typeB,REAL r)
   {
     case UNDEFINED_POTENTIAL:
     case ZERO_POTENTIAL:
+    case ZERO_POTENTIAL_CONTINUOUS_FRACTIONAL:
     case HARD_SPHERE:
       return 0.0;
     case LENNARD_JONES:

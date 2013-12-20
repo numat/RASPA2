@@ -375,7 +375,7 @@ void ConvertStringToUppercase(char *buffer)
     if(fabs(Check-123456789.0)>1e-10)
     {
       fprintf(stderr, "Error in binary restart-file (ReadRestartUtils)\n");
-      exit(0);
+      ContinueAfterCrash=FALSE;
     }
   }
 
@@ -798,6 +798,74 @@ void RandomArrayRotationMatrix(VECTOR *Cord,int n)
   }
 }
 
+void RotationAroundXAxis(VECTOR *Cord,int n,REAL theta)
+{
+  int i;
+  REAL w,s,c,rot[3][3];
+
+  c=cos(theta);
+  s=sin(theta);
+
+  rot[0][0]=1.0; rot[1][0]=0.0;  rot[2][0]=0.0;
+  rot[0][1]=0.0; rot[1][1]=c;    rot[2][1]=-s;
+  rot[0][2]=0.0; rot[1][2]=s;    rot[2][2]=c;
+
+  for(i=0;i<n;i++)
+  {
+    w=Cord[i].x*rot[0][0]+Cord[i].y*rot[0][1]+Cord[i].z*rot[0][2];
+    s=Cord[i].x*rot[1][0]+Cord[i].y*rot[1][1]+Cord[i].z*rot[1][2];
+    c=Cord[i].x*rot[2][0]+Cord[i].y*rot[2][1]+Cord[i].z*rot[2][2];
+    Cord[i].x=w;
+    Cord[i].y=s;
+    Cord[i].z=c;
+  }
+}
+
+void RotationAroundYAxis(VECTOR *Cord,int n,REAL theta)
+{
+  int i;
+  REAL w,s,c,rot[3][3];
+
+  c=cos(theta);
+  s=sin(theta);
+
+  rot[0][0]=c;   rot[1][0]=0;    rot[2][0]=s;
+  rot[0][1]=0;   rot[1][1]=1.0;  rot[2][1]=0;
+  rot[0][2]=-s;  rot[1][2]=0;    rot[2][2]=c;
+
+  for(i=0;i<n;i++)
+  {
+    w=Cord[i].x*rot[0][0]+Cord[i].y*rot[0][1]+Cord[i].z*rot[0][2];
+    s=Cord[i].x*rot[1][0]+Cord[i].y*rot[1][1]+Cord[i].z*rot[1][2];
+    c=Cord[i].x*rot[2][0]+Cord[i].y*rot[2][1]+Cord[i].z*rot[2][2];
+    Cord[i].x=w;
+    Cord[i].y=s;
+    Cord[i].z=c;
+  }
+}
+
+void RotationAroundZAxis(VECTOR *Cord,int n,REAL theta)
+{
+  int i;
+  REAL w,s,c,rot[3][3];
+
+  c=cos(theta);
+  s=sin(theta);
+
+  rot[0][0]=c;   rot[1][0]=-s;   rot[2][0]=0;
+  rot[0][1]=s;   rot[1][1]=c;    rot[2][1]=0;
+  rot[0][2]=0;   rot[1][2]=0;    rot[2][2]=1.0;
+
+  for(i=0;i<n;i++)
+  {
+    w=Cord[i].x*rot[0][0]+Cord[i].y*rot[0][1]+Cord[i].z*rot[0][2];
+    s=Cord[i].x*rot[1][0]+Cord[i].y*rot[1][1]+Cord[i].z*rot[1][2];
+    c=Cord[i].x*rot[2][0]+Cord[i].y*rot[2][1]+Cord[i].z*rot[2][2];
+    Cord[i].x=w;
+    Cord[i].y=s;
+    Cord[i].z=c;
+  }
+}
 
 void RotationAroundXYZAxis(VECTOR v,VECTOR *Cord,int n,REAL theta)
 {

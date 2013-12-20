@@ -180,6 +180,8 @@ void MonteCarloSimulation(void)
             RandomTranslationMove();
           else if(ran<Components[CurrentComponent].ProbabilityRotationMove)
             RotationMove();
+          else if(ran<Components[CurrentComponent].ProbabilityRandomRotationMove)
+            RandomRotationMove();
           else if(ran<Components[CurrentComponent].ProbabilityPartialReinsertionMove)
             PartialReinsertionMove();
           else if(ran<Components[CurrentComponent].ProbabilityReinsertionMove)
@@ -249,6 +251,7 @@ void MonteCarloSimulation(void)
           if(OptimizeVolumeChange) OptimizeVolumeChangeAcceptence();
           if(OptimizeGibbsVolumeChange) OptimizeGibbsVolumeChangeAcceptence();
           if(OptimizeTranslation) OptimizeTranslationAcceptence();
+          if(OptimizeRotation) OptimizeRotationAcceptence();
           if((Framework[CurrentSystem].FrameworkModel==FLEXIBLE)&&(OptimizeFrameworkChange))
             OptimizeFrameworkChangeAcceptence();
           if(OptimizeFrameworkShift) OptimizeFrameworkShiftAcceptence();
@@ -334,6 +337,8 @@ void MonteCarloSimulation(void)
               RandomTranslationMove();
             else if(ran<Components[CurrentComponent].ProbabilityRotationMove)
               RotationMove();
+            else if(ran<Components[CurrentComponent].ProbabilityRandomRotationMove)
+              RandomRotationMove();
             else if(ran<Components[CurrentComponent].ProbabilityPartialReinsertionMove)
               PartialReinsertionMove();
             else if(ran<Components[CurrentComponent].ProbabilityReinsertionMove)
@@ -415,6 +420,7 @@ void MonteCarloSimulation(void)
             if(OptimizeVolumeChange) OptimizeVolumeChangeAcceptence();
             if(OptimizeGibbsVolumeChange) OptimizeGibbsVolumeChangeAcceptence();
             if(OptimizeTranslation) OptimizeTranslationAcceptence();
+            if(OptimizeRotation) OptimizeRotationAcceptence();
             if((Framework[CurrentSystem].FrameworkModel==FLEXIBLE)&&(OptimizeFrameworkChange))
               OptimizeFrameworkChangeAcceptence();
             if(OptimizeFrameworkShift) OptimizeFrameworkShiftAcceptence();
@@ -559,6 +565,13 @@ void MonteCarloSimulation(void)
             RotationMove();
             cpu_after=get_cpu_time();
             Components[CurrentComponent].CpuTimeRotationMove[CurrentSystem]+=(cpu_after-cpu_before);
+          }
+          else if(ran<Components[CurrentComponent].ProbabilityRandomRotationMove)
+          {
+            cpu_before=get_cpu_time();
+            RandomRotationMove();
+            cpu_after=get_cpu_time();
+            Components[CurrentComponent].CpuTimeRandomRotationMove[CurrentSystem]+=(cpu_after-cpu_before);
           }
           else if(ran<Components[CurrentComponent].ProbabilityPartialReinsertionMove)
           {
@@ -766,6 +779,7 @@ void MonteCarloSimulation(void)
           if(OptimizeVolumeChange) OptimizeVolumeChangeAcceptence();
           if(OptimizeGibbsVolumeChange) OptimizeGibbsVolumeChangeAcceptence();
           if(OptimizeTranslation) OptimizeTranslationAcceptence();
+          if(OptimizeRotation) OptimizeRotationAcceptence();
           if((Framework[CurrentSystem].FrameworkModel==FLEXIBLE)&(OptimizeFrameworkChange))
             OptimizeFrameworkChangeAcceptence();
           if(OptimizeFrameworkShift) OptimizeFrameworkShiftAcceptence();
