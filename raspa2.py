@@ -82,6 +82,15 @@ def run_script(input_script, structure=None, raspa_dir="auto"):
         else:
             raspa_dir = env["HOME"]
 
+    # This supports `pybel.Molecule` objects with charge data by converting
+    # them into RASPA-formatted cif strings
+    try:
+        import pybel
+        if isinstance(structure, pybel.Molecule):
+            structure = pybel_to_cif(structure)
+    except ImportError:
+        pass
+
     ptr = raspa.run(input_script, structure or "", raspa_dir, True)
     return cast(ptr, c_char_p).value[:]
 
@@ -369,6 +378,41 @@ def get_density(molecule_name, temperature=273.15, pressure=101325,
                         "            CreateNumberOfMolecules    256"])
     info = parse(run_script(script))
     return info["Average Density"]["[kg/m^3]"][0]
+
+
+def pybel_to_cif(structure):
+    """Converts instances of `pybel.Molecule` to a RASPA charged cif format."""
+    import pybel
+    uc = structure.unitcell
+    table = pybel.ob.OBElementTable()
+    cif = "\n".join(["data_I",
+                     "_chemical_name_common ''",
+                     "_cell_length_a %.4f" % uc.GetA(),
+                     "_cell_length_b %.4f" % uc.GetB(),
+                     "_cell_length_c %.4f" % uc.GetC(),
+                     "_cell_angle_alpha %d" % uc.GetAlpha(),
+                     "_cell_angle_beta %d" % uc.GetBeta(),
+                     "_cell_angle_gamma %d" % uc.GetGamma(),
+                     "_space_group_name_H-M_alt 'P 1'",
+                     "_space_group_name_Hall 'P 1'",
+                     "loop_",
+                     "    _symmetry_equiv_pos_as_xyz",
+                     "    x,y,z",
+                     "loop_",
+                     "    _atom_site_label",
+                     "    _atom_site_type_symbol",
+                     "    _atom_site_fract_x",
+                     "    _atom_site_fract_y",
+                     "    _atom_site_fract_z",
+                     "    _atom_site_charge\n"])
+    for i, atom in enumerate(structure):
+        element = table.GetSymbol(atom.atomicnum)
+        coords = uc.CartesianToFractional(atom.vector)
+        cif += "    %-8s%-5s%.5f%10.5f%10.5f%8.3f\n" % ("Mof_" +
+               element, element, coords.GetX(), coords.GetY(),
+               coords.GetZ(), atom.partialcharge)
+    cif += "_end\n"
+    return cif
 
 
 if __name__ == "__main__":
