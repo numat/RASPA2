@@ -170,6 +170,7 @@ static REAL **TotalEnergySquaredAverage;
 static REAL **EnthalpyAverage;
 static REAL **EnthalpySquaredAverage;
 static REAL **EnthalpyTimesVolumeAverage;
+static REAL **EnthalpyTimesEnergyAverage;
 
 static REAL **TemperatureAverage;
 static REAL **TemperatureCellAverage;
@@ -1037,6 +1038,7 @@ void InitializesEnergyAveragesAllSystems(void)
       EnthalpySquaredAverage[k][i]=0.0;
 
       EnthalpyTimesVolumeAverage[k][i]=0.0;
+      EnthalpyTimesEnergyAverage[k][i]=0.0;
 
       UNoseHooverAverage[k][i]=0.0;
 
@@ -1299,6 +1301,7 @@ void UpdateEnergyAveragesCurrentSystem(void)
   EnthalpySquaredAverage[CurrentSystem][Block]+=SQR(Enthalpy);
 
   EnthalpyTimesVolumeAverage[CurrentSystem][Block]+=Enthalpy*Volume[CurrentSystem];
+  EnthalpyTimesEnergyAverage[CurrentSystem][Block]+=Enthalpy*UTotal[CurrentSystem];
 
   HeatOfVaporization[CurrentSystem][Block]+=therm_baro_stats.ExternalTemperature[CurrentSystem]-
                               (UAdsorbateAdsorbate[CurrentSystem]+UCationCation[CurrentSystem])/
@@ -2152,7 +2155,78 @@ REAL GetAverageIsothermalCompressibilityCoefficient(void)
   else return 0.0;
 }
 
+REAL GetAverageHeatCapacityConstantPressure(void)
+{
+  int i;
+  REAL N,T;
+  REAL H,VH,V,U,UH,p;
+  REAL count,sum;
+
+  N=NumberOfAdsorbateMolecules[CurrentSystem]+NumberOfCationMolecules[CurrentSystem];
+  if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+    N+=Framework[CurrentSystem].TotalNumberOfAtoms;
+  count=sum=0.0;
+  H=VH=V=U=UH=0.0;
+  for(i=0;i<NR_BLOCKS;i++)
+  {
+    if(BlockCount[CurrentSystem][i]>0.0)
+    {
+      H+=EnthalpyAverage[CurrentSystem][i];
+      VH+=EnthalpyTimesVolumeAverage[CurrentSystem][i];
+      V+=VolumeAverage[CurrentSystem][i];
+      U+=TotalEnergyAverage[CurrentSystem][i];
+      UH+=EnthalpyTimesEnergyAverage[CurrentSystem][i];
+      count+=BlockCount[CurrentSystem][i];
+    }
+  }
+  if(count>0.0)
+  {
+    p=therm_baro_stats.ExternalPressure[CurrentSystem][0];
+    H/=count;
+    VH/=count;
+    V/=count;
+    U/=count;
+    UH/=count;
+    T=therm_baro_stats.ExternalTemperature[CurrentSystem];
+    return HEAT_CAPACITY_CONVERSION_FACTOR*(((UH-U*H)+p*(VH-V*H))/(N*K_B*SQR(T))+(5.0/2.0)*K_B);
+  }
+  else return 0.0;
+}
+
+
 REAL GetAverageHeatCapacity(void)
+{
+  int i;
+  REAL N,H2,H,T;
+  REAL count,sum;
+  REAL sum1,sum2;
+  int NumberOfBlocks;
+
+  N=NumberOfAdsorbateMolecules[CurrentSystem]+NumberOfCationMolecules[CurrentSystem];
+  if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+    N+=Framework[CurrentSystem].TotalNumberOfAtoms;
+  count=sum=0.0;
+  sum1=sum2=0.0;
+  H2=H=0.0;
+
+  T=therm_baro_stats.ExternalTemperature[CurrentSystem];
+
+  NumberOfBlocks=0;
+  for(i=0;i<NR_BLOCKS;i++)
+  {
+    if(BlockCount[CurrentSystem][i]>0.0)
+    {
+      H2=EnthalpySquaredAverage[CurrentSystem][i]/BlockCount[CurrentSystem][i];
+      H=EnthalpyAverage[CurrentSystem][i]/BlockCount[CurrentSystem][i];
+      sum+=HEAT_CAPACITY_CONVERSION_FACTOR*(H2-SQR(H));
+      NumberOfBlocks++;
+    }
+  }
+  return sum/NumberOfBlocks/(N*K_B*SQR(T))+HEAT_CAPACITY_CONVERSION_FACTOR*(5.0/2.0)*K_B;
+}
+
+/*
+REAL GetAverageHeatCapacityConstantPressure(void)
 {
   int i;
   REAL N,H2,H,T;
@@ -2177,11 +2251,11 @@ REAL GetAverageHeatCapacity(void)
     H2/=count;
     H/=count;
     T=therm_baro_stats.ExternalTemperature[CurrentSystem];
-    return HEAT_CAPACITY_CONVERSION_FACTOR*(H2-SQR(H))/(N*K_B*SQR(T));
+    return HEAT_CAPACITY_CONVERSION_FACTOR*((H2-SQR(H))/(N*K_B*SQR(T))+(3.0/2.0)*K_B);
   }
   else return 0.0;
 }
-
+*/
 
 // return the average Henry coefficient for Component 'comp' in mol/kg/Pa.
 REAL GetAverageHenryCoefficient(int comp)
@@ -2343,9 +2417,10 @@ void PrintPropertyStatus(long long CurrentCycle,long long NumberOfCycles, FILE *
   fprintf(FilePtr,"Isothermal expansion coefficient: %18.10lf [10^6 K^-1]\n",(double)GetAverageIsothermalExpansionCoefficient());
   fprintf(FilePtr,"Isothermal compressibility coefficient: %18.10lf [10^12 Pa^-1]\n",
           (double)GetAverageIsothermalCompressibilityCoefficient());
-  fprintf(FilePtr,"Heat capacity: %18.10lf [J/mole/K]\n",(double)GetAverageHeatCapacity());
   fprintf(FilePtr,"Heat of vaporization: %18.10lf [J/mole/K]\n",(double)GetAverageProperty(HeatOfVaporization));
 */
+  //fprintf(FilePtr,"Heat capacity Cp: %18.10lf [J/mole/K]\n",(double)GetAverageHeatCapacity());
+  //fprintf(FilePtr,"Heat capacity Cp: %18.10lf [J/mole/K]\n",(double)GetAverageHeatCapacityConstantPressure());
 
   fprintf(FilePtr,"Henry coefficients\n");
   for(i=0;i<NumberOfComponents;i++)
@@ -3292,7 +3367,7 @@ void PrintAverageTotalSystemEnergiesMC(FILE *FilePtr)
       H2=EnthalpySquaredAverage[CurrentSystem][i]/BlockCount[CurrentSystem][i];
       H=EnthalpyAverage[CurrentSystem][i]/BlockCount[CurrentSystem][i];
       T=therm_baro_stats.ExternalTemperature[CurrentSystem];
-      tmp=HEAT_CAPACITY_CONVERSION_FACTOR*(H2-SQR(H))/(N*K_B*SQR(T));
+      tmp=HEAT_CAPACITY_CONVERSION_FACTOR*((H2-SQR(H))/(N*K_B*SQR(T))+5.0*K_B/2.0);
       sum+=tmp;
       sum2+=SQR(tmp);
       fprintf(FilePtr,"\tBlock[%2d] %lf [J/mol/K]\n",i,(double)tmp);
@@ -4127,6 +4202,7 @@ void WriteRestartStatistics(FILE *FilePtr)
     fwrite(EnthalpyAverage[i],sizeof(REAL),NumberOfBlocks,FilePtr);
     fwrite(EnthalpySquaredAverage[i],sizeof(REAL),NumberOfBlocks,FilePtr);
     fwrite(EnthalpyTimesVolumeAverage[i],sizeof(REAL),NumberOfBlocks,FilePtr);
+    fwrite(EnthalpyTimesEnergyAverage[i],sizeof(REAL),NumberOfBlocks,FilePtr);
 
     fwrite(TemperatureAverage[i],sizeof(REAL),NumberOfBlocks,FilePtr);
     fwrite(TemperatureCellAverage[i],sizeof(REAL),NumberOfBlocks,FilePtr);
@@ -4311,6 +4387,7 @@ void AllocateStatisticsMemory(void)
   EnthalpyAverage=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
   EnthalpySquaredAverage=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
   EnthalpyTimesVolumeAverage=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
+  EnthalpyTimesEnergyAverage=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
 
   TemperatureAverage=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
   TemperatureCellAverage=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
@@ -4480,6 +4557,7 @@ void AllocateStatisticsMemory(void)
     EnthalpyAverage[i]=(REAL*)calloc(NumberOfBlocks,sizeof(REAL));
     EnthalpySquaredAverage[i]=(REAL*)calloc(NumberOfBlocks,sizeof(REAL));
     EnthalpyTimesVolumeAverage[i]=(REAL*)calloc(NumberOfBlocks,sizeof(REAL));
+    EnthalpyTimesEnergyAverage[i]=(REAL*)calloc(NumberOfBlocks,sizeof(REAL));
 
     TemperatureAverage[i]=(REAL*)calloc(NumberOfBlocks,sizeof(REAL));
     TemperatureCellAverage[i]=(REAL*)calloc(NumberOfBlocks,sizeof(REAL));
@@ -4687,6 +4765,7 @@ void ReadRestartStatistics(FILE *FilePtr)
     fread(EnthalpyAverage[i],sizeof(REAL),NumberOfBlocks,FilePtr);
     fread(EnthalpySquaredAverage[i],sizeof(REAL),NumberOfBlocks,FilePtr);
     fread(EnthalpyTimesVolumeAverage[i],sizeof(REAL),NumberOfBlocks,FilePtr);
+    fread(EnthalpyTimesEnergyAverage[i],sizeof(REAL),NumberOfBlocks,FilePtr);
 
     fread(TemperatureAverage[i],sizeof(REAL),NumberOfBlocks,FilePtr);
     fread(TemperatureCellAverage[i],sizeof(REAL),NumberOfBlocks,FilePtr);

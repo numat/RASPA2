@@ -240,7 +240,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
   fprintf(FilePtr,"Compiler and run-time data\n");
   fprintf(FilePtr,"===========================================================================\n");
 
-  fprintf(FilePtr,"%s\n","RASPA 1.9-1");
+  fprintf(FilePtr,"%s\n","RASPA 1.9-2");
 
   #if defined (__LP64__) || defined (__64BIT__) || defined (_LP64) || (__WORDSIZE == 64)
     fprintf(FilePtr,"Compiled as a 64-bits application\n");
@@ -6914,6 +6914,8 @@ void PrintRestartFile(void)
   char buffer[1024];
   int index;
   int ncell;
+  int FractionalMolecule;
+
 
   if (STREAM)
       return;
@@ -6984,20 +6986,41 @@ void PrintRestartFile(void)
   fprintf(FilePtrOut,"\n\n");
 
 
+  
+
+
   fprintf(FilePtrOut,"Components: %d (Adsorbates %d, Cations %d)\n",NumberOfComponents,
      NumberOfAdsorbateMolecules[CurrentSystem],NumberOfCationMolecules[CurrentSystem]);
   fprintf(FilePtrOut,"========================================================================\n");
   for(j=0;j<NumberOfComponents;j++)
   {
-    fprintf(FilePtrOut,"Component %d (%s)\n",j,Components[j].Name);
-    fprintf(FilePtrOut,"\tFractional-molecule-id component %d: %d\n",j,Components[j].FractionalMolecule[CurrentSystem]);
-    fprintf(FilePtrOut,"\tNumber-of-biasing-factors component %d: %d\n",j,Components[j].CFLambdaHistogramSize);
-    fprintf(FilePtrOut,"\tBiasing-factors component %d: ",j);
-    for(i=0;i<Components[j].CFLambdaHistogramSize;i++)
-      fprintf(FilePtrOut," %lf",Components[j].CFBiasingFactors[CurrentSystem][i]);
-    fprintf(FilePtrOut,"\tMaximum-CF-Lambda-change component %d: %lf\n",j,MaximumCFLambdaChange[CurrentSystem][j]);
-    fprintf(FilePtrOut,"\tMaximum-CBCF-Lambda-change component %d: %lf\n",j,MaximumCBCFLambdaChange[CurrentSystem][j]);
-    fprintf(FilePtrOut,"\n");
+    FractionalMolecule=Components[j].FractionalMolecule[CurrentSystem];
+
+    if(FractionalMolecule>=0)
+    {
+      fprintf(FilePtrOut,"Component %d (%s)\n",j,Components[j].Name);
+      fprintf(FilePtrOut,"\tFractional-molecule-id component %d: %d\n",j,Components[j].FractionalMolecule[CurrentSystem]);
+
+      fprintf(FilePtrOut,"\tLambda factors component %d: ",j);
+      for(i=0;i<Components[j].NumberOfAtoms;i++)
+      {
+        if(Components[j].ExtraFrameworkMolecule)
+          fprintf(FilePtrOut," %lf",Cations[CurrentSystem][FractionalMolecule].Atoms[i].CFVDWScalingParameter);
+        else
+          fprintf(FilePtrOut," %lf",Adsorbates[CurrentSystem][FractionalMolecule].Atoms[i].CFVDWScalingParameter);
+      }
+      fprintf(FilePtrOut,"\n");
+
+      fprintf(FilePtrOut,"\tNumber-of-biasing-factors component %d: %d\n",j,Components[j].CFLambdaHistogramSize);
+      fprintf(FilePtrOut,"\tBiasing-factors component %d: ",j);
+      for(i=0;i<Components[j].CFLambdaHistogramSize;i++)
+        fprintf(FilePtrOut," %lf",Components[j].CFBiasingFactors[CurrentSystem][i]);
+      fprintf(FilePtrOut,"\n");
+
+      fprintf(FilePtrOut,"\tMaximum-CF-Lambda-change component %d: %lf\n",j,MaximumCFLambdaChange[CurrentSystem][j]);
+      fprintf(FilePtrOut,"\tMaximum-CBCF-Lambda-change component %d: %lf\n",j,MaximumCBCFLambdaChange[CurrentSystem][j]);
+      fprintf(FilePtrOut,"\n");
+    }
     fprintf(FilePtrOut,"\tMaximum-translation-change component %d: %lf,%lf,%lf\n",j,
        (double)MaximumTranslation[CurrentSystem][j].x,(double)MaximumTranslation[CurrentSystem][j].y,(double)MaximumTranslation[CurrentSystem][j].z);
     fprintf(FilePtrOut,"\tMaximum-translation-in-plane-change component %d: %lf,%lf,%lf\n",j,

@@ -6662,31 +6662,33 @@ int ReadInput(char *input)
           NumberOfFractionalAdsorbateMolecules[i]++;
 
         // CF: if number of molecules is zero, create an initial fractional molecule
-        fprintf(stderr, "Creating Lambda particle\n");
         CurrentSystem=i;
         CalculateAnisotropicSites();
         if(Components[j].NumberOfMolecules[i]==0)
         {
+          fprintf(stderr, "Creating Lambda particle\n");
           if(Components[j].ExtraFrameworkMolecule)
             MakeInitialCations(1,j);
           else
             MakeInitialAdsorbates(1,j);
         }
         if(Components[j].FractionalMolecule[i]<0)
+        {
           Components[j].FractionalMolecule[i]=SelectRandomMoleculeOfType(j);
 
-        // start with Lambda=0.5
-        for(k=0;k<Components[j].NumberOfAtoms;k++)
-        {
-          if(Components[j].ExtraFrameworkMolecule)
+          // start with Lambda=0.5
+          for(k=0;k<Components[j].NumberOfAtoms;k++)
           {
-            Cations[i][Components[j].FractionalMolecule[i]].Atoms[k].CFVDWScalingParameter=0.5;
-            Cations[i][Components[j].FractionalMolecule[i]].Atoms[k].CFChargeScalingParameter=pow(0.5,5);
-          }
-          else
-          {
-            Adsorbates[i][Components[j].FractionalMolecule[i]].Atoms[k].CFVDWScalingParameter=0.5;
-            Adsorbates[i][Components[j].FractionalMolecule[i]].Atoms[k].CFChargeScalingParameter=pow(0.5,5);
+            if(Components[j].ExtraFrameworkMolecule)
+            {
+              Cations[i][Components[j].FractionalMolecule[i]].Atoms[k].CFVDWScalingParameter=0.5;
+              Cations[i][Components[j].FractionalMolecule[i]].Atoms[k].CFChargeScalingParameter=pow(0.5,5);
+            }
+            else
+            {
+              Adsorbates[i][Components[j].FractionalMolecule[i]].Atoms[k].CFVDWScalingParameter=0.5;
+              Adsorbates[i][Components[j].FractionalMolecule[i]].Atoms[k].CFChargeScalingParameter=pow(0.5,5);
+            }
           }
         }
       }
@@ -6705,6 +6707,8 @@ int ReadInput(char *input)
   }
 
   CheckConfigMoves();
+
+
 
   for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
     PrintRestartFile();
@@ -7952,6 +7956,27 @@ int ReadInput(char *input)
   return 0;
 }
 
+
+void bubble_sort(int list[], int n)
+{
+  long c, d, t;
+ 
+  for (c = 0 ; c < ( n - 1 ); c++)
+  {
+    for (d = 0 ; d < n - c - 1; d++)
+    {
+      if (list[d] > list[d+1])
+      {
+        /* Swapping */
+ 
+        t         = list[d];
+        list[d]   = list[d+1];
+        list[d+1] = t;
+      }
+    }
+  }
+}
+
 void ReadRestartFile(void)
 {
   int i,j;
@@ -7969,6 +7994,7 @@ void ReadRestartFile(void)
   int *typeArrayAdsorbates,*typeArrayCations;
   int totalNumberOfAdsorbateMolecules;
   int totalNumberOfCationMolecules;
+  int *FractionalMolecules;
   char *arg_pointer;
   int n;
 
@@ -7978,6 +8004,11 @@ void ReadRestartFile(void)
     sprintf(buffer,"RestartInitial/System_%d",CurrentSystem);
     mkdir(buffer,S_IRWXU);
   }
+
+
+  FractionalMolecules=(int*)calloc(NumberOfComponents,sizeof(int));
+  for(i=0;i<NumberOfComponents;i++)
+    FractionalMolecules[i]=-1;
 
   for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
   {
@@ -8215,7 +8246,11 @@ void ReadRestartFile(void)
       {
         int_temp1=int_temp2=0;
         if(sscanf(arguments,"component %d: %d",&int_temp1,&int_temp2)==2)
-          Components[int_temp1].FractionalMolecule[CurrentSystem]=int_temp2;
+        {
+          FractionalMolecules[int_temp1]=int_temp2;
+          if(Components[int_temp1].CFMoleculePresent[CurrentSystem])
+            Components[int_temp1].FractionalMolecule[CurrentSystem]=int_temp2;
+        }
       }
 
       if(strcasecmp(keyword,"Number-of-biasing-factors")==0)
@@ -8223,13 +8258,16 @@ void ReadRestartFile(void)
         int_temp1=int_temp2=0;
         if(sscanf(arguments,"component %d: %d",&int_temp1,&int_temp2)==2)
         {
-          if(temp2!=Components[int_temp1].CFLambdaHistogramSize)
+          if(Components[int_temp1].CFMoleculePresent[CurrentSystem])
           {
-            Components[int_temp1].CFLambdaHistogramSize=int_temp2;
+            if(temp2!=Components[int_temp1].CFLambdaHistogramSize)
+            {
+              Components[int_temp1].CFLambdaHistogramSize=int_temp2;
 
-            // realloc memory
-            Components[int_temp1].CFBiasingFactors[CurrentSystem]=(REAL*)realloc(Components[int_temp1].CFBiasingFactors[CurrentSystem],
-                         Components[int_temp1].CFLambdaHistogramSize*sizeof(REAL));
+              // realloc memory
+              Components[int_temp1].CFBiasingFactors[CurrentSystem]=(REAL*)realloc(Components[int_temp1].CFBiasingFactors[CurrentSystem],
+                           Components[int_temp1].CFLambdaHistogramSize*sizeof(REAL));
+            }
           }
         }
       }
@@ -8238,12 +8276,15 @@ void ReadRestartFile(void)
         int_temp1=int_temp2=0;
         if(sscanf(arguments,"component %d: %n",&int_temp1,&n)==1)
         {
-          arg_pointer=arguments;
-         
-          for(i=0;i<Components[int_temp1].CFLambdaHistogramSize;i++)
+          if(Components[int_temp1].CFMoleculePresent[CurrentSystem])
           {
-            arg_pointer+=n;
-            sscanf(arg_pointer,"%lf%n",&Components[int_temp1].CFBiasingFactors[CurrentSystem][i],&n);
+            arg_pointer=arguments;
+         
+            for(i=0;i<Components[int_temp1].CFLambdaHistogramSize;i++)
+            {
+              arg_pointer+=n;
+              sscanf(arg_pointer,"%lf%n",&Components[int_temp1].CFBiasingFactors[CurrentSystem][i],&n);
+            }
           }
         }
       }
@@ -8266,7 +8307,8 @@ void ReadRestartFile(void)
         temp1=temp2=temp3=0.0;
         if(sscanf(arguments,"component %d: %lf",&int_temp1,&temp1)==2)
         {
-          MaximumCFLambdaChange[CurrentSystem][int_temp1]=temp1;
+          if(Components[int_temp1].CFMoleculePresent[CurrentSystem])
+            MaximumCFLambdaChange[CurrentSystem][int_temp1]=temp1;
         }
       }
 
@@ -8276,7 +8318,8 @@ void ReadRestartFile(void)
         temp1=temp2=temp3=0.0;
         if(sscanf(arguments,"component %d: %lf",&int_temp1,&temp1)==2)
         {
-          MaximumCBCFLambdaChange[CurrentSystem][int_temp1]=temp1;
+          if(Components[int_temp1].CFMoleculePresent[CurrentSystem])
+            MaximumCBCFLambdaChange[CurrentSystem][int_temp1]=temp1;
         }
       }
 
@@ -8369,8 +8412,11 @@ void ReadRestartFile(void)
       {
         temp1=0.0;
         sscanf(arguments,"%d %d %lf\n",&int_temp1,&int_temp2,&temp1);
-        Adsorbates[CurrentSystem][int_temp1].Atoms[int_temp2].CFVDWScalingParameter=temp1;
-        Adsorbates[CurrentSystem][int_temp1].Atoms[int_temp2].CFChargeScalingParameter=pow(temp1,5);
+        if(Components[CurrentComponent].CFMoleculePresent[CurrentSystem])
+        {
+          Adsorbates[CurrentSystem][int_temp1].Atoms[int_temp2].CFVDWScalingParameter=temp1;
+          Adsorbates[CurrentSystem][int_temp1].Atoms[int_temp2].CFChargeScalingParameter=pow(temp1,5);
+        }
       }
       if(strcasecmp(keyword,"Adsorbate-atom-fixed:")==0)
       {
@@ -8416,8 +8462,11 @@ void ReadRestartFile(void)
       {
         temp1=0.0;
         sscanf(arguments,"%d %d %lf\n",&int_temp1,&int_temp2,&temp1);
-        Cations[CurrentSystem][int_temp1].Atoms[int_temp2].CFVDWScalingParameter=temp1;
-        Cations[CurrentSystem][int_temp1].Atoms[int_temp2].CFChargeScalingParameter=pow(temp1,5);
+        if(Components[CurrentComponent].CFMoleculePresent[CurrentSystem])
+        {
+          Cations[CurrentSystem][int_temp1].Atoms[int_temp2].CFVDWScalingParameter=temp1;
+          Cations[CurrentSystem][int_temp1].Atoms[int_temp2].CFChargeScalingParameter=pow(temp1,5);
+        }
       }
       if(strcasecmp(keyword,"Cation-atom-fixed:")==0)
       {
@@ -8461,8 +8510,37 @@ void ReadRestartFile(void)
       UpdateGroupCenterOfMassCation(i);
       ComputeQuaternionCation(i);
     }
+
+    // sort the fractional molecules
+    bubble_sort(FractionalMolecules,NumberOfComponents);
+
+    // if restarting with CBMC from CFMC then remove fractional molecules
+    // start with the highest one, because removing is done by swapping with the last-molecule
+    for(CurrentComponent=NumberOfComponents-1;CurrentComponent>=0;CurrentComponent--)
+    {
+      if(!Components[CurrentComponent].CFMoleculePresent[CurrentSystem])
+      {
+        if(FractionalMolecules[CurrentComponent]>=0)
+        {
+          if(Components[CurrentComponent].ExtraFrameworkMolecule)
+          {
+            CurrentCationMolecule=FractionalMolecules[CurrentComponent];
+            RemoveCationMolecule();
+          }
+          else
+          {
+            CurrentAdsorbateMolecule=FractionalMolecules[CurrentComponent];
+            RemoveAdsorbateMolecule();
+          }
+
+        }
+      }
+    }
+    CurrentComponent=0;
     fclose(FilePtrIn);
   }
+
+  free(FractionalMolecules);
 }
 
 void ReadRestartFileOld(void)
