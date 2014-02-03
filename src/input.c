@@ -735,6 +735,8 @@ int ReadInput(char *input)
     Framework[i].SurfaceAreaSamplingPointsPerShere=5;
     strcpy(Framework[i].SurfaceAreaProbeAtom,"N_n2");
     Framework[i].SurfaceAreaProbeDistance=pow(2.0,1.0/6.0);
+
+    Framework[i].RestrictFrameworkAtomsToBox=TRUE;
   }
 
   for(i=0;i<NumberOfSystems;i++)

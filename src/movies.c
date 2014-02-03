@@ -1486,7 +1486,6 @@ int SamplePDBMovies(int Choice,int Subdir)
         flexible_drift.y=com.y-Framework[CurrentSystem].IntialCenterOfMassPosition.y;
         flexible_drift.z=com.z-Framework[CurrentSystem].IntialCenterOfMassPosition.z;
       }
-      flexible_drift.x=flexible_drift.y=flexible_drift.z=0.0;
 
       index=1;
 
@@ -1573,9 +1572,9 @@ int SamplePDBMovies(int Choice,int Subdir)
         {
           if(PseudoAtoms[Adsorbates[CurrentSystem][j].Atoms[k].Type].PrintToPDB)
           {
-            r.x=MovieScale*(Adsorbates[CurrentSystem][j].Atoms[k].Position.x-dr.x);
-            r.y=MovieScale*(Adsorbates[CurrentSystem][j].Atoms[k].Position.y-dr.y);
-            r.z=MovieScale*(Adsorbates[CurrentSystem][j].Atoms[k].Position.z-dr.z);
+            r.x=MovieScale*(Adsorbates[CurrentSystem][j].Atoms[k].Position.x-dr.x-flexible_drift.x);
+            r.y=MovieScale*(Adsorbates[CurrentSystem][j].Atoms[k].Position.y-dr.y-flexible_drift.y);
+            r.z=MovieScale*(Adsorbates[CurrentSystem][j].Atoms[k].Position.z-dr.z-flexible_drift.z);
 
             sprintf(AtomName,"%2s",PseudoAtoms[Adsorbates[CurrentSystem][j].Atoms[k].Type].PrintToPDBName);
             sprintf(Element,"%2s",PseudoAtoms[Adsorbates[CurrentSystem][j].Atoms[k].Type].PrintToPDBName);
@@ -1608,9 +1607,9 @@ int SamplePDBMovies(int Choice,int Subdir)
         {
           if(PseudoAtoms[Cations[CurrentSystem][j].Atoms[k].Type].PrintToPDB)
           {
-            r.x=MovieScale*(Cations[CurrentSystem][j].Atoms[k].Position.x-dr.x);
-            r.y=MovieScale*(Cations[CurrentSystem][j].Atoms[k].Position.y-dr.y);
-            r.z=MovieScale*(Cations[CurrentSystem][j].Atoms[k].Position.z-dr.z);
+            r.x=MovieScale*(Cations[CurrentSystem][j].Atoms[k].Position.x-dr.x-flexible_drift.x);
+            r.y=MovieScale*(Cations[CurrentSystem][j].Atoms[k].Position.y-dr.y-flexible_drift.y);
+            r.z=MovieScale*(Cations[CurrentSystem][j].Atoms[k].Position.z-dr.z-flexible_drift.z);
 
             sprintf(AtomName,"%2s",PseudoAtoms[Cations[CurrentSystem][j].Atoms[k].Type].PrintToPDBName);
             sprintf(Element,"%2s",PseudoAtoms[Cations[CurrentSystem][j].Atoms[k].Type].PrintToPDBName);
