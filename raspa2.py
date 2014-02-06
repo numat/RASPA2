@@ -134,8 +134,8 @@ def create_script(molecule_name, temperature=273.15, pressure=101325,
     In these cases, look into loading your own simulation input file and
     passing it to `RASPA.run_script`.
     """
-
-    he, mol, ift = helium_void_fraction, molecule_name, input_file_type
+    he, mol = helium_void_fraction, molecule_name
+    is_mol = (input_file_type.lower() == "mol")
     return "\n".join(["SimulationType                %s" % simulation_type,
                       "NumberOfCycles                %d" % cycles,
                       "NumberOfInitializationCycles  %d" % init_cycles,
@@ -143,11 +143,10 @@ def create_script(molecule_name, temperature=273.15, pressure=101325,
                       "RestartFile                   no",
                       "",
                       "Forcefield                    %s" % forcefield,
-                      "CutOff                      12.8",
+                      "CutOff                        12.8",
                       "ChargeMethod                  Ewald",
                       "EwaldPrecision                1e-6",
-                      "UseChargesFrom%sFile          yes" % ift.upper(),
-                      "",
+                      "UseChargesFromMOLFile         yes\n" if is_mol else "",
                       "Framework                     0",
                       "FrameworkName                 %s" % framework_name,
                       "InputFileType                 %s" % ift,
@@ -209,7 +208,8 @@ def run_mixture(structure, molecules, mol_fractions, temperature=273.15,
     In these cases, look into loading your own simulation input file and
     passing it to `RASPA.run_script`.
     """
-    he, ift = helium_void_fraction, input_file_type
+    he, mol = helium_void_fraction, molecule_name
+    is_mol = (input_file_type.lower() == "mol")
     script = "\n".join(["SimulationType                %s" % simulation_type,
                         "NumberOfCycles                %d" % cycles,
                         "NumberOfInitializationCycles  %d" % init_cycles,
@@ -220,8 +220,7 @@ def run_mixture(structure, molecules, mol_fractions, temperature=273.15,
                         "CutOff                        12.8",
                         "ChargeMethod                  Ewald",
                         "EwaldPrecision                1e-6",
-                        "UseChargesFrom%sFile          yes" % ift.upper(),
-                        "",
+                        "UseChargesFromMOLFile        yes\n" if is_mol else "",
                         "Framework                     0",
                         "FrameworkName                 %s" % framework_name,
                         "InputFileType                 %s" % input_file_type,
