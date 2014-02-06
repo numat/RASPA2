@@ -7254,6 +7254,10 @@ void WriteFrameworkDefinition(void)
   INT_VECTOR3 fixed;
   int m,k,l,Type;
 
+  // Don't make files and folders when streaming, dammit!
+  if (STREAM)
+    return;
+
   mkdir("DLPOLY",S_IRWXU);
 
   FilePtr=fopen("DLPOLY/CONTROL","w");
