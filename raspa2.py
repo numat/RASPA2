@@ -149,7 +149,7 @@ def create_script(molecule_name, temperature=273.15, pressure=101325,
                       "UseChargesFromMOLFile         yes\n" if is_mol else "",
                       "Framework                     0",
                       "FrameworkName                 %s" % framework_name,
-                      "InputFileType                 %s" % ift,
+                      "InputFileType                 %s" % input_file_type,
                       "UnitCells                     %d %d %d" % unit_cells,
                       "HeliumVoidFraction            %.2f" % he,
                       "ExternalTemperature           %.1f" % temperature,
@@ -406,10 +406,10 @@ def pybel_to_cif(structure):
                      "    _atom_site_charge\n"])
     for i, atom in enumerate(structure):
         element = table.GetSymbol(atom.atomicnum)
-        coords = uc.CartesianToFractional(atom.vector)
+        c = uc.WrapFractionalCoordinate(uc.CartesianToFractional(atom.vector))
         cif += "    %-8s%-5s%.5f%10.5f%10.5f%8.3f\n" % ("Mof_" +
-               element, element, coords.GetX(), coords.GetY(),
-               coords.GetZ(), atom.partialcharge)
+               element, element, c.GetX(), c.GetY(), c.GetZ(),
+               atom.partialcharge)
     cif += "_end\n"
     return cif
 
