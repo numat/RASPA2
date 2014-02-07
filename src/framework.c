@@ -2029,6 +2029,8 @@ void WriteFrameworkDefinitionCIF(char * string)
   char fullname[256];
   char symbol[256];
   struct passwd *p;
+  VECTOR flexible_drift;
+  VECTOR com;
 
   if (STREAM)
   {
@@ -2046,6 +2048,15 @@ void WriteFrameworkDefinitionCIF(char * string)
     A=(REAL)UnitCellSize[CurrentSystem].x;
     B=(REAL)UnitCellSize[CurrentSystem].y;
     C=(REAL)UnitCellSize[CurrentSystem].z;
+
+    flexible_drift.x=flexible_drift.y=flexible_drift.z=0.0;
+    if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+    {
+      com=GetFrameworkCenterOfMass();
+      flexible_drift.x=com.x-Framework[CurrentSystem].IntialCenterOfMassPosition.x;
+      flexible_drift.y=com.y-Framework[CurrentSystem].IntialCenterOfMassPosition.y;
+      flexible_drift.z=com.z-Framework[CurrentSystem].IntialCenterOfMassPosition.z;
+    }
 
     for(CurrentFramework=0;CurrentFramework<Framework[CurrentSystem].NumberOfFrameworks;CurrentFramework++)
     {
@@ -2245,6 +2256,10 @@ void WriteFrameworkDefinitionCIF(char * string)
           if((Framework[CurrentSystem].Atoms[CurrentFramework][j].Type==i)&&(PseudoAtoms[Framework[CurrentSystem].Atoms[CurrentFramework][j].Type].PrintToPDB))
           {
             pos=ConvertFromXYZtoABC(Framework[CurrentSystem].Atoms[CurrentFramework][j].Position);
+            pos.x=Framework[CurrentSystem].Atoms[CurrentFramework][j].Position.x-flexible_drift.x;
+            pos.y=Framework[CurrentSystem].Atoms[CurrentFramework][j].Position.y-flexible_drift.y;
+            pos.z=Framework[CurrentSystem].Atoms[CurrentFramework][j].Position.z-flexible_drift.z;
+            pos=ConvertFromXYZtoABC(pos);
 
             if(Framework[CurrentSystem].AddAtomNumberCodeToLabel[CurrentFramework])
             {
@@ -2406,9 +2421,9 @@ void WriteFrameworkDefinitionCIF(char * string)
       }
 
 
-      fprintf(FilePtr,"_cell_length_a    %g\n",BoxProperties[CurrentSystem].ax/(REAL)NumberOfUnitCells[CurrentSystem].x);
-      fprintf(FilePtr,"_cell_length_b    %g\n",BoxProperties[CurrentSystem].ay/(REAL)NumberOfUnitCells[CurrentSystem].y);
-      fprintf(FilePtr,"_cell_length_c    %g\n",BoxProperties[CurrentSystem].az/(REAL)NumberOfUnitCells[CurrentSystem].z);
+      fprintf(FilePtr,"_cell_length_a    %g\n",BoxProperties[CurrentSystem].ax);
+      fprintf(FilePtr,"_cell_length_b    %g\n",BoxProperties[CurrentSystem].ay);
+      fprintf(FilePtr,"_cell_length_c    %g\n",BoxProperties[CurrentSystem].az);
       fprintf(FilePtr,"_cell_angle_alpha %g\n",(REAL)AlphaAngle[CurrentSystem]*RAD2DEG);
       fprintf(FilePtr,"_cell_angle_beta  %g\n",(REAL)BetaAngle[CurrentSystem]*RAD2DEG);
       fprintf(FilePtr,"_cell_angle_gamma %g\n",(REAL)GammaAngle[CurrentSystem]*RAD2DEG);
@@ -2461,7 +2476,11 @@ void WriteFrameworkDefinitionCIF(char * string)
       for(i=0;i<Framework[CurrentSystem].NumberOfAtoms[CurrentFramework];i++)
       {
         // convert position from Cartesian to fractional positions
-        pos=ConvertFromXYZtoABC(Framework[CurrentSystem].Atoms[CurrentFramework][i].Position);
+        pos.x=Framework[CurrentSystem].Atoms[CurrentFramework][i].Position.x-flexible_drift.x;
+        pos.y=Framework[CurrentSystem].Atoms[CurrentFramework][i].Position.y-flexible_drift.y;
+        pos.z=Framework[CurrentSystem].Atoms[CurrentFramework][i].Position.z-flexible_drift.z;
+        pos=ConvertFromXYZtoABC(pos);
+
         Type=Framework[CurrentSystem].Atoms[CurrentFramework][i].Type;
 
         if(Framework[CurrentSystem].AddAtomNumberCodeToLabel[CurrentFramework])
