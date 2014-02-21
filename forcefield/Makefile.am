@@ -1,5 +1,6 @@
 pkgdatadir = $(datadir)/@PACKAGE@/forcefield
 SUBDIRS = GenericMOFs \
+          GenericZeolites \
           CrystalGenerator \
           Dubbeldam2007FlexibleIRMOF-1 \
           Dubbeldam2007FlexibleIRMOF-10 \

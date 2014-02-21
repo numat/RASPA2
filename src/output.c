@@ -144,7 +144,7 @@ void OpenOutputFile(void)
     }
     for(i=0;i<NumberOfSystems;i++)
     {
-      sprintf(buffer,"Output/System_%d/output_%s_%d.%d.%d_%lf_%lf%s",
+      sprintf(buffer,"Output/System_%d/output_%s_%d.%d.%d_%lf_%lg%s",
               i,
               Framework[i].Name[0],
               NumberOfUnitCells[i].x,
@@ -240,7 +240,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
   fprintf(FilePtr,"Compiler and run-time data\n");
   fprintf(FilePtr,"===========================================================================\n");
 
-  fprintf(FilePtr,"%s\n","RASPA 1.9-4");
+  fprintf(FilePtr,"%s\n","RASPA 1.9-5");
 
   #if defined (__LP64__) || defined (__64BIT__) || defined (_LP64) || (__WORDSIZE == 64)
     fprintf(FilePtr,"Compiled as a 64-bits application\n");
@@ -1191,19 +1191,19 @@ void PrintPreSimulationStatusCurrentSystem(int system)
 
   fprintf(FilePtr,"Thermo/Baro-stat NHC parameters\n");
   fprintf(FilePtr,"===========================================================================\n");
-  fprintf(FilePtr,"External temperature: %lf [K]\n",(double)therm_baro_stats.ExternalTemperature[system]);
-  fprintf(FilePtr,"Beta: %lf [energy unit]\n",(double)Beta[system]);
+  fprintf(FilePtr,"External temperature: %lg [K]\n",(double)therm_baro_stats.ExternalTemperature[system]);
+  fprintf(FilePtr,"Beta: %lg [energy unit]\n",(double)Beta[system]);
   if(NumberOfIsothermPressures==1)
-     fprintf(FilePtr,"External Pressure: %lf [Pa]\n",(double)therm_baro_stats.ExternalPressure[system][0]*PRESSURE_CONVERSION_FACTOR);
+     fprintf(FilePtr,"External Pressure: %lg [Pa]\n",(double)therm_baro_stats.ExternalPressure[system][0]*PRESSURE_CONVERSION_FACTOR);
   else
   {
     fprintf(FilePtr,"Number of isotherm points: %d\n",NumberOfIsothermPressures);
     for(i=0;i<NumberOfIsothermPressures;i++)
     {
       if(i==CurrentIsothermPressure)
-        fprintf(FilePtr,"\t\t point %3d: External Pressure: %lf [Pa]\n",i,(double)therm_baro_stats.ExternalPressure[system][i]*PRESSURE_CONVERSION_FACTOR);
+        fprintf(FilePtr,"\t\t point %3d: External Pressure: %lg [Pa]\n",i,(double)therm_baro_stats.ExternalPressure[system][i]*PRESSURE_CONVERSION_FACTOR);
       else
-        fprintf(FilePtr,"\t point %3d: External Pressure: %lf [Pa]\n",i,(double)therm_baro_stats.ExternalPressure[system][i]*PRESSURE_CONVERSION_FACTOR);
+        fprintf(FilePtr,"\t point %3d: External Pressure: %lg [Pa]\n",i,(double)therm_baro_stats.ExternalPressure[system][i]*PRESSURE_CONVERSION_FACTOR);
     }
   }
   if(therm_baro_stats.UseExternalStress)
@@ -6925,7 +6925,7 @@ void PrintRestartFile(void)
   sprintf(buffer,"Restart/System_%d",CurrentSystem);
   mkdir(buffer,S_IRWXU);
 
-  sprintf(buffer,"Restart/System_%d/restart_%s_%d.%d.%d_%lf_%lf%s",
+  sprintf(buffer,"Restart/System_%d/restart_%s_%d.%d.%d_%lf_%lg%s",
           CurrentSystem,
           Framework[CurrentSystem].Name[0],
           NumberOfUnitCells[CurrentSystem].x,
@@ -7265,7 +7265,7 @@ void PrintRestartFile(void)
 
   if(UseReplicas[CurrentSystem])
   {
-    sprintf(buffer,"Restart/System_%d/restart_replicas_%s_%d.%d.%d_%lf_%lf%s",
+    sprintf(buffer,"Restart/System_%d/restart_replicas_%s_%d.%d.%d_%lf_%lg%s",
             CurrentSystem,
             Framework[CurrentSystem].Name[0],1,1,1,
             (double)therm_baro_stats.ExternalTemperature[CurrentSystem],
@@ -7536,7 +7536,7 @@ void ReadRestartOutput(FILE* FilePtr)
 
 
     // construct outputfilename
-    sprintf(buffer,"Output/System_%d/output_%s_%d.%d.%d_%lf_%lf%s",
+    sprintf(buffer,"Output/System_%d/output_%s_%d.%d.%d_%lf_%lg%s",
             i,
             Framework[i].Name[0],
             NumberOfUnitCells[i].x,
