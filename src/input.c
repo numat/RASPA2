@@ -8014,7 +8014,7 @@ void ReadRestartFile(void)
 
   for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
   {
-    sprintf(buffer,"RestartInitial/System_%d/restart_%s_%d.%d.%d_%lf_%lf",
+    sprintf(buffer,"RestartInitial/System_%d/restart_%s_%d.%d.%d_%lf_%lg",
             CurrentSystem,
             Framework[CurrentSystem].Name[0],
             NumberOfUnitCells[CurrentSystem].x,
