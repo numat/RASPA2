@@ -32,6 +32,7 @@ AC_OUTPUT(Makefile \
 src/Makefile \
 forcefield/Makefile \
 forcefield/GenericMOFs/Makefile \
+forcefield/GenericZeolites/Makefile \
 forcefield/CrystalGenerator/Makefile \
 forcefield/GarciaPerez2006/Makefile \
 forcefield/Dubbeldam2007FlexibleIRMOF-1/Makefile \

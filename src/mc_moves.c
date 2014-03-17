@@ -15048,10 +15048,14 @@ void CFWangLandauIteration(int Switch)
         for(j=0;j<NumberOfComponents;j++)
         {
           FractionalMolecule=Components[j].FractionalMolecule[i];
-          if(Components[j].ExtraFrameworkMolecule)
-            Lambda=Cations[i][FractionalMolecule].Atoms[0].CFVDWScalingParameter;
-          else
-            Lambda=Adsorbates[i][FractionalMolecule].Atoms[0].CFVDWScalingParameter;
+          Lambda=0.0;
+          if(FractionalMolecule>=0)
+          {
+            if(Components[j].ExtraFrameworkMolecule)
+              Lambda=Cations[i][FractionalMolecule].Atoms[0].CFVDWScalingParameter;
+            else
+              Lambda=Adsorbates[i][FractionalMolecule].Atoms[0].CFVDWScalingParameter;
+          }
           index=(int)(Components[j].CFLambdaHistogramSize*Lambda);
           if(index==Components[j].CFLambdaHistogramSize) index--;
           Components[j].CFBiasingFactors[i][index]-=Components[j].CFWangLandauScalingFactor[i];

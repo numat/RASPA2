@@ -144,7 +144,7 @@ void OpenOutputFile(void)
     }
     for(i=0;i<NumberOfSystems;i++)
     {
-      sprintf(buffer,"Output/System_%d/output_%s_%d.%d.%d_%lf_%lf%s",
+      sprintf(buffer,"Output/System_%d/output_%s_%d.%d.%d_%lf_%lg%s",
               i,
               Framework[i].Name[0],
               NumberOfUnitCells[i].x,
@@ -240,7 +240,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
   fprintf(FilePtr,"Compiler and run-time data\n");
   fprintf(FilePtr,"===========================================================================\n");
 
-  fprintf(FilePtr,"%s\n","RASPA 1.9-3");
+  fprintf(FilePtr,"%s\n","RASPA 1.9-5");
 
   #if defined (__LP64__) || defined (__64BIT__) || defined (_LP64) || (__WORDSIZE == 64)
     fprintf(FilePtr,"Compiled as a 64-bits application\n");
@@ -1191,19 +1191,19 @@ void PrintPreSimulationStatusCurrentSystem(int system)
 
   fprintf(FilePtr,"Thermo/Baro-stat NHC parameters\n");
   fprintf(FilePtr,"===========================================================================\n");
-  fprintf(FilePtr,"External temperature: %lf [K]\n",(double)therm_baro_stats.ExternalTemperature[system]);
-  fprintf(FilePtr,"Beta: %lf [energy unit]\n",(double)Beta[system]);
+  fprintf(FilePtr,"External temperature: %lg [K]\n",(double)therm_baro_stats.ExternalTemperature[system]);
+  fprintf(FilePtr,"Beta: %lg [energy unit]\n",(double)Beta[system]);
   if(NumberOfIsothermPressures==1)
-     fprintf(FilePtr,"External Pressure: %lf [Pa]\n",(double)therm_baro_stats.ExternalPressure[system][0]*PRESSURE_CONVERSION_FACTOR);
+     fprintf(FilePtr,"External Pressure: %lg [Pa]\n",(double)therm_baro_stats.ExternalPressure[system][0]*PRESSURE_CONVERSION_FACTOR);
   else
   {
     fprintf(FilePtr,"Number of isotherm points: %d\n",NumberOfIsothermPressures);
     for(i=0;i<NumberOfIsothermPressures;i++)
     {
       if(i==CurrentIsothermPressure)
-        fprintf(FilePtr,"\t\t point %3d: External Pressure: %lf [Pa]\n",i,(double)therm_baro_stats.ExternalPressure[system][i]*PRESSURE_CONVERSION_FACTOR);
+        fprintf(FilePtr,"\t\t point %3d: External Pressure: %lg [Pa]\n",i,(double)therm_baro_stats.ExternalPressure[system][i]*PRESSURE_CONVERSION_FACTOR);
       else
-        fprintf(FilePtr,"\t point %3d: External Pressure: %lf [Pa]\n",i,(double)therm_baro_stats.ExternalPressure[system][i]*PRESSURE_CONVERSION_FACTOR);
+        fprintf(FilePtr,"\t point %3d: External Pressure: %lg [Pa]\n",i,(double)therm_baro_stats.ExternalPressure[system][i]*PRESSURE_CONVERSION_FACTOR);
     }
   }
   if(therm_baro_stats.UseExternalStress)
@@ -6915,7 +6915,8 @@ void PrintRestartFile(void)
   int index;
   int ncell;
   int FractionalMolecule;
-
+  VECTOR flexible_drift;
+  VECTOR com;
 
   if (STREAM)
       return;
@@ -6924,7 +6925,7 @@ void PrintRestartFile(void)
   sprintf(buffer,"Restart/System_%d",CurrentSystem);
   mkdir(buffer,S_IRWXU);
 
-  sprintf(buffer,"Restart/System_%d/restart_%s_%d.%d.%d_%lf_%lf%s",
+  sprintf(buffer,"Restart/System_%d/restart_%s_%d.%d.%d_%lf_%lg%s",
           CurrentSystem,
           Framework[CurrentSystem].Name[0],
           NumberOfUnitCells[CurrentSystem].x,
@@ -6951,6 +6952,15 @@ void PrintRestartFile(void)
   fprintf(FilePtrOut,"cell-lengths: %18.12f %18.12f %18.12f\n",UnitCellSize[CurrentSystem].x,UnitCellSize[CurrentSystem].y,UnitCellSize[CurrentSystem].z);
   fprintf(FilePtrOut,"cell-angles: %18.12f %18.12f %18.12f\n",AlphaAngle[CurrentSystem]*RAD2DEG,BetaAngle[CurrentSystem]*RAD2DEG,GammaAngle[CurrentSystem]*RAD2DEG);
   fprintf(FilePtrOut,"\n\n");
+
+  flexible_drift.x=flexible_drift.y=flexible_drift.z=0.0;
+  if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+  {
+    com=GetFrameworkCenterOfMass();
+    flexible_drift.x=com.x-Framework[CurrentSystem].IntialCenterOfMassPosition.x;
+    flexible_drift.y=com.y-Framework[CurrentSystem].IntialCenterOfMassPosition.y;
+    flexible_drift.z=com.z-Framework[CurrentSystem].IntialCenterOfMassPosition.z;
+  }
 
   if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
   {
@@ -7039,9 +7049,9 @@ void PrintRestartFile(void)
       for(j=0;j<Framework[CurrentSystem].NumberOfAtoms[CurrentFramework];j++)
         fprintf(FilePtrOut,"Framework-atom-position: %d %d %18.12f %18.12f %18.12f\n",
           CurrentFramework,j,
-          (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Position.x,
-          (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Position.y,
-          (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Position.z);
+          (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Position.x-flexible_drift.x,
+          (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Position.y-flexible_drift.y,
+          (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Position.z-flexible_drift.z);
     }
     fprintf(FilePtrOut,"\n");
 
@@ -7114,9 +7124,9 @@ void PrintRestartFile(void)
           for(l=0;l<Components[j].NumberOfAtoms;l++)
             fprintf(FilePtrOut,"Cation-atom-position: %d %d %18.12f %18.12f %18.12f\n",
               k,l,
-              (double)Cations[CurrentSystem][k].Atoms[l].Position.x,
-              (double)Cations[CurrentSystem][k].Atoms[l].Position.y,
-              (double)Cations[CurrentSystem][k].Atoms[l].Position.z);
+              (double)Cations[CurrentSystem][k].Atoms[l].Position.x-flexible_drift.x,
+              (double)Cations[CurrentSystem][k].Atoms[l].Position.y-flexible_drift.y,
+              (double)Cations[CurrentSystem][k].Atoms[l].Position.z-flexible_drift.z);
         }
       }
       for(k=0;k<NumberOfCationMolecules[CurrentSystem];k++)
@@ -7185,9 +7195,9 @@ void PrintRestartFile(void)
           for(l=0;l<Components[j].NumberOfAtoms;l++)
             fprintf(FilePtrOut,"Adsorbate-atom-position: %d %d %18.12f %18.12f %18.12f\n",
               k,l,
-              (double)Adsorbates[CurrentSystem][k].Atoms[l].Position.x,
-              (double)Adsorbates[CurrentSystem][k].Atoms[l].Position.y,
-              (double)Adsorbates[CurrentSystem][k].Atoms[l].Position.z);
+              (double)Adsorbates[CurrentSystem][k].Atoms[l].Position.x-flexible_drift.x,
+              (double)Adsorbates[CurrentSystem][k].Atoms[l].Position.y-flexible_drift.y,
+              (double)Adsorbates[CurrentSystem][k].Atoms[l].Position.z-flexible_drift.z);
         }
       }
       for(k=0;k<NumberOfAdsorbateMolecules[CurrentSystem];k++)
@@ -7255,7 +7265,7 @@ void PrintRestartFile(void)
 
   if(UseReplicas[CurrentSystem])
   {
-    sprintf(buffer,"Restart/System_%d/restart_replicas_%s_%d.%d.%d_%lf_%lf%s",
+    sprintf(buffer,"Restart/System_%d/restart_replicas_%s_%d.%d.%d_%lf_%lg%s",
             CurrentSystem,
             Framework[CurrentSystem].Name[0],1,1,1,
             (double)therm_baro_stats.ExternalTemperature[CurrentSystem],
@@ -7324,9 +7334,9 @@ void PrintRestartFile(void)
           {
             fprintf(FilePtrOut,"Framework-atom-position: %d %d %18.12f %18.12f %18.12f\n",
               index,CurrentFramework,
-              (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Position.x+ReplicaShift[ncell].x,
-              (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Position.y+ReplicaShift[ncell].y,
-              (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Position.z+ReplicaShift[ncell].z);
+              (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Position.x+ReplicaShift[ncell].x-flexible_drift.x,
+              (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Position.y+ReplicaShift[ncell].y-flexible_drift.y,
+              (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Position.z+ReplicaShift[ncell].z-flexible_drift.z);
             fprintf(FilePtrOut,"Framework-atom-velocity: %d %d %18.12f %18.12f %18.12f\n",
               index,CurrentFramework,
               (double)Framework[CurrentSystem].Atoms[CurrentFramework][j].Velocity.x,
@@ -7375,9 +7385,9 @@ void PrintRestartFile(void)
               {
                 fprintf(FilePtrOut,"Cation-atom-position: %d %d %18.12f %18.12f %18.12f\n",
                   index,l,
-                  (double)Cations[CurrentSystem][k].Atoms[l].Position.x+ReplicaShift[ncell].x,
-                  (double)Cations[CurrentSystem][k].Atoms[l].Position.y+ReplicaShift[ncell].y,
-                  (double)Cations[CurrentSystem][k].Atoms[l].Position.z+ReplicaShift[ncell].z);
+                  (double)Cations[CurrentSystem][k].Atoms[l].Position.x+ReplicaShift[ncell].x-flexible_drift.x,
+                  (double)Cations[CurrentSystem][k].Atoms[l].Position.y+ReplicaShift[ncell].y-flexible_drift.y,
+                  (double)Cations[CurrentSystem][k].Atoms[l].Position.z+ReplicaShift[ncell].z-flexible_drift.z);
                 fprintf(FilePtrOut,"Cation-atom-velocity: %d %d %18.12f %18.12f %18.12f\n",
                   index,l,
                   (double)Cations[CurrentSystem][k].Atoms[l].Velocity.x,
@@ -7418,9 +7428,9 @@ void PrintRestartFile(void)
               {
                 fprintf(FilePtrOut,"Adsorbate-atom-position: %d %d %18.12f %18.12f %18.12f\n",
                   index,l,
-                  (double)Adsorbates[CurrentSystem][k].Atoms[l].Position.x+ReplicaShift[ncell].x,
-                  (double)Adsorbates[CurrentSystem][k].Atoms[l].Position.y+ReplicaShift[ncell].y,
-                  (double)Adsorbates[CurrentSystem][k].Atoms[l].Position.z+ReplicaShift[ncell].z);
+                  (double)Adsorbates[CurrentSystem][k].Atoms[l].Position.x+ReplicaShift[ncell].x-flexible_drift.x,
+                  (double)Adsorbates[CurrentSystem][k].Atoms[l].Position.y+ReplicaShift[ncell].y-flexible_drift.y,
+                  (double)Adsorbates[CurrentSystem][k].Atoms[l].Position.z+ReplicaShift[ncell].z-flexible_drift.z);
                 fprintf(FilePtrOut,"Adsorbate-atom-velocity: %d %d %18.12f %18.12f %18.12f\n",
                   index,l,
                   (double)Adsorbates[CurrentSystem][k].Atoms[l].Velocity.x,
@@ -7526,7 +7536,7 @@ void ReadRestartOutput(FILE* FilePtr)
 
 
     // construct outputfilename
-    sprintf(buffer,"Output/System_%d/output_%s_%d.%d.%d_%lf_%lf%s",
+    sprintf(buffer,"Output/System_%d/output_%s_%d.%d.%d_%lf_%lg%s",
             i,
             Framework[i].Name[0],
             NumberOfUnitCells[i].x,

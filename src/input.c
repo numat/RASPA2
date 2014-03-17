@@ -8014,7 +8014,7 @@ void ReadRestartFile(void)
 
   for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
   {
-    sprintf(buffer,"RestartInitial/System_%d/restart_%s_%d.%d.%d_%lf_%lf",
+    sprintf(buffer,"RestartInitial/System_%d/restart_%s_%d.%d.%d_%lf_%lg",
             CurrentSystem,
             Framework[CurrentSystem].Name[0],
             NumberOfUnitCells[CurrentSystem].x,
@@ -8166,17 +8166,6 @@ void ReadRestartFile(void)
            &NumberOfMoleculesRead,
            ComponentNameRead);
         CurrentComponent=CurrentComponentRead;
-      }
-
-      if(strcasecmp(keyword,"InitialFrameworkCenterOfMass:")==0)
-      {
-        fgets(line,1024,FilePtrIn);
-        fgets(line,1024,FilePtrIn);
-        sscanf(line,"%lf %lf %lf\n",&temp1,&temp2,&temp3);
-        Framework[CurrentSystem].IntialCenterOfMassPosition.x=temp1;
-        Framework[CurrentSystem].IntialCenterOfMassPosition.y=temp2;
-        Framework[CurrentSystem].IntialCenterOfMassPosition.z=temp3;
-        fprintf(stderr, "SET DRIFT: %g %g %g\n",temp1,temp2,temp3);
       }
 
       if(strcasecmp(keyword,"cell-lengths:")==0)
@@ -8589,17 +8578,6 @@ void ReadRestartFileOld(void)
       // extract first word
       strcpy(keyword,"keyword");
       sscanf(line,"%s %[^\n]",keyword,arguments);
-
-      if(strcasecmp(keyword,"InitialFrameworkCenterOfMass:")==0)
-      {
-        fgets(line,1024,FilePtrIn);
-        fgets(line,1024,FilePtrIn);
-        sscanf(line,"%lf %lf %lf\n",&temp1,&temp2,&temp3);
-        Framework[CurrentSystem].IntialCenterOfMassPosition.x=temp1;
-        Framework[CurrentSystem].IntialCenterOfMassPosition.y=temp2;
-        Framework[CurrentSystem].IntialCenterOfMassPosition.z=temp3;
-        fprintf(stderr, "SET DRIFT: %g %g %g\n",temp1,temp2,temp3);
-      }
 
       if(strcasecmp(keyword,"Box:")==0)
       {
