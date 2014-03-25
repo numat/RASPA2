@@ -7946,7 +7946,8 @@ int VolumeMove(void)
   int i,j,f1;
   int NumberOfMolecules;
   REAL vol,det,scale;
-  REAL_MATRIX3x3 StoredBox;
+  REAL_MATRIX3x3 StoredBox,StoredUnitCellBox;
+  VECTOR StoredUnitCellSize;
   REAL Pressure,StoredVolume;
   VECTOR com,d;
 
@@ -7954,6 +7955,9 @@ int VolumeMove(void)
   if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
     NumberOfMolecules+=Framework[CurrentSystem].TotalNumberOfAtoms;
   if(NumberOfMolecules==0) return 0;
+
+  // do not do volumes when a rigid framework is present
+  if((Framework[CurrentSystem].FrameworkModel!=NONE)&&(Framework[CurrentSystem].FrameworkModel!=FLEXIBLE)) return 0;
 
   REAL StoredUHostBond,StoredUHostUreyBradley,StoredUHostBend,StoredUHostInversionBend;
   REAL StoredUHostTorsion,StoredUHostImproperTorsion,StoredUHostBondBond;
@@ -8007,6 +8011,8 @@ int VolumeMove(void)
 
   StoredBox=Box[CurrentSystem];
   StoredVolume=Volume[CurrentSystem];
+  StoredUnitCellBox=UnitCellBox[CurrentSystem];
+  StoredUnitCellSize=UnitCellSize[CurrentSystem];
 
   StoredUTotal=UTotal[CurrentSystem];
   StoredUIon=UIon[CurrentSystem];
@@ -8150,6 +8156,15 @@ int VolumeMove(void)
   Invert3x3Matrix(&Box[CurrentSystem],&InverseBox[CurrentSystem],&det);
   CellProperties(&Box[CurrentSystem],&BoxProperties[CurrentSystem],&Volume[CurrentSystem]);
 
+  UnitCellBox[CurrentSystem].ax*=scale;  UnitCellBox[CurrentSystem].bx*=scale;  UnitCellBox[CurrentSystem].cx*=scale;
+  UnitCellBox[CurrentSystem].ay*=scale;  UnitCellBox[CurrentSystem].by*=scale;  UnitCellBox[CurrentSystem].cy*=scale;
+  UnitCellBox[CurrentSystem].az*=scale;  UnitCellBox[CurrentSystem].bz*=scale;  UnitCellBox[CurrentSystem].cz*=scale;
+  Invert3x3Matrix(&UnitCellBox[CurrentSystem],&InverseUnitCellBox[CurrentSystem],&det);
+
+  UnitCellSize[CurrentSystem].x*=scale;
+  UnitCellSize[CurrentSystem].y*=scale;
+  UnitCellSize[CurrentSystem].z*=scale;
+
   if(MIN3(BoxProperties[CurrentSystem].cx,BoxProperties[CurrentSystem].cy,
           BoxProperties[CurrentSystem].cz)<2.0*CutOffVDW)
   {
@@ -8220,6 +8235,7 @@ int VolumeMove(void)
           (UTotal[CurrentSystem]-StoredUTotal))*Beta[CurrentSystem]))
   {
     VolumeChangeAccepted[CurrentSystem]+=1.0;
+
 
     for(i=0;i<NumberOfAdsorbateMolecules[CurrentSystem];i++)
       UpdateGroupCenterOfMassAdsorbate(i);
@@ -8346,9 +8362,15 @@ int VolumeMove(void)
 
     UTotal[CurrentSystem]=StoredUTotal;
     UIon[CurrentSystem]=StoredUIon;
+
     Box[CurrentSystem]=StoredBox;
     Invert3x3Matrix(&Box[CurrentSystem],&InverseBox[CurrentSystem],&det);
     CellProperties(&Box[CurrentSystem],&BoxProperties[CurrentSystem],&Volume[CurrentSystem]);
+
+    UnitCellBox[CurrentSystem]=StoredUnitCellBox;
+    Invert3x3Matrix(&UnitCellBox[CurrentSystem],&InverseUnitCellBox[CurrentSystem],&det);
+
+    UnitCellSize[CurrentSystem]=StoredUnitCellSize;
 
     if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
       for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
@@ -8433,7 +8455,9 @@ int BoxShapeChangeMove(void)
   int i,j,f1;
   int NumberOfMolecules,ShapeChange;
   REAL det;
-  REAL_MATRIX3x3 StoredBox;
+  REAL_MATRIX3x3 StoredBox,StoredUnitCellBox;
+  REAL StoredAlphaAngle,StoredBetaAngle,StoredGammaAngle;
+  VECTOR StoredUnitCellSize;
   REAL Pressure,StoredVolume;
   VECTOR com,d,pos,s;
 
@@ -8487,6 +8511,11 @@ int BoxShapeChangeMove(void)
 
   StoredBox=Box[CurrentSystem];
   StoredVolume=Volume[CurrentSystem];
+  StoredUnitCellBox=UnitCellBox[CurrentSystem];
+  StoredUnitCellSize=UnitCellSize[CurrentSystem];
+  StoredAlphaAngle=AlphaAngle[CurrentSystem];
+  StoredBetaAngle=BetaAngle[CurrentSystem];
+  StoredGammaAngle=GammaAngle[CurrentSystem];
 
   StoredUTotal=UTotal[CurrentSystem];
   StoredUIon=UIon[CurrentSystem];
@@ -8669,6 +8698,26 @@ int BoxShapeChangeMove(void)
 
   // compute New box properties and volume
   CellProperties(&Box[CurrentSystem],&BoxProperties[CurrentSystem],&Volume[CurrentSystem]);
+  Invert3x3Matrix(&Box[CurrentSystem],&InverseBox[CurrentSystem],&det);
+
+  UnitCellBox[CurrentSystem].ax=Box[CurrentSystem].ax/NumberOfUnitCells[CurrentSystem].x;
+  UnitCellBox[CurrentSystem].ay=Box[CurrentSystem].ay/NumberOfUnitCells[CurrentSystem].x;
+  UnitCellBox[CurrentSystem].az=Box[CurrentSystem].az/NumberOfUnitCells[CurrentSystem].x;
+  UnitCellBox[CurrentSystem].bx=Box[CurrentSystem].bx/NumberOfUnitCells[CurrentSystem].y;
+  UnitCellBox[CurrentSystem].by=Box[CurrentSystem].by/NumberOfUnitCells[CurrentSystem].y;
+  UnitCellBox[CurrentSystem].bz=Box[CurrentSystem].bz/NumberOfUnitCells[CurrentSystem].y;
+  UnitCellBox[CurrentSystem].cx=Box[CurrentSystem].cx/NumberOfUnitCells[CurrentSystem].z;
+  UnitCellBox[CurrentSystem].cy=Box[CurrentSystem].cy/NumberOfUnitCells[CurrentSystem].z;
+  UnitCellBox[CurrentSystem].cz=Box[CurrentSystem].cz/NumberOfUnitCells[CurrentSystem].z;
+  Invert3x3Matrix(&UnitCellBox[CurrentSystem],&InverseUnitCellBox[CurrentSystem],&det);
+
+  AlphaAngle[CurrentSystem]=acos(BoxProperties[CurrentSystem].bx);
+  BetaAngle[CurrentSystem]=acos(BoxProperties[CurrentSystem].by);
+  GammaAngle[CurrentSystem]=acos(BoxProperties[CurrentSystem].bz);
+
+  UnitCellSize[CurrentSystem].x=BoxProperties[CurrentSystem].ax/NumberOfUnitCells[CurrentSystem].x;
+  UnitCellSize[CurrentSystem].y=BoxProperties[CurrentSystem].ay/NumberOfUnitCells[CurrentSystem].y;
+  UnitCellSize[CurrentSystem].z=BoxProperties[CurrentSystem].az/NumberOfUnitCells[CurrentSystem].z;
 
   if(MIN3(BoxProperties[CurrentSystem].cx,BoxProperties[CurrentSystem].cy,
           BoxProperties[CurrentSystem].cz)<2.0*CutOffVDW)
@@ -8821,11 +8870,7 @@ int BoxShapeChangeMove(void)
     for(i=0;i<NumberOfCationMolecules[CurrentSystem];i++)
       UpdateGroupCenterOfMassCation(i);
 
-    Invert3x3Matrix(&Box[CurrentSystem],&InverseBox[CurrentSystem],&det);
 
-    AlphaAngle[CurrentSystem]=acos(BoxProperties[CurrentSystem].bx);
-    BetaAngle[CurrentSystem]=acos(BoxProperties[CurrentSystem].by);
-    GammaAngle[CurrentSystem]=acos(BoxProperties[CurrentSystem].bz);
 
     EwaldEnergyIon();
   }
@@ -8946,9 +8991,19 @@ int BoxShapeChangeMove(void)
 
     UTotal[CurrentSystem]=StoredUTotal;
     UIon[CurrentSystem]=StoredUIon;
+
     Box[CurrentSystem]=StoredBox;
     Invert3x3Matrix(&Box[CurrentSystem],&InverseBox[CurrentSystem],&det);
     CellProperties(&Box[CurrentSystem],&BoxProperties[CurrentSystem],&Volume[CurrentSystem]);
+
+    UnitCellBox[CurrentSystem]=StoredUnitCellBox;
+    Invert3x3Matrix(&UnitCellBox[CurrentSystem],&InverseUnitCellBox[CurrentSystem],&det);
+
+    UnitCellSize[CurrentSystem]=StoredUnitCellSize;
+
+    AlphaAngle[CurrentSystem]=StoredAlphaAngle;
+    BetaAngle[CurrentSystem]=StoredBetaAngle;
+    GammaAngle[CurrentSystem]=StoredGammaAngle;
 
     for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
       for(i=0;i<Framework[CurrentSystem].NumberOfAtoms[f1];i++)
