@@ -1161,6 +1161,100 @@ void CalculateForce(void)
 
 }
 
+void CalculateMolecularExcessPressure(void)
+{
+  int i,j,l;
+  VECTOR pos,force,com;
+  REAL temp;
+  int Type;
+
+  StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
+  StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
+  StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
+
+  for(i=0;i<NumberOfAdsorbateMolecules[CurrentSystem];i++)
+  {
+    for(j=0;j<Adsorbates[CurrentSystem][i].NumberOfAtoms;j++)
+    {
+      Adsorbates[CurrentSystem][i].Atoms[j].Force.x=0.0;
+      Adsorbates[CurrentSystem][i].Atoms[j].Force.y=0.0;
+      Adsorbates[CurrentSystem][i].Atoms[j].Force.z=0.0;
+    }
+  }
+
+  for(i=0;i<NumberOfCationMolecules[CurrentSystem];i++)
+  {
+    for(j=0;j<Cations[CurrentSystem][i].NumberOfAtoms;j++)
+    {
+      Cations[CurrentSystem][i].Atoms[j].Force.x=0.0;
+      Cations[CurrentSystem][i].Atoms[j].Force.y=0.0;
+      Cations[CurrentSystem][i].Atoms[j].Force.z=0.0;
+    }
+  }
+
+  CalculateTotalInterVDWForce();
+  CalculateTotalInterChargeChargeCoulombForce();
+  CalculateTotalInterChargeBondDipoleCoulombForce();
+  CalculateTotalInterBondDipoleBondDipoleCoulombForce();
+
+  // the contribution of the charges present in the system (long-range interaction)
+  if((ChargeMethod==EWALD)&&(!OmitEwaldFourier))
+    EwaldFourierForce();
+
+  for(i=0;i<NumberOfAdsorbateMolecules[CurrentSystem];i++)
+  {
+    Type=Adsorbates[CurrentSystem][i].Type;
+    com=GetAdsorbateCenterOfMass(i);
+    for(l=0;l<Components[Type].NumberOfAtoms;l++)
+    {
+      pos=Adsorbates[CurrentSystem][i].Atoms[l].Position;
+      force=Adsorbates[CurrentSystem][i].Atoms[l].Force;
+
+      StrainDerivativeTensor[CurrentSystem].ax+=(pos.x-com.x)*force.x;
+      StrainDerivativeTensor[CurrentSystem].ay+=(pos.x-com.x)*force.y;
+      StrainDerivativeTensor[CurrentSystem].az+=(pos.x-com.x)*force.z;
+
+      StrainDerivativeTensor[CurrentSystem].bx+=(pos.y-com.y)*force.x;
+      StrainDerivativeTensor[CurrentSystem].by+=(pos.y-com.y)*force.y;
+      StrainDerivativeTensor[CurrentSystem].bz+=(pos.y-com.y)*force.z;
+
+      StrainDerivativeTensor[CurrentSystem].cx+=(pos.z-com.z)*force.x;
+      StrainDerivativeTensor[CurrentSystem].cy+=(pos.z-com.z)*force.y;
+      StrainDerivativeTensor[CurrentSystem].cz+=(pos.z-com.z)*force.z;
+    }
+  }
+
+  for(i=0;i<NumberOfCationMolecules[CurrentSystem];i++)
+  {
+    Type=Cations[CurrentSystem][i].Type;
+    com=GetCationCenterOfMass(i);
+    for(l=0;l<Components[Type].NumberOfAtoms;l++)
+    {
+      pos=Cations[CurrentSystem][i].Atoms[l].Position;
+      force=Cations[CurrentSystem][i].Atoms[l].Force;
+
+      StrainDerivativeTensor[CurrentSystem].ax+=(pos.x-com.x)*force.x;
+      StrainDerivativeTensor[CurrentSystem].ay+=(pos.x-com.x)*force.y;
+      StrainDerivativeTensor[CurrentSystem].az+=(pos.x-com.x)*force.z;
+
+      StrainDerivativeTensor[CurrentSystem].bx+=(pos.y-com.y)*force.x;
+      StrainDerivativeTensor[CurrentSystem].by+=(pos.y-com.y)*force.y;
+      StrainDerivativeTensor[CurrentSystem].bz+=(pos.y-com.y)*force.z;
+
+      StrainDerivativeTensor[CurrentSystem].cx+=(pos.z-com.z)*force.x;
+      StrainDerivativeTensor[CurrentSystem].cy+=(pos.z-com.z)*force.y;
+      StrainDerivativeTensor[CurrentSystem].cz+=(pos.z-com.z)*force.z;
+    }
+  }
+
+  temp=0.5*(StrainDerivativeTensor[CurrentSystem].ay+StrainDerivativeTensor[CurrentSystem].bx);
+  StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].bx=temp;
+  temp=0.5*(StrainDerivativeTensor[CurrentSystem].az+StrainDerivativeTensor[CurrentSystem].cx);
+  StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].cx=temp;
+  temp=0.5*(StrainDerivativeTensor[CurrentSystem].bz+StrainDerivativeTensor[CurrentSystem].cy);
+  StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cy=temp;
+}
+
 // the main routine for MD: the integrator
 void Integration(void)
 {

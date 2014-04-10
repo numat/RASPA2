@@ -1786,6 +1786,15 @@ void ReadComponentDefinition(int comp)
           Components[comp].TorsionArguments[i][0]*=KCAL_PER_MOL_TO_ENERGY;
           Components[comp].TorsionArguments[i][1]*=KCAL_PER_MOL_TO_ENERGY;
           Components[comp].TorsionArguments[i][2]*=KCAL_PER_MOL_TO_ENERGY;
+        case CVFF_BLOCKED_DIHEDRAL:
+          // 
+          // ========================================================================
+          // p_0     [rad]
+          // p_1     [K]
+          // p_2     [-]
+          // p_3     [rad]
+          // p_4     [rad]
+          Components[comp].TorsionArguments[i][1]/=ENERGY_TO_KELVIN;
           break;
         case CFF_DIHEDRAL:
           // p_0*(1-cos(phi))+p_1*(1-cos(2*phi))+p_2*(1-cos(3*phi))

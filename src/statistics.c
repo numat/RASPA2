@@ -194,6 +194,7 @@ static REAL **UNoseHooverAverage;
 static REAL **HeatOfVaporization;
 static REAL **EnergyPerMolecule;
 static REAL **VolumePerMolecule;
+static REAL **CompressibilityAverage;
 
 static REAL_MATRIX9x9 **BornTermAverage;
 static REAL_MATRIX9x9 **ConfigurationalStressFluctuationTermAverage;
@@ -992,6 +993,7 @@ void InitializesEnergyAveragesAllSystems(void)
       TemperatureAverage[k][i]=0.0;
       TemperatureCellAverage[k][i]=0.0;
       MolecularPressureAverage[k][i]=0.0;
+      CompressibilityAverage[k][i]=0.0;
 
       MolecularStressTensorAverage[k][i].ax=0.0;
       MolecularStressTensorAverage[k][i].ay=0.0;
@@ -1240,17 +1242,17 @@ void UpdateEnergyAveragesCurrentSystem(void)
                 MolecularStressTensor[CurrentSystem].cz)/(3.0*Volume[CurrentSystem]);
     PressureTailCorrectionAverage[CurrentSystem][Block]+=PressureTail;
 
-    MolecularStressTensor[CurrentSystem].ax=PressureIdealGas-PressureTail-MolecularStressTensor[CurrentSystem].ax/Volume[CurrentSystem];
+    MolecularStressTensor[CurrentSystem].ax=PressureIdealGas+PressureTail-MolecularStressTensor[CurrentSystem].ax/Volume[CurrentSystem];
     MolecularStressTensor[CurrentSystem].ay=-MolecularStressTensor[CurrentSystem].ay/Volume[CurrentSystem];
     MolecularStressTensor[CurrentSystem].az=-MolecularStressTensor[CurrentSystem].az/Volume[CurrentSystem];
 
     MolecularStressTensor[CurrentSystem].bx=-MolecularStressTensor[CurrentSystem].bx/Volume[CurrentSystem];
-    MolecularStressTensor[CurrentSystem].by=PressureIdealGas-PressureTail-MolecularStressTensor[CurrentSystem].by/Volume[CurrentSystem];
+    MolecularStressTensor[CurrentSystem].by=PressureIdealGas+PressureTail-MolecularStressTensor[CurrentSystem].by/Volume[CurrentSystem];
     MolecularStressTensor[CurrentSystem].bz=-MolecularStressTensor[CurrentSystem].bz/Volume[CurrentSystem];
 
     MolecularStressTensor[CurrentSystem].cx=-MolecularStressTensor[CurrentSystem].cx/Volume[CurrentSystem];
     MolecularStressTensor[CurrentSystem].cy=-MolecularStressTensor[CurrentSystem].cy/Volume[CurrentSystem];
-    MolecularStressTensor[CurrentSystem].cz=PressureIdealGas-PressureTail-MolecularStressTensor[CurrentSystem].cz/Volume[CurrentSystem];
+    MolecularStressTensor[CurrentSystem].cz=PressureIdealGas+PressureTail-MolecularStressTensor[CurrentSystem].cz/Volume[CurrentSystem];
 
     MolecularStressTensorAverage[CurrentSystem][Block].ax+=MolecularStressTensor[CurrentSystem].ax;
     MolecularStressTensorAverage[CurrentSystem][Block].ay+=MolecularStressTensor[CurrentSystem].ay;
@@ -1314,6 +1316,9 @@ void UpdateEnergyAveragesCurrentSystem(void)
 
   if(ComputePrincipleMomentsOfInertia)
     MeasurePrincipleMomentsOfInertia();
+
+  CompressibilityAverage[CurrentSystem][Block]+=((MolecularStressTensor[CurrentSystem].ax+MolecularStressTensor[CurrentSystem].by+MolecularStressTensor[CurrentSystem].cz)/3.0)*
+           Volume[CurrentSystem]*Beta[CurrentSystem]/NumberOfMolecules;
 
   //UpdateCrystallographics();
 }
@@ -1976,6 +1981,25 @@ REAL GetAverageMolecularPressure(void)
     return 0.0;
 }
 
+REAL GetAverageCompressibility(void)
+{
+  int i;
+  REAL sum1,sum2;
+
+  sum1=sum2=0.0;
+  for(i=0;i<NR_BLOCKS;i++)
+    if(BlockCount[CurrentSystem][i]>0.0)
+    {
+      sum1+=CompressibilityAverage[CurrentSystem][i];
+      sum2+=BlockCount[CurrentSystem][i];
+    }
+  if(sum2>0.0)
+    return sum1/sum2;
+  else
+    return 0.0;
+}
+
+
 
 REAL GetAveragePressure(void)
 {
@@ -2419,6 +2443,9 @@ void PrintPropertyStatus(long long CurrentCycle,long long NumberOfCycles, FILE *
           (double)GetAverageIsothermalCompressibilityCoefficient());
   fprintf(FilePtr,"Heat of vaporization: %18.10lf [J/mole/K]\n",(double)GetAverageProperty(HeatOfVaporization));
 */
+  // HERE
+  fprintf(FilePtr,"Compressibility: %18.10lf [-]\n",(double)GetAverageProperty(CompressibilityAverage));
+  fprintf(FilePtr,"Compressibility: %18.10lf [-]\n",(double)GetAverageCompressibility());
   //fprintf(FilePtr,"Heat capacity Cp: %18.10lf [J/mole/K]\n",(double)GetAverageHeatCapacity());
   //fprintf(FilePtr,"Heat capacity Cp: %18.10lf [J/mole/K]\n",(double)GetAverageHeatCapacityConstantPressure());
 
@@ -3270,7 +3297,28 @@ void PrintAverageTotalSystemEnergiesMC(FILE *FilePtr)
     fprintf(FilePtr,"\t\tAverage   %18.5lf [kg/m^3] +/- %18.5lf [kg/m^3]\n",(double)(sum/(REAL)NR_BLOCKS),(double)tmp);
   }
 
+  // compressibility
+  fprintf(FilePtr,"\n");
+  fprintf(FilePtr,"Average compressibility Z:\n");
+  fprintf(FilePtr,"=========================\n");
+  sum=sum2=0.0;
+  for(i=0;i<NR_BLOCKS;i++)
+  {
+    if(BlockCount[CurrentSystem][i]>0.0)
+    {
+      tmp=CompressibilityAverage[CurrentSystem][i]/BlockCount[CurrentSystem][i];
+      sum+=tmp;
+      sum2+=SQR(tmp);
+      fprintf(FilePtr,"\tBlock[%2d] %18.5lf [-]\n",i,(double)tmp);
+    }
+    else
+      fprintf(FilePtr,"\tBlock[%2d] %18.5lf [-]\n",i,(double)0.0);
+  }
+  fprintf(FilePtr,"\t------------------------------------------------------------------------------\n");
+  tmp=2.0*sqrt(fabs((sum2/(REAL)NR_BLOCKS)-SQR(sum)/(REAL)SQR(NR_BLOCKS)));
+  fprintf(FilePtr,"\tAverage   %18.5lf [-] +/- %18.5lf [-]\n",(double)(sum/(REAL)NR_BLOCKS),(double)tmp);
 
+/*
   // Dielectric constant
   fprintf(FilePtr,"\n");
   fprintf(FilePtr,"Average dielectric constant:\n");
@@ -3412,6 +3460,8 @@ void PrintAverageTotalSystemEnergiesMC(FILE *FilePtr)
   fprintf(FilePtr,"\tAverage   %18.5lf [cal/mol/K] +/- %18.5lf [cal/mol/K]\n",
           (double)(sum*J_TO_CAL/(REAL)NR_BLOCKS),(double)(tmp*J_TO_CAL));
 
+*/
+
   if(NumberOfSystems==2)
   {
     // Heat of vaporization
@@ -3446,7 +3496,6 @@ void PrintAverageTotalSystemEnergiesMC(FILE *FilePtr)
       (double)(sum*KELVIN_TO_KJ_PER_MOL/(REAL)NR_BLOCKS),(double)(tmp*KELVIN_TO_KJ_PER_MOL));
     fprintf(FilePtr,"\tAverage   %18.5lf +/- %18lf [kcal/mol]\n",
       (double)(sum*KELVIN_TO_KCAL_PER_MOL/(REAL)NR_BLOCKS),(double)(tmp*KELVIN_TO_KCAL_PER_MOL));
-
 
     fprintf(FilePtr,"\n");
     fprintf(FilePtr,"Heat of vaporization term (U_v/N_v-U_l/N_l):\n");
@@ -4225,6 +4274,7 @@ void WriteRestartStatistics(FILE *FilePtr)
     fwrite(HeatOfVaporization[i],sizeof(REAL),NumberOfBlocks,FilePtr);
     fwrite(EnergyPerMolecule[i],sizeof(REAL),NumberOfBlocks,FilePtr);
     fwrite(VolumePerMolecule[i],sizeof(REAL),NumberOfBlocks,FilePtr);
+    fwrite(CompressibilityAverage[i],sizeof(REAL),NumberOfBlocks,FilePtr);
 
     fwrite(BornTermAverage[i],sizeof(REAL_MATRIX9x9),NumberOfBlocks,FilePtr);
     fwrite(ConfigurationalStressFluctuationTermAverage[i],sizeof(REAL_MATRIX9x9),NumberOfBlocks,FilePtr);
@@ -4410,6 +4460,7 @@ void AllocateStatisticsMemory(void)
   HeatOfVaporization=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
   EnergyPerMolecule=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
   VolumePerMolecule=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
+  CompressibilityAverage=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
 
   BornTermAverage=(REAL_MATRIX9x9**)calloc(NumberOfSystems,sizeof(REAL_MATRIX9x9*));
   ConfigurationalStressFluctuationTermAverage=(REAL_MATRIX9x9**)calloc(NumberOfSystems,sizeof(REAL_MATRIX9x9*));
@@ -4580,6 +4631,7 @@ void AllocateStatisticsMemory(void)
     HeatOfVaporization[i]=(REAL*)calloc(NumberOfBlocks,sizeof(REAL));
     EnergyPerMolecule[i]=(REAL*)calloc(NumberOfBlocks,sizeof(REAL));
     VolumePerMolecule[i]=(REAL*)calloc(NumberOfBlocks,sizeof(REAL));
+    CompressibilityAverage[i]=(REAL*)calloc(NumberOfBlocks,sizeof(REAL));
 
     BornTermAverage[i]=(REAL_MATRIX9x9*)calloc(NumberOfBlocks,sizeof(REAL_MATRIX9x9));
     ConfigurationalStressFluctuationTermAverage[i]=(REAL_MATRIX9x9*)calloc(NumberOfBlocks,sizeof(REAL_MATRIX9x9));
@@ -4788,6 +4840,7 @@ void ReadRestartStatistics(FILE *FilePtr)
     fread(HeatOfVaporization[i],sizeof(REAL),NumberOfBlocks,FilePtr);
     fread(EnergyPerMolecule[i],sizeof(REAL),NumberOfBlocks,FilePtr);
     fread(VolumePerMolecule[i],sizeof(REAL),NumberOfBlocks,FilePtr);
+    fread(CompressibilityAverage[i],sizeof(REAL),NumberOfBlocks,FilePtr);
 
     fread(BornTermAverage[i],sizeof(REAL_MATRIX9x9),NumberOfBlocks,FilePtr);
     fread(ConfigurationalStressFluctuationTermAverage[i],sizeof(REAL_MATRIX9x9),NumberOfBlocks,FilePtr);
