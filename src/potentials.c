@@ -111,6 +111,7 @@ POTENTIAL TorsionTypes[NR_TORSION_TYPES]=
    {4,"TRAPPE_DIHEDRAL"},
    {4,"OPLS_DIHEDRAL"},
    {3,"MM3_DIHEDRAL"},
+   {5,"CVFF_BLOCKED_DIHEDRAL"},
    {1,"FIXED_DIHEDRAL"}};
 
 POTENTIAL ImproperTorsionTypes[NR_IMPROPER_TORSION_TYPES]=
@@ -11252,36 +11253,17 @@ void CalculateTailCorrection(void)
       if(TailCorrection[i][j])
       {
         energy+=2.0*M_PI*NumberOfPseudoAtomsType[CurrentSystem][i]*NumberOfPseudoAtomsType[CurrentSystem][j]*PotentialCorrection(i,j,CutOffVDW);
-        pressure+=(2.0/3.0)*M_PI*NumberOfPseudoAtomsType[CurrentSystem][i]*NumberOfPseudoAtomsType[CurrentSystem][j]*PotentialCorrectionPressure(i,j,CutOffVDW);
+        pressure-=(2.0/3.0)*M_PI*NumberOfPseudoAtomsType[CurrentSystem][i]*NumberOfPseudoAtomsType[CurrentSystem][j]*PotentialCorrectionPressure(i,j,CutOffVDW);
       }
       else if(!ShiftPotential[i][j])
       {
         // impulsive correction
-        pressure-=(2.0/3.0)*M_PI*NumberOfPseudoAtomsType[CurrentSystem][i]*NumberOfPseudoAtomsType[CurrentSystem][j]*CUBE(CutOffVDW)*PotentialValue(i,j,CutOffVDWSquared,1.0);
+        pressure+=(2.0/3.0)*M_PI*NumberOfPseudoAtomsType[CurrentSystem][i]*NumberOfPseudoAtomsType[CurrentSystem][j]*CUBE(CutOffVDW)*PotentialValue(i,j,CutOffVDWSquared,1.0);
       }
     }
 
   StrainDerivativeTailCorrection[CurrentSystem]=pressure/Volume[CurrentSystem];
   UTailCorrection[CurrentSystem]=energy/Volume[CurrentSystem];
-}
-
-REAL CalculatePressureTailCorrection(void)
-{
-  int i,j;
-  REAL pressure;
-
-  pressure=0.0;
-  for(i=0;i<NumberOfPseudoAtoms;i++)
-  {
-    for(j=0;j<NumberOfPseudoAtoms;j++)
-    {
-      if(TailCorrection[i][j])
-        pressure+=(2.0/3.0)*M_PI*NumberOfPseudoAtomsType[CurrentSystem][i]*NumberOfPseudoAtomsType[CurrentSystem][j]*PotentialCorrectionPressure(i,j,CutOffVDW);
-      else if(!ShiftPotential[i][j])
-        pressure-=(2.0/3.0)*M_PI*NumberOfPseudoAtomsType[CurrentSystem][i]*NumberOfPseudoAtomsType[CurrentSystem][j]*CUBE(CutOffVDW)*PotentialValue(i,j,CutOffVDWSquared,1.0);
-    }
-  }
-  return pressure/Volume[CurrentSystem];
 }
 
 /*********************************************************************************************************

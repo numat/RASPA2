@@ -4506,6 +4506,21 @@ void PrintPreSimulationStatusCurrentSystem(int system)
                   (double)(Components[i].TorsionArguments[j][1]*ENERGY_TO_KCAL_PER_MOL),
                   (double)(Components[i].TorsionArguments[j][2]*ENERGY_TO_KCAL_PER_MOL));
                 break;
+             case CVFF_BLOCKED_DIHEDRAL:
+                // 
+                // ========================================================================
+                // p_0     [rad]
+                // p_1     [K]
+                // p_2     [-]
+                // p_3     [rad]
+                // p_4     [rad]
+                fprintf(FilePtr,"\t\tCVFF_BLOCKED_DIHEDRAL: p_0=%-10.6f [rad], p_1=%-10.6f [K], p_2=%-10.6f [-], p_3=%-10.6f [rad], p_4=%-10.6f [rad]\n",
+                  (double)(Components[i].TorsionArguments[j][0]),
+                  (double)(Components[i].TorsionArguments[j][1]*ENERGY_TO_KELVIN),
+                  (double)(Components[i].TorsionArguments[j][2]),
+                  (double)(Components[i].TorsionArguments[j][3]),
+                  (double)(Components[i].TorsionArguments[j][4]));
+                break;
               case CFF_DIHEDRAL:
                 // p_0*(1-cos(phi))+p_1*(1-cos(2*phi))+p_2*(1-cos(3*phi))
                 // ======================================================

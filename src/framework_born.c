@@ -909,6 +909,18 @@ void CalculateFrameworkTorsionBornTerm(void)
           DF=0.5*parms[0]-2.0*parms[1]*CosPhi+1.5*parms[2]*(4.0*CosPhi2-1.0);
           DDF=-2.0*(parms[1]-6.0*parms[2]*CosPhi);
           break;
+        case CVFF_BLOCKED_DIHEDRAL:
+          // 
+          // ========================================================================
+          // p_0     [rad]
+          // p_1     [K]
+          // p_2     [-]
+          // p_3     [rad]
+          // p_4     [rad]
+          U=0.0;
+          DF=0.0;
+          DDF=0.0;
+          break;
         case CFF_DIHEDRAL:
           // p_0*(1-cos(phi))+p_1*(1-cos(2*phi))+p_2*(1-cos(3*phi))
           // ======================================================

@@ -965,6 +965,15 @@ REAL PrintTorsionEnergyStatus(int nr,char *string,int TorsionType,REAL *parms,RE
                 U*ENERGY_TO_KJ_PER_MOL,
                 U*ENERGY_TO_KCAL_PER_MOL);
       break;
+    case CVFF_BLOCKED_DIHEDRAL:
+      //
+      // ========================================================================
+      // p_0     [rad]
+      // p_1     [K]
+      // p_2     [-]
+      // p_3     [rad]
+      // p_4     [rad]
+      break;
     case CFF_DIHEDRAL:
       // p_0*(1-cos(phi))+p_1*(1-cos(2*phi))+p_2*(1-cos(3*phi))
       // ======================================================

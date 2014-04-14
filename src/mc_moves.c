@@ -11820,8 +11820,16 @@ int GibbsVolumeMove(void)
 
   CurrentSystemStored=CurrentSystem;
 
-  A=0;
-  B=1;
+  if(RandomNumber()<0.5)
+  {
+    A=0;
+    B=1;
+  }
+  else
+  {
+    A=1;
+    B=0;
+  }
 
   // store state of system A
   CurrentSystem=A;

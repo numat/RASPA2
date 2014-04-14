@@ -1206,6 +1206,16 @@ REAL CalculateFrameworkTorsionEnergy(int flag,int f2,int atom_id)
               // p_2     [kcal/mol]
               U=0.5*parms[0]*(1.0+CosPhi)+parms[1]*(1.0-CosPhi2)+0.5*parms[2]*(1.0-3.0*CosPhi+4.0*CosPhi*CosPhi2);
               break;
+            case CVFF_BLOCKED_DIHEDRAL:
+              //
+              // ========================================================================
+              // p_0     [rad]
+              // p_1     [K]
+              // p_2     [-]
+              // p_3     [rad]
+              // p_4     [rad]
+              U=0.0;
+              break;
             case CFF_DIHEDRAL:
               // p_0*(1-cos(phi))+p_1*(1-cos(2*phi))+p_2*(1-cos(3*phi))
               // ======================================================
