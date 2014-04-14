@@ -208,7 +208,6 @@ def run_mixture(structure, molecules, mol_fractions, temperature=273.15,
     In these cases, look into loading your own simulation input file and
     passing it to `RASPA.run_script`.
     """
-    he, mol = helium_void_fraction, molecule_name
     is_mol = (input_file_type.lower() == "mol")
     script = "\n".join(["SimulationType                %s" % simulation_type,
                         "NumberOfCycles                %d" % cycles,
@@ -225,7 +224,8 @@ def run_mixture(structure, molecules, mol_fractions, temperature=273.15,
                         "FrameworkName                 %s" % framework_name,
                         "InputFileType                 %s" % input_file_type,
                         "UnitCells                     %d %d %d" % unit_cells,
-                        "HeliumVoidFraction            %.2f" % he,
+                        "HeliumVoidFraction            %.2f"
+                        % helium_void_fraction,
                         "ExternalTemperature           %.1f" % temperature,
                         "ExternalPressure              %d" % pressure,
                         "Movies                        no",
