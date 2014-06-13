@@ -11252,12 +11252,12 @@ void CalculateTailCorrection(void)
       if(TailCorrection[i][j])
       {
         energy+=2.0*M_PI*NumberOfPseudoAtomsType[CurrentSystem][i]*NumberOfPseudoAtomsType[CurrentSystem][j]*PotentialCorrection(i,j,CutOffVDW);
-        pressure+=(2.0/3.0)*M_PI*NumberOfPseudoAtomsType[CurrentSystem][i]*NumberOfPseudoAtomsType[CurrentSystem][j]*PotentialCorrectionPressure(i,j,CutOffVDW);
+        pressure-=(2.0/3.0)*M_PI*NumberOfPseudoAtomsType[CurrentSystem][i]*NumberOfPseudoAtomsType[CurrentSystem][j]*PotentialCorrectionPressure(i,j,CutOffVDW);
       }
       else if(!ShiftPotential[i][j])
       {
         // impulsive correction
-        pressure-=(2.0/3.0)*M_PI*NumberOfPseudoAtomsType[CurrentSystem][i]*NumberOfPseudoAtomsType[CurrentSystem][j]*CUBE(CutOffVDW)*PotentialValue(i,j,CutOffVDWSquared,1.0);
+        pressure+=(2.0/3.0)*M_PI*NumberOfPseudoAtomsType[CurrentSystem][i]*NumberOfPseudoAtomsType[CurrentSystem][j]*CUBE(CutOffVDW)*PotentialValue(i,j,CutOffVDWSquared,1.0);
       }
     }
 
@@ -11265,24 +11265,70 @@ void CalculateTailCorrection(void)
   UTailCorrection[CurrentSystem]=energy/Volume[CurrentSystem];
 }
 
-REAL CalculatePressureTailCorrection(void)
+REAL TailMolecularEnergyDifferenceRXMX(int reaction,int direction)
 {
-  int i,j;
-  REAL pressure;
+  int i,j,k,l;
+  int nr_atoms;
+  REAL energy_new,energy_old;
 
-  pressure=0.0;
   for(i=0;i<NumberOfPseudoAtoms;i++)
+    NumberOfPseudoAtomsTypeNew[i]=NumberOfPseudoAtomsType[CurrentSystem][i];
+
+
+  switch(direction)
   {
+    case FORWARD:
+      for(j=0;j<NumberOfComponents;j++)
+      {
+        for(k=0;k<ReactantsStoichiometry[reaction][j];k++)
+        {
+          for(l=0;l<Components[j].NumberOfAtoms;l++)
+            NumberOfPseudoAtomsTypeNew[Components[j].Type[l]]--;
+        }
+
+        for(k=0;k<ProductsStoichiometry[reaction][j];k++)
+        {
+          for(l=0;l<Components[j].NumberOfAtoms;l++)
+             NumberOfPseudoAtomsTypeNew[Components[j].Type[l]]++;
+        }
+      }
+      break;
+    case BACKWARD:
+      for(j=0;j<NumberOfComponents;j++)
+      {
+        for(k=0;k<ReactantsStoichiometry[reaction][j];k++)
+        {
+          for(l=0;l<Components[j].NumberOfAtoms;l++)
+            NumberOfPseudoAtomsTypeNew[Components[j].Type[l]]++;
+        }
+
+        for(k=0;k<ProductsStoichiometry[reaction][j];k++)
+        {
+          for(l=0;l<Components[j].NumberOfAtoms;l++)
+             NumberOfPseudoAtomsTypeNew[Components[j].Type[l]]--;
+        }
+      }
+      break;
+    case NO_FORWARD_OR_BACKWARD:
+    default:
+      break;
+  }
+
+  energy_new=0.0;
+  energy_old=0.0;
+  for(i=0;i<NumberOfPseudoAtoms;i++)
     for(j=0;j<NumberOfPseudoAtoms;j++)
     {
       if(TailCorrection[i][j])
-        pressure+=(2.0/3.0)*M_PI*NumberOfPseudoAtomsType[CurrentSystem][i]*NumberOfPseudoAtomsType[CurrentSystem][j]*PotentialCorrectionPressure(i,j,CutOffVDW);
-      else if(!ShiftPotential[i][j])
-        pressure-=(2.0/3.0)*M_PI*NumberOfPseudoAtomsType[CurrentSystem][i]*NumberOfPseudoAtomsType[CurrentSystem][j]*CUBE(CutOffVDW)*PotentialValue(i,j,CutOffVDWSquared,1.0);
+      {
+        energy_new+=2.0*M_PI*NumberOfPseudoAtomsTypeNew[i]*NumberOfPseudoAtomsTypeNew[j]*PotentialCorrection(i,j,CutOffVDW);
+        energy_old+=2.0*M_PI*NumberOfPseudoAtomsType[CurrentSystem][i]*NumberOfPseudoAtomsType[CurrentSystem][j]*
+                    PotentialCorrection(i,j,CutOffVDW);
+      }
     }
-  }
-  return pressure/Volume[CurrentSystem];
+  return (energy_new-energy_old)/Volume[CurrentSystem];
 }
+
 
 /*********************************************************************************************************
  * Name       | TailMolecularEnergyDifference                                                            *

@@ -75,6 +75,8 @@ void MonteCarloSimulation(void)
 
   // allocate memory for sampling routines
   SampleRadialDistributionFunction(ALLOCATE);
+  SampleProjectedLengthsDistributionFunction(ALLOCATE);
+  SampleProjectedAnglesDistributionFunction(ALLOCATE);
   SampleNumberOfMoleculesHistogram(ALLOCATE);
   SamplePositionHistogram(ALLOCATE);
   SampleFreeEnergyProfile(ALLOCATE);
@@ -103,6 +105,7 @@ void MonteCarloSimulation(void)
   SampleDcTSTConfigurationFiles(ALLOCATE);
   SamplePDBMovies(ALLOCATE,-1);
 
+
   // loop over all the pressures of the isotherm
   for(CurrentIsothermPressure=0;CurrentIsothermPressure<NumberOfIsothermPressures;CurrentIsothermPressure++)
   {
@@ -127,6 +130,7 @@ void MonteCarloSimulation(void)
     CalculateTotalEnergyAllSystems();
 
     CFWangLandauIteration(INITIALIZE);
+    CFRXMCWangLandauIteration(INITIALIZE);
 
     // initialization to reach equilibration of positions (no averages are computed yet)
     SimulationStage=POSITION_INITIALIZATION;
@@ -161,7 +165,7 @@ void MonteCarloSimulation(void)
         SelectedSystem=(int)(RandomNumber()*(REAL)NumberOfSystems);
 
         NumberOfParticleMoves=MAX2(MinimumInnerCycles,NumberOfAdsorbateMolecules[SelectedSystem]+NumberOfCationMolecules[SelectedSystem]);
-        NumberOfSteps=NumberOfParticleMoves*NumberOfComponents;
+        NumberOfSteps=NumberOfParticleMoves*(NumberOfComponents==0?1:NumberOfComponents);
 
         for(j=0;j<NumberOfSteps;j++)
         {
@@ -237,6 +241,8 @@ void MonteCarloSimulation(void)
             FrameworkChangeMove();
           else if(ran<Components[CurrentComponent].ProbabilityFrameworkShiftMove)
             FrameworkShiftMove();
+          else if(ran<Components[CurrentComponent].ProbabilityCFCRXMCLambdaChangeMove)
+            CFCRXMCLambdaChangeMove();
 
           #ifdef DEBUG
             DebugEnergyStatus();
@@ -259,6 +265,7 @@ void MonteCarloSimulation(void)
           if(OptimizeCFGibbsLambdaChange) OptimizeCFGibbsLambdaChangeAcceptence();
           if(OptimizeCBCFLambdaChange) OptimizeCBCFLambdaChangeAcceptence();
           if(OptimizeCBCFGibbsLambdaChange) OptimizeCBCFGibbsLambdaChangeAcceptence();
+          if(OptimizeRXMCLambdaChange) OptimizeRXMCLambdaChangeAcceptence();
           RescaleMaximumRotationAnglesSmallMC();
         }
       }
@@ -283,6 +290,7 @@ void MonteCarloSimulation(void)
     if(NumberOfEquilibrationCycles>0)
     {
       CFWangLandauIteration(INITIALIZE);
+      CFRXMCWangLandauIteration(INITIALIZE);
 
       // initialization to reach equilibration of positions (no averages are computed yet)
       SimulationStage=CF_WANG_LANDAU_EQUILIBRATION;
@@ -318,7 +326,7 @@ void MonteCarloSimulation(void)
           SelectedSystem=(int)(RandomNumber()*(REAL)NumberOfSystems);
 
           NumberOfParticleMoves=MAX2(MinimumInnerCycles,NumberOfAdsorbateMolecules[SelectedSystem]+NumberOfCationMolecules[SelectedSystem]);
-          NumberOfSteps=NumberOfParticleMoves*NumberOfComponents;
+          NumberOfSteps=NumberOfParticleMoves*(NumberOfComponents==0?1:NumberOfComponents);
 
           for(j=0;j<NumberOfSteps;j++)
           {
@@ -406,6 +414,11 @@ void MonteCarloSimulation(void)
               FrameworkChangeMove();
             else if(ran<Components[CurrentComponent].ProbabilityFrameworkShiftMove)
               FrameworkShiftMove();
+            else if(ran<Components[CurrentComponent].ProbabilityCFCRXMCLambdaChangeMove)
+            {
+              CFCRXMCLambdaChangeMove();
+              CFRXMCWangLandauIteration(SAMPLE);
+            }
 
             #ifdef DEBUG
               DebugEnergyStatus();
@@ -428,12 +441,16 @@ void MonteCarloSimulation(void)
             if(OptimizeCFGibbsLambdaChange) OptimizeCFGibbsLambdaChangeAcceptence();
             if(OptimizeCBCFLambdaChange) OptimizeCBCFLambdaChangeAcceptence();
             if(OptimizeCBCFGibbsLambdaChange) OptimizeCBCFGibbsLambdaChangeAcceptence();
+            if(OptimizeRXMCLambdaChange) OptimizeRXMCLambdaChangeAcceptence();
             RescaleMaximumRotationAnglesSmallMC();
           }
         }
 
         if(CurrentCycle%CFWangLandauEvery==0)
+        {
           CFWangLandauIteration(PRINT);
+          CFRXMCWangLandauIteration(PRINT);
+        }
 
         cpu_end=get_cpu_time();
         CpuTotal+=(cpu_end-cpu_start);
@@ -441,6 +458,7 @@ void MonteCarloSimulation(void)
       }
 
       CFWangLandauIteration(FINALIZE);
+      CFRXMCWangLandauIteration(FINALIZE);
 
       // after equilibration, recompute all the energies
       InitializesEnergiesAllSystems();
@@ -454,6 +472,8 @@ void MonteCarloSimulation(void)
 
     // initialize sampling-routines at the start of the production run
     SampleRadialDistributionFunction(INITIALIZE);
+    SampleProjectedLengthsDistributionFunction(INITIALIZE);
+    SampleProjectedAnglesDistributionFunction(INITIALIZE);
     SampleNumberOfMoleculesHistogram(INITIALIZE);
     SamplePositionHistogram(INITIALIZE);
     SampleFreeEnergyProfile(INITIALIZE);
@@ -488,6 +508,8 @@ void MonteCarloSimulation(void)
         UpdateEnergyAveragesCurrentSystem();
 
         SampleRadialDistributionFunction(SAMPLE);
+        SampleProjectedLengthsDistributionFunction(SAMPLE);
+        SampleProjectedAnglesDistributionFunction(SAMPLE);
         SampleNumberOfMoleculesHistogram(SAMPLE);
         SamplePositionHistogram(SAMPLE);
         SampleFreeEnergyProfile(SAMPLE);
@@ -531,7 +553,7 @@ void MonteCarloSimulation(void)
         SelectedSystem=(int)(RandomNumber()*(REAL)NumberOfSystems);
 
         NumberOfParticleMoves=MAX2(MinimumInnerCycles,NumberOfAdsorbateMolecules[SelectedSystem]+NumberOfCationMolecules[SelectedSystem]);
-        NumberOfSteps=NumberOfParticleMoves*NumberOfComponents;
+        NumberOfSteps=NumberOfParticleMoves*(NumberOfComponents==0?1:NumberOfComponents);
 
         // loop over the MC 'steps' per MC 'cycle'
         for(j=0;j<NumberOfSteps;j++)
@@ -764,6 +786,13 @@ void MonteCarloSimulation(void)
             cpu_after=get_cpu_time();
             CpuTimeFrameworkShiftMove[CurrentSystem]+=(cpu_after-cpu_before);
           }
+          else if(ran<Components[CurrentComponent].ProbabilityCFCRXMCLambdaChangeMove)
+          {
+            cpu_before=get_cpu_time();
+            CFCRXMCLambdaChangeMove();
+            cpu_after=get_cpu_time();
+            CpuCFCRXMCLambdaChangeMove[CurrentSystem]+=(cpu_after-cpu_before);
+          }
           
           #ifdef DEBUG
             DebugEnergyStatus();
@@ -787,6 +816,7 @@ void MonteCarloSimulation(void)
           if(OptimizeCFGibbsLambdaChange) OptimizeCFGibbsLambdaChangeAcceptence();
           if(OptimizeCBCFLambdaChange) OptimizeCBCFLambdaChangeAcceptence();
           if(OptimizeCBCFGibbsLambdaChange) OptimizeCBCFGibbsLambdaChangeAcceptence();
+          if(OptimizeRXMCLambdaChange) OptimizeRXMCLambdaChangeAcceptence();
           RescaleMaximumRotationAnglesSmallMC();
         }
       }
@@ -805,6 +835,8 @@ void MonteCarloSimulation(void)
       for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
       {
         SampleRadialDistributionFunction(PRINT);
+        SampleProjectedLengthsDistributionFunction(PRINT);
+        SampleProjectedAnglesDistributionFunction(PRINT);
         SampleNumberOfMoleculesHistogram(PRINT);
         SamplePositionHistogram(PRINT);
         SampleFreeEnergyProfile(PRINT);
@@ -839,6 +871,8 @@ void MonteCarloSimulation(void)
     for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
     {
       SampleRadialDistributionFunction(PRINT);
+      SampleProjectedLengthsDistributionFunction(PRINT);
+      SampleProjectedAnglesDistributionFunction(PRINT);
       SampleNumberOfMoleculesHistogram(PRINT);
       SamplePositionHistogram(PRINT);
       SampleFreeEnergyProfile(PRINT);
@@ -872,6 +906,8 @@ void MonteCarloSimulation(void)
 
   // finalize output
   SampleRadialDistributionFunction(FINALIZE);
+  SampleProjectedLengthsDistributionFunction(FINALIZE);
+  SampleProjectedAnglesDistributionFunction(FINALIZE);
   SampleNumberOfMoleculesHistogram(FINALIZE);
   SamplePositionHistogram(FINALIZE);
   SampleFreeEnergyProfile(FINALIZE);

@@ -68,6 +68,8 @@ void MolecularDynamicsSimulation(void)
 
   // allocate memory
   SampleRadialDistributionFunction(ALLOCATE);
+  SampleProjectedLengthsDistributionFunction(ALLOCATE);
+  SampleProjectedAnglesDistributionFunction(ALLOCATE);
   SampleNumberOfMoleculesHistogram(ALLOCATE);
   SamplePositionHistogram(ALLOCATE);
   SampleFreeEnergyProfile(ALLOCATE);
@@ -320,6 +322,8 @@ void MolecularDynamicsSimulation(void)
     Drift[CurrentSystem]=0.0;
 
     SampleRadialDistributionFunction(INITIALIZE);
+    SampleProjectedLengthsDistributionFunction(INITIALIZE);
+    SampleProjectedAnglesDistributionFunction(INITIALIZE);
     SampleNumberOfMoleculesHistogram(INITIALIZE);
     SamplePositionHistogram(INITIALIZE);
     SampleFreeEnergyProfile(INITIALIZE);
@@ -408,6 +412,8 @@ void MolecularDynamicsSimulation(void)
     for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
     {
       SampleRadialDistributionFunction(SAMPLE);
+      SampleProjectedLengthsDistributionFunction(SAMPLE);
+      SampleProjectedAnglesDistributionFunction(SAMPLE);
       SampleNumberOfMoleculesHistogram(SAMPLE);
       SamplePositionHistogram(SAMPLE);
       SampleFreeEnergyProfile(SAMPLE);
@@ -442,6 +448,8 @@ void MolecularDynamicsSimulation(void)
     {
       // regulary output sampling function
       SampleRadialDistributionFunction(PRINT);
+      SampleProjectedLengthsDistributionFunction(PRINT);
+      SampleProjectedAnglesDistributionFunction(PRINT);
       SampleNumberOfMoleculesHistogram(PRINT);
       SamplePositionHistogram(PRINT);
       SampleFreeEnergyProfile(PRINT);
@@ -476,6 +484,8 @@ void MolecularDynamicsSimulation(void)
   for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
   {
     SampleRadialDistributionFunction(FINALIZE);
+    SampleProjectedLengthsDistributionFunction(FINALIZE);
+    SampleProjectedAnglesDistributionFunction(FINALIZE);
     SampleNumberOfMoleculesHistogram(FINALIZE);
     SamplePositionHistogram(FINALIZE);
     SampleFreeEnergyProfile(FINALIZE);

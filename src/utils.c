@@ -36,6 +36,50 @@
 #include <fftw3.h>
 #endif
 
+long Factorial(int n)
+{
+  int c;
+  long result = 1;
+ 
+  for (c = 1; c <= n; c++)
+    result = result * c;
+ 
+  return result;
+}
+
+
+void BubbleSort(int list[], int n)
+{
+  long c, d, t;
+
+  for (c = 0 ; c < ( n - 1 ); c++)
+  {
+    for (d = 0 ; d < n - c - 1; d++)
+    {
+      if (list[d] > list[d+1])
+      {
+        /* Swapping */
+
+        t         = list[d];
+        list[d]   = list[d+1];
+        list[d+1] = t;
+      }
+    }
+  }
+}
+
+
+
+int isInArrayOfSize(int value,int n,int *array)
+{
+  int i;
+
+  for(i=0;i<n;i++)
+  {
+    if(value==array[i]) return TRUE;
+  }
+  return FALSE;
+}
 
 double get_wall_time(void)
 {

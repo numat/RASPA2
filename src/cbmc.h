@@ -136,7 +136,9 @@ extern VECTOR **NewForce;
 extern VECTOR FirstBeadPosition;
 extern VECTOR **TrialPositions;
 extern REAL *CFVDWScaling;
+extern REAL **CFVDWScalingRXMC;
 extern REAL *CFChargeScaling;
+extern REAL **CFChargeScalingRXMC;
 extern int OVERLAP;
 
 void CalculateAnisotropicTrialPositions(int TypeMolA,VECTOR *TrialPosition,VECTOR *TrialAnisotropicPosition);
@@ -145,6 +147,8 @@ REAL GrowMolecule(int Iicode);
 REAL RetraceMolecule(int Iicode);
 
 void GrowReservoirMolecule(void);
+void GrowReservoirMolecules(int reaction);
+void GrowReservoirMolecules2(int reaction);
 
 void MakeInitialAdsorbate(void);
 void MakeInitialAdsorbates(int n,int type);

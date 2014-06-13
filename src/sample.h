@@ -37,6 +37,20 @@ extern int *WriteRDFEvery;
 extern int *RDFHistogramSize;
 extern REAL *RDFRange;
 
+// sampling the projected lengths distribution function 
+void SampleProjectedLengthsDistributionFunction(int);
+extern int *ComputeProjectedLengths;
+extern int *WriteProjectedLengthsEvery;
+extern int *ProjectedLengthsHistogramSize;
+extern REAL *ProjectedLengthsRange;
+
+// sampling the projected angles distribution function 
+void SampleProjectedAnglesDistributionFunction(int);
+extern int *ComputeProjectedAngles;
+extern int *WriteProjectedAnglesEvery;
+extern int *ProjectedAnglesHistogramSize;
+extern REAL *ProjectedAnglesRange;
+
 //----------------------------------------------------------------------------------------
 // CFC-RXMC : sampling lambda histogram
 //----------------------------------------------------------------------------------------

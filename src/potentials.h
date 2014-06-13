@@ -258,6 +258,7 @@ REAL PotentialCorrection(int a,int b,REAL r);
 REAL PotentialCorrectionPressure(int typeA,int typeB,REAL r);
 REAL CalculatePressureTailCorrection(void);
 void CalculateTailCorrection(void);
+REAL TailMolecularEnergyDifferenceRXMX(int reaction,int direction);
 REAL TailMolecularEnergyDifference(int ComponentToAdd,int ComponentToRemove,int Add,int Remove);
 REAL TailMolecularEnergyDifferenceAdd(void);
 REAL TailMolecularEnergyDifferenceRemove(void);

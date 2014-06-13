@@ -34,6 +34,7 @@ enum {NONLINEAR_MOLECULE,LINEAR_MOLECULE,POINT_PARTICLE};
 enum {NO_CHARILITY,S_CHIRAL,R_CHIRAL};
 enum {FRAMEWORK,ADSORBATE,CATION};
 enum {FIXED,FREE};
+enum {FORWARD,BACKWARD,NO_FORWARD_OR_BACKWARD};
 enum {ENANTIOFACE_RE,ENANTIOFACE_SI};
 enum {POSITION_INITIALIZATION,VELOCITY_SCALING,VELOCITY_EQUILIBRATION,CF_WANG_LANDAU_EQUILIBRATION,PRODUCTION,FINISHED};
 
@@ -80,13 +81,13 @@ extern int CurrentSystem;                   // the current system
 //----------------------------------------------------------------------------------------
 
 extern int NumberOfReactions;                       // Total number of Reactions
-extern int CurrentReaction;                         // The Current Reaction
-extern REAL CurrentReactionLambda;                  // Current Reaction Lambda
 extern REAL **CFCRXMCLambda;                        // Reaction Lambda for all reactions
 extern REAL ProbabilityCFCRXMCLambdaChangeMove;
-extern int **ReactionStoichiometry;                 // Reaction Stoichiometry
 extern int **ReactantsStoichiometry;                // Reactants Stoichiometry
 extern int **ProductsStoichiometry;                 // Products Stoichiometry
+extern int RXMCLambdaHistogramSize;
+extern REAL ***RXMCBiasingFactors;
+extern REAL **CFRXMCWangLandauScalingFactor;
 
 //----------------------------------------------------------------------------------------
 
@@ -426,6 +427,7 @@ extern REAL *CpuTimeBoxShapeChangeMove;
 extern REAL *CpuTimeGibbsVolumeChangeMove;
 extern REAL *CpuTimeFrameworkChangeMove;
 extern REAL *CpuTimeFrameworkShiftMove;
+extern REAL *CpuCFCRXMCLambdaChangeMove;
 
 extern int OptimizeVolumeChange;
 extern int OptimizeGibbsVolumeChange;
@@ -437,6 +439,7 @@ extern int OptimizeCFLambdaChange;
 extern int OptimizeCFGibbsLambdaChange;
 extern int OptimizeCBCFLambdaChange;
 extern int OptimizeCBCFGibbsLambdaChange;
+extern int OptimizeRXMCLambdaChange;
 
 void ScaleBornTerm(REAL r);
 void AddContributionToCrossTerm(int i,REAL_MATRIX CrossTerm,REAL DDF,REAL DF,VECTOR dr);

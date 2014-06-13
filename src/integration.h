@@ -28,6 +28,8 @@ void InitializeForces(void);
 void InitializeForcesAllSystems(void);
 void CalculateForce(void);
 
+void CalculateMolecularExcessPressure(void);
+
 void Integration(void);
 
 int CalculateElectricField(void);

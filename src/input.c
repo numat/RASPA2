@@ -202,6 +202,7 @@ int ReadInput(char *input)
   REAL det,r;
   REAL A,B,C,tempd;
   int temp_int;
+  REAL temp_real;
   double Wavelength;
   int f1,f2;
   VECTOR posf1,posf2,dr,s;
@@ -212,6 +213,10 @@ int ReadInput(char *input)
   int CurrentPrism,CurrentCylinder,CurrentSphere;
   int NumberOfCFBiasingFactors;
   REAL OverlapDistance;
+  int CurrentReaction;
+
+  CurrentReaction=0;
+  RXMCLambdaHistogramSize=21;
 
   NumberOfFixedAtomTypes=0;
   NumberOfActiveAtomTypes=0;
@@ -296,6 +301,7 @@ int ReadInput(char *input)
   OptimizeCFGibbsLambdaChange=TRUE;
   OptimizeCBCFLambdaChange=TRUE;
   OptimizeCBCFGibbsLambdaChange=TRUE;
+  OptimizeRXMCLambdaChange=TRUE;
 
 
   // default values for the restart-file
@@ -329,7 +335,7 @@ int ReadInput(char *input)
   NumberOfTrialPositionsForTheFirstBeadWidom=10;
 
 
-  EnergyOverlapCriteria=1.0e5;
+  EnergyOverlapCriteria=1.0e7;
   MinimumRosenbluthFactor=1.0e-150;
 
   TargetAccRatioSmallMCScheme=0.4;
@@ -339,7 +345,7 @@ int ReadInput(char *input)
   TargetAccRatioVolumeChange=0.5;
   TargetAccRatioBoxShapeChange=0.5;
   TargetAccRatioGibbsVolumeChange=0.5;
-  TargetAccRatioCFCRXMCLambdaChange=0.5;        // CFC-RXMC
+  TargetAccRatioReactionLambdaChange=0.5;
 
   BlockGridPockets=TRUE;
   BlockGridPores=FALSE;
@@ -675,6 +681,8 @@ int ReadInput(char *input)
       }
     }
 
+    if(strcasecmp("CFCRXMCLambdaHistogramSize",keyword)==0) sscanf(arguments,"%d",&RXMCLambdaHistogramSize);
+
     //-------------------------------------------------------------------------------------------------------------------------------------------------------
     // CFC-RXMC : read statements for number of reactions
     //-------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -714,6 +722,7 @@ int ReadInput(char *input)
 
   read_frameworks=(int*)calloc(NumberOfSystems,sizeof(REAL));
   InitializeBox=(int*)calloc(NumberOfSystems,sizeof(REAL));
+
 
   for(i=0;i<NumberOfSystems;i++)
   {
@@ -796,6 +805,7 @@ int ReadInput(char *input)
   NumberOfChargesPerSystem=(int*)calloc(NumberOfSystems,sizeof(int));
   NumberOfBondDipolesPerSystem=(int*)calloc(NumberOfSystems,sizeof(int));
 
+
   for(i=0;i<NumberOfComponents;i++)
   {
     Components[i].IdealGasRosenbluthWeight=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
@@ -814,6 +824,9 @@ int ReadInput(char *input)
     Components[i].CFMoleculePresent=(int*)calloc(NumberOfSystems,sizeof(int));
     Components[i].CFWangLandauScalingFactor=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
     Components[i].CFBiasingFactors=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
+
+    Components[i].RXMCMoleculesPresent=(int*)calloc(NumberOfSystems,sizeof(int));
+    Components[i].NumberOfRXMCMoleculesPresent=(int*)calloc(NumberOfSystems,sizeof(int));
 
     Components[i].MOLEC_PER_UC_TO_MOL_PER_KG=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
     Components[i].MOLEC_PER_UC_TO_GRAM_PER_GRAM_OF_FRAMEWORK=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
@@ -911,13 +924,44 @@ int ReadInput(char *input)
     Components[i].Intra14ChargeChargeScalingValue=1.0;
 
     Components[i].AnisotropicType=ANISOTROPIC_MID_POINT;
-    Components[i].BiasingDirection=A_DIR;
+    Components[i].BiasingDirection=A_MAPPING;
   }
 
   Alpha=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
   kvec=(INT_VECTOR3*)calloc(NumberOfSystems,sizeof(INT_VECTOR3));
   NumberOfKVectors=(int*)calloc(NumberOfSystems,sizeof(int));
   ReciprocalCutOffSquared=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+
+  ReactantsStoichiometry=(int**)calloc(NumberOfReactions,sizeof(int*));
+  ProductsStoichiometry=(int**)calloc(NumberOfReactions,sizeof(int*));
+  for(i=0;i<NumberOfReactions;i++)
+  {
+    ReactantsStoichiometry[i]=(int*)calloc(NumberOfComponents,sizeof(int));
+    ProductsStoichiometry[i]=(int*)calloc(NumberOfComponents,sizeof(int));
+
+  }
+
+  for(i=0;i<NumberOfSystems;i++)
+    for(l=0;l<NumberOfReactions;l++)
+      CFRXMCWangLandauScalingFactor[i][l]=0.01;
+
+ /* 
+  RXMCBiasingFactors=(REAL***)calloc(NumberOfSystems,sizeof(REAL**));
+  CFRXMCWangLandauScalingFactor=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
+  for(i=0;i<NumberOfSystems;i++)
+  {
+    if(NumberOfReactions>0)
+    {
+      RXMCBiasingFactors[i]=(REAL**)calloc(NumberOfReactions,sizeof(REAL*));
+      CFRXMCWangLandauScalingFactor[i]=(REAL*)calloc(NumberOfReactions,sizeof(REAL));
+      for(l=0;l<NumberOfReactions;l++)
+      {
+        RXMCBiasingFactors[i][l]=(REAL*)calloc(RXMCLambdaHistogramSize,sizeof(REAL));
+        CFRXMCWangLandauScalingFactor[i][l]=0.01;
+      }
+    }
+  }
+*/
 
   // second pass to get the number of frameworks per system
   CurrentSystem=0;
@@ -968,6 +1012,15 @@ int ReadInput(char *input)
       }
     }
     if(strcasecmp("CFLambdaHistogramSize",keyword)==0) sscanf(arguments,"%d",&Components[CurrentComponent].CFLambdaHistogramSize);
+
+    if(strcasecmp("CFRXMCWangLandauScalingFactor",keyword)==0) 
+    {
+      sscanf(arguments,"%d",&temp_int);
+      for(i=0;i<NumberOfSystems;i++)
+        for(l=0;l<NumberOfReactions;l++)
+          CFRXMCWangLandauScalingFactor[i][l]=temp_int;
+ 
+    }
   }
 
 
@@ -984,6 +1037,7 @@ int ReadInput(char *input)
       // starting bias-factor for CF are zero
       for(k=0;k<Components[j].CFLambdaHistogramSize;k++)
         Components[j].CFBiasingFactors[i][k]=0.0;
+  
     }
 
     ReciprocalCutOffSquared[i]=-1.0;
@@ -1002,6 +1056,19 @@ int ReadInput(char *input)
     WriteRDFEvery[i]=5000;
     RDFHistogramSize[i]=500;
     RDFRange[i]=12.0;
+
+    // sampling the projected lengths
+    ComputeProjectedLengths[i]=FALSE;
+    WriteProjectedLengthsEvery[i]=5000;
+    ProjectedLengthsHistogramSize[i]=500;
+    ProjectedLengthsRange[i]=12.0;
+
+    // sampling the projected angles
+    ComputeProjectedAngles[i]=FALSE;
+    WriteProjectedAnglesEvery[i]=5000;
+    ProjectedAnglesHistogramSize[i]=500;
+    ProjectedAnglesRange[i]=180.0;
+
 
     //----------------------------------------------------------------------------
     // CFC-RXMC : sampling lambda histogram
@@ -2392,9 +2459,17 @@ int ReadInput(char *input)
     //--------------------------------------------------------------------------------------------------------------------------------------------------------
     // CFC-RXMC : reading parameters
     //--------------------------------------------------------------------------------------------------------------------------------------------------------
-    if(strcasecmp("CFCRXMCLambdaChangeProbability",keyword)==0) sscanf(arguments,"%lf",&ProbabilityCFCRXMCLambdaChangeMove);
+    if(strcasecmp("ProbabilityCFCRXMCLambdaChangeMove",keyword)==0) sscanf(arguments,"%lf",&ProbabilityCFCRXMCLambdaChangeMove);
+    if(strcasecmp("TargetAccRatioReactionLambdaChange",keyword)==0) sscanf(arguments,"%lf",&TargetAccRatioReactionLambdaChange);
     if(strcasecmp("PartitionFunction",keyword)==0) sscanf(arguments,"%lf",&Components[CurrentComponent].PartitionFunction);
-    if(strcasecmp("MaximumCFCRXMCLambdaChange",keyword)==0) sscanf(arguments,"system %d: %lf",&CurrentSystem,&MaximumCFCRXMCLambdaChange[CurrentSystem]);
+    if(strcasecmp("MaximumReactionLambdaChange",keyword)==0) 
+    {
+       sscanf(arguments,"%lf",&temp_real);
+       for(i=0;i<NumberOfReactions;i++)
+         MaximumReactionLambdaChange[CurrentSystem][i]=temp_real;
+    }
+
+
     //--------------------------------------------------------------------------------------------------------------------------------------------------------
     if(strcasecmp("ParallelTemperingProbability",keyword)==0) sscanf(arguments,"%lf",&ProbabilityParallelTemperingMove);
     if(strcasecmp("HyperParallelTemperingProbability",keyword)==0) sscanf(arguments,"%lf",&ProbabilityHyperParallelTemperingMove);
@@ -2893,6 +2968,27 @@ int ReadInput(char *input)
     if(strcasecmp("WriteRDFEvery",keyword)==0) sscanf(arguments,"%d",&WriteRDFEvery[CurrentSystem]);
     if(strcasecmp("RDFHistogramSize",keyword)==0) sscanf(arguments,"%d",&RDFHistogramSize[CurrentSystem]);
     if(strcasecmp("RDFRange",keyword)==0) sscanf(arguments,"%lf",&RDFRange[CurrentSystem]);
+
+    // sampling the projected-lengths distribution function
+    if(strcasecmp("ComputeProjectedLengths",keyword)==0)
+    {
+      if(strcasecmp("yes",firstargument)==0) ComputeProjectedLengths[CurrentSystem]=TRUE;
+      if(strcasecmp("no",firstargument)==0) ComputeProjectedLengths[CurrentSystem]=FALSE;
+    }
+    if(strcasecmp("WriteProjectedLengthsEvery",keyword)==0) sscanf(arguments,"%d",&WriteProjectedLengthsEvery[CurrentSystem]);
+    if(strcasecmp("ProjectedLengthsHistogramSize",keyword)==0) sscanf(arguments,"%d",&ProjectedLengthsHistogramSize[CurrentSystem]);
+    if(strcasecmp("ProjectedLengthsRange",keyword)==0) sscanf(arguments,"%lf",&ProjectedLengthsRange[CurrentSystem]);
+
+    // sampling the projected-angles distribution function
+    if(strcasecmp("ComputeProjectedAngles",keyword)==0)
+    {
+      if(strcasecmp("yes",firstargument)==0) ComputeProjectedAngles[CurrentSystem]=TRUE;
+      if(strcasecmp("no",firstargument)==0) ComputeProjectedAngles[CurrentSystem]=FALSE;
+    }
+    if(strcasecmp("WriteProjectedAnglesEvery",keyword)==0) sscanf(arguments,"%d",&WriteProjectedAnglesEvery[CurrentSystem]);
+    if(strcasecmp("ProjectedAnglesHistogramSize",keyword)==0) sscanf(arguments,"%d",&ProjectedAnglesHistogramSize[CurrentSystem]);
+    if(strcasecmp("ProjectedAnglesRange",keyword)==0) sscanf(arguments,"%lf",&ProjectedAnglesRange[CurrentSystem]);
+
 
     //----------------------------------------------------------------------------------------------------------------------------------------------
     // CFC-RXMC : sampling lambda histogram
@@ -4629,6 +4725,11 @@ int ReadInput(char *input)
       if(strcasecmp("yes",firstargument)==0) OptimizeCBCFGibbsLambdaChange=TRUE;
       if(strcasecmp("no",firstargument)==0) OptimizeCBCFGibbsLambdaChange=FALSE;
     }
+    if(strcasecmp("OptimizeRXMCLambdaChange",keyword)==0)
+    {
+      if(strcasecmp("yes",firstargument)==0) OptimizeRXMCLambdaChange=TRUE;
+      if(strcasecmp("no",firstargument)==0) OptimizeRXMCLambdaChange=FALSE;
+    }
     if(strcasecmp("MinimumInnerCycles",keyword)==0) sscanf(arguments,"%d",&MinimumInnerCycles);
     if(strcasecmp("NumberOfTrialPositions",keyword)==0) sscanf(arguments,"%d",&NumberOfTrialPositions);
     if(strcasecmp("NumberOfTrialPositionsReinsertion",keyword)==0) sscanf(arguments,"%d",&NumberOfTrialPositionsReinsertion);
@@ -5496,6 +5597,7 @@ int ReadInput(char *input)
     }
   }
 
+
   // read forcefields after the structure has been read
   // (because CIF-files can add atom-types)
   CurrentSystem=0;
@@ -5576,12 +5678,12 @@ int ReadInput(char *input)
     NumberOfBondDipolesPerSystem[i]=0;
   }
 
-
   // the components are read, and all limits are known
   // allocate the memory for use in the cbmc routines
   AllocateCBMCMemory();
   AllocateMCMovesMemory();
   AllocateGridMemory();
+
 
   for(i=0;i<NumberOfGrids;i++)
     GridTypeList[i]=ReturnPseudoAtomNumber(GridTypeListName[i]);
@@ -5600,10 +5702,14 @@ int ReadInput(char *input)
     MaximumBoxShapeChange[i].cz=0.1;
     MaximumGibbsVolumeChange[i]=0.1;
 
+    for(j=0;j<NumberOfReactions;j++)
+      MaximumReactionLambdaChange[i][j]=0.3;
+
     for(j=0;j<NumberOfComponents;j++)
     {
       MaximumCFLambdaChange[i][j]=0.5;
       MaximumCBCFLambdaChange[i][j]=0.5;
+
       switch(Components[j].TranslationDirection)
       {
         case XYZ_DIR:
@@ -5795,6 +5901,25 @@ int ReadInput(char *input)
 
     CurrentSystem=i;
     InitializeReplicaBox();
+  }
+
+
+  // count how many fractional molecules there should be for the reactions
+  if(NumberOfReactions>0)
+  {
+    for(i=0;i<NumberOfSystems;i++)
+    {
+      for(k=0;k<NumberOfComponents;k++)
+      {
+        Components[k].RXMCMoleculesPresent[i]=FALSE;
+        Components[k].NumberOfRXMCMoleculesPresent[i]=0;
+        for(j=0;j<NumberOfReactions;j++)
+        {
+          Components[k].RXMCMoleculesPresent[i]=TRUE;
+          Components[k].NumberOfRXMCMoleculesPresent[i]+=ReactantsStoichiometry[j][k]+ProductsStoichiometry[j][k];
+        }
+      }
+    }
   }
 
   CurrentComponent=0;
@@ -6642,10 +6767,77 @@ int ReadInput(char *input)
     SetBarierNormal();
   }
 
+  for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
+  {
+    for(j=0;j<NumberOfComponents;j++)
+    {
+      // the are no molecules present from a restart-file -> create reaction fractional molecules
+      if(Components[j].NumberOfMolecules[CurrentSystem]==0)
+      {
+        for(k=0;k<NumberOfReactions;k++)
+        {
+          CFCRXMCLambda[CurrentSystem][k]=0.5;
+          for(l=0;l<ReactantsStoichiometry[k][j];l++)
+          {
+            if(Components[j].ExtraFrameworkMolecule)
+            {
+              MakeInitialCations(1,j);
+              Components[j].ReactantFractionalMolecules[CurrentSystem][k][l]=NumberOfCationMolecules[CurrentSystem]-1;
+
+              for(m=0;m<Components[j].NumberOfAtoms;m++)
+              {
+                Cations[CurrentSystem][NumberOfCationMolecules[CurrentSystem]-1].Atoms[m].CFVDWScalingParameter=0.999999;
+                Cations[CurrentSystem][NumberOfCationMolecules[CurrentSystem]-1].Atoms[m].CFChargeScalingParameter=pow(0.999999,5);
+              }
+            }
+            else
+            {
+              MakeInitialAdsorbates(1,j);
+              Components[j].ReactantFractionalMolecules[CurrentSystem][k][l]=NumberOfAdsorbateMolecules[CurrentSystem]-1;
+
+              for(m=0;m<Components[j].NumberOfAtoms;m++)
+              {
+                Adsorbates[CurrentSystem][NumberOfAdsorbateMolecules[CurrentSystem]-1].Atoms[m].CFVDWScalingParameter=0.999999;
+                Adsorbates[CurrentSystem][NumberOfAdsorbateMolecules[CurrentSystem]-1].Atoms[m].CFChargeScalingParameter=pow(0.999999,5);
+              }
+            }
+          }
+
+          for(l=0;l<ProductsStoichiometry[k][j];l++)
+          {
+            if(Components[j].ExtraFrameworkMolecule)
+            {
+              MakeInitialCations(1,j);
+              Components[j].ProductFractionalMolecules[CurrentSystem][k][l]=NumberOfCationMolecules[CurrentSystem]-1;
+
+              for(m=0;m<Components[j].NumberOfAtoms;m++)
+              {
+                Cations[CurrentSystem][NumberOfCationMolecules[CurrentSystem]-1].Atoms[m].CFVDWScalingParameter=0.999999;
+                Cations[CurrentSystem][NumberOfCationMolecules[CurrentSystem]-1].Atoms[m].CFChargeScalingParameter=pow(0.999999,5);
+              }
+            }
+            else
+            {
+              MakeInitialAdsorbates(1,j);
+              Components[j].ProductFractionalMolecules[CurrentSystem][k][l]=NumberOfAdsorbateMolecules[CurrentSystem]-1;
+
+              for(m=0;m<Components[j].NumberOfAtoms;m++)
+              {
+                Adsorbates[CurrentSystem][NumberOfAdsorbateMolecules[CurrentSystem]-1].Atoms[m].CFVDWScalingParameter=0.999999;
+                Adsorbates[CurrentSystem][NumberOfAdsorbateMolecules[CurrentSystem]-1].Atoms[m].CFChargeScalingParameter=pow(0.999999,5);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
   for(i=0;i<NumberOfSystems;i++)
   {
     for(j=0;j<NumberOfComponents;j++)
     {
+      // create the initial integer number of molecules
       if(Components[j].CreateNumberOfMolecules[i]>0)
       {
         CurrentSystem=i;
@@ -6655,6 +6847,7 @@ int ReadInput(char *input)
         else
           MakeInitialAdsorbates(Components[j].CreateNumberOfMolecules[i],j);
       }
+
       if(Components[j].CFMoleculePresent[i])
       {
         NumberOfFractionalMolecules[i]++;
@@ -6697,7 +6890,6 @@ int ReadInput(char *input)
     }
   }
 
-
   // compute the Inertia-tensors and quaternions for all rigid molecules
   ComputeQuaternions();
 
@@ -6717,7 +6909,6 @@ int ReadInput(char *input)
 
   for(i=0;i<NumberOfSystems;i++)
     WriteVTK(i);
-
 
   // distance pairs for histograms
   for(i=0;i<NumberOfSystems;i++)
@@ -7909,7 +8100,7 @@ int ReadInput(char *input)
     }
     for(k=0;k<NumberOfSystems;k++)
     {
-      if(Components[i].CFMoleculePresent[k])
+      if(Components[i].CFMoleculePresent[k]||Components[i].RXMCMoleculesPresent[k])
       {
         for(j=0;j<Components[i].NumberOfAtoms;j++)
           PseudoAtoms[Components[i].Type[j]].CF=TRUE;
@@ -7940,6 +8131,7 @@ int ReadInput(char *input)
     WriteFrameworkDefinition();
 
   // CFC-RXMC : Initializing Lambda, Pi and randomly picking a fractional molecule
+/*
   if(NumberOfReactions>0)
   {
     for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
@@ -7950,7 +8142,7 @@ int ReadInput(char *input)
       }
     }
   }
-
+*/
   CurrentSystem=0;
   CurrentComponent=0;
   CurrentFramework=0;
@@ -7981,7 +8173,7 @@ void bubble_sort(int list[], int n)
 
 void ReadRestartFile(void)
 {
-  int i,j;
+  int i,j,k;
   int NumberOfComponentsRead;
   int extra_framework_boolean;
   FILE *FilePtrIn;
@@ -8233,6 +8425,9 @@ void ReadRestartFile(void)
         Box[CurrentSystem].cz=temp3;
       }
 
+      // Read CB/CFCMC settings
+      //------------------------------------------------------------------------------
+
       if(strcasecmp(keyword,"Fractional-molecule-id")==0)
       {
         int_temp1=int_temp2=0;
@@ -8323,6 +8518,94 @@ void ReadRestartFile(void)
           MaximumTranslationInPlane[CurrentSystem][int_temp1].x=temp1;
           MaximumTranslationInPlane[CurrentSystem][int_temp1].y=temp2;
           MaximumTranslationInPlane[CurrentSystem][int_temp1].x=temp3;
+        }
+      }
+
+      // Read CFRXMC settings
+      //------------------------------------------------------------------------------
+      if(strcasecmp(keyword,"Number-of-biasing-factors-reaction")==0)
+      {
+        int_temp1=int_temp2=0;
+        if(sscanf(arguments,"%d",&int_temp1)) 
+        {
+          if(int_temp1>RXMCLambdaHistogramSize)
+          {
+            RXMCLambdaHistogramSize=int_temp1;
+       
+            // realloc memory
+            for(i=0;i<NumberOfReactions;i++)
+              RXMCBiasingFactors[CurrentSystem][i]=(REAL*)realloc(RXMCBiasingFactors[CurrentSystem][i],RXMCLambdaHistogramSize*sizeof(REAL));
+          }
+        }
+      }
+      if(strcasecmp(keyword,"Lambda-factor")==0)
+      {
+        int_temp1=int_temp2=0;
+        if(sscanf(arguments,"reaction %d: %lf",&int_temp1,&temp1)==2)
+        {
+          CFCRXMCLambda[CurrentSystem][int_temp1]=temp1;
+        }
+      }
+      if(strcasecmp(keyword,"Maximum-Lambda-reaction-change")==0)
+      {
+        int_temp1=int_temp2=0;
+        if(sscanf(arguments,"reaction %d: %lf",&int_temp1,&temp1)==2)
+        {
+          MaximumReactionLambdaChange[CurrentSystem][int_temp1]=temp1;
+        }
+      }
+      if(strcasecmp(keyword,"Fractional-product-molecules")==0)
+      {
+        int_temp1=int_temp2=0;
+        if(sscanf(arguments,"reaction %d: %n",&int_temp1,&n)==1)
+        {
+          arg_pointer=arguments;
+
+          for(j=0;j<NumberOfComponents;j++)
+          {
+            if(ProductsStoichiometry[int_temp1][j]>0)
+            {
+              for(k=0;k<ProductsStoichiometry[int_temp1][j];k++)
+              {
+                arg_pointer+=n;
+                sscanf(arg_pointer,"%d%n",&Components[j].ProductFractionalMolecules[CurrentSystem][int_temp1][k],&n);
+              }
+            }
+          }
+        }
+      }
+      if(strcasecmp(keyword,"Fractional-reactant-molecules")==0)
+      {
+        int_temp1=int_temp2=0;
+        if(sscanf(arguments,"reaction %d: %n",&int_temp1,&n)==1)
+        {
+          arg_pointer=arguments;
+
+          for(j=0;j<NumberOfComponents;j++)
+          {
+            if(ReactantsStoichiometry[int_temp1][j]>0)
+            {
+              for(k=0;k<ReactantsStoichiometry[int_temp1][j];k++)
+              {
+                arg_pointer+=n;
+                sscanf(arg_pointer,"%d%n",&Components[j].ReactantFractionalMolecules[CurrentSystem][int_temp1][k],&n);
+              }
+            }
+          }
+        }
+      }
+      if(strcasecmp(keyword,"Reaction-biasing-factors")==0)
+      {
+        int_temp1=int_temp2=0;
+        if(sscanf(arguments,"reaction %d: %n",&int_temp1,&n)==1)
+        {
+          arg_pointer=arguments;
+
+          for(k=0;k<RXMCLambdaHistogramSize;k++)
+          {
+            arg_pointer+=n;
+            sscanf(arg_pointer,"%lf%n",&RXMCBiasingFactors[CurrentSystem][int_temp1][k],&n);
+          }
         }
       }
 

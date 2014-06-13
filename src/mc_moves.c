@@ -52,6 +52,7 @@
 #include "numerical.h"
 #include "internal_energy.h"
 #include "sample.h"
+#include "equations_of_state.h"
 
 // this module contains the Monte Carlo moves
 //  1) molecule translation-change
@@ -87,6 +88,8 @@
 // the trial positions for translation and rotation
 VECTOR **TrialPosition;
 VECTOR **TrialAnisotropicPosition;
+VECTOR ***RXMCTrialAnisotropicPositions;
+VECTOR ***RXMCTrialAnisotropicPositions2;
 VECTOR **ElectricFieldAtTrialPosition;
 VECTOR **ReferenceElectricFieldAtTrialPosition;
 VECTOR **InducedDipoleAtTrialPosition;
@@ -250,6 +253,13 @@ VECTOR **FrameworkMaximumShiftTranslation;
 static REAL ***GibbsIdentityChangeAttempts;
 static REAL (***GibbsIdentityChangeAccepted)[2];
 
+static REAL (**ReactionSwapLambdaAttempts)[3];
+static REAL (**ReactionSwapLambdaAccepted)[3];
+static REAL **TotalReactionSwapLambdaAttempts;
+static REAL **TotalReactionSwapLambdaAccepted;
+REAL **MaximumReactionLambdaChange;
+REAL TargetAccRatioReactionLambdaChange;
+
 int NumberOfHybridNVESteps;
 static REAL *HybridNVEDrift;
 static REAL *HybridNVEDriftCount;
@@ -353,17 +363,10 @@ static REAL *HybridNPHPREndTemperatureFrameworkCount;
 static REAL *HybridNPHPREndTemperatureAdsorbateCount;
 static REAL *HybridNPHPREndTemperatureCationCount;
 
-//----------------------------------------------------------------------------------------
-// CFC-RXMC Parameters
-//----------------------------------------------------------------------------------------
-
-REAL *MaximumCFCRXMCLambdaChange;
-REAL TargetAccRatioCFCRXMCLambdaChange;
-
-//----------------------------------------------------------------------------------------
-
 int CFWangLandauEvery;
 static REAL ***CFLambdaHistogram;
+static REAL ***RXMCLambdaHistogram;
+static int **LambdaRetraceMolecules;
 
 void CheckEnergy(void);
 
@@ -7946,7 +7949,8 @@ int VolumeMove(void)
   int i,j,f1;
   int NumberOfMolecules;
   REAL vol,det,scale;
-  REAL_MATRIX3x3 StoredBox;
+  REAL_MATRIX3x3 StoredBox,StoredUnitCellBox;
+  VECTOR StoredUnitCellSize;
   REAL Pressure,StoredVolume;
   VECTOR com,d;
 
@@ -7954,6 +7958,9 @@ int VolumeMove(void)
   if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
     NumberOfMolecules+=Framework[CurrentSystem].TotalNumberOfAtoms;
   if(NumberOfMolecules==0) return 0;
+
+  // do not do volumes when a rigid framework is present
+  if((Framework[CurrentSystem].FrameworkModel!=NONE)&&(Framework[CurrentSystem].FrameworkModel!=FLEXIBLE)) return 0;
 
   REAL StoredUHostBond,StoredUHostUreyBradley,StoredUHostBend,StoredUHostInversionBend;
   REAL StoredUHostTorsion,StoredUHostImproperTorsion,StoredUHostBondBond;
@@ -8007,6 +8014,8 @@ int VolumeMove(void)
 
   StoredBox=Box[CurrentSystem];
   StoredVolume=Volume[CurrentSystem];
+  StoredUnitCellBox=UnitCellBox[CurrentSystem];
+  StoredUnitCellSize=UnitCellSize[CurrentSystem];
 
   StoredUTotal=UTotal[CurrentSystem];
   StoredUIon=UIon[CurrentSystem];
@@ -8149,6 +8158,15 @@ int VolumeMove(void)
   Box[CurrentSystem].az*=scale;  Box[CurrentSystem].bz*=scale;  Box[CurrentSystem].cz*=scale;
   Invert3x3Matrix(&Box[CurrentSystem],&InverseBox[CurrentSystem],&det);
   CellProperties(&Box[CurrentSystem],&BoxProperties[CurrentSystem],&Volume[CurrentSystem]);
+
+  UnitCellBox[CurrentSystem].ax*=scale;  UnitCellBox[CurrentSystem].bx*=scale;  UnitCellBox[CurrentSystem].cx*=scale;
+  UnitCellBox[CurrentSystem].ay*=scale;  UnitCellBox[CurrentSystem].by*=scale;  UnitCellBox[CurrentSystem].cy*=scale;
+  UnitCellBox[CurrentSystem].az*=scale;  UnitCellBox[CurrentSystem].bz*=scale;  UnitCellBox[CurrentSystem].cz*=scale;
+  Invert3x3Matrix(&UnitCellBox[CurrentSystem],&InverseUnitCellBox[CurrentSystem],&det);
+
+  UnitCellSize[CurrentSystem].x*=scale;
+  UnitCellSize[CurrentSystem].y*=scale;
+  UnitCellSize[CurrentSystem].z*=scale;
 
   if(MIN3(BoxProperties[CurrentSystem].cx,BoxProperties[CurrentSystem].cy,
           BoxProperties[CurrentSystem].cz)<2.0*CutOffVDW)
@@ -8346,9 +8364,15 @@ int VolumeMove(void)
 
     UTotal[CurrentSystem]=StoredUTotal;
     UIon[CurrentSystem]=StoredUIon;
+
     Box[CurrentSystem]=StoredBox;
     Invert3x3Matrix(&Box[CurrentSystem],&InverseBox[CurrentSystem],&det);
     CellProperties(&Box[CurrentSystem],&BoxProperties[CurrentSystem],&Volume[CurrentSystem]);
+
+    UnitCellBox[CurrentSystem]=StoredUnitCellBox;
+    Invert3x3Matrix(&UnitCellBox[CurrentSystem],&InverseUnitCellBox[CurrentSystem],&det);
+
+    UnitCellSize[CurrentSystem]=StoredUnitCellSize;
 
     if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
       for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
@@ -8433,7 +8457,9 @@ int BoxShapeChangeMove(void)
   int i,j,f1;
   int NumberOfMolecules,ShapeChange;
   REAL det;
-  REAL_MATRIX3x3 StoredBox;
+  REAL_MATRIX3x3 StoredBox,StoredUnitCellBox;
+  REAL StoredAlphaAngle,StoredBetaAngle,StoredGammaAngle;
+  VECTOR StoredUnitCellSize;
   REAL Pressure,StoredVolume;
   VECTOR com,d,pos,s;
 
@@ -8487,6 +8513,11 @@ int BoxShapeChangeMove(void)
 
   StoredBox=Box[CurrentSystem];
   StoredVolume=Volume[CurrentSystem];
+  StoredUnitCellBox=UnitCellBox[CurrentSystem];
+  StoredUnitCellSize=UnitCellSize[CurrentSystem];
+  StoredAlphaAngle=AlphaAngle[CurrentSystem];
+  StoredBetaAngle=BetaAngle[CurrentSystem];
+  StoredGammaAngle=GammaAngle[CurrentSystem];
 
   StoredUTotal=UTotal[CurrentSystem];
   StoredUIon=UIon[CurrentSystem];
@@ -8669,6 +8700,26 @@ int BoxShapeChangeMove(void)
 
   // compute New box properties and volume
   CellProperties(&Box[CurrentSystem],&BoxProperties[CurrentSystem],&Volume[CurrentSystem]);
+  Invert3x3Matrix(&Box[CurrentSystem],&InverseBox[CurrentSystem],&det);
+
+  UnitCellBox[CurrentSystem].ax=Box[CurrentSystem].ax/NumberOfUnitCells[CurrentSystem].x;
+  UnitCellBox[CurrentSystem].ay=Box[CurrentSystem].ay/NumberOfUnitCells[CurrentSystem].x;
+  UnitCellBox[CurrentSystem].az=Box[CurrentSystem].az/NumberOfUnitCells[CurrentSystem].x;
+  UnitCellBox[CurrentSystem].bx=Box[CurrentSystem].bx/NumberOfUnitCells[CurrentSystem].y;
+  UnitCellBox[CurrentSystem].by=Box[CurrentSystem].by/NumberOfUnitCells[CurrentSystem].y;
+  UnitCellBox[CurrentSystem].bz=Box[CurrentSystem].bz/NumberOfUnitCells[CurrentSystem].y;
+  UnitCellBox[CurrentSystem].cx=Box[CurrentSystem].cx/NumberOfUnitCells[CurrentSystem].z;
+  UnitCellBox[CurrentSystem].cy=Box[CurrentSystem].cy/NumberOfUnitCells[CurrentSystem].z;
+  UnitCellBox[CurrentSystem].cz=Box[CurrentSystem].cz/NumberOfUnitCells[CurrentSystem].z;
+  Invert3x3Matrix(&UnitCellBox[CurrentSystem],&InverseUnitCellBox[CurrentSystem],&det);
+
+  AlphaAngle[CurrentSystem]=acos(BoxProperties[CurrentSystem].bx);
+  BetaAngle[CurrentSystem]=acos(BoxProperties[CurrentSystem].by);
+  GammaAngle[CurrentSystem]=acos(BoxProperties[CurrentSystem].bz);
+
+  UnitCellSize[CurrentSystem].x=BoxProperties[CurrentSystem].ax/NumberOfUnitCells[CurrentSystem].x;
+  UnitCellSize[CurrentSystem].y=BoxProperties[CurrentSystem].ay/NumberOfUnitCells[CurrentSystem].y;
+  UnitCellSize[CurrentSystem].z=BoxProperties[CurrentSystem].az/NumberOfUnitCells[CurrentSystem].z;
 
   if(MIN3(BoxProperties[CurrentSystem].cx,BoxProperties[CurrentSystem].cy,
           BoxProperties[CurrentSystem].cz)<2.0*CutOffVDW)
@@ -8821,11 +8872,7 @@ int BoxShapeChangeMove(void)
     for(i=0;i<NumberOfCationMolecules[CurrentSystem];i++)
       UpdateGroupCenterOfMassCation(i);
 
-    Invert3x3Matrix(&Box[CurrentSystem],&InverseBox[CurrentSystem],&det);
 
-    AlphaAngle[CurrentSystem]=acos(BoxProperties[CurrentSystem].bx);
-    BetaAngle[CurrentSystem]=acos(BoxProperties[CurrentSystem].by);
-    GammaAngle[CurrentSystem]=acos(BoxProperties[CurrentSystem].bz);
 
     EwaldEnergyIon();
   }
@@ -8946,9 +8993,19 @@ int BoxShapeChangeMove(void)
 
     UTotal[CurrentSystem]=StoredUTotal;
     UIon[CurrentSystem]=StoredUIon;
+
     Box[CurrentSystem]=StoredBox;
     Invert3x3Matrix(&Box[CurrentSystem],&InverseBox[CurrentSystem],&det);
     CellProperties(&Box[CurrentSystem],&BoxProperties[CurrentSystem],&Volume[CurrentSystem]);
+
+    UnitCellBox[CurrentSystem]=StoredUnitCellBox;
+    Invert3x3Matrix(&UnitCellBox[CurrentSystem],&InverseUnitCellBox[CurrentSystem],&det);
+
+    UnitCellSize[CurrentSystem]=StoredUnitCellSize;
+
+    AlphaAngle[CurrentSystem]=StoredAlphaAngle;
+    BetaAngle[CurrentSystem]=StoredBetaAngle;
+    GammaAngle[CurrentSystem]=StoredGammaAngle;
 
     for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
       for(i=0;i<Framework[CurrentSystem].NumberOfAtoms[f1];i++)
@@ -11032,8 +11089,8 @@ int GibbsParticleTransferAdsorbateMove(void)
 
 
   // acceptence rule
-  if(RandomNumber()<((RosenbluthNew*(REAL)(Components[CurrentComponent].NumberOfMolecules[B])*Volume[A])/
-                    (RosenbluthOld*((REAL)(1.0+Components[CurrentComponent].NumberOfMolecules[A]))*Volume[B])))
+  if(RandomNumber()<((RosenbluthNew*Components[CurrentComponent].NumberOfMolecules[B]*Volume[A])/
+                    (RosenbluthOld*(1.0+Components[CurrentComponent].NumberOfMolecules[A])*Volume[B])))
   {
     GibbsSwapAccepted[CurrentComponent][A]+=1.0;
 
@@ -11765,8 +11822,16 @@ int GibbsVolumeMove(void)
 
   CurrentSystemStored=CurrentSystem;
 
-  A=0;
-  B=1;
+  if(RandomNumber()<0.5)
+  {
+    A=0;
+    B=1;
+  }
+  else
+  {
+    A=1;
+    B=0;
+  }
 
   // store state of system A
   CurrentSystem=A;
@@ -16669,7 +16734,7 @@ void OptimizeCFLambdaChangeAcceptence(void)
         ratio=0.0;
 
       vandr=ratio/TargetAccRatioTranslation;
-      if(vandr>1.0) vandr=1.0;
+      if(vandr>1.5) vandr=1.5;
       else if(vandr<0.5) vandr=0.5;
       MaximumCFLambdaChange[CurrentSystem][i]*=vandr;
       if(MaximumCFLambdaChange[CurrentSystem][i]<0.01)
@@ -18687,7 +18752,7 @@ void OptimizeCBCFLambdaChangeAcceptence(void)
         ratio=0.0;
 
       vandr=ratio/TargetAccRatioTranslation;
-      if(vandr>1.0) vandr=1.0;
+      if(vandr>1.5) vandr=1.5;
       else if(vandr<0.5) vandr=0.5;
       MaximumCBCFLambdaChange[CurrentSystem][i]*=vandr;
       if(MaximumCBCFLambdaChange[CurrentSystem][i]<0.01)
@@ -21844,7 +21909,7 @@ void OptimizeCFGibbsLambdaChangeAcceptence(void)
         ratio=0.0;
 
       vandr=ratio/TargetAccRatioTranslation;
-      if(vandr>1.0) vandr=1.0;
+      if(vandr>1.5) vandr=1.5;
       else if(vandr<0.5) vandr=0.5;
       MaximumCFLambdaChange[CurrentSystem][i]*=vandr;
       if(MaximumCFLambdaChange[CurrentSystem][i]<0.01)
@@ -25603,7 +25668,7 @@ void OptimizeCBCFGibbsLambdaChangeAcceptence(void)
         ratio=0.0;
 
       vandr=ratio/TargetAccRatioTranslation;
-      if(vandr>1.0) vandr=1.0;
+      if(vandr>1.5) vandr=1.5;
       else if(vandr<0.5) vandr=0.5;
       MaximumCBCFLambdaChange[CurrentSystem][i]*=vandr;
       if(MaximumCBCFLambdaChange[CurrentSystem][i]<0.01)
@@ -25620,7 +25685,216 @@ void OptimizeCBCFGibbsLambdaChangeAcceptence(void)
   }
 }
 
+void getListOfMoleculeIdentifiersForReactants(int reaction,int *n,int *array)
+{
+  int j,k,index;
 
+  index=0;
+  for(j=0;j<NumberOfComponents;j++)
+    for(k=0;k<ReactantsStoichiometry[reaction][j];k++)
+      array[index++]=Components[j].ReactantFractionalMolecules[CurrentSystem][reaction][k];
+  *n=index;
+}
+
+void getListOfMoleculeIdentifiersForProducts(int reaction,int *n,int *array)
+{
+  int j,k,index;
+
+  index=0;
+  for(j=0;j<NumberOfComponents;j++)
+    for(k=0;k<ReactantsStoichiometry[reaction][j];k++)
+      array[index++]=Components[j].ProductFractionalMolecules[CurrentSystem][reaction][k];
+  *n=index;
+}
+
+int NumberOfReactantsForReaction(int reaction)
+{
+  int n,j;
+
+  n=0;
+  for(j=0;j<NumberOfComponents;j++)
+    n+=ReactantsStoichiometry[reaction][j];
+  return n;
+}
+
+int NumberOfProductsForReaction(int reaction)
+{
+  int n,j;
+
+  n=0;
+  for(j=0;j<NumberOfComponents;j++)
+    n+=ProductsStoichiometry[reaction][j];
+  return n;
+}
+
+
+void CFCRXMCLambdaChangeMove(void)
+{
+  printf("Not available yet in the current version\n");
+  exit(0);
+}
+
+void CFRXMCWangLandauIteration(int Switch)
+{
+  int i,j,k;
+  int FractionalMolecule,index;
+  int condition,MostProbableIndex;
+  REAL Lambda,MostProbableValue,shift;
+
+  switch(Switch)
+  {
+    case INITIALIZE:
+      for(i=0;i<NumberOfSystems;i++)
+        for(j=0;j<NumberOfReactions;j++)
+          for(k=0;k<RXMCLambdaHistogramSize;k++)
+            RXMCLambdaHistogram[i][j][k]=0.0;
+      break;
+    case SAMPLE:
+      for(i=0;i<NumberOfSystems;i++)
+      {
+        for(j=0;j<NumberOfReactions;j++)
+        {
+          Lambda=CFCRXMCLambda[i][j];
+          index=(int)(RXMCLambdaHistogramSize*Lambda);
+          if(index==RXMCLambdaHistogramSize) index--;
+          RXMCBiasingFactors[i][j][index]-=CFRXMCWangLandauScalingFactor[i][j];
+        }
+      }
+      break;
+    case PRINT:
+      for(i=0;i<NumberOfSystems;i++)
+      {
+        for(j=0;j<NumberOfReactions;j++)
+        {
+          // find highest probability
+          MostProbableIndex=0;
+          MostProbableValue=RXMCLambdaHistogram[i][j][0];
+          for(k=0;k<RXMCLambdaHistogramSize;k++)
+          {
+            if(RXMCLambdaHistogram[i][j][k]>MostProbableValue)
+            {
+              MostProbableIndex=k;
+              MostProbableValue=RXMCLambdaHistogram[i][j][k];
+            }
+          }
+
+          // check if all bins are at least 70% of this value
+          condition=TRUE;
+          for(k=0;k<RXMCLambdaHistogramSize;k++)
+          {
+            if(RXMCLambdaHistogram[i][j][k]<0.8*MostProbableValue)
+            {
+              condition=FALSE;
+              break;
+            }
+          }
+
+          if(condition)
+          {
+            CFRXMCWangLandauScalingFactor[i][j]*=0.5;
+            for(k=0;k<RXMCLambdaHistogramSize;k++)
+              RXMCLambdaHistogram[i][j][k]=0.0;
+          }
+        }
+      }
+      break;
+    case FINALIZE:
+      for(i=0;i<NumberOfSystems;i++)
+        for(j=0;j<NumberOfReactions;j++)
+        {
+          shift=RXMCBiasingFactors[i][j][0];
+          for(k=0;k<RXMCLambdaHistogramSize;k++)
+          {
+            CFLambdaHistogram[i][j][k]=0.0;
+            RXMCBiasingFactors[i][j][k]-=shift;
+          }
+        }
+      break;
+  }
+}
+
+
+/*********************************************************************************************************
+ * Name       | OptimizeRXMCLambdaChangeAcceptence                                                       *
+ * ----------------------------------------------------------------------------------------------------- *
+ * Function   | Adjusts the maximum displacement on-the-fly to obtain an acceptance-rate of 50%.         *
+ * Parameters | -                                                                                        *
+ *********************************************************************************************************/
+
+void OptimizeRXMCLambdaChangeAcceptence(void)
+{
+  int i;
+  REAL ratio,vandr;
+
+  for(i=0;i<NumberOfReactions;i++)
+  {
+    if(ReactionSwapLambdaAttempts[CurrentSystem][i][0]>0.0)
+      ratio=ReactionSwapLambdaAccepted[CurrentSystem][i][0]/ReactionSwapLambdaAttempts[CurrentSystem][i][0];
+    else
+      ratio=0.0;
+
+    vandr=ratio/TargetAccRatioReactionLambdaChange;
+    if(vandr>1.5) vandr=1.5;
+    else if(vandr<0.5) vandr=0.5;
+
+    MaximumReactionLambdaChange[CurrentSystem][i]*=vandr;
+
+    if(MaximumReactionLambdaChange[CurrentSystem][i]<0.01)
+       MaximumReactionLambdaChange[CurrentSystem][i]=0.01;
+    if(MaximumReactionLambdaChange[CurrentSystem][i]>1.0)
+       MaximumReactionLambdaChange[CurrentSystem][i]=1.0;
+
+    TotalReactionSwapLambdaAttempts[CurrentSystem][i]+=ReactionSwapLambdaAttempts[CurrentSystem][i][0];
+    TotalReactionSwapLambdaAccepted[CurrentSystem][i]+=ReactionSwapLambdaAccepted[CurrentSystem][i][0];
+    ReactionSwapLambdaAttempts[CurrentSystem][i][0]=0.0;
+    ReactionSwapLambdaAccepted[CurrentSystem][i][0]=0.0;
+  }
+}
+
+
+
+
+void PrintRXMCStatistics(FILE *FilePtr)
+{
+  int i,j,k;
+  REAL total;
+
+  fprintf(FilePtr,"Performance of the Reaction MC lambda move:\n");
+  fprintf(FilePtr,"===========================================\n");
+
+  for(i=0;i<NumberOfReactions;i++)
+  {
+        fprintf(FilePtr,"Reaction [%d] total tried: %lf constant-lambda accepted: %lf (%lf [%%])\n",
+          i,
+          (double)ReactionSwapLambdaAttempts[CurrentSystem][i][0],
+          (double)ReactionSwapLambdaAccepted[CurrentSystem][i][0],
+          (double)(ReactionSwapLambdaAttempts[CurrentSystem][i][0]>(REAL)0.0?
+            100.0*ReactionSwapLambdaAccepted[CurrentSystem][i][0]/ReactionSwapLambdaAttempts[CurrentSystem][i][0]:(REAL)0.0));
+        fprintf(FilePtr,"               total tried: %lf forward-reaction accepted: %lf (%lf [%%])\n",
+          (double)ReactionSwapLambdaAttempts[CurrentSystem][i][1],
+          (double)ReactionSwapLambdaAccepted[CurrentSystem][i][1],
+          (double)(ReactionSwapLambdaAttempts[CurrentSystem][i][1]>(REAL)0.0?
+            100.0*ReactionSwapLambdaAccepted[CurrentSystem][i][1]/ReactionSwapLambdaAttempts[CurrentSystem][i][1]:(REAL)0.0));
+        fprintf(FilePtr,"               total tried: %lf backward-reaction accepted: %lf (%lf [%%])\n",
+          (double)ReactionSwapLambdaAttempts[CurrentSystem][i][2],
+          (double)ReactionSwapLambdaAccepted[CurrentSystem][i][2],
+          (double)(ReactionSwapLambdaAttempts[CurrentSystem][i][2]>(REAL)0.0?
+            100.0*ReactionSwapLambdaAccepted[CurrentSystem][i][2]/ReactionSwapLambdaAttempts[CurrentSystem][i][2]:(REAL)0.0));
+
+    total=0.0;
+    for(k=0;k<RXMCLambdaHistogramSize;k++)
+      total+=RXMCLambdaHistogram[CurrentSystem][i][k];
+
+    fprintf(FilePtr,"\n\tLambda probabilities:\n");
+    fprintf(FilePtr,"\t---------------------\n");
+    for(k=0;k<RXMCLambdaHistogramSize;k++)
+      fprintf(FilePtr,"\tLambda [ %4f - %4f ]: %18.10f (biasing factor: %18.10f)\n",
+         (REAL)k/RXMCLambdaHistogramSize,(REAL)(k+1)/RXMCLambdaHistogramSize,
+         100.0*RXMCLambdaHistogram[CurrentSystem][i][k]/total,RXMCBiasingFactors[CurrentSystem][i][k]);
+     fprintf(FilePtr,"\n");
+  }
+  fprintf(FilePtr,"\n\n");
+}
 
 void WriteRestartMcMoves(FILE *FilePtr)
 {
@@ -25672,6 +25946,18 @@ void WriteRestartMcMoves(FILE *FilePtr)
     fwrite(TotalCBCFGibbsLambdaAttempts[i],sizeof(REAL),NumberOfComponents,FilePtr);
     fwrite(TotalCBCFGibbsLambdaAccepted[i],sizeof(REAL),NumberOfComponents,FilePtr);
     fwrite(MaximumCBCFLambdaChange[i],sizeof(REAL),NumberOfComponents,FilePtr);
+
+    if(NumberOfReactions>0)
+    {
+      fwrite(ReactionSwapLambdaAttempts[i],sizeof(REAL[3]),NumberOfReactions,FilePtr);
+      fwrite(ReactionSwapLambdaAccepted[i],sizeof(REAL[3]),NumberOfReactions,FilePtr);
+      fwrite(TotalReactionSwapLambdaAttempts[i],sizeof(REAL),NumberOfReactions,FilePtr);
+      fwrite(TotalReactionSwapLambdaAccepted[i],sizeof(REAL),NumberOfReactions,FilePtr);
+      fwrite(MaximumReactionLambdaChange[i],sizeof(REAL),NumberOfReactions,FilePtr);
+
+      for(j=0;j<NumberOfReactions;j++)
+        fwrite(RXMCLambdaHistogram[i][j],sizeof(REAL),RXMCLambdaHistogramSize,FilePtr);
+    }
 
     fwrite(ReinsertionAttempts[i],sizeof(REAL),NumberOfComponents,FilePtr);
     fwrite(ReinsertionAccepted[i],sizeof(REAL[2]),NumberOfComponents,FilePtr);
@@ -25751,6 +26037,7 @@ void WriteRestartMcMoves(FILE *FilePtr)
     fwrite(TotalFrameworkShiftAttempts[i],sizeof(VECTOR),Framework[i].NumberOfFrameworks,FilePtr);
     fwrite(TotalFrameworkShiftAccepted[i],sizeof(VECTOR),Framework[i].NumberOfFrameworks,FilePtr);
     fwrite(FrameworkMaximumShiftTranslation[i],sizeof(VECTOR),Framework[i].NumberOfFrameworks,FilePtr);
+
   }
 
   fwrite(&NumberOfHybridNVESteps,sizeof(int),1,FilePtr);
@@ -25863,10 +26150,12 @@ void WriteRestartMcMoves(FILE *FilePtr)
 
 void AllocateMCMovesMemory(void)
 {
-  int i,j;
+  int i,j,k;
 
   TrialPosition=(VECTOR**)calloc(NumberOfSystems,sizeof(VECTOR*));
   TrialAnisotropicPosition=(VECTOR**)calloc(NumberOfSystems,sizeof(VECTOR*));
+  RXMCTrialAnisotropicPositions=(VECTOR***)calloc(NumberOfSystems,sizeof(VECTOR**));
+  RXMCTrialAnisotropicPositions2=(VECTOR***)calloc(NumberOfSystems,sizeof(VECTOR**));
   ElectricFieldAtTrialPosition=(VECTOR**)calloc(NumberOfSystems,sizeof(VECTOR*));
   ReferenceElectricFieldAtTrialPosition=(VECTOR**)calloc(NumberOfSystems,sizeof(VECTOR*));
   InducedDipoleAtTrialPosition=(VECTOR**)calloc(NumberOfSystems,sizeof(VECTOR*));
@@ -25877,9 +26166,21 @@ void AllocateMCMovesMemory(void)
     ElectricFieldAtTrialPosition[i]=(VECTOR*)calloc(MaxNumberOfBeads,sizeof(VECTOR));
     ReferenceElectricFieldAtTrialPosition[i]=(VECTOR*)calloc(MaxNumberOfBeads,sizeof(VECTOR));
     InducedDipoleAtTrialPosition[i]=(VECTOR*)calloc(MaxNumberOfBeads,sizeof(VECTOR));
+
+    RXMCTrialAnisotropicPositions[i]=(VECTOR**)calloc(80,sizeof(VECTOR*));
+    RXMCTrialAnisotropicPositions2[i]=(VECTOR**)calloc(80,sizeof(VECTOR*));
+    for(j=0;j<80;j++)
+    {
+      RXMCTrialAnisotropicPositions[i][j]=(VECTOR*)calloc(MaxNumberOfBeads,sizeof(VECTOR));
+      RXMCTrialAnisotropicPositions2[i][j]=(VECTOR*)calloc(MaxNumberOfBeads,sizeof(VECTOR));
+    }
   }
 
   cord=(VECTOR*)calloc(MaxNumberOfBeads,sizeof(VECTOR));
+
+  LambdaRetraceMolecules=(int**)calloc(NumberOfComponents,sizeof(int*));
+  for(i=0;i<NumberOfComponents;i++)
+    LambdaRetraceMolecules[i]=(int*)calloc(100,sizeof(int));
 
   // delta energies
   UHostVDWDelta=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
@@ -25947,6 +26248,12 @@ void AllocateMCMovesMemory(void)
   TotalCFGibbsLambdaAccepted=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
   MaximumCFLambdaChange=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
 
+  ReactionSwapLambdaAttempts=(REAL(**)[3])calloc(NumberOfSystems,sizeof(REAL(*)[3]));
+  ReactionSwapLambdaAccepted=(REAL(**)[3])calloc(NumberOfSystems,sizeof(REAL(*)[3]));
+  TotalReactionSwapLambdaAttempts=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
+  TotalReactionSwapLambdaAccepted=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
+  MaximumReactionLambdaChange=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
+
   CBCFSwapLambdaAttempts=(REAL(**)[3])calloc(NumberOfSystems,sizeof(REAL(*)[3]));
   CBCFSwapLambdaAccepted=(REAL(**)[3][2])calloc(NumberOfSystems,sizeof(REAL(*)[3][2]));
   TotalCBCFSwapLambdaAttempts=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
@@ -25987,6 +26294,7 @@ void AllocateMCMovesMemory(void)
   GibbsIdentityChangeAccepted=(REAL(***)[2])calloc(NumberOfSystems,sizeof(REAL(**)[2]));
 
   CFLambdaHistogram=(REAL***)calloc(NumberOfSystems,sizeof(REAL**));
+  RXMCLambdaHistogram=(REAL***)calloc(NumberOfSystems,sizeof(REAL**));
 
   ParallelTemperingAttempts=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
   ParallelTemperingAccepted=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
@@ -26033,6 +26341,15 @@ void AllocateMCMovesMemory(void)
     TotalCFGibbsLambdaAccepted[i]=(REAL*)calloc(NumberOfComponents,sizeof(REAL));
     MaximumCFLambdaChange[i]=(REAL*)calloc(NumberOfComponents,sizeof(REAL));
 
+    if(NumberOfReactions>0)
+    {
+      ReactionSwapLambdaAttempts[i]=(REAL(*)[3])calloc(NumberOfReactions,sizeof(REAL[3]));
+      ReactionSwapLambdaAccepted[i]=(REAL(*)[3])calloc(NumberOfReactions,sizeof(REAL[3]));
+      TotalReactionSwapLambdaAttempts[i]=(REAL*)calloc(NumberOfReactions,sizeof(REAL));
+      TotalReactionSwapLambdaAccepted[i]=(REAL*)calloc(NumberOfReactions,sizeof(REAL));
+      MaximumReactionLambdaChange[i]=(REAL*)calloc(NumberOfReactions,sizeof(REAL));
+    }
+
     CBCFSwapLambdaAttempts[i]=(REAL(*)[3])calloc(NumberOfComponents,sizeof(REAL[3]));
     CBCFSwapLambdaAccepted[i]=(REAL(*)[3][2])calloc(NumberOfComponents,sizeof(REAL[3][2]));
     TotalCBCFSwapLambdaAttempts[i]=(REAL*)calloc(NumberOfComponents,sizeof(REAL));
@@ -26073,6 +26390,7 @@ void AllocateMCMovesMemory(void)
     GibbsIdentityChangeAccepted[i]=(REAL(**)[2])calloc(NumberOfComponents,sizeof(REAL(*)[2]));
 
     CFLambdaHistogram[i]=(REAL**)calloc(NumberOfComponents,sizeof(REAL*));
+    RXMCLambdaHistogram[i]=(REAL**)calloc(NumberOfReactions,sizeof(REAL*));
 
     for(j=0;j<NumberOfComponents;j++)
     {
@@ -26084,6 +26402,9 @@ void AllocateMCMovesMemory(void)
 
       CFLambdaHistogram[i][j]=(REAL*)calloc(Components[j].CFLambdaHistogramSize,sizeof(REAL));
     }
+
+    for(j=0;j<NumberOfReactions;j++)
+      RXMCLambdaHistogram[i][j]=(REAL*)calloc(RXMCLambdaHistogramSize,sizeof(REAL));
 
     ParallelTemperingAttempts[i]=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
     ParallelTemperingAccepted[i]=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
@@ -26309,6 +26630,18 @@ void ReadRestartMcMoves(FILE *FilePtr)
     fread(TotalCBCFGibbsLambdaAttempts[i],sizeof(REAL),NumberOfComponents,FilePtr);
     fread(TotalCBCFGibbsLambdaAccepted[i],sizeof(REAL),NumberOfComponents,FilePtr);
     fread(MaximumCBCFLambdaChange[i],sizeof(REAL),NumberOfComponents,FilePtr);
+
+    if(NumberOfReactions>0)
+    {
+      fread(ReactionSwapLambdaAttempts[i],sizeof(REAL[3]),NumberOfReactions,FilePtr);
+      fread(ReactionSwapLambdaAccepted[i],sizeof(REAL[3]),NumberOfReactions,FilePtr);
+      fread(TotalReactionSwapLambdaAttempts[i],sizeof(REAL),NumberOfReactions,FilePtr);
+      fread(TotalReactionSwapLambdaAccepted[i],sizeof(REAL),NumberOfReactions,FilePtr);
+      fread(MaximumReactionLambdaChange[i],sizeof(REAL),NumberOfReactions,FilePtr);
+
+      for(j=0;j<NumberOfReactions;j++)
+        fread(RXMCLambdaHistogram[i][j],sizeof(REAL),RXMCLambdaHistogramSize,FilePtr);
+    }
 
     fread(ReinsertionAttempts[i],sizeof(REAL),NumberOfComponents,FilePtr);
     fread(ReinsertionAccepted[i],sizeof(REAL[2]),NumberOfComponents,FilePtr);

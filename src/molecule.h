@@ -282,26 +282,32 @@ extern CATION_MOLECULE **Cations;
 
 typedef struct Component
 {
-  char Name[256];                  // the name of the component ("methane","C12","propane" etc).
-  int NumberOfAtoms;               // the number of atoms in the component
-  int NumberOfCharges;             // the number of atoms in the component
-  int NumberOfRigidAtoms;          // the number of atoms in rigid units
-  int NumberOfFlexibleAtoms;       // the number of atoms in flexible units
-  REAL Mass;                       // the mass of the component
-  int *NumberOfMolecules;          // the number of molecules of the component for each system
-  int *Fixed;                      // array for the atoms denoting whether to consider the atom fixed in space or free
-  int *Type;                       // the pseudo-atom Type of each atom
+  char Name[256];                     // the name of the component ("methane","C12","propane" etc).
+  int NumberOfAtoms;                  // the number of atoms in the component
+  int NumberOfCharges;                // the number of atoms in the component
+  int NumberOfRigidAtoms;             // the number of atoms in rigid units
+  int NumberOfFlexibleAtoms;          // the number of atoms in flexible units
+  REAL Mass;                          // the mass of the component
+  int *NumberOfMolecules;             // the number of molecules of the component for each system
+  int *Fixed;                         // array for the atoms denoting whether to consider the atom fixed in space or free
+  int *Type;                          // the pseudo-atom Type of each atom
   REAL* Charge;
-  int *Connectivity;               // the connectivity of each atom
-  int **ConnectivityList;          // the neighbors of each atom
-  int **ConnectivityMatrix;        // the connectivity matrix
-  int HasCharges;                  // whether the molecule contains charges or not
-  int IsPolarizable;               // whether the molecule has point dipoles or not
-  int ExtraFrameworkMolecule;      // TRUE: Cation, FALSE: Adsorbate
-  int Swapable;                    // whether or not the number of molecules is fluctuating (i.e. GCMC)
-  int Widom;                       // whether this component is used for Widom insertions
-  int *RXMCFractionalMolecule;     // the index of the fractional molecule for the particular reaction
-  REAL PartitionFunction;          // the partition function of the component
+  int *Connectivity;                  // the connectivity of each atom
+  int **ConnectivityList;             // the neighbors of each atom
+  int **ConnectivityMatrix;           // the connectivity matrix
+  int HasCharges;                     // whether the molecule contains charges or not
+  int IsPolarizable;                  // whether the molecule has point dipoles or not
+  int ExtraFrameworkMolecule;         // TRUE: Cation, FALSE: Adsorbate
+  int Swapable;                       // whether or not the number of molecules is fluctuating (i.e. GCMC)
+  int Widom;                          // whether this component is used for Widom insertions
+
+  int ***ReactantFractionalMolecules; // the index of the fractional molecules for the particular reaction
+  int ***ProductFractionalMolecules;  // the index of the fractional molecules for the particular reaction
+  REAL PartitionFunction;             // the partition function of the component
+  int *RXMCMoleculesPresent;          // whether or not there is a fractional molecule present for each system
+  int *NumberOfRXMCMoleculesPresent;  // the number of fractional molecules present of the component for each system
+
+  TRIPLE orientation;              // three atoms to define an orientation for sampling orientations
 
   int *FractionalMolecule;         // the fractional molecule for each system
   int *CFMoleculePresent;          // whether or not there is a fractional molecule present for each system
@@ -352,7 +358,7 @@ typedef struct Component
   int Biased;
   int BiasingDirection;
   REAL *FreeEnergyXdata;
-  REAL QStarA,QStarB,QStarC;
+  REAL QStarA;
   REAL gA,gB;
   REAL LeftBoundary,RightBoundary;
   REAL Normalization;
@@ -519,6 +525,7 @@ typedef struct Component
   REAL ProbabilityGibbsVolumeChangeMove;
   REAL ProbabilityFrameworkChangeMove;
   REAL ProbabilityFrameworkShiftMove;
+  REAL ProbabilityCFCRXMCLambdaChangeMove;
 
   REAL *CpuTimeTranslationMove;
   REAL *CpuTimeRandomTranslationMove;
@@ -596,6 +603,7 @@ typedef struct Component
   REAL FractionOfGibbsVolumeChangeMove;
   REAL FractionOfFrameworkChangeMove;
   REAL FractionOfFrameworkShiftMove;
+  REAL FractionOfCFCRXMCLambdaChangeMove;
 
   int NumberOfChiralityCenters;
 
@@ -636,6 +644,9 @@ extern int NumberOfComponents;
 extern int NumberOfAdsorbateComponents;
 extern int NumberOfCationComponents;
 extern COMPONENT *Components;
+
+int SelectRandomMoleculeOfTypeExcludingReactionMolecules(int reaction,int **LambdaRetraceMolecules);
+int SelectRandomMoleculeOfTypeExcludingProductMolecules(int reaction,int **LambdaRetraceMolecules);
 
 int SelectRandomMoleculeOfType(int comp);
 int SelectRandomMoleculeOfTypeExcludingFractionalMolecule(int comp);

@@ -47,13 +47,13 @@ int CurrentSystem;                   // the current system
 //----------------------------------------------------------------------------------------
 
 int NumberOfReactions;                       // Total number of Reactions
-int CurrentReaction;                         // The Current Reaction
-REAL CurrentReactionLambda;                  // Current Reaction Lambda
 REAL **CFCRXMCLambda;                        // Reaction Lambda for all reactions
 REAL ProbabilityCFCRXMCLambdaChangeMove;
-int **ReactionStoichiometry;                 // Reaction Stoichiometry
 int **ReactantsStoichiometry;                // Reactants Stoichiometry
 int **ProductsStoichiometry;                 // Products Stoichiometry
+int RXMCLambdaHistogramSize;
+REAL ***RXMCBiasingFactors;
+REAL **CFRXMCWangLandauScalingFactor;
 
 //----------------------------------------------------------------------------------------
 
@@ -389,6 +389,7 @@ REAL *CpuTimeBoxShapeChangeMove;
 REAL *CpuTimeGibbsVolumeChangeMove;
 REAL *CpuTimeFrameworkChangeMove;
 REAL *CpuTimeFrameworkShiftMove;
+REAL *CpuCFCRXMCLambdaChangeMove;
 
 int OptimizeVolumeChange;
 int OptimizeGibbsVolumeChange;
@@ -400,7 +401,7 @@ int OptimizeCFLambdaChange;
 int OptimizeCFGibbsLambdaChange;
 int OptimizeCBCFLambdaChange;
 int OptimizeCBCFGibbsLambdaChange;
-
+int OptimizeRXMCLambdaChange;
 
 void ScaleBornTerm(REAL r)
 {
@@ -731,6 +732,8 @@ void InitializeReplicaBox(void)
   else
     UseCellLists[CurrentSystem]=FALSE;
 
+  UseCellLists[CurrentSystem]=FALSE;
+
   if(UseCellLists[CurrentSystem])
   {
     AllocateFrameworkCellList();
@@ -780,7 +783,7 @@ void InitializeReplicaBox(void)
 
 void WriteRestartSimulation(FILE *FilePtr)
 {
-  int i;
+  int i,j;
   REAL Check;
 
   fwrite(&seed,sizeof(seed),1,FilePtr);
@@ -1107,6 +1110,7 @@ void WriteRestartSimulation(FILE *FilePtr)
   fwrite(&ProbabilityHybridNPHPRMove,sizeof(REAL),1,FilePtr);
   fwrite(&ProbabilityFrameworkChangeMove,sizeof(REAL),1,FilePtr);
   fwrite(&ProbabilityFrameworkShiftMove,sizeof(REAL),1,FilePtr);
+  fwrite(&ProbabilityCFCRXMCLambdaChangeMove,sizeof(REAL),1,FilePtr);
 
 
   fwrite(&CpuTimeProductionRun,sizeof(REAL),1,FilePtr);
@@ -1126,6 +1130,7 @@ void WriteRestartSimulation(FILE *FilePtr)
   fwrite(CpuTimeGibbsVolumeChangeMove,sizeof(REAL),NumberOfSystems,FilePtr);
   fwrite(CpuTimeFrameworkChangeMove,sizeof(REAL),NumberOfSystems,FilePtr);
   fwrite(CpuTimeFrameworkShiftMove,sizeof(REAL),NumberOfSystems,FilePtr);
+  fwrite(CpuCFCRXMCLambdaChangeMove,sizeof(REAL),NumberOfSystems,FilePtr);
 
   fwrite(&OptimizeVolumeChange,sizeof(int),1,FilePtr);
   fwrite(&OptimizeGibbsVolumeChange,sizeof(int),1,FilePtr);
@@ -1137,6 +1142,22 @@ void WriteRestartSimulation(FILE *FilePtr)
   fwrite(&OptimizeCFGibbsLambdaChange,sizeof(int),1,FilePtr);
   fwrite(&OptimizeCBCFLambdaChange,sizeof(int),1,FilePtr);
   fwrite(&OptimizeCBCFGibbsLambdaChange,sizeof(int),1,FilePtr);
+  fwrite(&OptimizeRXMCLambdaChange,sizeof(int),1,FilePtr);
+
+  // CFRXMC data
+  fwrite(&NumberOfReactions,sizeof(int),1,FilePtr);
+  if(NumberOfReactions>0)
+  {
+    fwrite(&RXMCLambdaHistogramSize,sizeof(int),1,FilePtr);
+    for(i=0;i<NumberOfSystems;i++)
+    {
+      fwrite(CFCRXMCLambda[i],sizeof(REAL),NumberOfReactions,FilePtr);
+      fwrite(CFRXMCWangLandauScalingFactor[i],sizeof(REAL),NumberOfReactions,FilePtr);
+      for(j=0;j<NumberOfReactions;j++)
+        fwrite(RXMCBiasingFactors[i][j],sizeof(REAL),RXMCLambdaHistogramSize,FilePtr);
+    }
+  }
+
 
   Check=123456789.0;
   fwrite(&Check,1,sizeof(REAL),FilePtr);
@@ -1144,7 +1165,7 @@ void WriteRestartSimulation(FILE *FilePtr)
 
 void AllocateSimulationMemory(void)
 {
-  int i;
+  int i,j;
 
   CpuTimeProductionRun=0.0;
   CpuTimeInitialization=0.0;
@@ -1163,6 +1184,7 @@ void AllocateSimulationMemory(void)
   CpuTimeGibbsVolumeChangeMove=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
   CpuTimeFrameworkChangeMove=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
   CpuTimeFrameworkShiftMove=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+  CpuCFCRXMCLambdaChangeMove=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
 
   Box=(REAL_MATRIX3x3*)calloc(NumberOfSystems,sizeof(REAL_MATRIX3x3));
   InverseBox=(REAL_MATRIX3x3*)calloc(NumberOfSystems,sizeof(REAL_MATRIX3x3));
@@ -1189,25 +1211,37 @@ void AllocateSimulationMemory(void)
   CutOffChargeChargeSwitchSquared=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
   InverseCutOffChargeCharge=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
 
-
-  //----------------------------------------------------------------------------------------
-  // CFC-RXMC Parameters
+  // CFRXMC
   //----------------------------------------------------------------------------------------
 
+/*
   CFCRXMCLambda=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
   for(i=0;i<NumberOfSystems;i++)
      CFCRXMCLambda[i]=(REAL*)calloc(NumberOfReactions,sizeof(REAL));
-  ReactionStoichiometry=(int**)calloc(NumberOfReactions,sizeof(int*));
   ReactantsStoichiometry=(int**)calloc(NumberOfReactions,sizeof(int*));
   ProductsStoichiometry=(int**)calloc(NumberOfReactions,sizeof(int*));
   for(i=0;i<NumberOfReactions;i++)
   {
-    ReactionStoichiometry[i]=(int*)calloc(NumberOfComponents,sizeof(int));
     ReactantsStoichiometry[i]=(int*)calloc(NumberOfComponents,sizeof(int));
     ProductsStoichiometry[i]=(int*)calloc(NumberOfComponents,sizeof(int));
   }
+*/
 
-  //----------------------------------------------------------------------------------------
+  CFCRXMCLambda=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
+  RXMCBiasingFactors=(REAL***)calloc(NumberOfSystems,sizeof(REAL**));
+  CFRXMCWangLandauScalingFactor=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
+  for(i=0;i<NumberOfSystems;i++)
+  {
+    if(NumberOfReactions>0)
+    {
+      CFCRXMCLambda[i]=(REAL*)calloc(NumberOfReactions,sizeof(REAL));
+      RXMCBiasingFactors[i]=(REAL**)calloc(NumberOfReactions,sizeof(REAL*));
+      CFRXMCWangLandauScalingFactor[i]=(REAL*)calloc(NumberOfReactions,sizeof(REAL));
+      for(j=0;j<NumberOfReactions;j++)
+        RXMCBiasingFactors[i][j]=(REAL*)calloc(RXMCLambdaHistogramSize,sizeof(REAL));
+    }
+  }
+
 
   NumberOfCellListCells=(INT_VECTOR3*)calloc(NumberOfSystems,sizeof(INT_VECTOR3));
   UseCellLists=(int*)calloc(NumberOfSystems,sizeof(int));
@@ -1407,7 +1441,7 @@ void AllocateSimulationMemory(void)
 
 void ReadRestartSimulation(FILE *FilePtr)
 {
-  int i;
+  int i,j;
   REAL Check;
 
   fread(&seed,sizeof(seed),1,FilePtr);
@@ -1740,6 +1774,7 @@ void ReadRestartSimulation(FILE *FilePtr)
   fread(&ProbabilityHybridNPHPRMove,sizeof(REAL),1,FilePtr);
   fread(&ProbabilityFrameworkChangeMove,sizeof(REAL),1,FilePtr);
   fread(&ProbabilityFrameworkShiftMove,sizeof(REAL),1,FilePtr);
+  fread(&ProbabilityCFCRXMCLambdaChangeMove,sizeof(REAL),1,FilePtr);
 
   fread(&CpuTimeProductionRun,sizeof(REAL),1,FilePtr);
   fread(&CpuTimeInitialization,sizeof(REAL),1,FilePtr);
@@ -1758,6 +1793,7 @@ void ReadRestartSimulation(FILE *FilePtr)
   fread(CpuTimeGibbsVolumeChangeMove,sizeof(REAL),NumberOfSystems,FilePtr);
   fread(CpuTimeFrameworkChangeMove,sizeof(REAL),NumberOfSystems,FilePtr);
   fread(CpuTimeFrameworkShiftMove,sizeof(REAL),NumberOfSystems,FilePtr);
+  fread(CpuCFCRXMCLambdaChangeMove,sizeof(REAL),NumberOfSystems,FilePtr);
 
   fread(&OptimizeVolumeChange,sizeof(int),1,FilePtr);
   fread(&OptimizeGibbsVolumeChange,sizeof(int),1,FilePtr);
@@ -1769,6 +1805,32 @@ void ReadRestartSimulation(FILE *FilePtr)
   fread(&OptimizeCFGibbsLambdaChange,sizeof(int),1,FilePtr);
   fread(&OptimizeCBCFLambdaChange,sizeof(int),1,FilePtr);
   fread(&OptimizeCBCFGibbsLambdaChange,sizeof(int),1,FilePtr);
+  fread(&OptimizeRXMCLambdaChange,sizeof(int),1,FilePtr);
+
+  // CFRXMC data
+  fread(&NumberOfReactions,sizeof(int),1,FilePtr);
+  if(NumberOfReactions>0)
+  {
+    fread(&RXMCLambdaHistogramSize,sizeof(int),1,FilePtr);
+
+    CFCRXMCLambda=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
+    RXMCBiasingFactors[i]=(REAL**)calloc(NumberOfReactions,sizeof(REAL*));
+    CFRXMCWangLandauScalingFactor=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
+    for(i=0;i<NumberOfSystems;i++)
+    {
+      CFCRXMCLambda[i]=(REAL*)calloc(NumberOfReactions,sizeof(REAL));
+      fread(CFCRXMCLambda[i],sizeof(REAL),NumberOfReactions,FilePtr);
+
+      CFRXMCWangLandauScalingFactor[i]=(REAL*)calloc(NumberOfReactions,sizeof(REAL));
+      fread(CFRXMCWangLandauScalingFactor[i],sizeof(REAL),NumberOfReactions,FilePtr);
+      RXMCBiasingFactors[i]=(REAL**)calloc(NumberOfReactions,sizeof(REAL*));
+      for(j=0;j<NumberOfReactions;j++)
+      {
+        RXMCBiasingFactors[i][j]=(REAL*)calloc(RXMCLambdaHistogramSize,sizeof(REAL));
+        fread(RXMCBiasingFactors[i][j],sizeof(REAL),RXMCLambdaHistogramSize,FilePtr);
+      }
+    }
+  }
 
   fread(&Check,1,sizeof(REAL),FilePtr);
   if(fabs(Check-123456789.0)>1e-10)

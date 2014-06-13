@@ -56,6 +56,20 @@ int *RDFHistogramSize;
 REAL *RDFRange;
 static REAL ****RadialDistributionFunction;
 
+int *ComputeProjectedLengths;
+int *WriteProjectedLengthsEvery;
+static REAL **CountProjectedLengths;
+int *ProjectedLengthsHistogramSize;
+REAL *ProjectedLengthsRange;
+static VECTOR ***ProjectedLengthsDistributionFunction;
+
+int *ComputeProjectedAngles;
+int *WriteProjectedAnglesEvery;
+static REAL **CountProjectedAngles;
+int *ProjectedAnglesHistogramSize;
+REAL *ProjectedAnglesRange;
+static VECTOR ***ProjectedAnglesDistributionFunction;
+
 //----------------------------------------------------------------------------------------
 // CFC-RXMC : sampling lambda histogram
 //----------------------------------------------------------------------------------------
@@ -688,6 +702,248 @@ void SampleRadialDistributionFunction(int Switch)
   }
 }
 
+/*********************************************************************************************************
+ * Name       | SampleProjectedLengthsDistributionFunction                                               *
+ * ----------------------------------------------------------------------------------------------------- *
+ * Function   | Sampling the distribution function of projected lengths                                  *
+ * Parameters | -                                                                                        *
+ *********************************************************************************************************/
+
+void SampleProjectedLengthsDistributionFunction(int Switch)
+{
+  int f1,f2;
+  int i,j,k,l;
+  int TypeA,Type;
+  VECTOR posA;
+  REAL r,deltaR;
+  FILE *FilePtr;
+  REAL normalization;
+  char buffer[256];
+  VECTOR min,max;
+
+  switch(Switch)
+  {
+    case ALLOCATE:
+      // allocate mememory for the storage, a 3D array
+      ProjectedLengthsDistributionFunction=(VECTOR***)calloc(NumberOfSystems,sizeof(VECTOR**));
+      CountProjectedLengths=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
+      for(i=0;i<NumberOfSystems;i++)
+      {
+        if(ComputeProjectedLengths[i])
+        {
+          ProjectedLengthsDistributionFunction[i]=(VECTOR**)calloc(NumberOfComponents,sizeof(VECTOR*));
+          CountProjectedLengths[i]=(REAL*)calloc(NumberOfComponents,sizeof(REAL));
+          for(j=0;j<NumberOfComponents;j++)
+          {
+            ProjectedLengthsDistributionFunction[i][j]=(VECTOR*)calloc(ProjectedLengthsHistogramSize[i],sizeof(VECTOR));
+          }
+        }
+      }
+      break;
+    case INITIALIZE:
+      break;
+    case SAMPLE:
+      // return if the rdf does not has to be calculated for this system
+      if(!ComputeProjectedLengths[CurrentSystem]) return;
+
+      deltaR=ProjectedLengthsRange[CurrentSystem]/ProjectedLengthsHistogramSize[CurrentSystem];
+
+      for(i=0;i<NumberOfAdsorbateMolecules[CurrentSystem];i++)
+      {
+        Type=Adsorbates[CurrentSystem][i].Type;
+
+        min.x=DBL_MAX; max.x=-DBL_MAX;
+        min.y=DBL_MAX; max.y=-DBL_MAX;
+        min.z=DBL_MAX; max.z=-DBL_MAX;
+        for(j=0;j<Adsorbates[CurrentSystem][i].NumberOfAtoms;j++)
+        {
+          TypeA=Adsorbates[CurrentSystem][i].Atoms[j].Type;
+          if(PseudoAtoms[TypeA].PrintToPDB)
+          {
+            posA=Adsorbates[CurrentSystem][i].Atoms[j].Position;
+            if(posA.x<min.x) min.x=posA.x;
+            if(posA.x>max.x) max.x=posA.x;
+            if(posA.y<min.y) min.y=posA.y;
+            if(posA.y>max.y) max.y=posA.y;
+            if(posA.z<min.z) min.z=posA.z;
+            if(posA.z>max.z) max.z=posA.z;
+          }
+        }
+
+        ProjectedLengthsDistributionFunction[CurrentSystem][Type][(int)(fabs(max.x-min.x)/deltaR)].x+=1.0;
+        ProjectedLengthsDistributionFunction[CurrentSystem][Type][(int)(fabs(max.y-min.y)/deltaR)].y+=1.0;
+        ProjectedLengthsDistributionFunction[CurrentSystem][Type][(int)(fabs(max.z-min.z)/deltaR)].z+=1.0;
+        CountProjectedLengths[CurrentSystem][Type]++;
+      }
+      break;
+    case PRINT:
+      // return if the rdf does not has to be calculated for this system
+      if((!ComputeProjectedLengths[CurrentSystem])||(CurrentCycle%WriteProjectedLengthsEvery[CurrentSystem]!=0)) return;
+
+      // make the output directory
+      mkdir("ProjectedLengthsDistributionFunctions",S_IRWXU);
+
+      // make the system directory in the output directory
+      sprintf(buffer,"ProjectedLengthsDistributionFunctions/System_%d",CurrentSystem);
+      mkdir(buffer,S_IRWXU);
+
+      deltaR=ProjectedLengthsRange[CurrentSystem]/ProjectedLengthsHistogramSize[CurrentSystem];
+
+      for(i=0;i<NumberOfComponents;i++)
+      {
+        sprintf(buffer,"ProjectedLengthsDistributionFunctions/System_%d/ProjectedLength_%s%s.dat",
+              CurrentSystem,Components[i].Name,FileNameAppend);
+        FilePtr=fopen(buffer,"w");
+        normalization=CountProjectedLengths[CurrentSystem][i];
+        for(k=0;k<ProjectedLengthsHistogramSize[CurrentSystem];k++)
+        {
+          fprintf(FilePtr,"%d %lf %lf %lf %lf\n",
+            k,
+            (double)((k+0.5)*deltaR),
+            (double)(ProjectedLengthsDistributionFunction[CurrentSystem][i][k].x/normalization),
+            (double)(ProjectedLengthsDistributionFunction[CurrentSystem][i][k].y/normalization),
+            (double)(ProjectedLengthsDistributionFunction[CurrentSystem][i][k].z/normalization));
+
+        }
+        fclose(FilePtr);
+      }
+  }
+}
+
+/*********************************************************************************************************
+ * Name       | SampleProjectedAnglesDistributionFunction                                                *
+ * ----------------------------------------------------------------------------------------------------- *
+ * Function   | Sampling the distribution function of projected angles                                   *
+ * Parameters | -                                                                                        *
+ *********************************************************************************************************/
+
+void SampleProjectedAnglesDistributionFunction(int Switch)
+{
+  int f1,f2;
+  int i,j,k,l;
+  int TypeA,Type;
+  VECTOR posA,posB,posC;
+  REAL r,deltaR;
+  FILE *FilePtr;
+  VECTOR normalization;
+  REAL length;
+  char buffer[256];
+  VECTOR v,w;
+  int A,B,C;
+  VECTOR dr1,dr2;
+  REAL angle;
+
+  switch(Switch)
+  {
+    case ALLOCATE:
+      // allocate mememory for the storage, a 3D array
+      ProjectedAnglesDistributionFunction=(VECTOR***)calloc(NumberOfSystems,sizeof(VECTOR**));
+      CountProjectedAngles=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
+      for(i=0;i<NumberOfSystems;i++)
+      {
+        if(ComputeProjectedAngles[i])
+        {
+          ProjectedAnglesDistributionFunction[i]=(VECTOR**)calloc(NumberOfComponents,sizeof(VECTOR*));
+          CountProjectedAngles[i]=(REAL*)calloc(NumberOfComponents,sizeof(REAL));
+          for(j=0;j<NumberOfComponents;j++)
+          {
+            ProjectedAnglesDistributionFunction[i][j]=(VECTOR*)calloc(ProjectedAnglesHistogramSize[i],sizeof(VECTOR));
+          }
+        }
+      }
+      break;
+    case INITIALIZE:
+      break;
+    case SAMPLE:
+      // return if the rdf does not has to be calculated for this system
+      if(!ComputeProjectedAngles[CurrentSystem]) return;
+
+      deltaR=ProjectedAnglesRange[CurrentSystem]/ProjectedAnglesHistogramSize[CurrentSystem];
+
+      for(i=0;i<NumberOfAdsorbateMolecules[CurrentSystem];i++)
+      {
+        Type=Adsorbates[CurrentSystem][i].Type;
+
+        A=Components[Type].orientation.A;
+        B=Components[Type].orientation.B;
+        C=Components[Type].orientation.C;
+
+        posA=Adsorbates[CurrentSystem][i].Atoms[A].Position;
+        posB=Adsorbates[CurrentSystem][i].Atoms[B].Position;
+        posC=Adsorbates[CurrentSystem][i].Atoms[C].Position;
+
+        dr1.x=posB.x-posA.x;     dr2.x=posB.x-posC.x;
+        dr1.y=posB.y-posA.y;     dr2.y=posB.y-posC.y;
+        dr1.z=posB.z-posA.z;     dr2.z=posB.z-posC.z;
+
+        v=CrossProduct(dr1,dr2);
+        length=sqrt(v.x*v.x+v.y*v.y+v.z*v.z);
+        v.x/=length;
+        v.y/=length;
+        v.z/=length;
+
+        w.x=acos(v.x*1.0+v.y*0.0+v.z*0.0);
+        w.y=acos(v.x*0.0+v.y*1.0+v.z*0.0);
+        w.z=acos(v.x*0.0+v.y*0.0+v.z*1.0);
+
+        if(w.x<0.0) w.x+=2.0*M_PI;
+        if(w.y<0.0) w.y+=2.0*M_PI;
+        if(w.z<0.0) w.z+=2.0*M_PI;
+
+        ProjectedAnglesDistributionFunction[CurrentSystem][Type][(int)(w.x*RAD2DEG/deltaR)].x+=1.0;
+        ProjectedAnglesDistributionFunction[CurrentSystem][Type][(int)(w.y*RAD2DEG/deltaR)].y+=1.0;
+        ProjectedAnglesDistributionFunction[CurrentSystem][Type][(int)(w.z*RAD2DEG/deltaR)].z+=1.0;
+        CountProjectedAngles[CurrentSystem][Type]++;
+      }
+      break;
+    case PRINT:
+      // return if the rdf does not has to be calculated for this system
+      if((!ComputeProjectedAngles[CurrentSystem])||(CurrentCycle%WriteProjectedAnglesEvery[CurrentSystem]!=0)) return;
+
+      // make the output directory
+      mkdir("ProjectedAnglesDistributionFunctions",S_IRWXU);
+
+      // make the system directory in the output directory
+      sprintf(buffer,"ProjectedAnglesDistributionFunctions/System_%d",CurrentSystem);
+      mkdir(buffer,S_IRWXU);
+
+      deltaR=ProjectedAnglesRange[CurrentSystem]/ProjectedAnglesHistogramSize[CurrentSystem];
+
+      for(i=0;i<NumberOfComponents;i++)
+      {
+        sprintf(buffer,"ProjectedAnglesDistributionFunctions/System_%d/ProjectedAngle_%s%s.dat",
+              CurrentSystem,Components[i].Name,FileNameAppend);
+        FilePtr=fopen(buffer,"w");
+
+        normalization.x=normalization.y=normalization.z=0.0;
+        for(k=0;k<ProjectedAnglesHistogramSize[CurrentSystem];k++)
+        {
+          normalization.x+=ProjectedAnglesDistributionFunction[CurrentSystem][i][k].x;
+          normalization.y+=ProjectedAnglesDistributionFunction[CurrentSystem][i][k].y;
+          normalization.z+=ProjectedAnglesDistributionFunction[CurrentSystem][i][k].z;
+        }
+
+        for(k=0;k<ProjectedAnglesHistogramSize[CurrentSystem];k++)
+        {
+          angle=(k+0.5)*deltaR;
+          fprintf(FilePtr,"%d %lf %lf %lf %lf %lf %lf %lf\n",
+            k,
+            (double)angle,
+            (double)(ProjectedAnglesDistributionFunction[CurrentSystem][i][k].x*ProjectedAnglesHistogramSize[CurrentSystem]*2.0/(M_PI*normalization.x)),
+            (double)(ProjectedAnglesDistributionFunction[CurrentSystem][i][k].y*ProjectedAnglesHistogramSize[CurrentSystem]*2.0/(M_PI*normalization.y)),
+            (double)(ProjectedAnglesDistributionFunction[CurrentSystem][i][k].z*ProjectedAnglesHistogramSize[CurrentSystem]*2.0/(M_PI*normalization.z)),
+            (double)(ProjectedAnglesDistributionFunction[CurrentSystem][i][k].x*ProjectedAnglesHistogramSize[CurrentSystem]*2.0/(M_PI*normalization.x*sin(angle*DEG2RAD))),
+            (double)(ProjectedAnglesDistributionFunction[CurrentSystem][i][k].y*ProjectedAnglesHistogramSize[CurrentSystem]*2.0/(M_PI*normalization.z*sin(angle*DEG2RAD))),
+            (double)(ProjectedAnglesDistributionFunction[CurrentSystem][i][k].z*ProjectedAnglesHistogramSize[CurrentSystem]*2.0/(M_PI*normalization.z*sin(angle*DEG2RAD))));
+
+
+        }
+        fclose(FilePtr);
+      }
+  }
+}
+
+
 
 /********************************************************************************************************
 * Name       | SampleCFCRXMCLambdaHistogram                                                             *
@@ -731,12 +987,15 @@ void SampleCFCRXMCLambdaHistogram(int Switch)
     case SAMPLE:
       if(!ComputeCFCRXMCLambdaHistogram[CurrentSystem]) return;
 
-      for(i=0;i<NumberOfReactions;i++)
+      for(j=0;j<NumberOfReactions;j++)
       {
-         r=CFCRXMCLambda[CurrentReaction][i];
-         delta=CFCRXMCLambdaHistogramBins[CurrentSystem];
-         index=(int)(r*delta);
-         CFCRXMCLambdaHistogram[CurrentSystem][i][index]+=1.0;
+        for(i=0;i<NumberOfReactions;i++)
+        {
+           r=CFCRXMCLambda[j][i];
+           delta=CFCRXMCLambdaHistogramBins[CurrentSystem];
+           index=(int)(r*delta);
+           CFCRXMCLambdaHistogram[CurrentSystem][i][index]+=1.0;
+        }
       }
       break;
     case PRINT:
@@ -8605,259 +8864,17 @@ void MeasurePrincipleMomentsOfInertia(void)
 
 void ComputeMolecularPressureTensor(REAL_MATRIX3x3 *Pressure_matrix, REAL* PressureIdealGas, REAL* PressureTail)
 {
-  int bak;
-  REAL temp;
-
   // compute the ideal gas part of the pressure (related to the translational degrees of freedom, not rotational dof)
-  *PressureIdealGas=(DegreesOfFreedomTranslation[CurrentSystem])
-                  *K_B*therm_baro_stats.ExternalTemperature[CurrentSystem]/(3.0*Volume[CurrentSystem]);
+  *PressureIdealGas=(NumberOfAdsorbateMolecules[CurrentSystem]+NumberOfCationMolecules[CurrentSystem])
+                  *K_B*therm_baro_stats.ExternalTemperature[CurrentSystem]/Volume[CurrentSystem];
 
-  bak=CurrentSystem;
-  // compute the Inertia-tensors and quaternions for all rigid molecules
-  ComputeQuaternions();
-  CurrentSystem=bak;
-
-  // compute the strain-derivative tensor
-  //CalculateForce();
-
-  // initialize stress
-  StressTensor[CurrentSystem].ax=StressTensor[CurrentSystem].bx=StressTensor[CurrentSystem].cx=0.0;
-  StressTensor[CurrentSystem].ay=StressTensor[CurrentSystem].by=StressTensor[CurrentSystem].cy=0.0;
-  StressTensor[CurrentSystem].az=StressTensor[CurrentSystem].bz=StressTensor[CurrentSystem].cz=0.0;
-
-  StrainDerivativeTensor[CurrentSystem].ax=StrainDerivativeTensor[CurrentSystem].bx=StrainDerivativeTensor[CurrentSystem].cx=0.0;
-  StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].by=StrainDerivativeTensor[CurrentSystem].cy=0.0;
-  StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cz=0.0;
-
-  UHostBond[CurrentSystem]=0.0;
-  UHostUreyBradley[CurrentSystem]=0.0;
-  UHostBend[CurrentSystem]=0.0;
-  UHostInversionBend[CurrentSystem]=0.0;
-  UHostTorsion[CurrentSystem]=0.0;
-  UHostImproperTorsion[CurrentSystem]=0.0;
-  UHostBondBond[CurrentSystem]=0.0;
-  UHostBondBend[CurrentSystem]=0.0;
-  UHostBendBend[CurrentSystem]=0.0;
-  UHostBondTorsion[CurrentSystem]=0.0;
-  UHostBendTorsion[CurrentSystem]=0.0;
-
-  UHostHost[CurrentSystem]=0.0;
-  UAdsorbateAdsorbate[CurrentSystem]=0.0;
-  UCationCation[CurrentSystem]=0.0;
-  UHostAdsorbate[CurrentSystem]=0.0;
-  UHostCation[CurrentSystem]=0.0;
-  UAdsorbateCation[CurrentSystem]=0.0;
-
-  UHostHostVDW[CurrentSystem]=0.0;
-  UAdsorbateAdsorbateVDW[CurrentSystem]=0.0;
-  UCationCationVDW[CurrentSystem]=0.0;
-  UHostAdsorbateVDW[CurrentSystem]=0.0;
-  UHostCationVDW[CurrentSystem]=0.0;
-  UAdsorbateCationVDW[CurrentSystem]=0.0;
-
-  UHostHostCoulomb[CurrentSystem]=0.0;
-  UAdsorbateAdsorbateCoulomb[CurrentSystem]=0.0;
-  UCationCationCoulomb[CurrentSystem]=0.0;
-  UHostAdsorbateCoulomb[CurrentSystem]=0.0;
-  UHostCationCoulomb[CurrentSystem]=0.0;
-  UAdsorbateCationCoulomb[CurrentSystem]=0.0;
-
-  UHostHostChargeChargeReal[CurrentSystem]=0.0;
-  UAdsorbateAdsorbateChargeChargeReal[CurrentSystem]=0.0;
-  UCationCationChargeChargeReal[CurrentSystem]=0.0;
-  UHostAdsorbateChargeChargeReal[CurrentSystem]=0.0;
-  UHostCationChargeChargeReal[CurrentSystem]=0.0;
-  UAdsorbateCationChargeChargeReal[CurrentSystem]=0.0;
-
-  UHostHostChargeBondDipoleReal[CurrentSystem]=0.0;
-  UAdsorbateAdsorbateChargeBondDipoleReal[CurrentSystem]=0.0;
-  UCationCationChargeBondDipoleReal[CurrentSystem]=0.0;
-  UHostAdsorbateChargeBondDipoleReal[CurrentSystem]=0.0;
-  UHostCationChargeBondDipoleReal[CurrentSystem]=0.0;
-  UAdsorbateCationChargeBondDipoleReal[CurrentSystem]=0.0;
-
-  UHostHostBondDipoleBondDipoleReal[CurrentSystem]=0.0;
-  UAdsorbateAdsorbateBondDipoleBondDipoleReal[CurrentSystem]=0.0;
-  UCationCationBondDipoleBondDipoleReal[CurrentSystem]=0.0;
-  UHostAdsorbateBondDipoleBondDipoleReal[CurrentSystem]=0.0;
-  UHostCationBondDipoleBondDipoleReal[CurrentSystem]=0.0;
-  UAdsorbateCationBondDipoleBondDipoleReal[CurrentSystem]=0.0;
-
-  UHostHostChargeChargeFourier[CurrentSystem]=0.0;
-  UAdsorbateAdsorbateChargeChargeFourier[CurrentSystem]=0.0;
-  UCationCationChargeChargeFourier[CurrentSystem]=0.0;
-  UHostAdsorbateChargeChargeFourier[CurrentSystem]=0.0;
-  UHostCationChargeChargeFourier[CurrentSystem]=0.0;
-  UAdsorbateCationChargeChargeFourier[CurrentSystem]=0.0;
-
-  UHostHostChargeBondDipoleFourier[CurrentSystem]=0.0;
-  UAdsorbateAdsorbateChargeBondDipoleFourier[CurrentSystem]=0.0;
-  UCationCationChargeBondDipoleFourier[CurrentSystem]=0.0;
-  UHostAdsorbateChargeBondDipoleFourier[CurrentSystem]=0.0;
-  UHostCationChargeBondDipoleFourier[CurrentSystem]=0.0;
-  UAdsorbateCationChargeBondDipoleFourier[CurrentSystem]=0.0;
-
-  UHostHostBondDipoleBondDipoleFourier[CurrentSystem]=0.0;
-  UAdsorbateAdsorbateBondDipoleBondDipoleFourier[CurrentSystem]=0.0;
-  UCationCationBondDipoleBondDipoleFourier[CurrentSystem]=0.0;
-  UHostAdsorbateBondDipoleBondDipoleFourier[CurrentSystem]=0.0;
-  UHostCationBondDipoleBondDipoleFourier[CurrentSystem]=0.0;
-  UAdsorbateCationBondDipoleBondDipoleFourier[CurrentSystem]=0.0;
-
-  UHostPolarization[CurrentSystem]=0.0;
-  UAdsorbatePolarization[CurrentSystem]=0.0;
-  UCationPolarization[CurrentSystem]=0.0;
-
-  UHostBackPolarization[CurrentSystem]=0.0;
-  UAdsorbateBackPolarization[CurrentSystem]=0.0;
-  UCationBackPolarization[CurrentSystem]=0.0;
-
-  UTailCorrection[CurrentSystem]=0.0;
-
-  // compute the modified VDW sites for anisotropic models
-  CalculateAnisotropicSites();
-
-
-  // contribution of the intra molecular interactions of the framework
-  if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
-  {
-    CalculateFrameworkBondForce();
-    CalculateFrameworkUreyBradleyForce();
-    CalculateFrameworkBendForce();
-    CalculateFrameworkInversionBendForce();
-    CalculateFrameworkTorsionForce();
-    CalculateFrameworkImproperTorsionForce();
-    CalculateFrameworkBondBondForce();
-    CalculateFrameworkBondBendForce();
-    CalculateFrameworkBendBendForce();
-    CalculateFrameworkBondTorsionForce();
-    CalculateFrameworkBendTorsionForce();
-
-    if(UseReplicas[CurrentSystem])
-    {
-      CalculateFrameworkIntraReplicaVDWForce();
-      CalculateFrameworkIntraReplicaChargeChargeForce();
-    }
-    else
-    {
-      CalculateFrameworkIntraVDWForce();
-      CalculateFrameworkIntraChargeChargeForce();
-    }
-    CalculateFrameworkIntraChargeBondDipoleForce();
-    CalculateFrameworkIntraBondDipoleBondDipoleForce();
-  }
-
-
-  // contribution of the intermolecular interactions (between adsorbates and/or cations)
-  if(UseReplicas[CurrentSystem])
-  {
-    CalculateTotalInterReplicaVDWForce();
-    CalculateTotalInterReplicaChargeChargeCoulombForce();
-  }
-  else
-  {
-    CalculateTotalInterVDWForce();
-    CalculateTotalInterChargeChargeCoulombForce();
-
-  }
-  CalculateTotalInterChargeBondDipoleCoulombForce();
-  CalculateTotalInterBondDipoleBondDipoleCoulombForce();
-
-  // contribution of the interactions of the adsorbates with the framework
-  if(UseReplicas[CurrentSystem])
-  {
-    CalculateFrameworkAdsorbateReplicaVDWForce();
-    CalculateFrameworkAdsorbateReplicaChargeChargeForce();
-  }
-  else
-  {
-    CalculateFrameworkAdsorbateVDWForce();
-    CalculateFrameworkAdsorbateChargeChargeForce();
-  }
-  CalculateFrameworkAdsorbateChargeBondDipoleForce();
-  CalculateFrameworkAdsorbateBondDipoleBondDipoleForce();
-
-  // contribution of the interactions of the cations with the framework
-  if(UseReplicas[CurrentSystem])
-  {
-    CalculateFrameworkCationReplicaVDWForce();
-    CalculateFrameworkCationReplicaChargeChargeForce();
-  }
-  else
-  {
-    CalculateFrameworkCationVDWForce();
-    CalculateFrameworkCationChargeChargeForce();
-  }
-  CalculateFrameworkCationChargeBondDipoleForce();
-  CalculateFrameworkCationBondDipoleBondDipoleForce();
-
-  // the contribution of the charges present in the system (long-range interaction)
-  if((ChargeMethod==EWALD)&&(!OmitEwaldFourier))
-    EwaldFourierForce();
-
-
-  if(ComputePolarization)
-  {
-    CalculateElectricField();
-
-    CalculateFrameworkAdsorbateChargeInducedDipoleForce();
-    CalculateFrameworkAdsorbateInducedDipoleInducedDipoleForce();
-
-    CalculateInterChargeInducedDipoleForce();
-    CalculateInterInducedDipoleInducedDipoleForce();
-
-    if((ChargeMethod==EWALD)&&(!OmitEwaldFourier))
-      ComputeInducedDipolesForcesEwald();
-  }
-
-  CalculateTailCorrection();
-
-  UAdsorbateAdsorbateCoulomb[CurrentSystem]=
-      UAdsorbateAdsorbateChargeChargeReal[CurrentSystem]+UAdsorbateAdsorbateChargeChargeFourier[CurrentSystem]+
-      UAdsorbateAdsorbateChargeBondDipoleReal[CurrentSystem]+UAdsorbateAdsorbateChargeBondDipoleFourier[CurrentSystem]+
-      UAdsorbateAdsorbateBondDipoleBondDipoleReal[CurrentSystem]+UAdsorbateAdsorbateBondDipoleBondDipoleFourier[CurrentSystem];
-  UAdsorbateAdsorbate[CurrentSystem]=UAdsorbateAdsorbateVDW[CurrentSystem]+UAdsorbateAdsorbateCoulomb[CurrentSystem];
-
-  UCationCationCoulomb[CurrentSystem]=
-      UCationCationChargeChargeReal[CurrentSystem]+UCationCationChargeChargeFourier[CurrentSystem]+
-      UCationCationChargeBondDipoleReal[CurrentSystem]+UCationCationChargeBondDipoleFourier[CurrentSystem]+
-      UCationCationBondDipoleBondDipoleReal[CurrentSystem]+UCationCationBondDipoleBondDipoleFourier[CurrentSystem];
-  UCationCation[CurrentSystem]=UCationCationVDW[CurrentSystem]+UCationCationCoulomb[CurrentSystem];
-
-  UAdsorbateCationCoulomb[CurrentSystem]=
-      UAdsorbateCationChargeChargeReal[CurrentSystem]+UAdsorbateCationChargeChargeFourier[CurrentSystem]+
-      UAdsorbateCationChargeBondDipoleReal[CurrentSystem]+UAdsorbateCationChargeBondDipoleFourier[CurrentSystem]+
-      UAdsorbateCationBondDipoleBondDipoleReal[CurrentSystem]+UAdsorbateCationBondDipoleBondDipoleFourier[CurrentSystem];
-  UAdsorbateCation[CurrentSystem]=UAdsorbateCationVDW[CurrentSystem]+UAdsorbateCationCoulomb[CurrentSystem];
-
-  UHostAdsorbateCoulomb[CurrentSystem]=
-      UHostAdsorbateChargeChargeReal[CurrentSystem]+UHostAdsorbateChargeChargeFourier[CurrentSystem]+
-      UHostAdsorbateChargeBondDipoleReal[CurrentSystem]+UHostAdsorbateChargeBondDipoleFourier[CurrentSystem]+
-      UHostAdsorbateBondDipoleBondDipoleReal[CurrentSystem]+UHostAdsorbateBondDipoleBondDipoleFourier[CurrentSystem];
-  UHostAdsorbate[CurrentSystem]=UHostAdsorbateVDW[CurrentSystem]+UHostAdsorbateCoulomb[CurrentSystem];
-
-  UHostCationCoulomb[CurrentSystem]=
-      UHostCationChargeChargeReal[CurrentSystem]+UHostCationChargeChargeFourier[CurrentSystem]+
-      UHostCationChargeBondDipoleReal[CurrentSystem]+UHostCationChargeBondDipoleFourier[CurrentSystem]+
-      UHostCationBondDipoleBondDipoleReal[CurrentSystem]+UHostCationBondDipoleBondDipoleFourier[CurrentSystem];
-  UHostCation[CurrentSystem]=UHostCationVDW[CurrentSystem]+UHostCationCoulomb[CurrentSystem];
-
-  UHostHostCoulomb[CurrentSystem]=
-      UHostHostChargeChargeReal[CurrentSystem]+UHostHostChargeChargeFourier[CurrentSystem]+
-      UHostHostChargeBondDipoleReal[CurrentSystem]+UHostHostChargeBondDipoleFourier[CurrentSystem]+
-      UHostHostBondDipoleBondDipoleReal[CurrentSystem]+UHostHostBondDipoleBondDipoleFourier[CurrentSystem];
-  UHostHost[CurrentSystem]=UHostHostVDW[CurrentSystem]+UHostHostCoulomb[CurrentSystem];
-
-  // symmetrize strain-derivative (asymmetry originates from torque induced by rigid units and bond-dipoles)
-  temp=0.5*(StrainDerivativeTensor[CurrentSystem].ay+StrainDerivativeTensor[CurrentSystem].bx);
-  StrainDerivativeTensor[CurrentSystem].ay=StrainDerivativeTensor[CurrentSystem].bx=temp;
-  temp=0.5*(StrainDerivativeTensor[CurrentSystem].az+StrainDerivativeTensor[CurrentSystem].cx);
-  StrainDerivativeTensor[CurrentSystem].az=StrainDerivativeTensor[CurrentSystem].cx=temp;
-  temp=0.5*(StrainDerivativeTensor[CurrentSystem].bz+StrainDerivativeTensor[CurrentSystem].cy);
-  StrainDerivativeTensor[CurrentSystem].bz=StrainDerivativeTensor[CurrentSystem].cy=temp;
-
-  *PressureTail=CalculatePressureTailCorrection()/Volume[CurrentSystem];
+  // compute the excess pressure
+  CalculateMolecularExcessPressure();
   *Pressure_matrix=StrainDerivativeTensor[CurrentSystem];
+
+  // compute the tail correction
+  CalculateTailCorrection();
+  *PressureTail=StrainDerivativeTailCorrection[CurrentSystem]/Volume[CurrentSystem];
 }
 
 
@@ -8889,6 +8906,37 @@ void WriteRestartSample(FILE *FilePtr)
           fwrite(RadialDistributionFunction[i][j][k],RDFHistogramSize[i],sizeof(REAL),FilePtr);
     }
   }
+
+  // write data for the histograms of the projected lengths
+  fwrite(ComputeProjectedLengths,NumberOfSystems,sizeof(int),FilePtr);
+  fwrite(WriteProjectedLengthsEvery,NumberOfSystems,sizeof(int),FilePtr);
+  fwrite(ProjectedLengthsHistogramSize,NumberOfSystems,sizeof(int),FilePtr);
+  fwrite(ProjectedLengthsRange,NumberOfSystems,sizeof(REAL),FilePtr);
+  for(i=0;i<NumberOfSystems;i++)
+  {
+    if(ComputeProjectedLengths[i])
+    {
+      fwrite(CountProjectedLengths[i],NumberOfComponents,sizeof(REAL),FilePtr);
+      for(j=0;j<NumberOfComponents;j++)
+        fwrite(ProjectedLengthsDistributionFunction[i][j],ProjectedLengthsHistogramSize[i],sizeof(VECTOR),FilePtr);
+    }
+  }
+
+  // write data for the histograms of the projected angles
+  fwrite(ComputeProjectedAngles,NumberOfSystems,sizeof(int),FilePtr);
+  fwrite(WriteProjectedAnglesEvery,NumberOfSystems,sizeof(int),FilePtr);
+  fwrite(ProjectedAnglesHistogramSize,NumberOfSystems,sizeof(int),FilePtr);
+  fwrite(ProjectedAnglesRange,NumberOfSystems,sizeof(REAL),FilePtr);
+  for(i=0;i<NumberOfSystems;i++)
+  {
+    if(ComputeProjectedAngles[i])
+    {
+      fwrite(CountProjectedAngles[i],NumberOfComponents,sizeof(REAL),FilePtr);
+      for(j=0;j<NumberOfComponents;j++)
+        fwrite(ProjectedAnglesDistributionFunction[i][j],ProjectedAnglesHistogramSize[i],sizeof(VECTOR),FilePtr);
+    }
+  }
+
 
   // write data for the histograms of the number of molecules
   fwrite(ComputeNumberOfMoleculesHistogram,NumberOfSystems,sizeof(int),FilePtr);
@@ -9555,6 +9603,16 @@ void AllocateSampleMemory(void)
   RDFHistogramSize=(int*)calloc(NumberOfSystems,sizeof(int));
   RDFRange=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
 
+  ComputeProjectedLengths=(int*)calloc(NumberOfSystems,sizeof(int));
+  WriteProjectedLengthsEvery=(int*)calloc(NumberOfSystems,sizeof(int));
+  ProjectedLengthsHistogramSize=(int*)calloc(NumberOfSystems,sizeof(int));
+  ProjectedLengthsRange=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+
+  ComputeProjectedAngles=(int*)calloc(NumberOfSystems,sizeof(int));
+  WriteProjectedAnglesEvery=(int*)calloc(NumberOfSystems,sizeof(int));
+  ProjectedAnglesHistogramSize=(int*)calloc(NumberOfSystems,sizeof(int));
+  ProjectedAnglesRange=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+
   //-----------------------------------------------------------------------------------------------------
   // CFC-RXMC : sampling lambda histogram
   //-----------------------------------------------------------------------------------------------------
@@ -9750,6 +9808,42 @@ void ReadRestartSample(FILE *FilePtr)
       for(j=0;j<NumberOfPseudoAtoms;j++)
         for(k=0;k<NumberOfPseudoAtoms;k++)
           fread(RadialDistributionFunction[i][j][k],RDFHistogramSize[i],sizeof(REAL),FilePtr);
+    }
+  }
+
+  // read data for the histograms of the projected lengths
+  fread(ComputeProjectedLengths,NumberOfSystems,sizeof(int),FilePtr);
+  fread(WriteProjectedLengthsEvery,NumberOfSystems,sizeof(int),FilePtr);
+  fread(ProjectedLengthsHistogramSize,NumberOfSystems,sizeof(int),FilePtr);
+  fread(ProjectedLengthsRange,NumberOfSystems,sizeof(REAL),FilePtr);
+
+  SampleProjectedLengthsDistributionFunction(ALLOCATE);
+
+  for(i=0;i<NumberOfSystems;i++)
+  {
+    if(ComputeProjectedLengths[i])
+    {
+      fread(CountProjectedLengths[i],NumberOfComponents,sizeof(REAL),FilePtr);
+      for(j=0;j<NumberOfComponents;j++)
+        fread(ProjectedLengthsDistributionFunction[i][j],ProjectedLengthsHistogramSize[i],sizeof(VECTOR),FilePtr);
+    }
+  }
+
+  // read data for the histograms of the projected angles
+  fread(ComputeProjectedAngles,NumberOfSystems,sizeof(int),FilePtr);
+  fread(WriteProjectedAnglesEvery,NumberOfSystems,sizeof(int),FilePtr);
+  fread(ProjectedAnglesHistogramSize,NumberOfSystems,sizeof(int),FilePtr);
+  fread(ProjectedAnglesRange,NumberOfSystems,sizeof(REAL),FilePtr);
+
+  SampleProjectedAnglesDistributionFunction(ALLOCATE);
+
+  for(i=0;i<NumberOfSystems;i++)
+  {
+    if(ComputeProjectedAngles[i])
+    {
+      fread(CountProjectedAngles[i],NumberOfComponents,sizeof(REAL),FilePtr);
+      for(j=0;j<NumberOfComponents;j++)
+        fread(ProjectedAnglesDistributionFunction[i][j],ProjectedAnglesHistogramSize[i],sizeof(VECTOR),FilePtr);
     }
   }
 

@@ -240,7 +240,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
   fprintf(FilePtr,"Compiler and run-time data\n");
   fprintf(FilePtr,"===========================================================================\n");
 
-  fprintf(FilePtr,"%s\n","RASPA 1.9-5");
+  fprintf(FilePtr,"%s\n","RASPA 1.9-7");
 
   #if defined (__LP64__) || defined (__64BIT__) || defined (_LP64) || (__WORDSIZE == 64)
     fprintf(FilePtr,"Compiled as a 64-bits application\n");
@@ -3428,6 +3428,8 @@ void PrintPreSimulationStatusCurrentSystem(int system)
       fprintf(FilePtr,"\tCritical pressure [Pa]: %lf\n",(double)Components[i].CriticalPressure);
       fprintf(FilePtr,"\tAcentric factor [-]: %lf\n",(double)Components[i].AcentricFactor);
       fprintf(FilePtr,"\n");
+      fprintf(FilePtr,"\tRXMC partition factor [-]: %lf\n",(double)Components[i].PartitionFunction);
+      fprintf(FilePtr,"\n");
 
       switch(FluidState[system])
       {
@@ -3793,6 +3795,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
       fprintf(FilePtr,"\t\tPercentage of Gibbs volume-change moves:           %lf\n",(double)(100.0*Components[i].FractionOfGibbsVolumeChangeMove));
       fprintf(FilePtr,"\t\tPercentage of framework-change moves:              %lf\n",(double)(100.0*Components[i].FractionOfFrameworkChangeMove));
       fprintf(FilePtr,"\t\tPercentage of framework-shift moves:               %lf\n",(double)(100.0*Components[i].FractionOfFrameworkShiftMove));
+      fprintf(FilePtr,"\t\tPercentage of reactive MC moves:                   %lf\n",(double)(100.0*Components[i].FractionOfCFCRXMCLambdaChangeMove));
       fprintf(FilePtr,"\n");
 
 
@@ -6334,6 +6337,7 @@ void PrintPostSimulationStatus(void)
     PrintCBCFSwapLambdaStatistics(FilePtr);
     PrintCFGibbsLambdaStatistics(FilePtr);
     PrintCBCFGibbsLambdaStatistics(FilePtr);
+    PrintRXMCStatistics(FilePtr);
     fprintf(FilePtr,"\n\n");
     PrintCPUStatistics(FilePtr);
     fprintf(FilePtr,"\n\n");
@@ -6917,6 +6921,7 @@ void PrintRestartFile(void)
   int FractionalMolecule;
   VECTOR flexible_drift;
   VECTOR com;
+  REAL shift;
 
   if (STREAM)
       return;
@@ -7002,40 +7007,83 @@ void PrintRestartFile(void)
   fprintf(FilePtrOut,"Components: %d (Adsorbates %d, Cations %d)\n",NumberOfComponents,
      NumberOfAdsorbateMolecules[CurrentSystem],NumberOfCationMolecules[CurrentSystem]);
   fprintf(FilePtrOut,"========================================================================\n");
-  for(j=0;j<NumberOfComponents;j++)
+  for(l=0;l<NumberOfComponents;l++)
   {
-    FractionalMolecule=Components[j].FractionalMolecule[CurrentSystem];
-
+    // write CB/CFMC biasing data
+    FractionalMolecule=Components[l].FractionalMolecule[CurrentSystem];
     if(FractionalMolecule>=0)
     {
-      fprintf(FilePtrOut,"Component %d (%s)\n",j,Components[j].Name);
-      fprintf(FilePtrOut,"\tFractional-molecule-id component %d: %d\n",j,Components[j].FractionalMolecule[CurrentSystem]);
+      fprintf(FilePtrOut,"Component %d (%s)\n",l,Components[l].Name);
+      fprintf(FilePtrOut,"\tFractional-molecule-id component %d: %d\n",l,Components[l].FractionalMolecule[CurrentSystem]);
 
-      fprintf(FilePtrOut,"\tLambda factors component %d: ",j);
-      for(i=0;i<Components[j].NumberOfAtoms;i++)
+      fprintf(FilePtrOut,"\tLambda-factors component %d: ",l);
+      for(i=0;i<Components[l].NumberOfAtoms;i++)
       {
-        if(Components[j].ExtraFrameworkMolecule)
+        if(Components[l].ExtraFrameworkMolecule)
           fprintf(FilePtrOut," %lf",Cations[CurrentSystem][FractionalMolecule].Atoms[i].CFVDWScalingParameter);
         else
           fprintf(FilePtrOut," %lf",Adsorbates[CurrentSystem][FractionalMolecule].Atoms[i].CFVDWScalingParameter);
       }
       fprintf(FilePtrOut,"\n");
 
-      fprintf(FilePtrOut,"\tNumber-of-biasing-factors component %d: %d\n",j,Components[j].CFLambdaHistogramSize);
-      fprintf(FilePtrOut,"\tBiasing-factors component %d: ",j);
-      for(i=0;i<Components[j].CFLambdaHistogramSize;i++)
-        fprintf(FilePtrOut," %lf",Components[j].CFBiasingFactors[CurrentSystem][i]);
+      fprintf(FilePtrOut,"\tNumber-of-biasing-factors component %d: %d\n",l,Components[l].CFLambdaHistogramSize);
+      fprintf(FilePtrOut,"\tBiasing-factors component %d: ",l);
+      for(i=0;i<Components[l].CFLambdaHistogramSize;i++)
+        fprintf(FilePtrOut," %lf",Components[l].CFBiasingFactors[CurrentSystem][i]);
       fprintf(FilePtrOut,"\n");
 
-      fprintf(FilePtrOut,"\tMaximum-CF-Lambda-change component %d: %lf\n",j,MaximumCFLambdaChange[CurrentSystem][j]);
-      fprintf(FilePtrOut,"\tMaximum-CBCF-Lambda-change component %d: %lf\n",j,MaximumCBCFLambdaChange[CurrentSystem][j]);
+      fprintf(FilePtrOut,"\tMaximum-CF-Lambda-change component %d: %lf\n",l,MaximumCFLambdaChange[CurrentSystem][l]);
+      fprintf(FilePtrOut,"\tMaximum-CBCF-Lambda-change component %d: %lf\n",l,MaximumCBCFLambdaChange[CurrentSystem][l]);
       fprintf(FilePtrOut,"\n");
     }
-    fprintf(FilePtrOut,"\tMaximum-translation-change component %d: %lf,%lf,%lf\n",j,
-       (double)MaximumTranslation[CurrentSystem][j].x,(double)MaximumTranslation[CurrentSystem][j].y,(double)MaximumTranslation[CurrentSystem][j].z);
-    fprintf(FilePtrOut,"\tMaximum-translation-in-plane-change component %d: %lf,%lf,%lf\n",j,
-       (double)MaximumTranslationInPlane[CurrentSystem][j].x,(double)MaximumTranslationInPlane[CurrentSystem][j].y,(double)MaximumTranslationInPlane[CurrentSystem][j].z);
-    fprintf(FilePtrOut,"\tMaximum-rotation-change component %d: %lf %lf %lf\n",j,(double)MaximumRotation[CurrentSystem][j].x,(double)MaximumRotation[CurrentSystem][j].y,(double)MaximumRotation[CurrentSystem][j].z);
+    fprintf(FilePtrOut,"\tMaximum-translation-change component %d: %lf,%lf,%lf\n",l,
+       (double)MaximumTranslation[CurrentSystem][l].x,(double)MaximumTranslation[CurrentSystem][l].y,(double)MaximumTranslation[CurrentSystem][l].z);
+    fprintf(FilePtrOut,"\tMaximum-translation-in-plane-change component %d: %lf,%lf,%lf\n",l,
+       (double)MaximumTranslationInPlane[CurrentSystem][l].x,(double)MaximumTranslationInPlane[CurrentSystem][l].y,(double)MaximumTranslationInPlane[CurrentSystem][l].z);
+    fprintf(FilePtrOut,"\tMaximum-rotation-change component %d: %lf %lf %lf\n",l,(double)MaximumRotation[CurrentSystem][l].x,
+            (double)MaximumRotation[CurrentSystem][l].y,(double)MaximumRotation[CurrentSystem][l].z);
+  }
+  fprintf(FilePtrOut,"\n");
+
+  // write CFRXMC biasing data
+  fprintf(FilePtrOut,"Reactions: %d\n",NumberOfReactions);
+  if(NumberOfReactions>0)
+  {
+    fprintf(FilePtrOut,"========================================================================\n");
+    fprintf(FilePtrOut,"Number-of-biasing-factors-reaction: %d\n",RXMCLambdaHistogramSize);
+    for(i=0;i<NumberOfReactions;i++)
+    {
+      fprintf(FilePtrOut,"Reaction %d\n",i);
+      fprintf(FilePtrOut,"\tLambda-factor reaction %d: %lf\n",i,CFCRXMCLambda[CurrentSystem][i]);
+      fprintf(FilePtrOut,"\tMaximum-Lambda-reaction-change reaction %d: %lf\n",i,MaximumReactionLambdaChange[CurrentSystem][i]);
+      fprintf(FilePtrOut,"\tFractional-product-molecules reaction %d:",i);
+      for(j=0;j<NumberOfComponents;j++)
+      {
+        if(ProductsStoichiometry[i][j]>0)
+        {
+          for(k=0;k<ProductsStoichiometry[i][j];k++)
+            fprintf(FilePtrOut," %d",Components[j].ProductFractionalMolecules[CurrentSystem][i][k]);
+        }
+      }
+      fprintf(FilePtrOut,"\n");
+      fprintf(FilePtrOut,"\tFractional-reactant-molecules reaction %d:",i);
+      for(j=0;j<NumberOfComponents;j++)
+      {
+        if(ReactantsStoichiometry[i][j]>0)
+        {
+          for(k=0;k<ReactantsStoichiometry[i][j];k++)
+            fprintf(FilePtrOut," %d",Components[j].ReactantFractionalMolecules[CurrentSystem][i][k]);
+        }
+      }
+      fprintf(FilePtrOut,"\n");
+
+      shift=RXMCBiasingFactors[CurrentSystem][i][0];
+      fprintf(FilePtrOut,"\tReaction-biasing-factors reaction %d: ",i);
+      for(k=0;k<RXMCLambdaHistogramSize;k++)
+        fprintf(FilePtrOut,"%lf ",RXMCBiasingFactors[CurrentSystem][i][k]-shift);
+      fprintf(FilePtrOut,"\n");
+    }
+    fprintf(FilePtrOut,"\n");
   }
   fprintf(FilePtrOut,"\n");
 
@@ -7596,6 +7644,7 @@ void ReadRestartOutput(FILE* FilePtr)
         }
         else
         {
+          fsetpos(OutputFilePtr[i],&pos);
         #if defined (__APPLE__)
           fprintf(stderr,"Succesfully repositioned output-file of size %ld to position %lld\n",sz,pos);
         #else
