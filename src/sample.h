@@ -224,6 +224,27 @@ extern int MaxNumberOfBlocksMolecularOrientationOrderN;      // the maxmimum amo
 extern int ComputeIndividualMolecularOrientationOrderN;      // whether or not to compute (self-)vacf's for individual molecules
 extern int ComputeMolecularOrientationOrderNPerPseudoAtom;   // whether or not to compute (self-)vacf's for (pseudo-)atoms
 
+extern int **NumberOfOrientationFrameworkBonds;
+extern char (***OrientationFrameworkBonds)[2][256];
+extern int ***OrientationFrameworkBondTypes;
+
+extern int ***NumberOfOrientationFrameworkBondPairs;
+extern PAIR ****OrientationFrameworkBondPairs;
+extern VECTOR ****BondOrientationAngleDistributionFunction;
+extern int *BondOrientationAngleHistogramSize;
+
+
+
+// sampling of the bond orientation autocorrelation function using a modified order-N algorithm
+void SampleBondOrientationAutoCorrelationFunctionOrderN(int Switch);
+extern int *ComputeBondOrientationOrderN;               // whether or not to compute the vacf
+extern int *SampleBondOrientationOrderNEvery;           // the sample frequency
+extern int *WriteBondOrientationOrderNEvery;            // write output every 'WriteBondOrientationOrderNEvery' steps
+extern int NumberOfBlockElementsBondOrientationOrderN;  // the number of elements per block
+extern int MaxNumberOfBlocksBondOrientationOrderN;      // the maxmimum amount of blocks (data beyond this block is ignored)
+extern int ComputeIndividualBondOrientationOrderN;      // whether or not to compute (self-)vacf's for individual molecules
+extern int ComputeBondOrientationOrderNPerPseudoAtom;   // whether or not to compute (self-)vacf's for (pseudo-)atoms
+
 // sampling the mean-square displacement function using a conventional algorithm
 void SampleMeanSquaredDisplacement(int Switch);
 extern int *ComputeMSD;                      // whether or not to compute the msd

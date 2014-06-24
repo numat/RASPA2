@@ -214,6 +214,8 @@ int ReadInput(char *input)
   int NumberOfCFBiasingFactors;
   REAL OverlapDistance;
   int CurrentReaction;
+  int typeA,typeB;
+  int atom1,atom2;
 
   CurrentReaction=0;
   RXMCLambdaHistogramSize=21;
@@ -418,6 +420,9 @@ int ReadInput(char *input)
 
   NumberOfBlockElementsMolecularOrientationOrderN=10;
   MaxNumberOfBlocksMolecularOrientationOrderN=5000;
+
+  NumberOfBlockElementsBondOrientationOrderN=25;
+  MaxNumberOfBlocksBondOrientationOrderN=5000;
 
   NumberOfBuffersMSD=20;
   BufferLengthMSD=5000;
@@ -1181,6 +1186,12 @@ int ReadInput(char *input)
     ComputeMolecularOrientationOrderN[i]=FALSE;
     WriteMolecularOrientationOrderNEvery[i]=5000;
     SampleMolecularOrientationOrderNEvery[i]=5;
+
+    // sampling of the bond orientation autocorrelation function using a modified order-N algorithm
+    ComputeBondOrientationOrderN[i]=FALSE;
+    WriteBondOrientationOrderNEvery[i]=5000;
+    SampleBondOrientationOrderNEvery[i]=10;
+    BondOrientationAngleHistogramSize[i]=360;
 
     // sampling the mean-square displacement function using a conventional algorithm
     ComputeMSD[i]=FALSE;
@@ -3227,6 +3238,18 @@ int ReadInput(char *input)
     if(strcasecmp("NumberOfBlockElementsMOACF",keyword)==0) sscanf(arguments,"%d",&NumberOfBlockElementsMolecularOrientationOrderN);
     if(strcasecmp("NumberOfBlocksMOACF",keyword)==0) sscanf(arguments,"%d",&MaxNumberOfBlocksMolecularOrientationOrderN);
 
+    // sampling of the bond orientation autocorrelation function using a modified order-N algorithm
+    if(strcasecmp("ComputeBOACF",keyword)==0)
+    {
+      if(strcasecmp("yes",firstargument)==0) ComputeBondOrientationOrderN[CurrentSystem]=TRUE;
+      if(strcasecmp("no",firstargument)==0) ComputeBondOrientationOrderN[CurrentSystem]=FALSE;
+    }
+    if(strcasecmp("WriteBOACFEvery",keyword)==0) sscanf(arguments,"%d",&WriteBondOrientationOrderNEvery[CurrentSystem]);
+    if(strcasecmp("SampleBOACFEvery",keyword)==0) sscanf(arguments,"%d",&SampleBondOrientationOrderNEvery[CurrentSystem]);
+    if(strcasecmp("NumberOfBlockElementsBOACF",keyword)==0) sscanf(arguments,"%d",&NumberOfBlockElementsBondOrientationOrderN);
+    if(strcasecmp("NumberOfBlocksBOACF",keyword)==0) sscanf(arguments,"%d",&MaxNumberOfBlocksBondOrientationOrderN);
+    if(strcasecmp("BondOrientationAngleHistogramSize",keyword)==0) sscanf(arguments,"%d",&BondOrientationAngleHistogramSize[CurrentSystem]);
+
     // sampling the mean-square displacement function using a conventional algorithm
     if(strcasecmp("ComputeMSDConventional",keyword)==0)
     {
@@ -3299,6 +3322,22 @@ int ReadInput(char *input)
       if(strcasecmp("no",firstargument)==0) ComputeMolecularPressure[CurrentSystem]=FALSE;
     }
 
+    if((strcasecmp("OrientationFrameworkBond",keyword)==0)||(strcasecmp("orientation_framework_bond",keyword)==0))
+    {
+      // allocate additional memory for this modification rule
+      OrientationFrameworkBonds[CurrentSystem][CurrentFramework]=(char(*)[2][256])realloc(
+            OrientationFrameworkBonds[CurrentSystem][CurrentFramework],
+            (NumberOfOrientationFrameworkBonds[CurrentSystem][CurrentFramework]+1)*sizeof(char[2][256]));
+
+      index=NumberOfOrientationFrameworkBonds[CurrentSystem][CurrentFramework];
+      // scan the arguments from the input
+      sscanf(arguments,"%s %s",
+          OrientationFrameworkBonds[CurrentSystem][CurrentFramework][index][0],
+          OrientationFrameworkBonds[CurrentSystem][CurrentFramework][index][1]);
+
+      // increase the amount of modifcation rules by 1
+      NumberOfOrientationFrameworkBonds[CurrentSystem][CurrentFramework]++;
+    }
 
 
     if(strcasecmp("SurfaceAreaProbeAtom",keyword)==0) sscanf(arguments,"%s",Framework[CurrentSystem].SurfaceAreaProbeAtom);
@@ -5596,6 +5635,60 @@ int ReadInput(char *input)
         ReadIonSitingDefinition();
     }
   }
+
+  for(i=0;i<NumberOfSystems;i++)
+  {
+    for(f1=0;f1<Framework[i].NumberOfFrameworks;f1++)
+    {
+      OrientationFrameworkBondTypes[i][f1]=(int *)calloc(NumberOfOrientationFrameworkBonds[i][f1],sizeof(int));
+      NumberOfOrientationFrameworkBondPairs[i][f1]=(int*)calloc(NumberOfOrientationFrameworkBonds[i][f1],sizeof(int));
+      OrientationFrameworkBondPairs[i][f1]=(PAIR**)calloc(NumberOfOrientationFrameworkBonds[i][f1],sizeof(PAIR*));
+
+      for(k=0;k<NumberOfOrientationFrameworkBonds[i][f1];k++)
+      {
+        for(l=0;l<Framework[i].NumberOfBondsDefinitions;l++)
+        {
+          typeA=Framework[i].BondDefinitions[l].A;
+          typeB=Framework[i].BondDefinitions[l].B;
+          if(((strcmp(PseudoAtoms[typeA].Name,OrientationFrameworkBonds[i][f1][k][0])==0)&&
+              (strcmp(PseudoAtoms[typeB].Name,OrientationFrameworkBonds[i][f1][k][1])==0))||
+             ((strcmp(PseudoAtoms[typeB].Name,OrientationFrameworkBonds[i][f1][k][0])==0)&&
+              (strcmp(PseudoAtoms[typeA].Name,OrientationFrameworkBonds[i][f1][k][1])==0)))
+          {
+            OrientationFrameworkBondTypes[i][f1][k]=l;
+            break;
+          }
+        }
+      }
+
+      for(k=0;k<NumberOfOrientationFrameworkBonds[i][f1];k++)
+      {
+        l=OrientationFrameworkBondTypes[i][f1][k];
+        NumberOfOrientationFrameworkBondPairs[i][f1][k]=Framework[i].NumberOfBondsPerType[l];
+        OrientationFrameworkBondPairs[i][f1][k]=(PAIR*)calloc(NumberOfOrientationFrameworkBondPairs[i][f1][k],sizeof(PAIR));
+
+        index=0;
+        for(l=0;l<Framework[i].NumberOfBonds[f1];l++)
+        {
+          atom1=Framework[i].Bonds[f1][l].A;
+          atom2=Framework[i].Bonds[f1][l].B;
+          typeA=Framework[i].Atoms[f1][atom1].Type;
+          typeB=Framework[i].Atoms[f1][atom2].Type;
+
+          if(((strcmp(PseudoAtoms[typeA].Name,OrientationFrameworkBonds[i][f1][k][0])==0)&&
+               (strcmp(PseudoAtoms[typeB].Name,OrientationFrameworkBonds[i][f1][k][1])==0))||
+             ((strcmp(PseudoAtoms[typeB].Name,OrientationFrameworkBonds[i][f1][k][0])==0)&&
+               (strcmp(PseudoAtoms[typeA].Name,OrientationFrameworkBonds[i][f1][k][1])==0)))
+          {
+            OrientationFrameworkBondPairs[i][f1][k][index].A=atom1;
+            OrientationFrameworkBondPairs[i][f1][k][index].B=atom2;
+            index++;
+          }
+        }
+      }
+    }
+  }
+
 
 
   // read forcefields after the structure has been read

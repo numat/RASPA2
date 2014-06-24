@@ -1124,6 +1124,29 @@ void PrintPreSimulationStatusCurrentSystem(int system)
     fprintf(FilePtr,"\tthe number of elements per block: %d\n",NumberOfBlockElementsMolecularOrientationOrderN);
   }
 
+  // sampling of the bond orientation autocorrelation function using a modified order-N algorithm
+  fprintf(FilePtr,"Bond orientation-autocorrelation function modified order-N algorithm: %s\n",ComputeBondOrientationOrderN[system]?"yes":"no");
+  if(ComputeBondOrientationOrderN[system])
+  {
+    fprintf(FilePtr,"\tboacf is sampled every %d cycles\n",SampleBondOrientationOrderNEvery[system]);
+    fprintf(FilePtr,"\tboacf is written to file every %d cycles\n",WriteBondOrientationOrderNEvery[system]);
+    fprintf(FilePtr,"\tthe (initial) maximum number of blocks: %d\n",MaxNumberOfBlocksBondOrientationOrderN);
+    fprintf(FilePtr,"\tthe number of elements per block: %d\n",NumberOfBlockElementsBondOrientationOrderN);
+    for(l=0;l<Framework[system].NumberOfFrameworks;l++)
+    {
+      fprintf(FilePtr,"\tthe number of sampled orientation bonds: %d\n",
+          NumberOfOrientationFrameworkBonds[system][l]);
+      for(i=0;i<NumberOfOrientationFrameworkBonds[system][l];i++)
+      {
+          fprintf(FilePtr,"\t\t framework[%d] bond[%d] => %s %s\n",
+              l,i,
+              OrientationFrameworkBonds[system][l][i][0],
+              OrientationFrameworkBonds[system][l][i][1]);
+      }
+    }
+  }
+
+
   // sampling the mean-square displacement function using a conventional algorithm
   fprintf(FilePtr,"Mean-squared displacement (conventional algorithm): %s\n",ComputeMSD[system]?"yes":"no");
   if(ComputeMSD[system])

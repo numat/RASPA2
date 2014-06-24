@@ -97,6 +97,7 @@ void MonteCarloSimulation(void)
   SampleVelocityAutoCorrelationFunctionOrderN(ALLOCATE);
   SampleRotationalVelocityAutoCorrelationFunctionOrderN(ALLOCATE);
   SampleMolecularOrientationAutoCorrelationFunctionOrderN(ALLOCATE);
+  SampleBondOrientationAutoCorrelationFunctionOrderN(ALLOCATE);
   SampleMeanSquaredDisplacement(ALLOCATE);
   SampleVelocityAutoCorrelationFunction(ALLOCATE);
 
