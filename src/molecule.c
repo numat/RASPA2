@@ -260,6 +260,161 @@ int SelectRandomMoleculeOfTypeExcludingFractionalMolecule(int comp)
   return CurrentMolecule;
 }
 
+int numberOfReactionMoleculesForComponent(int comp)
+{
+  int i,n;
+
+  n=0;
+  for(i=0;i<NumberOfReactions;i++)
+  {
+    n+=ReactantsStoichiometry[i][comp];
+    n+=ProductsStoichiometry[i][comp];
+  }
+  return n;
+}
+
+int numberOfReactantMoleculesForComponent(int comp)
+{
+  int i,n;
+
+  n=0;
+  for(i=0;i<NumberOfReactions;i++)
+    n+=ReactantsStoichiometry[i][comp];
+  return n;
+}
+
+int numberOfProductMoleculesForComponent(int comp)
+{
+  int i,n;
+
+  n=0;
+  for(i=0;i<NumberOfReactions;i++)
+    n+=ProductsStoichiometry[i][comp];
+  return n;
+}
+
+void getListOfMoleculeIdentifiersForReactantsAndProduct(int comp,int *n,int *array)
+{
+  int i,k,index;
+
+  index=0;
+  for(i=0;i<NumberOfReactions;i++)
+  {
+    for(k=0;k<ReactantsStoichiometry[i][comp];k++)
+      array[index++]=Components[comp].ReactantFractionalMolecules[CurrentSystem][i][k];
+    for(k=0;k<ProductsStoichiometry[i][comp];k++)
+      array[index++]=Components[comp].ProductFractionalMolecules[CurrentSystem][i][k];
+  }
+  *n=index;
+}
+
+void getListOfAllMoleculeIdentifiersForReactantsAndProduct(int *n,int *array)
+{
+  int i,j,k,index;
+
+  index=0;
+  for(i=0;i<NumberOfReactions;i++)
+  {
+    for(j=0;j<NumberOfComponents;j++)
+    {
+      for(k=0;k<ReactantsStoichiometry[i][j];k++)
+        array[index++]=Components[j].ReactantFractionalMolecules[CurrentSystem][i][k];
+      for(k=0;k<ProductsStoichiometry[i][j];k++)
+        array[index++]=Components[j].ProductFractionalMolecules[CurrentSystem][i][k];
+    }
+  }
+  *n=index;
+}
+
+int SelectRandomMoleculeOfTypeExcludingReactionMolecules(int reaction,int **LambdaRetraceMolecules)
+{
+  int i,j;
+  int d,count;
+  int numberOfSelectableMolecules;
+  int numberOfSelectedMolecules;
+  int numberOfExcludedMolecules;
+  int listOfExcludedMolecules[256];
+  int CurrentMolecule;
+
+  // get a list of all molecules involved in reactions (they can not be selected)
+  getListOfAllMoleculeIdentifiersForReactantsAndProduct(&numberOfExcludedMolecules,listOfExcludedMolecules);
+
+  numberOfSelectedMolecules=0;
+  for(i=0;i<NumberOfComponents;i++)
+  {
+    numberOfSelectableMolecules=Components[i].NumberOfMolecules[CurrentSystem]-numberOfReactionMoleculesForComponent(i);
+    for(j=0;j<ReactantsStoichiometry[reaction][i];j++)
+    {
+      if(numberOfSelectableMolecules<=0) return -1;
+
+      // choose a random molecule of this component
+      d=(int)(RandomNumber()*numberOfSelectableMolecules);
+
+      count=-1;
+      CurrentMolecule=-1;
+      do   // search for d-th molecule of the right type
+      {
+        CurrentMolecule++;
+        if((Adsorbates[CurrentSystem][CurrentMolecule].Type==i)&&(!isInArrayOfSize(CurrentMolecule,numberOfExcludedMolecules,listOfExcludedMolecules))) count++;
+      }
+      while(d!=count);
+
+      LambdaRetraceMolecules[i][j]=CurrentMolecule;
+      numberOfSelectedMolecules++;
+
+      // add the array with molecules that can not be selected
+      listOfExcludedMolecules[numberOfExcludedMolecules++]=CurrentMolecule;
+      numberOfSelectableMolecules--;
+    }
+  }
+
+  return numberOfSelectedMolecules;
+}
+
+int SelectRandomMoleculeOfTypeExcludingProductMolecules(int reaction,int **LambdaRetraceMolecules)
+{
+  int i,j;
+  int d,count;
+  int numberOfSelectableMolecules;
+  int numberOfSelectedMolecules;
+  int numberOfExcludedMolecules;
+  int listOfExcludedMolecules[256];
+  int CurrentMolecule;
+
+  // get a list of all molecules involved in reactions (they can not be selected)
+  getListOfAllMoleculeIdentifiersForReactantsAndProduct(&numberOfExcludedMolecules,listOfExcludedMolecules);
+
+  numberOfSelectedMolecules=0;
+  for(i=0;i<NumberOfComponents;i++)
+  {
+    numberOfSelectableMolecules=Components[i].NumberOfMolecules[CurrentSystem]-numberOfReactionMoleculesForComponent(i);
+    for(j=0;j<ProductsStoichiometry[reaction][i];j++)
+    {
+      if(numberOfSelectableMolecules<=0) return -1;
+
+      // choose a random molecule of this component
+      d=(int)(RandomNumber()*numberOfSelectableMolecules);
+
+      count=-1;
+      CurrentMolecule=-1;
+      do   // search for d-th molecule of the right type
+      {
+        CurrentMolecule++;
+        if((Adsorbates[CurrentSystem][CurrentMolecule].Type==i)&&(!isInArrayOfSize(CurrentMolecule,numberOfExcludedMolecules,listOfExcludedMolecules))) count++;
+      }
+      while(d!=count);
+
+      LambdaRetraceMolecules[i][j]=CurrentMolecule;
+      numberOfSelectedMolecules++;
+
+      // add the array with molecules that can not be selected
+      listOfExcludedMolecules[numberOfExcludedMolecules++]=CurrentMolecule;
+      numberOfSelectableMolecules--;
+    }
+  }
+
+  return numberOfSelectedMolecules;
+}
 
 // Read the definitions of the pseudo Atoms
 void ReadPseudoAtomsDefinitions(void)
@@ -925,6 +1080,9 @@ void ReadComponentDefinition(int comp)
   Components[comp].TotalCBMCChangeBendAngleAccepted=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
   Components[comp].TotalCBMCRotationOnConeAccepted=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
 
+  Components[comp].ReactantFractionalMolecules=(int***)calloc(NumberOfSystems,sizeof(int**));
+  Components[comp].ProductFractionalMolecules=(int***)calloc(NumberOfSystems,sizeof(int**));
+
   for(i=0;i<NumberOfSystems;i++)
   {
     Components[comp].MaximumCBMCChangeBondLength[i]=(REAL*)calloc(Components[comp].NumberOfAtoms,sizeof(REAL));
@@ -942,6 +1100,20 @@ void ReadComponentDefinition(int comp)
     Components[comp].TotalCBMCChangeBondLengthAccepted[i]=(REAL*)calloc(Components[comp].NumberOfAtoms,sizeof(REAL));
     Components[comp].TotalCBMCChangeBendAngleAccepted[i]=(REAL*)calloc(Components[comp].NumberOfAtoms,sizeof(REAL));
     Components[comp].TotalCBMCRotationOnConeAccepted[i]=(REAL*)calloc(Components[comp].NumberOfAtoms,sizeof(REAL));
+
+    if(NumberOfReactions>0)
+    {
+      Components[comp].ReactantFractionalMolecules[i]=(int**)calloc(NumberOfReactions,sizeof(int*));
+      Components[comp].ProductFractionalMolecules[i]=(int**)calloc(NumberOfReactions,sizeof(int*));
+
+      for(j=0;j<NumberOfReactions;j++)
+      {
+        if(ReactantsStoichiometry[j][comp]>0)
+          Components[comp].ReactantFractionalMolecules[i][j]=(int*)calloc(ReactantsStoichiometry[j][comp],sizeof(int));
+        if(ProductsStoichiometry[j][comp]>0)
+          Components[comp].ProductFractionalMolecules[i][j]=(int*)calloc(ProductsStoichiometry[j][comp],sizeof(int));
+      }
+    }
   }
 
   ReadLine(line,1024,FilePtr);  // skip line
@@ -2809,7 +2981,7 @@ void InsertAdsorbateMolecule(void)
 
 void RemoveAdsorbateMolecule(void)
 {
-  int i,type,nr_atoms;
+  int i,j,k,type,nr_atoms;
   int LastMolecule;
 
   // remove the the amount of atoms from the total
@@ -2849,6 +3021,23 @@ void RemoveAdsorbateMolecule(void)
   {
     if((Components[i].FractionalMolecule[CurrentSystem]==LastMolecule)&&(!Components[i].ExtraFrameworkMolecule))
       Components[i].FractionalMolecule[CurrentSystem]=CurrentAdsorbateMolecule;
+  }
+
+  for(i=0;i<NumberOfComponents;i++)
+  {
+    for(j=0;j<NumberOfReactions;j++)
+    {
+      for(k=0;k<ReactantsStoichiometry[j][i];k++)
+      {
+        if(Components[i].ReactantFractionalMolecules[CurrentSystem][j][k]==LastMolecule)
+          Components[i].ReactantFractionalMolecules[CurrentSystem][j][k]=CurrentAdsorbateMolecule;
+      }
+      for(k=0;k<ProductsStoichiometry[j][i];k++)
+      {
+        if(Components[i].ProductFractionalMolecules[CurrentSystem][j][k]==LastMolecule)
+          Components[i].ProductFractionalMolecules[CurrentSystem][j][k]=CurrentAdsorbateMolecule;
+      }
+    }
   }
 
 
@@ -3138,7 +3327,8 @@ void RescaleComponentProbabilities(void)
             ProbabilityBoxShapeChangeMove+
             ProbabilityGibbsVolumeChangeMove+
             ProbabilityFrameworkChangeMove+
-            ProbabilityFrameworkShiftMove;
+            ProbabilityFrameworkShiftMove+
+            ProbabilityCFCRXMCLambdaChangeMove;
 
     Components[i].ProbabilityRandomTranslationMove+=Components[i].ProbabilityTranslationMove;
     Components[i].ProbabilityRotationMove+=Components[i].ProbabilityRandomTranslationMove;
@@ -3170,6 +3360,7 @@ void RescaleComponentProbabilities(void)
     Components[i].ProbabilityGibbsVolumeChangeMove=ProbabilityGibbsVolumeChangeMove+Components[i].ProbabilityBoxShapeChangeMove;
     Components[i].ProbabilityFrameworkChangeMove=ProbabilityFrameworkChangeMove+Components[i].ProbabilityGibbsVolumeChangeMove;
     Components[i].ProbabilityFrameworkShiftMove=ProbabilityFrameworkShiftMove+Components[i].ProbabilityFrameworkChangeMove;
+    Components[i].ProbabilityCFCRXMCLambdaChangeMove=ProbabilityCFCRXMCLambdaChangeMove+Components[i].ProbabilityFrameworkShiftMove;
 
     if(TotProb>1e-5)
     {
@@ -3204,6 +3395,7 @@ void RescaleComponentProbabilities(void)
       Components[i].ProbabilityGibbsVolumeChangeMove/=TotProb;
       Components[i].ProbabilityFrameworkChangeMove/=TotProb;
       Components[i].ProbabilityFrameworkShiftMove/=TotProb;
+      Components[i].ProbabilityCFCRXMCLambdaChangeMove/=TotProb;
     }
 
     Components[i].FractionOfTranslationMove=Components[i].ProbabilityTranslationMove;
@@ -3237,6 +3429,7 @@ void RescaleComponentProbabilities(void)
     Components[i].FractionOfGibbsVolumeChangeMove=Components[i].ProbabilityGibbsVolumeChangeMove-Components[i].ProbabilityBoxShapeChangeMove;
     Components[i].FractionOfFrameworkChangeMove=Components[i].ProbabilityFrameworkChangeMove-Components[i].ProbabilityGibbsVolumeChangeMove;
     Components[i].FractionOfFrameworkShiftMove=Components[i].ProbabilityFrameworkShiftMove-Components[i].ProbabilityFrameworkChangeMove;
+    Components[i].FractionOfCFCRXMCLambdaChangeMove=Components[i].ProbabilityCFCRXMCLambdaChangeMove-Components[i].ProbabilityFrameworkShiftMove;
   }
 }
 
@@ -5580,6 +5773,7 @@ void PrintCPUStatistics(FILE *FilePtr)
   REAL CpuTimeChiralInversionMoveTotal,CpuTimeHybridNVEMoveTotal,CpuTimeHybridNPHMoveTotal;
   REAL CpuTimeHybridNPHPRMoveTotal,CpuTimeVolumeChangeMoveTotal,CpuTimeBoxShapeChangeMoveTotal;
   REAL CpuTimeGibbsVolumeChangeMoveTotal,CpuTimeFrameworkChangeMoveTotal,CpuTimeFrameworkShiftMoveTotal;
+  REAL CpuCFCRXMCLambdaChangeMoveTotal;
 
   CpuTimeTranslationMove=0.0;
   CpuTimeRandomTranslationMove=0.0;
@@ -5690,6 +5884,7 @@ void PrintCPUStatistics(FILE *FilePtr)
   fprintf(FilePtr,"\tGibbs volume change:           %18.10g [s]\n",CpuTimeGibbsVolumeChangeMove[CurrentSystem]);
   fprintf(FilePtr,"\tframework change:              %18.10g [s]\n",CpuTimeFrameworkChangeMove[CurrentSystem]);
   fprintf(FilePtr,"\tframework shift:               %18.10g [s]\n",CpuTimeFrameworkShiftMove[CurrentSystem]);
+  fprintf(FilePtr,"\treaction MC move:              %18.10g [s]\n",CpuCFCRXMCLambdaChangeMove[CurrentSystem]);
   fprintf(FilePtr,"\n");
 
 
@@ -5775,6 +5970,7 @@ void PrintCPUStatistics(FILE *FilePtr)
   CpuTimeGibbsVolumeChangeMoveTotal=0.0;
   CpuTimeFrameworkChangeMoveTotal=0.0;
   CpuTimeFrameworkShiftMoveTotal=0.0;
+  CpuCFCRXMCLambdaChangeMoveTotal=0.0;
   for(j=0;j<NumberOfSystems;j++)
   {
     CpuTimeParallelTemperingMoveTotal+=CpuTimeParallelTemperingMove[j];
@@ -5789,6 +5985,7 @@ void PrintCPUStatistics(FILE *FilePtr)
     CpuTimeGibbsVolumeChangeMoveTotal+=CpuTimeGibbsVolumeChangeMove[j];
     CpuTimeFrameworkChangeMoveTotal+=CpuTimeFrameworkChangeMove[j];
     CpuTimeFrameworkShiftMoveTotal+=CpuTimeFrameworkShiftMove[j];
+    CpuCFCRXMCLambdaChangeMoveTotal+=CpuCFCRXMCLambdaChangeMove[j];
   }
 
   fprintf(FilePtr,"\nSystem moves:\n");
@@ -5804,6 +6001,7 @@ void PrintCPUStatistics(FILE *FilePtr)
   fprintf(FilePtr,"\tGibbs volume change:           %18.10g [s]\n",CpuTimeGibbsVolumeChangeMoveTotal);
   fprintf(FilePtr,"\tframework change:              %18.10g [s]\n",CpuTimeFrameworkChangeMoveTotal);
   fprintf(FilePtr,"\tframework shift:               %18.10g [s]\n",CpuTimeFrameworkShiftMoveTotal);
+  fprintf(FilePtr,"\treaction MC move:              %18.10g [s]\n",CpuCFCRXMCLambdaChangeMoveTotal);
   fprintf(FilePtr,"\n");
 }
 
@@ -6193,7 +6391,7 @@ void CheckChiralityMolecules(void)
 
 void WriteRestartComponent(FILE *FilePtr)
 {
-  int i,j,n;
+  int i,j,k,n;
   REAL Check;
 
   fwrite(&NumberOfSystems,sizeof(int),1,FilePtr);
@@ -6201,6 +6399,12 @@ void WriteRestartComponent(FILE *FilePtr)
   fwrite(&NumberOfAdsorbateComponents,sizeof(int),1,FilePtr);
   fwrite(&NumberOfCationComponents,sizeof(int),1,FilePtr);
   fwrite(Components,sizeof(COMPONENT),NumberOfComponents,FilePtr);
+
+  for(i=0;i<NumberOfReactions;i++)
+  {
+    fwrite(ReactantsStoichiometry[i],sizeof(int),NumberOfComponents,FilePtr);
+    fwrite(ProductsStoichiometry[i],sizeof(int),NumberOfComponents,FilePtr);
+  }
 
   for(i=0;i<NumberOfComponents;i++)
   {
@@ -6266,6 +6470,8 @@ void WriteRestartComponent(FILE *FilePtr)
 
     fwrite(Components[i].FractionalMolecule,sizeof(int),NumberOfSystems,FilePtr);
     fwrite(Components[i].CFMoleculePresent,sizeof(int),NumberOfSystems,FilePtr);
+    fwrite(Components[i].RXMCMoleculesPresent,sizeof(int),NumberOfSystems,FilePtr);
+    fwrite(Components[i].NumberOfRXMCMoleculesPresent,sizeof(int),NumberOfSystems,FilePtr);
     fwrite(Components[i].CFWangLandauScalingFactor,sizeof(REAL),NumberOfSystems,FilePtr);
 
     for(j=0;j<NumberOfSystems;j++)
@@ -6290,6 +6496,17 @@ void WriteRestartComponent(FILE *FilePtr)
       fwrite(Components[i].TotalCBMCRotationOnConeAccepted[j],sizeof(REAL),Components[i].NumberOfAtoms,FilePtr);
 
       fwrite(Components[i].CFBiasingFactors[j],sizeof(REAL),Components[i].CFLambdaHistogramSize,FilePtr);
+
+      if(NumberOfReactions>0)
+      {
+        for(k=0;k<NumberOfReactions;k++)
+        {
+          if(ReactantsStoichiometry[k][i]>0)
+            fwrite(Components[i].ReactantFractionalMolecules[j][k],sizeof(int),ReactantsStoichiometry[k][i],FilePtr);
+          if(ProductsStoichiometry[k][i]>0)
+            fwrite(Components[i].ProductFractionalMolecules[j][k],sizeof(int),ProductsStoichiometry[k][i],FilePtr);
+        }
+      }
     }
 
     // allocate charility-centers
@@ -6440,13 +6657,14 @@ void WriteRestartComponent(FILE *FilePtr)
     fwrite(Components[i].CpuTimeGibbsIdentityChangeMove,sizeof(REAL),NumberOfSystems,FilePtr);
   }
 
+
   Check=123456789.0;
   fwrite(&Check,1,sizeof(REAL),FilePtr);
 }
 
 void ReadRestartComponent(FILE *FilePtr)
 {
-  int i,j,n;
+  int i,j,k,n;
   REAL Check;
 
   fread(&NumberOfSystems,sizeof(int),1,FilePtr);
@@ -6457,6 +6675,18 @@ void ReadRestartComponent(FILE *FilePtr)
   // allocate memory for the components
   Components=(COMPONENT*)calloc(NumberOfComponents,sizeof(COMPONENT));
   fread(Components,sizeof(COMPONENT),NumberOfComponents,FilePtr);
+
+  ReactantsStoichiometry=(int**)calloc(NumberOfReactions,sizeof(int*));
+  ProductsStoichiometry=(int**)calloc(NumberOfReactions,sizeof(int*));
+  for(i=0;i<NumberOfReactions;i++)
+  {
+    ReactantsStoichiometry[i]=(int*)calloc(NumberOfComponents,sizeof(int));
+    fread(ReactantsStoichiometry[i],sizeof(int),NumberOfComponents,FilePtr);
+
+    ProductsStoichiometry[i]=(int*)calloc(NumberOfComponents,sizeof(int));
+    fread(ProductsStoichiometry[i],sizeof(int),NumberOfComponents,FilePtr);
+  }
+
 
   for(i=0;i<NumberOfComponents;i++)
   {
@@ -6598,12 +6828,20 @@ void ReadRestartComponent(FILE *FilePtr)
 
     Components[i].FractionalMolecule=(int*)calloc(NumberOfSystems,sizeof(int));
     Components[i].CFMoleculePresent=(int*)calloc(NumberOfSystems,sizeof(int));
+    Components[i].RXMCMoleculesPresent=(int*)calloc(NumberOfSystems,sizeof(int));
+    Components[i].NumberOfRXMCMoleculesPresent=(int*)calloc(NumberOfSystems,sizeof(int));
+
     Components[i].CFWangLandauScalingFactor=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
     Components[i].CFBiasingFactors=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
 
     fread(Components[i].FractionalMolecule,sizeof(int),NumberOfSystems,FilePtr);
     fread(Components[i].CFMoleculePresent,sizeof(int),NumberOfSystems,FilePtr);
+    fread(Components[i].RXMCMoleculesPresent,sizeof(int),NumberOfSystems,FilePtr);
+    fread(Components[i].NumberOfRXMCMoleculesPresent,sizeof(int),NumberOfSystems,FilePtr);
     fread(Components[i].CFWangLandauScalingFactor,sizeof(REAL),NumberOfSystems,FilePtr);
+
+    Components[i].ReactantFractionalMolecules=(int***)calloc(NumberOfSystems,sizeof(int**));
+    Components[i].ProductFractionalMolecules=(int***)calloc(NumberOfSystems,sizeof(int**));
 
     for(j=0;j<NumberOfSystems;j++)
     {
@@ -6646,6 +6884,26 @@ void ReadRestartComponent(FILE *FilePtr)
 
       Components[i].CFBiasingFactors[j]=(REAL*)calloc(Components[i].CFLambdaHistogramSize,sizeof(REAL));
       fread(Components[i].CFBiasingFactors[j],sizeof(REAL),Components[i].CFLambdaHistogramSize,FilePtr);
+
+      if(NumberOfReactions>0)
+      {
+        Components[i].ReactantFractionalMolecules[j]=(int**)calloc(NumberOfReactions,sizeof(int*));
+        Components[i].ProductFractionalMolecules[j]=(int**)calloc(NumberOfReactions,sizeof(int*));
+
+        for(k=0;k<NumberOfReactions;k++)
+        {
+          if(ReactantsStoichiometry[k][i]>0)
+          {
+            Components[i].ReactantFractionalMolecules[j][k]=(int*)calloc(ReactantsStoichiometry[j][i],sizeof(int));
+            fread(Components[i].ReactantFractionalMolecules[j][k],sizeof(int),ReactantsStoichiometry[k][i],FilePtr);
+          }
+          if(ProductsStoichiometry[k][i]>0)
+          {
+            Components[i].ProductFractionalMolecules[j][k]=(int*)calloc(ProductsStoichiometry[j][i],sizeof(int));
+            fread(Components[i].ProductFractionalMolecules[j][k],sizeof(int),ProductsStoichiometry[k][i],FilePtr);
+          }
+        }
+      }
     }
 
     // allocate charility-centers
@@ -6922,10 +7180,12 @@ void ReadRestartComponent(FILE *FilePtr)
     fread(Components[i].CpuTimeGibbsIdentityChangeMove,sizeof(REAL),NumberOfSystems,FilePtr);
   }
 
+
   fread(&Check,1,sizeof(REAL),FilePtr);
   if(fabs(Check-123456789.0)>1e-10)
   {
     fprintf(stderr, "Error in binary restart-file (ReadRestartComponent)\n");
     ContinueAfterCrash=FALSE;
   }
+  printf("DONE!!!\n");
 }

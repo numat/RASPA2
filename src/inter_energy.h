@@ -18,6 +18,12 @@
 #include "utils.h"
 #include "simulation.h"
 
+int CalculateInterVDWEnergyDifferenceAdsorbateNewRXCM(int reaction,REAL LambdaNew,int direction);
+int CalculateInterVDWEnergyDifferenceAdsorbateRXCM(int reaction,REAL Lambda1,REAL Lambda2,REAL LambdaNew,int **LambdaRetraceMolecules,int direction);
+
+int CalculateInterChargeChargeEnergyDifferenceAdsorbateNewRXCM(int reaction,REAL LambdaNew,int direction);
+int CalculateInterChargeChargeEnergyDifferenceAdsorbateRXCM(int reaction,REAL Lambda1,REAL Lambda2,REAL LambdaNew,int **LambdaRetraceMolecules,int direction);
+
 REAL CalculateInterVDWSelfEnergyCorrectionNew(void);
 REAL CalculateInterVDWSelfEnergyCorrectionAdsorbateOld(int mol);
 REAL CalculateInterVDWSelfEnergyCorrectionCationOld(int mol);

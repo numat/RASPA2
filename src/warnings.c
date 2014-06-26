@@ -119,7 +119,7 @@ void CreateWarnings(void)
           already_present=FALSE;
           for(l=0;l<NumberOfWarnings[k];l++)
           {
-            if((Warnings[k][l]==MISSING_INTERACTION))
+            if(Warnings[k][l]==MISSING_INTERACTION)
             {
               already_present=TRUE;
               break;

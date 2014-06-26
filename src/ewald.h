@@ -93,6 +93,10 @@ int CalculateEwaldFourierFrameworkDisplacement(void);
 int CalculateEwaldFourierFrameworkAtomTranslate(int index);
 void AcceptEwaldFrameworkMove(int A);
 
+// RXMC
+int CalculateEwaldFourierAdsorbateRXMC(int reaction,REAL Lambda1,REAL Lambda2,REAL LambdaNew,int **LambdaRetraceMolecules,int direction,int store);
+int CalculateEwaldFourierAdsorbateRXMC2(int reaction,REAL LambdaNew,int direction,int store);
+
 int ComputeStaticElectricFieldEwaldAdsorbateDifference(int NewMolecule,int OldMolecule,int mol,int store);
 
 void CalculateEwaldFourierBornTerm(REAL *Energy,REAL* Gradient,REAL_MATRIX3x3 *StrainDerivativeTensor);

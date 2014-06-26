@@ -13412,16 +13412,25 @@ void ReadRestartFramework(FILE *FilePtr)
           if(Framework[i].FrameworkModels[j]==FLEXIBLE)
           {
             Framework[i].MaxNumberOfExcludedIntraChargeCharge[j]=Framework[i].NumberOfExcludedIntraChargeCharge[j];
-            Framework[i].ExcludedIntraChargeCharge[j]=(PAIR*)calloc(Framework[i].NumberOfExcludedIntraChargeCharge[j],sizeof(PAIR));
-            fread(Framework[i].ExcludedIntraChargeCharge[j],sizeof(TRIPLE),Framework[i].NumberOfExcludedIntraChargeCharge[j],FilePtr);
+            if(Framework[i].NumberOfExcludedIntraChargeCharge[j]>0)
+            {
+              Framework[i].ExcludedIntraChargeCharge[j]=(PAIR*)calloc(Framework[i].NumberOfExcludedIntraChargeCharge[j],sizeof(PAIR));
+              fread(Framework[i].ExcludedIntraChargeCharge[j],sizeof(PAIR),Framework[i].NumberOfExcludedIntraChargeCharge[j],FilePtr);
+            }
 
             Framework[i].MaxNumberOfExcludedIntraChargeBondDipole[j]=Framework[i].NumberOfExcludedIntraChargeBondDipole[j];
-            Framework[i].ExcludedIntraChargeBondDipole[j]=(PAIR*)calloc(Framework[i].NumberOfExcludedIntraChargeBondDipole[j],sizeof(PAIR));
-            fread(Framework[i].ExcludedIntraChargeBondDipole[j],sizeof(PAIR),Framework[i].NumberOfExcludedIntraChargeBondDipole[j],FilePtr);
+            if(Framework[i].NumberOfExcludedIntraChargeBondDipole[j])
+            {
+              Framework[i].ExcludedIntraChargeBondDipole[j]=(PAIR*)calloc(Framework[i].NumberOfExcludedIntraChargeBondDipole[j],sizeof(PAIR));
+              fread(Framework[i].ExcludedIntraChargeBondDipole[j],sizeof(PAIR),Framework[i].NumberOfExcludedIntraChargeBondDipole[j],FilePtr);
+            }
 
             Framework[i].MaxNumberOfExcludedIntraBondDipoleBondDipole[j]=Framework[i].NumberOfExcludedIntraBondDipoleBondDipole[j];
-            Framework[i].ExcludedIntraBondDipoleBondDipole[j]=(PAIR*)calloc(Framework[i].NumberOfExcludedIntraBondDipoleBondDipole[j],sizeof(PAIR));
-            fread(Framework[i].ExcludedIntraBondDipoleBondDipole[j],sizeof(PAIR),Framework[i].NumberOfExcludedIntraBondDipoleBondDipole[j],FilePtr);
+            if(Framework[i].NumberOfExcludedIntraBondDipoleBondDipole[j]>0)
+            {
+              Framework[i].ExcludedIntraBondDipoleBondDipole[j]=(PAIR*)calloc(Framework[i].NumberOfExcludedIntraBondDipoleBondDipole[j],sizeof(PAIR));
+              fread(Framework[i].ExcludedIntraBondDipoleBondDipole[j],sizeof(PAIR),Framework[i].NumberOfExcludedIntraBondDipoleBondDipole[j],FilePtr);
+            }
           }
         }
 

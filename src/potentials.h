@@ -257,6 +257,7 @@ void PotentialThirdDerivative(int typeA,int typeB,REAL rr,REAL *energy,REAL *fac
 REAL PotentialCorrection(int a,int b,REAL r);
 REAL PotentialCorrectionPressure(int typeA,int typeB,REAL r);
 void CalculateTailCorrection(void);
+REAL TailMolecularEnergyDifferenceRXMX(int reaction,int direction);
 REAL TailMolecularEnergyDifference(int ComponentToAdd,int ComponentToRemove,int Add,int Remove);
 REAL TailMolecularEnergyDifferenceAdd(void);
 REAL TailMolecularEnergyDifferenceRemove(void);

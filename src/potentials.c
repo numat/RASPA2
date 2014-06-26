@@ -111,7 +111,6 @@ POTENTIAL TorsionTypes[NR_TORSION_TYPES]=
    {4,"TRAPPE_DIHEDRAL"},
    {4,"OPLS_DIHEDRAL"},
    {3,"MM3_DIHEDRAL"},
-   {5,"CVFF_BLOCKED_DIHEDRAL"},
    {1,"FIXED_DIHEDRAL"}};
 
 POTENTIAL ImproperTorsionTypes[NR_IMPROPER_TORSION_TYPES]=
@@ -11265,6 +11264,71 @@ void CalculateTailCorrection(void)
   StrainDerivativeTailCorrection[CurrentSystem]=pressure/Volume[CurrentSystem];
   UTailCorrection[CurrentSystem]=energy/Volume[CurrentSystem];
 }
+
+REAL TailMolecularEnergyDifferenceRXMX(int reaction,int direction)
+{
+  int i,j,k,l;
+  int nr_atoms;
+  REAL energy_new,energy_old;
+
+  for(i=0;i<NumberOfPseudoAtoms;i++)
+    NumberOfPseudoAtomsTypeNew[i]=NumberOfPseudoAtomsType[CurrentSystem][i];
+
+
+  switch(direction)
+  {
+    case FORWARD:
+      for(j=0;j<NumberOfComponents;j++)
+      {
+        for(k=0;k<ReactantsStoichiometry[reaction][j];k++)
+        {
+          for(l=0;l<Components[j].NumberOfAtoms;l++)
+            NumberOfPseudoAtomsTypeNew[Components[j].Type[l]]--;
+        }
+
+        for(k=0;k<ProductsStoichiometry[reaction][j];k++)
+        {
+          for(l=0;l<Components[j].NumberOfAtoms;l++)
+             NumberOfPseudoAtomsTypeNew[Components[j].Type[l]]++;
+        }
+      }
+      break;
+    case BACKWARD:
+      for(j=0;j<NumberOfComponents;j++)
+      {
+        for(k=0;k<ReactantsStoichiometry[reaction][j];k++)
+        {
+          for(l=0;l<Components[j].NumberOfAtoms;l++)
+            NumberOfPseudoAtomsTypeNew[Components[j].Type[l]]++;
+        }
+
+        for(k=0;k<ProductsStoichiometry[reaction][j];k++)
+        {
+          for(l=0;l<Components[j].NumberOfAtoms;l++)
+             NumberOfPseudoAtomsTypeNew[Components[j].Type[l]]--;
+        }
+      }
+      break;
+    case NO_FORWARD_OR_BACKWARD:
+    default:
+      break;
+  }
+
+  energy_new=0.0;
+  energy_old=0.0;
+  for(i=0;i<NumberOfPseudoAtoms;i++)
+    for(j=0;j<NumberOfPseudoAtoms;j++)
+    {
+      if(TailCorrection[i][j])
+      {
+        energy_new+=2.0*M_PI*NumberOfPseudoAtomsTypeNew[i]*NumberOfPseudoAtomsTypeNew[j]*PotentialCorrection(i,j,CutOffVDW);
+        energy_old+=2.0*M_PI*NumberOfPseudoAtomsType[CurrentSystem][i]*NumberOfPseudoAtomsType[CurrentSystem][j]*
+                    PotentialCorrection(i,j,CutOffVDW);
+      }
+    }
+  return (energy_new-energy_old)/Volume[CurrentSystem];
+}
+
 
 /*********************************************************************************************************
  * Name       | TailMolecularEnergyDifference                                                            *

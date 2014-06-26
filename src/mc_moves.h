@@ -48,6 +48,8 @@ extern VECTOR **MaximumRotation;
 
 extern VECTOR **TrialPosition;
 extern VECTOR **TrialAnisotropicPosition;
+extern VECTOR ***RXMCTrialAnisotropicPositions;
+extern VECTOR ***RXMCTrialAnisotropicPositions2;
 extern VECTOR **ElectricFieldAtTrialPosition;
 extern VECTOR **InducedDipoleAtTrialPosition;
 extern REAL TargetAccRatioTranslation;
@@ -76,8 +78,8 @@ extern int NumberOfHybridNPHPRSteps;
 // CFC-RXMC Parameters
 //----------------------------------------------------------------------------------------
 
-extern REAL *MaximumCFCRXMCLambdaChange;
-extern REAL TargetAccRatioCFCRXMCLambdaChange;
+extern REAL **MaximumReactionLambdaChange;
+extern REAL TargetAccRatioReactionLambdaChange;
 
 extern int CFWangLandauEvery;
 extern REAL **MaximumCFLambdaChange;
@@ -172,6 +174,7 @@ void PrintCFSwapLambdaStatistics(FILE *FilePtr);
 void PrintCBCFSwapLambdaStatistics(FILE *FilePtr);
 void PrintCFGibbsLambdaStatistics(FILE *FilePtr);
 void PrintCBCFGibbsLambdaStatistics(FILE *FilePtr);
+void PrintRXMCStatistics(FILE *FilePtr);
 
 REAL WidomAdsorbateMove(void);
 REAL WidomCationMove(void);
@@ -205,6 +208,10 @@ void CBCFGibbsParticleTransferMove(void);
 int CBCFGibbsParticleTransferAdsorbateMove(void);
 int CBCFGibbsParticleTransferCationMove(void);
 void OptimizeCBCFGibbsLambdaChangeAcceptence(void);
+
+void CFCRXMCLambdaChangeMove(void);
+void OptimizeRXMCLambdaChangeAcceptence(void);
+void CFRXMCWangLandauIteration(int Switch);
 
 void WriteRestartMcMoves(FILE *FilePtr);
 void AllocateMCMovesMemory(void);

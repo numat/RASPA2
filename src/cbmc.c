@@ -79,7 +79,9 @@ VECTOR **NewVelocity;
 VECTOR **NewForce;
 VECTOR **TrialPositions;
 REAL *CFVDWScaling;
+REAL **CFVDWScalingRXMC;
 REAL *CFChargeScaling;
+REAL **CFChargeScalingRXMC;
 
 int OVERLAP;
 static REAL *BoltzmannFactors;
@@ -3271,6 +3273,226 @@ void GrowReservoirMolecule(void)
   OmitCationCationCoulombInteractions=OmitCationCationCoulombInteractionsStored;
 }
 
+// grow multiple reservoir particle and return positions in 'RXMCTrialAnisotropicPositions'
+void GrowReservoirMolecules(int reaction)
+{
+  int j,k,n;
+  REAL PreFactor;
+  REAL accepted,rejected;
+  int StartingBead,mol_index;
+  int FrameworkModel;
+  int OmitInterMolecularInteractionsStored;
+  int OmitInterMolecularVDWInteractionsStored;
+  int OmitInterMolecularCoulombInteractionsStored;
+  int OmitAdsorbateAdsorbateVDWInteractionsStored;
+  int OmitAdsorbateAdsorbateCoulombInteractionsStored;
+  int OmitAdsorbateCationVDWInteractionsStored;
+  int OmitAdsorbateCationCoulombInteractionsStored;
+  int OmitCationCationVDWInteractionsStored;
+  int OmitCationCationCoulombInteractionsStored;
+
+  FrameworkModel=Framework[CurrentSystem].FrameworkModel;
+  OmitInterMolecularInteractionsStored=OmitInterMolecularInteractions;
+  OmitInterMolecularVDWInteractionsStored=OmitInterMolecularVDWInteractions;
+  OmitInterMolecularCoulombInteractionsStored=OmitInterMolecularCoulombInteractions;
+  OmitAdsorbateAdsorbateVDWInteractionsStored=OmitAdsorbateAdsorbateVDWInteractions;
+  OmitAdsorbateAdsorbateCoulombInteractionsStored=OmitAdsorbateAdsorbateCoulombInteractions;
+  OmitAdsorbateCationVDWInteractionsStored=OmitAdsorbateCationVDWInteractions;
+  OmitAdsorbateCationCoulombInteractionsStored=OmitAdsorbateCationCoulombInteractions;
+  OmitCationCationVDWInteractionsStored=OmitCationCationVDWInteractions;
+  OmitCationCationCoulombInteractionsStored=OmitCationCationCoulombInteractions;
+
+  Framework[CurrentSystem].FrameworkModel=NONE;
+  OmitInterMolecularInteractions=TRUE;
+  OmitInterMolecularVDWInteractions=TRUE;
+  OmitInterMolecularCoulombInteractions=TRUE;
+  OmitAdsorbateAdsorbateVDWInteractions=TRUE;
+  OmitAdsorbateAdsorbateCoulombInteractions=TRUE;
+  OmitAdsorbateCationVDWInteractions=TRUE;
+  OmitAdsorbateCationCoulombInteractions=TRUE;
+  OmitCationCationVDWInteractions=TRUE;
+  OmitCationCationCoulombInteractions=TRUE;
+
+  mol_index=0;
+  for(CurrentComponent=0;CurrentComponent<NumberOfComponents;CurrentComponent++)
+  {
+    // grow an initial adsorbate with no external interactions
+    for(j=0;j<MaxNumberOfBeads;j++)
+    {
+      CFVDWScaling[j]=0.0;
+      CFChargeScaling[j]=0.0;
+    }
+
+    // generate initial NewPosition
+    do
+    {
+      CurrentAdsorbateMolecule=NumberOfAdsorbateMolecules[CurrentSystem];
+      CurrentCationMolecule=NumberOfCationMolecules[CurrentSystem];
+
+      NumberOfBeadsAlreadyPlaced=0;
+      RosenbluthNew=GrowMolecule(CBMC_INSERTION);
+    }
+    while(OVERLAP==TRUE);
+
+    for(n=0;n<ProductsStoichiometry[reaction][CurrentComponent];n++)
+    {
+      accepted=0.0;
+      rejected=0.0;
+
+      for(accepted=0;accepted<20;accepted+=1.0)
+      {
+        for(k=0;k<Components[CurrentComponent].NumberOfAtoms;k++)
+          StoredPosition[k]=NewPosition[CurrentSystem][k];
+
+        NumberOfBeadsAlreadyPlaced=0;
+        RosenbluthNew=GrowMolecule(CBMC_INSERTION);
+
+
+        for(k=0;k<Components[CurrentComponent].NumberOfAtoms;k++)
+          OldPosition[k]=StoredPosition[k];
+
+        NumberOfBeadsAlreadyPlaced=0;
+        RosenbluthOld=RetraceMolecule(CBMC_RETRACE_REINSERTION);
+
+        if(RandomNumber()<RosenbluthNew/RosenbluthOld)
+        {
+          accepted+=1.0;
+        }
+        else
+        {
+          rejected-=1.0;
+          for(k=0;k<Components[CurrentComponent].NumberOfAtoms;k++)
+            NewPosition[CurrentSystem][k]=StoredPosition[k];
+        }
+      }
+
+      for(k=0;k<Components[CurrentComponent].NumberOfAtoms;k++)
+        RXMCTrialAnisotropicPositions[CurrentSystem][mol_index][k]=NewPosition[CurrentSystem][k];
+      mol_index++;
+    }
+  }
+  Framework[CurrentSystem].FrameworkModel=FrameworkModel;;
+  OmitInterMolecularInteractions=OmitInterMolecularInteractionsStored;
+  OmitInterMolecularVDWInteractions=OmitInterMolecularVDWInteractionsStored;
+  OmitInterMolecularCoulombInteractions=OmitInterMolecularCoulombInteractionsStored;
+  OmitAdsorbateAdsorbateVDWInteractions=OmitAdsorbateAdsorbateVDWInteractionsStored;
+  OmitAdsorbateAdsorbateCoulombInteractions=OmitAdsorbateAdsorbateCoulombInteractionsStored;
+  OmitAdsorbateCationVDWInteractions=OmitAdsorbateCationVDWInteractionsStored;
+  OmitAdsorbateCationCoulombInteractions=OmitAdsorbateCationCoulombInteractionsStored;
+  OmitCationCationVDWInteractions=OmitCationCationVDWInteractionsStored;
+  OmitCationCationCoulombInteractions=OmitCationCationCoulombInteractionsStored;
+}
+
+// grow multiple reservoir particle and return positions in 'RXMCTrialAnisotropicPositions'
+void GrowReservoirMolecules2(int reaction)
+{
+  int j,k,n;
+  REAL PreFactor;
+  REAL accepted,rejected;
+  int StartingBead,mol_index;
+  int FrameworkModel;
+  int OmitInterMolecularInteractionsStored;
+  int OmitInterMolecularVDWInteractionsStored;
+  int OmitInterMolecularCoulombInteractionsStored;
+  int OmitAdsorbateAdsorbateVDWInteractionsStored;
+  int OmitAdsorbateAdsorbateCoulombInteractionsStored;
+  int OmitAdsorbateCationVDWInteractionsStored;
+  int OmitAdsorbateCationCoulombInteractionsStored;
+  int OmitCationCationVDWInteractionsStored;
+  int OmitCationCationCoulombInteractionsStored;
+
+  FrameworkModel=Framework[CurrentSystem].FrameworkModel;
+  OmitInterMolecularInteractionsStored=OmitInterMolecularInteractions;
+  OmitInterMolecularVDWInteractionsStored=OmitInterMolecularVDWInteractions;
+  OmitInterMolecularCoulombInteractionsStored=OmitInterMolecularCoulombInteractions;
+  OmitAdsorbateAdsorbateVDWInteractionsStored=OmitAdsorbateAdsorbateVDWInteractions;
+  OmitAdsorbateAdsorbateCoulombInteractionsStored=OmitAdsorbateAdsorbateCoulombInteractions;
+  OmitAdsorbateCationVDWInteractionsStored=OmitAdsorbateCationVDWInteractions;
+  OmitAdsorbateCationCoulombInteractionsStored=OmitAdsorbateCationCoulombInteractions;
+  OmitCationCationVDWInteractionsStored=OmitCationCationVDWInteractions;
+  OmitCationCationCoulombInteractionsStored=OmitCationCationCoulombInteractions;
+
+  Framework[CurrentSystem].FrameworkModel=NONE;
+  OmitInterMolecularInteractions=TRUE;
+  OmitInterMolecularVDWInteractions=TRUE;
+  OmitInterMolecularCoulombInteractions=TRUE;
+  OmitAdsorbateAdsorbateVDWInteractions=TRUE;
+  OmitAdsorbateAdsorbateCoulombInteractions=TRUE;
+  OmitAdsorbateCationVDWInteractions=TRUE;
+  OmitAdsorbateCationCoulombInteractions=TRUE;
+  OmitCationCationVDWInteractions=TRUE;
+  OmitCationCationCoulombInteractions=TRUE;
+
+  mol_index=0;
+  for(CurrentComponent=0;CurrentComponent<NumberOfComponents;CurrentComponent++)
+  {
+    // grow an initial adsorbate with no external interactions
+    for(j=0;j<MaxNumberOfBeads;j++)
+    {
+      CFVDWScaling[j]=0.0;
+      CFChargeScaling[j]=0.0;
+    }
+
+    // generate initial NewPosition
+    do
+    {
+      CurrentAdsorbateMolecule=NumberOfAdsorbateMolecules[CurrentSystem];
+      CurrentCationMolecule=NumberOfCationMolecules[CurrentSystem];
+
+      NumberOfBeadsAlreadyPlaced=0;
+      RosenbluthNew=GrowMolecule(CBMC_INSERTION);
+    }
+    while(OVERLAP==TRUE);
+
+    for(n=0;n<ReactantsStoichiometry[reaction][CurrentComponent];n++)
+    {
+      accepted=0.0;
+      rejected=0.0;
+
+      for(accepted=0;accepted<20;accepted+=1.0)
+      {
+        for(k=0;k<Components[CurrentComponent].NumberOfAtoms;k++)
+          StoredPosition[k]=NewPosition[CurrentSystem][k];
+
+        NumberOfBeadsAlreadyPlaced=0;
+        RosenbluthNew=GrowMolecule(CBMC_INSERTION);
+
+
+        for(k=0;k<Components[CurrentComponent].NumberOfAtoms;k++)
+          OldPosition[k]=StoredPosition[k];
+
+        NumberOfBeadsAlreadyPlaced=0;
+        RosenbluthOld=RetraceMolecule(CBMC_RETRACE_REINSERTION);
+
+        if(RandomNumber()<RosenbluthNew/RosenbluthOld)
+        {
+          accepted+=1.0;
+        }
+        else
+        {
+          rejected-=1.0;
+          for(k=0;k<Components[CurrentComponent].NumberOfAtoms;k++)
+            NewPosition[CurrentSystem][k]=StoredPosition[k];
+        }
+      }
+
+      for(k=0;k<Components[CurrentComponent].NumberOfAtoms;k++)
+        RXMCTrialAnisotropicPositions[CurrentSystem][mol_index][k]=NewPosition[CurrentSystem][k];
+      mol_index++;
+    }
+  }
+  Framework[CurrentSystem].FrameworkModel=FrameworkModel;;
+  OmitInterMolecularInteractions=OmitInterMolecularInteractionsStored;
+  OmitInterMolecularVDWInteractions=OmitInterMolecularVDWInteractionsStored;
+  OmitInterMolecularCoulombInteractions=OmitInterMolecularCoulombInteractionsStored;
+  OmitAdsorbateAdsorbateVDWInteractions=OmitAdsorbateAdsorbateVDWInteractionsStored;
+  OmitAdsorbateAdsorbateCoulombInteractions=OmitAdsorbateAdsorbateCoulombInteractionsStored;
+  OmitAdsorbateCationVDWInteractions=OmitAdsorbateCationVDWInteractionsStored;
+  OmitAdsorbateCationCoulombInteractions=OmitAdsorbateCationCoulombInteractionsStored;
+  OmitCationCationVDWInteractions=OmitCationCationVDWInteractionsStored;
+  OmitCationCationCoulombInteractions=OmitCationCationCoulombInteractionsStored;
+}
+
 
 void MakeInitialAdsorbate(void)
 {
@@ -3641,6 +3863,15 @@ void AllocateCBMCMemory(void)
   TrialAnisotropicPositionRetrace=(VECTOR*)calloc(MaxNumberOfBeads,sizeof(VECTOR));
   CFVDWScaling=(REAL*)calloc(MaxNumberOfBeads,sizeof(REAL));
   CFChargeScaling=(REAL*)calloc(MaxNumberOfBeads,sizeof(REAL));
+
+  CFVDWScalingRXMC=(REAL**)calloc(80,sizeof(REAL*));
+  CFChargeScalingRXMC=(REAL**)calloc(80,sizeof(REAL*));
+  for(i=0;i<80;i++)
+  {
+    CFVDWScalingRXMC[i]=(REAL*)calloc(MaxNumberOfBeads+200,sizeof(REAL));
+    CFChargeScalingRXMC[i]=(REAL*)calloc(MaxNumberOfBeads+200,sizeof(REAL));
+  }
+
 
   TrialPositions=(VECTOR**)calloc(MaxNumberOfTrialPositions,sizeof(VECTOR*));
   for(i=0;i<MaxNumberOfTrialPositions;i++)

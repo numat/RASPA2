@@ -1,5 +1,5 @@
 #number of pseudo atoms
-29
+30
 #type      print   as    chem  oxidation   mass        charge   polarization B-factor radii  connectivity anisotropic anisotropic-type   tinker-type
 He         yes     He    He    0           4.002602    0.0      0.0          1.0      1.0    0            0           relative           0
 CH4_sp3    yes     C     C     0           16.04246    0.0      0.0          1.0      1.00   0            0           relative           0
@@ -27,6 +27,7 @@ Cm_dmf     yes     C     C     0           12.0        0.28     0.0          1.0
 O_dmf      yes     O     O     0           15.9994    -0.50     0.0          1.0      0.78   0            0           relative           0
 H_dmf      yes     H     H     0           1.00794     0.06     0.0          1.0      0.22   0            0           relative           0
 Na         yes     Na    Na    0           22.98977    1.0      0.0          1.0      1.00   0            0           relative           0
+Ca         yes     Ca    Ca    0           40.078      2.0      0.0          1.0      1.00   0            0           relative           0
 Cl         yes     Cl    Cl    0           35.453     -1.0      0.0          1.0      1.00   0            0           relative           0
 Kr         yes     Kr    Kr    0           83.798      0.0      0.0          1.0      1.00   0            0           relative           0
 Xe         yes     Xe    Xe    0           131.293     0.0      0.0          1.0      1.00   0            0           relative           0

@@ -68,6 +68,8 @@ void MolecularDynamicsSimulation(void)
 
   // allocate memory
   SampleRadialDistributionFunction(ALLOCATE);
+  SampleProjectedLengthsDistributionFunction(ALLOCATE);
+  SampleProjectedAnglesDistributionFunction(ALLOCATE);
   SampleNumberOfMoleculesHistogram(ALLOCATE);
   SamplePositionHistogram(ALLOCATE);
   SampleFreeEnergyProfile(ALLOCATE);
@@ -85,6 +87,7 @@ void MolecularDynamicsSimulation(void)
   SampleVelocityAutoCorrelationFunctionOrderN(ALLOCATE);
   SampleRotationalVelocityAutoCorrelationFunctionOrderN(ALLOCATE);
   SampleMolecularOrientationAutoCorrelationFunctionOrderN(ALLOCATE);
+  SampleBondOrientationAutoCorrelationFunctionOrderN(ALLOCATE);
   SampleMeanSquaredDisplacement(ALLOCATE);
   SampleVelocityAutoCorrelationFunction(ALLOCATE);
   SampleDensityProfile3DVTKGrid(ALLOCATE);
@@ -320,6 +323,8 @@ void MolecularDynamicsSimulation(void)
     Drift[CurrentSystem]=0.0;
 
     SampleRadialDistributionFunction(INITIALIZE);
+    SampleProjectedLengthsDistributionFunction(INITIALIZE);
+    SampleProjectedAnglesDistributionFunction(INITIALIZE);
     SampleNumberOfMoleculesHistogram(INITIALIZE);
     SamplePositionHistogram(INITIALIZE);
     SampleFreeEnergyProfile(INITIALIZE);
@@ -337,6 +342,7 @@ void MolecularDynamicsSimulation(void)
     SampleVelocityAutoCorrelationFunctionOrderN(INITIALIZE);
     SampleRotationalVelocityAutoCorrelationFunctionOrderN(INITIALIZE);
     SampleMolecularOrientationAutoCorrelationFunctionOrderN(INITIALIZE);
+    SampleBondOrientationAutoCorrelationFunctionOrderN(INITIALIZE);
     SampleMeanSquaredDisplacement(INITIALIZE);
     SampleVelocityAutoCorrelationFunction(INITIALIZE);
     SampleDensityProfile3DVTKGrid(INITIALIZE);
@@ -408,6 +414,8 @@ void MolecularDynamicsSimulation(void)
     for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
     {
       SampleRadialDistributionFunction(SAMPLE);
+      SampleProjectedLengthsDistributionFunction(SAMPLE);
+      SampleProjectedAnglesDistributionFunction(SAMPLE);
       SampleNumberOfMoleculesHistogram(SAMPLE);
       SamplePositionHistogram(SAMPLE);
       SampleFreeEnergyProfile(SAMPLE);
@@ -425,6 +433,7 @@ void MolecularDynamicsSimulation(void)
       SampleVelocityAutoCorrelationFunctionOrderN(SAMPLE);
       SampleRotationalVelocityAutoCorrelationFunctionOrderN(SAMPLE);
       SampleMolecularOrientationAutoCorrelationFunctionOrderN(SAMPLE);
+      SampleBondOrientationAutoCorrelationFunctionOrderN(SAMPLE);
       SampleMeanSquaredDisplacement(SAMPLE);
       SampleVelocityAutoCorrelationFunction(SAMPLE);
       SampleDensityProfile3DVTKGrid(SAMPLE);
@@ -442,6 +451,8 @@ void MolecularDynamicsSimulation(void)
     {
       // regulary output sampling function
       SampleRadialDistributionFunction(PRINT);
+      SampleProjectedLengthsDistributionFunction(PRINT);
+      SampleProjectedAnglesDistributionFunction(PRINT);
       SampleNumberOfMoleculesHistogram(PRINT);
       SamplePositionHistogram(PRINT);
       SampleFreeEnergyProfile(PRINT);
@@ -459,6 +470,7 @@ void MolecularDynamicsSimulation(void)
       SampleVelocityAutoCorrelationFunctionOrderN(PRINT);
       SampleRotationalVelocityAutoCorrelationFunctionOrderN(PRINT);
       SampleMolecularOrientationAutoCorrelationFunctionOrderN(PRINT);
+      SampleBondOrientationAutoCorrelationFunctionOrderN(PRINT);
       SampleMeanSquaredDisplacement(PRINT);
       SampleVelocityAutoCorrelationFunction(PRINT);
       SampleDensityProfile3DVTKGrid(PRINT);
@@ -476,6 +488,8 @@ void MolecularDynamicsSimulation(void)
   for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
   {
     SampleRadialDistributionFunction(FINALIZE);
+    SampleProjectedLengthsDistributionFunction(FINALIZE);
+    SampleProjectedAnglesDistributionFunction(FINALIZE);
     SampleNumberOfMoleculesHistogram(FINALIZE);
     SamplePositionHistogram(FINALIZE);
     SampleFreeEnergyProfile(FINALIZE);
@@ -493,6 +507,7 @@ void MolecularDynamicsSimulation(void)
     SampleVelocityAutoCorrelationFunctionOrderN(FINALIZE);
     SampleRotationalVelocityAutoCorrelationFunctionOrderN(FINALIZE);
     SampleMolecularOrientationAutoCorrelationFunctionOrderN(FINALIZE);
+    SampleBondOrientationAutoCorrelationFunctionOrderN(FINALIZE);
     SampleMeanSquaredDisplacement(FINALIZE);
     SampleVelocityAutoCorrelationFunction(FINALIZE);
     SampleDensityProfile3DVTKGrid(FINALIZE);

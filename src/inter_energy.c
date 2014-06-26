@@ -1017,6 +1017,7 @@ int CalculateTotalInterVDWEnergy(void)
   int ncell,start;
   REAL scalingA,scalingB;
 
+  OVERLAP=0;
   UAdsorbateAdsorbateVDW[CurrentSystem]=0.0;
   UAdsorbateCationVDW[CurrentSystem]=0.0;
   UCationCationVDW[CurrentSystem]=0.0;
@@ -1176,7 +1177,9 @@ int CalculateTotalInterVDWEnergy(void)
               {
                 typeB=Adsorbates[CurrentSystem][j].Atoms[l].Type;
                 scalingB=Adsorbates[CurrentSystem][j].Atoms[l].CFVDWScalingParameter;
-                UAdsorbateAdsorbateVDW[CurrentSystem]+=PotentialValue(typeA,typeB,rr,scalingA*scalingB);
+                energy=PotentialValue(typeA,typeB,rr,scalingA*scalingB);
+                UAdsorbateAdsorbateVDW[CurrentSystem]+=energy;
+                if(energy>=EnergyOverlapCriteria) return OVERLAP=TRUE;
               }
             }
           }
@@ -1200,7 +1203,9 @@ int CalculateTotalInterVDWEnergy(void)
               {
                 typeB=Cations[CurrentSystem][j].Atoms[l].Type;
                 scalingB=Cations[CurrentSystem][j].Atoms[l].CFVDWScalingParameter;
-                UAdsorbateCationVDW[CurrentSystem]+=PotentialValue(typeA,typeB,rr,scalingA*scalingB);
+                energy=PotentialValue(typeA,typeB,rr,scalingA*scalingB);
+                UAdsorbateCationVDW[CurrentSystem]+=energy;
+                if(energy>=EnergyOverlapCriteria) return OVERLAP=TRUE;
               }
             }
           }
@@ -1235,7 +1240,9 @@ int CalculateTotalInterVDWEnergy(void)
               {
                 typeB=Cations[CurrentSystem][j].Atoms[l].Type;
                 scalingB=Cations[CurrentSystem][j].Atoms[l].CFVDWScalingParameter;
-                UCationCationVDW[CurrentSystem]+=PotentialValue(typeA,typeB,rr,scalingA*scalingB);
+                energy=PotentialValue(typeA,typeB,rr,scalingA*scalingB);
+                UCationCationVDW[CurrentSystem]+=energy;
+                if(energy>=EnergyOverlapCriteria) return OVERLAP=TRUE;
               }
             }
           }
@@ -2286,6 +2293,726 @@ int CalculateTotalInterBondDipoleBondDipoleCoulombEnergy(void)
   }
   return 0;
 }
+
+// RXMC routines for differences in VDW energy
+//============================================================================================================================
+
+// compute the inter energy between multiple newly inserted product-molecules
+int CalculateInterVDWEnergyDifferenceAdsorbateNewRXCM(int reaction,REAL LambdaNew,int direction)
+{
+  int i,j,k,l;
+  int indexA,indexB;
+  int typeA,typeB;
+  int TypeMolA,TypeMolB;
+  REAL rr,energy;
+  VECTOR posA,posB,dr;
+  REAL scalingA_new,scalingB;
+  REAL scalingB_new;
+  int NumberOfRXMCMolecules;
+  int RXMCMoleculeNumbers[256];
+  int RXMCMoleculeType[256];
+
+  OVERLAP=FALSE;
+  UAdsorbateVDWDelta[CurrentSystem]=0;
+  UCationVDWDelta[CurrentSystem]=0;
+
+  NumberOfRXMCMolecules=0;
+  switch(direction)
+  {
+    case FORWARD:
+      for(j=0;j<NumberOfComponents;j++)
+      {
+        for(k=0;k<ProductsStoichiometry[reaction][j];k++)
+        {
+          RXMCMoleculeNumbers[NumberOfRXMCMolecules]=Components[j].ProductFractionalMolecules[CurrentSystem][reaction][k];
+          RXMCMoleculeType[NumberOfRXMCMolecules]=j;
+
+          for(l=0;l<Components[j].NumberOfAtoms;l++)
+            CFVDWScalingRXMC[NumberOfRXMCMolecules][l]=LambdaNew;
+          NumberOfRXMCMolecules++;
+        }
+      }
+      break;
+    case BACKWARD:
+      for(j=0;j<NumberOfComponents;j++)
+      {
+        for(k=0;k<ReactantsStoichiometry[reaction][j];k++)
+        {
+          RXMCMoleculeNumbers[NumberOfRXMCMolecules]=Components[j].ReactantFractionalMolecules[CurrentSystem][reaction][k];
+          RXMCMoleculeType[NumberOfRXMCMolecules]=j;
+
+          for(l=0;l<Components[j].NumberOfAtoms;l++)
+            CFVDWScalingRXMC[NumberOfRXMCMolecules][l]=LambdaNew;
+          NumberOfRXMCMolecules++;
+        }
+      }
+      break;
+    default:
+      break;
+  }
+
+  for(i=0;i<NumberOfRXMCMolecules;i++)
+  {
+    TypeMolA=RXMCMoleculeType[i];
+    for(k=0;k<Components[TypeMolA].NumberOfAtoms;k++)
+    {
+      typeA=Components[TypeMolA].Type[k];
+
+      posA=RXMCTrialAnisotropicPositions[CurrentSystem][i][k];
+      scalingA_new=CFVDWScalingRXMC[i][k];
+
+      if(!OmitAdsorbateAdsorbateVDWInteractions)
+      {
+        for(j=0;j<NumberOfAdsorbateMolecules[CurrentSystem];j++)
+        {
+          TypeMolB=Adsorbates[CurrentSystem][j].Type;
+          for(l=0;l<Adsorbates[CurrentSystem][j].NumberOfAtoms;l++)
+          {
+            posB=Adsorbates[CurrentSystem][j].Atoms[l].AnisotropicPosition;
+            typeB=Adsorbates[CurrentSystem][j].Atoms[l].Type;
+            scalingB=Adsorbates[CurrentSystem][j].Atoms[l].CFVDWScalingParameter;
+
+            dr.x=posA.x-posB.x;
+            dr.y=posA.y-posB.y;
+            dr.z=posA.z-posB.z;
+            dr=ApplyBoundaryCondition(dr);
+            rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
+            if(rr<CutOffVDWSquared)
+            {
+              energy=PotentialValue(typeA,typeB,rr,scalingA_new*scalingB);
+              if(energy>=EnergyOverlapCriteria) return OVERLAP=TRUE;
+              UAdsorbateVDWDelta[CurrentSystem]+=energy;
+            }
+          }
+          
+        }
+      }
+
+      for(j=0;j<NumberOfCationMolecules[CurrentSystem];j++)
+      {
+        TypeMolB=Cations[CurrentSystem][j].Type;
+        for(l=0;l<Cations[CurrentSystem][j].NumberOfAtoms;l++)
+        {
+          posB=Cations[CurrentSystem][j].Atoms[l].AnisotropicPosition;
+          typeB=Cations[CurrentSystem][j].Atoms[l].Type;
+          scalingB=Cations[CurrentSystem][j].Atoms[l].CFVDWScalingParameter;
+
+          dr.x=posA.x-posB.x;
+          dr.y=posA.y-posB.y;
+          dr.z=posA.z-posB.z;
+          dr=ApplyBoundaryCondition(dr);
+          rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
+          if(rr<CutOffVDWSquared)
+          {
+            energy=PotentialValue(typeA,typeB,rr,scalingA_new*scalingB);
+            if(energy>=EnergyOverlapCriteria) return OVERLAP=TRUE;
+            UCationVDWDelta[CurrentSystem]+=energy;
+          }
+        }
+      }
+    }
+  }
+
+  for(i=0;i<NumberOfRXMCMolecules;i++)
+  {
+    TypeMolA=RXMCMoleculeType[i];
+    for(k=0;k<Components[TypeMolA].NumberOfAtoms;k++)
+    {
+      posA=RXMCTrialAnisotropicPositions[CurrentSystem][i][k];
+      typeA=Components[TypeMolA].Type[k];
+      scalingA_new=CFVDWScalingRXMC[i][k];
+
+      for(j=i+1;j<NumberOfRXMCMolecules;j++)
+      {
+        TypeMolB=RXMCMoleculeType[j];
+        for(l=0;l<Components[TypeMolB].NumberOfAtoms;l++)
+        {
+          posB=RXMCTrialAnisotropicPositions[CurrentSystem][j][l];
+          scalingB_new=CFVDWScalingRXMC[j][l];
+
+          dr.x=posA.x-posB.x;
+          dr.y=posA.y-posB.y;
+          dr.z=posA.z-posB.z;
+          dr=ApplyBoundaryCondition(dr);
+          rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
+          if(rr<CutOffVDWSquared)
+          {
+            typeB=Components[TypeMolB].Type[l];
+            energy=PotentialValue(typeA,typeB,rr,scalingA_new*scalingB_new);
+            if(energy>=EnergyOverlapCriteria) return OVERLAP=TRUE;
+            UAdsorbateVDWDelta[CurrentSystem]+=energy;
+          }
+        }
+      }
+    }
+  }
+}
+
+
+int CalculateInterVDWEnergyDifferenceAdsorbateRXCM(int reaction,REAL Lambda1,REAL Lambda2,REAL LambdaNew,int **LambdaRetraceMolecules,int direction)
+{
+  int i,j,k,l,m;
+  int typeA,typeB;
+  REAL rr,energy,scalingA_new,scalingA_old,scalingB;
+  REAL scalingB_new,scalingB_old;
+  VECTOR posA,posB,dr;
+  int TypeMolA,TypeMolB;
+  int ncell;
+  int NumberOfRXMCMolecules;
+  int RXMCMoleculeNumbers[256];
+  int RXMCMoleculeType[256];
+
+  OVERLAP=FALSE;
+  UAdsorbateVDWDelta[CurrentSystem]=0;
+  UCationVDWDelta[CurrentSystem]=0;
+
+  NumberOfRXMCMolecules=0;
+  for(j=0;j<NumberOfComponents;j++)
+  {
+    for(k=0;k<ReactantsStoichiometry[reaction][j];k++)
+    {
+      RXMCMoleculeNumbers[NumberOfRXMCMolecules]=Components[j].ReactantFractionalMolecules[CurrentSystem][reaction][k];
+      RXMCMoleculeType[NumberOfRXMCMolecules]=j;
+
+      for(l=0;l<Components[j].NumberOfAtoms;l++)
+        CFVDWScalingRXMC[NumberOfRXMCMolecules][l]=Lambda1;
+
+      NumberOfRXMCMolecules++;
+    }
+  }
+  for(j=0;j<NumberOfComponents;j++)
+  {
+    for(k=0;k<ProductsStoichiometry[reaction][j];k++)
+    {
+      RXMCMoleculeNumbers[NumberOfRXMCMolecules]=Components[j].ProductFractionalMolecules[CurrentSystem][reaction][k];
+      RXMCMoleculeType[NumberOfRXMCMolecules]=j;
+
+      for(l=0;l<Components[j].NumberOfAtoms;l++)
+        CFVDWScalingRXMC[NumberOfRXMCMolecules][l]=Lambda2;
+      NumberOfRXMCMolecules++;
+    }
+  }
+
+  // add retrace molecules to list
+  switch(direction)
+  {
+    case FORWARD:
+      for(i=0;i<NumberOfComponents;i++)
+      {
+        for(k=0;k<ReactantsStoichiometry[reaction][i];k++)
+        {
+          RXMCMoleculeNumbers[NumberOfRXMCMolecules]=LambdaRetraceMolecules[i][k];
+          RXMCMoleculeType[NumberOfRXMCMolecules]=Adsorbates[CurrentSystem][LambdaRetraceMolecules[i][k]].Type;
+
+          for(l=0;l<Components[i].NumberOfAtoms;l++)
+            CFVDWScalingRXMC[NumberOfRXMCMolecules][l]=1.0-LambdaNew;
+          NumberOfRXMCMolecules++;
+        }
+      }
+      break;
+    case BACKWARD:
+      for(i=0;i<NumberOfComponents;i++)
+      {
+        for(k=0;k<ProductsStoichiometry[reaction][i];k++)
+        {
+          RXMCMoleculeNumbers[NumberOfRXMCMolecules]=LambdaRetraceMolecules[i][k];
+          RXMCMoleculeType[NumberOfRXMCMolecules]=Adsorbates[CurrentSystem][LambdaRetraceMolecules[i][k]].Type;
+
+          for(l=0;l<Components[i].NumberOfAtoms;l++)
+            CFVDWScalingRXMC[NumberOfRXMCMolecules][l]=1.0-LambdaNew;
+          NumberOfRXMCMolecules++;
+        }
+      }
+      break;
+    case NO_FORWARD_OR_BACKWARD:
+    default:
+      break;
+  }
+  
+
+  for(m=0;m<NumberOfRXMCMolecules;m++)
+  {
+    TypeMolA=RXMCMoleculeType[m];
+    for(k=0;k<Components[TypeMolA].NumberOfAtoms;k++)
+    {
+      typeA=Components[TypeMolA].Type[k];
+
+      posA=Adsorbates[CurrentSystem][RXMCMoleculeNumbers[m]].Atoms[k].AnisotropicPosition;
+      scalingA_new=CFVDWScalingRXMC[m][k];
+      scalingA_old=Adsorbates[CurrentSystem][RXMCMoleculeNumbers[m]].Atoms[k].CFVDWScalingParameter;
+
+      if(!OmitAdsorbateAdsorbateVDWInteractions)
+      {
+        for(i=0;i<NumberOfAdsorbateMolecules[CurrentSystem];i++)
+        {
+          if(!isInArrayOfSize(i,NumberOfRXMCMolecules,RXMCMoleculeNumbers))
+          {
+            TypeMolB=Adsorbates[CurrentSystem][i].Type;
+            for(j=0;j<Adsorbates[CurrentSystem][i].NumberOfAtoms;j++)
+            {
+              posB=Adsorbates[CurrentSystem][i].Atoms[j].AnisotropicPosition;
+              typeB=Adsorbates[CurrentSystem][i].Atoms[j].Type;
+              scalingB=Adsorbates[CurrentSystem][i].Atoms[j].CFVDWScalingParameter;
+
+              dr.x=posA.x-posB.x;
+              dr.y=posA.y-posB.y;
+              dr.z=posA.z-posB.z;
+              dr=ApplyBoundaryCondition(dr);
+              rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
+              if(rr<CutOffVDWSquared)
+              {
+                energy=PotentialValue(typeA,typeB,rr,scalingA_new*scalingB);
+                if(energy>=EnergyOverlapCriteria) return OVERLAP=TRUE;
+                UAdsorbateVDWDelta[CurrentSystem]+=energy;
+
+                energy=PotentialValue(typeA,typeB,rr,scalingA_old*scalingB);
+                if(energy>=EnergyOverlapCriteria) return OVERLAP=TRUE;
+                UAdsorbateVDWDelta[CurrentSystem]-=energy;
+              }
+            }
+          }
+        }
+      }
+
+      for(i=0;i<NumberOfCationMolecules[CurrentSystem];i++)
+      {
+        TypeMolB=Cations[CurrentSystem][i].Type;
+        for(j=0;j<Cations[CurrentSystem][i].NumberOfAtoms;j++)
+        {
+          posB=Cations[CurrentSystem][i].Atoms[j].AnisotropicPosition;
+          typeB=Cations[CurrentSystem][i].Atoms[j].Type;
+          scalingB=Cations[CurrentSystem][i].Atoms[j].CFVDWScalingParameter;
+
+          dr.x=posA.x-posB.x;
+          dr.y=posA.y-posB.y;
+          dr.z=posA.z-posB.z;
+          dr=ApplyBoundaryCondition(dr);
+          rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
+          if(rr<CutOffVDWSquared)
+          {
+            energy=PotentialValue(typeA,typeB,rr,scalingA_new*scalingB);
+            if(energy>=EnergyOverlapCriteria) return OVERLAP=TRUE;
+            UCationVDWDelta[CurrentSystem]+=energy;
+
+            UCationVDWDelta[CurrentSystem]-=PotentialValue(typeA,typeB,rr,scalingA_old*scalingB);
+          }
+        }
+      }
+    }
+  }
+
+  for(i=0;i<NumberOfRXMCMolecules;i++)
+  {
+    TypeMolA=RXMCMoleculeType[i];
+    for(k=0;k<Components[TypeMolA].NumberOfAtoms;k++)
+    {
+      typeA=Components[TypeMolA].Type[k];
+
+      posA=Adsorbates[CurrentSystem][RXMCMoleculeNumbers[i]].Atoms[k].AnisotropicPosition;
+      scalingA_new=CFVDWScalingRXMC[i][k];
+      scalingA_old=Adsorbates[CurrentSystem][RXMCMoleculeNumbers[i]].Atoms[k].CFVDWScalingParameter;
+
+      for(j=i+1;j<NumberOfRXMCMolecules;j++)
+      {
+        TypeMolB=RXMCMoleculeType[j];
+        for(l=0;l<Components[TypeMolB].NumberOfAtoms;l++)
+        {
+          typeB=Components[TypeMolB].Type[l];
+
+          posB=Adsorbates[CurrentSystem][RXMCMoleculeNumbers[j]].Atoms[l].AnisotropicPosition;
+          scalingB_new=CFVDWScalingRXMC[j][l];
+          scalingB_old=Adsorbates[CurrentSystem][RXMCMoleculeNumbers[j]].Atoms[l].CFVDWScalingParameter;
+
+          dr.x=posA.x-posB.x;
+          dr.y=posA.y-posB.y;
+          dr.z=posA.z-posB.z;
+          dr=ApplyBoundaryCondition(dr);
+          rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
+          if(rr<CutOffVDWSquared)
+          {
+            energy=PotentialValue(typeA,typeB,rr,scalingA_new*scalingB_new);
+            if(energy>=EnergyOverlapCriteria) return OVERLAP=TRUE;
+            UAdsorbateVDWDelta[CurrentSystem]+=energy;
+
+            energy=PotentialValue(typeA,typeB,rr,scalingA_old*scalingB_old);
+            if(energy>=EnergyOverlapCriteria) return OVERLAP=TRUE;
+            UAdsorbateVDWDelta[CurrentSystem]-=energy;
+          }
+        }
+      }
+    }
+  }
+}
+
+
+
+// RXMC routines for differences in Coulombic energy
+//============================================================================================================================
+
+// compute the inter energy between multiple newly inserted product-molecules
+int CalculateInterChargeChargeEnergyDifferenceAdsorbateNewRXCM(int reaction,REAL LambdaNew,int direction)
+{
+  int i,j,k,l;
+  int indexA,indexB;
+  int typeA,typeB;
+  int TypeMolA,TypeMolB;
+  REAL rr,energy;
+  VECTOR posA,posB,dr;
+  REAL scalingA_new,scalingB;
+  REAL scalingB_new;
+  int NumberOfRXMCMolecules;
+  int RXMCMoleculeNumbers[256];
+  int RXMCMoleculeType[256];
+  REAL chargeA_new,chargeB;
+  REAL chargeB_new;
+
+  OVERLAP=FALSE;
+  UAdsorbateChargeChargeRealDelta[CurrentSystem]=0;
+  UCationChargeChargeRealDelta[CurrentSystem]=0;
+
+  NumberOfRXMCMolecules=0;
+  switch(direction)
+  {
+    case FORWARD:
+      for(j=0;j<NumberOfComponents;j++)
+      {
+        for(k=0;k<ProductsStoichiometry[reaction][j];k++)
+        {
+          RXMCMoleculeNumbers[NumberOfRXMCMolecules]=Components[j].ProductFractionalMolecules[CurrentSystem][reaction][k];
+          RXMCMoleculeType[NumberOfRXMCMolecules]=j;
+
+          for(l=0;l<Components[j].NumberOfAtoms;l++)
+            CFChargeScalingRXMC[NumberOfRXMCMolecules][l]=pow(LambdaNew,5);
+          NumberOfRXMCMolecules++;
+        }
+      }
+      break;
+    case BACKWARD:
+      for(j=0;j<NumberOfComponents;j++)
+      {
+        for(k=0;k<ReactantsStoichiometry[reaction][j];k++)
+        {
+          RXMCMoleculeNumbers[NumberOfRXMCMolecules]=Components[j].ReactantFractionalMolecules[CurrentSystem][reaction][k];
+          RXMCMoleculeType[NumberOfRXMCMolecules]=j;
+
+          for(l=0;l<Components[j].NumberOfAtoms;l++)
+            CFChargeScalingRXMC[NumberOfRXMCMolecules][l]=pow(LambdaNew,5);
+          NumberOfRXMCMolecules++;
+        }
+      }
+      break;
+    default:
+      break;
+  }
+
+
+  for(i=0;i<NumberOfRXMCMolecules;i++)
+  {
+    TypeMolA=RXMCMoleculeType[i];
+    for(k=0;k<Components[TypeMolA].NumberOfAtoms;k++)
+    {
+      typeA=Components[TypeMolA].Type[k];
+
+      posA=RXMCTrialAnisotropicPositions[CurrentSystem][i][k];
+      scalingA_new=CFChargeScalingRXMC[i][k];
+      chargeA_new=scalingA_new*PseudoAtoms[Components[TypeMolA].Type[k]].Charge1;
+
+      if(!OmitAdsorbateAdsorbateVDWInteractions)
+      {
+        for(j=0;j<NumberOfAdsorbateMolecules[CurrentSystem];j++)
+        {
+          TypeMolB=Adsorbates[CurrentSystem][j].Type;
+          for(l=0;l<Adsorbates[CurrentSystem][j].NumberOfAtoms;l++)
+          {
+            posB=Adsorbates[CurrentSystem][j].Atoms[l].AnisotropicPosition;
+            typeB=Adsorbates[CurrentSystem][j].Atoms[l].Type;
+            scalingB=Adsorbates[CurrentSystem][j].Atoms[l].CFChargeScalingParameter;
+            chargeB=scalingB*Adsorbates[CurrentSystem][j].Atoms[l].Charge;
+
+            dr.x=posA.x-posB.x;
+            dr.y=posA.y-posB.y;
+            dr.z=posA.z-posB.z;
+            dr=ApplyBoundaryCondition(dr);
+            rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
+            if(rr<CutOffVDWSquared)
+            {
+              energy=PotentialValueCoulombic(chargeA_new,chargeB,sqrt(rr));
+              if(energy>=EnergyOverlapCriteria) return OVERLAP=TRUE;
+              UAdsorbateChargeChargeRealDelta[CurrentSystem]+=energy;
+            }
+          }
+          
+        }
+      }
+
+      for(j=0;j<NumberOfCationMolecules[CurrentSystem];j++)
+      {
+        TypeMolB=Cations[CurrentSystem][j].Type;
+        for(l=0;l<Cations[CurrentSystem][j].NumberOfAtoms;l++)
+        {
+          posB=Cations[CurrentSystem][j].Atoms[l].AnisotropicPosition;
+          typeB=Cations[CurrentSystem][j].Atoms[l].Type;
+          scalingB=Cations[CurrentSystem][j].Atoms[l].CFChargeScalingParameter;
+          chargeB=scalingB*Cations[CurrentSystem][j].Atoms[l].Charge;
+
+          dr.x=posA.x-posB.x;
+          dr.y=posA.y-posB.y;
+          dr.z=posA.z-posB.z;
+          dr=ApplyBoundaryCondition(dr);
+          rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
+          if(rr<CutOffVDWSquared)
+          {
+            energy=PotentialValueCoulombic(chargeA_new,chargeB,sqrt(rr));
+            if(energy>=EnergyOverlapCriteria) return OVERLAP=TRUE;
+            UCationChargeChargeRealDelta[CurrentSystem]+=energy;
+          }
+        }
+      }
+    }
+  }
+
+  for(i=0;i<NumberOfRXMCMolecules;i++)
+  {
+    TypeMolA=RXMCMoleculeType[i];
+    for(k=0;k<Components[TypeMolA].NumberOfAtoms;k++)
+    {
+      posA=RXMCTrialAnisotropicPositions[CurrentSystem][i][k];
+      scalingA_new=CFChargeScalingRXMC[i][k];
+      chargeA_new=scalingA_new*PseudoAtoms[Components[TypeMolA].Type[k]].Charge1;
+
+      for(j=i+1;j<NumberOfRXMCMolecules;j++)
+      {
+        TypeMolB=RXMCMoleculeType[j];
+        for(l=0;l<Components[TypeMolB].NumberOfAtoms;l++)
+        {
+          posB=RXMCTrialAnisotropicPositions[CurrentSystem][j][l];
+          scalingB_new=CFChargeScalingRXMC[j][l];
+          chargeB_new=scalingB_new*PseudoAtoms[Components[TypeMolB].Type[l]].Charge1;
+
+          dr.x=posA.x-posB.x;
+          dr.y=posA.y-posB.y;
+          dr.z=posA.z-posB.z;
+          dr=ApplyBoundaryCondition(dr);
+          rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
+          if(rr<CutOffVDWSquared)
+          {
+            energy=PotentialValueCoulombic(chargeA_new,chargeB_new,sqrt(rr));
+            if(energy>=EnergyOverlapCriteria) return OVERLAP=TRUE;
+            UAdsorbateChargeChargeRealDelta[CurrentSystem]+=energy;
+          }
+        }
+      }
+    }
+  }
+}
+
+
+int CalculateInterChargeChargeEnergyDifferenceAdsorbateRXCM(int reaction,REAL Lambda1,REAL Lambda2,REAL LambdaNew,int **LambdaRetraceMolecules,int direction)
+{
+  int i,j,k,l,m;
+  int typeA,typeB;
+  REAL rr,energy,scalingA_new,scalingA_old,scalingB;
+  REAL scalingB_new,scalingB_old;
+  VECTOR posA,posB,dr;
+  int TypeMolA,TypeMolB;
+  int ncell;
+  int NumberOfRXMCMolecules;
+  int RXMCMoleculeNumbers[256];
+  int RXMCMoleculeType[256];
+  REAL chargeA_new,chargeA_old,chargeB;
+  REAL chargeB_new,chargeB_old;
+
+  OVERLAP=FALSE;
+  UAdsorbateChargeChargeRealDelta[CurrentSystem]=0;
+  UCationChargeChargeRealDelta[CurrentSystem]=0;
+
+  NumberOfRXMCMolecules=0;
+  for(j=0;j<NumberOfComponents;j++)
+  {
+    for(k=0;k<ReactantsStoichiometry[reaction][j];k++)
+    {
+      RXMCMoleculeNumbers[NumberOfRXMCMolecules]=Components[j].ReactantFractionalMolecules[CurrentSystem][reaction][k];
+      RXMCMoleculeType[NumberOfRXMCMolecules]=j;
+
+      for(l=0;l<Components[j].NumberOfAtoms;l++)
+        CFChargeScalingRXMC[NumberOfRXMCMolecules][l]=pow(Lambda1,5);
+
+      NumberOfRXMCMolecules++;
+    }
+  }
+  for(j=0;j<NumberOfComponents;j++)
+  {
+    for(k=0;k<ProductsStoichiometry[reaction][j];k++)
+    {
+      RXMCMoleculeNumbers[NumberOfRXMCMolecules]=Components[j].ProductFractionalMolecules[CurrentSystem][reaction][k];
+      RXMCMoleculeType[NumberOfRXMCMolecules]=j;
+
+      for(l=0;l<Components[j].NumberOfAtoms;l++)
+        CFChargeScalingRXMC[NumberOfRXMCMolecules][l]=pow(Lambda2,5);
+      NumberOfRXMCMolecules++;
+    }
+  }
+
+  // add retrace molecules to list
+  switch(direction)
+  {
+    case FORWARD:
+      for(i=0;i<NumberOfComponents;i++)
+      {
+        for(k=0;k<ReactantsStoichiometry[reaction][i];k++)
+        {
+          RXMCMoleculeNumbers[NumberOfRXMCMolecules]=LambdaRetraceMolecules[i][k];
+          RXMCMoleculeType[NumberOfRXMCMolecules]=Adsorbates[CurrentSystem][LambdaRetraceMolecules[i][k]].Type;
+
+          for(l=0;l<Components[i].NumberOfAtoms;l++)
+            CFChargeScalingRXMC[NumberOfRXMCMolecules][l]=pow(1.0-LambdaNew,5);
+          NumberOfRXMCMolecules++;
+        }
+      }
+      break;
+    case BACKWARD:
+      for(i=0;i<NumberOfComponents;i++)
+      {
+        for(k=0;k<ProductsStoichiometry[reaction][i];k++)
+        {
+          RXMCMoleculeNumbers[NumberOfRXMCMolecules]=LambdaRetraceMolecules[i][k];
+          RXMCMoleculeType[NumberOfRXMCMolecules]=Adsorbates[CurrentSystem][LambdaRetraceMolecules[i][k]].Type;
+
+          for(l=0;l<Components[i].NumberOfAtoms;l++)
+            CFChargeScalingRXMC[NumberOfRXMCMolecules][l]=pow(1.0-LambdaNew,5);
+          NumberOfRXMCMolecules++;
+        }
+      }
+      break;
+    case NO_FORWARD_OR_BACKWARD:
+    default:
+      break;
+  }
+  
+
+  for(m=0;m<NumberOfRXMCMolecules;m++)
+  {
+    TypeMolA=RXMCMoleculeType[m];
+    for(k=0;k<Components[TypeMolA].NumberOfAtoms;k++)
+    {
+      typeA=Components[TypeMolA].Type[k];
+
+      posA=Adsorbates[CurrentSystem][RXMCMoleculeNumbers[m]].Atoms[k].AnisotropicPosition;
+      scalingA_new=CFChargeScalingRXMC[m][k];
+      chargeA_new=scalingA_new*PseudoAtoms[Components[TypeMolA].Type[k]].Charge1;
+      scalingA_old=Adsorbates[CurrentSystem][RXMCMoleculeNumbers[m]].Atoms[k].CFChargeScalingParameter;
+      chargeA_old=scalingA_old*Adsorbates[CurrentSystem][RXMCMoleculeNumbers[m]].Atoms[k].Charge;
+
+      if(!OmitAdsorbateAdsorbateVDWInteractions)
+      {
+        for(i=0;i<NumberOfAdsorbateMolecules[CurrentSystem];i++)
+        {
+          if(!isInArrayOfSize(i,NumberOfRXMCMolecules,RXMCMoleculeNumbers))
+          {
+            TypeMolB=Adsorbates[CurrentSystem][i].Type;
+            for(j=0;j<Adsorbates[CurrentSystem][i].NumberOfAtoms;j++)
+            {
+              posB=Adsorbates[CurrentSystem][i].Atoms[j].AnisotropicPosition;
+              typeB=Adsorbates[CurrentSystem][i].Atoms[j].Type;
+              scalingB=Adsorbates[CurrentSystem][i].Atoms[j].CFChargeScalingParameter;
+              chargeB=scalingB*Adsorbates[CurrentSystem][i].Atoms[j].Charge;
+
+                dr.x=posA.x-posB.x;
+                dr.y=posA.y-posB.y;
+                dr.z=posA.z-posB.z;
+                dr=ApplyBoundaryCondition(dr);
+                rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
+                if(rr<CutOffVDWSquared)
+                {
+                  energy=PotentialValueCoulombic(chargeA_new,chargeB,sqrt(rr));
+                  if(energy>=EnergyOverlapCriteria) return OVERLAP=TRUE;
+                  UAdsorbateChargeChargeRealDelta[CurrentSystem]+=energy;
+
+                  energy=PotentialValueCoulombic(chargeA_old,chargeB,sqrt(rr));
+                  if(energy>=EnergyOverlapCriteria) return OVERLAP=TRUE;
+                  UAdsorbateChargeChargeRealDelta[CurrentSystem]-=energy;
+                }
+            }
+          }
+        }
+      }
+
+      for(i=0;i<NumberOfCationMolecules[CurrentSystem];i++)
+      {
+        TypeMolB=Cations[CurrentSystem][i].Type;
+        for(j=0;j<Cations[CurrentSystem][i].NumberOfAtoms;j++)
+        {
+          posB=Cations[CurrentSystem][i].Atoms[j].AnisotropicPosition;
+          typeB=Cations[CurrentSystem][i].Atoms[j].Type;
+          scalingB=Cations[CurrentSystem][i].Atoms[j].CFChargeScalingParameter;
+          chargeB=scalingB*Cations[CurrentSystem][i].Atoms[j].Charge;
+
+          dr.x=posA.x-posB.x;
+          dr.y=posA.y-posB.y;
+          dr.z=posA.z-posB.z;
+          dr=ApplyBoundaryCondition(dr);
+          rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
+          if(rr<CutOffVDWSquared)
+          {
+            energy=PotentialValueCoulombic(chargeA_new,chargeB,sqrt(rr));
+            if(energy>=EnergyOverlapCriteria) return OVERLAP=TRUE;
+            UCationChargeChargeRealDelta[CurrentSystem]+=energy;
+
+            UCationChargeChargeRealDelta[CurrentSystem]-=PotentialValueCoulombic(chargeA_old,chargeB,sqrt(rr));
+          }
+        }
+      }
+    }
+  }
+
+  for(i=0;i<NumberOfRXMCMolecules;i++)
+  {
+    TypeMolA=RXMCMoleculeType[i];
+    for(k=0;k<Components[TypeMolA].NumberOfAtoms;k++)
+    {
+      typeA=Components[TypeMolA].Type[k];
+
+      posA=Adsorbates[CurrentSystem][RXMCMoleculeNumbers[i]].Atoms[k].AnisotropicPosition;
+      scalingA_new=CFChargeScalingRXMC[i][k];
+      scalingA_old=Adsorbates[CurrentSystem][RXMCMoleculeNumbers[i]].Atoms[k].CFChargeScalingParameter;
+      chargeA_new=scalingA_new*PseudoAtoms[Components[TypeMolA].Type[k]].Charge1;
+      chargeA_old=scalingA_old*Adsorbates[CurrentSystem][RXMCMoleculeNumbers[i]].Atoms[k].Charge;
+
+      for(j=i+1;j<NumberOfRXMCMolecules;j++)
+      {
+        TypeMolB=RXMCMoleculeType[j];
+        for(l=0;l<Components[TypeMolB].NumberOfAtoms;l++)
+        {
+          typeB=Components[TypeMolB].Type[l];
+
+          posB=Adsorbates[CurrentSystem][RXMCMoleculeNumbers[j]].Atoms[l].AnisotropicPosition;
+          scalingB_new=CFChargeScalingRXMC[j][l];
+          scalingB_old=Adsorbates[CurrentSystem][RXMCMoleculeNumbers[j]].Atoms[l].CFChargeScalingParameter;
+          chargeB_new=scalingB_new*PseudoAtoms[Components[TypeMolB].Type[l]].Charge1;
+          chargeB_old=scalingB_old*Adsorbates[CurrentSystem][RXMCMoleculeNumbers[j]].Atoms[l].Charge;
+
+          dr.x=posA.x-posB.x;
+          dr.y=posA.y-posB.y;
+          dr.z=posA.z-posB.z;
+          dr=ApplyBoundaryCondition(dr);
+          rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
+          if(rr<CutOffVDWSquared)
+          {
+            energy=PotentialValueCoulombic(chargeA_new,chargeB_new,sqrt(rr));
+            if(energy>=EnergyOverlapCriteria) return OVERLAP=TRUE;
+            UAdsorbateChargeChargeRealDelta[CurrentSystem]+=energy;
+
+            energy=PotentialValueCoulombic(chargeA_old,chargeB_old,sqrt(rr));
+            if(energy>=EnergyOverlapCriteria) return OVERLAP=TRUE;
+            UAdsorbateChargeChargeRealDelta[CurrentSystem]-=energy;
+          }
+        }
+      }
+    }
+  }
+}
+
+
 
 /*********************************************************************************************************
  * Name       | CalculateInterVDWEnergyDifferenceAdsorbate                                               *

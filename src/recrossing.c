@@ -589,6 +589,8 @@ int BarrierRecrossing(void)
           // compute initial forces
           InitializeForces();
 
+          fprintf(OutputFilePtr[CurrentSystem],"Potential energy at start: %lf [K]\n",UTotal[CurrentSystem]*ENERGY_TO_KELVIN);
+
           // Force particle 1 to the "right" based on the atomic velocity of the reaction-bead
           velA=Adsorbates[CurrentSystem][0].Atoms[ReactionBead].Velocity;
           if(DotProduct(ConvertFromXYZtoABCUnitCell(velA),BarrierNormal[CurrentSystem])<=0.0)

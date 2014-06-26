@@ -56,6 +56,20 @@ int *RDFHistogramSize;
 REAL *RDFRange;
 static REAL ****RadialDistributionFunction;
 
+int *ComputeProjectedLengths;
+int *WriteProjectedLengthsEvery;
+static REAL **CountProjectedLengths;
+int *ProjectedLengthsHistogramSize;
+REAL *ProjectedLengthsRange;
+static VECTOR ***ProjectedLengthsDistributionFunction;
+
+int *ComputeProjectedAngles;
+int *WriteProjectedAnglesEvery;
+static REAL **CountProjectedAngles;
+int *ProjectedAnglesHistogramSize;
+REAL *ProjectedAnglesRange;
+static VECTOR ***ProjectedAnglesDistributionFunction;
+
 //----------------------------------------------------------------------------------------
 // CFC-RXMC : sampling lambda histogram
 //----------------------------------------------------------------------------------------
@@ -305,7 +319,7 @@ static REAL ***RvacfOrderNTotalOnsagerDirAvg;     // counter for the amount of O
 // sampling of the molecular orientation autocorrelation function using a modified order-N algorithm
 int *ComputeMolecularOrientationOrderN;                          // whether or not to compute the vacf
 int *SampleMolecularOrientationOrderNEvery;                      // the sample frequency
-int *WriteMolecularOrientationOrderNEvery;                       // write output every 'WriteVACFOrderNEvery' steps
+int *WriteMolecularOrientationOrderNEvery;                       // write output every 'CountMolecularOrientationOrderN' steps
 int NumberOfBlockElementsMolecularOrientationOrderN;             // the number of elements per block
 int MaxNumberOfBlocksMolecularOrientationOrderN;                 // the maxmimum amount of blocks (data beyond this block is ignored)
 int ComputeIndividualMolecularOrientationOrderN;                 // whether or not to compute (self-)vacf's for individual molecules
@@ -317,6 +331,31 @@ static VECTOR ****BlockDataMolecularOrientationOrderN;           // array for al
 static VECTOR ****MolecularOrientationOrderN;                    // the self-vacf in x,y,z per component
 static REAL ****MolecularOrientationOrderNDirAvg;                // the vacf directionally averaged per component
 static REAL ****MolecularOrientationOrderNCount;                 // counter for the amount of self vacf-samples
+
+// sampling of the bond orientation autocorrelation function using a modified order-N algorithm
+int *ComputeBondOrientationOrderN;                          // whether or not to compute the vacf
+int *SampleBondOrientationOrderNEvery;                      // the sample frequency
+int *WriteBondOrientationOrderNEvery;                       // write output every 'WriteBondOrientationOrderNEvery' steps
+int NumberOfBlockElementsBondOrientationOrderN;             // the number of elements per block
+int MaxNumberOfBlocksBondOrientationOrderN;                 // the maxmimum amount of blocks (data beyond this block is ignored)
+int ComputeIndividualBondOrientationOrderN;                 // whether or not to compute (self-)oacf's for individual molecules
+int ComputeBondOrientationOrderNPerPseudoAtom;              // whether or not to compute (self-)oacf's for (pseudo-)atoms
+static int **CountBondOrientationOrderN;                    // counter for the amount of oacf's measured
+static int **NumberOfBlocksBondOrientationOrderN;           // the current number of blocks in use
+static int ***BlockLengthBondOrientationOrderN;             // the current length of the blocks
+static VECTOR ******BlockDataBondOrientationOrderN;         // array for all blocks containing all the molecule velocities per component
+static VECTOR *****BondOrientationOrderN;                   // the self-vacf in x,y,z per component
+static REAL *****BondOrientationOrderNDirAvg;               // the oacf directionally averaged per component
+static REAL *****BondOrientationOrderNCount;                // counter for the amount of self oacf-samples
+
+int **NumberOfOrientationFrameworkBonds;
+char (***OrientationFrameworkBonds)[2][256];
+int ***OrientationFrameworkBondTypes;
+
+int ***NumberOfOrientationFrameworkBondPairs;
+PAIR ****OrientationFrameworkBondPairs;
+VECTOR ****BondOrientationAngleDistributionFunction;
+int *BondOrientationAngleHistogramSize;
 
 // sampling the mean-square displacement function using a conventional algorithm
 int *ComputeMSD;                                     // whether or not to compute the vacf
@@ -688,6 +727,246 @@ void SampleRadialDistributionFunction(int Switch)
   }
 }
 
+/*********************************************************************************************************
+ * Name       | SampleProjectedLengthsDistributionFunction                                               *
+ * ----------------------------------------------------------------------------------------------------- *
+ * Function   | Sampling the distribution function of projected lengths                                  *
+ * Parameters | -                                                                                        *
+ *********************************************************************************************************/
+
+void SampleProjectedLengthsDistributionFunction(int Switch)
+{
+  int i,j,k;
+  int TypeA,Type;
+  VECTOR posA;
+  REAL deltaR;
+  FILE *FilePtr;
+  REAL normalization;
+  char buffer[256];
+  VECTOR min,max;
+
+  switch(Switch)
+  {
+    case ALLOCATE:
+      // allocate mememory for the storage, a 3D array
+      ProjectedLengthsDistributionFunction=(VECTOR***)calloc(NumberOfSystems,sizeof(VECTOR**));
+      CountProjectedLengths=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
+      for(i=0;i<NumberOfSystems;i++)
+      {
+        if(ComputeProjectedLengths[i])
+        {
+          ProjectedLengthsDistributionFunction[i]=(VECTOR**)calloc(NumberOfComponents,sizeof(VECTOR*));
+          CountProjectedLengths[i]=(REAL*)calloc(NumberOfComponents,sizeof(REAL));
+          for(j=0;j<NumberOfComponents;j++)
+          {
+            ProjectedLengthsDistributionFunction[i][j]=(VECTOR*)calloc(ProjectedLengthsHistogramSize[i],sizeof(VECTOR));
+          }
+        }
+      }
+      break;
+    case INITIALIZE:
+      break;
+    case SAMPLE:
+      // return if the rdf does not has to be calculated for this system
+      if(!ComputeProjectedLengths[CurrentSystem]) return;
+
+      deltaR=ProjectedLengthsRange[CurrentSystem]/ProjectedLengthsHistogramSize[CurrentSystem];
+
+      for(i=0;i<NumberOfAdsorbateMolecules[CurrentSystem];i++)
+      {
+        Type=Adsorbates[CurrentSystem][i].Type;
+
+        min.x=DBL_MAX; max.x=-DBL_MAX;
+        min.y=DBL_MAX; max.y=-DBL_MAX;
+        min.z=DBL_MAX; max.z=-DBL_MAX;
+        for(j=0;j<Adsorbates[CurrentSystem][i].NumberOfAtoms;j++)
+        {
+          TypeA=Adsorbates[CurrentSystem][i].Atoms[j].Type;
+          if(PseudoAtoms[TypeA].PrintToPDB)
+          {
+            posA=Adsorbates[CurrentSystem][i].Atoms[j].Position;
+            if(posA.x<min.x) min.x=posA.x;
+            if(posA.x>max.x) max.x=posA.x;
+            if(posA.y<min.y) min.y=posA.y;
+            if(posA.y>max.y) max.y=posA.y;
+            if(posA.z<min.z) min.z=posA.z;
+            if(posA.z>max.z) max.z=posA.z;
+          }
+        }
+
+        ProjectedLengthsDistributionFunction[CurrentSystem][Type][(int)(fabs(max.x-min.x)/deltaR)].x+=1.0;
+        ProjectedLengthsDistributionFunction[CurrentSystem][Type][(int)(fabs(max.y-min.y)/deltaR)].y+=1.0;
+        ProjectedLengthsDistributionFunction[CurrentSystem][Type][(int)(fabs(max.z-min.z)/deltaR)].z+=1.0;
+        CountProjectedLengths[CurrentSystem][Type]++;
+      }
+      break;
+    case PRINT:
+      // return if the rdf does not has to be calculated for this system
+      if((!ComputeProjectedLengths[CurrentSystem])||(CurrentCycle%WriteProjectedLengthsEvery[CurrentSystem]!=0)) return;
+
+      // make the output directory
+      mkdir("ProjectedLengthsDistributionFunctions",S_IRWXU);
+
+      // make the system directory in the output directory
+      sprintf(buffer,"ProjectedLengthsDistributionFunctions/System_%d",CurrentSystem);
+      mkdir(buffer,S_IRWXU);
+
+      deltaR=ProjectedLengthsRange[CurrentSystem]/ProjectedLengthsHistogramSize[CurrentSystem];
+
+      for(i=0;i<NumberOfComponents;i++)
+      {
+        sprintf(buffer,"ProjectedLengthsDistributionFunctions/System_%d/ProjectedLength_%s%s.dat",
+              CurrentSystem,Components[i].Name,FileNameAppend);
+        FilePtr=fopen(buffer,"w");
+        normalization=CountProjectedLengths[CurrentSystem][i];
+        for(k=0;k<ProjectedLengthsHistogramSize[CurrentSystem];k++)
+        {
+          fprintf(FilePtr,"%d %lf %lf %lf %lf\n",
+            k,
+            (double)((k+0.5)*deltaR),
+            (double)(ProjectedLengthsDistributionFunction[CurrentSystem][i][k].x/normalization),
+            (double)(ProjectedLengthsDistributionFunction[CurrentSystem][i][k].y/normalization),
+            (double)(ProjectedLengthsDistributionFunction[CurrentSystem][i][k].z/normalization));
+
+        }
+        fclose(FilePtr);
+      }
+  }
+}
+
+/*********************************************************************************************************
+ * Name       | SampleProjectedAnglesDistributionFunction                                                *
+ * ----------------------------------------------------------------------------------------------------- *
+ * Function   | Sampling the distribution function of projected angles                                   *
+ * Parameters | -                                                                                        *
+ *********************************************************************************************************/
+
+void SampleProjectedAnglesDistributionFunction(int Switch)
+{
+  int i,j,k;
+  int Type;
+  VECTOR posA,posB,posC;
+  REAL deltaR;
+  FILE *FilePtr;
+  VECTOR normalization;
+  REAL length;
+  char buffer[256];
+  VECTOR v,w;
+  int A,B,C;
+  VECTOR dr1,dr2;
+  REAL angle;
+
+  switch(Switch)
+  {
+    case ALLOCATE:
+      // allocate mememory for the storage, a 3D array
+      ProjectedAnglesDistributionFunction=(VECTOR***)calloc(NumberOfSystems,sizeof(VECTOR**));
+      CountProjectedAngles=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
+      for(i=0;i<NumberOfSystems;i++)
+      {
+        if(ComputeProjectedAngles[i])
+        {
+          ProjectedAnglesDistributionFunction[i]=(VECTOR**)calloc(NumberOfComponents,sizeof(VECTOR*));
+          CountProjectedAngles[i]=(REAL*)calloc(NumberOfComponents,sizeof(REAL));
+          for(j=0;j<NumberOfComponents;j++)
+          {
+            ProjectedAnglesDistributionFunction[i][j]=(VECTOR*)calloc(ProjectedAnglesHistogramSize[i],sizeof(VECTOR));
+          }
+        }
+      }
+      break;
+    case INITIALIZE:
+      break;
+    case SAMPLE:
+      // return if the rdf does not has to be calculated for this system
+      if(!ComputeProjectedAngles[CurrentSystem]) return;
+
+      deltaR=ProjectedAnglesRange[CurrentSystem]/ProjectedAnglesHistogramSize[CurrentSystem];
+
+      for(i=0;i<NumberOfAdsorbateMolecules[CurrentSystem];i++)
+      {
+        Type=Adsorbates[CurrentSystem][i].Type;
+
+        A=Components[Type].orientation.A;
+        B=Components[Type].orientation.B;
+        C=Components[Type].orientation.C;
+
+        posA=Adsorbates[CurrentSystem][i].Atoms[A].Position;
+        posB=Adsorbates[CurrentSystem][i].Atoms[B].Position;
+        posC=Adsorbates[CurrentSystem][i].Atoms[C].Position;
+
+        dr1.x=posB.x-posA.x;     dr2.x=posB.x-posC.x;
+        dr1.y=posB.y-posA.y;     dr2.y=posB.y-posC.y;
+        dr1.z=posB.z-posA.z;     dr2.z=posB.z-posC.z;
+
+        v=CrossProduct(dr1,dr2);
+        length=sqrt(v.x*v.x+v.y*v.y+v.z*v.z);
+        v.x/=length;
+        v.y/=length;
+        v.z/=length;
+
+        w.x=acos(v.x*1.0+v.y*0.0+v.z*0.0);
+        w.y=acos(v.x*0.0+v.y*1.0+v.z*0.0);
+        w.z=acos(v.x*0.0+v.y*0.0+v.z*1.0);
+
+        if(w.x<0.0) w.x+=2.0*M_PI;
+        if(w.y<0.0) w.y+=2.0*M_PI;
+        if(w.z<0.0) w.z+=2.0*M_PI;
+
+        ProjectedAnglesDistributionFunction[CurrentSystem][Type][(int)(w.x*RAD2DEG/deltaR)].x+=1.0;
+        ProjectedAnglesDistributionFunction[CurrentSystem][Type][(int)(w.y*RAD2DEG/deltaR)].y+=1.0;
+        ProjectedAnglesDistributionFunction[CurrentSystem][Type][(int)(w.z*RAD2DEG/deltaR)].z+=1.0;
+        CountProjectedAngles[CurrentSystem][Type]++;
+      }
+      break;
+    case PRINT:
+      // return if the rdf does not has to be calculated for this system
+      if((!ComputeProjectedAngles[CurrentSystem])||(CurrentCycle%WriteProjectedAnglesEvery[CurrentSystem]!=0)) return;
+
+      // make the output directory
+      mkdir("ProjectedAnglesDistributionFunctions",S_IRWXU);
+
+      // make the system directory in the output directory
+      sprintf(buffer,"ProjectedAnglesDistributionFunctions/System_%d",CurrentSystem);
+      mkdir(buffer,S_IRWXU);
+
+      deltaR=ProjectedAnglesRange[CurrentSystem]/ProjectedAnglesHistogramSize[CurrentSystem];
+
+      for(i=0;i<NumberOfComponents;i++)
+      {
+        sprintf(buffer,"ProjectedAnglesDistributionFunctions/System_%d/ProjectedAngle_%s%s.dat",
+              CurrentSystem,Components[i].Name,FileNameAppend);
+        FilePtr=fopen(buffer,"w");
+
+        normalization.x=normalization.y=normalization.z=0.0;
+        for(k=0;k<ProjectedAnglesHistogramSize[CurrentSystem];k++)
+        {
+          normalization.x+=ProjectedAnglesDistributionFunction[CurrentSystem][i][k].x;
+          normalization.y+=ProjectedAnglesDistributionFunction[CurrentSystem][i][k].y;
+          normalization.z+=ProjectedAnglesDistributionFunction[CurrentSystem][i][k].z;
+        }
+
+        for(k=0;k<ProjectedAnglesHistogramSize[CurrentSystem];k++)
+        {
+          angle=(k+0.5)*deltaR;
+          fprintf(FilePtr,"%d %lf %lf %lf %lf %lf %lf %lf\n",
+            k,
+            (double)angle,
+            (double)(ProjectedAnglesDistributionFunction[CurrentSystem][i][k].x*ProjectedAnglesHistogramSize[CurrentSystem]*2.0/(M_PI*normalization.x)),
+            (double)(ProjectedAnglesDistributionFunction[CurrentSystem][i][k].y*ProjectedAnglesHistogramSize[CurrentSystem]*2.0/(M_PI*normalization.y)),
+            (double)(ProjectedAnglesDistributionFunction[CurrentSystem][i][k].z*ProjectedAnglesHistogramSize[CurrentSystem]*2.0/(M_PI*normalization.z)),
+            (double)(ProjectedAnglesDistributionFunction[CurrentSystem][i][k].x*ProjectedAnglesHistogramSize[CurrentSystem]*2.0/(M_PI*normalization.x*sin(angle*DEG2RAD))),
+            (double)(ProjectedAnglesDistributionFunction[CurrentSystem][i][k].y*ProjectedAnglesHistogramSize[CurrentSystem]*2.0/(M_PI*normalization.z*sin(angle*DEG2RAD))),
+            (double)(ProjectedAnglesDistributionFunction[CurrentSystem][i][k].z*ProjectedAnglesHistogramSize[CurrentSystem]*2.0/(M_PI*normalization.z*sin(angle*DEG2RAD))));
+
+
+        }
+        fclose(FilePtr);
+      }
+  }
+}
+
+
 
 /********************************************************************************************************
 * Name       | SampleCFCRXMCLambdaHistogram                                                             *
@@ -731,12 +1010,15 @@ void SampleCFCRXMCLambdaHistogram(int Switch)
     case SAMPLE:
       if(!ComputeCFCRXMCLambdaHistogram[CurrentSystem]) return;
 
-      for(i=0;i<NumberOfReactions;i++)
+      for(j=0;j<NumberOfReactions;j++)
       {
-         r=CFCRXMCLambda[CurrentReaction][i];
-         delta=CFCRXMCLambdaHistogramBins[CurrentSystem];
-         index=(int)(r*delta);
-         CFCRXMCLambdaHistogram[CurrentSystem][i][index]+=1.0;
+        for(i=0;i<NumberOfReactions;i++)
+        {
+           r=CFCRXMCLambda[j][i];
+           delta=CFCRXMCLambdaHistogramBins[CurrentSystem];
+           index=(int)(r*delta);
+           CFCRXMCLambdaHistogram[CurrentSystem][i][index]+=1.0;
+        }
       }
       break;
     case PRINT:
@@ -7038,7 +7320,6 @@ VECTOR GetCosThetaOrientationalVectorCations(int i)
   return factor;
 }
 
-
 /*********************************************************************************************************
  * Name       | SampleMolecularOrientationAutoCorrelationFunctionOrderN                                  *
  * ----------------------------------------------------------------------------------------------------- *
@@ -7216,6 +7497,284 @@ void SampleMolecularOrientationAutoCorrelationFunctionOrderN(int Switch)
       }
 
       fclose(FilePtr);
+      break;
+  }
+}
+
+VECTOR BondOrientation(int system,int f1,int i,int j)
+{
+  int A,B;
+  VECTOR posA,posB,dr;
+  VECTOR CosTheta,factor;
+  VECTOR orientation;
+  VECTOR e1,e2,e3;
+  REAL rr,r;
+
+  A=OrientationFrameworkBondPairs[system][f1][i][j].A; 
+  B=OrientationFrameworkBondPairs[system][f1][i][j].B; 
+
+  posA=Framework[system].Atoms[f1][A].Position;
+  posB=Framework[system].Atoms[f1][B].Position;
+
+  orientation.x=posA.x-posB.x;
+  orientation.y=posA.y-posB.y;
+  orientation.z=posA.z-posB.z;
+  orientation=ApplyBoundaryCondition(orientation);
+  rr=SQR(orientation.x)+SQR(orientation.y)+SQR(orientation.z);
+  r=sqrt(rr);
+
+  orientation.x/=r;
+  orientation.y/=r;
+  orientation.z/=r;
+
+  return orientation;
+}
+
+
+
+/*********************************************************************************************************
+ * Name       | SampleBondOrientationAutoCorrelationFunctionOrderN                                       *
+ * ----------------------------------------------------------------------------------------------------- *
+ * Function   | Samples the molecular orientation autocorrelation function using a modified order-N alg. *
+ * Parameters | -                                                                                        *
+ * Note       | the autocorrelation function of the orientation dependent factor of the dipolar          *
+ *            | interaction: A(t)=sqrt(5/8)*(3*cos(theta(t))^2-1)                                        *
+ *********************************************************************************************************/
+
+// fit to f(x)=A*exp(-(t/tau_a)**beta)
+// The relaxation time tau_a, the exponent beta, and the non-ergodicity factor A are fitting parameters that depend on temperature T and density rho
+
+void SampleBondOrientationAutoCorrelationFunctionOrderN(int Switch)
+{
+  int i,j,k,l,CurrentBlock;
+  int CurrentBlocklength;
+  VECTOR value;
+  FILE *FilePtr;
+  char buffer[256];
+  REAL fac,dt,count,value_dir_avg;
+  int A,B,f1,index;
+  int typeA,typeB;
+  int NumberOfTypes;
+  REAL angle;
+
+  switch(Switch)
+  {
+    case ALLOCATE:
+      CountBondOrientationOrderN=(int**)calloc(NumberOfSystems,sizeof(int*));
+      NumberOfBlocksBondOrientationOrderN=(int**)calloc(NumberOfSystems,sizeof(int*));
+
+      BlockLengthBondOrientationOrderN=(int***)calloc(NumberOfSystems,sizeof(int**));
+      BondOrientationOrderNCount=(REAL*****)calloc(NumberOfSystems,sizeof(REAL****));
+      BondOrientationOrderNDirAvg=(REAL*****)calloc(NumberOfSystems,sizeof(REAL****));
+      BondOrientationOrderN=(VECTOR*****)calloc(NumberOfSystems,sizeof(VECTOR****));
+      BlockDataBondOrientationOrderN=(VECTOR******)calloc(NumberOfSystems,sizeof(VECTOR*****));
+
+      for(i=0;i<NumberOfSystems;i++)
+      {
+        if(ComputeBondOrientationOrderN[i])
+        {
+          CountBondOrientationOrderN[i]=(int*)calloc(Framework[i].NumberOfFrameworks,sizeof(int));
+          NumberOfBlocksBondOrientationOrderN[i]=(int*)calloc(Framework[i].NumberOfFrameworks,sizeof(int));
+
+          BlockLengthBondOrientationOrderN[i]=(int**)calloc(Framework[i].NumberOfFrameworks,sizeof(int*));
+          BondOrientationOrderNCount[i]=(REAL****)calloc(Framework[i].NumberOfFrameworks,sizeof(REAL***));
+          BondOrientationOrderNDirAvg[i]=(REAL****)calloc(Framework[i].NumberOfFrameworks,sizeof(REAL***));
+          BondOrientationOrderN[i]=(VECTOR****)calloc(Framework[i].NumberOfFrameworks,sizeof(VECTOR***));
+          BlockDataBondOrientationOrderN[i]=(VECTOR*****)calloc(Framework[i].NumberOfFrameworks,sizeof(VECTOR****));
+
+          for(f1=0;f1<Framework[i].NumberOfFrameworks;f1++)
+          {
+            BlockLengthBondOrientationOrderN[i][f1]=(int*)calloc(MaxNumberOfBlocksBondOrientationOrderN,sizeof(int));
+            BondOrientationOrderNCount[i][f1]=(REAL***)calloc(MaxNumberOfBlocksBondOrientationOrderN,sizeof(REAL**));
+            BondOrientationOrderNDirAvg[i][f1]=(REAL***)calloc(MaxNumberOfBlocksBondOrientationOrderN,sizeof(REAL**));
+            BondOrientationOrderN[i][f1]=(VECTOR***)calloc(MaxNumberOfBlocksBondOrientationOrderN,sizeof(VECTOR**));
+            BlockDataBondOrientationOrderN[i][f1]=(VECTOR****)calloc(MaxNumberOfBlocksBondOrientationOrderN,sizeof(VECTOR***));
+
+            NumberOfTypes=NumberOfOrientationFrameworkBonds[i][f1];
+            BondOrientationAngleDistributionFunction[i][f1]=(VECTOR**)calloc(NumberOfTypes,sizeof(VECTOR*));
+            for(k=0;k<NumberOfTypes;k++)
+              BondOrientationAngleDistributionFunction[i][f1][k]=(VECTOR*)calloc(BondOrientationAngleHistogramSize[i],sizeof(VECTOR));
+            
+            for(j=0;j<MaxNumberOfBlocksBondOrientationOrderN;j++)
+            {
+              BlockDataBondOrientationOrderN[i][f1][j]=(VECTOR***)calloc(NumberOfTypes,sizeof(VECTOR**));
+              for(k=0;k<NumberOfTypes;k++)
+              {
+                BlockDataBondOrientationOrderN[i][f1][j][k]=(VECTOR**)calloc(NumberOfOrientationFrameworkBondPairs[i][f1][k],sizeof(VECTOR*));
+
+                for(l=0;l<NumberOfOrientationFrameworkBondPairs[i][f1][k];l++)
+                  BlockDataBondOrientationOrderN[i][f1][j][k][l]=(VECTOR*)calloc(NumberOfBlockElementsBondOrientationOrderN,sizeof(VECTOR));
+              }
+
+              BondOrientationOrderNCount[i][f1][j]=(REAL**)calloc(NumberOfTypes,sizeof(REAL*));
+              BondOrientationOrderNDirAvg[i][f1][j]=(REAL**)calloc(NumberOfTypes,sizeof(REAL*));
+              BondOrientationOrderN[i][f1][j]=(VECTOR**)calloc(NumberOfTypes,sizeof(VECTOR*));
+              for(k=0;k<NumberOfTypes;k++)
+              {
+                BondOrientationOrderNCount[i][f1][j][k]=(REAL*)calloc(NumberOfBlockElementsBondOrientationOrderN,sizeof(REAL));
+                BondOrientationOrderNDirAvg[i][f1][j][k]=(REAL*)calloc(NumberOfBlockElementsBondOrientationOrderN,sizeof(REAL));
+                BondOrientationOrderN[i][f1][j][k]=(VECTOR*)calloc(NumberOfBlockElementsBondOrientationOrderN,sizeof(VECTOR));
+              }
+            }
+          }
+        }
+      }
+      break;
+    case INITIALIZE:
+      break;
+    case SAMPLE:
+      // return if the vacf does not has to be calculated for this system
+      if(!(ComputeBondOrientationOrderN[CurrentSystem]&&(CurrentCycle%SampleBondOrientationOrderNEvery[CurrentSystem]==0))) return;
+
+      for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
+      {
+        for(k=0;k<NumberOfOrientationFrameworkBonds[CurrentSystem][f1];k++)
+        {
+          for(l=0;l<NumberOfOrientationFrameworkBondPairs[CurrentSystem][f1][k];l++)
+          {
+            value=BondOrientation(CurrentSystem,f1,k,l);
+
+            angle=atan2(value.y,value.x)*RAD2DEG;
+            if(angle<0) angle+=360.0;
+            index=(int)((angle/360.0)*(REAL)BondOrientationAngleHistogramSize[CurrentSystem]);
+            BondOrientationAngleDistributionFunction[CurrentSystem][f1][k][index].z+=1.0;
+
+            angle=atan2(value.z,value.x)*RAD2DEG;
+            if(angle<0) angle+=360.0;
+            index=(int)((angle/360.0)*(REAL)BondOrientationAngleHistogramSize[CurrentSystem]);
+            BondOrientationAngleDistributionFunction[CurrentSystem][f1][k][index].y+=1.0;
+
+            angle=atan2(value.z,value.y)*RAD2DEG;
+            if(angle<0) angle+=360.0;
+            index=(int)((angle/360.0)*(REAL)BondOrientationAngleHistogramSize[CurrentSystem]);
+            BondOrientationAngleDistributionFunction[CurrentSystem][f1][k][index].x+=1.0;
+          }
+        }
+
+
+        // determine current number of blocks
+        NumberOfBlocksBondOrientationOrderN[CurrentSystem][f1]=1;
+        i=CountBondOrientationOrderN[CurrentSystem][f1]/NumberOfBlockElementsBondOrientationOrderN;
+        while(i!=0)
+        {
+          NumberOfBlocksBondOrientationOrderN[CurrentSystem][f1]++;
+          i/=NumberOfBlockElementsBondOrientationOrderN;
+        }
+
+        // ignore everything beyond the last block
+        NumberOfBlocksBondOrientationOrderN[CurrentSystem][f1]=MIN2(NumberOfBlocksBondOrientationOrderN[CurrentSystem][f1],
+                     MaxNumberOfBlocksBondOrientationOrderN);
+
+        for(CurrentBlock=0;CurrentBlock<NumberOfBlocksBondOrientationOrderN[CurrentSystem][f1];CurrentBlock++)
+        {
+          // test for blocking operation: CountBondOrientationOrderN is a multiple of NumberOfBlockElementsBondOrientationOrderN^CurrentBlock
+          if ((CountBondOrientationOrderN[CurrentSystem][f1])%((int)pow((REAL)NumberOfBlockElementsBondOrientationOrderN,CurrentBlock))==0)
+          {
+            // increase the current block-length
+            BlockLengthBondOrientationOrderN[CurrentSystem][f1][CurrentBlock]++;
+
+            // limit length to NumberOfBlockElementsRVACFOrderN
+            CurrentBlocklength=MIN2(BlockLengthBondOrientationOrderN[CurrentSystem][f1][CurrentBlock],NumberOfBlockElementsBondOrientationOrderN);
+
+            // Self diffusion
+            // ========================================================================================================================
+
+            for(k=0;k<NumberOfOrientationFrameworkBonds[CurrentSystem][f1];k++)
+            {
+              for(l=0;l<NumberOfOrientationFrameworkBondPairs[CurrentSystem][f1][k];l++)
+              {
+                value=BondOrientation(CurrentSystem,f1,k,l);
+
+                for(j=CurrentBlocklength-1;j>0;j--)
+                  BlockDataBondOrientationOrderN[CurrentSystem][f1][CurrentBlock][k][l][j]=BlockDataBondOrientationOrderN[CurrentSystem][f1][CurrentBlock][k][l][j-1];
+                BlockDataBondOrientationOrderN[CurrentSystem][f1][CurrentBlock][k][l][0]=value;
+
+
+                for(j=0;j<CurrentBlocklength;j++)
+                {
+                  // vacf for each component
+                  BondOrientationOrderNCount[CurrentSystem][f1][CurrentBlock][k][j]+=1.0;
+                  BondOrientationOrderN[CurrentSystem][f1][CurrentBlock][k][j].x+=
+                    (BlockDataBondOrientationOrderN[CurrentSystem][f1][CurrentBlock][k][l][j].x*value.x);
+                  BondOrientationOrderN[CurrentSystem][f1][CurrentBlock][k][j].y+=
+                    (BlockDataBondOrientationOrderN[CurrentSystem][f1][CurrentBlock][k][l][j].y*value.y);
+                  BondOrientationOrderN[CurrentSystem][f1][CurrentBlock][k][j].z+=
+                    (BlockDataBondOrientationOrderN[CurrentSystem][f1][CurrentBlock][k][l][j].z*value.z);
+                  BondOrientationOrderNDirAvg[CurrentSystem][f1][CurrentBlock][k][j]+=
+                     (BlockDataBondOrientationOrderN[CurrentSystem][f1][CurrentBlock][k][l][j].x*value.x)+
+                     (BlockDataBondOrientationOrderN[CurrentSystem][f1][CurrentBlock][k][l][j].y*value.y)+
+                     (BlockDataBondOrientationOrderN[CurrentSystem][f1][CurrentBlock][k][l][j].z*value.z);
+                }
+              }
+            }
+          }
+        }
+        // CountRVACFOrderN the current sampling
+        CountBondOrientationOrderN[CurrentSystem][f1]++;
+      }
+      break;
+    case PRINT:
+      // return if the vacf does not has to be calculated for this system
+      if((!ComputeBondOrientationOrderN[CurrentSystem])||(CurrentCycle%WriteBondOrientationOrderNEvery[CurrentSystem]!=0)) return;
+
+      mkdir("BondOrientationOrderN",S_IRWXU);
+
+      sprintf(buffer,"BondOrientationOrderN/System_%d",CurrentSystem);
+      mkdir(buffer,S_IRWXU);
+
+      // Self diffusion
+      // ========================================================================================================================
+
+
+      for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
+      {
+        sprintf(buffer,"BondOrientationOrderN/System_%d/Framework_%d",CurrentSystem,f1);
+        mkdir(buffer,S_IRWXU);
+
+        for(i=0;i<NumberOfOrientationFrameworkBonds[CurrentSystem][f1];i++)
+        {
+
+          sprintf(buffer,"BondOrientationOrderN/System_%d/Framework_%d/Orientation_histogram%d%s.dat",CurrentSystem,f1,i,FileNameAppend);
+          FilePtr=fopen(buffer,"w");
+          for(k=0;k<BondOrientationAngleHistogramSize[CurrentSystem];k++)
+          {
+            fprintf(FilePtr,"%g %g %g %g\n",
+               k*360.0/BondOrientationAngleHistogramSize[CurrentSystem],
+               BondOrientationAngleDistributionFunction[CurrentSystem][f1][i][k].x,
+               BondOrientationAngleDistributionFunction[CurrentSystem][f1][i][k].y,
+               BondOrientationAngleDistributionFunction[CurrentSystem][f1][i][k].z);
+          }
+          fclose(FilePtr);
+
+          sprintf(buffer,"BondOrientationOrderN/System_%d/Framework_%d/Orientation_correlation_type%d%s.dat",CurrentSystem,f1,i,FileNameAppend);
+          FilePtr=fopen(buffer,"w");
+          for(CurrentBlock=0;CurrentBlock<MIN2(MaxNumberOfBlocksBondOrientationOrderN,NumberOfBlocksBondOrientationOrderN[CurrentSystem][f1]);CurrentBlock++)
+          {
+            CurrentBlocklength=MIN2(BlockLengthBondOrientationOrderN[CurrentSystem][f1][CurrentBlock],NumberOfBlockElementsBondOrientationOrderN);
+            dt=SampleBondOrientationOrderNEvery[CurrentSystem]*DeltaT*pow((REAL)NumberOfBlockElementsBondOrientationOrderN,CurrentBlock);
+            for(j=1;j<CurrentBlocklength;j++)
+            {
+              value=BondOrientationOrderN[CurrentSystem][f1][CurrentBlock][i][j];
+              value_dir_avg=BondOrientationOrderNDirAvg[CurrentSystem][f1][CurrentBlock][i][j];
+              count=BondOrientationOrderNCount[CurrentSystem][f1][CurrentBlock][i][j];
+
+              if(count>0.0)
+              {
+                fac=1.0/count;
+
+                fprintf(FilePtr,"%g %g %g %g %g (count: %g)\n",
+                    (double)(j*dt),
+                    (double)(fac*value_dir_avg),
+                    (double)(fac*value.x),
+                    (double)(fac*value.y),
+                    (double)(fac*value.z),
+                    (double)count);
+              }
+            }
+          }
+          fclose(FilePtr);
+        }
+      }
       break;
   }
 }
@@ -8603,15 +9162,17 @@ void MeasurePrincipleMomentsOfInertia(void)
  * Parameters | -                                                                                        *
  *********************************************************************************************************/
 
-void ComputeMolecularPressureTensor(REAL_MATRIX3x3 *pressure_matrix, REAL* PressureIdealGas, REAL* PressureTail)
+void ComputeMolecularPressureTensor(REAL_MATRIX3x3 *Pressure_matrix, REAL* PressureIdealGas, REAL* PressureTail)
 {
   // compute the ideal gas part of the pressure (related to the translational degrees of freedom, not rotational dof)
   *PressureIdealGas=(NumberOfAdsorbateMolecules[CurrentSystem]+NumberOfCationMolecules[CurrentSystem])
                   *K_B*therm_baro_stats.ExternalTemperature[CurrentSystem]/Volume[CurrentSystem];
 
+  // compute the excess pressure
   CalculateMolecularExcessPressure();
-  *pressure_matrix=StrainDerivativeTensor[CurrentSystem];
+  *Pressure_matrix=StrainDerivativeTensor[CurrentSystem];
 
+  // compute the tail correction
   CalculateTailCorrection();
   *PressureTail=StrainDerivativeTailCorrection[CurrentSystem]/Volume[CurrentSystem];
 }
@@ -8626,7 +9187,7 @@ void ComputeMolecularPressureTensor(REAL_MATRIX3x3 *pressure_matrix, REAL* Press
 
 void WriteRestartSample(FILE *FilePtr)
 {
-  int i,j,k,l;
+  int i,j,k,l,f1;
   REAL Check;
 
   // write data for the histograms of the radial distribution function
@@ -8645,6 +9206,37 @@ void WriteRestartSample(FILE *FilePtr)
           fwrite(RadialDistributionFunction[i][j][k],RDFHistogramSize[i],sizeof(REAL),FilePtr);
     }
   }
+
+  // write data for the histograms of the projected lengths
+  fwrite(ComputeProjectedLengths,NumberOfSystems,sizeof(int),FilePtr);
+  fwrite(WriteProjectedLengthsEvery,NumberOfSystems,sizeof(int),FilePtr);
+  fwrite(ProjectedLengthsHistogramSize,NumberOfSystems,sizeof(int),FilePtr);
+  fwrite(ProjectedLengthsRange,NumberOfSystems,sizeof(REAL),FilePtr);
+  for(i=0;i<NumberOfSystems;i++)
+  {
+    if(ComputeProjectedLengths[i])
+    {
+      fwrite(CountProjectedLengths[i],NumberOfComponents,sizeof(REAL),FilePtr);
+      for(j=0;j<NumberOfComponents;j++)
+        fwrite(ProjectedLengthsDistributionFunction[i][j],ProjectedLengthsHistogramSize[i],sizeof(VECTOR),FilePtr);
+    }
+  }
+
+  // write data for the histograms of the projected angles
+  fwrite(ComputeProjectedAngles,NumberOfSystems,sizeof(int),FilePtr);
+  fwrite(WriteProjectedAnglesEvery,NumberOfSystems,sizeof(int),FilePtr);
+  fwrite(ProjectedAnglesHistogramSize,NumberOfSystems,sizeof(int),FilePtr);
+  fwrite(ProjectedAnglesRange,NumberOfSystems,sizeof(REAL),FilePtr);
+  for(i=0;i<NumberOfSystems;i++)
+  {
+    if(ComputeProjectedAngles[i])
+    {
+      fwrite(CountProjectedAngles[i],NumberOfComponents,sizeof(REAL),FilePtr);
+      for(j=0;j<NumberOfComponents;j++)
+        fwrite(ProjectedAnglesDistributionFunction[i][j],ProjectedAnglesHistogramSize[i],sizeof(VECTOR),FilePtr);
+    }
+  }
+
 
   // write data for the histograms of the number of molecules
   fwrite(ComputeNumberOfMoleculesHistogram,NumberOfSystems,sizeof(int),FilePtr);
@@ -9182,6 +9774,64 @@ void WriteRestartSample(FILE *FilePtr)
     }
   }
 
+  // write of the molecular orientation autocorrelation function using a modified order-N algorithm
+  fwrite(ComputeBondOrientationOrderN,NumberOfSystems,sizeof(int),FilePtr);
+  fwrite(&NumberOfBlockElementsBondOrientationOrderN,1,sizeof(int),FilePtr);
+  fwrite(&MaxNumberOfBlocksBondOrientationOrderN,1,sizeof(int),FilePtr);
+  fwrite(&ComputeIndividualBondOrientationOrderN,1,sizeof(int),FilePtr);
+  fwrite(BondOrientationAngleHistogramSize,NumberOfSystems,sizeof(int),FilePtr);
+
+  for(i=0;i<NumberOfSystems;i++)
+  {
+    if(ComputeBondOrientationOrderN[i])
+    {
+      fwrite(&WriteBondOrientationOrderNEvery[i],1,sizeof(int),FilePtr);
+      fwrite(&SampleBondOrientationOrderNEvery[i],1,sizeof(int),FilePtr);
+
+      for(f1=0;f1<Framework[i].NumberOfFrameworks;f1++)
+      {
+
+        fwrite(&NumberOfOrientationFrameworkBonds[i][f1],1,sizeof(int),FilePtr);
+        fwrite(NumberOfOrientationFrameworkBondPairs[i][f1],NumberOfOrientationFrameworkBonds[i][f1],sizeof(int),FilePtr);
+        fwrite(OrientationFrameworkBondTypes[i][f1],NumberOfOrientationFrameworkBonds[i][f1],sizeof(int),FilePtr);
+        fwrite(OrientationFrameworkBonds[i][f1],NumberOfOrientationFrameworkBonds[i][f1],sizeof(char[2][256]),FilePtr);
+      }
+    }
+  }
+
+  for(i=0;i<NumberOfSystems;i++)
+  {
+    if(ComputeBondOrientationOrderN[i])
+    {
+      for(f1=0;f1<Framework[i].NumberOfFrameworks;f1++)
+      {
+        fwrite(&CountBondOrientationOrderN[i][f1],1,sizeof(int),FilePtr);
+        fwrite(&NumberOfBlocksBondOrientationOrderN[i][f1],1,sizeof(int),FilePtr);
+        fwrite(BlockLengthBondOrientationOrderN[i][f1],MaxNumberOfBlocksBondOrientationOrderN,sizeof(int),FilePtr);
+
+        for(k=0;k<NumberOfOrientationFrameworkBonds[i][f1];k++)
+        {
+          fwrite(OrientationFrameworkBondPairs[i][f1][k],NumberOfOrientationFrameworkBondPairs[i][f1][k],sizeof(PAIR),FilePtr);
+          fwrite(BondOrientationAngleDistributionFunction[i][f1][k],BondOrientationAngleHistogramSize[i],sizeof(VECTOR),FilePtr);
+        }
+
+        for(j=0;j<MaxNumberOfBlocksBondOrientationOrderN;j++)
+        {
+          for(k=0;k<NumberOfOrientationFrameworkBonds[i][f1];k++)
+          {
+            for(l=0;l<NumberOfOrientationFrameworkBondPairs[i][f1][k];l++)
+              fwrite(BlockDataBondOrientationOrderN[i][f1][j][k][l],NumberOfBlockElementsBondOrientationOrderN,sizeof(VECTOR),FilePtr);
+
+            fwrite(BondOrientationOrderNCount[i][f1][j][k],NumberOfBlockElementsBondOrientationOrderN,sizeof(REAL),FilePtr);
+            fwrite(BondOrientationOrderNDirAvg[i][f1][j][k],NumberOfBlockElementsBondOrientationOrderN,sizeof(REAL),FilePtr);
+            fwrite(BondOrientationOrderN[i][f1][j][k],NumberOfBlockElementsBondOrientationOrderN,sizeof(VECTOR),FilePtr);
+          }
+        }
+      }
+    }
+  }
+
+
   // write the mean-square displacement  function using a conventional algorithm
   fwrite(ComputeMSD,NumberOfSystems,sizeof(int),FilePtr);
   fwrite(&NumberOfBuffersMSD,1,sizeof(int),FilePtr);
@@ -9310,6 +9960,16 @@ void AllocateSampleMemory(void)
   WriteRDFEvery=(int*)calloc(NumberOfSystems,sizeof(int));
   RDFHistogramSize=(int*)calloc(NumberOfSystems,sizeof(int));
   RDFRange=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+
+  ComputeProjectedLengths=(int*)calloc(NumberOfSystems,sizeof(int));
+  WriteProjectedLengthsEvery=(int*)calloc(NumberOfSystems,sizeof(int));
+  ProjectedLengthsHistogramSize=(int*)calloc(NumberOfSystems,sizeof(int));
+  ProjectedLengthsRange=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
+
+  ComputeProjectedAngles=(int*)calloc(NumberOfSystems,sizeof(int));
+  WriteProjectedAnglesEvery=(int*)calloc(NumberOfSystems,sizeof(int));
+  ProjectedAnglesHistogramSize=(int*)calloc(NumberOfSystems,sizeof(int));
+  ProjectedAnglesRange=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
 
   //-----------------------------------------------------------------------------------------------------
   // CFC-RXMC : sampling lambda histogram
@@ -9447,6 +10107,32 @@ void AllocateSampleMemory(void)
   SampleMolecularOrientationOrderNEvery=(int*)calloc(NumberOfSystems,sizeof(int));
   WriteMolecularOrientationOrderNEvery=(int*)calloc(NumberOfSystems,sizeof(int));
 
+  // sampling of the bond orientation autocorrelation function using a modified order-N algorithm
+  ComputeBondOrientationOrderN=(int*)calloc(NumberOfSystems,sizeof(int));
+  SampleBondOrientationOrderNEvery=(int*)calloc(NumberOfSystems,sizeof(int));
+  WriteBondOrientationOrderNEvery=(int*)calloc(NumberOfSystems,sizeof(int));
+
+  NumberOfOrientationFrameworkBonds=(int **)calloc(NumberOfSystems,sizeof(int*));
+  OrientationFrameworkBondTypes=(int ***)calloc(NumberOfSystems,sizeof(int**));
+  OrientationFrameworkBonds=(char(***)[2][256])calloc(NumberOfSystems,sizeof(char(**)[2][256]));
+
+  NumberOfOrientationFrameworkBondPairs=(int***)calloc(NumberOfSystems,sizeof(int**));
+  OrientationFrameworkBondPairs=(PAIR****)calloc(NumberOfSystems,sizeof(PAIR***));
+
+  BondOrientationAngleHistogramSize=(int*)calloc(NumberOfSystems,sizeof(int));
+  BondOrientationAngleDistributionFunction=(VECTOR****)calloc(NumberOfSystems,sizeof(VECTOR***));
+
+  for(i=0;i<NumberOfSystems;i++)
+  {
+    NumberOfOrientationFrameworkBonds[i]=(int *)calloc(Framework[i].NumberOfFrameworks,sizeof(int));
+    OrientationFrameworkBondTypes[i]=(int **)calloc(Framework[i].NumberOfFrameworks,sizeof(int*));
+    OrientationFrameworkBonds[i]=(char(**)[2][256])calloc(Framework[i].NumberOfFrameworks,sizeof(char(*)[2][256]));
+
+    NumberOfOrientationFrameworkBondPairs[i]=(int**)calloc(Framework[i].NumberOfFrameworks,sizeof(int*));
+    OrientationFrameworkBondPairs[i]=(PAIR***)calloc(Framework[i].NumberOfFrameworks,sizeof(PAIR**));
+    BondOrientationAngleDistributionFunction[i]=(VECTOR***)calloc(Framework[i].NumberOfFrameworks,sizeof(VECTOR**));
+  }
+
   // sampling the mean-square displacement function using a conventional algorithm
   ComputeMSD=(int*)calloc(NumberOfSystems,sizeof(int));
   SampleMSDEvery=(int*)calloc(NumberOfSystems,sizeof(int));
@@ -9483,7 +10169,7 @@ void AllocateSampleMemory(void)
 
 void ReadRestartSample(FILE *FilePtr)
 {
-  int i,j,k,l;
+  int i,j,k,l,f1;
   int intinput1,intinput2,intinput3,intinput4;
   REAL Check;
 
@@ -9506,6 +10192,42 @@ void ReadRestartSample(FILE *FilePtr)
       for(j=0;j<NumberOfPseudoAtoms;j++)
         for(k=0;k<NumberOfPseudoAtoms;k++)
           fread(RadialDistributionFunction[i][j][k],RDFHistogramSize[i],sizeof(REAL),FilePtr);
+    }
+  }
+
+  // read data for the histograms of the projected lengths
+  fread(ComputeProjectedLengths,NumberOfSystems,sizeof(int),FilePtr);
+  fread(WriteProjectedLengthsEvery,NumberOfSystems,sizeof(int),FilePtr);
+  fread(ProjectedLengthsHistogramSize,NumberOfSystems,sizeof(int),FilePtr);
+  fread(ProjectedLengthsRange,NumberOfSystems,sizeof(REAL),FilePtr);
+
+  SampleProjectedLengthsDistributionFunction(ALLOCATE);
+
+  for(i=0;i<NumberOfSystems;i++)
+  {
+    if(ComputeProjectedLengths[i])
+    {
+      fread(CountProjectedLengths[i],NumberOfComponents,sizeof(REAL),FilePtr);
+      for(j=0;j<NumberOfComponents;j++)
+        fread(ProjectedLengthsDistributionFunction[i][j],ProjectedLengthsHistogramSize[i],sizeof(VECTOR),FilePtr);
+    }
+  }
+
+  // read data for the histograms of the projected angles
+  fread(ComputeProjectedAngles,NumberOfSystems,sizeof(int),FilePtr);
+  fread(WriteProjectedAnglesEvery,NumberOfSystems,sizeof(int),FilePtr);
+  fread(ProjectedAnglesHistogramSize,NumberOfSystems,sizeof(int),FilePtr);
+  fread(ProjectedAnglesRange,NumberOfSystems,sizeof(REAL),FilePtr);
+
+  SampleProjectedAnglesDistributionFunction(ALLOCATE);
+
+  for(i=0;i<NumberOfSystems;i++)
+  {
+    if(ComputeProjectedAngles[i])
+    {
+      fread(CountProjectedAngles[i],NumberOfComponents,sizeof(REAL),FilePtr);
+      for(j=0;j<NumberOfComponents;j++)
+        fread(ProjectedAnglesDistributionFunction[i][j],ProjectedAnglesHistogramSize[i],sizeof(VECTOR),FilePtr);
     }
   }
 
@@ -10341,7 +11063,75 @@ void ReadRestartSample(FILE *FilePtr)
     }
   }
 
-  // read the mean-square displacement  function using a conventional algorithm
+  // read of the bond orientation autocorrelation function using a modified order-N algorithm
+  fread(ComputeBondOrientationOrderN,NumberOfSystems,sizeof(int),FilePtr);
+  fread(&NumberOfBlockElementsBondOrientationOrderN,1,sizeof(int),FilePtr);
+  fread(&MaxNumberOfBlocksBondOrientationOrderN,1,sizeof(int),FilePtr);
+  fread(&ComputeIndividualBondOrientationOrderN,1,sizeof(int),FilePtr);
+  fread(BondOrientationAngleHistogramSize,NumberOfSystems,sizeof(int),FilePtr);
+
+
+  for(i=0;i<NumberOfSystems;i++)
+  {
+    if(ComputeBondOrientationOrderN[i])
+    {
+      fread(&WriteBondOrientationOrderNEvery[i],1,sizeof(int),FilePtr);
+      fread(&SampleBondOrientationOrderNEvery[i],1,sizeof(int),FilePtr);
+
+      for(f1=0;f1<Framework[i].NumberOfFrameworks;f1++)
+      {
+        fread(&NumberOfOrientationFrameworkBonds[i][f1],1,sizeof(int),FilePtr);
+
+        OrientationFrameworkBondTypes[i][f1]=(int *)calloc(NumberOfOrientationFrameworkBonds[i][f1],sizeof(int));
+        NumberOfOrientationFrameworkBondPairs[i][f1]=(int*)calloc(NumberOfOrientationFrameworkBonds[i][f1],sizeof(int));
+        OrientationFrameworkBondPairs[i][f1]=(PAIR**)calloc(NumberOfOrientationFrameworkBonds[i][f1],sizeof(PAIR*));
+
+        fread(NumberOfOrientationFrameworkBondPairs[i][f1],NumberOfOrientationFrameworkBonds[i][f1],sizeof(int),FilePtr);
+        fread(OrientationFrameworkBondTypes[i][f1],NumberOfOrientationFrameworkBonds[i][f1],sizeof(int),FilePtr);
+
+        OrientationFrameworkBonds[i][f1]=(char(*)[2][256])calloc((NumberOfOrientationFrameworkBonds[i][f1]),sizeof(char[2][256]));
+        fread(OrientationFrameworkBonds[i][f1],NumberOfOrientationFrameworkBonds[i][f1],sizeof(char[2][256]),FilePtr);
+      }
+    }
+  }
+
+  SampleBondOrientationAutoCorrelationFunctionOrderN(ALLOCATE);
+
+  for(i=0;i<NumberOfSystems;i++)
+  {
+    if(ComputeBondOrientationOrderN[i])
+    {
+      for(f1=0;f1<Framework[i].NumberOfFrameworks;f1++)
+      {
+        fread(&CountBondOrientationOrderN[i][f1],1,sizeof(int),FilePtr);
+        fread(&NumberOfBlocksBondOrientationOrderN[i][f1],1,sizeof(int),FilePtr);
+        fread(BlockLengthBondOrientationOrderN[i][f1],MaxNumberOfBlocksBondOrientationOrderN,sizeof(int),FilePtr);
+
+        for(k=0;k<NumberOfOrientationFrameworkBonds[i][f1];k++)
+        {
+          OrientationFrameworkBondPairs[i][f1][k]=(PAIR*)calloc(NumberOfOrientationFrameworkBondPairs[i][f1][k],sizeof(PAIR));
+          fread(OrientationFrameworkBondPairs[i][f1][k],NumberOfOrientationFrameworkBondPairs[i][f1][k],sizeof(PAIR),FilePtr);
+          fread(BondOrientationAngleDistributionFunction[i][f1][k],BondOrientationAngleHistogramSize[i],sizeof(VECTOR),FilePtr);
+        }
+
+        for(j=0;j<MaxNumberOfBlocksBondOrientationOrderN;j++)
+        {
+          for(k=0;k<NumberOfOrientationFrameworkBonds[i][f1];k++)
+          {
+            for(l=0;l<NumberOfOrientationFrameworkBondPairs[i][f1][k];l++)
+              fread(BlockDataBondOrientationOrderN[i][f1][j][k][l],NumberOfBlockElementsBondOrientationOrderN,sizeof(VECTOR),FilePtr);
+
+            fread(BondOrientationOrderNCount[i][f1][j][k],NumberOfBlockElementsBondOrientationOrderN,sizeof(REAL),FilePtr);
+            fread(BondOrientationOrderNDirAvg[i][f1][j][k],NumberOfBlockElementsBondOrientationOrderN,sizeof(REAL),FilePtr);
+            fread(BondOrientationOrderN[i][f1][j][k],NumberOfBlockElementsBondOrientationOrderN,sizeof(VECTOR),FilePtr);
+          }
+        }
+      }
+    }
+  }
+
+
+  // read the mean-square displacement function using a conventional algorithm
   fread(ComputeMSD,NumberOfSystems,sizeof(int),FilePtr);
   fread(&NumberOfBuffersMSD,1,sizeof(int),FilePtr);
   fread(&BufferLengthMSD,1,sizeof(int),FilePtr);

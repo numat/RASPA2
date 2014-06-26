@@ -84,7 +84,9 @@ typedef struct quaternion
 #define BITSCLEAR(x,y) (((x) & (y)) == 0)
 #define BITVAL(x,y) (((x)>>(y)) & 1)
 
-
+long Factorial(int n);
+int isInArrayOfSize(int value,int n,int *array);
+void BubbleSort(int list[], int n);
 double get_wall_time(void);
 double get_cpu_time(void);
 
