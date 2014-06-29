@@ -8239,6 +8239,7 @@ int VolumeMove(void)
   {
     VolumeChangeAccepted[CurrentSystem]+=1.0;
 
+
     for(i=0;i<NumberOfAdsorbateMolecules[CurrentSystem];i++)
       UpdateGroupCenterOfMassAdsorbate(i);
 
