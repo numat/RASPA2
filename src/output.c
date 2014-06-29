@@ -1122,6 +1122,18 @@ void PrintPreSimulationStatusCurrentSystem(int system)
     fprintf(FilePtr,"\tmoacf is written to file every %d cycles\n",WriteMolecularOrientationOrderNEvery[system]);
     fprintf(FilePtr,"\tthe (initial) maximum number of blocks: %d\n",MaxNumberOfBlocksMolecularOrientationOrderN);
     fprintf(FilePtr,"\tthe number of elements per block: %d\n",NumberOfBlockElementsMolecularOrientationOrderN);
+    switch(MolecularOrientationType)
+    {
+      case END_TO_END_VECTOR:
+        fprintf(FilePtr,"\tOrientation type: end-to-end vector\n");
+        break;
+      case MOLECULAR_VECTOR:
+        fprintf(FilePtr,"\tOrientation type: fixed vector in molecular frame\n");
+        fprintf(FilePtr,"\t\tOrientation vector: %lf %lf %lf\n",MolecularOrientationVector.x,MolecularOrientationVector.y,MolecularOrientationVector.z);
+        break;
+      default:
+        break;
+    }
   }
 
   // sampling of the bond orientation autocorrelation function using a modified order-N algorithm

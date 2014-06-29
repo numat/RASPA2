@@ -215,10 +215,13 @@ extern int ComputeIndividualRVACFOrderN;      // whether or not to compute (self
 extern int ComputeRVACFOrderNPerPseudoAtom;   // whether or not to compute (self-)vacf's for (pseudo-)atoms
 
 // sampling of the molecular orientation autocorrelation function using a modified order-N algorithm
+enum {END_TO_END_VECTOR,MOLECULAR_VECTOR};
 void SampleMolecularOrientationAutoCorrelationFunctionOrderN(int Switch);
 extern int *ComputeMolecularOrientationOrderN;               // whether or not to compute the vacf
 extern int *SampleMolecularOrientationOrderNEvery;           // the sample frequency
 extern int *WriteMolecularOrientationOrderNEvery;            // write output every 'WriteVACFOrderNEvery' steps
+extern int MolecularOrientationType;
+extern VECTOR MolecularOrientationVector;
 extern int NumberOfBlockElementsMolecularOrientationOrderN;  // the number of elements per block
 extern int MaxNumberOfBlocksMolecularOrientationOrderN;      // the maxmimum amount of blocks (data beyond this block is ignored)
 extern int ComputeIndividualMolecularOrientationOrderN;      // whether or not to compute (self-)vacf's for individual molecules

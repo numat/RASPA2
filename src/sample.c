@@ -320,6 +320,8 @@ static REAL ***RvacfOrderNTotalOnsagerDirAvg;     // counter for the amount of O
 int *ComputeMolecularOrientationOrderN;                          // whether or not to compute the vacf
 int *SampleMolecularOrientationOrderNEvery;                      // the sample frequency
 int *WriteMolecularOrientationOrderNEvery;                       // write output every 'CountMolecularOrientationOrderN' steps
+int MolecularOrientationType;
+VECTOR MolecularOrientationVector;
 int NumberOfBlockElementsMolecularOrientationOrderN;             // the number of elements per block
 int MaxNumberOfBlocksMolecularOrientationOrderN;                 // the maxmimum amount of blocks (data beyond this block is ignored)
 int ComputeIndividualMolecularOrientationOrderN;                 // whether or not to compute (self-)vacf's for individual molecules
@@ -7258,66 +7260,84 @@ void SampleRotationalVelocityAutoCorrelationFunctionOrderN(int Switch)
   }
 }
 
-VECTOR GetCosThetaOrientationalVectorAdsorbates(int i)
+VECTOR GetOrientationalVectorAdsorbates(int i)
 {
   int last;
-  VECTOR orientation,factor;
-  VECTOR CosTheta;
-  VECTOR e1,e2,e3;
+  VECTOR orientation;
+  VECTOR com,t;
   REAL r;
+  REAL_MATRIX3x3 M;
 
-  last=Adsorbates[CurrentSystem][i].NumberOfAtoms;
-  orientation.x=Adsorbates[CurrentSystem][i].Atoms[0].Position.x-Adsorbates[CurrentSystem][i].Atoms[last-1].Position.x;
-  orientation.y=Adsorbates[CurrentSystem][i].Atoms[0].Position.y-Adsorbates[CurrentSystem][i].Atoms[last-1].Position.y;
-  orientation.z=Adsorbates[CurrentSystem][i].Atoms[0].Position.z-Adsorbates[CurrentSystem][i].Atoms[last-1].Position.z;
-  r=sqrt(SQR(orientation.x)+SQR(orientation.y)+SQR(orientation.z));
-  orientation.x/=r;
-  orientation.y/=r;
-  orientation.z/=r;
+  orientation.x=0.0;
+  orientation.y=1.0;
+  orientation.z=0.0;
+  switch(MolecularOrientationType)
+  {
+    case END_TO_END_VECTOR:
+      last=Adsorbates[CurrentSystem][i].NumberOfAtoms;
+      orientation.x=Adsorbates[CurrentSystem][i].Atoms[0].Position.x-Adsorbates[CurrentSystem][i].Atoms[last-1].Position.x;
+      orientation.y=Adsorbates[CurrentSystem][i].Atoms[0].Position.y-Adsorbates[CurrentSystem][i].Atoms[last-1].Position.y;
+      orientation.z=Adsorbates[CurrentSystem][i].Atoms[0].Position.z-Adsorbates[CurrentSystem][i].Atoms[last-1].Position.z;
+      r=sqrt(SQR(orientation.x)+SQR(orientation.y)+SQR(orientation.z));
+      orientation.x/=r;
+      orientation.y/=r;
+      orientation.z/=r;
+      return orientation;
+    default:
+    case MOLECULAR_VECTOR:
+      ComputeQuaternionAdsorbate(i);
+      BuildRotationMatrixInverse(&M,Adsorbates[CurrentSystem][i].Groups[0].Quaternion);
 
-  e1.x=1.0; e1.y=0.0; e1.z=0.0;
-  e2.x=0.0; e2.y=1.0; e2.z=0.0;
-  e3.x=0.0; e3.y=0.0; e3.z=1.0;
-
-  CosTheta.x=e1.x*orientation.x+e1.y*orientation.y+e1.z*orientation.z;
-  CosTheta.y=e2.x*orientation.x+e2.y*orientation.y+e2.z*orientation.z;
-  CosTheta.z=e3.x*orientation.x+e3.y*orientation.y+e3.z*orientation.z;
-
-  factor.x=sqrt(5.0/8.0)*(3.0*SQR(CosTheta.x)-1.0);
-  factor.y=sqrt(5.0/8.0)*(3.0*SQR(CosTheta.y)-1.0);
-  factor.z=sqrt(5.0/8.0)*(3.0*SQR(CosTheta.z)-1.0);
-  return factor;
+      orientation.x=M.ax*MolecularOrientationVector.x+M.bx*MolecularOrientationVector.y+M.cx*MolecularOrientationVector.z;
+      orientation.y=M.ay*MolecularOrientationVector.x+M.by*MolecularOrientationVector.y+M.cy*MolecularOrientationVector.z;
+      orientation.z=M.az*MolecularOrientationVector.x+M.bz*MolecularOrientationVector.y+M.cz*MolecularOrientationVector.z;
+      r=sqrt(SQR(orientation.x)+SQR(orientation.y)+SQR(orientation.z));
+      orientation.x/=r;
+      orientation.y/=r;
+      orientation.z/=r;
+      return orientation;
+  }
+  return orientation;
 }
 
-VECTOR GetCosThetaOrientationalVectorCations(int i)
+VECTOR GetOrientationalVectorCations(int i)
 {
   int last;
-  VECTOR orientation,factor;
-  VECTOR CosTheta;
-  VECTOR e1,e2,e3;
+  VECTOR orientation;
+  VECTOR com,t;
   REAL r;
+  REAL_MATRIX3x3 M;
 
-  last=Cations[CurrentSystem][i].NumberOfAtoms;
-  orientation.x=Cations[CurrentSystem][i].Atoms[0].Position.x-Cations[CurrentSystem][i].Atoms[last-1].Position.x;
-  orientation.y=Cations[CurrentSystem][i].Atoms[0].Position.y-Cations[CurrentSystem][i].Atoms[last-1].Position.y;
-  orientation.z=Cations[CurrentSystem][i].Atoms[0].Position.z-Cations[CurrentSystem][i].Atoms[last-1].Position.z;
-  r=sqrt(SQR(orientation.x)+SQR(orientation.y)+SQR(orientation.z));
-  orientation.x/=r;
-  orientation.y/=r;
-  orientation.z/=r;
+  orientation.x=0.0;
+  orientation.y=1.0;
+  orientation.z=0.0;
+  switch(MolecularOrientationType)
+  {
+    case END_TO_END_VECTOR:
+      last=Cations[CurrentSystem][i].NumberOfAtoms;
+      orientation.x=Cations[CurrentSystem][i].Atoms[0].Position.x-Cations[CurrentSystem][i].Atoms[last-1].Position.x;
+      orientation.y=Cations[CurrentSystem][i].Atoms[0].Position.y-Cations[CurrentSystem][i].Atoms[last-1].Position.y;
+      orientation.z=Cations[CurrentSystem][i].Atoms[0].Position.z-Cations[CurrentSystem][i].Atoms[last-1].Position.z;
+      r=sqrt(SQR(orientation.x)+SQR(orientation.y)+SQR(orientation.z));
+      orientation.x/=r;
+      orientation.y/=r;
+      orientation.z/=r;
+      return orientation;
+    default:
+    case MOLECULAR_VECTOR:
+      ComputeQuaternionCation(i);
+      BuildRotationMatrixInverse(&M,Cations[CurrentSystem][i].Groups[0].Quaternion);
 
-  e1.x=1.0; e1.y=0.0; e1.z=0.0;
-  e2.x=0.0; e2.y=1.0; e2.z=0.0;
-  e3.x=0.0; e3.y=0.0; e3.z=1.0;
-
-  CosTheta.x=e1.x*orientation.x+e1.y*orientation.y+e1.z*orientation.z;
-  CosTheta.y=e2.x*orientation.x+e2.y*orientation.y+e2.z*orientation.z;
-  CosTheta.z=e3.x*orientation.x+e3.y*orientation.y+e3.z*orientation.z;
-
-  factor.x=sqrt(5.0/8.0)*(3.0*SQR(CosTheta.x)-1.0);
-  factor.y=sqrt(5.0/8.0)*(3.0*SQR(CosTheta.y)-1.0);
-  factor.z=sqrt(5.0/8.0)*(3.0*SQR(CosTheta.z)-1.0);
-  return factor;
+      orientation.x=M.ax*MolecularOrientationVector.x+M.bx*MolecularOrientationVector.y+M.cx*MolecularOrientationVector.z;
+      orientation.y=M.ay*MolecularOrientationVector.x+M.by*MolecularOrientationVector.y+M.cy*MolecularOrientationVector.z;
+      orientation.z=M.az*MolecularOrientationVector.x+M.bz*MolecularOrientationVector.y+M.cz*MolecularOrientationVector.z;
+      r=sqrt(SQR(orientation.x)+SQR(orientation.y)+SQR(orientation.z));
+      orientation.x/=r;
+      orientation.y/=r;
+      orientation.z/=r;
+      return orientation;
+  }
+  return orientation;
 }
 
 /*********************************************************************************************************
@@ -7333,7 +7353,7 @@ void SampleMolecularOrientationAutoCorrelationFunctionOrderN(int Switch)
 {
   int i,j,k,CurrentBlock;
   int CurrentBlocklength,type,shift;
-  VECTOR value;
+  VECTOR value,temp;
   FILE *FilePtr;
   char buffer[256];
   REAL fac,dt,count,value_dir_avg;
@@ -7415,9 +7435,9 @@ void SampleMolecularOrientationAutoCorrelationFunctionOrderN(int Switch)
           for(i=0;i<NumberOfAdsorbateMolecules[CurrentSystem]+NumberOfCationMolecules[CurrentSystem];i++)
           {
             if(i<NumberOfAdsorbateMolecules[CurrentSystem])
-              value=GetCosThetaOrientationalVectorAdsorbates(i);
+              value=GetOrientationalVectorAdsorbates(i);
             else
-              value=GetCosThetaOrientationalVectorCations(i-shift);
+              value=GetOrientationalVectorCations(i-shift);
 
             for(j=CurrentBlocklength-1;j>0;j--)
               BlockDataMolecularOrientationOrderN[CurrentSystem][CurrentBlock][i][j]=BlockDataMolecularOrientationOrderN[CurrentSystem][CurrentBlock][i][j-1];
@@ -7434,12 +7454,14 @@ void SampleMolecularOrientationAutoCorrelationFunctionOrderN(int Switch)
             {
               // vacf for each component
               MolecularOrientationOrderNCount[CurrentSystem][CurrentBlock][type][j]+=1.0;
-              MolecularOrientationOrderN[CurrentSystem][CurrentBlock][type][j].x+=(BlockDataMolecularOrientationOrderN[CurrentSystem][CurrentBlock][i][j].x*value.x);
-              MolecularOrientationOrderN[CurrentSystem][CurrentBlock][type][j].y+=(BlockDataMolecularOrientationOrderN[CurrentSystem][CurrentBlock][i][j].y*value.y);
-              MolecularOrientationOrderN[CurrentSystem][CurrentBlock][type][j].z+=(BlockDataMolecularOrientationOrderN[CurrentSystem][CurrentBlock][i][j].z*value.z);
-              MolecularOrientationOrderNDirAvg[CurrentSystem][CurrentBlock][type][j]+=(BlockDataMolecularOrientationOrderN[CurrentSystem][CurrentBlock][i][j].x*value.x)+
-                                                                      (BlockDataMolecularOrientationOrderN[CurrentSystem][CurrentBlock][i][j].y*value.y)+
-                                                                      (BlockDataMolecularOrientationOrderN[CurrentSystem][CurrentBlock][i][j].z*value.z);
+              temp.x=BlockDataMolecularOrientationOrderN[CurrentSystem][CurrentBlock][i][j].x*value.x;
+              temp.y=BlockDataMolecularOrientationOrderN[CurrentSystem][CurrentBlock][i][j].y*value.y;
+              temp.z=BlockDataMolecularOrientationOrderN[CurrentSystem][CurrentBlock][i][j].z*value.z;
+
+              MolecularOrientationOrderN[CurrentSystem][CurrentBlock][type][j].x+=temp.x;
+              MolecularOrientationOrderN[CurrentSystem][CurrentBlock][type][j].y+=temp.y;
+              MolecularOrientationOrderN[CurrentSystem][CurrentBlock][type][j].z+=temp.z;
+              MolecularOrientationOrderNDirAvg[CurrentSystem][CurrentBlock][type][j]+=temp.x+temp.y+temp.z;
             }
           }
         }
@@ -7462,6 +7484,13 @@ void SampleMolecularOrientationAutoCorrelationFunctionOrderN(int Switch)
       sprintf(buffer,"MolecularOrientationOrderN/System_%d/molecular_orientation_self_total%s.dat",CurrentSystem,FileNameAppend);
 
       FilePtr=fopen(buffer,"w");
+      fprintf(FilePtr,"# column 1: time [ps]\n");
+      fprintf(FilePtr,"# column 2: autocorrelation of the bond averaged over x,y, and z\n");
+      fprintf(FilePtr,"# column 3: autocorrelation of the bond in the x-direction\n");
+      fprintf(FilePtr,"# column 4: autocorrelation of the bond in the y-direction\n");
+      fprintf(FilePtr,"# column 5: autocorrelation of the bond in the z-direction\n");
+      fprintf(FilePtr,"# column 6: the number of measurements (per point)\n");
+
 
       for(CurrentBlock=0;CurrentBlock<MIN2(MaxNumberOfBlocksMolecularOrientationOrderN,NumberOfBlocksMolecularOrientationOrderN[CurrentSystem]);CurrentBlock++)
       {
@@ -7548,7 +7577,7 @@ void SampleBondOrientationAutoCorrelationFunctionOrderN(int Switch)
 {
   int i,j,k,l,CurrentBlock;
   int CurrentBlocklength;
-  VECTOR value;
+  VECTOR value,norm;
   FILE *FilePtr;
   char buffer[256];
   REAL fac,dt,count,value_dir_avg;
@@ -7714,17 +7743,13 @@ void SampleBondOrientationAutoCorrelationFunctionOrderN(int Switch)
       }
       break;
     case PRINT:
-      // return if the vacf does not has to be calculated for this system
+      // return if the boacf does not has to be calculated for this system
       if((!ComputeBondOrientationOrderN[CurrentSystem])||(CurrentCycle%WriteBondOrientationOrderNEvery[CurrentSystem]!=0)) return;
 
       mkdir("BondOrientationOrderN",S_IRWXU);
 
       sprintf(buffer,"BondOrientationOrderN/System_%d",CurrentSystem);
       mkdir(buffer,S_IRWXU);
-
-      // Self diffusion
-      // ========================================================================================================================
-
 
       for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
       {
@@ -7733,21 +7758,41 @@ void SampleBondOrientationAutoCorrelationFunctionOrderN(int Switch)
 
         for(i=0;i<NumberOfOrientationFrameworkBonds[CurrentSystem][f1];i++)
         {
+          norm.x=norm.y=norm.z=0.0;
+          for(k=0;k<BondOrientationAngleHistogramSize[CurrentSystem];k++)
+          {
+            norm.x+=BondOrientationAngleDistributionFunction[CurrentSystem][f1][i][k].x;
+            norm.y+=BondOrientationAngleDistributionFunction[CurrentSystem][f1][i][k].y;
+            norm.z+=BondOrientationAngleDistributionFunction[CurrentSystem][f1][i][k].z;
+          }
+          norm.x*=360.0/(REAL)BondOrientationAngleHistogramSize[CurrentSystem];
+          norm.y*=360.0/(REAL)BondOrientationAngleHistogramSize[CurrentSystem];
+          norm.z*=360.0/(REAL)BondOrientationAngleHistogramSize[CurrentSystem];
 
           sprintf(buffer,"BondOrientationOrderN/System_%d/Framework_%d/Orientation_histogram%d%s.dat",CurrentSystem,f1,i,FileNameAppend);
           FilePtr=fopen(buffer,"w");
+          fprintf(FilePtr,"# column 1: angle [degrees]\n");
+          fprintf(FilePtr,"# column 2: histogram of the angle of the vector with the y-axis in the z-y plane\n");
+          fprintf(FilePtr,"# column 3: histogram of the angle of the vector with the x-axis in the z-x plane\n");
+          fprintf(FilePtr,"# column 4: histogram of the angle of the vector with the x-axis in the y-x plane\n");
           for(k=0;k<BondOrientationAngleHistogramSize[CurrentSystem];k++)
           {
             fprintf(FilePtr,"%g %g %g %g\n",
                k*360.0/BondOrientationAngleHistogramSize[CurrentSystem],
-               BondOrientationAngleDistributionFunction[CurrentSystem][f1][i][k].x,
-               BondOrientationAngleDistributionFunction[CurrentSystem][f1][i][k].y,
-               BondOrientationAngleDistributionFunction[CurrentSystem][f1][i][k].z);
+               BondOrientationAngleDistributionFunction[CurrentSystem][f1][i][k].x/norm.x,
+               BondOrientationAngleDistributionFunction[CurrentSystem][f1][i][k].y/norm.y,
+               BondOrientationAngleDistributionFunction[CurrentSystem][f1][i][k].z/norm.z);
           }
           fclose(FilePtr);
 
           sprintf(buffer,"BondOrientationOrderN/System_%d/Framework_%d/Orientation_correlation_type%d%s.dat",CurrentSystem,f1,i,FileNameAppend);
           FilePtr=fopen(buffer,"w");
+          fprintf(FilePtr,"# column 1: time [ps]\n");
+          fprintf(FilePtr,"# column 2: autocorrelation of the bond averaged over x,y, and z\n");
+          fprintf(FilePtr,"# column 3: autocorrelation of the bond in the x-direction\n");
+          fprintf(FilePtr,"# column 4: autocorrelation of the bond in the y-direction\n");
+          fprintf(FilePtr,"# column 5: autocorrelation of the bond in the z-direction\n");
+          fprintf(FilePtr,"# column 6: the number of measurements (per point)\n");
           for(CurrentBlock=0;CurrentBlock<MIN2(MaxNumberOfBlocksBondOrientationOrderN,NumberOfBlocksBondOrientationOrderN[CurrentSystem][f1]);CurrentBlock++)
           {
             CurrentBlocklength=MIN2(BlockLengthBondOrientationOrderN[CurrentSystem][f1][CurrentBlock],NumberOfBlockElementsBondOrientationOrderN);
@@ -9748,6 +9793,8 @@ void WriteRestartSample(FILE *FilePtr)
   fwrite(&NumberOfBlockElementsMolecularOrientationOrderN,1,sizeof(int),FilePtr);
   fwrite(&MaxNumberOfBlocksMolecularOrientationOrderN,1,sizeof(int),FilePtr);
   fwrite(&ComputeIndividualMolecularOrientationOrderN,1,sizeof(int),FilePtr);
+  fwrite(&MolecularOrientationType,1,sizeof(int),FilePtr);
+  fwrite(&MolecularOrientationVector,1,sizeof(VECTOR),FilePtr);
 
   for(i=0;i<NumberOfSystems;i++)
   {
@@ -11035,6 +11082,8 @@ void ReadRestartSample(FILE *FilePtr)
   fread(&NumberOfBlockElementsMolecularOrientationOrderN,1,sizeof(int),FilePtr);
   fread(&MaxNumberOfBlocksMolecularOrientationOrderN,1,sizeof(int),FilePtr);
   fread(&ComputeIndividualMolecularOrientationOrderN,1,sizeof(int),FilePtr);
+  fread(&MolecularOrientationType,1,sizeof(int),FilePtr);
+  fread(&MolecularOrientationVector,1,sizeof(VECTOR),FilePtr);
 
   SampleMolecularOrientationAutoCorrelationFunctionOrderN(ALLOCATE);
 
