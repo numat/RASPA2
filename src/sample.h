@@ -222,6 +222,7 @@ extern int *SampleMolecularOrientationOrderNEvery;           // the sample frequ
 extern int *WriteMolecularOrientationOrderNEvery;            // write output every 'WriteVACFOrderNEvery' steps
 extern int MolecularOrientationType;
 extern VECTOR MolecularOrientationVector;
+extern int MolecularOrientationGroup;
 extern int NumberOfBlockElementsMolecularOrientationOrderN;  // the number of elements per block
 extern int MaxNumberOfBlocksMolecularOrientationOrderN;      // the maxmimum amount of blocks (data beyond this block is ignored)
 extern int ComputeIndividualMolecularOrientationOrderN;      // whether or not to compute (self-)vacf's for individual molecules

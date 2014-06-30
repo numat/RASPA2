@@ -322,6 +322,7 @@ int *SampleMolecularOrientationOrderNEvery;                      // the sample f
 int *WriteMolecularOrientationOrderNEvery;                       // write output every 'CountMolecularOrientationOrderN' steps
 int MolecularOrientationType;
 VECTOR MolecularOrientationVector;
+int MolecularOrientationGroup;
 int NumberOfBlockElementsMolecularOrientationOrderN;             // the number of elements per block
 int MaxNumberOfBlocksMolecularOrientationOrderN;                 // the maxmimum amount of blocks (data beyond this block is ignored)
 int ComputeIndividualMolecularOrientationOrderN;                 // whether or not to compute (self-)vacf's for individual molecules
@@ -2415,13 +2416,16 @@ POINT GenerateRandomPointInCartesianUnitCellSpace(void)
 
 void SampleFreeEnergyProfile(int Switch)
 {
-  int i,j,index,StartingBead;
+  int i,j,k,index,StartingBead;
   REAL value,IdealGasRosenBluth,error;
   VECTOR A,C,drift,fcom;
   char buffer[1024];
   FILE *FilePtr;
   VECTOR dr;
   REAL q;
+  int StoredNumberOfTrialPositions;
+  int StoredNumberOfTrialPositionsFirstBead;
+  REAL UDeltaPolarization;
 
   switch(Switch)
   {
@@ -2455,6 +2459,9 @@ void SampleFreeEnergyProfile(int Switch)
       drift.y=fcom.y-Framework[CurrentSystem].IntialCenterOfMassPosition.y;
       drift.z=fcom.z-Framework[CurrentSystem].IntialCenterOfMassPosition.z;
 
+      StoredNumberOfTrialPositions=NumberOfTrialPositions;
+      StoredNumberOfTrialPositionsFirstBead=NumberOfTrialPositionsForTheFirstBead;
+
       for(i=0;i<MAX2(MinimumInnerCycles,NumberOfAdsorbateMolecules[CurrentSystem]+NumberOfCationMolecules[CurrentSystem]);i++)
       {
         for(CurrentComponent=0;CurrentComponent<NumberOfComponents;CurrentComponent++)
@@ -2485,22 +2492,49 @@ void SampleFreeEnergyProfile(int Switch)
             // grow a trial molecule at position 'C' from scratch, the new Rosenbluth weight is stored in variable 'value'
             NewPosition[CurrentSystem][StartingBead]=C;
             NumberOfBeadsAlreadyPlaced=0;
+
+            for(k=0;k<Components[CurrentComponent].NumberOfAtoms;k++)
+            {
+              CFVDWScaling[k]=1.0;
+              CFChargeScaling[k]=1.0;
+            }
+
+            NumberOfTrialPositions=NumberOfTrialPositionsWidom;
+            NumberOfTrialPositionsForTheFirstBead=NumberOfTrialPositionsForTheFirstBeadWidom;
             value=GrowMolecule(CBMC_PARTIAL_INSERTION);
+            NumberOfTrialPositions=StoredNumberOfTrialPositions;
+            NumberOfTrialPositionsForTheFirstBead=StoredNumberOfTrialPositionsFirstBead;
 
             if(OVERLAP||BlockedPocket(NewPosition[CurrentSystem][StartingBead]))
               value=0.0; // set the Rosenbluth weight at zero if an overlap occurs or when the position is 'blocked'
             else
             {
-              // correct for tail-corrections
+             // correct for tail-corrections
               value*=exp(-Beta[CurrentSystem]*TailMolecularEnergyDifferenceAdd());
+
               // correct for the long-range part of the Ewald-summation (Fourier part)
-              if(ChargeMethod==EWALD)
+              if((ChargeMethod==EWALD)&&(!OmitEwaldFourier))
               {
                 CalculateEwaldFourierAdsorbate(TRUE,FALSE,NumberOfAdsorbateMolecules[CurrentSystem],0);
-                value*=exp(-Beta[CurrentSystem]*(UHostAdsorbateChargeChargeFourierDelta[CurrentSystem]+
-                               UAdsorbateAdsorbateChargeChargeFourierDelta[CurrentSystem]+
-                               UAdsorbateCationChargeChargeFourierDelta[CurrentSystem]));
+                value*=exp(-Beta[CurrentSystem]*(
+                    UHostAdsorbateChargeChargeFourierDelta[CurrentSystem]+UAdsorbateAdsorbateChargeChargeFourierDelta[CurrentSystem]+UAdsorbateCationChargeChargeFourierDelta[CurrentSystem]+
+                    UHostAdsorbateChargeBondDipoleFourierDelta[CurrentSystem]+UAdsorbateAdsorbateChargeBondDipoleFourierDelta[CurrentSystem]+UAdsorbateCationChargeBondDipoleFourierDelta[CurrentSystem]+
+                    UHostAdsorbateBondDipoleBondDipoleFourierDelta[CurrentSystem]+UAdsorbateAdsorbateBondDipoleBondDipoleFourierDelta[CurrentSystem]+UAdsorbateCationBondDipoleBondDipoleFourierDelta[CurrentSystem]));
               }
+/*
+              if(ComputePolarization)
+              {
+                ComputeNewPolarizationEnergy(TRUE,NumberOfAdsorbateMolecules[CurrentSystem],-1);
+                UDeltaPolarization=UHostPolarizationNew[CurrentSystem]-UHostPolarization[CurrentSystem]+
+                                   (UAdsorbatePolarizationNew[CurrentSystem]+UPolarizationNew[CurrentSystem])-UAdsorbatePolarization[CurrentSystem]+
+                                   UCationPolarizationNew[CurrentSystem]-UCationPolarization[CurrentSystem]+
+                                   UHostBackPolarizationNew[CurrentSystem]-UHostBackPolarization[CurrentSystem]+
+                                   (UAdsorbateBackPolarizationNew[CurrentSystem]+UBackPolarizationNew[CurrentSystem])-UAdsorbateBackPolarization[CurrentSystem]+
+                                   UCationBackPolarizationNew[CurrentSystem]-UCationBackPolarization[CurrentSystem];
+                value*=exp(-Beta[CurrentSystem]*UDeltaPolarization);
+              }
+*/
+
             }
 
 
@@ -7285,9 +7319,7 @@ VECTOR GetOrientationalVectorAdsorbates(int i)
       return orientation;
     default:
     case MOLECULAR_VECTOR:
-      ComputeQuaternionAdsorbate(i);
-      BuildRotationMatrixInverse(&M,Adsorbates[CurrentSystem][i].Groups[0].Quaternion);
-
+      BuildRotationMatrixInverse(&M,Adsorbates[CurrentSystem][i].Groups[MolecularOrientationGroup].Quaternion);
       orientation.x=M.ax*MolecularOrientationVector.x+M.bx*MolecularOrientationVector.y+M.cx*MolecularOrientationVector.z;
       orientation.y=M.ay*MolecularOrientationVector.x+M.by*MolecularOrientationVector.y+M.cy*MolecularOrientationVector.z;
       orientation.z=M.az*MolecularOrientationVector.x+M.bz*MolecularOrientationVector.y+M.cz*MolecularOrientationVector.z;
@@ -7325,9 +7357,7 @@ VECTOR GetOrientationalVectorCations(int i)
       return orientation;
     default:
     case MOLECULAR_VECTOR:
-      ComputeQuaternionCation(i);
-      BuildRotationMatrixInverse(&M,Cations[CurrentSystem][i].Groups[0].Quaternion);
-
+      BuildRotationMatrixInverse(&M,Cations[CurrentSystem][i].Groups[MolecularOrientationGroup].Quaternion);
       orientation.x=M.ax*MolecularOrientationVector.x+M.bx*MolecularOrientationVector.y+M.cx*MolecularOrientationVector.z;
       orientation.y=M.ay*MolecularOrientationVector.x+M.by*MolecularOrientationVector.y+M.cy*MolecularOrientationVector.z;
       orientation.z=M.az*MolecularOrientationVector.x+M.bz*MolecularOrientationVector.y+M.cz*MolecularOrientationVector.z;
@@ -9795,6 +9825,7 @@ void WriteRestartSample(FILE *FilePtr)
   fwrite(&ComputeIndividualMolecularOrientationOrderN,1,sizeof(int),FilePtr);
   fwrite(&MolecularOrientationType,1,sizeof(int),FilePtr);
   fwrite(&MolecularOrientationVector,1,sizeof(VECTOR),FilePtr);
+  fwrite(&MolecularOrientationGroup,1,sizeof(int),FilePtr);
 
   for(i=0;i<NumberOfSystems;i++)
   {
@@ -11084,6 +11115,7 @@ void ReadRestartSample(FILE *FilePtr)
   fread(&ComputeIndividualMolecularOrientationOrderN,1,sizeof(int),FilePtr);
   fread(&MolecularOrientationType,1,sizeof(int),FilePtr);
   fread(&MolecularOrientationVector,1,sizeof(VECTOR),FilePtr);
+  fread(&MolecularOrientationGroup,1,sizeof(int),FilePtr);
 
   SampleMolecularOrientationAutoCorrelationFunctionOrderN(ALLOCATE);
 

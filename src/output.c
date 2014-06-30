@@ -240,7 +240,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
   fprintf(FilePtr,"Compiler and run-time data\n");
   fprintf(FilePtr,"===========================================================================\n");
 
-  fprintf(FilePtr,"%s\n","RASPA 1.9-7");
+  fprintf(FilePtr,"%s\n","RASPA 1.9-8");
 
   #if defined (__LP64__) || defined (__64BIT__) || defined (_LP64) || (__WORDSIZE == 64)
     fprintf(FilePtr,"Compiled as a 64-bits application\n");
@@ -1129,6 +1129,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
         break;
       case MOLECULAR_VECTOR:
         fprintf(FilePtr,"\tOrientation type: fixed vector in molecular frame\n");
+        fprintf(FilePtr,"\t\tOrientation group: %d\n",MolecularOrientationGroup);
         fprintf(FilePtr,"\t\tOrientation vector: %lf %lf %lf\n",MolecularOrientationVector.x,MolecularOrientationVector.y,MolecularOrientationVector.z);
         break;
       default:

@@ -1189,6 +1189,7 @@ int ReadInput(char *input)
     MolecularOrientationVector.x=0.0;
     MolecularOrientationVector.y=1.0;
     MolecularOrientationVector.z=0.0;
+    MolecularOrientationGroup=0;
     MolecularOrientationType=END_TO_END_VECTOR;
 
     // sampling of the bond orientation autocorrelation function using a modified order-N algorithm
@@ -3239,6 +3240,7 @@ int ReadInput(char *input)
     }
     if(strcasecmp("MolecularOrientationVector",keyword)==0) sscanf(arguments,"%lf %lf %lf",&MolecularOrientationVector.x,
             &MolecularOrientationVector.y,&MolecularOrientationVector.z);
+    if(strcasecmp("MolecularOrientationGroup",keyword)==0) sscanf(arguments,"%d",&MolecularOrientationGroup);
     if(strcasecmp("MolecularOrientationType",keyword)==0)
     {
       if(strcasecmp("EndToEndvector",firstargument)==0) MolecularOrientationType=END_TO_END_VECTOR;
