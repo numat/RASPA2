@@ -4385,6 +4385,9 @@ int CalculateFrameworkIntraReplicaVDWEnergy(void)
   REAL energy,rr;
   VECTOR posA,posB,dr;
   int f1,f2,ncell,index_j;
+  int A,B;
+  REAL r;
+  REAL *parms;
 
   // Framework-Framework energy
   UHostHostVDW[CurrentSystem]=0.0;
@@ -4434,10 +4437,40 @@ int CalculateFrameworkIntraReplicaVDWEnergy(void)
       }
     }
   }
+
+  // contributions from interactions 1-4 torsions
+  for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
+  {
+    if(Framework[CurrentSystem].FrameworkModels[f1]==FLEXIBLE)
+    {
+      for(i=0;i<Framework[CurrentSystem].NumberOfTorsions[f1];i++)
+      {
+        parms=Framework[CurrentSystem].TorsionArguments[f1][i];
+
+        if(fabs(parms[6])>1e-8)
+        {
+          A=Framework[CurrentSystem].Torsions[f1][i].A;
+          typeA=Framework[CurrentSystem].Atoms[f1][A].Type;
+          posA=Framework[CurrentSystem].Atoms[f1][A].AnisotropicPosition;
+
+          B=Framework[CurrentSystem].Torsions[f1][i].D;
+          typeB=Framework[CurrentSystem].Atoms[f1][B].Type;
+          posB=Framework[CurrentSystem].Atoms[f1][B].AnisotropicPosition;
+
+
+          dr.x=posA.x-posB.x;
+          dr.y=posA.y-posB.y;
+          dr.z=posA.z-posB.z;
+          dr=ApplyBoundaryCondition(dr);
+          rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
+          UHostHostVDW[CurrentSystem]+=parms[6]*PotentialValue(typeA,typeB,rr,1.0);
+        }
+      }
+    }
+  }
   return 0;
 }
 
-// HERE
 int CalculateFrameworkIntraReplicaChargeChargeEnergy(void)
 {
   int i,j,typeA,typeB,start;
@@ -4445,6 +4478,9 @@ int CalculateFrameworkIntraReplicaChargeChargeEnergy(void)
   REAL r,rr,energy;
   VECTOR posA,posB,dr;
   int f1,f2,ncell,index_j;
+  int A,B;
+  REAL alpha;
+  REAL *parms;
 
   // Framework-Framework energy
   UHostHostChargeChargeReal[CurrentSystem]=0.0;
@@ -4491,6 +4527,40 @@ int CalculateFrameworkIntraReplicaChargeChargeEnergy(void)
               }
             }
           }
+        }
+      }
+    }
+  }
+
+
+  // contributions from interactions 1-4 torsions
+  alpha=Alpha[CurrentSystem];
+  for(f1=0;f1<Framework[CurrentSystem].NumberOfFrameworks;f1++)
+  {
+    if(Framework[CurrentSystem].FrameworkModels[f1]==FLEXIBLE)
+    {
+      for(i=0;i<Framework[CurrentSystem].NumberOfTorsions[f1];i++)
+      {
+        parms=Framework[CurrentSystem].TorsionArguments[f1][i];
+
+        if(fabs(parms[7])>1e-8)
+        {
+          A=Framework[CurrentSystem].Torsions[f1][i].A;
+          chargeA=Framework[CurrentSystem].Atoms[f1][A].Charge;
+          posA=Framework[CurrentSystem].Atoms[f1][A].AnisotropicPosition;
+
+          B=Framework[CurrentSystem].Torsions[f1][i].D;
+          chargeB=Framework[CurrentSystem].Atoms[f1][B].Charge;
+          posB=Framework[CurrentSystem].Atoms[f1][B].AnisotropicPosition;
+
+
+          dr.x=posA.x-posB.x;
+          dr.y=posA.y-posB.y;
+          dr.z=posA.z-posB.z;
+          dr=ApplyBoundaryCondition(dr);
+          r=sqrt(SQR(dr.x)+SQR(dr.y)+SQR(dr.z));
+
+          UHostHostChargeChargeReal[CurrentSystem]+=parms[7]*COULOMBIC_CONVERSION_FACTOR*chargeA*chargeB/r;
         }
       }
     }
