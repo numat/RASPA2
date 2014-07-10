@@ -8,7 +8,7 @@ from ctypes import cdll, c_void_p, c_char_p, c_bool, cast
 import os
 env = os.environ
 
-from parser import parse
+from RASPA2.output_parser import parse
 
 raspa = cdll.LoadLibrary("/usr/lib/libraspa2.so")
 raspa.run.argtypes = (c_char_p, c_char_p, c_char_p, c_bool)
@@ -235,23 +235,23 @@ def run_mixture(structure, molecules, mol_fractions, temperature=273.15,
     changes_list = " ".join(str(n) for n in range(len(molecules)))
     for i, item in enumerate(molecules):
         script += "\n".join(["",
-                            "Component %i MoleculeName                 %s"
-                            % (i, item),
-                            "             StartingBead                 0",
-                            "             MoleculeDefinition           TraPPE",
-                            "             MolFraction                  %.2f"
-                            % mol_fractions[i],
-                            "             IdentityChangeProbability    1.0",
-                            "                 NumberOfIdentityChanges       %i"
-                            % len(molecules),
-                            "                 IdentityChangesList           %s"
-                            % changes_list,
-                            "             IdealGasRosenbluthWeight     1.0",
-                            "             TranslationProbability       1.0",
-                            "             RotationProbability          1.0",
-                            "             ReinsertionProbability       1.0",
-                            "             SwapProbability              1.0",
-                            "             CreateNumberOfMolecules      0"])
+                             "Component %i MoleculeName                 %s"
+                             % (i, item),
+                             "             StartingBead                 0",
+                             "             MoleculeDefinition          TraPPE",
+                             "             MolFraction                  %.2f"
+                             % mol_fractions[i],
+                             "             IdentityChangeProbability    1.0",
+                             "                 NumberOfIdentityChanges      %i"
+                             % len(molecules),
+                             "                 IdentityChangesList          %s"
+                             % changes_list,
+                             "             IdealGasRosenbluthWeight     1.0",
+                             "             TranslationProbability       1.0",
+                             "             RotationProbability          1.0",
+                             "             ReinsertionProbability       1.0",
+                             "             SwapProbability              1.0",
+                             "             CreateNumberOfMolecules      0"])
     return parse(run_script(script, structure))
 
 
@@ -407,8 +407,8 @@ def pybel_to_cif(structure):
     for i, atom in enumerate(structure):
         element = table.GetSymbol(atom.atomicnum)
         c = uc.WrapFractionalCoordinate(uc.CartesianToFractional(atom.vector))
-        cif += "    %-8s%-5s%.5f%10.5f%10.5f%8.3f\n" % ("Mof_" +
-               element, element, c.GetX(), c.GetY(), c.GetZ(),
+        cif += "    %-8s%-5s%.5f%10.5f%10.5f%8.3f\n".format(
+               "Mof_" + element, element, c.GetX(), c.GetY(), c.GetZ(),
                atom.partialcharge)
     cif += "_end\n"
     return cif
