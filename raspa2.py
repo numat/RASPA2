@@ -91,8 +91,10 @@ def run_script(input_script, structure=None, raspa_dir="auto"):
     except ImportError:
         pass
 
-    ptr = raspa.run(input_script, structure or "", raspa_dir, True)
-    return cast(ptr, c_char_p).value[:]
+    ptr = raspa.run(input_script.encode("ascii"),
+                    (structure or "").encode("ascii"),
+                    raspa_dir.encode("ascii"), True)
+    return cast(ptr, c_char_p).value[:].decode("utf-8")
 
 
 def create_script(molecule_name, temperature=273.15, pressure=101325,
@@ -407,9 +409,10 @@ def pybel_to_cif(structure):
     for i, atom in enumerate(structure):
         element = table.GetSymbol(atom.atomicnum)
         c = uc.WrapFractionalCoordinate(uc.CartesianToFractional(atom.vector))
-        cif += "    %-8s%-5s%.5f%10.5f%10.5f%8.3f\n".format(
-               "Mof_" + element, element, c.GetX(), c.GetY(), c.GetZ(),
-               atom.partialcharge)
+        cif += "    %-8s%-5s%.5f%10.5f%10.5f%8.3f\n" % ("Mof_" + element,
+                                                        element, c.GetX(),
+                                                        c.GetY(), c.GetZ(),
+                                                        atom.partialcharge)
     cif += "_end\n"
     return cif
 
