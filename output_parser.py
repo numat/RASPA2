@@ -216,5 +216,5 @@ if __name__ == "__main__":
     import json
     with open(sys.argv[-1]) as in_file:
         data = in_file.read()
-    print json.dumps(parse(data), indent=4, sort_keys=True,
-                     separators=[",", ":"])
+    print(json.dumps(parse(data), indent=4, sort_keys=True,
+                     separators=[",", ":"]))
