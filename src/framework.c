@@ -9206,7 +9206,7 @@ int ReadFrameworkDefinition(void)
                     {
                       D=GetNeighbour(CurrentSystem,CurrentFramework,C,m);
                       CurrentTypeD=Framework[CurrentSystem].Atoms[CurrentFramework][D].Type;
-                      if((B!=D)&&(CurrentTypeD==TypeD))
+                      if((B!=D)&&(A!=D)&&(C!=D)&&(CurrentTypeD==TypeD))
                       {
                         switch(TorsionType)
                         {
@@ -10730,41 +10730,54 @@ void MakeExclusionMatrix(int system)
     }
   }
 
+  Framework[system].NumberOfIntra12Interactions=0;
+  Framework[system].NumberOfIntra13Interactions=0;
+  Framework[system].NumberOfIntra14Interactions=0;
+  Framework[system].NumberOfIntra123Interactions=0;
+  Framework[system].NumberOfIntra1234Interactions=0;
+
   // General: count all possible 1-2, 1-3, and 1-4 interactions in the unit cell
   // ==============================================================================================
   for(f1=0;f1<Framework[system].NumberOfFrameworks;f1++)
   {
+
     for(A=0;A<Framework[system].NumberOfAtoms[f1];A++)
     {
       for(k=0;k<Framework[system].Connectivity[f1][A];k++)
       {
         B=GetNeighbour(system,f1,A,k);
 
-        // always mark as a 1-2 interaction
-        SETBIT(Framework[system].ExclusionMatrix[f1][A][B],0);
-        if(B<Framework[system].NumberOfAtoms[f1])
-          SETBIT(Framework[system].ExclusionMatrix[f1][B][A],0);
+        if(A<B) 
+        {
+          Framework[system].NumberOfIntra12Interactions++;
+          Framework[system].NumberOfIntra123Interactions++;
+          Framework[system].NumberOfIntra1234Interactions++;
+        }
 
         for(l=0;l<Framework[system].Connectivity[f1][B];l++)
         {
           C=GetNeighbour(system,f1,B,l);
-          if(A!=C)
+          if((A!=C)&&(C!=B))
           {
             // always mark as a 1-3 interaction
-            SETBIT(Framework[system].ExclusionMatrix[f1][A][C],1);
-            if(C<Framework[system].NumberOfAtoms[f1])
-              SETBIT(Framework[system].ExclusionMatrix[f1][C][A],1);
-          }
-
-          for(m=0;m<Framework[system].Connectivity[f1][C];m++)
-          {
-            D=GetNeighbour(system,f1,C,m);
-            if((D!=B)&&(D!=A))
+            if(A<C)
             {
-              // always mark as a 1-4 interaction
-              SETBIT(Framework[system].ExclusionMatrix[f1][A][D],2);
-              if(D<Framework[system].NumberOfAtoms[f1])
-                SETBIT(Framework[system].ExclusionMatrix[f1][D][A],2);
+              Framework[system].NumberOfIntra13Interactions++;
+              Framework[system].NumberOfIntra123Interactions++;
+              Framework[system].NumberOfIntra1234Interactions++;
+            }
+
+            for(m=0;m<Framework[system].Connectivity[f1][C];m++)
+            {
+              D=GetNeighbour(system,f1,C,m);
+              if((D!=B)&&(D!=A)&&(D!=C))
+              {
+                if(A<D)
+                {
+                  Framework[system].NumberOfIntra14Interactions++;
+                  Framework[system].NumberOfIntra1234Interactions++;
+                }
+              }
             }
           }
         }
@@ -10772,43 +10785,6 @@ void MakeExclusionMatrix(int system)
     }
   }
 
-  for(f1=0;f1<Framework[system].NumberOfFrameworks;f1++)
-  {
-    Framework[system].NumberOfIntra12Interactions=0;
-    Framework[system].NumberOfIntra13Interactions=0;
-    Framework[system].NumberOfIntra14Interactions=0;
-    Framework[system].NumberOfIntra123Interactions=0;
-    Framework[system].NumberOfIntra1234Interactions=0;
-    for(i=0;i<Framework[system].NumberOfAtoms[f1];i++)
-    {
-      for(j=i+1;j<Framework[system].NumberOfAtoms[f1];j++)
-      {
-        if(BITVAL(Framework[system].ExclusionMatrix[f1][i][j],0))
-          Framework[system].NumberOfIntra12Interactions++;
-        if(BITVAL(Framework[system].ExclusionMatrix[f1][i][j],1))
-          Framework[system].NumberOfIntra13Interactions++;
-        if(BITVAL(Framework[system].ExclusionMatrix[f1][i][j],2))
-          Framework[system].NumberOfIntra14Interactions++;
-        if((BITVAL(Framework[system].ExclusionMatrix[f1][i][j],0))||(BITVAL(Framework[system].ExclusionMatrix[f1][i][j],1)))
-          Framework[system].NumberOfIntra123Interactions++;
-        if((BITVAL(Framework[system].ExclusionMatrix[f1][i][j],0))||(BITVAL(Framework[system].ExclusionMatrix[f1][i][j],1))||
-           (BITVAL(Framework[system].ExclusionMatrix[f1][i][j],2)))
-          Framework[system].NumberOfIntra1234Interactions++;
-      }
-    }
-  }
-  for(f1=0;f1<Framework[system].NumberOfFrameworks;f1++)
-  {
-    for(i=0;i<Framework[system].NumberOfAtoms[f1];i++)
-    {
-      for(j=0;j<Framework[system].NumberOfAtoms[f1];j++)
-      {
-        CLEARBIT(Framework[system].ExclusionMatrix[f1][i][j],0);
-        CLEARBIT(Framework[system].ExclusionMatrix[f1][i][j],1);
-        CLEARBIT(Framework[system].ExclusionMatrix[f1][i][j],2);
-      }
-    }
-  }
 
   // VDW-VDW
   // ==============================================================================================

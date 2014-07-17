@@ -1186,6 +1186,11 @@ int ReadInput(char *input)
     ComputeMolecularOrientationOrderN[i]=FALSE;
     WriteMolecularOrientationOrderNEvery[i]=5000;
     SampleMolecularOrientationOrderNEvery[i]=5;
+    MolecularOrientationVector.x=0.0;
+    MolecularOrientationVector.y=1.0;
+    MolecularOrientationVector.z=0.0;
+    MolecularOrientationGroup=0;
+    MolecularOrientationType=END_TO_END_VECTOR;
 
     // sampling of the bond orientation autocorrelation function using a modified order-N algorithm
     ComputeBondOrientationOrderN[i]=FALSE;
@@ -3232,6 +3237,14 @@ int ReadInput(char *input)
     {
       if(strcasecmp("yes",firstargument)==0) ComputeMolecularOrientationOrderN[CurrentSystem]=TRUE;
       if(strcasecmp("no",firstargument)==0) ComputeMolecularOrientationOrderN[CurrentSystem]=FALSE;
+    }
+    if(strcasecmp("MolecularOrientationVector",keyword)==0) sscanf(arguments,"%lf %lf %lf",&MolecularOrientationVector.x,
+            &MolecularOrientationVector.y,&MolecularOrientationVector.z);
+    if(strcasecmp("MolecularOrientationGroup",keyword)==0) sscanf(arguments,"%d",&MolecularOrientationGroup);
+    if(strcasecmp("MolecularOrientationType",keyword)==0)
+    {
+      if(strcasecmp("EndToEndvector",firstargument)==0) MolecularOrientationType=END_TO_END_VECTOR;
+      if(strcasecmp("MolecularVector",firstargument)==0) MolecularOrientationType=MOLECULAR_VECTOR;
     }
     if(strcasecmp("WriteMOAACFEvery",keyword)==0) sscanf(arguments,"%d",&WriteMolecularOrientationOrderNEvery[CurrentSystem]);
     if(strcasecmp("SampleMOACFEvery",keyword)==0) sscanf(arguments,"%d",&SampleMolecularOrientationOrderNEvery[CurrentSystem]);
