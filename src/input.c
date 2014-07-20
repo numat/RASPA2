@@ -2633,7 +2633,8 @@ int ReadInput(char *input)
         if(Components[CurrentComponent].ProbabilityCFSwapLambdaMove>0.0)
         {
           Components[CurrentComponent].Swapable=TRUE;
-          Components[CurrentComponent].CFMoleculePresent[CurrentSystem]=TRUE;
+          for(i=0;i<NumberOfSystems;i++)
+            Components[CurrentComponent].CFMoleculePresent[i]=TRUE;
           Swapable=TRUE;
         }
       }
@@ -2643,7 +2644,8 @@ int ReadInput(char *input)
         if(Components[CurrentComponent].ProbabilityCBCFSwapLambdaMove>0.0)
         {
           Components[CurrentComponent].Swapable=TRUE;
-          Components[CurrentComponent].CFMoleculePresent[CurrentSystem]=TRUE;
+          for(i=0;i<NumberOfSystems;i++)
+            Components[CurrentComponent].CFMoleculePresent[i]=TRUE;
           Swapable=TRUE;
         }
       }
@@ -6975,6 +6977,7 @@ int ReadInput(char *input)
         }
         if(Components[j].FractionalMolecule[i]<0)
         {
+          CurrentSystem=i;
           Components[j].FractionalMolecule[i]=SelectRandomMoleculeOfType(j);
 
           // start with Lambda=0.5

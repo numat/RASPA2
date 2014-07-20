@@ -6931,7 +6931,7 @@ int SwapAddAdsorbateMove(void)
 
   // acceptence rule
   if(RandomNumber()<((RosenbluthNew/RosenbluthIdealNew)*Beta[CurrentSystem]*PartialFugacity*Volume[CurrentSystem]/
-                    (1.0+Components[CurrentComponent].NumberOfMolecules[CurrentSystem])))
+                    (1.0+Components[CurrentComponent].NumberOfMolecules[CurrentSystem]-(Components[CurrentComponent].CFMoleculePresent[CurrentSystem]?1:0))))
   {
     SwapAddAccepted[CurrentSystem][CurrentComponent][1]+=1.0;
 
@@ -7136,7 +7136,7 @@ int SwapRemoveAdsorbateMove(void)
   RosenbluthIdealOld=Components[CurrentComponent].IdealGasRosenbluthWeight[CurrentSystem];
 
   // acceptence rule
-  if(RandomNumber()<((REAL)Components[CurrentComponent].NumberOfMolecules[CurrentSystem]/
+  if(RandomNumber()<((REAL)(Components[CurrentComponent].NumberOfMolecules[CurrentSystem]-(Components[CurrentComponent].CFMoleculePresent[CurrentSystem]?1:0))/
                     ((RosenbluthOld/RosenbluthIdealOld)*Beta[CurrentSystem]*PartialFugacity*Volume[CurrentSystem])))
   {
     SwapRemoveAccepted[CurrentSystem][CurrentComponent][1]+=1.0;
@@ -7345,7 +7345,7 @@ int SwapAddCationMove(void)
 
   // acceptence rule
   if(RandomNumber()<((RosenbluthNew/RosenbluthIdealNew)*Beta[CurrentSystem]*PartialFugacity*Volume[CurrentSystem]/
-                    ((REAL)1.0+(REAL)Components[CurrentComponent].NumberOfMolecules[CurrentSystem])))
+                    ((REAL)1.0+(REAL)Components[CurrentComponent].NumberOfMolecules[CurrentSystem]-(Components[CurrentComponent].CFMoleculePresent[CurrentSystem]?1:0))))
   {
     SwapAddAccepted[CurrentSystem][CurrentComponent][1]+=1.0;
 
@@ -7548,7 +7548,7 @@ int SwapRemoveCationMove(void)
   RosenbluthIdealOld=Components[CurrentComponent].IdealGasRosenbluthWeight[CurrentSystem];
 
   // acceptence rule
-  if(RandomNumber()<((REAL)Components[CurrentComponent].NumberOfMolecules[CurrentSystem]/
+  if(RandomNumber()<((REAL)(Components[CurrentComponent].NumberOfMolecules[CurrentSystem]-(Components[CurrentComponent].CFMoleculePresent[CurrentSystem]?1:0))/
                     ((RosenbluthOld/RosenbluthIdealOld)*Beta[CurrentSystem]*PartialFugacity*Volume[CurrentSystem])))
   {
     SwapRemoveAccepted[CurrentSystem][CurrentComponent][1]+=1.0;
@@ -9107,6 +9107,7 @@ int ParallelTemperingMove(void)
   REAL PartialFugacityA,PartialFugacityB;
   int temp_int;
   int *temp_int_pointer;
+  int **temp_int_double_pointer;
   REAL temp_real;
   ADSORBATE_MOLECULE *adsorbate_pointer;
   CATION_MOLECULE *cation_pointer;
@@ -9147,7 +9148,20 @@ int ParallelTemperingMove(void)
     SWAP(Cations[SystemA],Cations[SystemB],cation_pointer);
 
     for(i=0;i<NumberOfComponents;i++)
+    {
       SWAP(Components[i].NumberOfMolecules[SystemA],Components[i].NumberOfMolecules[SystemB],temp_int);
+
+      SWAP(Components[i].ReactantFractionalMolecules[SystemA],Components[i].ReactantFractionalMolecules[SystemB],temp_int_double_pointer);
+      SWAP(Components[i].ProductFractionalMolecules[SystemA],Components[i].ProductFractionalMolecules[SystemB],temp_int_double_pointer);
+
+      SWAP(Components[i].FractionalMolecule[SystemA],Components[i].FractionalMolecule[SystemB],temp_int);
+      SWAP(Components[i].CFMoleculePresent[SystemA],Components[i].CFMoleculePresent[SystemB],temp_int);
+      SWAP(Components[i].RXMCMoleculesPresent[SystemA],Components[i].RXMCMoleculesPresent[SystemB],temp_int);
+      SWAP(Components[i].NumberOfRXMCMoleculesPresent[SystemA],Components[i].NumberOfRXMCMoleculesPresent[SystemB],temp_int);
+      SWAP(NumberOfFractionalMolecules[SystemA],NumberOfFractionalMolecules[SystemB],temp_int);
+      SWAP(NumberOfFractionalAdsorbateMolecules[SystemA],NumberOfFractionalAdsorbateMolecules[SystemB],temp_int);
+      SWAP(NumberOfFractionalCationMolecules[SystemA],NumberOfFractionalCationMolecules[SystemB],temp_int);
+    }
 
     for(f1=0;f1<Framework[SystemA].NumberOfFrameworks;f1++)
       if((Framework[CurrentSystem].FrameworkModels[f1]==FLEXIBLE))
@@ -9323,6 +9337,7 @@ int HyperParallelTemperingMove(void)
   REAL PartialFugacityA,PartialFugacityB;
   int temp_int;
   int *temp_int_pointer;
+  int **temp_int_double_pointer;
   REAL temp_real;
   ADSORBATE_MOLECULE *adsorbate_pointer;
   CATION_MOLECULE *cation_pointer;
@@ -9366,7 +9381,20 @@ int HyperParallelTemperingMove(void)
     SWAP(Cations[SystemA],Cations[SystemB],cation_pointer);
 
     for(i=0;i<NumberOfComponents;i++)
+    {
       SWAP(Components[i].NumberOfMolecules[SystemA],Components[i].NumberOfMolecules[SystemB],temp_int);
+
+      SWAP(Components[i].ReactantFractionalMolecules[SystemA],Components[i].ReactantFractionalMolecules[SystemB],temp_int_double_pointer);
+      SWAP(Components[i].ProductFractionalMolecules[SystemA],Components[i].ProductFractionalMolecules[SystemB],temp_int_double_pointer);
+
+      SWAP(Components[i].FractionalMolecule[SystemA],Components[i].FractionalMolecule[SystemB],temp_int);
+      SWAP(Components[i].CFMoleculePresent[SystemA],Components[i].CFMoleculePresent[SystemB],temp_int);
+      SWAP(Components[i].RXMCMoleculesPresent[SystemA],Components[i].RXMCMoleculesPresent[SystemB],temp_int);
+      SWAP(Components[i].NumberOfRXMCMoleculesPresent[SystemA],Components[i].NumberOfRXMCMoleculesPresent[SystemB],temp_int);
+      SWAP(NumberOfFractionalMolecules[SystemA],NumberOfFractionalMolecules[SystemB],temp_int);
+      SWAP(NumberOfFractionalAdsorbateMolecules[SystemA],NumberOfFractionalAdsorbateMolecules[SystemB],temp_int);
+      SWAP(NumberOfFractionalCationMolecules[SystemA],NumberOfFractionalCationMolecules[SystemB],temp_int);
+   }
 
     for(f1=0;f1<Framework[SystemA].NumberOfFrameworks;f1++)
       if(Framework[CurrentSystem].FrameworkModels[f1]==FLEXIBLE)
@@ -9539,6 +9567,7 @@ int ParallelMolFractionMove(void)
   int i,SystemA,SystemB,f1;
   int temp_int;
   int *temp_int_pointer;
+  int **temp_int_double_pointer;
   REAL temp_real;
   CATION_MOLECULE *cation_pointer;
   ADSORBATE_MOLECULE *adsorbate_pointer;
@@ -9585,7 +9614,20 @@ int ParallelMolFractionMove(void)
     SWAP(Cations[SystemA],Cations[SystemB],cation_pointer);
 
     for(i=0;i<NumberOfComponents;i++)
+    {
       SWAP(Components[i].NumberOfMolecules[SystemA],Components[i].NumberOfMolecules[SystemB],temp_int);
+
+      SWAP(Components[i].ReactantFractionalMolecules[SystemA],Components[i].ReactantFractionalMolecules[SystemB],temp_int_double_pointer);
+      SWAP(Components[i].ProductFractionalMolecules[SystemA],Components[i].ProductFractionalMolecules[SystemB],temp_int_double_pointer);
+
+      SWAP(Components[i].FractionalMolecule[SystemA],Components[i].FractionalMolecule[SystemB],temp_int);
+      SWAP(Components[i].CFMoleculePresent[SystemA],Components[i].CFMoleculePresent[SystemB],temp_int);
+      SWAP(Components[i].RXMCMoleculesPresent[SystemA],Components[i].RXMCMoleculesPresent[SystemB],temp_int);
+      SWAP(Components[i].NumberOfRXMCMoleculesPresent[SystemA],Components[i].NumberOfRXMCMoleculesPresent[SystemB],temp_int);
+      SWAP(NumberOfFractionalMolecules[SystemA],NumberOfFractionalMolecules[SystemB],temp_int);
+      SWAP(NumberOfFractionalAdsorbateMolecules[SystemA],NumberOfFractionalAdsorbateMolecules[SystemB],temp_int);
+      SWAP(NumberOfFractionalCationMolecules[SystemA],NumberOfFractionalCationMolecules[SystemB],temp_int);
+    }
 
     for(f1=0;f1<Framework[SystemA].NumberOfFrameworks;f1++)
       if(Framework[CurrentSystem].FrameworkModels[f1]==FLEXIBLE)
@@ -9780,6 +9822,7 @@ int ChiralInversionMove(void)
   VECTOR pos;
   int NS,NR;
   REAL QS,QR;
+  int temp_int;
 
   REAL StoredUHostBond,StoredUHostUreyBradley,StoredUHostBend,StoredUHostInversionBend;
   REAL StoredUHostTorsion,StoredUHostImproperTorsion,StoredUHostBondBond;
@@ -9831,6 +9874,7 @@ int ChiralInversionMove(void)
   if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
     NumberOfMolecules+=Framework[CurrentSystem].TotalNumberOfAtoms;
   if(NumberOfMolecules==0) return 0;
+
 
   ChiralInversionAttempts[CurrentSystem]+=1.0;
 
@@ -9990,7 +10034,7 @@ int ChiralInversionMove(void)
   // NOTE: CalculateEnergy does not recompute the positions from the center-of-mass and orientation (otherwise the type needs to be switched too).
   CalculateEnergy();
 
-  if(fabs(StoredUTotal-UTotal[CurrentSystem])>1e-3)
+  if(fabs(StoredUTotal-UTotal[CurrentSystem])>1e-6)
   {
     for(i=0;i<NumberOfSystems;i++)
     {
@@ -10010,8 +10054,13 @@ int ChiralInversionMove(void)
   {
     ChiralInversionAccepted[CurrentSystem]+=1.0;
 
+    SWAP(Components[ParallelMolFractionComponentA].FractionalMolecule[CurrentSystem],Components[ParallelMolFractionComponentB].FractionalMolecule[CurrentSystem],temp_int);
+
     for(i=0;i<NumberOfAdsorbateMolecules[CurrentSystem];i++)
     {
+      UpdateGroupCenterOfMassAdsorbate(i);
+      //ComputeQuaternionAdsorbate(i);
+
       if(Adsorbates[CurrentSystem][i].Type==ParallelMolFractionComponentA)
       {
         Adsorbates[CurrentSystem][i].Type=ParallelMolFractionComponentB;
@@ -10026,8 +10075,12 @@ int ChiralInversionMove(void)
       }
     }
 
+
     for(i=0;i<NumberOfCationMolecules[CurrentSystem];i++)
     {
+      UpdateGroupCenterOfMassCation(i);
+      //ComputeQuaternionCation(i);
+
       if(Cations[CurrentSystem][i].Type==ParallelMolFractionComponentA)
       {
         Cations[CurrentSystem][i].Type=ParallelMolFractionComponentB;

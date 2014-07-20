@@ -8864,11 +8864,11 @@ int CalculateEwaldFourierAdsorbateRXMC2(int reaction,REAL LambdaNew,int directio
             sum_bonddipole_new.im+=temp*Eikr_bd[i].im;
           }
 
-          sum_adsorbates.re=NewTotalChargeAdsorbates[CurrentSystem][nvec].re+(sum_new.re-sum_old.re);
-          sum_adsorbates.im=NewTotalChargeAdsorbates[CurrentSystem][nvec].im+(sum_new.im-sum_old.im);
+          sum_adsorbates.re=NewTotalChargeAdsorbates[store][nvec].re+(sum_new.re-sum_old.re);
+          sum_adsorbates.im=NewTotalChargeAdsorbates[store][nvec].im+(sum_new.im-sum_old.im);
 
-          sum_bonddipole_adsorbates.re=NewTotalBondDipolesAdsorbates[CurrentSystem][nvec].re+(sum_bonddipole_new.re-sum_bonddipole_old.re);
-          sum_bonddipole_adsorbates.im=NewTotalBondDipolesAdsorbates[CurrentSystem][nvec].im+(sum_bonddipole_new.im-sum_bonddipole_old.im);
+          sum_bonddipole_adsorbates.re=NewTotalBondDipolesAdsorbates[store][nvec].re+(sum_bonddipole_new.re-sum_bonddipole_old.re);
+          sum_bonddipole_adsorbates.im=NewTotalBondDipolesAdsorbates[store][nvec].im+(sum_bonddipole_new.im-sum_bonddipole_old.im);
 
           temp=kfactor[nvec];
 
@@ -8876,46 +8876,46 @@ int CalculateEwaldFourierAdsorbateRXMC2(int reaction,REAL LambdaNew,int directio
           if(Framework[CurrentSystem].FrameworkModel!=NONE)
           {
             energy_charge_framework_adsorbates+=temp*
-              (StoreTotalChargeFramework[CurrentSystem][nvec].re*(sum_adsorbates.re-NewTotalChargeAdsorbates[CurrentSystem][nvec].re)
-              +StoreTotalChargeFramework[CurrentSystem][nvec].im*(sum_adsorbates.im-NewTotalChargeAdsorbates[CurrentSystem][nvec].im));
+              (StoreTotalChargeFramework[CurrentSystem][nvec].re*(sum_adsorbates.re-NewTotalChargeAdsorbates[store][nvec].re)
+              +StoreTotalChargeFramework[CurrentSystem][nvec].im*(sum_adsorbates.im-NewTotalChargeAdsorbates[store][nvec].im));
 
             energy_charge_bonddipole_framework_adsorbates+=temp*
-              (StoreTotalChargeFramework[CurrentSystem][nvec].im*(sum_bonddipole_adsorbates.re-NewTotalBondDipolesAdsorbates[CurrentSystem][nvec].re)
-              +StoreTotalChargeFramework[CurrentSystem][nvec].re*(NewTotalBondDipolesAdsorbates[CurrentSystem][nvec].im-sum_bonddipole_adsorbates.im)
-              +StoreTotalBondDipolesFramework[CurrentSystem][nvec].re*(sum_adsorbates.im-NewTotalChargeAdsorbates[CurrentSystem][nvec].im)
-              +StoreTotalBondDipolesFramework[CurrentSystem][nvec].im*(NewTotalChargeAdsorbates[CurrentSystem][nvec].re-sum_adsorbates.re));
+              (StoreTotalChargeFramework[CurrentSystem][nvec].im*(sum_bonddipole_adsorbates.re-NewTotalBondDipolesAdsorbates[store][nvec].re)
+              +StoreTotalChargeFramework[CurrentSystem][nvec].re*(NewTotalBondDipolesAdsorbates[store][nvec].im-sum_bonddipole_adsorbates.im)
+              +StoreTotalBondDipolesFramework[CurrentSystem][nvec].re*(sum_adsorbates.im-NewTotalChargeAdsorbates[store][nvec].im)
+              +StoreTotalBondDipolesFramework[CurrentSystem][nvec].im*(NewTotalChargeAdsorbates[store][nvec].re-sum_adsorbates.re));
 
             energy_bonddipole_framework_adsorbates+=temp*
-              (StoreTotalBondDipolesFramework[CurrentSystem][nvec].re*(sum_bonddipole_adsorbates.re-NewTotalBondDipolesAdsorbates[CurrentSystem][nvec].re)
-              +StoreTotalBondDipolesFramework[CurrentSystem][nvec].im*(sum_bonddipole_adsorbates.im-NewTotalBondDipolesAdsorbates[CurrentSystem][nvec].im));
+              (StoreTotalBondDipolesFramework[CurrentSystem][nvec].re*(sum_bonddipole_adsorbates.re-NewTotalBondDipolesAdsorbates[store][nvec].re)
+              +StoreTotalBondDipolesFramework[CurrentSystem][nvec].im*(sum_bonddipole_adsorbates.im-NewTotalBondDipolesAdsorbates[store][nvec].im));
           }
 
-          energy_charge_adsorbates+=temp*(SQR(sum_adsorbates.re)-SQR(NewTotalChargeAdsorbates[CurrentSystem][nvec].re)+
-                                          SQR(sum_adsorbates.im)-SQR(NewTotalChargeAdsorbates[CurrentSystem][nvec].im));
+          energy_charge_adsorbates+=temp*(SQR(sum_adsorbates.re)-SQR(NewTotalChargeAdsorbates[store][nvec].re)+
+                                          SQR(sum_adsorbates.im)-SQR(NewTotalChargeAdsorbates[store][nvec].im));
 
           energy_charge_bonddipole_adsorbates+=2.0*temp*
                   (sum_adsorbates.im*sum_bonddipole_adsorbates.re-sum_adsorbates.re*sum_bonddipole_adsorbates.im
-                  -NewTotalChargeAdsorbates[CurrentSystem][nvec].im*NewTotalBondDipolesAdsorbates[CurrentSystem][nvec].re
-                  +NewTotalChargeAdsorbates[CurrentSystem][nvec].re*NewTotalBondDipolesAdsorbates[CurrentSystem][nvec].im);
+                  -NewTotalChargeAdsorbates[store][nvec].im*NewTotalBondDipolesAdsorbates[store][nvec].re
+                  +NewTotalChargeAdsorbates[store][nvec].re*NewTotalBondDipolesAdsorbates[store][nvec].im);
 
-          energy_bonddipole_adsorbates+=temp*(SQR(sum_bonddipole_adsorbates.re)-SQR(NewTotalBondDipolesAdsorbates[CurrentSystem][nvec].re)+
-                                              SQR(sum_bonddipole_adsorbates.im)-SQR(NewTotalBondDipolesAdsorbates[CurrentSystem][nvec].im));
+          energy_bonddipole_adsorbates+=temp*(SQR(sum_bonddipole_adsorbates.re)-SQR(NewTotalBondDipolesAdsorbates[store][nvec].re)+
+                                              SQR(sum_bonddipole_adsorbates.im)-SQR(NewTotalBondDipolesAdsorbates[store][nvec].im));
 
           if(NumberOfCationMolecules[CurrentSystem]>0)
           {
             energy_charge_adsorbates_cations+=temp*
-              (StoreTotalChargeCations[CurrentSystem][nvec].re*(sum_adsorbates.re-NewTotalChargeAdsorbates[CurrentSystem][nvec].re)
-              +StoreTotalChargeCations[CurrentSystem][nvec].im*(sum_adsorbates.im-NewTotalChargeAdsorbates[CurrentSystem][nvec].im));
+              (StoreTotalChargeCations[CurrentSystem][nvec].re*(sum_adsorbates.re-NewTotalChargeAdsorbates[store][nvec].re)
+              +StoreTotalChargeCations[CurrentSystem][nvec].im*(sum_adsorbates.im-NewTotalChargeAdsorbates[store][nvec].im));
 
             energy_charge_bonddipole_adsorbates_cations+=temp*
-              (StoreTotalChargeCations[CurrentSystem][nvec].im*(sum_bonddipole_adsorbates.re-NewTotalBondDipolesAdsorbates[CurrentSystem][nvec].re)
-              +StoreTotalChargeCations[CurrentSystem][nvec].re*(NewTotalBondDipolesAdsorbates[CurrentSystem][nvec].im-sum_bonddipole_adsorbates.im)
-              +StoreTotalBondDipolesCations[CurrentSystem][nvec].re*(sum_adsorbates.im-NewTotalChargeAdsorbates[CurrentSystem][nvec].im)
-              +StoreTotalBondDipolesCations[CurrentSystem][nvec].im*(NewTotalChargeAdsorbates[CurrentSystem][nvec].re-sum_adsorbates.re));
+              (StoreTotalChargeCations[CurrentSystem][nvec].im*(sum_bonddipole_adsorbates.re-NewTotalBondDipolesAdsorbates[store][nvec].re)
+              +StoreTotalChargeCations[CurrentSystem][nvec].re*(NewTotalBondDipolesAdsorbates[store][nvec].im-sum_bonddipole_adsorbates.im)
+              +StoreTotalBondDipolesCations[CurrentSystem][nvec].re*(sum_adsorbates.im-NewTotalChargeAdsorbates[store][nvec].im)
+              +StoreTotalBondDipolesCations[CurrentSystem][nvec].im*(NewTotalChargeAdsorbates[store][nvec].re-sum_adsorbates.re));
 
             energy_bonddipole_adsorbates_cations+=temp*
-              (StoreTotalBondDipolesCations[CurrentSystem][nvec].re*(sum_bonddipole_adsorbates.re-NewTotalBondDipolesAdsorbates[CurrentSystem][nvec].re)
-              +StoreTotalBondDipolesCations[CurrentSystem][nvec].im*(sum_bonddipole_adsorbates.im-NewTotalBondDipolesAdsorbates[CurrentSystem][nvec].im));
+              (StoreTotalBondDipolesCations[CurrentSystem][nvec].re*(sum_bonddipole_adsorbates.re-NewTotalBondDipolesAdsorbates[store][nvec].re)
+              +StoreTotalBondDipolesCations[CurrentSystem][nvec].im*(sum_bonddipole_adsorbates.im-NewTotalBondDipolesAdsorbates[store][nvec].im));
           }
 
           // store the new sums, these will be the current ones on acceptance of the mc-move
@@ -9605,11 +9605,11 @@ int CalculateEwaldFourierAdsorbateCF(int NewMolecule,int OldMolecule,int mol,int
             sum_bonddipole_new.im+=temp*Eikr_bd[i].im;
           }
 
-          sum_adsorbates.re=NewTotalChargeAdsorbates[CurrentSystem][nvec].re+(sum_new.re-sum_old.re);
-          sum_adsorbates.im=NewTotalChargeAdsorbates[CurrentSystem][nvec].im+(sum_new.im-sum_old.im);
+          sum_adsorbates.re=NewTotalChargeAdsorbates[store][nvec].re+(sum_new.re-sum_old.re);
+          sum_adsorbates.im=NewTotalChargeAdsorbates[store][nvec].im+(sum_new.im-sum_old.im);
 
-          sum_bonddipole_adsorbates.re=NewTotalBondDipolesAdsorbates[CurrentSystem][nvec].re+(sum_bonddipole_new.re-sum_bonddipole_old.re);
-          sum_bonddipole_adsorbates.im=NewTotalBondDipolesAdsorbates[CurrentSystem][nvec].im+(sum_bonddipole_new.im-sum_bonddipole_old.im);
+          sum_bonddipole_adsorbates.re=NewTotalBondDipolesAdsorbates[store][nvec].re+(sum_bonddipole_new.re-sum_bonddipole_old.re);
+          sum_bonddipole_adsorbates.im=NewTotalBondDipolesAdsorbates[store][nvec].im+(sum_bonddipole_new.im-sum_bonddipole_old.im);
 
           temp=kfactor[nvec];
 
@@ -9617,46 +9617,46 @@ int CalculateEwaldFourierAdsorbateCF(int NewMolecule,int OldMolecule,int mol,int
           if(Framework[CurrentSystem].FrameworkModel!=NONE)
           {
             energy_charge_framework_adsorbates+=temp*
-              (StoreTotalChargeFramework[CurrentSystem][nvec].re*(sum_adsorbates.re-NewTotalChargeAdsorbates[CurrentSystem][nvec].re)
-              +StoreTotalChargeFramework[CurrentSystem][nvec].im*(sum_adsorbates.im-NewTotalChargeAdsorbates[CurrentSystem][nvec].im));
+              (StoreTotalChargeFramework[CurrentSystem][nvec].re*(sum_adsorbates.re-NewTotalChargeAdsorbates[store][nvec].re)
+              +StoreTotalChargeFramework[CurrentSystem][nvec].im*(sum_adsorbates.im-NewTotalChargeAdsorbates[store][nvec].im));
 
             energy_charge_bonddipole_framework_adsorbates+=temp*
-              (StoreTotalChargeFramework[CurrentSystem][nvec].im*(sum_bonddipole_adsorbates.re-NewTotalBondDipolesAdsorbates[CurrentSystem][nvec].re)
-              +StoreTotalChargeFramework[CurrentSystem][nvec].re*(NewTotalBondDipolesAdsorbates[CurrentSystem][nvec].im-sum_bonddipole_adsorbates.im)
-              +StoreTotalBondDipolesFramework[CurrentSystem][nvec].re*(sum_adsorbates.im-NewTotalChargeAdsorbates[CurrentSystem][nvec].im)
-              +StoreTotalBondDipolesFramework[CurrentSystem][nvec].im*(NewTotalChargeAdsorbates[CurrentSystem][nvec].re-sum_adsorbates.re));
+              (StoreTotalChargeFramework[CurrentSystem][nvec].im*(sum_bonddipole_adsorbates.re-NewTotalBondDipolesAdsorbates[store][nvec].re)
+              +StoreTotalChargeFramework[CurrentSystem][nvec].re*(NewTotalBondDipolesAdsorbates[store][nvec].im-sum_bonddipole_adsorbates.im)
+              +StoreTotalBondDipolesFramework[CurrentSystem][nvec].re*(sum_adsorbates.im-NewTotalChargeAdsorbates[store][nvec].im)
+              +StoreTotalBondDipolesFramework[CurrentSystem][nvec].im*(NewTotalChargeAdsorbates[store][nvec].re-sum_adsorbates.re));
 
             energy_bonddipole_framework_adsorbates+=temp*
-              (StoreTotalBondDipolesFramework[CurrentSystem][nvec].re*(sum_bonddipole_adsorbates.re-NewTotalBondDipolesAdsorbates[CurrentSystem][nvec].re)
-              +StoreTotalBondDipolesFramework[CurrentSystem][nvec].im*(sum_bonddipole_adsorbates.im-NewTotalBondDipolesAdsorbates[CurrentSystem][nvec].im));
+              (StoreTotalBondDipolesFramework[CurrentSystem][nvec].re*(sum_bonddipole_adsorbates.re-NewTotalBondDipolesAdsorbates[store][nvec].re)
+              +StoreTotalBondDipolesFramework[CurrentSystem][nvec].im*(sum_bonddipole_adsorbates.im-NewTotalBondDipolesAdsorbates[store][nvec].im));
           }
 
-          energy_charge_adsorbates+=temp*(SQR(sum_adsorbates.re)-SQR(NewTotalChargeAdsorbates[CurrentSystem][nvec].re)+
-                                          SQR(sum_adsorbates.im)-SQR(NewTotalChargeAdsorbates[CurrentSystem][nvec].im));
+          energy_charge_adsorbates+=temp*(SQR(sum_adsorbates.re)-SQR(NewTotalChargeAdsorbates[store][nvec].re)+
+                                          SQR(sum_adsorbates.im)-SQR(NewTotalChargeAdsorbates[store][nvec].im));
 
           energy_charge_bonddipole_adsorbates+=2.0*temp*
                   (sum_adsorbates.im*sum_bonddipole_adsorbates.re-sum_adsorbates.re*sum_bonddipole_adsorbates.im
-                  -NewTotalChargeAdsorbates[CurrentSystem][nvec].im*NewTotalBondDipolesAdsorbates[CurrentSystem][nvec].re
-                  +NewTotalChargeAdsorbates[CurrentSystem][nvec].re*NewTotalBondDipolesAdsorbates[CurrentSystem][nvec].im);
+                  -NewTotalChargeAdsorbates[store][nvec].im*NewTotalBondDipolesAdsorbates[store][nvec].re
+                  +NewTotalChargeAdsorbates[store][nvec].re*NewTotalBondDipolesAdsorbates[store][nvec].im);
 
-          energy_bonddipole_adsorbates+=temp*(SQR(sum_bonddipole_adsorbates.re)-SQR(NewTotalBondDipolesAdsorbates[CurrentSystem][nvec].re)+
-                                              SQR(sum_bonddipole_adsorbates.im)-SQR(NewTotalBondDipolesAdsorbates[CurrentSystem][nvec].im));
+          energy_bonddipole_adsorbates+=temp*(SQR(sum_bonddipole_adsorbates.re)-SQR(NewTotalBondDipolesAdsorbates[store][nvec].re)+
+                                              SQR(sum_bonddipole_adsorbates.im)-SQR(NewTotalBondDipolesAdsorbates[store][nvec].im));
 
           if(NumberOfCationMolecules[CurrentSystem]>0)
           {
             energy_charge_adsorbates_cations+=temp*
-              (NewTotalChargeCations[CurrentSystem][nvec].re*(sum_adsorbates.re-NewTotalChargeAdsorbates[CurrentSystem][nvec].re)
-              +NewTotalChargeCations[CurrentSystem][nvec].im*(sum_adsorbates.im-NewTotalChargeAdsorbates[CurrentSystem][nvec].im));
+              (NewTotalChargeCations[store][nvec].re*(sum_adsorbates.re-NewTotalChargeAdsorbates[store][nvec].re)
+              +NewTotalChargeCations[store][nvec].im*(sum_adsorbates.im-NewTotalChargeAdsorbates[store][nvec].im));
 
             energy_charge_bonddipole_adsorbates_cations+=temp*
-              (NewTotalChargeCations[CurrentSystem][nvec].im*(sum_bonddipole_adsorbates.re-NewTotalBondDipolesAdsorbates[CurrentSystem][nvec].re)
-              +NewTotalChargeCations[CurrentSystem][nvec].re*(NewTotalBondDipolesAdsorbates[CurrentSystem][nvec].im-sum_bonddipole_adsorbates.im)
-              +NewTotalBondDipolesCations[CurrentSystem][nvec].re*(sum_adsorbates.im-NewTotalChargeAdsorbates[CurrentSystem][nvec].im)
-              +NewTotalBondDipolesCations[CurrentSystem][nvec].im*(NewTotalChargeAdsorbates[CurrentSystem][nvec].re-sum_adsorbates.re));
+              (NewTotalChargeCations[store][nvec].im*(sum_bonddipole_adsorbates.re-NewTotalBondDipolesAdsorbates[store][nvec].re)
+              +NewTotalChargeCations[store][nvec].re*(NewTotalBondDipolesAdsorbates[store][nvec].im-sum_bonddipole_adsorbates.im)
+              +NewTotalBondDipolesCations[store][nvec].re*(sum_adsorbates.im-NewTotalChargeAdsorbates[store][nvec].im)
+              +NewTotalBondDipolesCations[store][nvec].im*(NewTotalChargeAdsorbates[store][nvec].re-sum_adsorbates.re));
 
             energy_bonddipole_adsorbates_cations+=temp*
-              (NewTotalBondDipolesCations[CurrentSystem][nvec].re*(sum_bonddipole_adsorbates.re-NewTotalBondDipolesAdsorbates[CurrentSystem][nvec].re)
-              +NewTotalBondDipolesCations[CurrentSystem][nvec].im*(sum_bonddipole_adsorbates.im-NewTotalBondDipolesAdsorbates[CurrentSystem][nvec].im));
+              (NewTotalBondDipolesCations[store][nvec].re*(sum_bonddipole_adsorbates.re-NewTotalBondDipolesAdsorbates[store][nvec].re)
+              +NewTotalBondDipolesCations[store][nvec].im*(sum_bonddipole_adsorbates.im-NewTotalBondDipolesAdsorbates[store][nvec].im));
           }
 
           // store the new sums, these will be the current ones on acceptance of the mc-move
@@ -11023,11 +11023,11 @@ int CalculateEwaldFourierCationCF(int NewMolecule,int OldMolecule,int mol,int st
             sum_bonddipole_new.im+=temp*Eikr_bd[i].im;
           }
 
-          sum_cations.re=NewTotalChargeCations[CurrentSystem][nvec].re+(sum_new.re-sum_old.re);
-          sum_cations.im=NewTotalChargeCations[CurrentSystem][nvec].im+(sum_new.im-sum_old.im);
+          sum_cations.re=NewTotalChargeCations[store][nvec].re+(sum_new.re-sum_old.re);
+          sum_cations.im=NewTotalChargeCations[store][nvec].im+(sum_new.im-sum_old.im);
 
-          sum_bonddipole_cations.re=NewTotalBondDipolesCations[CurrentSystem][nvec].re+(sum_bonddipole_new.re-sum_bonddipole_old.re);
-          sum_bonddipole_cations.im=NewTotalBondDipolesCations[CurrentSystem][nvec].im+(sum_bonddipole_new.im-sum_bonddipole_old.im);
+          sum_bonddipole_cations.re=NewTotalBondDipolesCations[store][nvec].re+(sum_bonddipole_new.re-sum_bonddipole_old.re);
+          sum_bonddipole_cations.im=NewTotalBondDipolesCations[store][nvec].im+(sum_bonddipole_new.im-sum_bonddipole_old.im);
 
           temp=kfactor[nvec];
 
@@ -11035,46 +11035,46 @@ int CalculateEwaldFourierCationCF(int NewMolecule,int OldMolecule,int mol,int st
           if(Framework[CurrentSystem].FrameworkModel!=NONE)
           {
             energy_charge_framework_cations+=temp*
-              (StoreTotalChargeFramework[CurrentSystem][nvec].re*(sum_cations.re-NewTotalChargeCations[CurrentSystem][nvec].re)
-              +StoreTotalChargeFramework[CurrentSystem][nvec].im*(sum_cations.im-NewTotalChargeCations[CurrentSystem][nvec].im));
+              (StoreTotalChargeFramework[CurrentSystem][nvec].re*(sum_cations.re-NewTotalChargeCations[store][nvec].re)
+              +StoreTotalChargeFramework[CurrentSystem][nvec].im*(sum_cations.im-NewTotalChargeCations[store][nvec].im));
 
             energy_charge_bonddipole_framework_cations+=temp*
-              (StoreTotalChargeFramework[CurrentSystem][nvec].im*(sum_bonddipole_cations.re-NewTotalBondDipolesCations[CurrentSystem][nvec].re)
-              +StoreTotalChargeFramework[CurrentSystem][nvec].re*(NewTotalBondDipolesCations[CurrentSystem][nvec].im-sum_bonddipole_cations.im)
-              +StoreTotalBondDipolesFramework[CurrentSystem][nvec].re*(sum_cations.im-NewTotalChargeCations[CurrentSystem][nvec].im)
-              +StoreTotalBondDipolesFramework[CurrentSystem][nvec].im*(NewTotalChargeCations[CurrentSystem][nvec].re-sum_cations.re));
+              (StoreTotalChargeFramework[CurrentSystem][nvec].im*(sum_bonddipole_cations.re-NewTotalBondDipolesCations[store][nvec].re)
+              +StoreTotalChargeFramework[CurrentSystem][nvec].re*(NewTotalBondDipolesCations[store][nvec].im-sum_bonddipole_cations.im)
+              +StoreTotalBondDipolesFramework[CurrentSystem][nvec].re*(sum_cations.im-NewTotalChargeCations[store][nvec].im)
+              +StoreTotalBondDipolesFramework[CurrentSystem][nvec].im*(NewTotalChargeCations[store][nvec].re-sum_cations.re));
 
             energy_bonddipole_framework_cations+=temp*
-              (StoreTotalBondDipolesFramework[CurrentSystem][nvec].re*(sum_bonddipole_cations.re-NewTotalBondDipolesCations[CurrentSystem][nvec].re)
-              +StoreTotalBondDipolesFramework[CurrentSystem][nvec].im*(sum_bonddipole_cations.im-NewTotalBondDipolesCations[CurrentSystem][nvec].im));
+              (StoreTotalBondDipolesFramework[CurrentSystem][nvec].re*(sum_bonddipole_cations.re-NewTotalBondDipolesCations[store][nvec].re)
+              +StoreTotalBondDipolesFramework[CurrentSystem][nvec].im*(sum_bonddipole_cations.im-NewTotalBondDipolesCations[store][nvec].im));
           }
 
-          energy_charge_cations+=temp*(SQR(sum_cations.re)-SQR(NewTotalChargeCations[CurrentSystem][nvec].re)+
-                                       SQR(sum_cations.im)-SQR(NewTotalChargeCations[CurrentSystem][nvec].im));
+          energy_charge_cations+=temp*(SQR(sum_cations.re)-SQR(NewTotalChargeCations[store][nvec].re)+
+                                       SQR(sum_cations.im)-SQR(NewTotalChargeCations[store][nvec].im));
 
           energy_charge_bonddipole_cations+=2.0*temp*
                   (sum_cations.im*sum_bonddipole_cations.re-sum_cations.re*sum_bonddipole_cations.im
-                  -NewTotalChargeCations[CurrentSystem][nvec].im*NewTotalBondDipolesCations[CurrentSystem][nvec].re
-                  +NewTotalChargeCations[CurrentSystem][nvec].re*NewTotalBondDipolesCations[CurrentSystem][nvec].im);
+                  -NewTotalChargeCations[store][nvec].im*NewTotalBondDipolesCations[store][nvec].re
+                  +NewTotalChargeCations[store][nvec].re*NewTotalBondDipolesCations[store][nvec].im);
 
-          energy_bonddipole_cations+=temp*(SQR(sum_bonddipole_cations.re)-SQR(NewTotalBondDipolesCations[CurrentSystem][nvec].re)+
-                                           SQR(sum_bonddipole_cations.im)-SQR(NewTotalBondDipolesCations[CurrentSystem][nvec].im));
+          energy_bonddipole_cations+=temp*(SQR(sum_bonddipole_cations.re)-SQR(NewTotalBondDipolesCations[store][nvec].re)+
+                                           SQR(sum_bonddipole_cations.im)-SQR(NewTotalBondDipolesCations[store][nvec].im));
 
           if(NumberOfAdsorbateMolecules[CurrentSystem]>0)
           {
             energy_charge_adsorbates_cations+=temp*
-              (NewTotalChargeAdsorbates[CurrentSystem][nvec].re*(sum_cations.re-NewTotalChargeCations[CurrentSystem][nvec].re)
-              +NewTotalChargeAdsorbates[CurrentSystem][nvec].im*(sum_cations.im-NewTotalChargeCations[CurrentSystem][nvec].im));
+              (NewTotalChargeAdsorbates[store][nvec].re*(sum_cations.re-NewTotalChargeCations[store][nvec].re)
+              +NewTotalChargeAdsorbates[store][nvec].im*(sum_cations.im-NewTotalChargeCations[store][nvec].im));
 
             energy_charge_bonddipole_adsorbates_cations+=temp*
-              (NewTotalChargeAdsorbates[CurrentSystem][nvec].im*(sum_bonddipole_cations.re-NewTotalBondDipolesCations[CurrentSystem][nvec].re)
-              +NewTotalChargeAdsorbates[CurrentSystem][nvec].re*(NewTotalBondDipolesCations[CurrentSystem][nvec].im-sum_bonddipole_cations.im)
-              +NewTotalBondDipolesAdsorbates[CurrentSystem][nvec].re*(sum_cations.im-NewTotalChargeCations[CurrentSystem][nvec].im)
-              +NewTotalBondDipolesAdsorbates[CurrentSystem][nvec].im*(NewTotalChargeCations[CurrentSystem][nvec].re-sum_cations.re));
+              (NewTotalChargeAdsorbates[store][nvec].im*(sum_bonddipole_cations.re-NewTotalBondDipolesCations[store][nvec].re)
+              +NewTotalChargeAdsorbates[store][nvec].re*(NewTotalBondDipolesCations[store][nvec].im-sum_bonddipole_cations.im)
+              +NewTotalBondDipolesAdsorbates[store][nvec].re*(sum_cations.im-NewTotalChargeCations[store][nvec].im)
+              +NewTotalBondDipolesAdsorbates[store][nvec].im*(NewTotalChargeCations[store][nvec].re-sum_cations.re));
 
             energy_bonddipole_adsorbates_cations+=temp*
-              (NewTotalBondDipolesAdsorbates[CurrentSystem][nvec].re*(sum_bonddipole_cations.re-NewTotalBondDipolesCations[CurrentSystem][nvec].re)
-              +NewTotalBondDipolesAdsorbates[CurrentSystem][nvec].im*(sum_bonddipole_cations.im-NewTotalBondDipolesCations[CurrentSystem][nvec].im));
+              (NewTotalBondDipolesAdsorbates[store][nvec].re*(sum_bonddipole_cations.re-NewTotalBondDipolesCations[store][nvec].re)
+              +NewTotalBondDipolesAdsorbates[store][nvec].im*(sum_bonddipole_cations.im-NewTotalBondDipolesCations[store][nvec].im));
           }
 
           // store the new sums, these will be the current ones on acceptance of the mc-move
