@@ -8,6 +8,12 @@ from ctypes import cdll, c_void_p, c_char_p, c_bool, cast
 import os
 env = os.environ
 
+try:
+    import pybel
+    PYBEL_LOADED = True
+except:
+    PYBEL_LOADED = False
+
 from RASPA2.output_parser import parse
 
 raspa = cdll.LoadLibrary("/usr/lib/libraspa2.so")
@@ -84,12 +90,8 @@ def run_script(input_script, structure=None, raspa_dir="auto"):
 
     # This supports `pybel.Molecule` objects with charge data by converting
     # them into RASPA-formatted cif strings
-    try:
-        import pybel
-        if isinstance(structure, pybel.Molecule):
-            structure = pybel_to_cif(structure)
-    except ImportError:
-        pass
+    if PYBEL_LOADED and isinstance(structure, pybel.Molecule):
+        structure = pybel_to_raspa_cif(structure)
 
     ptr = raspa.run(input_script.encode("ascii"),
                     (structure or "").encode("ascii"),
@@ -381,7 +383,7 @@ def get_density(molecule_name, temperature=273.15, pressure=101325,
     return info["Average Density"]["[kg/m^3]"][0]
 
 
-def pybel_to_cif(structure):
+def pybel_to_raspa_cif(structure):
     """Converts instances of `pybel.Molecule` to a RASPA charged cif format."""
     import pybel
     uc = structure.unitcell
