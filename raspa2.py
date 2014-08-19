@@ -143,7 +143,7 @@ def create_script(molecule_name, temperature=273.15, pressure=101325,
     return "\n".join(["SimulationType                %s" % simulation_type,
                       "NumberOfCycles                %d" % cycles,
                       "NumberOfInitializationCycles  %d" % init_cycles,
-                      "PrintEvery                    %i" % (cycles / 10),
+                      "PrintEvery                    %d" % (cycles / 10),
                       "RestartFile                   no",
                       "",
                       "Forcefield                    %s" % forcefield,
@@ -216,7 +216,7 @@ def run_mixture(structure, molecules, mol_fractions, temperature=273.15,
     script = "\n".join(["SimulationType                %s" % simulation_type,
                         "NumberOfCycles                %d" % cycles,
                         "NumberOfInitializationCycles  %d" % init_cycles,
-                        "PrintEvery                    %i" % (cycles / 10),
+                        "PrintEvery                    %d" % (cycles / 10),
                         "RestartFile                   no",
                         "",
                         "Forcefield                    %s" % forcefield,
@@ -321,8 +321,8 @@ def get_helium_void_fraction(structure, unit_cells=(1, 1, 1), cycles=2000,
     """
     script = "\n".join(["SimulationType              MonteCarlo",
                         "NumberOfCycles              %d" % cycles,
-                        "PrintEvery                  %i" % (cycles / 10),
-                        "PrintPropertiesEvery        %i" % (cycles / 10),
+                        "PrintEvery                  %d" % (cycles / 10),
+                        "PrintPropertiesEvery        %d" % (cycles / 10),
                         "",
                         "CutOff                      12.8",
                         "Forcefield                  %s" % forcefield,
@@ -342,9 +342,57 @@ def get_helium_void_fraction(structure, unit_cells=(1, 1, 1), cycles=2000,
     return info["Average Widom Rosenbluth factor"]["Widom"][0]
 
 
+def get_pore_size_distribution(structure, unit_cells=(1, 1, 1), cycles=500,
+                               input_file_type="cif",
+                               forcefield="CrystalGenerator",
+                               bins=50):
+    """Calculates the pore size distribution of the inputted structure.
+
+    Args:
+        structure: The structure to test for helium void fraction,
+            as a string of type 'input_file_type` (default is "cif").
+        unit_cells: (Optional) The number of unit cells to use, by dimension.
+        cycles: (Optional) The number of simulation cycles to run.
+        input_file_type: (Optional) The type of input structure. Assumes cif.
+        forcefield: (Optional) The forcefield to use. Name must match a folder
+            in `$RASPA_DIR/share/raspa/forcefield`, which contains the properly
+            named `.def` files.
+        bins: (Optional) The number of bins to use in the output histogram.
+    Returns:
+        A list of the form [[x1, x2, ..., xn], [y1, y2, ..., yn]], where x is
+        the binned pore size (in Angstroms) and y is the partial pore volume
+        (in cm^3 / g).
+    """
+    script = "\n".join(["SimulationType                 PSD",
+                        "NumberOfCycles                 %d" % cycles,
+                        "NumberOfInitializationCycles   0",
+                        "PrintEvery                     %d" % (cycles / 10),
+                        "",
+                        "PSDProbeDistance               Sigma",
+                        "WritePSDHistogramEvery         %d" % (cycles / 10),
+                        "PSDHistogramSize               %d" % bins,
+                        "PSDRange                       12.5",
+                        "",
+                        "CutOff                         12.8",
+                        "Forcefield                     %s" % forcefield,
+                        "",
+                        "Framework                      0",
+                        "FrameworkName                  streamed",
+                        "InputFileType                  %s" % input_file_type,
+                        "UnitCells                      %d %d %d" % unit_cells,
+                        "ExternalTemperature            100.0"])
+    output = run_script(script, structure)
+
+    # PSD returns a different data structure which must be parsed separately.
+    # Luckily, it's an easy parse. Skip # commented lines, split by whitespace.
+    info = [[float(x) for x in r.split()] for r in output.strip().splitlines()
+            if r[0] != "#"]
+    return [[i[0] for i in info], [i[2] for i in info]]
+
+
 def get_density(molecule_name, temperature=273.15, pressure=101325,
                 cycles=5000, init_cycles=2500, forcefield="CrystalGenerator"):
-    """Calculates the density through an NPT ensemble.
+    """Calculates the density of a gas through an NPT ensemble.
 
     Args:
         molecule_name: The molecule to test for adsorption. A file of the same
@@ -385,7 +433,9 @@ def get_density(molecule_name, temperature=273.15, pressure=101325,
 
 def pybel_to_raspa_cif(structure):
     """Converts instances of `pybel.Molecule` to a RASPA charged cif format."""
-    import pybel
+    if not PYBEL_LOADED:
+        raise ImportError("Open Babel not installed.")
+
     uc = structure.unitcell
     table = pybel.ob.OBElementTable()
     cif = "\n".join(["data_I",

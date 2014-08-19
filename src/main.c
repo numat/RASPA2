@@ -54,6 +54,8 @@ char* run(char *inputData, char *inputCrystal, char *raspaDir, bool stream);
 
 bool STREAM = false;
 char *INPUT_CRYSTAL = NULL;
+extern char *PORE_SIZE_DISTRIBUTION_OUTPUT = NULL;
+extern size_t PORE_SIZE_DISTRIBUTION_OUTPUT_SIZE = NULL;
 extern char **FILE_CONTENTS = NULL;
 extern size_t *FILE_SIZES = NULL;
 
@@ -274,9 +276,40 @@ char* run(char *inputData, char *inputCrystal, char *raspaDir, bool stream)
       break;
   }
 
-  // write the final positions to files
-  if (!STREAM)
+  // If streaming, merge the simulation contents into one string
+  if (STREAM)
   {
+    // Just returning relevant data on PSD sim. Note: Should we return full
+    // simulation data, or is the overhead not worth it?
+    if (SimulationType == PORE_SIZE_DISTRIBUTION)
+    {
+      output = calloc(PORE_SIZE_DISTRIBUTION_OUTPUT_SIZE, sizeof(char));
+      strcat(output, PORE_SIZE_DISTRIBUTION_OUTPUT);
+      free(PORE_SIZE_DISTRIBUTION_OUTPUT);
+    }
+    // Returning full output on standard case.
+    else
+    {
+      delimiter = "\n\nEND OF SIMULATION\n\n";
+
+      for (i = 0; i < NumberOfSystems; i++)
+          chars += FILE_SIZES[i];
+      chars += strlen(delimiter) * (NumberOfSystems - 1) + 1;
+      output = calloc(chars, sizeof(char));
+
+      for (i = 0; i < NumberOfSystems-1; i++)
+      {
+        strcat(output, FILE_CONTENTS[i]);
+        strcat(output, delimiter);
+      }
+      strcat(output, FILE_CONTENTS[NumberOfSystems - 1]);
+
+      for (i = 0; i < NumberOfSystems-1; i++)
+        free(FILE_CONTENTS[i]);
+    }
+
+  // Write the final positions to files
+  } else {
     WriteFrameworkDefinitionCSSR("final");
     WriteFrameworkDefinitionGulp("final");
     WriteFrameworkDefinitionVASP("final");
@@ -284,26 +317,6 @@ char* run(char *inputData, char *inputCrystal, char *raspaDir, bool stream)
     WriteFrameworkDefinitionMOL("final");
     WriteFrameworkDefinitionCIF("final");
     WriteSnapshotTinker("final");
-  }
-
-  if (STREAM)
-  {
-    delimiter = "\n\nEND OF SIMULATION\n\n";
-
-    for (i = 0; i < NumberOfSystems; i++)
-        chars += FILE_SIZES[i];
-    chars += strlen(delimiter) * (NumberOfSystems - 1) + 1;
-    output = calloc(chars, sizeof(char));
-
-    for (i = 0; i < NumberOfSystems-1; i++)
-    {
-      strcat(output, FILE_CONTENTS[i]);
-      strcat(output, "\n\nEND OF SIMULATION\n\n");
-    }
-    strcat(output, FILE_CONTENTS[NumberOfSystems - 1]);
-
-    for (i = 0; i < NumberOfSystems-1; i++)
-      free(FILE_CONTENTS[i]);
   }
 
   free(FILE_CONTENTS);

@@ -13,6 +13,7 @@
  *************************************************************************************************************/
 
 #include <stdlib.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
@@ -47,6 +48,11 @@
 #include "integration.h"
 #include "mc_moves.h"
 #include "movies.h"
+
+// An external var for saving PSD simulation output
+extern char *PORE_SIZE_DISTRIBUTION_OUTPUT;
+extern size_t PORE_SIZE_DISTRIBUTION_OUTPUT_SIZE;
+extern bool STREAM;
 
 // sampling the radial distribution function (RDF)
 int *ComputeRDF;
@@ -3277,11 +3283,25 @@ void SamplePoreSizeDistribution(int Switch)
 
       deltaR=PSDRange[CurrentSystem]/PSDHistogramSize[CurrentSystem];
 
-      mkdir("PoreSizeDistributionHistogram",S_IRWXU);
-      sprintf(buffer,"PoreSizeDistributionHistogram/System_%d",CurrentSystem);
-      mkdir(buffer,S_IRWXU);
+      if (STREAM)
+      {
+#ifdef __unix__
+        // Loads PSD output contents into a global
+        FilePtr=open_memstream(&PORE_SIZE_DISTRIBUTION_OUTPUT,
+                               &PORE_SIZE_DISTRIBUTION_OUTPUT_SIZE);
+#else
+        fprintf(stderr, "Streaming only allowed on POSIX systems (for now)\n.");
+        exit(1);
+#endif
+      }
+      else
+      {
+        mkdir("PoreSizeDistributionHistogram",S_IRWXU);
+        sprintf(buffer,"PoreSizeDistributionHistogram/System_%d",CurrentSystem);
+        mkdir(buffer,S_IRWXU);
 
-      sprintf(buffer,"PoreSizeDistributionHistogram/System_%d/HistogramPoreSizeDistribution_%s_%d.%d.%d_%lf_%lf%s.dat",CurrentSystem,
+        sprintf(buffer,"PoreSizeDistributionHistogram/System_%d/HistogramPoreSizeDistribution_%s_%d.%d.%d_%lf_%lf%s.dat",
+                CurrentSystem,
                 Framework[CurrentSystem].Name[0],
                 NumberOfUnitCells[CurrentSystem].x,
                 NumberOfUnitCells[CurrentSystem].y,
@@ -3289,13 +3309,14 @@ void SamplePoreSizeDistribution(int Switch)
                 (double)therm_baro_stats.ExternalTemperature[CurrentSystem],
                 (double)(therm_baro_stats.ExternalPressure[CurrentSystem][CurrentIsothermPressure]*PRESSURE_CONVERSION_FACTOR),
                 FileNameAppend);
+        FilePtr=fopen(buffer,"w");
+      }
 
-      temp=PoreSizeDistributionHistogram[CurrentSystem][0];
-      FilePtr=fopen(buffer,"w");
       fprintf(FilePtr,"# column 1: dameter d [A]\n");
       fprintf(FilePtr,"# column 2: Connoly distribution\n");
       fprintf(FilePtr,"# column 3: PSD\n");
       fprintf(FilePtr,"# value at d=0 is void-fraction\n");
+
       for(k=0;k<PSDHistogramSize[CurrentSystem];k++)
       {
         if(k==0)
@@ -7569,8 +7590,8 @@ VECTOR BondOrientation(int system,int f1,int i,int j)
   VECTOR e1,e2,e3;
   REAL rr,r;
 
-  A=OrientationFrameworkBondPairs[system][f1][i][j].A; 
-  B=OrientationFrameworkBondPairs[system][f1][i][j].B; 
+  A=OrientationFrameworkBondPairs[system][f1][i][j].A;
+  B=OrientationFrameworkBondPairs[system][f1][i][j].B;
 
   posA=Framework[system].Atoms[f1][A].Position;
   posB=Framework[system].Atoms[f1][B].Position;
@@ -7653,7 +7674,7 @@ void SampleBondOrientationAutoCorrelationFunctionOrderN(int Switch)
             BondOrientationAngleDistributionFunction[i][f1]=(VECTOR**)calloc(NumberOfTypes,sizeof(VECTOR*));
             for(k=0;k<NumberOfTypes;k++)
               BondOrientationAngleDistributionFunction[i][f1][k]=(VECTOR*)calloc(BondOrientationAngleHistogramSize[i],sizeof(VECTOR));
-            
+
             for(j=0;j<MaxNumberOfBlocksBondOrientationOrderN;j++)
             {
               BlockDataBondOrientationOrderN[i][f1][j]=(VECTOR***)calloc(NumberOfTypes,sizeof(VECTOR**));
