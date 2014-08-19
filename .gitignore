@@ -11,12 +11,13 @@ dsa_priv.pem
 *.pbxuser
 # Xcode 4
 xcuserdata/
-#project.xcworkspace/
 # Generated files
 VersionX-revision.h
 # build products
 build/
 *.[oa]
+*.l[oa]
+.libs
 # Other source repository archive directories (protects when importing)
 .hg
 .svn
@@ -30,6 +31,9 @@ CVS
 *.aux
 # automake/autoconf
 simulate
+simulations
+m4
+compile
 autom4te.cache/
 a.out.dSYM/
 Makefile
