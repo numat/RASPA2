@@ -6,17 +6,24 @@ This is intended 1. to allow users to automate + simplify their workflows and
 """
 from ctypes import cdll, c_void_p, c_char_p, c_bool, cast
 import os
+
+from RASPA2.output_parser import parse
+
 env = os.environ
 
 try:
     import pybel
     PYBEL_LOADED = True
-except:
+except ImportError:
     PYBEL_LOADED = False
 
-from RASPA2.output_parser import parse
+try:
+    raspa = cdll.LoadLibrary(os.path.join(os.path.dirname(
+                                          os.path.realpath(__file__)),
+                                          "simulations/lib/libraspa2.so"))
+except OSError:
+    raspa = cdll.LoadLibrary("/usr/lib/libraspa2.so")
 
-raspa = cdll.LoadLibrary("/usr/lib/libraspa2.so")
 raspa.run.argtypes = (c_char_p, c_char_p, c_char_p, c_bool)
 raspa.run.restype = c_void_p
 

@@ -3,16 +3,22 @@ RASPA2
 
 A general purpose classical simulation package that can be used for the
 simulation of molecules in gases, fluids, zeolites, aluminosilicates,
-metal-organic frameworks, carbon nanotubes and external fields. For more, see
-the `README`.
+metal-organic frameworks, carbon nanotubes and external fields.
 
 Installation
 ============
 
-This can be done through the standard automake procedure, with some small
-edits.
+RASPA uses automake to manage code compilation. There are currently two separate
+ways to run RASPA, which each have slightly different build procedures.
 
-```bash
+###Files
+
+This approach uses RASPA script files (e.g. `simulation.input`), and a set of
+directories to load structures, gases, and forcefield files. It outputs a set
+of folders and files which contain data about the simulation run. This is the
+original designed use of RASPA, and can be compiled like so:
+
+```
 cd /path/to/RASPA2
 cp src/Makefile.am.object src/Makefile.am
 mkdir -p m4
@@ -21,87 +27,76 @@ autoreconf --install
 make && make check && make install
 ```
 
-You then should set a `RASPA_DIR` environment variable. In the case of the
-above install directory...
+You will also want to handle the `RASPA2_DIR` environment variable. See below for more.
 
-```bash
-export RASPA2_DIR=/path/to/RASPA/simulations
-```
-
-You can now run RASPA2 simulations through the installed binary. Check the help.
+Once the variable is set, you can run RASPA2 simulations through the installed binary. Check the help.
 
 ```bash
 /path/to/RASPA2/simulations/bin/./simulate -h
 ```
 
-Streaming + Shell Scripting
-===========================
+###Python
 
-In this version of RASPA2, you can run everything as a stream, allowing
-inclusion into a bash script without dealing with files and folders. The
-above command could be streamed with the `-s` flag, replacing input files
-with data.
+Instead of loading and writing files, this approach uses Python functions to
+run simulations. This is especially useful in high-throughput screening,
+where the goal is to compile the results of many separate simulations into a
+final output. To build:
 
-```bash
-./simulate -s -i "`cat test.input`" -c "`cat mof.cif`" > output.txt
 ```
-
-While this looks more complicated, you can write a bash script using variables
-without requiring filesystem commands.
-
-```bash
-script=`cat test.input`
-mof=`cat mof.cif`
-output=`./simulate -s -i "$script" -c "$mof"`
-```
-
-Python Bindings
-===============
-
-For use as one step in a high-throughput process, RASPA2 can be compiled as a
-shared object and interfaced with other programs through Python "glue". To do
-this,
-
-```bash
 cd /path/to/RASPA2
 cp src/Makefile.am.shared src/Makefile.am
 mkdir -p m4
 autoreconf --install
 ./configure --prefix=$PWD/simulations
 make && make check && make install
-sudo cp simulations/lib/libraspa2.so /usr/lib
 ```
 
-(if you don't have sudo access, `mkdir ~/lib; cp libraspa2.so ~/lib`, then
-change the path at the top of `raspa2.py`)
+You will want to handle the `RASPA2_DIR` environment variable, as well as
+manage your `PYTHONPATH`. See below for more.
 
-This creates `libraspa2.so`, which is accessible to external programs. To use
-the Python program via the command line, try
-
-```
-python raspa2.py *input_file* *structure_file*
-```
-
-This API allows for the streaming of file output, instead letting the user pipe
-their results into whatever they see fit. This enables databases, sockets, and
-a range of other possibilities.
-
-The Python bindings can also be used as part of a larger "glue" script. To do
-this, use
+This can still be run from the command line (see `python raspa2.py -h` for help),
+but is intended for use as part of a Python script in e.g. an
+[IPython Notebook](http://ipython.org/notebook.html). For example, to run a set
+of simulations across a logarithmic range of pressures, parse the outputs for
+uptake data, and plot the results, use:
 
 ```python
 import RASPA2
-results = RASPA2.run(my_structure, "CO2", temperature=298.0, pressure=1e5,
-                    helium_void_fraction=0.45)
+
+# Set up
+gas = "CO2"
+temperature = 298
+pressures = [1e4 * 10**(0.1 * i) for i in range(21)]
+results = []
+
+# Run
+for pressure in pressures:
+    results.append(RASPA2.run(my_structure, gas, temperature=temperature,
+                              pressure=pressure))
+
+# Parse
+uptakes = [r["Number of molecules"][gas]
+            ["Average loading absolute [cm^3 (STP)/cm^3 framework]"][0]
+           for r in results]
+
+# Plot
+plot(pressures, uptakes)
 ```
 
-This allows streaming without any required input or output files, which makes
-it much easier to use with modern supercomputers (ie. [PiCloud](https://www.picloud.com))
-and modern interfaces (ie. [IPython Notebook](http://ipython.org/notebook.html)).
+For more examples, check out the [NuMat workflow tutorial](https://github.com/numat/mofgen/wiki/Workflow)
+or view some [example notebooks](https://github.com/numat/simulation-notebooks).
 
-RASPA2_DIR
-=========
+Environment
+===========
 
+Your environment is a set of variables that all programs can access. You
+can view it by typing `env` into a terminal. Both RASPA and Python use specific
+environment variables for operation, and you should ensure that the variables
+mentioned are properly set up.
+
+###RASPA2_DIR
+
+By default, RASPA expects certain files to be in specific paths. Here's the logic:
 
 1. See if that file is in your current directory `$PWD`.
 2. See if that file is in a subdirectory of `$RASPA2_DIR`.
@@ -115,17 +110,32 @@ simulation gases and force fields with streaming. I like the solution:
 cp -r simulations/share ~/
 ```
 
-but you can also add this to your `.bashrc`:
+which moves the proper directory to `$HOME`, but you can also add this to your
+`~/.bashrc`:
 
 ```
 export RASPA2_DIR=/path/to/share
 ```
 
-or pass an argument to the compiled code.
+###PYTHONPATH
+
+Python will look in certain directories when you try to import a library, e.g.
+`import RASPA2`. The standard approach is to put your library in a directory
+already in `PYTHONPATH`, such as:
 
 ```
-./simulate -d /path/to/share
+mv RASPA2 ~/miniconda3/lib/python3.4/site-packages/RASPA2
 ```
 
-(The latter functionality is also in the Python bindings, but I'm hiding it for
-the sake of simplicity. If you *really* want to use it this way, just tell me.)
+(This example uses the [miniconda](http://conda.pydata.org/miniconda.html)
+Python 3.4 distribution)
+
+You can also set your own `PYTHONPATH` variable in your `~/.bashrc`:
+
+```
+export PYTHONPATH=/path/to/RASPA2
+```
+
+Be careful with this approach, though. If you don't keep your `~/.bashrc`
+neatly organized, you will complicate your environment and make future installs
+more painful.
