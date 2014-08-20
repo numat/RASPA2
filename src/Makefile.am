@@ -1,4 +1,59 @@
 bin_PROGRAMS = simulate
-simulate_LDADD = -lm
-INCLUDES = -I.
-simulate_SOURCES = numerical.h numerical.c internal_hessian.h internal_hessian.c inter_hessian.h inter_hessian.c framework_hessian.h framework_hessian.c monte_carlo.c framework.c grids.c         inter_force.c       matrix.c                 molecule.c                    potentials.c    simulation.c  statistics.c  cbmc.c             framework_energy.c  input.c         internal_energy.c   mc_moves.c               molecule_properties.c         spacegroup.c  complex.c          framework_force.c   integrate.c     internal_force.c    molecular_dynamics.c                     movies.c                      recrossing.c    spectra.c     thermo_baro_stats.c cubic_spline_1d.c   integration.c   linear_equations.c  minimization.c           rigid.c         utils.c ewald.c            inter_energy.c  main.c              minimization_simulation.c  output.c                      sample.c        vector.c monte_carlo.h       ewald.h             inter_energy.h      matrix.h                 molecule.h                    potentials.h    simulation.h  statistics.h cbmc.h             framework_energy.h  grids.h        inter_force.h       mc_moves.h               molecule_properties.h          spacegroup.h  complex.h          framework_force.h   input.h        internal_energy.h   molecular_dynamics.h                     movies.h                      recrossing.h    spectra.h     thermo_baro_stats.h constants.h constants.c       framework.h         integrate.h    internal_force.h    minimization.h           rigid.h         utils.h cubic_spline_1d.h  integration.h  linear_equations.h  minimization_simulation.h  output.h                      sample.h        vector.h equations_of_state.c equations_of_state.h scattering_factors.h scattering_factors.c framework_born.h framework_born.c inter_born.h inter_born.c internal_born.h internal_born.c warnings.h warnings.c status.h status.c inter_phonon.h inter_phonon.c internal_phonon.h framework_phonon.h framework_phonon.c internal_phonon.c phonon_disperion.h phonon_disperion.c charge_equilibration.h charge_equilibration.c
+lib_LTLIBRARIES = libraspa2.la
+
+simulate_SOURCES = main.c
+simulate_LDADD = libraspa2.la
+libraspa2_la_SOURCES = cbmc.c cbmc.h \
+                       charge_equilibration.c charge_equilibration.h \
+                       complex.c complex.h \
+                       constants.c constants.h \
+                       cubic_spline_1d.c cubic_spline_1d.h \
+                       equations_of_state.c equations_of_state.h \
+                       ewald.c ewald.h \
+                       framework.c framework.h \
+                       framework_born.c framework_born.h \
+                       framework_energy.c framework_energy.h \
+                       framework_force.c framework_force.h \
+                       framework_hessian.c framework_hessian.h \
+                       framework_phonon.c framework_phonon.h \
+                       grids.c grids.h \
+                       input.c input.h \
+                       integrate.c integrate.h \
+                       integration.c integration.h \
+                       inter_born.c inter_born.h \
+                       inter_energy.c inter_energy.h \
+                       inter_force.c inter_force.h \
+                       inter_hessian.c inter_hessian.h \
+                       inter_phonon.c inter_phonon.h \
+                       internal_born.c internal_born.h \
+                       internal_energy.c internal_energy.h \
+                       internal_force.c internal_force.h \
+                       internal_hessian.c internal_hessian.h \
+                       internal_phonon.c internal_phonon.h \
+                       linear_equations.c linear_equations.h \
+                       matrix.c matrix.h \
+                       mc_moves.c mc_moves.h \
+                       minimization.c minimization.h \
+                       minimization_simulation.c minimization_simulation.h \
+                       molecular_dynamics.c molecular_dynamics.h \
+                       molecule.c molecule.h \
+                       molecule_properties.c molecule_properties.h \
+                       monte_carlo.c monte_carlo.h \
+                       movies.c movies.h \
+                       numerical.c numerical.h \
+                       output.c output.h \
+                       phonon_disperion.c phonon_disperion.h \
+                       potentials.c potentials.h \
+                       recrossing.c recrossing.h \
+                       rigid.c rigid.h \
+                       sample.c sample.h \
+                       scattering_factors.c scattering_factors.h \
+                       simulation.c simulation.h \
+                       spacegroup.c spacegroup.h \
+                       spectra.c spectra.h \
+                       statistics.c statistics.h \
+                       status.c status.h \
+                       thermo_baro_stats.c thermo_baro_stats.h \
+                       utils.c utils.h \
+                       vector.c vector.h \
+                       warnings.c warnings.h
