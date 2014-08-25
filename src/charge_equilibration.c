@@ -443,6 +443,10 @@ REAL getJ(int i, int j)
                 kv.y=u*InverseBox[0].ay+v*InverseBox[0].by+w*InverseBox[0].cy;
                 kv.z=u*InverseBox[0].az+v*InverseBox[0].bz+w*InverseBox[0].cz;
 
+                kv.x *= 2 * M_PI;
+                kv.y *= 2 * M_PI;
+                kv.z *= 2 * M_PI;
+
                 h=sqrt(SQR(kv.x)+SQR(kv.y)+SQR(kv.z));
                 b=0.5*h*eta;
 
@@ -516,6 +520,10 @@ REAL getJ(int i, int j)
                 kv.x= u*InverseBox[0].ax+v*InverseBox[0].bx+w*InverseBox[0].cx;
                 kv.y= u*InverseBox[0].ay+v*InverseBox[0].by+w*InverseBox[0].cy;
                 kv.z= u*InverseBox[0].az+v*InverseBox[0].bz+w*InverseBox[0].cz;
+
+                kv.x *= 2 * M_PI;
+                kv.y *= 2 * M_PI;
+                kv.z *= 2 * M_PI;
 
                 h=sqrt(SQR(kv.x)+SQR(kv.y)+SQR(kv.z));
                 b=0.5*h*eta;
