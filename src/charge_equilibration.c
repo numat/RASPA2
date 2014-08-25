@@ -263,12 +263,17 @@ REAL getJ(int i, int j)
   REAL sigmaStar,sigma;
   REAL orbital,alphaStar,betaStar;
   int aVnum,bVnum,cVnum;
+  REAL minCellLength;
   REAL h,b;
   REAL alpha,beta;
 
-  aVnum=3;
-  bVnum=3;
-  cVnum=3;
+//  aVnum=3;
+//  bVnum=3;
+//  cVnum=3;
+  minCellLength = 250;
+  aVnum = ceil(minCellLength / (2.0 * Box[0].ax) ) - 1;
+  bVnum = ceil(minCellLength / (2.0 * Box[0].by) ) - 1;
+  cVnum = ceil(minCellLength / (2.0 * Box[0].cz) ) - 1;
 
   REAL k = 14.4; // [Angstroms * electron volts]
   REAL lambda = 1.2; // Global hardness scaling parameter
