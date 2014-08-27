@@ -3,6 +3,8 @@ lib_LTLIBRARIES = libraspa2.la
 
 simulate_SOURCES = main.c
 simulate_LDADD = libraspa2.la
+
+libraspa2_la_LIBADD = -lm
 libraspa2_la_SOURCES = cbmc.c cbmc.h \
                        charge_equilibration.c charge_equilibration.h \
                        complex.c complex.h \
@@ -46,6 +48,7 @@ libraspa2_la_SOURCES = cbmc.c cbmc.h \
                        potentials.c potentials.h \
                        recrossing.c recrossing.h \
                        rigid.c rigid.h \
+                       run.c run.h \
                        sample.c sample.h \
                        scattering_factors.c scattering_factors.h \
                        simulation.c simulation.h \
