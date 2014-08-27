@@ -976,7 +976,7 @@ void ReadComponentDefinition(int comp)
 
     if(!(FilePtr=fopen(buffer,"r")))
     {
-      fprintf(stderr, "Error:  file %s does not exists.\n",buffer);
+      fprintf(stderr, "Error:  file %s does not exist.\n",buffer);
       exit(1);
     }
   }

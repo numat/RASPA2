@@ -1652,7 +1652,7 @@ int GenerateTrialOrientationsMCScheme(int Old)
   // calculate an initial position for the first bead
   if(!Old)
   {
-    // if no already grown configuration exists create one from scratch
+    // if no already grown configuration exist create one from scratch
     if(!Components[CurrentComponent].LMCMOL)
     {
 

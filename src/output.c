@@ -7649,10 +7649,10 @@ void ReadRestartOutput(FILE* FilePtr)
     strncpy(buffer2,buffer,250);
     sprintf(buffer2,"%s.data",buffer2);
 
-    // check if the file exists
+    // check if the file exist
     if( access(buffer2,F_OK )==0) 
     {
-       // output-file exists
+       // output-file exist
     #if defined (__APPLE__)
       if(((OutputFilePtr[i]=fopen(buffer2,"r+"))!=NULL)||(pos<0))
     #else
@@ -7711,7 +7711,7 @@ void ReadRestartOutput(FILE* FilePtr)
         PrintPreSimulationStatusCurrentSystem(i);   // print the pre-simulation status again
       }
     }
-    else // the file does not exists
+    else // the file does not exist
     {
       fprintf(stderr,"File does not exist, recreating output-file\n");
       OutputFilePtr[i]=fopen(buffer2,"w");      // create new file

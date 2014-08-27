@@ -2105,14 +2105,14 @@ void ReadRestartMovies(FILE *FilePtr)
                 j,
                 FileNameAppend);
 
-        // check if the file exists
+        // check if the file exist
         if((PDBFilePtr[i][j]=fopen(buffer,"r+")))
         {
-          // the file exists, try to reposition to the saved state, if not possible start at the beginning of the file
+          // the file exist, try to reposition to the saved state, if not possible start at the beginning of the file
           if(fsetpos(PDBFilePtr[i][j],&pos)!=0)
             rewind(PDBFilePtr[i][j]);
         }
-        else // the file does not exists
+        else // the file does not exist
           PDBFilePtr[i][j]=fopen(buffer,"a"); // create new file
       }
 
@@ -2120,7 +2120,7 @@ void ReadRestartMovies(FILE *FilePtr)
       fread(&pos,1,sizeof(fpos_t),FilePtr);
       if((PDBFilePtrAll[i]=fopen(buffer,"r+")))
       {
-        // the file exists, try to reposition to the saved state, if not possible start at the beginning of the file
+        // the file exist, try to reposition to the saved state, if not possible start at the beginning of the file
         if(fsetpos(PDBFilePtrAll[i],&pos)!=0)
           rewind(PDBFilePtrAll[i]);
       }
@@ -2131,7 +2131,7 @@ void ReadRestartMovies(FILE *FilePtr)
       fread(&pos,1,sizeof(fpos_t),FilePtr);
       if((PDBFilePtrwork[i]=fopen(buffer,"r+")))
       {
-        // the file exists, try to reposition to the saved state, if not possible start at the beginning of the file
+        // the file exist, try to reposition to the saved state, if not possible start at the beginning of the file
         if(fsetpos(PDBFilePtrwork[i],&pos)!=0)
           rewind(PDBFilePtrwork[i]);
       }

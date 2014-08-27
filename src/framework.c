@@ -409,7 +409,7 @@ void ReadFrameworkDefinitionCIF(void)
 
       if(!(FilePtr=fopen(buffer,"r")))
       {
-        fprintf(stderr, "Error:  file %s does not exists.\n",buffer);
+        fprintf(stderr, "Error:  file %s does not exist.\n",buffer);
         exit(1);
       }
     }
@@ -1556,7 +1556,7 @@ void ReadFrameworkDefinitionCIF(void)
           // this means that the 'pseudo_atoms.def' file has precedence over the cif-file settings
           CurrentAsymmetricAtom.Type=AddPseudoAtom(CurrentPseudoAtom);
 
-          // 1) pseudo-atom already exists -> charge from the pseudo-atom to the asymmetric atom
+          // 1) pseudo-atom already exist -> charge from the pseudo-atom to the asymmetric atom
           // 2) pseudo-atom from CIF is new -> the new pseudo-atom has been filled in with the charge from the cif-file
           // 3) if e.g. 'O2' is new, and then another 'O2' is read, then the charge is taken from CIF-file
 
@@ -2783,7 +2783,7 @@ void ReadFrameworkDefinitionMOL(void)
 
       if(!(FilePtr=fopen(buffer,"r")))
       {
-        fprintf(stderr, "Error:  file %s does not exists.\n",buffer);
+        fprintf(stderr, "Error:  file %s does not exist.\n",buffer);
         exit(1);
       }
     }
@@ -3116,7 +3116,7 @@ void ReadFrameworkDefinitionDLPOLY(void)
           "dlpoly");
     if(!(FilePtr=fopen(buffer,"r")))
     {
-      fprintf(stderr, "Error:  file %s does not exists.\n",buffer);
+      fprintf(stderr, "Error:  file %s does not exist.\n",buffer);
       exit(1);
     }
   }
@@ -3240,7 +3240,7 @@ void ReadFrameworkDefinitionCSSR(void)
 
     if(!(FilePtr=fopen(buffer,"r")))
     {
-      fprintf(stderr, "Error:  file %s does not exists.\n",buffer);
+      fprintf(stderr, "Error:  file %s does not exist.\n",buffer);
       exit(1);
     }
   }
@@ -4818,7 +4818,7 @@ void ReadIonSitingDefinition(void)
             "ions");
     if(!(FilePtr=fopen(buffer,"r")))
     {
-      fprintf(stderr, "Error:  file %s does not exists.\n",buffer);
+      fprintf(stderr, "Error:  file %s does not exist.\n",buffer);
       exit(1);
     }
   }
@@ -6084,7 +6084,7 @@ void ReadBlockingPockets(void)
           fclose(FilePtr);
         }
         else
-          fprintf(stderr, "Warning:  file %s does not exists.\n",buffer);
+          fprintf(stderr, "Warning:  file %s does not exist.\n",buffer);
       }
     }
   }
@@ -6926,7 +6926,7 @@ void ReadFrameworkSpecificDefinition(void)
         sprintf(buffer,"%s.%s","Framework","dlpoly");
         if(!(FilePtr=fopen(buffer,"r")))
         {
-          fprintf(stderr, "Error:  file %s does not exists.\n",buffer);
+          fprintf(stderr, "Error:  file %s does not exist.\n",buffer);
           exit(1);
         }
       }
@@ -7817,7 +7817,7 @@ int ReadFrameworkDefinition(void)
 
         if(!(FilePtr=fopen(buffer,"r")))
         {
-          fprintf(stderr, "Error:  file %s does not exists.\n",buffer);
+          fprintf(stderr, "Error:  file %s does not exist.\n",buffer);
           exit(1);
         }
       }
