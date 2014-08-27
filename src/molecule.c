@@ -17,6 +17,7 @@
 #endif
 #include <stdlib.h>
 #include <stdio.h>
+#include <errno.h>
 #include <string.h>
 #include <math.h>
 #include "constants.h"
@@ -976,7 +977,7 @@ void ReadComponentDefinition(int comp)
 
     if(!(FilePtr=fopen(buffer,"r")))
     {
-      fprintf(stderr, "Error:  file %s does not exist.\n",buffer);
+      fprintf(stderr, "Cannot open %s. Error: %s.\n", buffer, strerror(errno));
       exit(1);
     }
   }

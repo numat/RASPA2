@@ -4147,6 +4147,7 @@ void ReadForceFieldDefinitionsMixingRules(void)
         }
       }
   }
+  fclose(FilePtr);
 }
 
 /*********************************************************************************************************
@@ -5095,6 +5096,7 @@ void ReadForceFieldDefinitions(void)
       }
     }
   }
+  fclose(FilePtr);
 }
 
 void ComputePotentialShifts(void)
