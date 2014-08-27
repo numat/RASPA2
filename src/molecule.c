@@ -600,6 +600,7 @@ void ReadPseudoAtomsDefinitions(void)
 
     PseudoAtoms[i].CF=FALSE;
   }
+  fclose(FilePtr);
 }
 
 void ComputeInertiaTensorGroups(int comp)
@@ -2440,8 +2441,6 @@ void ReadComponentDefinition(int comp)
           // p_2     [degrees]
           Components[comp].BendBendArguments[i][0]/=ENERGY_TO_KELVIN;
           Components[comp].BendBendArguments[i][1]*=DEG2RAD;
-          Components[comp].BendBendArguments[i][2]*=DEG2RAD;
-          break;
         case MM3_BEND_BEND_CROSS:
           // -p_0*(Theta1-p_1)*(Theta2-p_2)
           // ===================================
@@ -2862,7 +2861,11 @@ void ReadComponentDefinition(int comp)
 
   // biasing spline
   if(Components[comp].ReadBiasingFunction)
+  {
     ReadBiasingProfile(comp);
+  }
+
+  fclose(FilePtr);
 }
 
 void InsertAdsorbateMolecule(void)
@@ -4540,66 +4543,6 @@ void InitializeCationVelocities(void)
   for(i=0;i<NumberOfCationMolecules[CurrentSystem];i++)
     InitializeVelocityCation(i);
 }
-
-
-/*
-void ScaleVelocityAdsorbateToTemperature(void)
-{
-  REAL UKinetic,Factor;
-  int k,l,A,Type;
-  int DegreesOfFreedomTranslation.DegreesOfFreedomRotation;
-  REAL Mass;
-
-  DegreesOfFreedomTranslation=0;
-  DegreesOfFreedomRotation=0;
-  Type=Adsorbates[CurrentSystem][m].Type;
-  for(l=0;l<Components[Type].NumberOfGroups;l++)
-  {
-    if(Components[Type].Groups[l].Rigid)
-    {
-      Mass=Components[Type].Groups[l].Mass;
-
-      DegreesOfFreedomRotation+=Components[Type].Groups[l].RotationalDegreesOfFreedom;
-      DegreesOfFreedomTranslation+=3;
-
-      Adsorbates[CurrentSystem][m].Groups[l].CenterOfMassVelocity.x=RandomGaussianNumber()*
-                sqrt(K_B*therm_baro_stats.ExternalTemperature[CurrentSystem]/Mass);
-      Adsorbates[CurrentSystem][m].Groups[l].CenterOfMassVelocity.y=RandomGaussianNumber()*
-                sqrt(K_B*therm_baro_stats.ExternalTemperature[CurrentSystem]/Mass);
-      Adsorbates[CurrentSystem][m].Groups[l].CenterOfMassVelocity.z=RandomGaussianNumber()*
-                sqrt(K_B*therm_baro_stats.ExternalTemperature[CurrentSystem]/Mass);
-
-      Ukinetic+=0.5*Mass*(SQR(Adsorbates[CurrentSystem][m].Groups[l].CenterOfMassVelocity.x)+
-                          SQR(Adsorbates[CurrentSystem][m].Groups[l].CenterOfMassVelocity.y)+
-                          SQR(Adsorbates[CurrentSystem][m].Groups[l].CenterOfMassVelocity.z));
-    }
-    else
-    {
-      for(k=0;k<Components[Type].Groups[l].NumberOfGroupAtoms;k++)
-      {
-        A=Components[Type].Groups[l].Atoms[k];
-        Type=Adsorbates[CurrentSystem][m].Atoms[A].Type;
-        Mass=PseudoAtoms[Type].Mass;
-
-        DegreesOfFreedomTranslation+=3;
-
-        Adsorbates[CurrentSystem][m].Atoms[A].Velocity.x=RandomGaussianNumber()*
-                sqrt(K_B*therm_baro_stats.ExternalTemperature[CurrentSystem]/Mass);
-        Adsorbates[CurrentSystem][m].Atoms[A].Velocity.y=RandomGaussianNumber()*
-                sqrt(K_B*therm_baro_stats.ExternalTemperature[CurrentSystem]/Mass);
-        Adsorbates[CurrentSystem][m].Atoms[A].Velocity.z=RandomGaussianNumber()*
-                sqrt(K_B*therm_baro_stats.ExternalTemperature[CurrentSystem]/Mass);
-
-        Ukinetic+=0.5*Mass*(SQR(Adsorbates[CurrentSystem][m].Atoms[A].Velocity.x)+
-                            SQR(Adsorbates[CurrentSystem][m].Atoms[A].Velocity.y)+
-                            SQR(Adsorbates[CurrentSystem][m].Atoms[A].Velocity.z));
-      }
-    }
-  }
-
-  Factor=sqrt(DegreesOfFreedom*K_B*therm_baro_stats.ExternalTemperature[CurrentSystem]/(2.0*UKinetic));
-}
-*/
 
 REAL GetAdsorbateKineticEnergy(void)
 {
