@@ -1750,7 +1750,10 @@ void ReadFrameworkDefinitionCIF(void)
       }
       FoundSpaceGroupSymmetryElements=GetSpacegroupFromSymmetryElements(nr_sg_elements,SpaceGroup);
 
-      fprintf(stderr, "space group found from symmetry elements: %d (nr elements: %d)\n",FoundSpaceGroupSymmetryElements,nr_sg_elements);
+      if (!STREAM)
+      {
+        fprintf(stderr, "space group found from symmetry elements: %d (nr elements: %d)\n",FoundSpaceGroupSymmetryElements,nr_sg_elements);
+      }
     }
 
     // the Hall symbol is always read and overrules '_symmetry_space_group_name_H-M' and '_symmetry_equiv_pos_as_xyz'
@@ -1831,7 +1834,10 @@ void ReadFrameworkDefinitionCIF(void)
         fprintf(stderr, "ERROR in cif-file: cell length A not recognized\n");
         exit(0);
       }
-      fprintf(stderr, "_cell_length_a: %lf\n",A);
+      if (!STREAM)
+      {
+        fprintf(stderr, "_cell_length_a: %lf\n",A);
+      }
     }
 
     if(strncasecmp(keyword,"_cell_length_b",strlen("_cell_length_b"))==0)
@@ -1841,7 +1847,10 @@ void ReadFrameworkDefinitionCIF(void)
         fprintf(stderr, "ERROR in cif-file: cell length B not recognized\n");
         exit(0);
       }
-      fprintf(stderr, "_cell_length_b: %lf\n",B);
+      if (!STREAM)
+      {
+        fprintf(stderr, "_cell_length_b: %lf\n",B);
+      }
     }
 
     if(strncasecmp(keyword,"_cell_length_c",strlen("_cell_length_c"))==0)
@@ -1851,7 +1860,10 @@ void ReadFrameworkDefinitionCIF(void)
         fprintf(stderr, "ERROR in cif-file: cell length C not recognized\n");
         exit(0);
       }
-      fprintf(stderr, "_cell_length_c: %lf\n",C);
+      if (!STREAM)
+      {
+        fprintf(stderr, "_cell_length_c: %lf\n",C);
+      }
     }
 
     if(strncasecmp(keyword,"_cell_angle_alpha",strlen("_cell_angle_alpha"))==0)
@@ -1861,7 +1873,10 @@ void ReadFrameworkDefinitionCIF(void)
         fprintf(stderr, "ERROR in cif-file: cell angle alpha not recognized\n");
         exit(0);
       }
-      fprintf(stderr, "_cell_length_alpha: %lf\n",alpha);
+      if (!STREAM)
+      {
+        fprintf(stderr, "_cell_length_alpha: %lf\n",alpha);
+      }
     }
 
     if(strncasecmp(keyword,"_cell_angle_beta",strlen("_cell_angle_beta"))==0)
@@ -1871,7 +1886,10 @@ void ReadFrameworkDefinitionCIF(void)
         fprintf(stderr, "ERROR in cif-file: cell angle beta not recognized\n");
         exit(0);
       }
-      fprintf(stderr, "_cell_length_beta: %lf\n",beta);
+      if (!STREAM)
+      {
+        fprintf(stderr, "_cell_length_beta: %lf\n",beta);
+      }
     }
 
     if(strncasecmp(keyword,"_cell_angle_gamma",strlen("_cell_angle_gamma"))==0)
@@ -1881,7 +1899,10 @@ void ReadFrameworkDefinitionCIF(void)
         fprintf(stderr, "ERROR in cif-file: cell angle gamma not recognized\n");
         exit(0);
       }
-      fprintf(stderr, "_cell_length_gamma: %lf\n",gamma);
+      if (!STREAM)
+      {
+        fprintf(stderr, "_cell_length_gamma: %lf\n",gamma);
+      }
     }
 
     TrimStringInPlace(arguments);
@@ -2001,7 +2022,10 @@ void ReadFrameworkDefinitionCIF(void)
   // expand asymmetric to full framework
   ExpandAsymmetricFrameworkToFullFramework();
 
-  fprintf(stderr, "End reading cif-file\n");
+  if (!STREAM)
+  {
+    fprintf(stderr, "End reading cif-file\n");
+  }
 }
 
 /*********************************************************************************************************
