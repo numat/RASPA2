@@ -212,7 +212,7 @@ char* run(char *inputData, char *inputCrystal, char *raspaDir, bool stream)
     // simulation data, or is the overhead not worth it?
     if (SimulationType == PORE_SIZE_DISTRIBUTION)
     {
-      output = calloc(PORE_SIZE_DISTRIBUTION_OUTPUT_SIZE, sizeof(char));
+      output = calloc(PORE_SIZE_DISTRIBUTION_OUTPUT_SIZE + 1, sizeof(char));
       strcat(output, PORE_SIZE_DISTRIBUTION_OUTPUT);
       free(PORE_SIZE_DISTRIBUTION_OUTPUT);
     }
