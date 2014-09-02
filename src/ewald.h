@@ -49,6 +49,10 @@ extern REAL *UHostCationBondDipoleBondDipoleFourierDelta;
 extern REAL *UHostAdsorbateBondDipoleBondDipoleFourierDelta;
 extern REAL *UHostHostBondDipoleBondDipoleFourierDelta;
 
+// Maintain these pointers so we can free them on finish
+extern COMPLEX * Eikx0,* Eiky0,* Eikz0;
+extern COMPLEX * Eikx_bd0,* Eiky_bd0,* Eikz_bd0;
+extern COMPLEX * Eikr_bd, *Eikr_xy_bd;
 
 // net charges
 extern REAL *NetChargeSystem;

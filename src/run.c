@@ -62,7 +62,7 @@ extern size_t *FILE_SIZES = NULL;
  */
 char* run(char *inputData, char *inputCrystal, char *raspaDir, bool stream)
 {
-  int i = 0;
+  int i = 0, j = 0, k = 0, maxAtomsBonds = 0;
   size_t chars = 0;
   REAL energy, force_factor;
   char *output = NULL, *temp = NULL, *delimiter = NULL;
@@ -222,7 +222,9 @@ char* run(char *inputData, char *inputCrystal, char *raspaDir, bool stream)
       delimiter = "\n\nEND OF SIMULATION\n\n";
 
       for (i = 0; i < NumberOfSystems; i++)
-          chars += FILE_SIZES[i];
+      {
+        chars += FILE_SIZES[i];
+      }
       chars += strlen(delimiter) * (NumberOfSystems - 1) + 1;
       output = calloc(chars, sizeof(char));
 
@@ -233,8 +235,10 @@ char* run(char *inputData, char *inputCrystal, char *raspaDir, bool stream)
       }
       strcat(output, FILE_CONTENTS[NumberOfSystems - 1]);
 
-      for (i = 0; i < NumberOfSystems-1; i++)
+      for (i = 0; i < NumberOfSystems; i++)
+      {
         free(FILE_CONTENTS[i]);
+      }
     }
 
   // Write the final positions to files
@@ -251,6 +255,56 @@ char* run(char *inputData, char *inputCrystal, char *raspaDir, bool stream)
   free(FILE_CONTENTS);
   free(FILE_SIZES);
   free(INPUT_CRYSTAL);
+
+  // Fighting memory leaks caused by unfreed globals.
+  // This all came from valgrind.
+  free(Eikx0);
+  free(Eiky0);
+  free(Eikz0);
+  free(Eikx_bd0);
+  free(Eiky_bd0);
+  free(Eikz_bd0);
+  free(Eikr_bd);
+  free(Eikr_xy_bd);
+
+  for (i = 0; i < NumberOfPseudoAtoms; i++)
+  {
+    free(PotentialParms[i]);
+  }
+  free(PotentialParms);
+
+  for (i = 0; i < 80; i++)
+  {
+    free(CFVDWScalingRXMC[i]);
+    free(CFChargeScalingRXMC[i]);
+  }
+  free(CFVDWScalingRXMC);
+  free(CFChargeScalingRXMC);
+
+  for (i = 0; i < NumberOfSystems; i++)
+  {
+    for (j = 0; j < Framework[i].NumberOfFrameworks; j++)
+    {
+      maxAtomsBonds = MAX2(Framework[i].NumberOfAtoms[j],
+                           Framework[i].NumberOfBonds[j]);
+      for (k = 0; k < maxAtomsBonds; k++)
+      {
+        free(Framework[i].ExclusionMatrix[j][k]);
+      }
+      free(Framework[i].ExclusionMatrix[j]);
+
+      for (k = 0; k < TotalNumberOfReplicaCells[i] * Framework[i].NumberOfAtoms[j]; k++)
+      {
+        free(Framework[i].Neighbours[j][k]);
+      }
+      free(Framework[i].Neighbours[j]);
+
+      free(Framework[i].Atoms[j]);
+    }
+    free(Framework[i].Atoms);
+    free(Framework[i].ExclusionMatrix);
+    free(Framework[i].Neighbours);
+  }
 
   return output;
 }

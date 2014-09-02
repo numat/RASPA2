@@ -5651,6 +5651,7 @@ void SampleInfraRedSpectra(int Switch)
     case FINALIZE:
       break;
   }
+  free(SpectrumBuffer);
 }
 
 

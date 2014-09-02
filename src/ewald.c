@@ -142,15 +142,15 @@ static COMPLEX **NewTotalBondDipolesCations;
 static COMPLEX *Eikx;                // exp(-ik.x) for k=0,..,kx (or k=-kx,..,kx when no symmetry is used, e.g. phonon disperion)
 static COMPLEX *Eiky;                // exp(-ik.y) for k=-ky,..,ky
 static COMPLEX *Eikz;                // exp(-ik.z) for k=-kz,..,kz
-static COMPLEX *Eikr;                // exp(-ik.r) for i=1,..,N
-static COMPLEX *Eikr_xy;             // temporary storage for exp(-ik.x)*exp(-ik.y) for i=1,..,N
+COMPLEX *Eikr;                // exp(-ik.r) for i=1,..,N
+COMPLEX *Eikr_xy;             // temporary storage for exp(-ik.x)*exp(-ik.y) for i=1,..,N
 
 // storage for bond-dipoles
 static COMPLEX *Eikx_bd;             // exp(-ik.x) for k=0,..,kx (or k=-kx,..,kx when no symmetry is used, e.g. phonon disperion)
 static COMPLEX *Eiky_bd;             // exp(-ik.y) for k=-ky,..,ky
 static COMPLEX *Eikz_bd;             // exp(-ik.z) for k=-kz,..,kz
-static COMPLEX *Eikr_bd;             // exp(-ik.r) for i=1,..,N
-static COMPLEX *Eikr_xy_bd;          // temporary storage for exp(-ik.x)*exp(-ik.y) for i=1,..,N
+COMPLEX *Eikr_bd;             // exp(-ik.r) for i=1,..,N
+COMPLEX *Eikr_xy_bd;          // temporary storage for exp(-ik.x)*exp(-ik.y) for i=1,..,N
 
 static VECTOR **KVectors;            // the k-vectors (from 0,...,nvec-1) for each system
 static REAL **KFactor;               // precomputed pre-factor COULOMBIC_CONVERSION_FACTOR*(4*Pi/V)*exp(-k^2/(4*SQR(alpha)))/k^2
@@ -261,8 +261,8 @@ void InitializeEwald(REAL precision,int Automatic)
 
 // Used to allocate the array, and subsequently let another pointer point to the "center" of the array to allow negative indices.
 // The pointers here are used for the re-allocation of memory.
-static COMPLEX * Eikx0,* Eiky0,* Eikz0;
-static COMPLEX * Eikx_bd0,* Eiky_bd0,* Eikz_bd0;
+COMPLEX * Eikx0,* Eiky0,* Eikz0;
+COMPLEX * Eikx_bd0,* Eiky_bd0,* Eikz_bd0;
 
 int AllocateEwaldMemory(void)
 {
