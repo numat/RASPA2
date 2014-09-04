@@ -7,6 +7,7 @@ This is intended 1. to allow users to automate + simplify their workflows and
 from ctypes import cdll, c_void_p, c_char_p, c_bool, cast
 import os
 from textwrap import dedent
+from multiprocessing import Process, Pipe
 
 from RASPA2.output_parser import parse
 
@@ -17,16 +18,6 @@ try:
     PYBEL_LOADED = True
 except ImportError:
     PYBEL_LOADED = False
-
-try:
-    libraspa = cdll.LoadLibrary(os.path.join(os.path.dirname(
-                                             os.path.realpath(__file__)),
-                                             "simulations/lib/libraspa2.so"))
-except OSError:
-    libraspa = cdll.LoadLibrary("/usr/lib/libraspa2.so")
-
-libraspa.run.argtypes = (c_char_p, c_char_p, c_char_p, c_bool)
-libraspa.run.restype = c_void_p
 
 
 def run(structure, molecule_name, temperature=273.15, pressure=101325,
@@ -102,10 +93,41 @@ def run_script(input_script, structure=None, raspa_dir="auto"):
     if PYBEL_LOADED and isinstance(structure, pybel.Molecule):
         structure = pybel_to_raspa_cif(structure)
 
+    # RASPA leaks a lot of memory, which is an issue in high-throughput
+    # screening. Calling each simulation in a subprocess adds complexity and
+    # time, but allows still reachable memory to be garbage collected by the
+    # OS and also protects against segfaults destablizing an entire engine.
+    parent_conn, child_conn = Pipe()
+    p = Process(target=_script_subprocess, args=(input_script, structure or "",
+                                                 raspa_dir, child_conn))
+    p.start()
+    output = parent_conn.recv()
+    p.join()
+    p.terminate()
+
+    return output
+
+
+def _script_subprocess(input_script, structure, raspa_dir, conn):
+    """Loads and runs libraspa2. Called through multiprocessing.Process.
+
+    Intended as a workaround for RASPA's memory leaks. Once RASPA is running
+    valgrind pure, remove this approach and replace with a direct call.
+    """
+    try:
+        libraspa = cdll.LoadLibrary(os.path.join(os.path.dirname(
+            os.path.realpath(__file__)), "simulations/lib/libraspa2.so"))
+    except OSError:
+        libraspa = cdll.LoadLibrary("/usr/lib/libraspa2.so")
+
+    libraspa.run.argtypes = (c_char_p, c_char_p, c_char_p, c_bool)
+    libraspa.run.restype = c_void_p
+
     ptr = libraspa.run(input_script.encode("ascii"),
-                       (structure or "").encode("ascii"),
+                       structure.encode("ascii"),
                        raspa_dir.encode("ascii"), True)
-    return cast(ptr, c_char_p).value[:].decode("utf-8")
+    conn.send(cast(ptr, c_char_p).value[:].decode("utf-8"))
+    conn.close()
 
 
 def create_script(molecule_name, temperature=273.15, pressure=101325,
