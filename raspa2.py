@@ -102,7 +102,7 @@ def run_script(input_script, structure=None, raspa_dir="auto"):
                                                  raspa_dir, child_conn))
     p.start()
     output = parent_conn.recv()
-    p.join()
+    p.join(1)
     p.terminate()
 
     return output
