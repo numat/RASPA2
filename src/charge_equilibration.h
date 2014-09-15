@@ -21,8 +21,8 @@
 
 enum{DING_YAZAYDIN_DUBBELDAM,RAPPE_GODDARD,WILMER_SNURR};
 
-int ChargeEquilibrationPeriodic;
-int ChargeEquilibrationEwald;
+extern int ChargeEquilibrationPeriodic;
+extern int ChargeEquilibrationEwald;
 void ChargeEquilibration(void);
 
 #endif
