@@ -1965,7 +1965,8 @@ int GenerateTrialOrientationsMCScheme(int Old)
               {
                 Components[CurrentComponent].CBMCChangeBondLengthAccepted[CurrentSystem][Bonds[jj]]+=1.0;
                 eobond[jj]=enbond[jj];
-                eoureybradley[jj]=enureybradley[jj];
+                for(j=0;j<NumberOfUreyBradleys;j++)
+                  eoureybradley[j]=enureybradley[j];
                 for(j=0;j<NumberOfInversionBends;j++)
                   eoinversionbend[j]=eninversionbend[j];
                 for(j=0;j<NumberOfImproperTorsions;j++)
