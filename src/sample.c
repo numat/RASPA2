@@ -733,6 +733,24 @@ void SampleRadialDistributionFunction(int Switch)
           }
         }
       }
+      break;
+    case FINALIZE:
+      for(i=0;i<NumberOfSystems;i++)
+      {
+        if(ComputeRDF[i])
+        {
+          for(j=0;j<NumberOfPseudoAtoms;j++)
+          {
+            for(k=0;k<NumberOfPseudoAtoms;k++)
+              free(RadialDistributionFunction[i][j][k]);
+            free(RadialDistributionFunction[i][j]);
+          }
+          free(RadialDistributionFunction[i]);
+        }
+      }
+      free(RadialDistributionFunction);
+      free(CountRDF);
+      break;
   }
 }
 
@@ -840,6 +858,21 @@ void SampleProjectedLengthsDistributionFunction(int Switch)
         }
         fclose(FilePtr);
       }
+      break;
+    case FINALIZE:
+      for(i=0;i<NumberOfSystems;i++)
+      {
+        if(ComputeProjectedLengths[i])
+        {
+          for(j=0;j<NumberOfComponents;j++)
+            free(ProjectedLengthsDistributionFunction[i][j]);
+          free(ProjectedLengthsDistributionFunction[i]);
+          free(CountProjectedLengths[i]);
+        }
+      }
+      free(ProjectedLengthsDistributionFunction);
+      free(CountProjectedLengths);
+      break;
   }
 }
 
@@ -972,6 +1005,21 @@ void SampleProjectedAnglesDistributionFunction(int Switch)
         }
         fclose(FilePtr);
       }
+      break;
+    case FINALIZE:
+      for(i=0;i<NumberOfSystems;i++)
+      {
+        if(ComputeProjectedAngles[i])
+        {
+          for(j=0;j<NumberOfComponents;j++)
+            free(ProjectedAnglesDistributionFunction[i][j]);
+          free(ProjectedAnglesDistributionFunction[i]);
+          free(CountProjectedAngles[i]);
+        }
+      }
+      free(ProjectedAnglesDistributionFunction);
+      free(CountProjectedAngles);
+      break;
   }
 }
 
@@ -1056,6 +1104,16 @@ void SampleCFCRXMCLambdaHistogram(int Switch)
       }
       break;
     case FINALIZE:
+      for(i=0;i<NumberOfSystems;i++)
+      {
+         if(ComputeCFCRXMCLambdaHistogram[i])
+         {
+           for(j=0;j<NumberOfReactions;j++)
+             free(CFCRXMCLambdaHistogram[i][j]);
+           free(CFCRXMCLambdaHistogram[i]);
+         }
+      }
+      free(CFCRXMCLambdaHistogram);
       break;
   }
 }
@@ -1140,7 +1198,18 @@ void SampleNumberOfMoleculesHistogram(int Switch)
         }
         fclose(FilePtr);
       }
+      break;
     case FINALIZE:
+      for(i=0;i<NumberOfSystems;i++)
+      {
+        if(ComputeNumberOfMoleculesHistogram[i])
+        {
+          for(j=0;j<NumberOfComponents+1;j++)
+            free(NumberOfMoleculesHistogram[i][j]);
+          free(NumberOfMoleculesHistogram[i]);
+        }
+      }
+      free(NumberOfMoleculesHistogram);
       break;
   }
 }
@@ -2363,6 +2432,36 @@ void SamplePositionHistogram(int Switch)
         }
       }
       break;
+    case FINALIZE:
+      for(i=0;i<NumberOfSystems;i++)
+      {
+        if(ComputePositionHistogram[i])
+        {
+          for(j=0;j<NumberOfComponents;j++)
+          {
+            for(k=0;k<Components[j].NumberOfAtoms+2;k++)
+            {
+              free(PositionABCHistogram[i][j][k]);
+              free(Position2DDiagonalHistogram[i][j][k]);
+              free(Position2DDiagonalHistogram2[i][j][k]);
+              free(Position3DDiagonalHistogram[i][j][k]);
+            }
+            free(PositionABCHistogram[i][j]);
+            free(Position2DDiagonalHistogram[i][j]);
+            free(Position2DDiagonalHistogram2[i][j]);
+            free(Position3DDiagonalHistogram[i][j]);
+          }
+          free(PositionABCHistogram[i]);
+          free(Position2DDiagonalHistogram[i]);
+          free(Position2DDiagonalHistogram2[i]);
+          free(Position3DDiagonalHistogram[i]);
+        }
+      }
+      free(PositionABCHistogram);
+      free(Position2DDiagonalHistogram);
+      free(Position2DDiagonalHistogram2);
+      free(Position3DDiagonalHistogram);
+      break;
     default:
       break;
   }
@@ -3123,6 +3222,24 @@ void SampleFreeEnergyProfile(int Switch)
       }
       break;
     case FINALIZE:
+      for(i=0;i<NumberOfSystems;i++)
+      {
+        if(ComputeFreeEnergyProfile[i])
+        {
+          for(j=0;j<NumberOfComponents;j++)
+          {                     
+            free(RosenBinSum[i][j]);
+            free(RosenBinSumSquared[i][j]);
+            free(RosenBinCount[i][j]);
+          }
+          free(RosenBinSum[i]);
+          free(RosenBinSumSquared[i]);
+          free(RosenBinCount[i]);
+        }
+      }
+      free(RosenBinSum);
+      free(RosenBinSumSquared);
+      free(RosenBinCount);
       break;
   }
 }
@@ -3344,6 +3461,12 @@ void SamplePoreSizeDistribution(int Switch)
       fclose(FilePtr);
       break;
     case FINALIZE:
+      for(i=0;i<NumberOfSystems;i++)
+      {
+        if(ComputePSDHistogram[i])
+          free(PoreSizeDistributionHistogram[i]);
+      }
+      free(PoreSizeDistributionHistogram);
       break;
   }
 }
@@ -3451,6 +3574,16 @@ void SampleEndToEndDistanceHistogram(int Switch)
       }
       break;
     case FINALIZE:
+      for(i=0;i<NumberOfSystems;i++)
+      {
+        if(ComputeEndToEndDistanceHistogram[i])
+        {
+          for(j=0;j<NumberOfComponents;j++)
+            free(EndToEndDistanceHistogram[i][j]);
+          free(EndToEndDistanceHistogram[i]);
+        }
+      }
+      free(EndToEndDistanceHistogram);
       break;
   }
 }
@@ -3591,8 +3724,15 @@ void SampleEnergyHistogram(int Switch)
           fprintf(FilePtr,"%g %g\n",(double)U,(double)(EnergyHistogram[CurrentSystem][3][k]/norm));
       }
       fclose(FilePtr);
-
+      break;
     case FINALIZE:
+      for(i=0;i<NumberOfSystems;i++)
+      {
+        for(j=0;j<4;j++)
+          free(EnergyHistogram[i][j]);
+        free(EnergyHistogram[i]);
+      }
+      free(EnergyHistogram);
       break;
   }
 }
@@ -3828,6 +3968,24 @@ void SampleFrameworkSpacingHistogram(int Choice)
       }
       break;
     case FINALIZE:
+      for(i=0;i<NumberOfSystems;i++)
+      {
+        if(ComputeFrameworkSpacingHistogram[i])
+        {
+          for(j=0;j<Framework[i].NumberOfFrameworks;j++)
+          {
+            for(k=0;k<Framework[i].NumberOfFrameworks;k++)
+            {
+              for(l=0;l<4;l++)
+                free(FrameworkDistanceHistogram[i][j][k][l]);
+              free(FrameworkDistanceHistogram[i][j][k]);
+            }
+            free(FrameworkDistanceHistogram[i][j]);
+          }
+          free(FrameworkDistanceHistogram[i]);
+        }
+      }
+      free(FrameworkDistanceHistogram);
       break;
   }
 }
@@ -4010,9 +4168,26 @@ void SampleResidenceTimes(int Switch)
         fprintf(FilePtr,"%d %g\n",i,temp/ResidenceTimesFractionCounts[CurrentSystem]);
       }
       fclose(FilePtr);
-
       break;
     case FINALIZE:
+      for(i=0;i<NumberOfSystems;i++)
+      {
+        free(ResidenceOriginAdsorbates[i]);
+        free(ResidenceOriginCations[i]);
+        free(ResidenceStatusAdsorbates[i]);
+        free(ResidenceStatusCations[i]);
+        free(ResidenceTimesHistogram[i]);
+        free(ResidenceTimesFractionAdsorbates[i]);
+        free(ResidenceTimesFractionCations[i]);
+      }
+      free(ResidenceOriginAdsorbates);
+      free(ResidenceOriginCations);
+      free(ResidenceStatusAdsorbates);
+      free(ResidenceStatusCations);
+      free(ResidenceTimesHistogram);
+      free(ResidenceTimesFractionAdsorbates);
+      free(ResidenceTimesFractionCations);
+      free(ResidenceTimesFractionCounts);
       break;
   }
 }
@@ -4119,9 +4294,15 @@ void SampleDistanceHistogram(int Switch)
         }
         fclose(FilePtr);
       }
-
       break;
     case FINALIZE:
+      for(i=0;i<NumberOfSystems;i++)
+      {
+        for(j=0;j<NumberOfDistanceHistogramDefinitions[i];j++)
+          free(DistanceHistograms[i][j]);
+        free(DistanceHistograms[i]);
+      }
+      free(DistanceHistograms);
       break;
   }
 }
@@ -4238,9 +4419,15 @@ void SampleBendAngleHistogram(int Switch)
         }
         fclose(FilePtr);
       }
-
       break;
     case FINALIZE:
+      for(i=0;i<NumberOfSystems;i++)
+      {
+        for(j=0;j<NumberOfBendAngleHistogramDefinitions[i];j++)
+          free(BendAngleHistograms[i][j]);
+        free(BendAngleHistograms[i]);
+      }
+      free(BendAngleHistograms);
       break;
   }
 }
@@ -4377,6 +4564,13 @@ void SampleDihedralAngleHistogram(int Switch)
 
       break;
     case FINALIZE:
+      for(i=0;i<NumberOfSystems;i++)
+      {
+        for(j=0;j<NumberOfDihedralAngleHistogramDefinitions[i];j++)
+          free(DihedralAngleHistograms[i][j]);
+        free(DihedralAngleHistograms[i]);
+      }
+      free(DihedralAngleHistograms);
       break;
   }
 }
@@ -4600,9 +4794,15 @@ void SampleAngleBetweenPlanesHistogram(int Switch)
         }
         fclose(FilePtr);
       }
-
       break;
     case FINALIZE:
+      for(i=0;i<NumberOfSystems;i++)
+      {
+        for(j=0;j<NumberOfAngleBetweenPlanesHistogramDefinitions[i];j++)
+          free(AngleBetweenPlanesHistograms[i][j]);
+        free(AngleBetweenPlanesHistograms[i]);
+      }
+      free(AngleBetweenPlanesHistograms);
       break;
   }
 }
@@ -5024,7 +5224,88 @@ void SampleMoleculePropertyHistogram(int Switch)
           fclose(FilePtr);
         }
       }
+      break;
     case FINALIZE:
+      for(i=0;i<NumberOfSystems;i++)
+      {
+        if(ComputeMoleculeProperties[i])
+        {
+          for(j=0;j<NumberOfComponents;j++)
+          {
+            for(k=0;k<MaxNumberOfBonds;k++)
+              free(BondLengthHistogram[i][j][k]);
+            free(BondLengthHistogram[i][j]);
+
+            for(k=0;k<MaxNumberOfUreyBradleys;k++)
+              free(UreyBradleyLengthHistogram[i][j][k]);
+            free(UreyBradleyLengthHistogram[i][j]);
+
+            for(k=0;k<MaxNumberOfBends;k++)
+              free(BendAngleHistogram[i][j][k]);
+            free(BendAngleHistogram[i][j]);
+
+            for(k=0;k<MaxNumberOfTorsions;k++)
+              free(TorsionAngleHistogram[i][j][k]);
+            free(TorsionAngleHistogram[i][j]);
+
+            for(k=0;k<MaxNumberOfTorsions;k++)
+              free(TorsionConformationHistogram[i][j][k]);
+            free(TorsionConformationHistogram[i][j]);
+          }
+          free(BondLengthHistogram[i]);
+          free(UreyBradleyLengthHistogram[i]);
+          free(BendAngleHistogram[i]);
+          free(TorsionAngleHistogram[i]);
+          free(TorsionConformationHistogram[i]);
+        }
+      }
+
+      free(BondLengthHistogram);
+      free(UreyBradleyLengthHistogram);
+      free(BendAngleHistogram);
+      free(TorsionAngleHistogram);
+      free(TorsionConformationHistogram);
+
+
+      for(i=0;i<NumberOfSystems;i++)
+      {
+        if(ComputeMoleculeProperties[i]&&(Framework[i].FrameworkModel==FLEXIBLE))
+        {
+
+          for(j=0;j<Framework[i].NumberOfBonds[0];j++)
+            free(FrameworkBondLengthHistogram[i][j]);
+          free(FrameworkBondLengthHistogram[i]);
+
+          for(j=0;j<Framework[i].NumberOfUreyBradleys[0];j++)
+            free(FrameworkUreyBradleyLengthHistogram[i][j]);
+          free(FrameworkUreyBradleyLengthHistogram[i]);
+
+          for(j=0;j<Framework[i].NumberOfBends[0];j++)
+            free(FrameworkBendAngleHistogram[i][j]);
+          free(FrameworkBendAngleHistogram[i]);
+
+          for(j=0;j<Framework[i].NumberOfTorsions[0];j++)
+            free(FrameworkTorsionAngleHistogram[i][j]);
+          free(FrameworkTorsionAngleHistogram[i]);
+
+          free(FrameworkAverageBondLength[i]);
+          free(FrameworkBondLengthCount[i]);
+          free(FrameworkAverageBendAngle[i]);
+          free(FrameworkBendAngleCount[i]);
+          free(FrameworkAverageTorsionAngle[i]);
+          free(FrameworkTorsionAngleCount[i]);
+        }
+      }
+      free(FrameworkBondLengthHistogram);
+      free(FrameworkUreyBradleyLengthHistogram);
+      free(FrameworkBendAngleHistogram);
+      free(FrameworkTorsionAngleHistogram);
+      free(FrameworkAverageBondLength);
+      free(FrameworkBondLengthCount);
+      free(FrameworkAverageBendAngle);
+      free(FrameworkBendAngleCount);
+      free(FrameworkAverageTorsionAngle);
+      free(FrameworkTorsionAngleCount);
       break;
   }
 }
@@ -5649,9 +5930,91 @@ void SampleInfraRedSpectra(int Switch)
       }
       break;
     case FINALIZE:
+      // allocate all the needed memory
+      for(k=0;k<NumberOfSystems;k++)
+      {
+        if(ComputeInfraRedSpectra[k])
+        {
+          for(i=0;i<4;i++)
+          {
+            free(Spectrum[k][i][0]);
+            free(Spectrum[k][i][1]);
+            free(Spectrum[k][i][2]);
+            free(Spectrum[k][i][3]);
+            free(Spectrum[k][i][4]);
+
+            free(SpectrumAverage[k][i][0]);
+            free(SpectrumAverage[k][i][1]);
+            free(SpectrumAverage[k][i][2]);
+            free(SpectrumAverage[k][i][3]);
+            free(SpectrumAverage[k][i][4]);
+
+            free(UnweightedSpectrum[k][i][0]);
+            free(UnweightedSpectrum[k][i][1]);
+            free(UnweightedSpectrum[k][i][2]);
+            free(UnweightedSpectrum[k][i][3]);
+            free(UnweightedSpectrum[k][i][4]);
+
+            free(UnweightedSpectrumAverage[k][i][0]);
+            free(UnweightedSpectrumAverage[k][i][1]);
+            free(UnweightedSpectrumAverage[k][i][2]);
+            free(UnweightedSpectrumAverage[k][i][3]);
+            free(UnweightedSpectrumAverage[k][i][4]);
+
+            free(Spectrum[k][i]);
+            free(SpectrumAverage[k][i]);
+            free(UnweightedSpectrum[k][i]);
+            free(UnweightedSpectrumAverage[k][i]);
+          }
+          for(i=0;i<2;i++)
+          {
+            for(j=0;j<NumberOfPseudoAtoms;j++)
+            {
+              if(NumberOfPseudoAtomsType[k][j]>0)
+              {
+                free(SpectrumPseudoAtoms[k][i][j][0]);
+                free(SpectrumPseudoAtoms[k][i][j][1]);
+                free(SpectrumPseudoAtoms[k][i][j][2]);
+                free(SpectrumPseudoAtoms[k][i][j][3]);
+                free(SpectrumPseudoAtoms[k][i][j][4]);
+
+                free(SpectrumPseudoAtomsAverage[k][i][j][0]);
+                free(SpectrumPseudoAtomsAverage[k][i][j][1]);
+                free(SpectrumPseudoAtomsAverage[k][i][j][2]);
+                free(SpectrumPseudoAtomsAverage[k][i][j][3]);
+                free(SpectrumPseudoAtomsAverage[k][i][j][4]);
+
+                free(SpectrumPseudoAtoms[k][i][j]);
+                free(SpectrumPseudoAtomsAverage[k][i][j]);
+              }
+            }
+            free(SpectrumPseudoAtoms[k][i]);
+            free(SpectrumPseudoAtomsAverage[k][i]);
+          }
+          free(Spectrum[k]);
+          free(SpectrumAverage[k]);
+          free(UnweightedSpectrum[k]);
+          free(UnweightedSpectrumAverage[k]);
+          free(SpectrumPseudoAtoms[k]);
+          free(SpectrumPseudoAtomsAverage[k]);
+          free(SpectrumCount[k]);
+        }
+      }
+      free(corr_pseudoatoms);
+      free(corrvacf_pseudoatoms);
+      free(corr_pseudoatoms_isotropic);
+      free(corrvacf_pseudoatoms_isotropic);
+      free(Spectrum);
+      free(SpectrumAverage);
+      free(UnweightedSpectrum);
+      free(UnweightedSpectrumAverage);
+      free(SpectrumPseudoAtoms);
+      free(SpectrumPseudoAtomsAverage);
+      free(SpectrumCount);
+      free(sumw);
+      free(SpectrumBuffer);
       break;
   }
-  free(SpectrumBuffer);
 }
 
 
@@ -6192,6 +6555,105 @@ void SampleMeanSquaredDisplacementOrderN(int Switch)
           fclose(FilePtr);
         }
       }
+      break;
+    case FINALIZE:
+      for(i=0;i<NumberOfSystems;i++)
+      {
+        if(ComputeMSDOrderN[i])
+        {
+          for(j=0;j<MaxNumberOfBlocksMSDOrderN;j++)
+          {
+            for(k=0;k<NumberOfAdsorbateMolecules[i]+NumberOfCationMolecules[i];k++)
+              free(BlockDataMSDOrderN[i][j][k]);
+
+            free(BlockDataMSDOrderN[i][j]);
+
+            for(k=0;k<NumberOfComponents;k++)
+            {
+              free(MsdOrderNCount[i][j][k]);
+              free(MsdOrderNDirAvg[i][j][k]);
+              free(MsdOrderN[i][j][k]);
+            }
+            free(MsdOrderNCount[i][j]);
+            free(MsdOrderNDirAvg[i][j]);
+            free(MsdOrderN[i][j]);
+
+            if(ComputeIndividualMSDOrderN)
+            {
+              for(k=0;k<NumberOfAdsorbateMolecules[i]+NumberOfCationMolecules[i];k++)
+              {
+                free(MsdOrderNCountPerMolecule[i][j][k]);
+                free(MsdOrderNPerMolecule[i][j][k]);
+                free(MsdOrderNPerMoleculeDirAvg[i][j][k]);
+              }
+              free(MsdOrderNCountPerMolecule[i][j]);
+              free(MsdOrderNPerMoleculeDirAvg[i][j]);
+              free(MsdOrderNPerMolecule[i][j]);
+            }
+
+            // Onsager data
+            for(k=0;k<NumberOfComponents;k++)
+            {
+              for(l=0;l<NumberOfComponents;l++)
+              {
+                free(MsdOrderNOnsager[i][j][k][l]);
+                free(MsdOrderNOnsagerDirAvg[i][j][k][l]);
+              }
+              free(MsdOrderNOnsagerCount[i][j][k]);
+              free(MsdOrderNOnsagerDirAvg[i][j][k]);
+              free(MsdOrderNOnsager[i][j][k]);
+            }
+            for(k=0;k<=NumberOfComponents;k++)
+              free(BlockDataMSDOrderNOnsager[i][j][k]);
+
+            free(BlockDataMSDOrderNOnsager[i][j]);
+            free(MsdOrderNTotalOnsager[i][j]);
+            free(MsdOrderNTotalOnsagerDirAvg[i][j]);
+            free(MsdOrderNTotalOnsagerCount[i][j]);
+            free(MsdOrderNOnsager[i][j]);
+            free(MsdOrderNOnsagerDirAvg[i][j]);
+            free(MsdOrderNOnsagerCount[i][j]);
+          }
+
+          if(ComputeIndividualMSDOrderN)
+          {
+            free(MsdOrderNCountPerMolecule[i]);
+            free(MsdOrderNPerMoleculeDirAvg[i]);
+            free(MsdOrderNPerMolecule[i]);
+          }
+
+          free(BlockLengthMSDOrderN[i]);
+          free(MsdOrderNCount[i]);
+          free(MsdOrderNOnsagerCount[i]);
+          free(MsdOrderNDirAvg[i]);
+          free(MsdOrderNOnsagerDirAvg[i]);
+          free(MsdOrderN[i]);
+          free(MsdOrderNOnsager[i]);
+          free(BlockDataMSDOrderN[i]);
+          free(BlockDataMSDOrderNOnsager[i]);
+          free(MsdOrderNTotalOnsager[i]);
+          free(MsdOrderNTotalOnsagerDirAvg[i]);
+          free(MsdOrderNTotalOnsagerCount[i]);
+        }
+      }
+      free(CountMSDOrderN);
+      free(NumberOfBlocksMSDOrderN);
+      free(value_onsager);
+      free(BlockLengthMSDOrderN);
+      free(MsdOrderNCount);
+      free(MsdOrderNOnsagerCount);
+      free(MsdOrderNCountPerMolecule);
+      free(MsdOrderNDirAvg);
+      free(MsdOrderNOnsagerDirAvg);
+      free(MsdOrderNPerMoleculeDirAvg);
+      free(MsdOrderN);
+      free(MsdOrderNOnsager);
+      free(MsdOrderNPerMolecule);
+      free(BlockDataMSDOrderN);
+      free(BlockDataMSDOrderNOnsager);
+      free(MsdOrderNTotalOnsager);
+      free(MsdOrderNTotalOnsagerDirAvg);
+      free(MsdOrderNTotalOnsagerCount);
       break;
   }
 }
@@ -6756,6 +7218,105 @@ void SampleVelocityAutoCorrelationFunctionOrderN(int Switch)
         }
       }
       break;
+    case FINALIZE:
+      for(i=0;i<NumberOfSystems;i++)
+      {
+        if(ComputeVACFOrderN[i])
+        {
+
+          for(j=0;j<MaxNumberOfBlocksVACFOrderN;j++)
+          {
+            for(k=0;k<NumberOfAdsorbateMolecules[i]+NumberOfCationMolecules[i];k++)
+              free(BlockDataVACFOrderN[i][j][k]);
+            free(BlockDataVACFOrderN[i][j]);
+
+            for(k=0;k<NumberOfComponents;k++)
+            {
+              free(VacfOrderNCount[i][j][k]);
+              free(VacfOrderNDirAvg[i][j][k]);
+              free(VacfOrderN[i][j][k]);
+            }
+            free(VacfOrderNCount[i][j]);
+            free(VacfOrderNDirAvg[i][j]);
+            free(VacfOrderN[i][j]);
+
+            if(ComputeIndividualVACFOrderN)
+            {
+              for(k=0;k<NumberOfAdsorbateMolecules[i]+NumberOfCationMolecules[i];k++)
+              {
+                free(VacfOrderNCountPerMolecule[i][j][k]);
+                free(VacfOrderNPerMolecule[i][j][k]);
+                free(VacfOrderNPerMoleculeDirAvg[i][j][k]);
+              }
+              free(VacfOrderNCountPerMolecule[i][j]);
+              free(VacfOrderNPerMoleculeDirAvg[i][j]);
+              free(VacfOrderNPerMolecule[i][j]);
+            }
+
+            // Onsager data
+            for(k=0;k<NumberOfComponents;k++)
+            {
+              for(l=0;l<NumberOfComponents;l++)
+              {
+                free(VacfOrderNOnsager[i][j][k][l]);
+                free(VacfOrderNOnsagerDirAvg[i][j][k][l]);
+              }
+              free(VacfOrderNOnsagerCount[i][j][k]);
+              free(VacfOrderNOnsagerDirAvg[i][j][k]);
+              free(VacfOrderNOnsager[i][j][k]);
+            }
+
+            for(k=0;k<=NumberOfComponents;k++)
+              free(BlockDataVACFOrderNOnsager[i][j][k]);
+            free(BlockDataVACFOrderNOnsager[i][j]);
+            free(VacfOrderNTotalOnsager[i][j]);
+            free(VacfOrderNTotalOnsagerDirAvg[i][j]);
+            free(VacfOrderNTotalOnsagerCount[i][j]);
+            free(VacfOrderNOnsagerCount[i][j]);
+            free(VacfOrderNOnsagerDirAvg[i][j]);
+            free(VacfOrderNOnsager[i][j]);
+          }
+
+          if(ComputeIndividualVACFOrderN)
+          {
+            free(VacfOrderNCountPerMolecule[i]);
+            free(VacfOrderNPerMoleculeDirAvg[i]);
+            free(VacfOrderNPerMolecule[i]);
+          }
+          free(BlockLengthVACFOrderN[i]);
+          free(VacfOrderNCount[i]);
+          free(VacfOrderNOnsagerCount[i]);
+          free(VacfOrderNDirAvg[i]);
+          free(VacfOrderNOnsagerDirAvg[i]);
+          free(VacfOrderN[i]);
+          free(VacfOrderNOnsager[i]);
+          free(BlockDataVACFOrderN[i]);
+          free(BlockDataVACFOrderNOnsager[i]);
+          free(VacfOrderNTotalOnsager[i]);
+          free(VacfOrderNTotalOnsagerDirAvg[i]);
+          free(VacfOrderNTotalOnsagerCount[i]);
+
+        }
+      }
+      free(CountVACFOrderN);
+      free(NumberOfBlocksVACFOrderN);
+      free(value_onsager);
+      free(BlockLengthVACFOrderN);
+      free(VacfOrderNCount);
+      free(VacfOrderNOnsagerCount);
+      free(VacfOrderNCountPerMolecule);
+      free(VacfOrderNDirAvg);
+      free(VacfOrderNOnsagerDirAvg);
+      free(VacfOrderNPerMoleculeDirAvg);
+      free(VacfOrderN);
+      free(VacfOrderNOnsager);
+      free(VacfOrderNPerMolecule);
+      free(BlockDataVACFOrderN);
+      free(BlockDataVACFOrderNOnsager);
+      free(VacfOrderNTotalOnsager);
+      free(VacfOrderNTotalOnsagerDirAvg);
+      free(VacfOrderNTotalOnsagerCount);
+      break;
   }
 }
 
@@ -7313,6 +7874,106 @@ void SampleRotationalVelocityAutoCorrelationFunctionOrderN(int Switch)
         }
       }
       break;
+    case FINALIZE:
+      for(i=0;i<NumberOfSystems;i++)
+      {
+        if(ComputeRVACFOrderN[i])
+        {
+          for(j=0;j<MaxNumberOfBlocksRVACFOrderN;j++)
+          {
+            for(k=0;k<NumberOfAdsorbateMolecules[i]+NumberOfCationMolecules[i];k++)
+              free(BlockDataRVACFOrderN[i][j][k]);
+            free(BlockDataRVACFOrderN[i][j]);
+
+            for(k=0;k<NumberOfComponents;k++)
+            {
+              free(RvacfOrderNCount[i][j][k]);
+              free(RvacfOrderNDirAvg[i][j][k]);
+              free(RvacfOrderN[i][j][k]);
+            }
+            free(RvacfOrderNCount[i][j]);
+            free(RvacfOrderNDirAvg[i][j]);
+            free(RvacfOrderN[i][j]);
+
+            if(ComputeIndividualRVACFOrderN)
+            {
+              for(k=0;k<NumberOfAdsorbateMolecules[i]+NumberOfCationMolecules[i];k++)
+              {
+                free(RvacfOrderNCountPerMolecule[i][j][k]);
+                free(RvacfOrderNPerMolecule[i][j][k]);
+                free(RvacfOrderNPerMoleculeDirAvg[i][j][k]);
+              }
+              free(RvacfOrderNCountPerMolecule[i][j]);
+              free(RvacfOrderNPerMoleculeDirAvg[i][j]);
+              free(RvacfOrderNPerMolecule[i][j]);
+            }
+
+            // Onsager data
+            for(k=0;k<=NumberOfComponents;k++)
+              free(BlockDataRVACFOrderNOnsager[i][j][k]);
+
+            for(k=0;k<NumberOfComponents;k++)
+            {
+              for(l=0;l<NumberOfComponents;l++)
+              {
+                free(RvacfOrderNOnsager[i][j][k][l]);
+                free(RvacfOrderNOnsagerDirAvg[i][j][k][l]);
+              }
+              free(RvacfOrderNOnsagerCount[i][j][k]);
+              free(RvacfOrderNOnsagerDirAvg[i][j][k]);
+              free(RvacfOrderNOnsager[i][j][k]);
+            }
+
+            free(BlockDataRVACFOrderNOnsager[i][j]);
+            free(RvacfOrderNTotalOnsager[i][j]);
+            free(RvacfOrderNTotalOnsagerDirAvg[i][j]);
+            free(RvacfOrderNTotalOnsagerCount[i][j]);
+            free(RvacfOrderNOnsagerCount[i][j]);
+            free(RvacfOrderNOnsagerDirAvg[i][j]);
+            free(RvacfOrderNOnsager[i][j]);
+
+          }
+
+          if(ComputeIndividualRVACFOrderN)
+          {
+            free(RvacfOrderNCountPerMolecule[i]);
+            free(RvacfOrderNPerMoleculeDirAvg[i]);
+            free(RvacfOrderNPerMolecule[i]);
+          }
+          free(BlockLengthRVACFOrderN[i]);
+          free(RvacfOrderNCount[i]);
+          free(RvacfOrderNOnsagerCount[i]);
+          free(RvacfOrderNDirAvg[i]);
+          free(RvacfOrderNOnsagerDirAvg[i]);
+          free(RvacfOrderN[i]);
+          free(RvacfOrderNOnsager[i]);
+          free(BlockDataRVACFOrderN[i]);
+          free(BlockDataRVACFOrderNOnsager[i]);
+          free(RvacfOrderNTotalOnsager[i]);
+          free(RvacfOrderNTotalOnsagerDirAvg[i]);
+          free(RvacfOrderNTotalOnsagerCount[i]);
+        }
+      }
+      free(CountRVACFOrderN);
+      free(NumberOfBlocksRVACFOrderN);
+      free(value_onsager);
+
+      free(BlockLengthRVACFOrderN);
+      free(RvacfOrderNCount);
+      free(RvacfOrderNOnsagerCount);
+      free(RvacfOrderNCountPerMolecule);
+      free(RvacfOrderNDirAvg);
+      free(RvacfOrderNOnsagerDirAvg);
+      free(RvacfOrderNPerMoleculeDirAvg);
+      free(RvacfOrderN);
+      free(RvacfOrderNOnsager);
+      free(RvacfOrderNPerMolecule);
+      free(BlockDataRVACFOrderN);
+      free(BlockDataRVACFOrderNOnsager);
+      free(RvacfOrderNTotalOnsager);
+      free(RvacfOrderNTotalOnsagerDirAvg);
+      free(RvacfOrderNTotalOnsagerCount);
+      break;
   }
 }
 
@@ -7578,6 +8239,8 @@ void SampleMolecularOrientationAutoCorrelationFunctionOrderN(int Switch)
       }
 
       fclose(FilePtr);
+      break;
+    case FINALIZE:
       break;
   }
 }
@@ -7872,6 +8535,8 @@ void SampleBondOrientationAutoCorrelationFunctionOrderN(int Switch)
           fclose(FilePtr);
         }
       }
+      break;
+    case FINALIZE:
       break;
   }
 }
