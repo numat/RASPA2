@@ -3456,7 +3456,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
       fprintf(FilePtr,"\tComponent has a net charge of %lf\n",(double)NetCharge);
       fprintf(FilePtr,"\n");
 
-      fprintf(FilePtr,"\tIdeal chain Rosenbluth weight: %lf\n",(double)Components[i].IdealGasRosenbluthWeight[system]);
+      fprintf(FilePtr,"\tIdeal chain Rosenbluth weight: %lg\n",(double)Components[i].IdealGasRosenbluthWeight[system]);
       fprintf(FilePtr,"\tIdeal chain total energy: %lf\n",(double)Components[i].IdealGasTotalEnergy[system]);
       fprintf(FilePtr,"\n");
 
