@@ -3,7 +3,7 @@ truncated
 # general rule tailcorrections
 no
 # number of defined interactions
-101
+104
 # type interaction
 O_             lennard-jones    48.1581   3.03315
 N_             lennard-jones    38.9492   3.26256
@@ -106,5 +106,8 @@ F_GeF4         lennard-jones     25.16    3.36
 C_C=O          lennard-jones    60.39      3.296
 O_C=O          lennard-jones    100.65    2.85
 H_C=O          lennard-jones    5.03      2.744
+S_S            lennard-jones    250.0     3.73
+H_S            lennard-jones    0.00      0.00
+M_S            lennard-jones    0.00      0.00
 # general mixing rule for Lennard-Jones
 Lorentz-Berthelot

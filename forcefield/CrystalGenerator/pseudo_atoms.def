@@ -1,5 +1,5 @@
 #number of pseudo atoms
-70
+73
 #type      print   as   scat   oxidation   mass       charge  polarization B0factor   radii  connectivity anisotropic anisotropic0type tinker
 Mof_Rb     yes     Rb     Rb     0         85.467     0.0     0.0          1.0        1.0    0                 0           relative         0
 Mof_Sr     yes     Sr     Sr     0         87.63      0.0     0.0          1.0        1.0    0                 0           relative         0
@@ -71,3 +71,6 @@ F_GeF4     yes     F      F      0         19.0      -0.239   0.0          1.0  
 C_C=O      yes     C      C      0         12.011     0.107   0.0          1.0        0.760  0                 0           relative         0
 O_C=O      yes     O      O      0         15.999    -0.305   0.0          1.0        0.660  0                 0           relative         0
 H_C=O      yes     H      H      0         1.008      0.099   0.0          1.0        0.310  0                 0           relative         0
+S_S        yes     S      S      0         32.065     0.4     0.0          1.0        1.050  0                 0           relative         0
+H_S        yes     H      H      0         1.008      0.25    0.0          1.0        0.310  0                 0           relative         0
+M_S        yes     N      N      0         0.0       -0.9     0.0          1.0        1.0    0                 0           relative         0
