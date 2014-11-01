@@ -92,6 +92,9 @@ def run_script(input_script, structure=None, raspa_dir="auto"):
     # them into RASPA-formatted cif strings
     if PYBEL_LOADED and isinstance(structure, pybel.Molecule):
         structure = pybel_to_raspa_cif(structure)
+    # This supports python objects grabbed from json files or databases
+    elif isinstance(structure, dict):
+        structure = pybel_to_raspa_cif(json_to_pybel(structure))
 
     # RASPA leaks a lot of memory, which is an issue in high-throughput
     # screening. Calling each simulation in a subprocess adds complexity and
@@ -138,8 +141,6 @@ def create_script(molecule_name, temperature=273.15, pressure=101325,
     """Creates a RASPA simulation input file from parameters.
 
     Args:
-        original_cif_file: cif file is read to determine correct unit cell size
-            for the simulation
         molecule_name: The molecule to test for adsorption. A file of the same
             name must exist in `$RASPA_DIR/share/raspa/molecules/TraPPE`.
         temperature: (Optional) The temperature of the simulation, in Kelvin.
@@ -492,6 +493,67 @@ def get_density(molecule_name, temperature=273.15, pressure=101325,
 
     output = parse(run_script(script))
     return output["Average Density"]["[kg/m^3]"][0]
+
+
+def json_to_pybel(data):
+    """Converts a python data structure to pybel.Molecule.
+
+    The data structure is a plain python object of the form:
+
+    ```
+    {
+        "atoms": [{"location": [0, 0, 0], "element": "H", "label": "H1",
+                   "charge": 0}, ...],
+        "bonds": [{"source": 0, "target": 0, "order": 1}, ...],
+        "unitcell": [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
+    }
+    ```
+
+    It is referred to as "json" because this data structure is intended to
+    be read from and written to json files or databases.
+
+    As RASPA makes no use of bond information, this field is ignored.
+
+    The labels are stripped and replaced with "MOF_{element}", in accordance
+    with the CrystalGenerator forcefield notation. Therefore, labels are also
+    ignored.
+
+    Args:
+        data: the molecule, as a python object
+    Returns:
+        An instance of `pybel.Molecule`
+    """
+    if not PYBEL_LOADED:
+        raise ImportError("Open Babel not installed.")
+
+    table = pybel.ob.OBElementTable()
+
+    if "building_blocks" in data:
+        data["atoms"] = [a for bb in data["building_blocks"]
+                         for a in bb["atoms"]]
+    obmol = pybel.ob.OBMol()
+    obmol.BeginModify()
+    for atom in data["atoms"]:
+        obatom = obmol.NewAtom()
+        obatom.SetAtomicNum(table.GetAtomicNum(str(atom["element"])))
+        obatom.SetVector(*atom["location"])
+
+    uc = pybel.ob.OBUnitCell()
+    uc.SetData(*(pybel.ob.vector3(*v) for v in data["unitcell"]))
+    uc.SetSpaceGroup("P1")
+    obmol.CloneData(uc)
+
+    obmol.EndModify()
+
+    mol = pybel.Molecule(obmol)
+
+    # Add partial charges
+    if "charge" in data["atoms"][0]:
+        mol.OBMol.SetPartialChargesPerceived()
+        for atom, pyatom in zip(data["atoms"], mol.atoms):
+            pyatom.OBAtom.SetPartialCharge(atom["charge"])
+
+    return mol
 
 
 def pybel_to_raspa_cif(structure):
