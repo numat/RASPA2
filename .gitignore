@@ -60,4 +60,7 @@ stamp-h1
 stamp-h.in
 *.swp
 .deps
+# python
 *.pyc
+*.egg-info
+dist

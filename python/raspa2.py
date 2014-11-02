@@ -8,10 +8,15 @@ from ctypes import cdll, c_void_p, c_char_p, c_bool, cast
 import os
 from textwrap import dedent
 from multiprocessing import Process, Pipe
+import argparse
 
+
+from .__init__ import __version__
 from RASPA2.output_parser import parse
 
-env = os.environ
+raspa_dir = os.path.dirname(os.path.realpath(__file__))
+libraspa_dir = os.path.join(raspa_dir, "simulations/lib")
+libraspa_file = next(f for f in os.listdir(libraspa_dir) if "libraspa" in f)
 
 try:
     import pybel
@@ -61,7 +66,7 @@ def run(structure, molecule_name, temperature=273.15, pressure=101325,
     return parse(run_script(create_script(**locals()), structure))
 
 
-def run_script(input_script, structure=None, raspa_dir="auto"):
+def run_script(input_script, structure=None, stream=True):
     """Runs RASPA on the inputted structure, returning simulation results.
 
     Args:
@@ -69,8 +74,8 @@ def run_script(input_script, structure=None, raspa_dir="auto"):
         structure: (Optional) Data encoding a CIF, MOL, or CSSR file. If not
             specified, the program will look for the file specified by
             "FrameworkName" in `$RASPA_DIR/share/raspa/structures`.
-        raspa_dir: (Optional) The root directory for RASPA. If unspecified,
-            uses the RASPA_DIR environment variable if exists, HOME if not.
+        stream: (Optional) Reads arguments from strings and writes simulation
+            results to stdout. NOTE: Only functional on Linux systems.
     Returns:
         A string representing the output data. (TODO This should be parsed
         and returned as a mutable data structure)
@@ -79,15 +84,6 @@ def run_script(input_script, structure=None, raspa_dir="auto"):
     will output files and folders. Otherwise, this function will return the
     output of RASPA, as a string.
     """
-    # This is the same logic used by the C code
-    if raspa_dir == "auto":
-        if "RASPA2_DIR" in env:
-            raspa_dir = env["RASPA2_DIR"]
-        elif "RASPA_DIR" in env:
-            raspa_dir = env["RASPA_DIR"]
-        else:
-            raspa_dir = env["HOME"]
-
     # This supports `pybel.Molecule` objects with charge data by converting
     # them into RASPA-formatted cif strings
     if PYBEL_LOADED and isinstance(structure, pybel.Molecule):
@@ -102,34 +98,33 @@ def run_script(input_script, structure=None, raspa_dir="auto"):
     # OS and also protects against segfaults destablizing an entire engine.
     parent_conn, child_conn = Pipe()
     p = Process(target=_script_subprocess, args=(input_script, structure or "",
-                                                 raspa_dir, child_conn))
+                                                 raspa_dir, stream,
+                                                 child_conn))
     p.start()
-    output = parent_conn.recv()
+    if stream:
+        output = parent_conn.recv()
     p.join(1)
     p.terminate()
 
-    return output
+    if stream:
+        return output
 
 
-def _script_subprocess(input_script, structure, raspa_dir, conn):
+def _script_subprocess(input_script, structure, raspa_dir, stream, conn):
     """Loads and runs libraspa2. Called through multiprocessing.Process.
 
     Intended as a workaround for RASPA's memory leaks. Once RASPA is running
     valgrind pure, remove this approach and replace with a direct call.
     """
-    try:
-        libraspa = cdll.LoadLibrary(os.path.join(os.path.dirname(
-            os.path.realpath(__file__)), "simulations/lib/libraspa2.so"))
-    except OSError:
-        libraspa = cdll.LoadLibrary("/usr/lib/libraspa2.so")
-
+    libraspa = cdll.LoadLibrary(os.path.join(libraspa_dir, libraspa_file))
     libraspa.run.argtypes = (c_char_p, c_char_p, c_char_p, c_bool)
     libraspa.run.restype = c_void_p
 
     ptr = libraspa.run(input_script.encode("ascii"),
                        structure.encode("ascii"),
-                       raspa_dir.encode("ascii"), True)
-    conn.send(cast(ptr, c_char_p).value[:].decode("utf-8"))
+                       raspa_dir.encode("ascii"), stream)
+    if stream:
+        conn.send(cast(ptr, c_char_p).value[:].decode("utf-8"))
     conn.close()
 
 
@@ -469,27 +464,27 @@ def get_density(molecule_name, temperature=273.15, pressure=101325,
     if init_cycles == "auto":
         init_cycles = min(cycles // 2, 10000)
 
-    return dedent("""
-                  SimulationType                {simulation_type}
-                  NumberOfCycles                {cycles}
-                  NumberOfInitializationCycles  {init_cycles}
-                  PrintEvery                    {print_every}
+    script = dedent("""
+                    SimulationType                {simulation_type}
+                    NumberOfCycles                {cycles}
+                    NumberOfInitializationCycles  {init_cycles}
+                    PrintEvery                    {print_every}
 
-                  Forcefield                    {forcefield}
+                    Forcefield                    {forcefield}
 
-                  Box                           0
-                  BoxLengths                    30 30 30
-                  ExternalTemperature           {temperature}
-                  ExternalPressure              {pressure}
+                    Box                           0
+                    BoxLengths                    30 30 30
+                    ExternalTemperature           {temperature}
+                    ExternalPressure              {pressure}
 
-                  VolumeChangeProbability       0.25
+                    VolumeChangeProbability       0.25
 
-                  Component 0 MoleculeName             {molecule_name}
-                              MoleculeDefinition       TraPPE
-                              TranslationProbability   0.5
-                              ReinsertionProbability   0.5
-                              CreateNumberOfMolecules  256
-                """.format(**locals())).strip()
+                    Component 0 MoleculeName             {molecule_name}
+                                MoleculeDefinition       TraPPE
+                                TranslationProbability   0.5
+                                ReinsertionProbability   0.5
+                                CreateNumberOfMolecules  256
+                  """.format(**locals())).strip()
 
     output = parse(run_script(script))
     return output["Average Density"]["[kg/m^3]"][0]
@@ -603,28 +598,52 @@ def pybel_to_raspa_cif(structure):
     return cif
 
 
-if __name__ == "__main__":
-    import argparse
-
-    parser = argparse.ArgumentParser(description="Molecular-dynamic simulator "
-                                     "for crystal structures.")
-    parser.add_argument("input", type=str, help="A simulation script. Can "
-                        "be either a filepath or the input data itself")
-    parser.add_argument("--structure", type=str, default="", help="An input "
-                        "structure. Can be either a filepath or the input "
-                        "data itself")
+def run_command_line():
+    """Called by the `simulate` command, enables CLI interface."""
+    parser = argparse.ArgumentParser(description="A general purpose classical "
+                                     "simulation package.")
+    parser.add_argument("-v", "--version", action="version",
+                        version=__version__)
+    parser.add_argument("input", type=str, help="a RASPA simulation script")
+    parser.add_argument("-s", "--stream", action="store_true", help="Rather "
+                        "than inputting and outputting files, this option "
+                        "reads strings and outputs to stdout. Can be used to "
+                        "simplify shell scripts. NOTE: Currently only "
+                        "functional on linux.")
+    parser.add_argument("-c", "--crystal", type=str, default="", help="If "
+                        "streaming is enabled, this can be used to specify an "
+                        "input structure without changing the RASPA script.")
     args = parser.parse_args()
 
     # Support both filepaths and data-streamed strings
-    try:
-        with open(args.input) as in_file:
-            args.input = in_file.read()
-    except IOError:
-        pass
-    try:
-        with open(args.structure) as in_file:
-            args.structure = in_file.read()
-    except IOError:
-        pass
+    if args.stream:
+        try:
+            with open(args.input) as in_file:
+                args.input = in_file.read()
+        except IOError:
+            pass
+        try:
+            with open(args.crystal) as in_file:
+                args.crystal = in_file.read()
+        except IOError:
+            pass
 
-    print(run_script(args.input, args.structure))
+    if args.stream:
+        print(run_script(args.input, args.crystal, args.stream))
+    else:
+        run_script(args.input, args.crystal, args.stream)
+
+
+def get_raspa_dir():
+    """Called by the `raspa-dir` command, enables easy directory switching."""
+    parser = argparse.ArgumentParser(description="Returns the data directory "
+                                     "for the RASPA simulation program. Use "
+                                     "'raspa-dir' to view the path, or 'cd "
+                                     "`raspa-dir`' to change directories.")
+    parser.add_argument("-v", "--version", action="version",
+                        version=__version__)
+    print(os.path.join(raspa_dir, "share/raspa"))
+
+
+if __name__ == "__main__":
+    run_command_line()
