@@ -1549,9 +1549,9 @@ void PrintIntervalStatusInit(long long CurrentCycle,long long NumberOfCycles,FIL
         for(k=0;k<Components[i].NumberOfAtoms;k++)
         {
           if(Components[i].ExtraFrameworkMolecule)
-            Lambda=Cations[CurrentSystem][FractionalMolecule].Atoms[i].CFVDWScalingParameter;
+            Lambda=Cations[CurrentSystem][FractionalMolecule].Atoms[k].CFVDWScalingParameter;
           else
-            Lambda=Adsorbates[CurrentSystem][FractionalMolecule].Atoms[i].CFVDWScalingParameter;
+            Lambda=Adsorbates[CurrentSystem][FractionalMolecule].Atoms[k].CFVDWScalingParameter;
           fprintf(FilePtr,"%4f ",Lambda);
           if((k+1)%10==0&&(k+1)!=Components[i].NumberOfAtoms)  fprintf(FilePtr,"\n\t                ");
         }
@@ -1592,9 +1592,9 @@ void PrintIntervalStatusInit(long long CurrentCycle,long long NumberOfCycles,FIL
         for(k=0;k<Components[i].NumberOfAtoms;k++)
         {
           if(Components[i].ExtraFrameworkMolecule)
-            Lambda=Cations[CurrentSystem][FractionalMolecule].Atoms[i].CFVDWScalingParameter;
+            Lambda=Cations[CurrentSystem][FractionalMolecule].Atoms[k].CFVDWScalingParameter;
           else
-            Lambda=Adsorbates[CurrentSystem][FractionalMolecule].Atoms[i].CFVDWScalingParameter;
+            Lambda=Adsorbates[CurrentSystem][FractionalMolecule].Atoms[k].CFVDWScalingParameter;
           fprintf(FilePtr,"%4f ",Lambda);
           if((k+1)%10==0&&(k+1)!=Components[i].NumberOfAtoms)  fprintf(FilePtr,"\n\t                ");
         }
@@ -1829,9 +1829,9 @@ void PrintIntervalStatusEquilibration(long long CurrentCycle,long long NumberOfC
         for(k=0;k<Components[i].NumberOfAtoms;k++)
         {
           if(Components[i].ExtraFrameworkMolecule)
-            Lambda=Cations[CurrentSystem][FractionalMolecule].Atoms[i].CFVDWScalingParameter;
+            Lambda=Cations[CurrentSystem][FractionalMolecule].Atoms[k].CFVDWScalingParameter;
           else
-            Lambda=Adsorbates[CurrentSystem][FractionalMolecule].Atoms[i].CFVDWScalingParameter;
+            Lambda=Adsorbates[CurrentSystem][FractionalMolecule].Atoms[k].CFVDWScalingParameter;
           fprintf(FilePtr,"%4f ",Lambda);
           if((k+1)%10==0&&(k+1)!=Components[i].NumberOfAtoms)  fprintf(FilePtr,"\n\t                ");
         }
@@ -1872,9 +1872,9 @@ void PrintIntervalStatusEquilibration(long long CurrentCycle,long long NumberOfC
         for(k=0;k<Components[i].NumberOfAtoms;k++)
         {
           if(Components[i].ExtraFrameworkMolecule)
-            Lambda=Cations[CurrentSystem][FractionalMolecule].Atoms[i].CFVDWScalingParameter;
+            Lambda=Cations[CurrentSystem][FractionalMolecule].Atoms[k].CFVDWScalingParameter;
           else
-            Lambda=Adsorbates[CurrentSystem][FractionalMolecule].Atoms[i].CFVDWScalingParameter;
+            Lambda=Adsorbates[CurrentSystem][FractionalMolecule].Atoms[k].CFVDWScalingParameter;
           fprintf(FilePtr,"%4f ",Lambda);
           if((k+1)%10==0&&(k+1)!=Components[i].NumberOfAtoms)  fprintf(FilePtr,"\n\t                ");
         }
@@ -2813,9 +2813,9 @@ void PrintIntervalStatus(long long CurrentCycle,long long NumberOfCycles, FILE *
         for(k=0;k<Components[i].NumberOfAtoms;k++)
         {
           if(Components[i].ExtraFrameworkMolecule)
-            Lambda=Cations[CurrentSystem][FractionalMolecule].Atoms[i].CFVDWScalingParameter;
+            Lambda=Cations[CurrentSystem][FractionalMolecule].Atoms[k].CFVDWScalingParameter;
           else
-            Lambda=Adsorbates[CurrentSystem][FractionalMolecule].Atoms[i].CFVDWScalingParameter;
+            Lambda=Adsorbates[CurrentSystem][FractionalMolecule].Atoms[k].CFVDWScalingParameter;
           fprintf(FilePtr,"%4f ",Lambda);
           if((k+1)%10==0&&(k+1)!=Components[i].NumberOfAtoms)  fprintf(FilePtr,"\n\t                ");
         }
@@ -2857,9 +2857,9 @@ void PrintIntervalStatus(long long CurrentCycle,long long NumberOfCycles, FILE *
         for(k=0;k<Components[i].NumberOfAtoms;k++)
         {
           if(Components[i].ExtraFrameworkMolecule)
-            Lambda=Cations[CurrentSystem][FractionalMolecule].Atoms[i].CFVDWScalingParameter;
+            Lambda=Cations[CurrentSystem][FractionalMolecule].Atoms[k].CFVDWScalingParameter;
           else
-            Lambda=Adsorbates[CurrentSystem][FractionalMolecule].Atoms[i].CFVDWScalingParameter;
+            Lambda=Adsorbates[CurrentSystem][FractionalMolecule].Atoms[k].CFVDWScalingParameter;
           fprintf(FilePtr,"%4f ",Lambda);
           if((k+1)%10==0&&(k+1)!=Components[i].NumberOfAtoms)  fprintf(FilePtr,"\n\t                ");
         }

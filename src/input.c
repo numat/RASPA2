@@ -2746,6 +2746,18 @@ int ReadInput(char *input)
         }
       }while(sscanf(arguments,"%d %[^\n]",&Components[CurrentComponent].CreateNumberOfMolecules[index++],arguments)>1);
     }
+    if(strcasecmp("BinaryEOSInteractionParameter",keyword)==0)
+    {
+      index=0;
+      do
+      {
+        if(index==NumberOfComponents)
+        {
+          fprintf(stderr, "Reading BinaryEOSInteractionParamter for more components than the maximum allowed: %d\n",NumberOfComponents);
+          exit(0);
+        }
+      }while(sscanf(arguments,"%lf %[^\n]",&BinaryInteractionParameter[CurrentComponent][index++],arguments)>1);
+    }
     if(strcasecmp("FugacityCoefficient",keyword)==0)
     {
       index=0;

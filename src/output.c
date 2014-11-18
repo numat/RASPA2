@@ -3497,6 +3497,18 @@ void PrintPreSimulationStatusCurrentSystem(int system)
            (double)Components[i].BulkFluidDensity[system]);
       fprintf(FilePtr,"\n");
 
+      if(Components[i].Swapable)
+      {
+        fprintf(FilePtr,"\tBinary mixture EOS parameters: ");
+          for(j=0;j<NumberOfComponents;j++)
+           if(Components[j].Swapable)
+             fprintf(FilePtr," (%d): %lf",BinaryInteractionParameter[i][j],j);
+           else
+             fprintf(FilePtr," (%d): -",j);
+        fprintf(FilePtr,"\n");
+      }
+      fprintf(FilePtr,"\n");
+
       fprintf(FilePtr,"\tAmount of excess molecules: %18.10lf [-]\n",
                  (double)Components[i].AmountOfExcessMolecules[system]);
       fprintf(FilePtr,"\n");
