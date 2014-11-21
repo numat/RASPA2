@@ -255,18 +255,17 @@ void MonteCarloSimulation(void)
       {
         for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
         {
-          if(OptimizeVolumeChange) OptimizeVolumeChangeAcceptence();
-          if(OptimizeGibbsVolumeChange) OptimizeGibbsVolumeChangeAcceptence();
-          if(OptimizeTranslation) OptimizeTranslationAcceptence();
-          if(OptimizeRotation) OptimizeRotationAcceptence();
-          if((Framework[CurrentSystem].FrameworkModel==FLEXIBLE)&&(OptimizeFrameworkChange))
-            OptimizeFrameworkChangeAcceptence();
-          if(OptimizeFrameworkShift) OptimizeFrameworkShiftAcceptence();
-          if(OptimizeCFLambdaChange) OptimizeCFLambdaChangeAcceptence();
-          if(OptimizeCFGibbsLambdaChange) OptimizeCFGibbsLambdaChangeAcceptence();
-          if(OptimizeCBCFLambdaChange) OptimizeCBCFLambdaChangeAcceptence();
-          if(OptimizeCBCFGibbsLambdaChange) OptimizeCBCFGibbsLambdaChangeAcceptence();
-          if(OptimizeRXMCLambdaChange) OptimizeRXMCLambdaChangeAcceptence();
+          OptimizeVolumeChangeAcceptence();
+          OptimizeGibbsVolumeChangeAcceptence();
+          OptimizeTranslationAcceptence();
+          OptimizeRotationAcceptence();
+          OptimizeFrameworkChangeAcceptence();
+          OptimizeFrameworkShiftAcceptence();
+          OptimizeCFLambdaChangeAcceptence();
+          OptimizeCFGibbsLambdaChangeAcceptence();
+          OptimizeCBCFLambdaChangeAcceptence();
+          OptimizeCBCFGibbsLambdaChangeAcceptence();
+          OptimizeRXMCLambdaChangeAcceptence();
           RescaleMaximumRotationAnglesSmallMC();
         }
       }
@@ -431,18 +430,17 @@ void MonteCarloSimulation(void)
         {
           for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
           {
-            if(OptimizeVolumeChange) OptimizeVolumeChangeAcceptence();
-            if(OptimizeGibbsVolumeChange) OptimizeGibbsVolumeChangeAcceptence();
-            if(OptimizeTranslation) OptimizeTranslationAcceptence();
-            if(OptimizeRotation) OptimizeRotationAcceptence();
-            if((Framework[CurrentSystem].FrameworkModel==FLEXIBLE)&&(OptimizeFrameworkChange))
-              OptimizeFrameworkChangeAcceptence();
-            if(OptimizeFrameworkShift) OptimizeFrameworkShiftAcceptence();
-            if(OptimizeCFLambdaChange) OptimizeCFLambdaChangeAcceptence();
-            if(OptimizeCFGibbsLambdaChange) OptimizeCFGibbsLambdaChangeAcceptence();
-            if(OptimizeCBCFLambdaChange) OptimizeCBCFLambdaChangeAcceptence();
-            if(OptimizeCBCFGibbsLambdaChange) OptimizeCBCFGibbsLambdaChangeAcceptence();
-            if(OptimizeRXMCLambdaChange) OptimizeRXMCLambdaChangeAcceptence();
+            OptimizeVolumeChangeAcceptence();
+            OptimizeGibbsVolumeChangeAcceptence();
+            OptimizeTranslationAcceptence();
+            OptimizeRotationAcceptence();
+            OptimizeFrameworkChangeAcceptence();
+            OptimizeFrameworkShiftAcceptence();
+            OptimizeCFLambdaChangeAcceptence();
+            OptimizeCFGibbsLambdaChangeAcceptence();
+            OptimizeCBCFLambdaChangeAcceptence();
+            OptimizeCBCFGibbsLambdaChangeAcceptence();
+            OptimizeRXMCLambdaChangeAcceptence();
             RescaleMaximumRotationAnglesSmallMC();
           }
         }
@@ -806,18 +804,17 @@ void MonteCarloSimulation(void)
       {
         for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
         {
-          if(OptimizeVolumeChange) OptimizeVolumeChangeAcceptence();
-          if(OptimizeGibbsVolumeChange) OptimizeGibbsVolumeChangeAcceptence();
-          if(OptimizeTranslation) OptimizeTranslationAcceptence();
-          if(OptimizeRotation) OptimizeRotationAcceptence();
-          if((Framework[CurrentSystem].FrameworkModel==FLEXIBLE)&(OptimizeFrameworkChange))
-            OptimizeFrameworkChangeAcceptence();
-          if(OptimizeFrameworkShift) OptimizeFrameworkShiftAcceptence();
-          if(OptimizeCFLambdaChange) OptimizeCFLambdaChangeAcceptence();
-          if(OptimizeCFGibbsLambdaChange) OptimizeCFGibbsLambdaChangeAcceptence();
-          if(OptimizeCBCFLambdaChange) OptimizeCBCFLambdaChangeAcceptence();
-          if(OptimizeCBCFGibbsLambdaChange) OptimizeCBCFGibbsLambdaChangeAcceptence();
-          if(OptimizeRXMCLambdaChange) OptimizeRXMCLambdaChangeAcceptence();
+          OptimizeVolumeChangeAcceptence();
+          OptimizeGibbsVolumeChangeAcceptence();
+          OptimizeTranslationAcceptence();
+          OptimizeRotationAcceptence();
+          OptimizeFrameworkChangeAcceptence();
+          OptimizeFrameworkShiftAcceptence();
+          OptimizeCFLambdaChangeAcceptence();
+          OptimizeCFGibbsLambdaChangeAcceptence();
+          OptimizeCBCFLambdaChangeAcceptence();
+          OptimizeCBCFGibbsLambdaChangeAcceptence();
+          OptimizeRXMCLambdaChangeAcceptence();
           RescaleMaximumRotationAnglesSmallMC();
         }
       }
@@ -861,6 +858,23 @@ void MonteCarloSimulation(void)
     }
 
     SimulationStage=FINISHED;
+
+    for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
+    {
+      OptimizeVolumeChangeAcceptence();
+      OptimizeGibbsVolumeChangeAcceptence();
+      OptimizeTranslationAcceptence();
+      OptimizeRotationAcceptence();
+      OptimizeFrameworkChangeAcceptence();
+      OptimizeFrameworkShiftAcceptence();
+      OptimizeCFLambdaChangeAcceptence();
+      OptimizeCFGibbsLambdaChangeAcceptence();
+      OptimizeCBCFLambdaChangeAcceptence();
+      OptimizeCBCFGibbsLambdaChangeAcceptence();
+      OptimizeRXMCLambdaChangeAcceptence();
+      RescaleMaximumRotationAnglesSmallMC();
+    }
+
 
     // write last binary restart-file
     // sampled properties can be remade from the binary restart-file

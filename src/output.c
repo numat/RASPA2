@@ -240,7 +240,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
   fprintf(FilePtr,"Compiler and run-time data\n");
   fprintf(FilePtr,"===========================================================================\n");
 
-  fprintf(FilePtr,"%s\n","RASPA 1.9-9");
+  fprintf(FilePtr,"%s\n","RASPA 1.9-10");
 
   #if defined (__LP64__) || defined (__64BIT__) || defined (_LP64) || (__WORDSIZE == 64)
     fprintf(FilePtr,"Compiled as a 64-bits application\n");
@@ -3502,7 +3502,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
         fprintf(FilePtr,"\tBinary mixture EOS parameters: ");
           for(j=0;j<NumberOfComponents;j++)
            if(Components[j].Swapable)
-             fprintf(FilePtr," (%d): %lf",BinaryInteractionParameter[i][j],j);
+             fprintf(FilePtr," (%d): %lf",j,BinaryInteractionParameter[i][j]);
            else
              fprintf(FilePtr," (%d): -",j);
         fprintf(FilePtr,"\n");
@@ -6545,7 +6545,9 @@ void PrintPostSimulationStatus(void)
 
     PrintAverageTotalSystemEnergiesMC(FilePtr);
 
-    fprintf(FilePtr,"\nSimulation finished,  %d warnings\n\n",NumberOfWarnings[CurrentSystem]);
+    fprintf(FilePtr,"\nSimulation finished,  %d warnings\n",NumberOfWarnings[CurrentSystem]);
+    PrintWarningStatus();
+    fprintf(FilePtr,"\n\n");
 
     /* Print out the date and time in the standard format.  */
     fprintf(FilePtr,"%s",asctime(loctime));
@@ -6555,6 +6557,7 @@ void PrintPostSimulationStatus(void)
     fprintf(FilePtr,"%s\n",buffer);
     strftime (buffer, 256, "The end time was %I:%M %p.", loctime);
     fprintf(FilePtr,"%s\n\n",buffer);
+
   }
 }
 
@@ -6972,6 +6975,15 @@ void PrintEnergyDriftStatus(FILE *FilePtr)
   fprintf(FilePtr,"===================================================================\n");
   fprintf(FilePtr,"Total energy-drift: %lg\n",(double)(UTotalRunning-UTotal[CurrentSystem])*ENERGY_TO_KELVIN);
   fprintf(FilePtr,"\n\n");
+
+  if(fabs(UTotalRunning-UTotal[CurrentSystem])*ENERGY_TO_KELVIN>1e-2)
+  {
+    if(NumberOfWarnings[NumberOfWarnings[CurrentSystem]]<MAX_NUMBER_OF_WARNINGS)
+    {
+      Warnings[CurrentSystem][NumberOfWarnings[CurrentSystem]]=ENERGY_DRIFT;
+      NumberOfWarnings[CurrentSystem]++;
+    }
+  }
 }
 
 void PrintRestartFile(void)

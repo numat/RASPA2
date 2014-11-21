@@ -207,6 +207,9 @@ void PrintWarningStatus(void)
           fprintf(FilePtr,"%s-%s ",WarningValues[CurrentSystem][i][j],WarningValues[CurrentSystem][i][j+1]);
         fprintf(FilePtr," (maximum %d interactions shown)\n",MAX_NUMBER_OF_WARNING_ARGUMENTS/2);
         break;
+      case ENERGY_DRIFT:
+        fprintf(FilePtr,"WARNING: ENERGY DRIFT (INTERNAL CONSISTENCY ERROR IN THE CODE), THE SIMULATION RESULTS ARE WRONG!!\n");
+        break;
     }
   }
 
