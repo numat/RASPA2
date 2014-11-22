@@ -2379,6 +2379,8 @@ int CalculateInterVDWEnergyDifferenceAdsorbateNewRXCM(int reaction,REAL LambdaNe
             rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
             if(rr<CutOffVDWSquared)
             {
+              if(rr<OverlapDistanceSquared) return OVERLAP=TRUE;
+
               energy=PotentialValue(typeA,typeB,rr,scalingA_new*scalingB);
               if(energy>=EnergyOverlapCriteria) return OVERLAP=TRUE;
               UAdsorbateVDWDelta[CurrentSystem]+=energy;
@@ -2404,6 +2406,8 @@ int CalculateInterVDWEnergyDifferenceAdsorbateNewRXCM(int reaction,REAL LambdaNe
           rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
           if(rr<CutOffVDWSquared)
           {
+            if(rr<OverlapDistanceSquared) return OVERLAP=TRUE;
+
             energy=PotentialValue(typeA,typeB,rr,scalingA_new*scalingB);
             if(energy>=EnergyOverlapCriteria) return OVERLAP=TRUE;
             UCationVDWDelta[CurrentSystem]+=energy;
@@ -2437,6 +2441,8 @@ int CalculateInterVDWEnergyDifferenceAdsorbateNewRXCM(int reaction,REAL LambdaNe
           rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
           if(rr<CutOffVDWSquared)
           {
+            if(rr<OverlapDistanceSquared) return OVERLAP=TRUE;
+
             typeB=Components[TypeMolB].Type[l];
             energy=PotentialValue(typeA,typeB,rr,scalingA_new*scalingB_new);
             if(energy>=EnergyOverlapCriteria) return OVERLAP=TRUE;
@@ -2446,6 +2452,7 @@ int CalculateInterVDWEnergyDifferenceAdsorbateNewRXCM(int reaction,REAL LambdaNe
       }
     }
   }
+
 }
 
 
@@ -2561,6 +2568,8 @@ int CalculateInterVDWEnergyDifferenceAdsorbateRXCM(int reaction,REAL Lambda1,REA
               rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
               if(rr<CutOffVDWSquared)
               {
+                if(rr<OverlapDistanceSquared) return OVERLAP=TRUE;
+
                 energy=PotentialValue(typeA,typeB,rr,scalingA_new*scalingB);
                 if(energy>=EnergyOverlapCriteria) return OVERLAP=TRUE;
                 UAdsorbateVDWDelta[CurrentSystem]+=energy;
@@ -2590,6 +2599,8 @@ int CalculateInterVDWEnergyDifferenceAdsorbateRXCM(int reaction,REAL Lambda1,REA
           rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
           if(rr<CutOffVDWSquared)
           {
+            if(rr<OverlapDistanceSquared) return OVERLAP=TRUE;
+
             energy=PotentialValue(typeA,typeB,rr,scalingA_new*scalingB);
             if(energy>=EnergyOverlapCriteria) return OVERLAP=TRUE;
             UCationVDWDelta[CurrentSystem]+=energy;
@@ -2630,6 +2641,8 @@ int CalculateInterVDWEnergyDifferenceAdsorbateRXCM(int reaction,REAL Lambda1,REA
           rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
           if(rr<CutOffVDWSquared)
           {
+            if(rr<OverlapDistanceSquared) return OVERLAP=TRUE;
+
             energy=PotentialValue(typeA,typeB,rr,scalingA_new*scalingB_new);
             if(energy>=EnergyOverlapCriteria) return OVERLAP=TRUE;
             UAdsorbateVDWDelta[CurrentSystem]+=energy;
@@ -2734,7 +2747,7 @@ int CalculateInterChargeChargeEnergyDifferenceAdsorbateNewRXCM(int reaction,REAL
             dr.z=posA.z-posB.z;
             dr=ApplyBoundaryCondition(dr);
             rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-            if(rr<CutOffVDWSquared)
+            if(rr<CutOffChargeChargeSquared[CurrentSystem])
             {
               energy=PotentialValueCoulombic(chargeA_new,chargeB,sqrt(rr));
               if(energy>=EnergyOverlapCriteria) return OVERLAP=TRUE;
@@ -2760,7 +2773,7 @@ int CalculateInterChargeChargeEnergyDifferenceAdsorbateNewRXCM(int reaction,REAL
           dr.z=posA.z-posB.z;
           dr=ApplyBoundaryCondition(dr);
           rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-          if(rr<CutOffVDWSquared)
+          if(rr<CutOffChargeChargeSquared[CurrentSystem])
           {
             energy=PotentialValueCoulombic(chargeA_new,chargeB,sqrt(rr));
             if(energy>=EnergyOverlapCriteria) return OVERLAP=TRUE;
@@ -2794,7 +2807,7 @@ int CalculateInterChargeChargeEnergyDifferenceAdsorbateNewRXCM(int reaction,REAL
           dr.z=posA.z-posB.z;
           dr=ApplyBoundaryCondition(dr);
           rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-          if(rr<CutOffVDWSquared)
+          if(rr<CutOffChargeChargeSquared[CurrentSystem])
           {
             energy=PotentialValueCoulombic(chargeA_new,chargeB_new,sqrt(rr));
             if(energy>=EnergyOverlapCriteria) return OVERLAP=TRUE;
@@ -2922,7 +2935,7 @@ int CalculateInterChargeChargeEnergyDifferenceAdsorbateRXCM(int reaction,REAL La
                 dr.z=posA.z-posB.z;
                 dr=ApplyBoundaryCondition(dr);
                 rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-                if(rr<CutOffVDWSquared)
+                if(rr<CutOffChargeChargeSquared[CurrentSystem])
                 {
                   energy=PotentialValueCoulombic(chargeA_new,chargeB,sqrt(rr));
                   if(energy>=EnergyOverlapCriteria) return OVERLAP=TRUE;
@@ -2952,7 +2965,7 @@ int CalculateInterChargeChargeEnergyDifferenceAdsorbateRXCM(int reaction,REAL La
           dr.z=posA.z-posB.z;
           dr=ApplyBoundaryCondition(dr);
           rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-          if(rr<CutOffVDWSquared)
+          if(rr<CutOffChargeChargeSquared[CurrentSystem])
           {
             energy=PotentialValueCoulombic(chargeA_new,chargeB,sqrt(rr));
             if(energy>=EnergyOverlapCriteria) return OVERLAP=TRUE;
@@ -2996,7 +3009,7 @@ int CalculateInterChargeChargeEnergyDifferenceAdsorbateRXCM(int reaction,REAL La
           dr.z=posA.z-posB.z;
           dr=ApplyBoundaryCondition(dr);
           rr=SQR(dr.x)+SQR(dr.y)+SQR(dr.z);
-          if(rr<CutOffVDWSquared)
+          if(rr<CutOffChargeChargeSquared[CurrentSystem])
           {
             energy=PotentialValueCoulombic(chargeA_new,chargeB_new,sqrt(rr));
             if(energy>=EnergyOverlapCriteria) return OVERLAP=TRUE;

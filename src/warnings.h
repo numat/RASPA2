@@ -34,6 +34,7 @@ enum {NET_SYSTEM_CHARGE,LOWENSTEIN_RULE_NOT_OBEYED,OMITTED_HOST_ADSORBATE_VDW_IN
       MISSING_INTERACTION,ENERGY_DRIFT};
 
 void CreateWarnings(void);
+void CheckForErrors(void);
 void PrintWarningStatus(void);
 
 void WriteRestartWarnings(FILE *FilePtr);

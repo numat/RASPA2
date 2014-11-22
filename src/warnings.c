@@ -23,6 +23,7 @@
 #include "framework.h"
 #include "molecule.h"
 #include "potentials.h"
+#include "simulation.h"
 #include "output.h"
 #include "movies.h"
 #include "utils.h"
@@ -31,6 +32,32 @@ int *NumberOfWarnings;
 int (*Warnings)[MAX_NUMBER_OF_WARNINGS];
 int (*NumberOfWarningValues)[MAX_NUMBER_OF_WARNINGS];
 char (*WarningValues)[MAX_NUMBER_OF_WARNINGS][MAX_NUMBER_OF_WARNING_ARGUMENTS][32];
+
+
+void CheckForErrors(void)
+{
+  int i,j;
+  // check reactions
+
+  for(i=0;i<NumberOfReactions;i++)
+  {
+    for(j=0;j<NumberOfComponents;j++)
+    {
+      if((ReactantsStoichiometry[i][j]>0)&&((Components[i].ExtraFrameworkMolecule)||(Components[j].ExtraFrameworkMolecule)))
+      {
+        printf("ERROR: rxmc can only be defined for adsorbates and not for cation-components.\n");
+        printf("       change your ExtraFrameworkMolecule for reaction-components from YES to NO.\n");
+        exit(0);
+      }
+      if((ProductsStoichiometry[i][j]>0)&&((Components[i].ExtraFrameworkMolecule)||(Components[j].ExtraFrameworkMolecule)))
+      {
+        printf("ERROR: rxmc can only be defined for adsorbates and not for cation-components.\n");
+        printf("       change your ExtraFrameworkMolecule for reaction-components from YES to NO.\n");
+        exit(0);
+      }
+    }
+  }
+}
 
 
 void CreateWarnings(void)

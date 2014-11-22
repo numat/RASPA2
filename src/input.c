@@ -8238,6 +8238,8 @@ int ReadInput(char *input)
   // generate warnings
   CreateWarnings();
 
+  CheckForErrors();
+
   // precompute contributions to the Ewald sums from fixed atoms
   // setup k-vectors in advance
   for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
@@ -8251,19 +8253,6 @@ int ReadInput(char *input)
   for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
     WriteFrameworkDefinition();
 
-  // CFC-RXMC : Initializing Lambda, Pi and randomly picking a fractional molecule
-/*
-  if(NumberOfReactions>0)
-  {
-    for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
-    {
-      for(CurrentReaction=0;CurrentReaction<NumberOfReactions;CurrentReaction++)
-      {
-         CFCRXMCLambda[CurrentSystem][CurrentReaction]=0.5;
-      }
-    }
-  }
-*/
   CurrentSystem=0;
   CurrentComponent=0;
   CurrentFramework=0;

@@ -1345,6 +1345,7 @@ int SamplePDBMovies(int Choice,int Subdir)
   int i,j,k,f1;
   char buffer[1024];
   int Type;
+  int AtomType;
   int index;
   char RecordName[7]="ATOM  ";                   // ATOM record
   static int  *SerialNumber;   // Atom serial number
@@ -1527,7 +1528,7 @@ int SamplePDBMovies(int Choice,int Subdir)
       }
       nr_frame[CurrentSystem]++;
 
-      //if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
+      if(Framework[CurrentSystem].FrameworkModel==FLEXIBLE)
       {
         SerialNumberFramework=1;
         Type=NumberOfComponents;
@@ -1537,8 +1538,9 @@ int SamplePDBMovies(int Choice,int Subdir)
           {
             if(PseudoAtoms[Framework[CurrentSystem].Atoms[f1][k].Type].PrintToPDB)
             {
-              sprintf(AtomName,"%2s",PseudoAtoms[Framework[CurrentSystem].Atoms[f1][k].Type].PrintToPDBName);
-              sprintf(Element,"%2s",PseudoAtoms[Framework[CurrentSystem].Atoms[f1][k].Type].PrintToPDBName);
+              AtomType=Framework[CurrentSystem].Atoms[f1][k].Type;
+              snprintf(AtomName,5,"%2s",PseudoAtoms[AtomType].PrintToPDBName);
+              snprintf(Element,3,"%2s",PseudoAtoms[AtomType].PrintToPDBName);
 
               // shift positions to remove the drift of the framework
               r.x=MovieScale*(Framework[CurrentSystem].Atoms[f1][k].Position.x-flexible_drift.x);
@@ -1576,8 +1578,9 @@ int SamplePDBMovies(int Choice,int Subdir)
             r.y=MovieScale*(Adsorbates[CurrentSystem][j].Atoms[k].Position.y-dr.y-flexible_drift.y);
             r.z=MovieScale*(Adsorbates[CurrentSystem][j].Atoms[k].Position.z-dr.z-flexible_drift.z);
 
-            sprintf(AtomName,"%2s",PseudoAtoms[Adsorbates[CurrentSystem][j].Atoms[k].Type].PrintToPDBName);
-            sprintf(Element,"%2s",PseudoAtoms[Adsorbates[CurrentSystem][j].Atoms[k].Type].PrintToPDBName);
+            AtomType=Adsorbates[CurrentSystem][j].Atoms[k].Type;
+            snprintf(AtomName,5,"%2s",PseudoAtoms[AtomType].PrintToPDBName);
+            snprintf(Element,3,"%2s",PseudoAtoms[AtomType].PrintToPDBName);
 
             fprintf(PDBFilePtr[CurrentSystem][Type],"%s%5d %2s%c%c%c%3s %c%4s%c   %8.3lf%8.3lf%8.3lf%6.2lf%6.2lf%-4s%2s%2s\n",
                  RecordName,SerialNumber[Type]++,AtomName,RemotenessIndicator,BranchDesignator,AltLoc,ResIdueName,
@@ -1611,8 +1614,9 @@ int SamplePDBMovies(int Choice,int Subdir)
             r.y=MovieScale*(Cations[CurrentSystem][j].Atoms[k].Position.y-dr.y-flexible_drift.y);
             r.z=MovieScale*(Cations[CurrentSystem][j].Atoms[k].Position.z-dr.z-flexible_drift.z);
 
-            sprintf(AtomName,"%2s",PseudoAtoms[Cations[CurrentSystem][j].Atoms[k].Type].PrintToPDBName);
-            sprintf(Element,"%2s",PseudoAtoms[Cations[CurrentSystem][j].Atoms[k].Type].PrintToPDBName);
+            AtomType=Cations[CurrentSystem][j].Atoms[k].Type;
+            snprintf(AtomName,5,"%2s",PseudoAtoms[AtomType].PrintToPDBName);
+            snprintf(Element,3,"%2s",PseudoAtoms[AtomType].PrintToPDBName);
 
             fprintf(PDBFilePtr[CurrentSystem][Type],"%s%5d %2s%c%c%c%3s %c%4s%c   %8.3lf%8.3lf%8.3lf%6.2lf%6.2lf%-4s%2s%2s\n",
                  RecordName,SerialNumber[Type]++,AtomName,RemotenessIndicator,BranchDesignator,AltLoc,ResIdueName,
