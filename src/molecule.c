@@ -57,6 +57,9 @@ int *MaxNumberOfCationMolecules;
 int *NumberOfFractionalMolecules;
 int *NumberOfFractionalAdsorbateMolecules;
 int *NumberOfFractionalCationMolecules;
+int *NumberOfReactionMolecules;
+int *NumberOfReactionAdsorbateMolecules;
+int *NumberOfReactionCationMolecules;
 
 int MaxNumberOfCoulombicSites;
 int MaxNumberOfBondDipoleSites;
@@ -206,6 +209,16 @@ int SelectRandomMoleculeOfType(int comp)
 
 int IsFractionalAdsorbateMolecule(int m)
 {
+  return ((IsFractionalCFMCAdsorbateMolecule(m))||(IsFractionalReactionAdsorbateMolecule(m)));
+}
+
+int IsFractionalCationMolecule(int m)
+{
+  return ((IsFractionalCFMCCationMolecule(m))||(IsFractionalReactionCationMolecule(m)));
+}
+
+int IsFractionalCFMCAdsorbateMolecule(int m)
+{
   int i;
 
   for(i=0;i<NumberOfComponents;i++)
@@ -214,12 +227,47 @@ int IsFractionalAdsorbateMolecule(int m)
   return FALSE;
 }
 
-int IsFractionalCationMolecule(int m)
+int IsFractionalCFMCCationMolecule(int m)
 {
   int i;
 
   for(i=0;i<NumberOfComponents;i++)
     if((Components[i].ExtraFrameworkMolecule)&&(Components[i].FractionalMolecule[CurrentSystem]==m)) return TRUE;
+
+  return FALSE;
+}
+
+int IsFractionalReactionAdsorbateMolecule(int m)
+{
+  int k,l,type;
+
+  type=Adsorbates[CurrentSystem][m].Type;
+
+  for(k=0;k<NumberOfReactions;k++)
+    for(l=0;l<ReactantsStoichiometry[k][type];l++)
+      if(Components[type].ReactantFractionalMolecules[CurrentSystem][k][l]==m) return TRUE;
+
+  for(k=0;k<NumberOfReactions;k++)
+    for(l=0;l<ProductsStoichiometry[k][type];l++)
+      if(Components[type].ProductFractionalMolecules[CurrentSystem][k][l]==m) return TRUE;
+
+  return FALSE;
+}
+
+int IsFractionalReactionCationMolecule(int m)
+{
+  int k,l,type;
+
+  type=Cations[CurrentSystem][m].Type;
+
+  for(k=0;k<NumberOfReactions;k++)
+    for(l=0;l<ReactantsStoichiometry[k][type];l++)
+      if(Components[type].ReactantFractionalMolecules[CurrentSystem][k][l]==m) return TRUE;
+
+  for(k=0;k<NumberOfReactions;k++)
+    for(l=0;l<ProductsStoichiometry[k][type];l++)
+      if(Components[type].ProductFractionalMolecules[CurrentSystem][k][l]==m) return TRUE;
+
 
   return FALSE;
 }
@@ -232,7 +280,12 @@ int SelectRandomMoleculeOfTypeExcludingFractionalMolecule(int comp)
   if(Components[comp].ExtraFrameworkMolecule)
   {
     // choose a random molecule of this component
-    d=(int)(RandomNumber()*(Components[comp].NumberOfMolecules[CurrentSystem]-(Components[comp].CFMoleculePresent[CurrentSystem]?1:0)));
+    // the number of possibly selected molecules is reduced by the presence of
+    // 1) the CFMC fractional molecule (at most 1)
+    // 2) RXMC molecules
+    d=(int)(RandomNumber()*(Components[comp].NumberOfMolecules[CurrentSystem]
+            -(Components[comp].CFMoleculePresent[CurrentSystem]?1:0)
+            -Components[comp].NumberOfRXMCMoleculesPresent[CurrentSystem]));
 
     count=-1;
     CurrentMolecule=-1;
@@ -246,7 +299,12 @@ int SelectRandomMoleculeOfTypeExcludingFractionalMolecule(int comp)
   else
   {
     // choose a random molecule of this component
-    d=(int)(RandomNumber()*(Components[comp].NumberOfMolecules[CurrentSystem]-(Components[comp].CFMoleculePresent[CurrentSystem]?1:0)));
+    // the number of possibly selected molecules is reduced by the presence of
+    // 1) the CFMC fractional molecule (at most 1)
+    // 2) RXMC molecules
+    d=(int)(RandomNumber()*(Components[comp].NumberOfMolecules[CurrentSystem]
+            -(Components[comp].CFMoleculePresent[CurrentSystem]?1:0)
+            -Components[comp].NumberOfRXMCMoleculesPresent[CurrentSystem]));
 
     count=-1;
     CurrentMolecule=-1;
@@ -343,7 +401,9 @@ int SelectRandomMoleculeOfTypeExcludingReactionMolecules(int reaction,int **Lamb
   numberOfSelectedMolecules=0;
   for(i=0;i<NumberOfComponents;i++)
   {
-    numberOfSelectableMolecules=Components[i].NumberOfMolecules[CurrentSystem]-numberOfReactionMoleculesForComponent(i);
+    numberOfSelectableMolecules=Components[i].NumberOfMolecules[CurrentSystem]
+                                -(Components[i].CFMoleculePresent[CurrentSystem]?1:0)
+                                -numberOfReactionMoleculesForComponent(i);
     for(j=0;j<ReactantsStoichiometry[reaction][i];j++)
     {
       if(numberOfSelectableMolecules<=0) return -1;
@@ -356,7 +416,9 @@ int SelectRandomMoleculeOfTypeExcludingReactionMolecules(int reaction,int **Lamb
       do   // search for d-th molecule of the right type
       {
         CurrentMolecule++;
-        if((Adsorbates[CurrentSystem][CurrentMolecule].Type==i)&&(!isInArrayOfSize(CurrentMolecule,numberOfExcludedMolecules,listOfExcludedMolecules))) count++;
+        if((Adsorbates[CurrentSystem][CurrentMolecule].Type==i)&&
+           (!IsFractionalCFMCAdsorbateMolecule(CurrentMolecule))&&
+           (!isInArrayOfSize(CurrentMolecule,numberOfExcludedMolecules,listOfExcludedMolecules))) count++;
       }
       while(d!=count);
 
@@ -388,7 +450,9 @@ int SelectRandomMoleculeOfTypeExcludingProductMolecules(int reaction,int **Lambd
   numberOfSelectedMolecules=0;
   for(i=0;i<NumberOfComponents;i++)
   {
-    numberOfSelectableMolecules=Components[i].NumberOfMolecules[CurrentSystem]-numberOfReactionMoleculesForComponent(i);
+    numberOfSelectableMolecules=Components[i].NumberOfMolecules[CurrentSystem]
+                                -(Components[i].CFMoleculePresent[CurrentSystem]?1:0)
+                                -numberOfReactionMoleculesForComponent(i);
     for(j=0;j<ProductsStoichiometry[reaction][i];j++)
     {
       if(numberOfSelectableMolecules<=0) return -1;
@@ -401,7 +465,9 @@ int SelectRandomMoleculeOfTypeExcludingProductMolecules(int reaction,int **Lambd
       do   // search for d-th molecule of the right type
       {
         CurrentMolecule++;
-        if((Adsorbates[CurrentSystem][CurrentMolecule].Type==i)&&(!isInArrayOfSize(CurrentMolecule,numberOfExcludedMolecules,listOfExcludedMolecules))) count++;
+        if((Adsorbates[CurrentSystem][CurrentMolecule].Type==i)&&
+           (!IsFractionalCFMCAdsorbateMolecule(CurrentMolecule))&&
+           (!isInArrayOfSize(CurrentMolecule,numberOfExcludedMolecules,listOfExcludedMolecules))) count++;
       }
       while(d!=count);
 
@@ -6071,6 +6137,9 @@ void WriteRestartMolecules(FILE *FilePtr)
   fwrite(NumberOfFractionalMolecules,sizeof(int),NumberOfSystems,FilePtr);
   fwrite(NumberOfFractionalAdsorbateMolecules,sizeof(int),NumberOfSystems,FilePtr);
   fwrite(NumberOfFractionalCationMolecules,sizeof(int),NumberOfSystems,FilePtr);
+  fwrite(NumberOfReactionMolecules,sizeof(int),NumberOfSystems,FilePtr);
+  fwrite(NumberOfReactionAdsorbateMolecules,sizeof(int),NumberOfSystems,FilePtr);
+  fwrite(NumberOfReactionCationMolecules,sizeof(int),NumberOfSystems,FilePtr);
 
   fwrite(&MaxNumberOfCoulombicSites,sizeof(int),1,FilePtr);
   fwrite(&LargestNumberOfCoulombicSites,sizeof(int),1,FilePtr);
@@ -6140,6 +6209,13 @@ void ReadRestartMolecules(FILE *FilePtr)
   fread(NumberOfFractionalMolecules,sizeof(int),NumberOfSystems,FilePtr);
   fread(NumberOfFractionalAdsorbateMolecules,sizeof(int),NumberOfSystems,FilePtr);
   fread(NumberOfFractionalCationMolecules,sizeof(int),NumberOfSystems,FilePtr);
+
+  NumberOfReactionMolecules=(int*)calloc(NumberOfSystems,sizeof(int));
+  NumberOfReactionAdsorbateMolecules=(int*)calloc(NumberOfSystems,sizeof(int));
+  NumberOfReactionCationMolecules=(int*)calloc(NumberOfSystems,sizeof(int));
+  fread(NumberOfReactionMolecules,sizeof(int),NumberOfSystems,FilePtr);
+  fread(NumberOfReactionAdsorbateMolecules,sizeof(int),NumberOfSystems,FilePtr);
+  fread(NumberOfReactionCationMolecules,sizeof(int),NumberOfSystems,FilePtr);
 
   fread(&MaxNumberOfCoulombicSites,sizeof(int),1,FilePtr);
   fread(&LargestNumberOfCoulombicSites,sizeof(int),1,FilePtr);

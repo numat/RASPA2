@@ -806,6 +806,10 @@ int ReadInput(char *input)
   NumberOfFractionalAdsorbateMolecules=(int*)calloc(NumberOfSystems,sizeof(int));
   NumberOfFractionalCationMolecules=(int*)calloc(NumberOfSystems,sizeof(int));
 
+  NumberOfReactionMolecules=(int*)calloc(NumberOfSystems,sizeof(int));
+  NumberOfReactionAdsorbateMolecules=(int*)calloc(NumberOfSystems,sizeof(int));
+  NumberOfReactionCationMolecules=(int*)calloc(NumberOfSystems,sizeof(int));
+
   NumberOfAtomsPerSystem=(int*)calloc(NumberOfSystems,sizeof(int));
   NumberOfChargesPerSystem=(int*)calloc(NumberOfSystems,sizeof(int));
   NumberOfBondDipolesPerSystem=(int*)calloc(NumberOfSystems,sizeof(int));
@@ -949,24 +953,6 @@ int ReadInput(char *input)
   for(i=0;i<NumberOfSystems;i++)
     for(l=0;l<NumberOfReactions;l++)
       CFRXMCWangLandauScalingFactor[i][l]=0.01;
-
- /* 
-  RXMCBiasingFactors=(REAL***)calloc(NumberOfSystems,sizeof(REAL**));
-  CFRXMCWangLandauScalingFactor=(REAL**)calloc(NumberOfSystems,sizeof(REAL*));
-  for(i=0;i<NumberOfSystems;i++)
-  {
-    if(NumberOfReactions>0)
-    {
-      RXMCBiasingFactors[i]=(REAL**)calloc(NumberOfReactions,sizeof(REAL*));
-      CFRXMCWangLandauScalingFactor[i]=(REAL*)calloc(NumberOfReactions,sizeof(REAL));
-      for(l=0;l<NumberOfReactions;l++)
-      {
-        RXMCBiasingFactors[i][l]=(REAL*)calloc(RXMCLambdaHistogramSize,sizeof(REAL));
-        CFRXMCWangLandauScalingFactor[i][l]=0.01;
-      }
-    }
-  }
-*/
 
   // second pass to get the number of frameworks per system
   CurrentSystem=0;
@@ -6889,6 +6875,10 @@ int ReadInput(char *input)
 
   for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
   {
+    NumberOfReactionMolecules[CurrentSystem]=0;
+    NumberOfReactionAdsorbateMolecules[CurrentSystem]=0;
+    NumberOfReactionCationMolecules[CurrentSystem]=0;
+
     for(j=0;j<NumberOfComponents;j++)
     {
       // the are no molecules present from a restart-file -> create reaction fractional molecules
@@ -6903,6 +6893,8 @@ int ReadInput(char *input)
             {
               MakeInitialCations(1,j);
               Components[j].ReactantFractionalMolecules[CurrentSystem][k][l]=NumberOfCationMolecules[CurrentSystem]-1;
+              NumberOfReactionMolecules[CurrentSystem]++;
+              NumberOfReactionCationMolecules[CurrentSystem]++;
 
               for(m=0;m<Components[j].NumberOfAtoms;m++)
               {
@@ -6914,6 +6906,8 @@ int ReadInput(char *input)
             {
               MakeInitialAdsorbates(1,j);
               Components[j].ReactantFractionalMolecules[CurrentSystem][k][l]=NumberOfAdsorbateMolecules[CurrentSystem]-1;
+              NumberOfReactionMolecules[CurrentSystem]++;
+              NumberOfReactionAdsorbateMolecules[CurrentSystem]++;
 
               for(m=0;m<Components[j].NumberOfAtoms;m++)
               {
@@ -6929,6 +6923,8 @@ int ReadInput(char *input)
             {
               MakeInitialCations(1,j);
               Components[j].ProductFractionalMolecules[CurrentSystem][k][l]=NumberOfCationMolecules[CurrentSystem]-1;
+              NumberOfReactionMolecules[CurrentSystem]++;
+              NumberOfReactionCationMolecules[CurrentSystem]++;
 
               for(m=0;m<Components[j].NumberOfAtoms;m++)
               {
@@ -6940,6 +6936,8 @@ int ReadInput(char *input)
             {
               MakeInitialAdsorbates(1,j);
               Components[j].ProductFractionalMolecules[CurrentSystem][k][l]=NumberOfAdsorbateMolecules[CurrentSystem]-1;
+              NumberOfReactionMolecules[CurrentSystem]++;
+              NumberOfReactionAdsorbateMolecules[CurrentSystem]++;
 
               for(m=0;m<Components[j].NumberOfAtoms;m++)
               {

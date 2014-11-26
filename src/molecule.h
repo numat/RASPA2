@@ -254,6 +254,9 @@ extern int *MaxNumberOfCationMolecules;
 extern int *NumberOfFractionalMolecules;
 extern int *NumberOfFractionalAdsorbateMolecules;
 extern int *NumberOfFractionalCationMolecules;
+extern int *NumberOfReactionMolecules;
+extern int *NumberOfReactionAdsorbateMolecules;
+extern int *NumberOfReactionCationMolecules;
 
 extern int MaxNumberOfCoulombicSites;
 extern int MaxNumberOfBondDipoleSites;
@@ -741,6 +744,12 @@ void ReadBiasingProfile(int);
 
 int IsFractionalAdsorbateMolecule(int m);
 int IsFractionalCationMolecule(int m);
+
+int IsFractionalCFMCAdsorbateMolecule(int m);
+int IsFractionalCFMCCationMolecule(int m);
+
+int IsFractionalReactionAdsorbateMolecule(int m);
+int IsFractionalReactionCationMolecule(int m);
 
 int ValidFractionalPoint(int i, POINT s);
 int ValidCartesianPoint(int i, POINT pos);

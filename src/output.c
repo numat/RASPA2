@@ -240,7 +240,7 @@ void PrintPreSimulationStatusCurrentSystem(int system)
   fprintf(FilePtr,"Compiler and run-time data\n");
   fprintf(FilePtr,"===========================================================================\n");
 
-  fprintf(FilePtr,"%s\n","RASPA 1.9-11");
+  fprintf(FilePtr,"%s\n","RASPA 1.9-12");
 
   #if defined (__LP64__) || defined (__64BIT__) || defined (_LP64) || (__WORDSIZE == 64)
     fprintf(FilePtr,"Compiled as a 64-bits application\n");

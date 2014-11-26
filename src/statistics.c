@@ -1195,8 +1195,10 @@ void UpdateEnergyAveragesCurrentSystem(void)
   UExclusionConstraintsAverage[CurrentSystem][Block]+=UExclusionConstraints[CurrentSystem];
   UTotalAverage[CurrentSystem][Block]+=UTotal[CurrentSystem];
 
-  NumberOfMoleculesAverage[CurrentSystem][Block]+=NumberOfAdsorbateMolecules[CurrentSystem]-NumberOfFractionalAdsorbateMolecules[CurrentSystem];
-  NumberOfMoleculesSquaredAverage[CurrentSystem][Block]+=SQR(NumberOfAdsorbateMolecules[CurrentSystem]-NumberOfFractionalAdsorbateMolecules[CurrentSystem]);
+  NumberOfMoleculesAverage[CurrentSystem][Block]+=NumberOfAdsorbateMolecules[CurrentSystem]
+                                                 -NumberOfFractionalAdsorbateMolecules[CurrentSystem];
+  NumberOfMoleculesSquaredAverage[CurrentSystem][Block]+=SQR(NumberOfAdsorbateMolecules[CurrentSystem]
+                                                        -NumberOfFractionalAdsorbateMolecules[CurrentSystem]);
   TotalEnergyTimesNumberOfMoleculesAverage[CurrentSystem][Block]+=UTotal[CurrentSystem]*(REAL)NumberOfAdsorbateMolecules[CurrentSystem];
   HostAdsorbateEnergyTimesNumberOfMoleculesAverage[CurrentSystem][Block]+=UHostAdsorbate[CurrentSystem]*(REAL)NumberOfAdsorbateMolecules[CurrentSystem];
   AdsorbateAdsorbateEnergyTimesNumberOfMoleculesAverage[CurrentSystem][Block]+=UAdsorbateAdsorbate[CurrentSystem]*(REAL)NumberOfAdsorbateMolecules[CurrentSystem];
@@ -1641,20 +1643,16 @@ void PrintIntervalStatusInit(long long CurrentCycle,long long NumberOfCycles,FIL
   fprintf(FilePtr,"Degrees of freedom: %d %d %d %d\n",DegreesOfFreedom[CurrentSystem],DegreesOfFreedomFramework[CurrentSystem],
           DegreesOfFreedomAdsorbates[CurrentSystem],DegreesOfFreedomCations[CurrentSystem]);
   fprintf(FilePtr,"Number of Framework-atoms: %6d\n",Framework[CurrentSystem].TotalNumberOfAtoms);
-  if(NumberOfFractionalAdsorbateMolecules[CurrentSystem]>0)
-    fprintf(FilePtr,"Number of Adsorbates:      %6d (%d integer, %d fractional)\n",
-            NumberOfAdsorbateMolecules[CurrentSystem],
-            NumberOfAdsorbateMolecules[CurrentSystem]-NumberOfFractionalAdsorbateMolecules[CurrentSystem],
-            NumberOfFractionalAdsorbateMolecules[CurrentSystem]);
-  else
-    fprintf(FilePtr,"Number of Adsorbates:      %6d\n",NumberOfAdsorbateMolecules[CurrentSystem]);
-  if(NumberOfFractionalCationMolecules[CurrentSystem]>0)
-    fprintf(FilePtr,"Number of Cations:         %6d (%d integer, %d fractional\n",
-        NumberOfCationMolecules[CurrentSystem],
-        NumberOfCationMolecules[CurrentSystem]-NumberOfFractionalCationMolecules[CurrentSystem],
-        NumberOfFractionalCationMolecules[CurrentSystem]);
-  else
-    fprintf(FilePtr,"Number of Cations:         %6d\n",NumberOfCationMolecules[CurrentSystem]);
+  fprintf(FilePtr,"Number of Adsorbates:      %6d (%d integer, %d fractional, %d reaction)\n",
+          NumberOfAdsorbateMolecules[CurrentSystem],
+          NumberOfAdsorbateMolecules[CurrentSystem]-NumberOfFractionalAdsorbateMolecules[CurrentSystem]-NumberOfReactionAdsorbateMolecules[CurrentSystem],
+          NumberOfFractionalAdsorbateMolecules[CurrentSystem],
+          NumberOfReactionAdsorbateMolecules[CurrentSystem]);
+  fprintf(FilePtr,"Number of Cations:         %6d (%d integer, %d fractional, % reaction\n",
+      NumberOfCationMolecules[CurrentSystem],
+      NumberOfCationMolecules[CurrentSystem]-NumberOfFractionalCationMolecules[CurrentSystem]-NumberOfReactionCationMolecules[CurrentSystem],
+      NumberOfFractionalCationMolecules[CurrentSystem],
+      NumberOfReactionCationMolecules[CurrentSystem]);
   fprintf(FilePtr,"\n");
 
   fprintf(FilePtr,"Current total potential energy:       % 22.10lf [K]\n",
@@ -1920,20 +1918,16 @@ void PrintIntervalStatusEquilibration(long long CurrentCycle,long long NumberOfC
   fprintf(FilePtr,"Degrees of freedom: %d %d %d %d\n",DegreesOfFreedom[CurrentSystem],DegreesOfFreedomFramework[CurrentSystem],
           DegreesOfFreedomAdsorbates[CurrentSystem],DegreesOfFreedomCations[CurrentSystem]);
   fprintf(FilePtr,"Number of Framework-atoms: %6d\n",Framework[CurrentSystem].TotalNumberOfAtoms);
-  if(NumberOfFractionalAdsorbateMolecules[CurrentSystem]>0)
-    fprintf(FilePtr,"Number of Adsorbates:      %6d (%d integer, %d fractional)\n",
-            NumberOfAdsorbateMolecules[CurrentSystem],
-            NumberOfAdsorbateMolecules[CurrentSystem]-NumberOfFractionalAdsorbateMolecules[CurrentSystem],
-            NumberOfFractionalAdsorbateMolecules[CurrentSystem]);
-  else
-    fprintf(FilePtr,"Number of Adsorbates:      %6d\n",NumberOfAdsorbateMolecules[CurrentSystem]);
-  if(NumberOfFractionalCationMolecules[CurrentSystem]>0)
-    fprintf(FilePtr,"Number of Cations:         %6d (%d integer, %d fractional)\n",
-            NumberOfCationMolecules[CurrentSystem],
-            NumberOfCationMolecules[CurrentSystem]-NumberOfFractionalCationMolecules[CurrentSystem],
-            NumberOfFractionalCationMolecules[CurrentSystem]);
-  else
-    fprintf(FilePtr,"Number of Cations:         %6d\n",NumberOfCationMolecules[CurrentSystem]);
+  fprintf(FilePtr,"Number of Adsorbates:      %6d (%d integer, %d fractional, %d reaction)\n",
+          NumberOfAdsorbateMolecules[CurrentSystem],
+          NumberOfAdsorbateMolecules[CurrentSystem]-NumberOfFractionalAdsorbateMolecules[CurrentSystem]-NumberOfReactionAdsorbateMolecules[CurrentSystem],
+          NumberOfFractionalAdsorbateMolecules[CurrentSystem],
+          NumberOfReactionAdsorbateMolecules[CurrentSystem]);
+  fprintf(FilePtr,"Number of Cations:         %6d (%d integer, %d fractional, %d reaction)\n",
+          NumberOfCationMolecules[CurrentSystem],
+          NumberOfCationMolecules[CurrentSystem]-NumberOfFractionalCationMolecules[CurrentSystem]-NumberOfReactionCationMolecules[CurrentSystem],
+          NumberOfFractionalCationMolecules[CurrentSystem],
+          NumberOfReactionCationMolecules[CurrentSystem]);
   fprintf(FilePtr,"\n");
 
   if(SimulationType==MOLECULAR_DYNAMICS)
@@ -2916,20 +2910,16 @@ void PrintIntervalStatus(long long CurrentCycle,long long NumberOfCycles, FILE *
   fprintf(FilePtr,"Degrees of freedom: %d %d %d %d\n",DegreesOfFreedom[CurrentSystem],DegreesOfFreedomFramework[CurrentSystem],
           DegreesOfFreedomAdsorbates[CurrentSystem],DegreesOfFreedomCations[CurrentSystem]);
   fprintf(FilePtr,"Number of Framework-atoms: %6d\n",Framework[CurrentSystem].TotalNumberOfAtoms);
-  if(NumberOfFractionalAdsorbateMolecules[CurrentSystem]>0)
-    fprintf(FilePtr,"Number of Adsorbates:      %6d (%d integer, %d fractional)\n",
-            NumberOfAdsorbateMolecules[CurrentSystem],
-            NumberOfAdsorbateMolecules[CurrentSystem]-NumberOfFractionalAdsorbateMolecules[CurrentSystem],
-            NumberOfFractionalAdsorbateMolecules[CurrentSystem]);
-  else
-    fprintf(FilePtr,"Number of Adsorbates:      %6d\n",NumberOfAdsorbateMolecules[CurrentSystem]);
-  if(NumberOfFractionalCationMolecules[CurrentSystem]>0)
-    fprintf(FilePtr,"Number of Cations:         %6d (%d integer, %d fractional)\n",
-            NumberOfCationMolecules[CurrentSystem],
-            NumberOfCationMolecules[CurrentSystem]-NumberOfFractionalCationMolecules[CurrentSystem],
-            NumberOfFractionalCationMolecules[CurrentSystem]);
-  else
-    fprintf(FilePtr,"Number of Cations:         %6d\n",NumberOfCationMolecules[CurrentSystem]);
+  fprintf(FilePtr,"Number of Adsorbates:      %6d (%d integer, %d fractional, %d reaction)\n",
+          NumberOfAdsorbateMolecules[CurrentSystem],
+          NumberOfAdsorbateMolecules[CurrentSystem]-NumberOfFractionalAdsorbateMolecules[CurrentSystem]-NumberOfReactionAdsorbateMolecules[CurrentSystem],
+          NumberOfFractionalAdsorbateMolecules[CurrentSystem],
+          NumberOfReactionAdsorbateMolecules[CurrentSystem]);
+  fprintf(FilePtr,"Number of Cations:         %6d (%d integer, %d fractional, %d reaction)\n",
+          NumberOfCationMolecules[CurrentSystem],
+          NumberOfCationMolecules[CurrentSystem]-NumberOfFractionalCationMolecules[CurrentSystem]-NumberOfReactionCationMolecules[CurrentSystem],
+          NumberOfFractionalCationMolecules[CurrentSystem],
+          NumberOfReactionCationMolecules[CurrentSystem]);
   fprintf(FilePtr,"\n");
 
   if(SimulationType==MOLECULAR_DYNAMICS)
