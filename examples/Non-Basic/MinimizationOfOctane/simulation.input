@@ -2,7 +2,7 @@ SimulationType                Minimization
 NumberOfCycles                10
 NumberOfInitializationCycles  100
 RestartFile                   no
-PrintEvery                    1
+PrintEvery                    100
 
 MaximumNumberOfMinimizationSteps 1000
 RMSGradientTolerance 1e-6

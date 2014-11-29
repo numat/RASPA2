@@ -3,7 +3,7 @@ shifted
 # general rule tailcorrections
 no
 # number of defined interactions
-19
+20
 # type interaction
 He             LENNARD_JONES    10.9      2.64
 CH4_sp3        LENNARD_JONES    158.5     3.72
@@ -17,6 +17,7 @@ Ar             LENNARD_JONES    124.07    3.38
 O_co2          LENNARD_JONES    80.507    3.033
 C_co2          LENNARD_JONES    28.129    2.76
 N_n2           LENNARD_JONES    38.29849  3.305964
+N_com          NONE
 O_o2           LENNARD_JONES    53.02325  3.044809
 Ow             LENNARD_JONES    89.633    3.097
 H_h2           LENNARD_JONES    36.7      2.958

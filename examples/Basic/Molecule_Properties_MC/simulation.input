@@ -1,7 +1,7 @@
 SimulationType                   MonteCarlo
 NumberOfCycles                   5000000
 NumberOfInitializationCycles     10000
-PrintEvery                       5000
+PrintEvery                       50000
 RestartFile                      no
 
 ContinueAfterCrash               no

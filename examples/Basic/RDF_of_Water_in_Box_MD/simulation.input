@@ -1,6 +1,6 @@
 SimulationType                MolecularDynamics
 NumberOfCycles                25000
-NumberOfInitializationCycles  100
+NumberOfInitializationCycles  1000
 NumberOfEquilibrationCycles   5000
 PrintEvery                    100
 RestartFile                   yes

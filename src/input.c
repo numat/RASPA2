@@ -57,6 +57,7 @@
 #include "charge_equilibration.h"
 
 int EwaldAutomatic;
+int RemoveFractionalMoleculesFromRestartFile;
 static int *read_frameworks;
 static int *InitializeBox;
 
@@ -219,6 +220,7 @@ int ReadInput(char *input)
 
   CurrentReaction=0;
   RXMCLambdaHistogramSize=21;
+  RemoveFractionalMoleculesFromRestartFile=FALSE;
 
   NumberOfFixedAtomTypes=0;
   NumberOfActiveAtomTypes=0;
@@ -1510,6 +1512,11 @@ int ReadInput(char *input)
     {
       if(strcasecmp("yes",firstargument)==0) Restart=TRUE;
       if(strcasecmp("no",firstargument)==0) Restart=FALSE;
+    }
+    if(strcasecmp("RemoveFractionalMoleculesFromRestartFile",keyword)==0)
+    {
+      if(strcasecmp("yes",firstargument)==0) RemoveFractionalMoleculesFromRestartFile=TRUE;
+      if(strcasecmp("no",firstargument)==0) RemoveFractionalMoleculesFromRestartFile=FALSE;
     }
     if(strcasecmp("ContinueAfterCrash",keyword)==0)
     {
@@ -8893,28 +8900,31 @@ void ReadRestartFile(void)
       ComputeQuaternionCation(i);
     }
 
-    // sort the fractional molecules
-    bubble_sort(FractionalMolecules,NumberOfComponents);
-
-    // if restarting with CBMC from CFMC then remove fractional molecules
-    // start with the highest one, because removing is done by swapping with the last-molecule
-    for(CurrentComponent=NumberOfComponents-1;CurrentComponent>=0;CurrentComponent--)
+    if(RemoveFractionalMoleculesFromRestartFile)
     {
-      if(!Components[CurrentComponent].CFMoleculePresent[CurrentSystem])
-      {
-        if(FractionalMolecules[CurrentComponent]>=0)
-        {
-          if(Components[CurrentComponent].ExtraFrameworkMolecule)
-          {
-            CurrentCationMolecule=FractionalMolecules[CurrentComponent];
-            RemoveCationMolecule();
-          }
-          else
-          {
-            CurrentAdsorbateMolecule=FractionalMolecules[CurrentComponent];
-            RemoveAdsorbateMolecule();
-          }
+      // sort the fractional molecules
+      bubble_sort(FractionalMolecules,NumberOfComponents);
 
+      // if restarting with CBMC from CFMC then remove fractional molecules
+      // start with the highest one, because removing is done by swapping with the last-molecule
+      for(CurrentComponent=NumberOfComponents-1;CurrentComponent>=0;CurrentComponent--)
+      {
+        if(!Components[CurrentComponent].CFMoleculePresent[CurrentSystem])
+        {
+          if(FractionalMolecules[CurrentComponent]>=0)
+          {
+            if(Components[CurrentComponent].ExtraFrameworkMolecule)
+            {
+              CurrentCationMolecule=FractionalMolecules[CurrentComponent];
+              RemoveCationMolecule();
+            }
+            else
+            {
+              CurrentAdsorbateMolecule=FractionalMolecules[CurrentComponent];
+              RemoveAdsorbateMolecule();
+            }
+
+          }
         }
       }
     }

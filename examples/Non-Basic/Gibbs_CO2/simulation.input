@@ -2,7 +2,7 @@ SimulationType                MonteCarlo
 NumberOfCycles                25000
 NumberOfInitializationCycles  10000
 PrintEvery                    1000
-RestartFile                   yes
+RestartFile                   no
 
 Forcefield                    TraPPE
 
@@ -25,5 +25,5 @@ Component 0 MoleculeName             CO2
             RotationProbability      1.0
             ReinsertionProbability   1.0
             GibbsSwapProbability     1.0
-            CreateNumberOfMolecules  0 0
+            CreateNumberOfMolecules  150 150
 

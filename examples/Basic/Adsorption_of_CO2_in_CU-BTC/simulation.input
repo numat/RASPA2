@@ -5,6 +5,7 @@ PrintEvery                    100
 RestartFile                   no
 
 Forcefield                    GenericMOFs
+UseChargesFromCIFFile         yes
 
 Framework 0
 FrameworkName Cu-BTC

@@ -3,10 +3,11 @@ truncated
 # general rule tailcorrections
 no
 # number of defined interactions
-10
+11
 # type interaction
 UNIT           LENNARD_JONES    1.0       1.0
-O_             LENNARD_JONES    93.53     3.0
+O              LENNARD_JONES    93.53     3.0
+Si             NONE
 CH4            LENNARD_JONES    149.92    3.74
 CH3_sp3        LENNARD_JONES    120.15    3.61
 CH2_sp3        LENNARD_JONES     86.29    3.46

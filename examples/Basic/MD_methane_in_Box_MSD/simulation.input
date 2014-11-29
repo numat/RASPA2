@@ -2,7 +2,8 @@ SimulationType                MolecularDynamics
 NumberOfCycles                1000000
 NumberOfInitializationCycles  1000
 NumberOfEquilibrationCycles   10000
-PrintEvery                    1000
+PrintEvery                    100000
+PrintPropertiesEvery          100000
 
 Ensemble                      NVT
 TimeStep                      0.0005

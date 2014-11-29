@@ -1,8 +1,8 @@
 SimulationType                MonteCarlo
 NumberOfCycles                50000
-NumberOfInitializationCycles  1000
+NumberOfInitializationCycles  10000
 PrintEvery                    1000
-RestartFile                   yes
+RestartFile                   no
 
 Forcefield                    GarciaPerez2006
 
@@ -19,4 +19,4 @@ Component 0 MoleculeName             propane
             TranslationProbability   0.5
             RotationProbability      0.5
             RegrowProbability        0.5
-            CreateNumberOfMolecules  0
+            CreateNumberOfMolecules  256
