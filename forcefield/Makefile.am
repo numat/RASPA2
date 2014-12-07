@@ -15,8 +15,6 @@ SUBDIRS = GenericMOFs \
           Nicholas \
           Dubbeldam2012MIL-100 \
           Dubbeldam2012MIL-101 \
-          McKendrick2012FlexibleMIL-53 \
-          GarciaPerez2012 \
           Dzubak2012-IRMOF-1 \
           Dzubak2012-MgMOF-74 \
           Dzubak2012-MgMOF-74-extended \

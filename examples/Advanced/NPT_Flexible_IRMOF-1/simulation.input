@@ -1,7 +1,7 @@
 SimulationType               MolecularDynamics
 NumberOfCycles               500000
 NumberOfEquilibrationCycles  5000
-PrintEvery                   100
+PrintEvery                   5000
 RestartFile                  no
 
 Ensemble                     NPT

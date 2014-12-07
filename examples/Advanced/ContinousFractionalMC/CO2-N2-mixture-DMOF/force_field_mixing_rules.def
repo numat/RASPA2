@@ -3,7 +3,7 @@ truncated
 # general rule tailcorrections
 yes
 # number of defined interactions
-21
+22
 # type interaction
 Zn             LENNARD_JONES      6.2902424280  2.4945
 O1             LENNARD_JONES   105.67607279118  2.9599
@@ -22,9 +22,10 @@ Hm             LENNARD_JONES     7.54829091365  2.5996
 Cm             LENNARD_JONES    55.05220173026  3.3997
 Cl             LENNARD_JONES   133.35313947459  3.4709
 F              LENNARD_JONES    30.69638304886  3.1182
-O_co2          lennard-jones    79.0      3.05
-C_co2          lennard-jones    27.0      2.80
-N_n2           lennard-jones    36.0      3.31
-H_com          lennard-jones    36.7      2.958
+O_co2          LENNARD_JONES    79.0      3.05
+C_co2          LENNARD_JONES    27.0      2.80
+N_n2           LENNARD_JONES    36.0      3.31
+H_com          LENNARD_JONES    36.7      2.958
+N_com          NONE
 # general mixing rule for Lennard-Jones
 Lorentz-Berthelot

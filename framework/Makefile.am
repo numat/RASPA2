@@ -8,5 +8,4 @@ SUBDIRS = Dubbeldam2007FlexibleIRMOF-1 \
           DemontisModified \
           Nicholas \
           NicholasModified \
-          AmirjalayerSchmid \
-          McKendrick2012FlexibleMIL-53
+          AmirjalayerSchmid 

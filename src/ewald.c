@@ -20641,12 +20641,6 @@ int CalculateEwaldFourierDerivatives(REAL *Energy,REAL* Gradient,REAL_MATRIX Hes
 }
 
 
-// Remark 10 February 2011: Check and fix atoms without charge
-int CalculateEwaldFourierPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX_MATRIX HessianMatrix,REAL_MATRIX3x3 *StrainFirstDerivative,int ComputeGradient,int ComputeHessian)
-{
-  return 0;
-}
-
 void WriteRestartEwald(FILE *FilePtr)
 {
   int i;

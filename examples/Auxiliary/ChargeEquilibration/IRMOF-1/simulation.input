@@ -5,7 +5,6 @@ PrintEvery                       100
 RestartFile                      no
 
 Forcefield                       GenericMOFs
-BoundaryCondition                None
 ChargeMethod                     Coulomb
 CutOff                           12.0
 

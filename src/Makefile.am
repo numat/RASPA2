@@ -17,7 +17,6 @@ libraspa2_la_SOURCES = cbmc.c cbmc.h \
                        framework_energy.c framework_energy.h \
                        framework_force.c framework_force.h \
                        framework_hessian.c framework_hessian.h \
-                       framework_phonon.c framework_phonon.h \
                        grids.c grids.h \
                        input.c input.h \
                        integrate.c integrate.h \
@@ -26,12 +25,10 @@ libraspa2_la_SOURCES = cbmc.c cbmc.h \
                        inter_energy.c inter_energy.h \
                        inter_force.c inter_force.h \
                        inter_hessian.c inter_hessian.h \
-                       inter_phonon.c inter_phonon.h \
                        internal_born.c internal_born.h \
                        internal_energy.c internal_energy.h \
                        internal_force.c internal_force.h \
                        internal_hessian.c internal_hessian.h \
-                       internal_phonon.c internal_phonon.h \
                        linear_equations.c linear_equations.h \
                        matrix.c matrix.h \
                        mc_moves.c mc_moves.h \
@@ -44,7 +41,6 @@ libraspa2_la_SOURCES = cbmc.c cbmc.h \
                        movies.c movies.h \
                        numerical.c numerical.h \
                        output.c output.h \
-                       phonon_disperion.c phonon_disperion.h \
                        potentials.c potentials.h \
                        recrossing.c recrossing.h \
                        rigid.c rigid.h \

@@ -40,7 +40,6 @@
 #include "minimization_simulation.h"
 #include "molecular_dynamics.h"
 #include "spectra.h"
-#include "phonon_disperion.h"
 #include "spacegroup.h"
 #include "inter_energy.h"
 #include "numerical.h"
@@ -116,12 +115,8 @@ char* run(char *inputData, char *inputCrystal, char *raspaDir, bool stream)
     case SPECTRA:
       VibrationalAnalysis();
       break;
-    case PHONON_DISPERSION:
-      PhononDisperionCurves();
-      break;
     case MINIMIZATION:
       MinimalizationSimulation();
-      //PhononDisperionCurves();
       break;
     case GLOBAL_MINIMIZATION:
       GlobalMinimumSimulation();

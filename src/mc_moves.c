@@ -26802,41 +26802,46 @@ void PrintRXMCStatistics(FILE *FilePtr)
   int i,j,k;
   REAL total;
 
-  fprintf(FilePtr,"Performance of the Reaction MC lambda move:\n");
-  fprintf(FilePtr,"===========================================\n");
-
-  for(i=0;i<NumberOfReactions;i++)
+  if(NumberOfReactions>0)
   {
-        fprintf(FilePtr,"Reaction [%d] total tried: %lf constant-lambda accepted: %lf (%lf [%%])\n",
-          i,
-          (double)TotalReactionSwapLambdaAttempts[CurrentSystem][i],
-          (double)TotalReactionSwapLambdaAccepted[CurrentSystem][i],
-          (double)(TotalReactionSwapLambdaAttempts[CurrentSystem][i]>(REAL)0.0?
-            100.0*TotalReactionSwapLambdaAccepted[CurrentSystem][i]/TotalReactionSwapLambdaAttempts[CurrentSystem][i]:(REAL)0.0));
-        fprintf(FilePtr,"               total tried: %lf forward-reaction accepted: %lf (%lf [%%])\n",
-          (double)ReactionSwapLambdaAttempts[CurrentSystem][i][1],
-          (double)ReactionSwapLambdaAccepted[CurrentSystem][i][1],
-          (double)(ReactionSwapLambdaAttempts[CurrentSystem][i][1]>(REAL)0.0?
-            100.0*ReactionSwapLambdaAccepted[CurrentSystem][i][1]/ReactionSwapLambdaAttempts[CurrentSystem][i][1]:(REAL)0.0));
-        fprintf(FilePtr,"               total tried: %lf backward-reaction accepted: %lf (%lf [%%])\n",
-          (double)ReactionSwapLambdaAttempts[CurrentSystem][i][2],
-          (double)ReactionSwapLambdaAccepted[CurrentSystem][i][2],
-          (double)(ReactionSwapLambdaAttempts[CurrentSystem][i][2]>(REAL)0.0?
-            100.0*ReactionSwapLambdaAccepted[CurrentSystem][i][2]/ReactionSwapLambdaAttempts[CurrentSystem][i][2]:(REAL)0.0));
+    fprintf(FilePtr,"Performance of the Reaction MC lambda move:\n");
+    fprintf(FilePtr,"===========================================\n");
 
-    total=0.0;
-    for(k=0;k<RXMCLambdaHistogramSize;k++)
-      total+=RXMCLambdaHistogram[CurrentSystem][i][k];
+    for(i=0;i<NumberOfReactions;i++)
+    {
+          fprintf(FilePtr,"Reaction [%d] total tried: %lf constant-lambda accepted: %lf (%lf [%%])\n",
+            i,
+            (double)TotalReactionSwapLambdaAttempts[CurrentSystem][i],
+            (double)TotalReactionSwapLambdaAccepted[CurrentSystem][i],
+            (double)(TotalReactionSwapLambdaAttempts[CurrentSystem][i]>(REAL)0.0?
+              100.0*TotalReactionSwapLambdaAccepted[CurrentSystem][i]/TotalReactionSwapLambdaAttempts[CurrentSystem][i]:(REAL)0.0));
+          fprintf(FilePtr,"               total tried: %lf forward-reaction accepted: %lf (%lf [%%])\n",
+            (double)ReactionSwapLambdaAttempts[CurrentSystem][i][1],
+            (double)ReactionSwapLambdaAccepted[CurrentSystem][i][1],
+            (double)(ReactionSwapLambdaAttempts[CurrentSystem][i][1]>(REAL)0.0?
+              100.0*ReactionSwapLambdaAccepted[CurrentSystem][i][1]/ReactionSwapLambdaAttempts[CurrentSystem][i][1]:(REAL)0.0));
+          fprintf(FilePtr,"               total tried: %lf backward-reaction accepted: %lf (%lf [%%])\n",
+            (double)ReactionSwapLambdaAttempts[CurrentSystem][i][2],
+            (double)ReactionSwapLambdaAccepted[CurrentSystem][i][2],
+            (double)(ReactionSwapLambdaAttempts[CurrentSystem][i][2]>(REAL)0.0?
+              100.0*ReactionSwapLambdaAccepted[CurrentSystem][i][2]/ReactionSwapLambdaAttempts[CurrentSystem][i][2]:(REAL)0.0));
 
-    fprintf(FilePtr,"\n\tLambda probabilities:\n");
-    fprintf(FilePtr,"\t---------------------\n");
-    for(k=0;k<RXMCLambdaHistogramSize;k++)
-      fprintf(FilePtr,"\tLambda [ %4f - %4f ]: %18.10f (biasing factor: %18.10f)\n",
-         (REAL)k/RXMCLambdaHistogramSize,(REAL)(k+1)/RXMCLambdaHistogramSize,
-         100.0*RXMCLambdaHistogram[CurrentSystem][i][k]/total,RXMCBiasingFactors[CurrentSystem][i][k]);
-     fprintf(FilePtr,"\n");
+      total=0.0;
+      for(k=0;k<RXMCLambdaHistogramSize;k++)
+        total+=RXMCLambdaHistogram[CurrentSystem][i][k];
+
+      fprintf(FilePtr,"\n\tLambda probabilities:\n");
+      fprintf(FilePtr,"\t---------------------\n");
+      for(k=0;k<RXMCLambdaHistogramSize;k++)
+        fprintf(FilePtr,"\tLambda [ %4f - %4f ]: %18.10f (biasing factor: %18.10f)\n",
+           (REAL)k/RXMCLambdaHistogramSize,(REAL)(k+1)/RXMCLambdaHistogramSize,
+           100.0*RXMCLambdaHistogram[CurrentSystem][i][k]/total,RXMCBiasingFactors[CurrentSystem][i][k]);
+       fprintf(FilePtr,"\n");
+    }
+    fprintf(FilePtr,"\n\n");
   }
-  fprintf(FilePtr,"\n\n");
+  else
+   fprintf(FilePtr,"No reactions present, RXMC is OFF\n\n");
 }
 
 void WriteRestartMcMoves(FILE *FilePtr)

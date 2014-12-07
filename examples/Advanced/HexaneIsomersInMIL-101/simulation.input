@@ -2,7 +2,7 @@ SimulationType                   MC
 NumberOfCycles                   250000
 NumberOfInitializationCycles     50000
 NumberOfEquilibrationCycles      0
-PrintEvery                       1000
+PrintEvery                       5000
 RestartFile                      no
 
 ContinueAfterCrash no

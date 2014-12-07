@@ -124,6 +124,4 @@ int CalculateEwaldFourierDerivatives(REAL *Energy,REAL* Gradient,REAL_MATRIX Hes
 REAL EwaldFourierElectrostaticPotentialAdsorbate(int m,int l);
 REAL EwaldFourierElectrostaticPotentialCation(int m,int l);
 
-int CalculateEwaldFourierPhonon(VECTOR k,REAL *Energy,REAL* Gradient,COMPLEX_MATRIX HessianMatrix,REAL_MATRIX3x3 *StrainFirstDerivative,int ComputeGradient,int ComputeHessian);
-
 #endif

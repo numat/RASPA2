@@ -47,8 +47,6 @@ forcefield/AmirjalayerSchmid/Makefile \
 forcefield/Nicholas/Makefile \
 forcefield/Dubbeldam2012MIL-100/Makefile \
 forcefield/Dubbeldam2012MIL-101/Makefile \
-forcefield/McKendrick2012FlexibleMIL-53/Makefile \
-forcefield/GarciaPerez2012/Makefile \
 forcefield/Dzubak2012-IRMOF-1/Makefile \
 forcefield/Dzubak2012-MgMOF-74/Makefile \
 forcefield/Dzubak2012-MgMOF-74-extended/Makefile \
@@ -74,7 +72,6 @@ framework/DemontisModified/Makefile \
 framework/Nicholas/Makefile \
 framework/NicholasModified/Makefile \
 framework/AmirjalayerSchmid/Makefile \
-framework/McKendrick2012FlexibleMIL-53/Makefile \
 structures/Makefile \
 structures/zeolites/Makefile \
 structures/mofs/Makefile \
