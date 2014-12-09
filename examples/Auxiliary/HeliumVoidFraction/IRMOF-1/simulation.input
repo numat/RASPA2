@@ -9,8 +9,6 @@ Framework 0
 FrameworkName IRMOF-1
 UnitCells 1 1 1
 ExternalTemperature 298.0
-MovieScale 1.0
-
 
 Component 0 MoleculeName             helium
             MoleculeDefinition       TraPPE
