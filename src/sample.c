@@ -73,6 +73,7 @@ static REAL *CountRDF;
 int *RDFHistogramSize;
 REAL *RDFRange;
 static REAL ****RadialDistributionFunction;
+static REAL ***RadialDistributionFunctionWithFramework;
 
 int *ComputeProjectedLengths;
 int *WriteProjectedLengthsEvery;
@@ -461,14 +462,17 @@ void SampleRadialDistributionFunction(int Switch)
     case ALLOCATE:
       // allocate mememory for the rdf's, a 4D array
       RadialDistributionFunction=(REAL****)calloc(NumberOfSystems,sizeof(REAL***));
+      RadialDistributionFunctionWithFramework=(REAL***)calloc(NumberOfSystems,sizeof(REAL**));
       CountRDF=(REAL*)calloc(NumberOfSystems,sizeof(REAL));
       for(i=0;i<NumberOfSystems;i++)
       {
         if(ComputeRDF[i])
         {
+          RadialDistributionFunctionWithFramework[i]=(REAL**)calloc(NumberOfPseudoAtoms,sizeof(REAL*));
           RadialDistributionFunction[i]=(REAL***)calloc(NumberOfPseudoAtoms,sizeof(REAL**));
           for(j=0;j<NumberOfPseudoAtoms;j++)
           {
+            RadialDistributionFunctionWithFramework[i][j]=(REAL*)calloc(RDFHistogramSize[i],sizeof(REAL));
             RadialDistributionFunction[i][j]=(REAL**)calloc(NumberOfPseudoAtoms,sizeof(REAL*));
             for(k=0;k<NumberOfPseudoAtoms;k++)
               RadialDistributionFunction[i][j][k]=(REAL*)calloc(RDFHistogramSize[i],sizeof(REAL));
@@ -588,6 +592,8 @@ void SampleRadialDistributionFunction(int Switch)
                   {
                     RadialDistributionFunction[CurrentSystem][TypeA][TypeB][(int)(r/deltaR)]+=1.0;
                     RadialDistributionFunction[CurrentSystem][TypeB][TypeA][(int)(r/deltaR)]+=1.0;
+
+                    RadialDistributionFunctionWithFramework[CurrentSystem][TypeA][(int)(r/deltaR)]+=1.0;
                   }
                 }
               }
@@ -672,6 +678,8 @@ void SampleRadialDistributionFunction(int Switch)
                   {
                     RadialDistributionFunction[CurrentSystem][TypeA][TypeB][(int)(r/deltaR)]+=1.0;
                     RadialDistributionFunction[CurrentSystem][TypeB][TypeA][(int)(r/deltaR)]+=1.0;
+
+                    RadialDistributionFunctionWithFramework[CurrentSystem][TypeA][(int)(r/deltaR)]+=1.0;
                   }
                 }
               }
@@ -722,6 +730,28 @@ void SampleRadialDistributionFunction(int Switch)
       {
         if(PseudoAtoms[i].PrintToPDB)
         {
+          normalization=Volume[CurrentSystem]/(2.0*M_PI*pow(deltaR,(REAL)3.0)*
+                  (REAL)(NumberOfPseudoAtomsType[CurrentSystem][i]*Framework[CurrentSystem].TotalNumberOfAtoms)*CountRDF[CurrentSystem]);
+
+          if(NumberOfPseudoAtomsType[CurrentSystem][i]>0.0)
+          {
+            sprintf(buffer,"RadialDistributionFunctions/System_%d/RDF_Framework_%s%s.dat",
+                  CurrentSystem,PseudoAtoms[i].Name,FileNameAppend);
+            FilePtr=fopen(buffer,"w");
+            fprintf(FilePtr,"# column 1: index\n");
+            fprintf(FilePtr,"# column 2: distance [A]\n");
+            fprintf(FilePtr,"# column 3: RDF histogram\n");
+            fprintf(FilePtr,"# column 4: unnormalized distance histogram\n");
+            for(k=0;k<RDFHistogramSize[CurrentSystem];k++)
+            {
+              fprintf(FilePtr,"%d %lf %lf %lf\n",
+                k,(double)((k+0.5)*deltaR),(double)(RadialDistributionFunctionWithFramework[CurrentSystem][i][k]*normalization/SQR(k+0.5)),
+                                           (double)(RadialDistributionFunctionWithFramework[CurrentSystem][i][k]/CountRDF[CurrentSystem]));
+            }
+            fclose(FilePtr);
+          }
+          
+
           for(j=i;j<NumberOfPseudoAtoms;j++)
           {
             if(PseudoAtoms[j].PrintToPDB)
@@ -734,10 +764,15 @@ void SampleRadialDistributionFunction(int Switch)
                 sprintf(buffer,"RadialDistributionFunctions/System_%d/RDF_%s_%s%s.dat",
                       CurrentSystem,PseudoAtoms[i].Name,PseudoAtoms[j].Name,FileNameAppend);
                 FilePtr=fopen(buffer,"w");
+                fprintf(FilePtr,"# column 1: index\n");
+                fprintf(FilePtr,"# column 2: distance [A]\n");
+                fprintf(FilePtr,"# column 3: RDF histogram\n");
+                fprintf(FilePtr,"# column 4: unnormalized distance histogram\n");
                 for(k=0;k<RDFHistogramSize[CurrentSystem];k++)
                 {
-                  fprintf(FilePtr,"%d %lf %lf\n",
-                    k,(double)((k+0.5)*deltaR),(double)(RadialDistributionFunction[CurrentSystem][i][j][k]*normalization/SQR(k+0.5)));
+                  fprintf(FilePtr,"%d %lf %lf %lf\n",
+                    k,(double)((k+0.5)*deltaR),(double)(RadialDistributionFunction[CurrentSystem][i][j][k]*normalization/SQR(k+0.5)),
+                                               (double)(RadialDistributionFunction[CurrentSystem][i][j][k]/CountRDF[CurrentSystem]));
                 }
                 fclose(FilePtr);
               }
@@ -9976,6 +10011,8 @@ void WriteRestartSample(FILE *FilePtr)
     if(ComputeRDF[i])
     {
       for(j=0;j<NumberOfPseudoAtoms;j++)
+        fwrite(RadialDistributionFunctionWithFramework[i][j],RDFHistogramSize[i],sizeof(REAL),FilePtr);
+      for(j=0;j<NumberOfPseudoAtoms;j++)
         for(k=0;k<NumberOfPseudoAtoms;k++)
           fwrite(RadialDistributionFunction[i][j][k],RDFHistogramSize[i],sizeof(REAL),FilePtr);
     }
@@ -10966,6 +11003,8 @@ void ReadRestartSample(FILE *FilePtr)
   {
     if(ComputeRDF[i])
     {
+      for(j=0;j<NumberOfPseudoAtoms;j++)
+        fread(RadialDistributionFunctionWithFramework[i][j],RDFHistogramSize[i],sizeof(REAL),FilePtr);
       for(j=0;j<NumberOfPseudoAtoms;j++)
         for(k=0;k<NumberOfPseudoAtoms;k++)
           fread(RadialDistributionFunction[i][j][k],RDFHistogramSize[i],sizeof(REAL),FilePtr);
