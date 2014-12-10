@@ -7293,14 +7293,14 @@ void ReadFrameworkSpecificDefinition(void)
 }
 
 /*********************************************************************************************************
- * Name       | WriteFrameworkDefinition                                                                 *
+ * Name       | WriteFrameworkDefinitionDLPOLY                                                           *
  * ----------------------------------------------------------------------------------------------------- *
  * Function   | Write the definition (bond, bend, torsion, etc) of a framework component.                *
  * Note       | The excluded Van der Waals and Coulombic interactions are automatically computed from    *
  *            | framework exclusion rules (1-2, 1-3, 1-4 omission, bond/bend/torsion omission).          *
  *********************************************************************************************************/
 
-void WriteFrameworkDefinition(void)
+void WriteFrameworkDefinitionDLPOLY(void)
 {
   int i,j,f1;
   FILE *FilePtr;

@@ -243,6 +243,9 @@ int ReadInput(char *input)
   CurrentCylinder=0;
   CurrentSphere=0;
 
+  CreateTinkerInput=FALSE;
+  CreateDlpolyInput=FALSE;
+
   // not set, means get the random seed from the system time
   seed=0lu;
 
@@ -637,6 +640,17 @@ int ReadInput(char *input)
     strcpy(keyword,"keyword");
     sscanf(line,"%s%[^\n]",keyword,arguments);
     sscanf(arguments,"%s",firstargument);
+
+    if(strcasecmp("CreateTinkerInput",keyword)==0)
+    {
+      if(strcasecmp("yes",firstargument)==0) CreateTinkerInput=TRUE;
+      if(strcasecmp("no",firstargument)==0) CreateTinkerInput=FALSE;
+    }
+    if(strcasecmp("CreateDlpolyInput",keyword)==0)
+    {
+      if(strcasecmp("yes",firstargument)==0) CreateDlpolyInput=TRUE;
+      if(strcasecmp("no",firstargument)==0) CreateDlpolyInput=FALSE;
+    }
 
     if(strcasecmp("ReducedUnits",keyword)==0)
     {
@@ -8267,8 +8281,11 @@ int ReadInput(char *input)
     PrecomputeTotalEwaldContributions();
   }
 
-  for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
-    WriteFrameworkDefinition();
+  if(CreateDlpolyInput)
+  {
+    for(CurrentSystem=0;CurrentSystem<NumberOfSystems;CurrentSystem++)
+      WriteFrameworkDefinitionDLPOLY();
+  }
 
   CurrentSystem=0;
   CurrentComponent=0;

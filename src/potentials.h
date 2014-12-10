@@ -35,6 +35,7 @@ extern int IndividualMixingRules;
 extern int IndividualInteractions;
 
 extern int CreateTinkerInput;
+extern int CreateDlpolyInput;
 
 enum{NO_MIXING_RULE,LORENTZ_BERTHELOT,JORGENSEN};
 

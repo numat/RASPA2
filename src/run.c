@@ -98,10 +98,10 @@ char* run(char *inputData, char *inputCrystal, char *raspaDir, bool stream)
     WriteFrameworkDefinitionTinker("initial");
     WriteFrameworkDefinitionMOL("initial");
     WriteFrameworkDefinitionCIF("initial");
-    WriteSnapshotTinker("initial");
 
     if(CreateTinkerInput)
     {
+      WriteSnapshotTinker("initial");
       WriteFrameworkDefinitionTinker("tinker");
       WriteTinkerParameterFile();
       WriteTinkerKeyFile();
@@ -256,7 +256,8 @@ char* run(char *inputData, char *inputCrystal, char *raspaDir, bool stream)
     WriteFrameworkDefinitionPDB("final");
     WriteFrameworkDefinitionMOL("final");
     WriteFrameworkDefinitionCIF("final");
-    WriteSnapshotTinker("final");
+    if(CreateTinkerInput)
+      WriteSnapshotTinker("final");
   }
 
   free(FILE_CONTENTS);

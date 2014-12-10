@@ -56,6 +56,7 @@ int IndividualMixingRules;
 int IndividualInteractions;
 
 int CreateTinkerInput;
+int CreateDlpolyInput;
 
 POTENTIAL BondTypes[NR_BOND_TYPES]=
   {{2,"HARMONIC_BOND"},

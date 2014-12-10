@@ -445,7 +445,7 @@ void ReadFrameworkDefinitionMOL(void);
 
 void ReadFrameworkSpecificDefinition(void);
 int ReadFrameworkDefinition(void);
-void WriteFrameworkDefinition(void);
+void WriteFrameworkDefinitionDLPOLY(void);
 
 void CellProperties(REAL_MATRIX3x3 *in,REAL_MATRIX3x3 *out,REAL *Volume);
 
