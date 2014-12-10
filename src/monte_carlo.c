@@ -331,7 +331,7 @@ void MonteCarloSimulation(void)
           }
         }
 
-        // moves
+        // select MC moves
         for(i=0;i<NumberOfSystems;i++)
         {
           // choose a random system
@@ -557,7 +557,7 @@ void MonteCarloSimulation(void)
         }
       }
 
-      // moves
+      // select MC moves
       for(i=0;i<NumberOfSystems;i++)
       {
         // choose a random system

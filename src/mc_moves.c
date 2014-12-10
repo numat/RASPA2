@@ -6410,83 +6410,11 @@ int IdentityChangeAdsorbateMove(void)
         AcceptEwaldAdsorbateMove(0);
     }
 
-    // register the changes in the types for the 'Old'-component atoms
-    nr_atoms=Components[OldComponent].NumberOfAtoms;
-    for(i=0;i<nr_atoms;i++)
-    {
-      type=Components[OldComponent].Type[i];
-      NumberOfPseudoAtomsType[CurrentSystem][type]--;
-    }
+    CurrentComponent=NewComponent;
+    InsertAdsorbateMolecule();
 
-    // overwrite the 'Old'-component with the 'New'-component
-    nr_atoms=Components[NewComponent].NumberOfAtoms;
-    Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].NumberOfAtoms=nr_atoms;
-    Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Type=NewComponent;
-
-    // realloc memory (the size of the molecule could be different)
-    Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms=(ATOM*)
-          realloc(Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms,nr_atoms*sizeof(ATOM));
-    if(Components[CurrentComponent].NumberOfGroups>0)
-      Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Groups=(GROUP*)
-          realloc(Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Groups,
-                  Components[CurrentComponent].NumberOfGroups*sizeof(GROUP));
-
-    for(i=0;i<nr_atoms;i++)
-    {
-      Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[i].Position=TrialPosition[CurrentSystem][i];
-      Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[i].AnisotropicPosition=TrialAnisotropicPosition[CurrentSystem][i];
-      Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[i].CFVDWScalingParameter=1.0;
-      Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[i].CFChargeScalingParameter=1.0;
-      type=Components[NewComponent].Type[i];
-      Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[i].Type=type;
-      Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[i].Fixed.x=Components[NewComponent].Fixed[i];
-      Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[i].Fixed.y=Components[NewComponent].Fixed[i];
-      Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[i].Fixed.z=Components[NewComponent].Fixed[i];
-      Adsorbates[CurrentSystem][CurrentAdsorbateMolecule].Atoms[i].Charge=Components[NewComponent].Charge[i];
-      NumberOfPseudoAtomsType[CurrentSystem][type]++;
-    }
-
-    // register the changes in the amount of molecules of each type
-    Components[NewComponent].NumberOfMolecules[CurrentSystem]++;
-    Components[OldComponent].NumberOfMolecules[CurrentSystem]--;
-
-    NumberOfAtomsPerSystem[CurrentSystem]-=Components[OldComponent].NumberOfAtoms;
-    NumberOfChargesPerSystem[CurrentSystem]-=Components[OldComponent].NumberOfCharges;
-    NumberOfBondDipolesPerSystem[CurrentSystem]-=Components[OldComponent].NumberOfBondDipoles;
-
-    NumberOfAtomsPerSystem[CurrentSystem]+=Components[NewComponent].NumberOfAtoms;
-    NumberOfChargesPerSystem[CurrentSystem]+=Components[NewComponent].NumberOfCharges;
-    NumberOfBondDipolesPerSystem[CurrentSystem]+=Components[NewComponent].NumberOfBondDipoles;
-
-
-    LargestNumberOfCoulombicSites=NumberOfChargesPerSystem[CurrentSystem];
-    LargestNumberOfBondDipoleSites=NumberOfBondDipolesPerSystem[CurrentSystem];
-    for(i=0;i<Framework[CurrentSystem].NumberOfFrameworks;i++)
-    {
-      LargestNumberOfCoulombicSites+=Framework[CurrentSystem].NumberOfCharges[i];
-      LargestNumberOfBondDipoleSites+=Framework[CurrentSystem].NumberOfBondDipoles[i];
-    }
-
-    // if the number is largest than the currently allocated memory reallocate the memory for Ewald
-    // the hard-coded default here is to extend the arrays with 256 atoms
-    if(LargestNumberOfCoulombicSites>=MaxNumberOfCoulombicSites)
-    {
-      MaxNumberOfCoulombicSites+=MAX2(MaxNumberOfBeads,512);
-      if((ChargeMethod==EWALD)&&(!OmitEwaldFourier))
-        ReallocateEwaldChargeMemory();
-    }
-    if(LargestNumberOfBondDipoleSites>=MaxNumberOfBondDipoleSites)
-    {
-      MaxNumberOfBondDipoleSites+=MAX2(MaxNumberOfBeads,512);
-      if((ChargeMethod==EWALD)&&(!OmitEwaldFourier))
-        ReallocateEwaldBondDipoleMemory();
-    }
-
-
-    // update the center of mass of the molecule
-    UpdateGroupCenterOfMassAdsorbate(CurrentAdsorbateMolecule);
-
-    ComputeQuaternionAdsorbate(CurrentAdsorbateMolecule);
+    CurrentComponent=OldComponent;
+    RemoveAdsorbateMolecule();
 
     DeltaU=UBondNew[CurrentSystem]+UUreyBradleyNew[CurrentSystem]+UBendNew[CurrentSystem]+UBendBendNew[CurrentSystem]+UInversionBendNew[CurrentSystem]+UTorsionNew[CurrentSystem]+
            UImproperTorsionNew[CurrentSystem]+UBondBondNew[CurrentSystem]+UBondBendNew[CurrentSystem]+UBondTorsionNew[CurrentSystem]+UBendTorsionNew[CurrentSystem]+
@@ -6758,53 +6686,12 @@ int IdentityChangeCationMove(void)
         AcceptEwaldCationMove(0);
     }
 
-    // register the changes in the types for the 'Old'-component atoms
-    nr_atoms=Components[OldComponent].NumberOfAtoms;
-    for(i=0;i<nr_atoms;i++)
-    {
-      type=Components[OldComponent].Type[i];
-      NumberOfPseudoAtomsType[CurrentSystem][type]--;
-    }
+    CurrentComponent=NewComponent;
+    InsertCationMolecule();
 
-    // overwrite the 'Old'-component with the 'New'-component
-    nr_atoms=Components[NewComponent].NumberOfAtoms;
-    Cations[CurrentSystem][CurrentCationMolecule].NumberOfAtoms=nr_atoms;
-    Cations[CurrentSystem][CurrentCationMolecule].Type=NewComponent;
+    CurrentComponent=OldComponent;
+    RemoveCationMolecule();
 
-    // realloc memory (the size of the molecule could be different)
-    Cations[CurrentSystem][CurrentCationMolecule].Atoms=(ATOM*)
-          realloc(Cations[CurrentSystem][CurrentCationMolecule].Atoms,nr_atoms*sizeof(ATOM));
-    if(Components[CurrentComponent].NumberOfGroups>0)
-      Cations[CurrentSystem][CurrentCationMolecule].Groups=(GROUP*)
-          realloc(Cations[CurrentSystem][CurrentCationMolecule].Groups,
-                  Components[CurrentComponent].NumberOfGroups*sizeof(GROUP));
-
-    for(i=0;i<nr_atoms;i++)
-    {
-      Cations[CurrentSystem][CurrentCationMolecule].Atoms[i].Position=TrialPosition[CurrentSystem][i];
-      Cations[CurrentSystem][CurrentCationMolecule].Atoms[i].AnisotropicPosition=TrialAnisotropicPosition[CurrentSystem][i];
-      Cations[CurrentSystem][CurrentCationMolecule].Atoms[i].CFVDWScalingParameter=1.0;
-      Cations[CurrentSystem][CurrentCationMolecule].Atoms[i].CFChargeScalingParameter=1.0;
-      type=Components[NewComponent].Type[i];
-      Cations[CurrentSystem][CurrentCationMolecule].Atoms[i].Type=type;
-      Cations[CurrentSystem][CurrentCationMolecule].Atoms[i].Charge=Components[NewComponent].Charge[i];
-      NumberOfPseudoAtomsType[CurrentSystem][type]++;
-    }
-
-    // register the changes in the amount of molecules of each type
-    Components[NewComponent].NumberOfMolecules[CurrentSystem]++;
-    Components[OldComponent].NumberOfMolecules[CurrentSystem]--;
-
-    NumberOfAtomsPerSystem[CurrentSystem]-=Components[OldComponent].NumberOfAtoms;
-    NumberOfChargesPerSystem[CurrentSystem]-=Components[OldComponent].NumberOfCharges;
-    NumberOfBondDipolesPerSystem[CurrentSystem]-=Components[OldComponent].NumberOfBondDipoles;
-
-    NumberOfAtomsPerSystem[CurrentSystem]+=Components[NewComponent].NumberOfAtoms;
-    NumberOfChargesPerSystem[CurrentSystem]+=Components[NewComponent].NumberOfCharges;
-    NumberOfBondDipolesPerSystem[CurrentSystem]+=Components[NewComponent].NumberOfBondDipoles;
-
-    // update the center of mass of the molecule
-    UpdateGroupCenterOfMassCation(CurrentCationMolecule);
 
     DeltaU=UBondNew[CurrentSystem]+UUreyBradleyNew[CurrentSystem]+UBendNew[CurrentSystem]+UBendBendNew[CurrentSystem]+UInversionBendNew[CurrentSystem]+UTorsionNew[CurrentSystem]+
            UImproperTorsionNew[CurrentSystem]+UBondBondNew[CurrentSystem]+UBondBendNew[CurrentSystem]+UBondTorsionNew[CurrentSystem]+UBendTorsionNew[CurrentSystem]+
@@ -12786,7 +12673,7 @@ int GibbsIdentityChangeAdsorbateMove(void)
       }
     }
 
-    // swap the alocate memory for the atoms and the groups
+    // swap the allocated memory for the atoms and the groups
     SWAP(Adsorbates[BoxI][AdsorbateMoleculeA].Atoms,Adsorbates[BoxII][AdsorbateMoleculeB].Atoms,atom_temp);
     SWAP(Adsorbates[BoxI][AdsorbateMoleculeA].Groups,Adsorbates[BoxII][AdsorbateMoleculeB].Groups,group_temp);
 
@@ -13268,7 +13155,7 @@ int GibbsIdentityChangeCationMove(void)
       }
     }
 
-    // swap the alocate memory for the atoms and the groups
+    // swap the allocated memory for the atoms and the groups
     SWAP(Cations[BoxI][CationMoleculeA].Atoms,Cations[BoxII][CationMoleculeB].Atoms,atom_temp);
     SWAP(Cations[BoxI][CationMoleculeA].Groups,Cations[BoxII][CationMoleculeB].Groups,group_temp);
 
