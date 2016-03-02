@@ -103,7 +103,7 @@ def run_script(input_script, structure=None, stream=True):
     p.start()
     if stream:
         output = parent_conn.recv()
-    p.join(1)
+    p.join()
     p.terminate()
 
     if stream:
