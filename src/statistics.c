@@ -3720,7 +3720,7 @@ void PrintAverageTotalSystemEnergiesMC(FILE *FilePtr)
   {
     if(BlockCount[CurrentSystem][i]>0.0)
     {
-      HeatOfDesorption[i]=ENERGY_TO_KELVIN*(therm_baro_stats.ExternalTemperature[CurrentSystem]-
+      HeatOfDesorption[i]=therm_baro_stats.ExternalTemperature[CurrentSystem]-ENERGY_TO_KELVIN*(
          (TotalEnergyTimesNumberOfMoleculesAverage[CurrentSystem][i]/BlockCount[CurrentSystem][i]-
          (UTotalAverage[CurrentSystem][i]/BlockCount[CurrentSystem][i])*
          (NumberOfMoleculesAverage[CurrentSystem][i]/BlockCount[CurrentSystem][i]))/
